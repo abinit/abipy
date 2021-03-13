@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>display Package &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>display Package &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="dynamics Package" href="dynamics_api.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -150,7 +154,7 @@
   <div class="section" id="display-package">
 <h1><a class="toc-backref" href="#contents">display Package</a><a class="headerlink" href="#display-package" title="Permalink to this headline">¶</a></h1>
 <div class="contents topic" id="contents">
-<p class="topic-title first">Contents</p>
+<p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#display-package" id="id1">display Package</a></p>
 <ul>
@@ -168,19 +172,19 @@
 <span id="mvtk-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mvtk</span></code> Module</a><a class="headerlink" href="#module-abipy.display.mvtk" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> toolkit.</p>
 <p>WARNING: This code is still under development.</p>
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.mvtk.get_fig_mlab">
-<code class="sig-prename descclassname">abipy.display.mvtk.</code><code class="sig-name descname">get_fig_mlab</code><span class="sig-paren">(</span><em class="sig-param">figure=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#get_fig_mlab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.get_fig_mlab" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.mvtk.</span></code><code class="sig-name descname"><span class="pre">get_fig_mlab</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#get_fig_mlab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.mvtk.get_fig_mlab" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.mvtk.plot_wigner_seitz">
-<code class="sig-prename descclassname">abipy.display.mvtk.</code><code class="sig-name descname">plot_wigner_seitz</code><span class="sig-paren">(</span><em class="sig-param">lattice</em>, <em class="sig-param">figure=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_wigner_seitz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_wigner_seitz" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.mvtk.</span></code><code class="sig-name descname"><span class="pre">plot_wigner_seitz</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lattice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_wigner_seitz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.mvtk.plot_wigner_seitz" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds the skeleton of the Wigner-Seitz cell of the lattice to a <a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> figure</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lattice</strong> – Reciprocal-space <a class="reference external" href="https://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2020.4.29)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object</p></li>
+<li><p><strong>lattice</strong> – Reciprocal-space <a class="reference external" href="https://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2022.0.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object</p></li>
 <li><p><strong>figure</strong> – mayavi figure, None to plot on the curretn figure</p></li>
 <li><p><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal notranslate"><span class="pre">plot3d</span></code>. Color defaults to black
 and line_width to 1.</p></li>
@@ -190,9 +194,9 @@ and line_width to 1.</p></li>
 <p>Returns: mayavi figure</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.mvtk.plot_unit_cell">
-<code class="sig-prename descclassname">abipy.display.mvtk.</code><code class="sig-name descname">plot_unit_cell</code><span class="sig-paren">(</span><em class="sig-param">lattice</em>, <em class="sig-param">figure=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_unit_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_unit_cell" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.mvtk.</span></code><code class="sig-name descname"><span class="pre">plot_unit_cell</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lattice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_unit_cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.mvtk.plot_unit_cell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds the unit cell of the lattice to a <a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> figure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -207,14 +211,14 @@ and line_width to 1.</p></li>
 <p>Returns: mayavi figure</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.mvtk.plot_lattice_vectors">
-<code class="sig-prename descclassname">abipy.display.mvtk.</code><code class="sig-name descname">plot_lattice_vectors</code><span class="sig-paren">(</span><em class="sig-param">lattice</em>, <em class="sig-param">figure=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_lattice_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_lattice_vectors" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.mvtk.</span></code><code class="sig-name descname"><span class="pre">plot_lattice_vectors</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lattice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_lattice_vectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.mvtk.plot_lattice_vectors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds the basis vectors of the lattice provided to a <a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> figure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lattice</strong> – <a class="reference external" href="https://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2020.4.29)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object.</p></li>
+<li><p><strong>lattice</strong> – <a class="reference external" href="https://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2022.0.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object.</p></li>
 <li><p><strong>figure</strong> – mayavi figure, None if a new figure should be created.</p></li>
 <li><p><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal notranslate"><span class="pre">plot3d</span></code>. Color defaults to black
 and line_width to 1.</p></li>
@@ -224,9 +228,9 @@ and line_width to 1.</p></li>
 <p>Returns: mayavi figure</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.mvtk.plot_structure">
-<code class="sig-prename descclassname">abipy.display.mvtk.</code><code class="sig-name descname">plot_structure</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">frac_coords=False</em>, <em class="sig-param">to_unit_cell=False</em>, <em class="sig-param">style='points+labels'</em>, <em class="sig-param">unit_cell_color=(0</em>, <em class="sig-param">0</em>, <em class="sig-param">0)</em>, <em class="sig-param">color_scheme='VESTA'</em>, <em class="sig-param">figure=None</em>, <em class="sig-param">show=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_structure" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.mvtk.</span></code><code class="sig-name descname"><span class="pre">plot_structure</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frac_coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_unit_cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'points+labels'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_cell_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VESTA'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.mvtk.plot_structure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot structure with mayavi.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -245,15 +249,15 @@ and line_width to 1.</p></li>
 <p>Returns: mayavi figure</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.mvtk.plot_labels">
-<code class="sig-prename descclassname">abipy.display.mvtk.</code><code class="sig-name descname">plot_labels</code><span class="sig-paren">(</span><em class="sig-param">labels</em>, <em class="sig-param">lattice=None</em>, <em class="sig-param">coords_are_cartesian=False</em>, <em class="sig-param">figure=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_labels" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.mvtk.</span></code><code class="sig-name descname"><span class="pre">plot_labels</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lattice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords_are_cartesian</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.mvtk.plot_labels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds labels to a <a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> figure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>labels</strong> – dict containing the label as a key and the coordinates as value.</p></li>
-<li><p><strong>lattice</strong> – <a class="reference external" href="https://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2020.4.29)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object used to convert from reciprocal to cartesian coordinates</p></li>
+<li><p><strong>lattice</strong> – <a class="reference external" href="https://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2022.0.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object used to convert from reciprocal to cartesian coordinates</p></li>
 <li><p><strong>coords_are_cartesian</strong> – Set to True if you are providing.
 coordinates in cartesian coordinates. Defaults to False.
 Requires lattice if False.</p></li>
@@ -265,13 +269,13 @@ Requires lattice if False.</p></li>
 <p>Returns: mayavi figure</p>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="abipy.display.mvtk.MayaviFieldAnimator">
-<em class="property">class </em><code class="sig-prename descclassname">abipy.display.mvtk.</code><code class="sig-name descname">MayaviFieldAnimator</code><span class="sig-paren">(</span><em class="sig-param">filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<dl class="method">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.display.mvtk.</span></code><code class="sig-name descname"><span class="pre">MayaviFieldAnimator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepaths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
 <dt id="abipy.display.mvtk.MayaviFieldAnimator.volume_animate">
-<code class="sig-name descname">volume_animate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator.volume_animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator.volume_animate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">volume_animate</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator.volume_animate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator.volume_animate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -280,44 +284,44 @@ Requires lattice if False.</p></li>
 <div class="section" id="module-abipy.display.utils">
 <span id="utils-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">utils</span></code> Module</a><a class="headerlink" href="#module-abipy.display.utils" title="Permalink to this headline">¶</a></h2>
 <p>Tools to build ipython widgets.</p>
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.utils.widget2py">
-<code class="sig-prename descclassname">abipy.display.utils.</code><code class="sig-name descname">widget2py</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#widget2py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.widget2py" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.utils.</span></code><code class="sig-name descname"><span class="pre">widget2py</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#widget2py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.utils.widget2py" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.utils.str2bool_or_none">
-<code class="sig-prename descclassname">abipy.display.utils.</code><code class="sig-name descname">str2bool_or_none</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#str2bool_or_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.str2bool_or_none" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.utils.</span></code><code class="sig-name descname"><span class="pre">str2bool_or_none</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#str2bool_or_none"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.utils.str2bool_or_none" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.utils.markers_dropdown">
-<code class="sig-prename descclassname">abipy.display.utils.</code><code class="sig-name descname">markers_dropdown</code><span class="sig-paren">(</span><em class="sig-param">default='o'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#markers_dropdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.markers_dropdown" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.utils.</span></code><code class="sig-name descname"><span class="pre">markers_dropdown</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'o'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#markers_dropdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.utils.markers_dropdown" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.utils.colors_dropdow">
-<code class="sig-prename descclassname">abipy.display.utils.</code><code class="sig-name descname">colors_dropdow</code><span class="sig-paren">(</span><em class="sig-param">default='None'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#colors_dropdow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.colors_dropdow" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.utils.</span></code><code class="sig-name descname"><span class="pre">colors_dropdow</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'None'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#colors_dropdow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.utils.colors_dropdow" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.utils.linewidth_slider">
-<code class="sig-prename descclassname">abipy.display.utils.</code><code class="sig-name descname">linewidth_slider</code><span class="sig-paren">(</span><em class="sig-param">default=1</em>, <em class="sig-param">orientation='horizontal'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#linewidth_slider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.linewidth_slider" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.utils.</span></code><code class="sig-name descname"><span class="pre">linewidth_slider</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#linewidth_slider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.utils.linewidth_slider" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.utils.size_slider">
-<code class="sig-prename descclassname">abipy.display.utils.</code><code class="sig-name descname">size_slider</code><span class="sig-paren">(</span><em class="sig-param">default=5</em>, <em class="sig-param">orientation='horizontal'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#size_slider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.size_slider" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.utils.</span></code><code class="sig-name descname"><span class="pre">size_slider</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#size_slider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.utils.size_slider" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.utils.saturation_slider">
-<code class="sig-prename descclassname">abipy.display.utils.</code><code class="sig-name descname">saturation_slider</code><span class="sig-paren">(</span><em class="sig-param">default=0.75</em>, <em class="sig-param">orientation='horizontal'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#saturation_slider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.saturation_slider" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.utils.</span></code><code class="sig-name descname"><span class="pre">saturation_slider</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#saturation_slider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.utils.saturation_slider" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.display.utils.colormap_widget">
-<code class="sig-prename descclassname">abipy.display.utils.</code><code class="sig-name descname">colormap_widget</code><span class="sig-paren">(</span><em class="sig-param">default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#colormap_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.colormap_widget" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.display.utils.</span></code><code class="sig-name descname"><span class="pre">colormap_widget</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#colormap_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.display.utils.colormap_widget" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -336,8 +340,8 @@ Requires lattice if False.</p></li>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

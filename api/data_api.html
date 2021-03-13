@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>data Package &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>data Package &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="dfpt Package" href="dfpt_api.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -148,7 +152,7 @@
   <div class="section" id="data-package">
 <h1><a class="toc-backref" href="#contents">data Package</a><a class="headerlink" href="#data-package" title="Permalink to this headline">¶</a></h1>
 <div class="contents topic" id="contents">
-<p class="topic-title first">Contents</p>
+<p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#data-package" id="id2">data Package</a></p>
 <ul>
@@ -164,40 +168,40 @@ Preferred way to import the module is via the import syntax:</p>
 <blockquote>
 <div><p>import abipy.data as abidata</p>
 </div></blockquote>
-<dl class="function">
-<dt id="abipy.data.structure_from_ucell">
-<code class="sig-prename descclassname">abipy.data.</code><code class="sig-name descname">structure_from_ucell</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data/ucells.html#structure_from_ucell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.data.structure_from_ucell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a <cite>Structure</cite> from the name of entry in the database.</p>
-</dd></dl>
-
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.data.cif_file">
-<code class="sig-prename descclassname">abipy.data.</code><code class="sig-name descname">cif_file</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data.html#cif_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.data.cif_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.data.</span></code><code class="sig-name descname"><span class="pre">cif_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data.html#cif_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.data.cif_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the absolute path of the CIF file in tests/data/cifs.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.data.pseudo">
-<code class="sig-prename descclassname">abipy.data.</code><code class="sig-name descname">pseudo</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data.html#pseudo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.data.pseudo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.data.</span></code><code class="sig-name descname"><span class="pre">pseudo</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data.html#pseudo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.data.pseudo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a <cite>Pseudo</cite> object.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.data.pseudos">
-<code class="sig-prename descclassname">abipy.data.</code><code class="sig-name descname">pseudos</code><span class="sig-paren">(</span><em class="sig-param">*filenames</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data.html#pseudos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.data.pseudos" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.data.</span></code><code class="sig-name descname"><span class="pre">pseudos</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">filenames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data.html#pseudos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.data.pseudos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a PseudoTable constructed from the input filenames  located in tests/data/pseudos.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.data.ref_file">
-<code class="sig-prename descclassname">abipy.data.</code><code class="sig-name descname">ref_file</code><span class="sig-paren">(</span><em class="sig-param">basename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data.html#ref_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.data.ref_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.data.</span></code><code class="sig-name descname"><span class="pre">ref_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data.html#ref_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.data.ref_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the absolute path of basename in tests/data directory.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="abipy.data.ref_files">
-<code class="sig-prename descclassname">abipy.data.</code><code class="sig-name descname">ref_files</code><span class="sig-paren">(</span><em class="sig-param">*basenames</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data.html#ref_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.data.ref_files" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">abipy.data.</span></code><code class="sig-name descname"><span class="pre">ref_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">basenames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data.html#ref_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.data.ref_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>List with the absolute path of basenames in tests/data directory.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="abipy.data.structure_from_ucell">
+<code class="sig-prename descclassname"><span class="pre">abipy.data.</span></code><code class="sig-name descname"><span class="pre">structure_from_ucell</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/data/ucells.html#structure_from_ucell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.data.structure_from_ucell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <cite>Structure</cite> from the name of entry in the database.</p>
 </dd></dl>
 
 </div>
@@ -216,8 +220,8 @@ Preferred way to import the module is via the import syntax:</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

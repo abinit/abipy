@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>GW with scissors operator &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GW with scissors operator &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="GW corrections" href="plot_qpbands_with_interpolation.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,7 +148,8 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-qpbands-with-scissor-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-qpbands-with-scissor-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="gw-with-scissors-operator">
 <span id="sphx-glr-gallery-plot-qpbands-with-scissor-py"></span><h1>GW with scissors operator<a class="headerlink" href="#gw-with-scissors-operator" title="Permalink to this headline">¶</a></h1>
@@ -154,44 +159,36 @@ We then use the scissors operator to correct the KS band structure
 computed on a high symmetry k-path. Finally, the LDA and the QPState band
 structure are plotted with matplotlib.</p>
 <ul class="sphx-glr-horizontal">
-<li><img alt="../_images/sphx_glr_plot_qpbands_with_scissor_001.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_scissor_001.png" />
+<li><img alt="plot qpbands with scissor" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_scissor_001.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_qpbands_with_scissor_002.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_scissor_002.png" />
+<li><img alt="plot qpbands with scissor" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_scissor_002.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_qpbands_with_scissor_003.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_scissor_003.png" />
+<li><img alt="Silicon band structure" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_scissor_003.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_qpbands_with_scissor_004.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_scissor_004.png" />
+<li><img alt="Silicon band structure, LDA, LDA+scissors(e)" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_scissor_004.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/scipy/interpolate/fitpack2.py:186: ComplexWarning: Casting complex values to real discards the imaginary part
-  xe=bbox[1], s=s)
-/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
-KS fermie 5.5984532787385985 --&gt; QP fermie 5.407251265724052 Delta(QP-KS)= -0.19120201301454642
-KS fermie 5.5984532787385985 --&gt; QP fermie 5.407251265724052 Delta(QP-KS)= -0.19120201301454642
-/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
+/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/scipy/interpolate/fitpack2.py:202: ComplexWarning: Casting complex values to real discards the imaginary part
+  data = dfitpack.fpcurf0(x, y, k, w=w, xb=bbox[0],
+/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
+KS fermie 5.598313017568332 eV --&gt; QP fermie 5.40710713209731 eV Delta(QP-KS)= -0.1912058854710219 eV
+KS fermie 5.598453325290463 eV --&gt; QP fermie 5.407251265916601 eV Delta(QP-KS)= -0.19120205937386192 eV
+/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
 </pre></div>
 </div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
-<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abiopen</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span>
+<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">,</span> <a href="../api/core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-class"><span class="n">ElectronBandsPlotter</span></a>
 
 <span class="c1"># Get the QP results from the SIGRES.nc database.</span>
-<span class="n">sigma_file</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_g0w0ppm_nband30_SIGRES.nc&quot;</span><span class="p">))</span>
+<span class="n">sigma_file</span> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;si_g0w0ppm_nband30_SIGRES.nc&quot;</span><span class="p">))</span>
 
 <span class="c1"># Let&#39;s have a look at the QP correction as function of the KS energy.</span>
 <span class="c1"># Don&#39;t shift KS eigenvalues to have zero energy at the Fermi energy.</span>
@@ -203,18 +200,18 @@ KS fermie 5.5984532787385985 --&gt; QP fermie 5.407251265724052 Delta(QP-KS)= -0
 <span class="n">sigma_file</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="n">sigma_file</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">()</span>
 
-<span class="n">qplist_spin</span> <span class="o">=</span> <span class="n">sigma_file</span><span class="o">.</span><span class="n">qplist_spin</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">qplist_spin</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sigma_file</span><span class="o">.</span><span class="n">qplist_spin</span></a>
 
 <span class="c1"># Define the two domains and construct the scissors operator</span>
-<span class="n">domains</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">6.1</span><span class="p">,</span> <span class="mi">18</span><span class="p">]]</span>
-<span class="n">scissors</span> <span class="o">=</span> <span class="n">qplist_spin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">build_scissors</span><span class="p">(</span><span class="n">domains</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">domains</span></a> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">6.1</span><span class="p">,</span> <span class="mi">18</span><span class="p">]]</span>
+<span class="n">scissors</span> <span class="o">=</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">qplist_spin</span></a><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">build_scissors</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">domains</span></a><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
 <span class="c1"># Read the KS band energies computed on the k-path</span>
-<span class="n">ks_bands</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">ebands</span>
+<span class="n">ks_bands</span> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">ebands</span>
 
 <span class="c1"># Read the KS band energies computed on the Monkhorst-Pack (MP) mesh</span>
 <span class="c1"># and compute the DOS with the Gaussian method</span>
-<span class="n">ks_mpbands</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">ebands</span>
+<span class="n">ks_mpbands</span> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">ebands</span>
 <span class="n">ks_edos</span> <span class="o">=</span> <span class="n">ks_mpbands</span><span class="o">.</span><span class="n">get_edos</span><span class="p">()</span>
 
 <span class="c1"># Apply the scissors operator first on the KS band structure</span>
@@ -227,7 +224,7 @@ KS fermie 5.5984532787385985 --&gt; QP fermie 5.407251265724052 Delta(QP-KS)= -0
 <span class="n">qp_edos</span> <span class="o">=</span> <span class="n">qp_mpbands</span><span class="o">.</span><span class="n">get_edos</span><span class="p">()</span>
 
 <span class="c1"># Plot the LDA and the QPState band structure with matplotlib.</span>
-<span class="n">plotter</span> <span class="o">=</span> <span class="n">ElectronBandsPlotter</span><span class="p">()</span>
+<span class="n">plotter</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-class"><span class="n">ElectronBandsPlotter</span></a><span class="p">()</span>
 
 <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;LDA&quot;</span><span class="p">,</span> <span class="n">ks_bands</span><span class="p">,</span> <span class="n">edos</span><span class="o">=</span><span class="n">ks_edos</span><span class="p">)</span>
 <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;LDA+scissors(e)&quot;</span><span class="p">,</span> <span class="n">qp_bands</span><span class="p">,</span> <span class="n">edos</span><span class="o">=</span><span class="n">qp_edos</span><span class="p">)</span>
@@ -241,12 +238,12 @@ KS fermie 5.5984532787385985 --&gt; QP fermie 5.407251265724052 Delta(QP-KS)= -0
 <span class="n">sigma_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  2.157 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  2.864 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-qpbands-with-scissor-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/eca3614d69de2392c797078bce736771/plot_qpbands_with_scissor.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_qpbands_with_scissor.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/57309a5dc733ea6e1d1144a0e97d591b/plot_qpbands_with_scissor.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_qpbands_with_scissor.ipynb</span></code></a></p>
 </div>
 </div>
@@ -266,8 +263,8 @@ KS fermie 5.5984532787385985 --&gt; QP fermie 5.407251265724052 Delta(QP-KS)= -0
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

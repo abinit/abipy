@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abipy.core.structure &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abipy.core.structure &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
@@ -42,7 +46,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -136,16 +140,15 @@
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">pymatgen</span>
 <span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">pmg_units</span>
 
 <span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pformat</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">marquee</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span> <span class="k">as</span> <span class="n">pmg_Structure</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.sites</span> <span class="kn">import</span> <span class="n">PeriodicSite</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="kn">import</span> <span class="n">Lattice</span>
 <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="kn">import</span> <span class="n">SpacegroupAnalyzer</span>
@@ -154,7 +157,7 @@
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.core.symmetries</span> <span class="kn">import</span> <span class="n">AbinitSpaceGroup</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="kn">import</span> <span class="n">as_etsfreader</span><span class="p">,</span> <span class="n">Visualizer</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk.abiobjects</span> <span class="kn">import</span> <span class="n">structure_from_abivars</span><span class="p">,</span> <span class="n">structure_to_abivars</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.abiobjects</span> <span class="kn">import</span> <span class="n">structure_from_abivars</span><span class="p">,</span> <span class="n">structure_to_abivars</span><span class="p">,</span> <span class="n">species_by_znucl</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -183,7 +186,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="c1"># Must use pymatgen structure else server does not know how to handle the JSON doc.</span>
-    <span class="n">structure</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span>
+    <span class="n">structure</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">pmg_Structure</span>
 
     <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="kn">import</span> <span class="n">restapi</span>
     <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
@@ -272,7 +275,7 @@
     <span class="k">return</span> <span class="n">restapi</span><span class="o">.</span><span class="n">CodStructures</span><span class="p">(</span><span class="n">structures</span><span class="p">,</span> <span class="n">cod_ids</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure">[docs]</a><span class="k">class</span> <span class="nc">Structure</span><span class="p">(</span><span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure">[docs]</a><span class="k">class</span> <span class="nc">Structure</span><span class="p">(</span><span class="n">pmg_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extends :class:`pymatgen.core.structure.Structure` with Abinit-specific methods.</span>
 
@@ -295,7 +298,7 @@
 <span class="sd">            - Objects with a ``structure`` attribute.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span> <span class="k">return</span> <span class="n">obj</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pmg_Structure</span><span class="p">):</span>
             <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="bp">cls</span>
             <span class="k">return</span> <span class="n">obj</span>
 
@@ -390,11 +393,11 @@
             <span class="c1"># From pickle.</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
                 <span class="n">new</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new</span><span class="p">,</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new</span><span class="p">,</span> <span class="n">pmg_Structure</span><span class="p">):</span>
                     <span class="c1"># Is it a object with a structure property?</span>
                     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">new</span><span class="p">,</span> <span class="s2">&quot;structure&quot;</span><span class="p">):</span> <span class="n">new</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">structure</span>
 
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new</span><span class="p">,</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new</span><span class="p">,</span> <span class="n">pmg_Structure</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to extract a Structure from file </span><span class="si">%s</span><span class="s2">, received type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
                         <span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">new</span><span class="p">)))</span>
 
@@ -483,8 +486,9 @@
 <span class="sd">            cart_coords: Cartesian coordinates</span>
 <span class="sd">            acell: Lengths of the box in *Bohr*</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Molecule</span>
         <span class="n">cart_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">)</span>
-        <span class="n">molecule</span> <span class="o">=</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Molecule</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pseudos</span><span class="p">],</span> <span class="n">cart_coords</span><span class="p">)</span>
+        <span class="n">molecule</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pseudos</span><span class="p">],</span> <span class="n">cart_coords</span><span class="p">)</span>
         <span class="n">l</span> <span class="o">=</span> <span class="n">pmg_units</span><span class="o">.</span><span class="n">ArrayWithUnit</span><span class="p">(</span><span class="n">acell</span><span class="p">,</span> <span class="s2">&quot;bohr&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
 
         <span class="n">new</span> <span class="o">=</span> <span class="n">molecule</span><span class="o">.</span><span class="n">get_boxed_structure</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
@@ -661,6 +665,24 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">structure_from_abivars</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">species_by_znucl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return list of unique specie found in the structure **ordered according to sites**.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">            Site0: 0.5 0 0 O</span>
+<span class="sd">            Site1: 0   0 0 Si</span>
+
+<span class="sd">        produces [Specie_O, Specie_Si] and not set([Specie_O, Specie_Si]) as in `types_of_specie`.</span>
+
+<span class="sd">        Important:: We call this method `species_by_znucl` but this does not mean that the list can automagically</span>
+<span class="sd">        reproduce the value of `znucl(ntypat)` specified in an **arbitrary** ABINIT input file created by the user.</span>
+<span class="sd">        This array is ordered as the znucl list produced by AbiPy when writing the structure to the input file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">species_by_znucl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
@@ -679,7 +701,7 @@
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.to"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.to">[docs]</a>    <span class="k">def</span> <span class="nf">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="vm">__doc__</span> <span class="o">=</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+</span> \
+        <span class="vm">__doc__</span> <span class="o">=</span> <span class="n">pmg_Structure</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+</span> \
             <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Accepts also fmt=`abinit` or `abivars` or `.abi` as Abinit input file extension&quot;</span>
 
         <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
@@ -695,6 +717,30 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Structure.write_cif_with_spglib_symms"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.write_cif_with_spglib_symms">[docs]</a>    <span class="k">def</span> <span class="nf">write_cif_with_spglib_symms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">significant_figures</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                                    <span class="n">ret_string</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            symprec (float): If not none, finds the symmetry of the structure</span>
+<span class="sd">                and writes the cif with symmetry information. Passes symprec</span>
+<span class="sd">                to the SpacegroupAnalyzer.</span>
+<span class="sd">            significant_figures (int): Specifies precision for formatting of floats.</span>
+<span class="sd">                Defaults to 8.</span>
+<span class="sd">            angle_tolerance (float): Angle tolerance for symmetry finding. Passes</span>
+<span class="sd">                angle_tolerance to the SpacegroupAnalyzer. Used only if symprec</span>
+<span class="sd">                is not None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">CifWriter</span>
+        <span class="n">cif_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">CifWriter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">significant_figures</span><span class="o">=</span><span class="n">significant_figures</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">,</span>
+                      <span class="n">refine_struct</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ret_string</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cif_str</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cif_str</span></div>
+
     <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaling_matrix</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Makes a supercell. Allowing to have sites outside the unit cell</span>
@@ -707,9 +753,14 @@
 
     <span class="fm">__rmul__</span> <span class="o">=</span> <span class="fm">__mul__</span>
 
-<div class="viewcode-block" id="Structure.to_abivars"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.to_abivars">[docs]</a>    <span class="k">def</span> <span class="nf">to_abivars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary with the ABINIT variables.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">structure_to_abivars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Structure.to_abivars"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.to_abivars">[docs]</a>    <span class="k">def</span> <span class="nf">to_abivars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enforce_znucl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enforce_typat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a dictionary with the ABINIT variables.</span>
+
+<span class="sd">        enforce_znucl[ntypat] =</span>
+<span class="sd">        enforce_typat[natom] = Fortran conventions. Start to count from 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">structure_to_abivars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enforce_znucl</span><span class="o">=</span><span class="n">enforce_znucl</span><span class="p">,</span> <span class="n">enforce_typat</span><span class="o">=</span><span class="n">enforce_typat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">latex_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -802,6 +853,7 @@
             <span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">refine</span><span class="p">(</span><span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
 
         <span class="c1"># Convert to primitive structure.</span>
+        <span class="c1">#primitive_standard = False</span>
         <span class="k">if</span> <span class="n">primitive</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">primitive_standard</span><span class="p">:</span>
                 <span class="c1"># Setyawan, W., &amp; Curtarolo, S.</span>
@@ -816,6 +868,7 @@
         <span class="n">m</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span>
         <span class="n">x_prod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">m</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">x_prod</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1">#print(&quot;Negative triple product --&gt; exchanging last two lattice vectors.&quot;)</span>
             <span class="n">trans</span> <span class="o">=</span> <span class="n">SupercellTransformation</span><span class="p">(((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
             <span class="n">structure</span> <span class="o">=</span> <span class="n">trans</span><span class="o">.</span><span class="n">apply_transformation</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span>
@@ -914,7 +967,7 @@
         <span class="n">wyckoffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spgdata</span><span class="p">[</span><span class="s2">&quot;wyckoffs&quot;</span><span class="p">])</span>
 
         <span class="n">wyck_mult</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">equivalent_atoms</span> <span class="o">==</span> <span class="n">equivalent_atoms</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natom</span><span class="p">)]</span>
-        <span class="n">wyck_mult</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wyck_mult</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="n">wyck_mult</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wyck_mult</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
 
         <span class="n">irred_pos</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">eqmap</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
@@ -926,7 +979,7 @@
         <span class="c1"># Convert to numpy arrays</span>
         <span class="n">irred_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">irred_pos</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">eqpos</span> <span class="ow">in</span> <span class="n">eqmap</span><span class="p">:</span>
-            <span class="n">eqmap</span><span class="p">[</span><span class="n">eqpos</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eqmap</span><span class="p">[</span><span class="n">eqpos</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="n">eqmap</span><span class="p">[</span><span class="n">eqpos</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eqmap</span><span class="p">[</span><span class="n">eqpos</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">printout</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> inequivalent position(s):&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">irred_pos</span><span class="p">))</span>
@@ -1201,7 +1254,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">kcoords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">kname2frac</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">knames</span><span class="p">)],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Internal list of high-symmetry k-points:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">))</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Internal list of high-symmetry k-points:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">))</span>
             <span class="k">raise</span>
 
         <span class="k">if</span> <span class="n">cart_coords</span><span class="p">:</span>
@@ -1531,7 +1584,6 @@
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_ase_atoms</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">rotations</span> <span class="o">==</span> <span class="s2">&quot;default&quot;</span><span class="p">:</span>
             <span class="n">rotations</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;90x&quot;</span><span class="p">,</span> <span class="s2">&quot;90y&quot;</span><span class="p">,</span>
@@ -1545,14 +1597,15 @@
             <span class="n">ncols</span> <span class="o">=</span> <span class="mi">3</span>
             <span class="n">nrows</span> <span class="o">=</span> <span class="n">num_plots</span> <span class="o">//</span> <span class="n">ncols</span> <span class="o">+</span> <span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span>
 
-        <span class="n">ax_list</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+        <span class="n">ax_mat</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
                                                 <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="c1"># don&#39;t show the last ax if num_plots is odd.</span>
         <span class="k">if</span> <span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">ax_mat</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
 
         <span class="kn">from</span> <span class="nn">ase.visualize.plot</span> <span class="kn">import</span> <span class="n">plot_atoms</span>
-        <span class="k">for</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rotations</span><span class="p">,</span> <span class="n">ax_list</span><span class="o">.</span><span class="n">flat</span><span class="p">):</span>
+        <span class="n">atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_ase_atoms</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rotations</span><span class="p">,</span> <span class="n">ax_mat</span><span class="o">.</span><span class="n">flat</span><span class="p">):</span>
             <span class="n">plot_atoms</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="n">rotation</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">rotation</span><span class="p">:</span>
@@ -1595,12 +1648,13 @@
 <span class="sd">            verbose: Verbosity level.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-          <span class="kn">from</span> <span class="nn">jupyter_jsmol</span> <span class="kn">import</span> <span class="n">JsmolView</span>
+            <span class="kn">from</span> <span class="nn">jupyter_jsmol</span> <span class="kn">import</span> <span class="n">JsmolView</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;jupyter_jsmol is not installed. See https://github.com/fekad/jupyter-jsmol&quot;</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">CifWriter</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">CifWriter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">))</span>
+        <span class="n">cif_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_cif_with_spglib_symms</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">ret_string</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cif_str:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cif_str</span><span class="p">)</span>
+        <span class="c1">#return JsmolView.from_str(cif_str)</span>
 
         <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">HTML</span>
         <span class="c1"># FIXME TEMPORARY HACK TO LOAD JSMOL.js</span>
@@ -1610,7 +1664,7 @@
 
         <span class="n">jsmol</span> <span class="o">=</span> <span class="n">JsmolView</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
         <span class="n">display</span><span class="p">(</span><span class="n">jsmol</span><span class="p">)</span>
-        <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;load inline &quot;</span><span class="si">%s</span><span class="s1">&quot; {1 1 1}&#39;</span> <span class="o">%</span> <span class="n">data</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;load inline &quot;</span><span class="si">%s</span><span class="s1">&quot; {1 1 1}&#39;</span> <span class="o">%</span> <span class="n">cif_str</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;executing cmd:&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
         <span class="n">jsmol</span><span class="o">.</span><span class="n">script</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
 
@@ -1665,34 +1719,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="c1">#def get_max_overlap_and_sites(self, pseudos):</span>
-    <span class="c1">#    # For each site in self:</span>
-    <span class="c1">#    # 1) Get the radius of the pseudopotential sphere</span>
-    <span class="c1">#    # 2) Get the neighbors of the site (considering the periodic images).</span>
-
-    <span class="c1">#    pseudos = PseudoTable.as_table(pseudos)</span>
-    <span class="c1">#    max_overlap, ovlp_sites = 0.0, None</span>
-    <span class="c1">#    for site in self:</span>
-    <span class="c1">#        symbol = site.specie.symbol</span>
-    <span class="c1">#        pseudo = pseudos[symbol]</span>
-    <span class="c1">#        r1 = Length(pseudo.r_cut, &quot;Bohr&quot;).to(&quot;ang&quot;)</span>
-    <span class="c1">#        sitedist_list = self.get_neighbors_old(site, r1, include_index=False)</span>
-
-    <span class="c1">#        if sitedist_list:</span>
-    <span class="c1">#            # Spheres are overlapping: compute overlap and update the return values</span>
-    <span class="c1">#            # if the new overlap is larger than the previous one.</span>
-    <span class="c1">#            for other_site, dist in sitedist_list:</span>
-    <span class="c1">#                other_symbol = other_site.specie.symbol</span>
-    <span class="c1">#                other_pseudo = pseudos[other_symbol]</span>
-    <span class="c1">#                r2 = Length(other_pseudo.r_cut, &quot;Bohr&quot;).to(&quot;ang&quot;)</span>
-    <span class="c1">#                # Eq 16 of http://mathworld.wolfram.com/Sphere-SphereIntersection.html</span>
-    <span class="c1">#                overlap = sphere_overlap(site.coords, r1, other_site.coords, r2)</span>
-    <span class="c1">#                if overlap &gt; max_overlap:</span>
-    <span class="c1">#                    max_overlap = overlap</span>
-    <span class="c1">#                    ovlp_sites = (site, other_site)</span>
-
-    <span class="c1">#    return max_overlap, ovlp_sites</span>
-
 <div class="viewcode-block" id="Structure.displace"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.displace">[docs]</a>    <span class="k">def</span> <span class="nf">displace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">displ</span><span class="p">,</span> <span class="n">eta</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Displace the sites of the structure along the displacement vector displ.</span>
@@ -1730,35 +1756,35 @@
 <div class="viewcode-block" id="Structure.get_smallest_supercell"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_smallest_supercell">[docs]</a>    <span class="k">def</span> <span class="nf">get_smallest_supercell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">max_supercell</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            qpoint: q vector in reduced coordinate in reciprocal space</span>
+<span class="sd">            qpoint: q vector in reduced coordinates in reciprocal space</span>
 <span class="sd">            max_supercell: vector with the maximum supercell size</span>
 
 <span class="sd">        Returns: the scaling matrix of the supercell</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">):</span>
             <span class="n">scale_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">scale_matrix</span>
 
         <span class="n">l</span> <span class="o">=</span> <span class="n">max_supercell</span>
 
         <span class="c1"># Inspired from Exciting Fortran code phcell.F90</span>
-        <span class="c1"># It should be possible to improve this code taking advantage of python !</span>
-        <span class="n">scale_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="c1"># It should be possible to improve this coding.</span>
+        <span class="n">scale_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
         <span class="n">dmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="c1"># Try to reduce the matrix</span>
         <span class="n">rprimd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span>
-        <span class="k">for</span> <span class="n">l1</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">l2</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">l3</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">l1</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">l2</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">l3</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
                     <span class="n">lnew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l1</span><span class="p">,</span> <span class="n">l2</span><span class="p">,</span> <span class="n">l3</span><span class="p">])</span>
                     <span class="n">ql</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">lnew</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">)</span>
                     <span class="c1"># Check if integer and non zero !</span>
                     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ql</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">ql</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">:</span>
                         <span class="n">Rl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">lnew</span><span class="p">,</span> <span class="n">rprimd</span><span class="p">)</span>
                         <span class="c1"># Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.</span>
-                        <span class="n">dnorm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Rl</span><span class="p">,</span><span class="n">Rl</span><span class="p">))</span>
+                        <span class="n">dnorm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Rl</span><span class="p">,</span> <span class="n">Rl</span><span class="p">))</span>
                         <span class="k">if</span> <span class="n">dnorm</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">dmin</span><span class="o">-</span><span class="mf">1e-6</span><span class="p">)</span> <span class="ow">and</span> <span class="n">dnorm</span> <span class="o">&gt;</span> <span class="mf">1e-6</span><span class="p">:</span>
                             <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
                             <span class="n">scale_matrix</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">lnew</span>
@@ -1768,13 +1794,13 @@
 
         <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">dmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-        <span class="k">for</span> <span class="n">l1</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">l2</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">l3</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">l1</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">l2</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">l3</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
                     <span class="n">lnew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l1</span><span class="p">,</span> <span class="n">l2</span><span class="p">,</span> <span class="n">l3</span><span class="p">])</span>
                     <span class="c1"># Check if not parallel !</span>
                     <span class="n">cp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">lnew</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
-                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">cp</span><span class="p">,</span><span class="n">cp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-6</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">cp</span><span class="p">,</span> <span class="n">cp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-6</span><span class="p">:</span>
                         <span class="n">ql</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">lnew</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">)</span>
                         <span class="c1"># Check if integer and non zero !</span>
                         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ql</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">ql</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">:</span>
@@ -1789,16 +1815,16 @@
 
         <span class="n">dmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">for</span> <span class="n">l1</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">l2</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">l3</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">l1</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">l2</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">l3</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
                     <span class="n">lnew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l1</span><span class="p">,</span> <span class="n">l2</span><span class="p">,</span> <span class="n">l3</span><span class="p">])</span>
-                    <span class="c1"># Check if not parallel !</span>
+                    <span class="c1"># Check if not parallel!</span>
                     <span class="n">cp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">lnew</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">scale_matrix</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
                     <span class="k">if</span> <span class="n">cp</span> <span class="o">&gt;</span> <span class="mf">1e-6</span><span class="p">:</span>
-                        <span class="c1"># Should be positive as (R3 X R1).R2 &gt; 0 for abinit !</span>
+                        <span class="c1"># Should be positive as (R3 X R1).R2 &gt; 0 for abinit!</span>
                         <span class="n">ql</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">lnew</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">)</span>
-                        <span class="c1"># Check if integer and non zero !</span>
+                        <span class="c1"># Check if integer and non zero!</span>
                         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ql</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">ql</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">:</span>
                             <span class="n">Rl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">lnew</span><span class="p">,</span> <span class="n">rprimd</span><span class="p">)</span>
                             <span class="n">dnorm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Rl</span><span class="p">,</span><span class="n">Rl</span><span class="p">))</span>
@@ -1845,6 +1871,7 @@
         <span class="c1"># that are inside the unit cell defined by the scale matrix</span>
         <span class="c1"># we&#39;re using a slightly offset interval from 0 to 1 to avoid numerical</span>
         <span class="c1"># precision issues</span>
+        <span class="c1">#print(scale_matrix)</span>
         <span class="n">inv_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">)</span>
 
         <span class="n">frac_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">all_points</span><span class="p">,</span> <span class="n">inv_matrix</span><span class="p">)</span>
@@ -1870,7 +1897,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">scale_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">max_supercell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If scale_matrix is not provided, please provide max_supercell !&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If scale_matrix is not provided, please provide max_supercell!&quot;</span><span class="p">)</span>
 
             <span class="n">scale_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_smallest_supercell</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="n">max_supercell</span><span class="p">)</span>
 
@@ -1879,7 +1906,7 @@
 
         <span class="n">tvects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trans_vect</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">)</span>
 
-        <span class="n">new_displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="n">new_displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
         <span class="n">fmtstr</span> <span class="o">=</span> <span class="s2">&quot;{{}} {{:.</span><span class="si">{0}</span><span class="s2">f}} {{:.</span><span class="si">{0}</span><span class="s2">f}} {{:.</span><span class="si">{0}</span><span class="s2">f}} {{:.</span><span class="si">{0}</span><span class="s2">f}} {{:.</span><span class="si">{0}</span><span class="s2">f}} {{:.</span><span class="si">{0}</span><span class="s2">f}}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
 
@@ -1958,8 +1985,8 @@
         <span class="n">displ1</span> <span class="o">=</span> <span class="n">eta</span> <span class="o">*</span> <span class="n">displ1</span> <span class="o">/</span> <span class="n">norm_factor</span>
         <span class="n">displ2</span> <span class="o">=</span> <span class="n">eta</span> <span class="o">*</span> <span class="n">displ2</span> <span class="o">/</span> <span class="n">norm_factor</span>
 
-        <span class="n">new_displ1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
-        <span class="n">new_displ2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="n">new_displ1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">new_displ2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">new_sites</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">displ_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">at</span><span class="p">,</span><span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2003,18 +2030,20 @@
 
         <span class="k">if</span> <span class="n">scale_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">max_supercell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If scale_matrix is not provided, please provide max_supercell !&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If scale_matrix is not provided, please provide max_supercell!&quot;</span><span class="p">)</span>
 
             <span class="n">scale_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_smallest_supercell</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="n">max_supercell</span><span class="p">)</span>
 
         <span class="n">scale_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">scale_matrix</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
             <span class="n">scale_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scale_matrix</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;scale_matrix:&quot;</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="p">)</span>
 
         <span class="n">old_lattice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lattice</span>
         <span class="n">new_lattice</span> <span class="o">=</span> <span class="n">Lattice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">,</span> <span class="n">old_lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">))</span>
 
         <span class="n">tvects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trans_vect</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;tvects&quot;</span><span class="p">,</span> <span class="n">tvects</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">frac_coords</span><span class="p">:</span>
             <span class="n">displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">old_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">displ</span><span class="p">))</span>
@@ -2024,7 +2053,7 @@
 
         <span class="n">displ</span> <span class="o">=</span> <span class="n">eta</span> <span class="o">*</span> <span class="n">displ</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">displ</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
 
-        <span class="n">new_displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="n">new_displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">new_sites</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">displ_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">at</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2116,7 +2145,7 @@
         <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">abc</span>
         <span class="n">lmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
 
-        <span class="n">ngkpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="n">ngkpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
             <span class="n">ngkpt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">nksmall</span> <span class="o">*</span> <span class="n">lengths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">lmin</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">ngkpt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -2490,7 +2519,7 @@
 <span class="sd">    Return string with structural information in Siesta format from pymatgen structure</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: pymatgen structure.</span>
+<span class="sd">        structure: AbiPy structure.</span>
 <span class="sd">        verbose: Verbosity level.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -2500,7 +2529,7 @@
 <span class="s2">Please use OrderDisorderedStructureTransformation or EnumerateStructureTransformation</span>
 <span class="s2">to build an appropriate supercell from partial occupancies or alternatively use the Virtual Crystal Approximation.&quot;&quot;&quot;</span><span class="p">)</span>
 
-    <span class="n">types_of_specie</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">types_of_specie</span>
+    <span class="n">species_by_znucl</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">species_by_znucl</span>
 
     <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
@@ -2510,7 +2539,7 @@
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# The species number followed by the atomic number, and then by the desired label&quot;</span><span class="p">)</span>
     <span class="n">app</span><span class="p">(</span><span class="s2">&quot;%block ChemicalSpeciesLabel&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">itype</span><span class="p">,</span> <span class="n">specie</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">types_of_specie</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">itype</span><span class="p">,</span> <span class="n">specie</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">species_by_znucl</span><span class="p">):</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">itype</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">specie</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">))</span>
     <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%e</span><span class="s2">ndblock ChemicalSpeciesLabel&quot;</span><span class="p">)</span>
 
@@ -2532,7 +2561,7 @@
     <span class="n">app</span><span class="p">(</span><span class="s2">&quot;AtomicCoordinatesFormat Fractional&quot;</span><span class="p">)</span>
     <span class="n">app</span><span class="p">(</span><span class="s2">&quot;%block AtomicCoordinatesAndAtomicSpecies&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
-        <span class="n">itype</span> <span class="o">=</span> <span class="n">types_of_specie</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="p">)</span>
+        <span class="n">itype</span> <span class="o">=</span> <span class="n">species_by_znucl</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="p">)</span>
         <span class="n">fc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">fc</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">itype</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%e</span><span class="s2">ndblock AtomicCoordinatesAndAtomicSpecies&quot;</span><span class="p">)</span>
@@ -2552,8 +2581,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

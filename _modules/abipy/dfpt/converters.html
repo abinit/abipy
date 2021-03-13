@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abipy.dfpt.converters &#8212; abipy 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for abipy.dfpt.converters</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Converters between abinit/abipy format and other external tools.</span>
+<span class="sd">Some portions of the code have been imported from the ConvertDDB.py script</span>
+<span class="sd">developed by Hu Xe, Eric Bousquet and Aldo Romero.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">monty.dev</span> <span class="kn">import</span> <span class="n">requires</span>
+
+<span class="kn">from</span> <span class="nn">pymatgen.io.phonopy</span> <span class="kn">import</span> <span class="n">get_phonopy_structure</span><span class="p">,</span> <span class="n">get_pmg_structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="kn">import</span> <span class="n">Poscar</span>
+<span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="kn">import</span> <span class="n">DdbFile</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="kn">import</span> <span class="n">minimal_scf_input</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.gsr</span> <span class="kn">import</span> <span class="n">GsrFile</span>
+<span class="kn">from</span> <span class="nn">monty.os</span> <span class="kn">import</span> <span class="n">makedirs_p</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">phonopy</span> <span class="kn">import</span> <span class="n">Phonopy</span>
+    <span class="kn">from</span> <span class="nn">phonopy.file_IO</span> <span class="kn">import</span> <span class="n">write_FORCE_CONSTANTS</span><span class="p">,</span> <span class="n">parse_FORCE_CONSTANTS</span><span class="p">,</span> <span class="n">parse_BORN</span><span class="p">,</span> <span class="n">parse_FORCE_SETS</span>
+    <span class="c1">#from phonopy.interface.phonopy_yaml import PhonopyYaml</span>
+    <span class="kn">from</span> <span class="nn">phonopy.interface.calculator</span> <span class="kn">import</span> <span class="n">get_default_physical_units</span><span class="p">,</span> <span class="n">get_force_constant_conversion_factor</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">Phonopy</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="abinit_to_phonopy"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.abinit_to_phonopy">[docs]</a><span class="nd">@requires</span><span class="p">(</span><span class="n">Phonopy</span><span class="p">,</span> <span class="s2">&quot;phonopy not installed!&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">abinit_to_phonopy</span><span class="p">(</span><span class="n">anaddbnc</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="p">,</span> <span class="n">symmetrize_tensors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">output_dir_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">prefix_outfiles</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">set_masses</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts the interatomic force constants(IFC), born effective charges(BEC) and dielectric</span>
+<span class="sd">    tensor obtained from anaddb to the phonopy format. Optionally writes the</span>
+<span class="sd">    standard phonopy files to a selected directory: FORCE_CONSTANTS, BORN (if BECs are available)</span>
+<span class="sd">    POSCAR of the unit cell, POSCAR of the supercell.</span>
+
+<span class="sd">    The conversion is performed taking the IFC in the Wigner–Seitz supercell with weights</span>
+<span class="sd">    as produced by anaddb and reorganizes them in a standard supercell multiple of the</span>
+<span class="sd">    unit cell. Operations are vectorized using numpy. This may lead to the allocation of</span>
+<span class="sd">    large arrays in case of very large supercells.</span>
+
+<span class="sd">    Performs a check to verify if the two codes identify the same symmetries and it gives a</span>
+<span class="sd">    warning in case of failure. Mismatching symmetries may lead to incorrect conversions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        anaddbnc: an instance of AnaddbNcFile. Should contain the output of the IFC analysis,</span>
+<span class="sd">            the BEC and the dielectric tensor.</span>
+<span class="sd">        supercell_matrix: the supercell matrix used for phonopy. Any choice is acceptable, however</span>
+<span class="sd">            the best agreement between the abinit and phonopy results is obtained if this is set to</span>
+<span class="sd">            a diagonal matrix with on the diagonal the ngqpt used to generate the anaddb.nc.</span>
+<span class="sd">        symmetrize_tensors: if True the tensors will be symmetrized in the Phonopy object and</span>
+<span class="sd">            in the output files. This will apply to IFC, BEC and dielectric tensor.</span>
+<span class="sd">        output_dir_path: a path to a directory where the phonopy files will be created</span>
+<span class="sd">        prefix_outfiles: a string that will be added as a prefix to the name of the written files</span>
+<span class="sd">        symprec: distance tolerance in Cartesian coordinates to find crystal symmetry in phonopy.</span>
+<span class="sd">            It might be that the value should be tuned so that it leads to the the same symmetries</span>
+<span class="sd">            as in the abinit calculation.</span>
+<span class="sd">        set_masses: if True the atomic masses used by abinit will be added to the PhonopyAtoms</span>
+<span class="sd">            and will be present in the returned Phonopy object. This should improve compatibility</span>
+<span class="sd">            among abinit and phonopy results if frequencies needs to be calculated.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        An instance of a Phonopy object that contains the IFC, BEC and dieletric tensor data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ifc</span> <span class="o">=</span> <span class="n">anaddbnc</span><span class="o">.</span><span class="n">ifc</span>
+    <span class="n">nac_params</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">becs</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">epsinf</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">anaddbnc</span><span class="o">.</span><span class="n">becs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">anaddbnc</span><span class="o">.</span><span class="n">epsinf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">becs</span> <span class="o">=</span> <span class="n">anaddbnc</span><span class="o">.</span><span class="n">becs</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">epsinf</span> <span class="o">=</span> <span class="n">anaddbnc</span><span class="o">.</span><span class="n">epsinf</span>
+
+        <span class="c1"># according to the phonopy website 14.399652 is not the coefficient for abinit</span>
+        <span class="c1"># probably it relies on the other conventions in the output.</span>
+        <span class="n">nac_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;born&quot;</span><span class="p">:</span> <span class="n">becs</span><span class="p">,</span> <span class="s2">&quot;dielectric&quot;</span><span class="p">:</span> <span class="n">epsinf</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">14.399652</span><span class="p">}</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">anaddbnc</span><span class="o">.</span><span class="n">structure</span>
+
+    <span class="n">phon_at</span> <span class="o">=</span> <span class="n">get_phonopy_structure</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">set_masses</span><span class="p">:</span>
+        <span class="n">phon_at</span><span class="o">.</span><span class="n">masses</span> <span class="o">=</span> <span class="p">[</span><span class="n">anaddbnc</span><span class="o">.</span><span class="n">amu</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">phon_at</span><span class="o">.</span><span class="n">numbers</span><span class="p">]</span>
+
+    <span class="c1"># use phonopy to get the proper supercell given by the primitive and the matrix</span>
+    <span class="c1"># and convert it to pymatgen</span>
+    <span class="n">phonon</span> <span class="o">=</span> <span class="n">Phonopy</span><span class="p">(</span><span class="n">phon_at</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="p">,</span> <span class="n">primitive_matrix</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">nac_params</span><span class="o">=</span><span class="n">nac_params</span><span class="p">,</span>
+                     <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">)</span>
+    <span class="n">phon_supercell</span> <span class="o">=</span> <span class="n">phonon</span><span class="o">.</span><span class="n">get_supercell</span><span class="p">()</span>
+    <span class="n">supercell</span> <span class="o">=</span> <span class="n">get_pmg_structure</span><span class="p">(</span><span class="n">phon_supercell</span><span class="p">)</span>
+
+    <span class="n">abi_hall_num</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">get_spglib_hall_number</span><span class="p">()</span>
+    <span class="n">spglib_hall_num</span> <span class="o">=</span> <span class="n">phonon</span><span class="o">.</span><span class="n">symmetry</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;hall_number&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">abi_hall_num</span> <span class="o">!=</span> <span class="n">spglib_hall_num</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The hall number obtained based on the DDB symmetries differs &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;from the one calculated with spglib: </span><span class="si">{</span><span class="n">abi_hall_num</span><span class="si">}</span><span class="s2"> versus &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spglib_hall_num</span><span class="si">}</span><span class="s2">. The conversion may be incorrect. Try changing symprec.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># convert to phonopy units</span>
+    <span class="n">at_cart</span> <span class="o">=</span> <span class="n">ifc</span><span class="o">.</span><span class="n">atoms_cart_coord</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Bohr_Ang</span>
+    <span class="n">ifccc</span> <span class="o">=</span> <span class="n">ifc</span><span class="o">.</span><span class="n">ifc_cart_coord</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span> <span class="o">/</span> <span class="n">abu</span><span class="o">.</span><span class="n">Bohr_Ang</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">ifc</span><span class="o">.</span><span class="n">ifc_weights</span>
+    <span class="n">latt</span> <span class="o">=</span> <span class="n">supercell</span><span class="o">.</span><span class="n">lattice</span>
+
+    <span class="n">ifcph</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">),</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+    <span class="c1"># loop over the atoms in the primitive cell</span>
+    <span class="c1"># other operations are vectorized using numpy arrays. Some array may require large allocations</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">c_list</span><span class="p">,</span> <span class="n">w_list</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">at_cart</span><span class="p">,</span> <span class="n">weights</span><span class="p">)):</span>
+
+        <span class="n">ind_w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">w_list</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">ifccc_loc</span> <span class="o">=</span> <span class="n">ifccc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">ind_w</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+        <span class="n">w_list</span> <span class="o">=</span> <span class="n">w_list</span><span class="p">[</span><span class="n">ind_w</span><span class="p">]</span>
+        <span class="n">c_list</span> <span class="o">=</span> <span class="n">c_list</span><span class="p">[</span><span class="n">ind_w</span><span class="p">]</span>
+
+        <span class="c1"># align the coordinates of the first atom in the list (the site under consideration)</span>
+        <span class="c1"># with the site in the primitive cell.</span>
+        <span class="n">c_list</span> <span class="o">=</span> <span class="n">c_list</span> <span class="o">-</span> <span class="n">c_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">site</span><span class="o">.</span><span class="n">coords</span>
+
+        <span class="c1"># convert to fractional coordinates as needed by the Lattice to get the distances</span>
+        <span class="n">f_list</span> <span class="o">=</span> <span class="n">latt</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">c_list</span><span class="p">)</span>
+        <span class="n">sc_fcoords</span> <span class="o">=</span> <span class="n">supercell</span><span class="o">.</span><span class="n">frac_coords</span>
+
+        <span class="c1"># construct the list of sites of the supercell that are closer to sites in</span>
+        <span class="c1"># the primitive cell</span>
+        <span class="n">dist_and_img</span> <span class="o">=</span> <span class="p">[</span><span class="n">latt</span><span class="o">.</span><span class="n">get_distance_and_image</span><span class="p">(</span><span class="n">f_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fc</span><span class="p">)</span> <span class="k">for</span> <span class="n">fc</span> <span class="ow">in</span> <span class="n">sc_fcoords</span><span class="p">]</span>
+        <span class="c1"># the function gives the translation of the image, but it should be applied to the coordinates.</span>
+        <span class="c1"># Only the positions are needed</span>
+        <span class="n">nearest_sc_fcoords</span> <span class="o">=</span> <span class="p">[</span><span class="n">fc</span> <span class="o">+</span> <span class="n">trasl</span> <span class="k">for</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">trasl</span><span class="p">),</span> <span class="n">fc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dist_and_img</span><span class="p">,</span> <span class="n">sc_fcoords</span><span class="p">)]</span>
+
+        <span class="c1"># divide by the corresponding weights. Elements with weights 0 were discarded above</span>
+        <span class="n">ifccc_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">ifccc_loc</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="n">w_list</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="c1"># create an array with all the possible pairs</span>
+        <span class="c1"># instantiating this array seems slow but seems still faster than the required loops</span>
+        <span class="n">coord_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">nearest_sc_fcoords</span><span class="p">,</span> <span class="n">f_list</span><span class="p">)))</span>
+
+        <span class="c1"># find the pairs that match between the coordinates of the modified supercell and the f_list</span>
+        <span class="n">ind_match</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coord_pairs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">coord_pairs</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># set the ifc for phonopy in the final array corresponding to the matching indices.</span>
+        <span class="n">n_points_f_list</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_list</span><span class="p">)</span>
+        <span class="n">ifcph</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">ind_match</span> <span class="o">//</span> <span class="n">n_points_f_list</span><span class="p">]</span> <span class="o">=</span> <span class="n">ifccc_loc</span><span class="p">[</span><span class="n">ind_match</span> <span class="o">%</span> <span class="n">n_points_f_list</span><span class="p">]</span>
+
+    <span class="n">phonon</span><span class="o">.</span><span class="n">set_force_constants</span><span class="p">(</span><span class="n">ifcph</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">symmetrize_tensors</span><span class="p">:</span>
+        <span class="n">phonon</span><span class="o">.</span><span class="n">symmetrize_force_constants</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">output_dir_path</span><span class="p">:</span>
+        <span class="n">makedirs_p</span><span class="p">(</span><span class="n">output_dir_path</span><span class="p">)</span>
+
+        <span class="n">fc_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir_path</span><span class="p">,</span> <span class="n">prefix_outfiles</span><span class="o">+</span><span class="s2">&quot;FORCE_CONSTANTS&quot;</span><span class="p">)</span>
+        <span class="n">write_FORCE_CONSTANTS</span><span class="p">(</span><span class="n">phonon</span><span class="o">.</span><span class="n">get_force_constants</span><span class="p">(),</span> <span class="n">fc_filepath</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">becs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">epsinf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">born_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir_path</span><span class="p">,</span> <span class="n">prefix_outfiles</span><span class="o">+</span><span class="s2">&quot;BORN&quot;</span><span class="p">)</span>
+            <span class="n">write_BORN</span><span class="p">(</span><span class="n">phon_at</span><span class="p">,</span> <span class="n">borns</span><span class="o">=</span><span class="n">becs</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="n">epsinf</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">born_filepath</span><span class="p">,</span>
+                       <span class="n">symmetrize_tensors</span><span class="o">=</span><span class="n">symmetrize_tensors</span><span class="p">)</span>
+
+        <span class="n">poscar_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir_path</span><span class="p">,</span> <span class="n">prefix_outfiles</span><span class="o">+</span><span class="s2">&quot;POSCAR&quot;</span><span class="p">)</span>
+        <span class="n">poscar</span> <span class="o">=</span> <span class="n">Poscar</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">poscar</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">poscar_filepath</span><span class="p">,</span> <span class="n">significant_figures</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+        <span class="n">supercell_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir_path</span><span class="p">,</span> <span class="n">prefix_outfiles</span><span class="o">+</span><span class="s2">&quot;supercell_POSCAR&quot;</span><span class="p">)</span>
+        <span class="n">superce_poscar</span> <span class="o">=</span> <span class="n">Poscar</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span>
+        <span class="n">superce_poscar</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">supercell_filepath</span><span class="p">,</span> <span class="n">significant_figures</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">phonon</span></div>
+
+
+<div class="viewcode-block" id="phonopy_to_abinit"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.phonopy_to_abinit">[docs]</a><span class="nd">@requires</span><span class="p">(</span><span class="n">Phonopy</span><span class="p">,</span> <span class="s2">&quot;phonopy not installed!&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">phonopy_to_abinit</span><span class="p">(</span><span class="n">unit_cell</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="p">,</span> <span class="n">out_ddb_path</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qpt_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">force_constants</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_sets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">born</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">primitive_matrix</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">tolsym</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">supercell</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">calculator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts the data from phonopy to an abinit DDB file. The data can be provided</span>
+<span class="sd">    in form of arrays or paths to the phonopy files that should be parsed.</span>
+<span class="sd">    The minimal input should contains the FORCE_CONSTANTS or FORCE_SETS.</span>
+<span class="sd">    If BORN is present the Born effective charges (BEC) and dielectric</span>
+<span class="sd">    tensor will also be added to the DDB.</span>
+
+<span class="sd">    The best agreement is obtained with supercell_matrix and ngqpt being</span>
+<span class="sd">    equivalent (i.e. supercell_matrix a diagonal matrix with ngqpt as diagonal</span>
+<span class="sd">    elements). Non diagonal supercell_matrix are allowed as well, but the information</span>
+<span class="sd">    encoded in the DDB will be the result of an interpolation done through phonopy.</span>
+
+<span class="sd">    Phonopy is used to convert the IFC to the dynamical matrix. However, in order to</span>
+<span class="sd">    determine the list of q-points in the irreducible Brillouin zone and to prepare the</span>
+<span class="sd">    base for the final DDB file, abinit will be called for a very short and inexpensive run.</span>
+
+<span class="sd">    Performs a check to verify if the two codes identify the same symmetries and it gives a</span>
+<span class="sd">    warning in case of failure. Mismatching symmetries may lead to incorrect conversions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        unit_cell: a |Structure| object that identifies the unit cell used for the phonopy</span>
+<span class="sd">            calculation.</span>
+<span class="sd">        supercell_matrix: a 3x3 array representing the supercell matrix used to generated the</span>
+<span class="sd">            forces with phonopy.</span>
+<span class="sd">        out_ddb_path: a full path to the file where the new DDB will be written</span>
+<span class="sd">        ngqpt: a list of 3 elements indicating the grid of q points that will be used in the DDB.</span>
+<span class="sd">        qpt_list: alternatively to ngqpt an explicit list of q-points can be provided here.</span>
+<span class="sd">            At least one among ngqpt and qpt_list should be defined.</span>
+<span class="sd">        force_constants: an array with shape (num atoms unit cell, num atoms supercell, 3, 3)</span>
+<span class="sd">            containing the force constants. Alternatively a string with the path to the</span>
+<span class="sd">            FORCE_CONSTANTS file. This or force_set should be defined. If both given this</span>
+<span class="sd">            has precedence.</span>
+<span class="sd">        force_sets: a dictionary obtained from the force sets generated with phonopy.</span>
+<span class="sd">            Alternatively a string with the path to the FORCE_SETS file. This or force_constants</span>
+<span class="sd">            should be defined.</span>
+<span class="sd">        born: a dictionary with &quot;dielectric&quot; and &quot;born&quot; keywords as obtained from the nac_params</span>
+<span class="sd">            in phonopy. Alternatively a string with the path to the BORN file. Notice that</span>
+<span class="sd">            the &quot;factor&quot; attribute is not taken into account, so the values should be in</span>
+<span class="sd">            default phonopy units.</span>
+<span class="sd">        primitive_matrix: a 3x3 array with the primitive matrix passed to Phonopy. &quot;auto&quot; will</span>
+<span class="sd">            use spglib to try to determine it automatically. If the DDB file should contain the</span>
+<span class="sd">            actual unit cell this should be the identity matrix.</span>
+<span class="sd">        symprec: distance tolerance in Cartesian coordinates to find crystal symmetry in phonopy.</span>
+<span class="sd">            It might be that the value should be tuned so that it leads to the the same symmetries</span>
+<span class="sd">            as in the abinit calculation.</span>
+<span class="sd">        tolsym: Gives the tolerance to identify symmetries in abinit. See abinit documentation for</span>
+<span class="sd">            more details.</span>
+<span class="sd">        supercell: if given it should represent the supercell used to get the force constants,</span>
+<span class="sd">            without any perturbation. It will be used to match it to the phonopy supercell</span>
+<span class="sd">            and sort the IFC in the correct order.</span>
+<span class="sd">        calculator: a string with the name of the calculator. Will be used to set the conversion</span>
+<span class="sd">            factor for the force constants coming from phonopy.</span>
+<span class="sd">        manager: |TaskManager| object. If None, the object is initialized from the configuration file</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object. It will be</span>
+<span class="sd">            used by abinit to generate the base DDB file. If None the abipy.data.hgh_pseudos.HGH_TABLE</span>
+<span class="sd">            table will be used.</span>
+<span class="sd">        verbose: verbosity level. Set it to a value &gt; 0 to get more information</span>
+<span class="sd">        workdir: path to the directory where the abinit calculation will be executed.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a DdbFile instance of the file written in out_ddb_path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">ngqpt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">qpt_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;at least one among nqgpt and qpt_list should be defined&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">force_sets</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">force_constants</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;at least one of force_sets and force_constants should be provided&quot;</span><span class="p">)</span>
+
+    <span class="n">phon_at</span> <span class="o">=</span> <span class="n">get_phonopy_structure</span><span class="p">(</span><span class="n">unit_cell</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">force_constants</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">force_constants</span> <span class="o">=</span> <span class="n">parse_FORCE_CONSTANTS</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">force_constants</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">force_constants</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">force_constants</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force_constants</span><span class="p">)</span>
+        <span class="n">force_sets</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">force_sets</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">force_sets</span> <span class="o">=</span> <span class="n">parse_FORCE_SETS</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">force_sets</span><span class="p">)</span>
+
+    <span class="c1"># no nac_params here, otherwise they will be used for the interpolation</span>
+    <span class="n">phonon</span> <span class="o">=</span> <span class="n">Phonopy</span><span class="p">(</span><span class="n">phon_at</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="p">,</span> <span class="n">primitive_matrix</span><span class="o">=</span><span class="n">primitive_matrix</span><span class="p">,</span> <span class="n">nac_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">calculator</span><span class="o">=</span><span class="n">calculator</span><span class="p">)</span>
+
+    <span class="n">primitive</span> <span class="o">=</span> <span class="n">get_pmg_structure</span><span class="p">(</span><span class="n">phonon</span><span class="o">.</span><span class="n">primitive</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">born</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">born</span> <span class="o">=</span> <span class="n">parse_BORN</span><span class="p">(</span><span class="n">phonon</span><span class="o">.</span><span class="n">primitive</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">born</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">supercell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ph_supercell</span> <span class="o">=</span> <span class="n">get_pmg_structure</span><span class="p">(</span><span class="n">phonon</span><span class="o">.</span><span class="n">supercell</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">supercell</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span> <span class="n">ph_supercell</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The lattice of the supercells do not match&quot;</span><span class="p">)</span>
+        <span class="n">sc_mapping</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">site_orig</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">supercell</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">site_ph</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ph_supercell</span><span class="p">):</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">supercell</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_distance_and_image</span><span class="p">(</span><span class="n">site_orig</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">site_ph</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="mf">1e-5</span><span class="p">:</span>
+                    <span class="n">sc_mapping</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find a match for site </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> with coords &quot;</span>
+                                   <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">site_orig</span><span class="o">.</span><span class="n">cart_coords</span><span class="si">}</span><span class="s2"> in the supercell.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># cross check that the same atom was not matched twice</span>
+        <span class="n">n_matches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">sc_mapping</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">n_matches</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found matches for </span><span class="si">{</span><span class="n">n_matches</span><span class="si">}</span><span class="s2"> different atoms in the supercell: </span><span class="si">{</span><span class="n">sc_mapping</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">force_constants</span> <span class="o">=</span> <span class="n">force_constants</span><span class="p">[:,</span> <span class="n">sc_mapping</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">force_constants</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">phonon</span><span class="o">.</span><span class="n">set_force_constants</span><span class="p">(</span><span class="n">force_constants</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">phonon</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">force_sets</span>
+        <span class="n">phonon</span><span class="o">.</span><span class="n">produce_force_constants</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">calculator</span><span class="p">:</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">get_default_physical_units</span><span class="p">(</span><span class="n">calculator</span><span class="p">)</span>
+        <span class="n">fc_factor</span> <span class="o">=</span> <span class="n">get_force_constant_conversion_factor</span><span class="p">(</span><span class="n">units</span><span class="p">[</span><span class="s2">&quot;force_constants_unit&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">phonon</span><span class="o">.</span><span class="n">set_force_constants</span><span class="p">(</span><span class="n">phonon</span><span class="o">.</span><span class="n">force_constants</span> <span class="o">*</span> <span class="n">fc_factor</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">pseudos</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">abipy.data.hgh_pseudos</span> <span class="kn">import</span> <span class="n">HGH_TABLE</span>
+        <span class="n">pseudos</span> <span class="o">=</span> <span class="n">HGH_TABLE</span>
+
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">minimal_scf_input</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">)</span>
+
+    <span class="c1"># get the qpoints list if not defined</span>
+    <span class="k">if</span> <span class="n">qpt_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ngqpt</span>
+        <span class="n">qpt_list</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">dm_list</span> <span class="o">=</span> <span class="n">get_dm</span><span class="p">(</span><span class="n">phonon</span><span class="p">,</span> <span class="n">qpt_list</span><span class="p">,</span> <span class="n">primitive</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">born</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># for the conversion of the BEC the zion (i.e. the ionic charge of the pseudo)</span>
+        <span class="c1"># it is an additive factor and should be the same that goes in the header of the DDB,</span>
+        <span class="c1"># so take it from the pseudos used to generate it.</span>
+        <span class="n">zion</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">valence_electrons_per_atom</span>
+        <span class="n">born_data</span> <span class="o">=</span> <span class="n">generate_born_deriv</span><span class="p">(</span><span class="n">born</span><span class="p">,</span> <span class="n">zion</span><span class="p">,</span> <span class="n">primitive</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">born_data</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">minimal_scf_input</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tolsym</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;tolsym&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tolsym</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">run_in_shell</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="c1"># use the output of abinit to check that the spacegroup identified by</span>
+    <span class="c1"># phonopy and abinit are the same.</span>
+    <span class="k">with</span> <span class="n">GsrFile</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">opath_from_ext</span><span class="p">(</span><span class="s2">&quot;GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
+        <span class="n">abi_spg</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">spgid</span>
+    <span class="n">spglib_spg</span> <span class="o">=</span> <span class="n">phonon</span><span class="o">.</span><span class="n">symmetry</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">abi_spg</span> <span class="o">!=</span> <span class="n">spglib_spg</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The space group number obtained based on the DDB symmetries differs &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;from the one calculated with spglib: </span><span class="si">{</span><span class="n">abi_spg</span><span class="si">}</span><span class="s2"> versus &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spglib_spg</span><span class="si">}</span><span class="s2">. The convertion may be incorrect. Try changing symprec or tolsym.&quot;</span><span class="p">)</span>
+
+    <span class="n">tmp_ddb_path</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">opath_from_ext</span><span class="p">(</span><span class="s2">&quot;DDB&quot;</span><span class="p">)</span>
+
+    <span class="n">ddb</span> <span class="o">=</span> <span class="n">DdbFile</span><span class="p">(</span><span class="n">tmp_ddb_path</span><span class="p">)</span>
+    <span class="c1"># remove the blocks generated by the calculation and that are meaningless</span>
+    <span class="n">ddb</span><span class="o">.</span><span class="n">remove_block</span><span class="p">(</span><span class="n">dord</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">ddb</span><span class="o">.</span><span class="n">remove_block</span><span class="p">(</span><span class="n">dord</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">add_data_ddb</span><span class="p">(</span><span class="n">ddb</span><span class="p">,</span> <span class="n">dm_list</span><span class="p">,</span> <span class="n">qpt_list</span><span class="p">,</span> <span class="n">born_data</span><span class="p">)</span>
+
+    <span class="n">ddb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">out_ddb_path</span><span class="p">)</span>
+
+    <span class="n">new_ddb</span> <span class="o">=</span> <span class="n">DdbFile</span><span class="p">(</span><span class="n">out_ddb_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_ddb</span></div>
+
+
+<div class="viewcode-block" id="generate_born_deriv"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.generate_born_deriv">[docs]</a><span class="k">def</span> <span class="nf">generate_born_deriv</span><span class="p">(</span><span class="n">born</span><span class="p">,</span> <span class="n">zion</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function to generate the portion of the derivatives in the DDB</span>
+<span class="sd">    that are related to the Born effective charges and dielectric tensor,</span>
+<span class="sd">    starting from the data available in phonopy format.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        born: a dictionary with &quot;dielectric&quot; and &quot;born&quot; keywords as obtained from the nac_params</span>
+<span class="sd">            in phonopy.</span>
+<span class="sd">        zion: the ionic charge of each atom in the system. It should be in the same order</span>
+<span class="sd">            as the one present in the header of the DDB.</span>
+<span class="sd">        structure: a pymatgen |Structure| of the unit cell.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a complex numpy array with shape (len(structure)+2, 3, len(structure)+2, 3). Only the</span>
+<span class="sd">        parts relative to the BECs and dielectric tensors will be filled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">natoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+    <span class="n">mpert</span> <span class="o">=</span> <span class="n">natoms</span> <span class="o">+</span> <span class="mi">2</span> <span class="c1"># only these perturbations are needed here</span>
+    <span class="n">born_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">mpert</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">mpert</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+
+    <span class="n">eps_e</span> <span class="o">=</span> <span class="n">born</span><span class="p">[</span><span class="s2">&quot;dielectric&quot;</span><span class="p">]</span>
+    <span class="n">bec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">born</span><span class="p">[</span><span class="s2">&quot;born&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="c1"># Assume that for the generated DDB acell = [1,1,1] and rprimd = rprim. Should be in Bohr.</span>
+    <span class="n">rprim</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ang_Bohr</span>
+    <span class="n">rprimd</span> <span class="o">=</span> <span class="n">rprim</span>
+
+    <span class="n">volume_bohr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rprimd</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">rprimd</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">rprimd</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]))</span>
+    <span class="n">gprimd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">rprimd</span><span class="p">)</span>
+    <span class="n">dij</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="c1"># BEC</span>
+    <span class="k">for</span> <span class="n">ipert1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natoms</span><span class="p">):</span>  <span class="c1"># ipert1 is atom position deriv</span>
+        <span class="n">ipert2</span> <span class="o">=</span> <span class="n">natoms</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># E field deriv</span>
+        <span class="n">dm1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">rprimd</span><span class="p">,</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">bec</span><span class="p">[</span><span class="n">ipert1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">dij</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">zion</span><span class="p">[</span><span class="n">ipert1</span><span class="p">],</span> <span class="n">gprimd</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">idir1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">idir2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">born_data</span><span class="p">[</span><span class="n">idir1</span><span class="p">,</span> <span class="n">ipert1</span><span class="p">,</span> <span class="n">idir2</span><span class="p">,</span> <span class="n">ipert2</span><span class="p">]</span> <span class="o">=</span> <span class="n">dm1</span><span class="p">[</span><span class="n">idir1</span><span class="p">,</span> <span class="n">idir2</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="mf">0.0</span><span class="n">j</span>
+                <span class="n">born_data</span><span class="p">[</span><span class="n">idir2</span><span class="p">,</span> <span class="n">ipert2</span><span class="p">,</span> <span class="n">idir1</span><span class="p">,</span> <span class="n">ipert1</span><span class="p">]</span> <span class="o">=</span> <span class="n">dm1</span><span class="p">[</span><span class="n">idir1</span><span class="p">,</span> <span class="n">idir2</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="mf">0.0</span><span class="n">j</span>
+    <span class="c1"># epsinf</span>
+    <span class="n">ipert1</span> <span class="o">=</span> <span class="n">natoms</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">ipert2</span> <span class="o">=</span> <span class="n">natoms</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">dm1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">gprimd</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">dij</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">eps_e</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">gprimd</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">idir1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">idir2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">born_data</span><span class="p">[</span><span class="n">idir1</span><span class="p">,</span> <span class="n">ipert1</span><span class="p">,</span> <span class="n">idir2</span><span class="p">,</span> <span class="n">ipert2</span><span class="p">]</span> <span class="o">=</span> <span class="n">dm1</span><span class="p">[</span><span class="n">idir1</span><span class="p">,</span> <span class="n">idir2</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">volume_bohr</span> <span class="o">+</span> <span class="mf">0.0</span><span class="n">j</span>
+    <span class="n">born_data</span> <span class="o">=</span> <span class="n">born_data</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">born_data</span></div>
+
+
+<div class="viewcode-block" id="get_dm"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.get_dm">[docs]</a><span class="nd">@requires</span><span class="p">(</span><span class="n">Phonopy</span><span class="p">,</span> <span class="s2">&quot;phonopy not installed!&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_dm</span><span class="p">(</span><span class="n">phonon</span><span class="p">,</span> <span class="n">qpt_list</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function to generate the dynamical matrix in the abinit conventions</span>
+<span class="sd">    for a list of q-points from a Phonopy object.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        phonon: a Phonopy object with force constants.</span>
+<span class="sd">        qpt_list: a list of fractional coordinates of q-points for which the</span>
+<span class="sd">            dynamical matrix should be generated.</span>
+<span class="sd">        structure: a pymatgen |Structure| of the primitive cell.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a list of arrays with the dynamical matrices of the selected q-points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">natom</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+    <span class="n">rprim</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ang_Bohr</span>
+    <span class="c1"># assume acell is [1., 1., 1.]</span>
+    <span class="n">rprimd</span> <span class="o">=</span> <span class="n">rprim</span>
+    <span class="n">masses</span> <span class="o">=</span> <span class="n">phonon</span><span class="o">.</span><span class="n">masses</span>
+    <span class="n">dm_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">mass_tile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">masses</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">mass_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,kl&quot;</span><span class="p">,</span> <span class="n">mass_tile</span><span class="p">,</span> <span class="n">mass_tile</span><span class="p">))</span>
+    <span class="c1"># get the difference in coordinates for each pair of atoms</span>
+    <span class="c1"># diff_coords[i,j] is equivalent to structure[i].coords - structure[j].coords</span>
+    <span class="n">coord_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">cart_coords</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">natom</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">diff_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">coord_matrix</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">-</span> <span class="n">coord_matrix</span>
+    <span class="n">rlatt</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span>
+    <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qpt_list</span><span class="p">:</span>
+        <span class="n">q_cart</span> <span class="o">=</span> <span class="n">rlatt</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+        <span class="c1"># the phase exp(-i * q.r)</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ijk,k&quot;</span><span class="p">,</span> <span class="n">diff_coords</span><span class="p">,</span> <span class="n">q_cart</span><span class="p">))</span>
+        <span class="n">dm</span> <span class="o">=</span> <span class="n">phonon</span><span class="o">.</span><span class="n">get_dynamical_matrix_at_q</span><span class="p">(</span><span class="n">q</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">natom</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">natom</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="c1"># the following is rprim * dm[ipert1,:,ipert2,:] * rprim.T</span>
+        <span class="n">dm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,kjlm,nm-&gt;kiln&quot;</span><span class="p">,</span> <span class="n">rprimd</span><span class="p">,</span> <span class="n">dm</span><span class="p">,</span> <span class="n">rprimd</span><span class="p">)</span>
+        <span class="n">dm</span> <span class="o">=</span> <span class="n">dm</span> <span class="o">*</span> <span class="n">mass_matrix</span> <span class="o">/</span> <span class="n">phase</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">dm</span> <span class="o">*=</span> <span class="n">abu</span><span class="o">.</span><span class="n">eV_Ha</span> <span class="o">/</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ang_Bohr</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="n">dm_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dm</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dm_list</span></div>
+
+
+<div class="viewcode-block" id="add_data_ddb"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.add_data_ddb">[docs]</a><span class="k">def</span> <span class="nf">add_data_ddb</span><span class="p">(</span><span class="n">ddb</span><span class="p">,</span> <span class="n">dm_list</span><span class="p">,</span> <span class="n">qpt_list</span><span class="p">,</span> <span class="n">born_data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function to add the blocks for the dynamical matrix and BECs to a DdbFile object.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ddb: a DdbFile object to be modified.</span>
+<span class="sd">        dm_list: the list of dynamical matrices to be added.</span>
+<span class="sd">        qpt_list: the list of q-points corresponding to dm_list.</span>
+<span class="sd">        born_data: the data corresponding to BECs and dielectric tensor. If None</span>
+<span class="sd">            these part will not be set in the DDB.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dm_data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">natom</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">dm</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qpt_list</span><span class="p">,</span> <span class="n">dm_list</span><span class="p">):</span>
+        <span class="n">q_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">ipert1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natom</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">idir1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">ipert2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natom</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">idir2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                        <span class="n">q_data</span><span class="p">[(</span><span class="n">idir1</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ipert1</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">idir2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ipert2</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dm</span><span class="p">[</span><span class="n">ipert1</span><span class="p">,</span> <span class="n">idir1</span><span class="p">,</span> <span class="n">ipert2</span><span class="p">,</span> <span class="n">idir2</span><span class="p">]</span>
+
+        <span class="c1"># for gamma set also the born data if present</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="ow">and</span> <span class="n">born_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ipert2</span> <span class="o">=</span> <span class="n">natom</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">ipert1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natom</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">idir1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">idir2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                        <span class="n">q_data</span><span class="p">[(</span><span class="n">idir1</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ipert1</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">idir2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ipert2</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">born_data</span><span class="p">[</span><span class="n">ipert1</span><span class="p">,</span> <span class="n">idir1</span><span class="p">,</span> <span class="n">ipert2</span><span class="p">,</span> <span class="n">idir2</span><span class="p">]</span>
+                        <span class="n">q_data</span><span class="p">[(</span><span class="n">idir2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ipert2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">idir1</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ipert1</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">born_data</span><span class="p">[</span><span class="n">ipert2</span><span class="p">,</span> <span class="n">idir2</span><span class="p">,</span> <span class="n">ipert1</span><span class="p">,</span> <span class="n">idir1</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">idir1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">idir2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="n">q_data</span><span class="p">[(</span><span class="n">idir1</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ipert2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">idir2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ipert2</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">born_data</span><span class="p">[</span><span class="n">ipert2</span><span class="p">,</span> <span class="n">idir1</span><span class="p">,</span> <span class="n">ipert2</span><span class="p">,</span> <span class="n">idir2</span><span class="p">]</span>
+
+        <span class="n">dm_data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">q</span><span class="p">)]</span> <span class="o">=</span> <span class="n">q_data</span>
+
+    <span class="n">ddb</span><span class="o">.</span><span class="n">set_2nd_ord_data</span><span class="p">(</span><span class="n">dm_data</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tdep_to_abinit"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.tdep_to_abinit">[docs]</a><span class="nd">@requires</span><span class="p">(</span><span class="n">Phonopy</span><span class="p">,</span> <span class="s2">&quot;phonopy not installed!&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">tdep_to_abinit</span><span class="p">(</span><span class="n">unit_cell</span><span class="p">,</span> <span class="n">fc_path</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="p">,</span> <span class="n">supercell</span><span class="p">,</span> <span class="n">out_ddb_path</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">qpt_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primitive_matrix</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">lotosplitting_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+                   <span class="n">tolsym</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts the files produced by TDEP to an abinit DDB file. If the lotosplitting</span>
+<span class="sd">    file is provided the BEC and dielectric tensor will also be added to the DDB.</span>
+
+<span class="sd">    The conversion is performed by first extracting the force constants in phonopy format</span>
+<span class="sd">    and then using phonopy_to_abinit_py to generate the DDB file. See the phonopy_to_abinit_py</span>
+<span class="sd">    docstring for further details about the second step of the conversion.</span>
+<span class="sd">    Notice that the supercell used by TDEP should be provided in order to properly</span>
+<span class="sd">    sort the IFC to match the order required by phonopy.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        unit_cell: a |Structure| object that identifies the unit cell used for the TDEP</span>
+<span class="sd">            calculation.</span>
+<span class="sd">        fc_path: the path to the forceconstants file produced by TDEP.</span>
+<span class="sd">        supercell_matrix: a 3x3 array representing the supercell matrix used to generated the</span>
+<span class="sd">            forces with TDEP.</span>
+<span class="sd">        supercell: the supercell used by TDEP to get the force constants, without any</span>
+<span class="sd">            perturbation (usually named with extension ssposcar). It will be used to match it to</span>
+<span class="sd">            the phonopy supercell and sort the IFC in the correct order.</span>
+<span class="sd">        out_ddb_path: a full path to the file where the new DDB will be written</span>
+<span class="sd">        ngqpt: a list of 3 elements indicating the grid of q points that will be used in the DDB.</span>
+<span class="sd">        qpt_list: alternatively to ngqpt an explicit list of q-points can be provided here.</span>
+<span class="sd">            At least one among ngqpt and qpt_list should be defined.</span>
+<span class="sd">        primitive_matrix: a 3x3 array with the primitive matrix passed to Phonopy. &quot;auto&quot; will</span>
+<span class="sd">            use spglib to try to determine it automatically. If the DDB file should contain the</span>
+<span class="sd">            actual unit cell this should be the identity matrix.</span>
+<span class="sd">        lotosplitting_path: path to the lotosplitting file produced by TDEP. If None no BEC</span>
+<span class="sd">            contribution will be set to the DDB.</span>
+<span class="sd">        symprec: distance tolerance in Cartesian coordinates to find crystal symmetry in phonopy.</span>
+<span class="sd">            It might be that the value should be tuned so that it leads to the the same symmetries</span>
+<span class="sd">            as in the abinit calculation.</span>
+<span class="sd">        tolsym: Gives the tolerance to identify symmetries in abinit. See abinit documentation for</span>
+<span class="sd">            more details.</span>
+<span class="sd">        manager: |TaskManager| object. If None, the object is initialized from the configuration file</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object. It will be</span>
+<span class="sd">            used by abinit to generate the base DDB file. If None the abipy.data.hgh_pseudos.HGH_TABLE</span>
+<span class="sd">            table will be used.</span>
+<span class="sd">        verbose: verbosity level. Set it to a value &gt; 0 to get more information</span>
+<span class="sd">        workdir: path to the directory where the abinit calculation will be executed.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a DdbFile instance of the file written in out_ddb_path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">fc</span> <span class="o">=</span> <span class="n">parse_tdep_fc</span><span class="p">(</span><span class="n">fc_path</span><span class="p">,</span> <span class="n">unit_cell</span><span class="p">,</span> <span class="n">supercell</span><span class="p">)</span>
+
+    <span class="n">born</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">lotosplitting_path</span><span class="p">:</span>
+        <span class="n">eps</span><span class="p">,</span> <span class="n">becs</span> <span class="o">=</span> <span class="n">parse_tdep_lotosplitting</span><span class="p">(</span><span class="n">lotosplitting_path</span><span class="p">)</span>
+        <span class="n">born</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dielectric&quot;</span><span class="p">:</span> <span class="n">eps</span><span class="p">,</span> <span class="s2">&quot;born&quot;</span><span class="p">:</span> <span class="n">becs</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+
+    <span class="n">ddb</span> <span class="o">=</span> <span class="n">phonopy_to_abinit</span><span class="p">(</span><span class="n">unit_cell</span><span class="o">=</span><span class="n">unit_cell</span><span class="p">,</span> <span class="n">force_constants</span><span class="o">=</span><span class="n">fc</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="o">=</span><span class="n">supercell_matrix</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span>
+                            <span class="n">qpt_list</span><span class="o">=</span><span class="n">qpt_list</span><span class="p">,</span> <span class="n">out_ddb_path</span><span class="o">=</span><span class="n">out_ddb_path</span><span class="p">,</span> <span class="n">born</span><span class="o">=</span><span class="n">born</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">,</span>
+                            <span class="n">primitive_matrix</span><span class="o">=</span><span class="n">primitive_matrix</span><span class="p">,</span> <span class="n">supercell</span><span class="o">=</span><span class="n">supercell</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span>
+                            <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">tolsym</span><span class="o">=</span><span class="n">tolsym</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ddb</span></div>
+
+
+<div class="viewcode-block" id="parse_tdep_fc"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.parse_tdep_fc">[docs]</a><span class="k">def</span> <span class="nf">parse_tdep_fc</span><span class="p">(</span><span class="n">fc_path</span><span class="p">,</span> <span class="n">unit_cell</span><span class="p">,</span> <span class="n">supercell</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses a forceconstants file produced by TDEP an converts it to an array in the</span>
+<span class="sd">    phonopy format.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fc_path: path to the forceconstants file</span>
+<span class="sd">        unit_cell: a |Structure| object with the unit cell used for the calculation</span>
+<span class="sd">            in TDEP.</span>
+<span class="sd">        supercell: the supercell used for the calculation in TDEP.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a comple numpy array with shape (len(unit_cell), len(supercell), 3, 3)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">natoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unit_cell</span><span class="p">)</span>
+    <span class="n">fc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">natoms</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">),</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="c1"># parse the fc file and put it in the format required for phonopy</span>
+    <span class="c1"># this will be sorted according to the tdep supercell atoms order, not the phonopy supercell.</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fc_path</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">u_latt</span> <span class="o">=</span> <span class="n">unit_cell</span><span class="o">.</span><span class="n">lattice</span>
+    <span class="n">sc_latt</span> <span class="o">=</span> <span class="n">supercell</span><span class="o">.</span><span class="n">lattice</span>
+    <span class="n">iline</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">for</span> <span class="n">iat</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natoms</span><span class="p">):</span>
+        <span class="n">n_neighbours</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">iline</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">iline</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">jn</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_neighbours</span><span class="p">):</span>
+            <span class="n">iprim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">iline</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">iline</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+            <span class="c1"># find matching atom in the supercell</span>
+            <span class="n">fcoords</span> <span class="o">=</span> <span class="n">sc_latt</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">u_latt</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit_cell</span><span class="p">[</span><span class="n">iprim</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">isc</span><span class="p">,</span> <span class="n">site_sc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">supercell</span><span class="p">):</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">supercell</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_distance_and_image</span><span class="p">(</span><span class="n">fcoords</span><span class="p">,</span> <span class="n">site_sc</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="mf">1e-5</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;could not find a match for: </span><span class="si">{</span><span class="n">lines</span><span class="p">[</span><span class="n">iline</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">fc</span><span class="p">[</span><span class="n">iat</span><span class="p">,</span> <span class="n">isc</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">iline</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+            <span class="n">iline</span> <span class="o">+=</span> <span class="mi">5</span>
+    <span class="k">return</span> <span class="n">fc</span></div>
+
+
+<div class="viewcode-block" id="parse_tdep_lotosplitting"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.parse_tdep_lotosplitting">[docs]</a><span class="k">def</span> <span class="nf">parse_tdep_lotosplitting</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses the lotosplitting file produced by TDEP and transforms them in</span>
+<span class="sd">    the phonopy format for Born effective charges and dielectric tensor.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepath: path to the lotosplitting file.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a tuple with dielectric tensor and Born effective charges.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+    <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="k">continue</span>
+        <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[:</span><span class="mi">3</span><span class="p">]])</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The data parsed has an unexpected shape: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">eps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">natoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">//</span> <span class="mi">3</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">born</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">3</span><span class="p">:],</span> <span class="p">(</span><span class="n">natoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">eps</span><span class="p">,</span> <span class="n">born</span></div>
+
+
+<div class="viewcode-block" id="write_tdep_lotosplitting"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.write_tdep_lotosplitting">[docs]</a><span class="k">def</span> <span class="nf">write_tdep_lotosplitting</span><span class="p">(</span><span class="n">eps</span><span class="p">,</span> <span class="n">born</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="s2">&quot;infile.lotosplitting&quot;</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%14.10f</span><span class="s2">&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes an lotosplitting file starting from arrays containing dielectric tensor and</span>
+<span class="sd">    Born effective charges.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        eps: a 3x3 array with the dielectric tensor.</span>
+<span class="sd">        born: an array with the Born effective charges.</span>
+<span class="sd">        filepath: the path where the lotosplitting file should be written.</span>
+<span class="sd">        fmt: the format for the float numbers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">eps</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">born</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="born_to_lotosplitting"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.born_to_lotosplitting">[docs]</a><span class="k">def</span> <span class="nf">born_to_lotosplitting</span><span class="p">(</span><span class="n">born</span><span class="p">,</span> <span class="n">lotosplitting_path</span><span class="o">=</span><span class="s2">&quot;infile.lotosplitting&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converted of a file from the BORN file produced from phonopy to the lotosplitting</span>
+<span class="sd">    file used by TDEP.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        born: a dictionary with &quot;dielectric&quot; and &quot;born&quot; keywords as obtained from the nac_params</span>
+<span class="sd">            in phonopy. Notice that the &quot;factor&quot; attribute is not taken into account, so the</span>
+<span class="sd">            values should be in default phonopy units.</span>
+<span class="sd">        lotosplitting_path: the path where the lotosplitting file should be written.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">eps</span> <span class="o">=</span> <span class="n">born</span><span class="p">[</span><span class="s2">&quot;dielectric&quot;</span><span class="p">]</span>
+    <span class="n">becs</span> <span class="o">=</span> <span class="n">born</span><span class="p">[</span><span class="s2">&quot;born&quot;</span><span class="p">]</span>
+    <span class="n">write_tdep_lotosplitting</span><span class="p">(</span><span class="n">eps</span><span class="p">,</span> <span class="n">becs</span><span class="p">,</span> <span class="n">lotosplitting_path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_BORN"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.write_BORN">[docs]</a><span class="nd">@requires</span><span class="p">(</span><span class="n">Phonopy</span><span class="p">,</span> <span class="s2">&quot;phonopy not installed!&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">write_BORN</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="n">borns</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;BORN&quot;</span><span class="p">,</span> <span class="n">symmetrize_tensors</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function imported from phonopy.file_IO.</span>
+<span class="sd">    Contrarily to the original, it does not symmetrize the tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">get_BORN_lines</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="n">borns</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">symmetrize_tensors</span><span class="o">=</span><span class="n">symmetrize_tensors</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_BORN_lines"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.converters.get_BORN_lines">[docs]</a><span class="nd">@requires</span><span class="p">(</span><span class="n">Phonopy</span><span class="p">,</span> <span class="s2">&quot;phonopy not installed!&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_BORN_lines</span><span class="p">(</span><span class="n">unitcell</span><span class="p">,</span> <span class="n">borns</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span>
+                   <span class="n">factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">primitive_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">supercell_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">symmetrize_tensors</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function imported from phonopy.file_IO that exposes the</span>
+<span class="sd">    option of not symmetrizing the tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">phonopy.structure.symmetry</span> <span class="kn">import</span> <span class="n">elaborate_borns_and_epsilon</span>
+    <span class="n">borns</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">atom_indices</span> <span class="o">=</span> <span class="n">elaborate_borns_and_epsilon</span><span class="p">(</span>
+        <span class="n">unitcell</span><span class="p">,</span> <span class="n">borns</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">symmetrize_tensors</span><span class="o">=</span><span class="n">symmetrize_tensors</span><span class="p">,</span>
+        <span class="n">primitive_matrix</span><span class="o">=</span><span class="n">primitive_matrix</span><span class="p">,</span>
+        <span class="n">supercell_matrix</span><span class="o">=</span><span class="n">supercell_matrix</span><span class="p">,</span>
+        <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">)</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;# epsilon and Z* of atoms &quot;</span>
+    <span class="n">text</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">atom_indices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">,</span> <span class="p">]</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;</span><span class="si">%13.8f</span><span class="s2"> &quot;</span> <span class="o">*</span> <span class="mi">9</span><span class="p">)</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">epsilon</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span>
+    <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">borns</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;</span><span class="si">%13.8f</span><span class="s2"> &quot;</span> <span class="o">*</span> <span class="mi">9</span><span class="p">)</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="n">lines</span></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

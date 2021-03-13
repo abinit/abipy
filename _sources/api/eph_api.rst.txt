@@ -36,6 +36,14 @@ eph Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`rta` Module
+-----------------
+
+.. automodule:: abipy.eph.rta
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`sigeph` Module
 --------------------
 

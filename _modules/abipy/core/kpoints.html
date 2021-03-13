@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abipy.core.kpoints &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abipy.core.kpoints &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
@@ -42,7 +46,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -342,7 +346,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        bz2ibz: 1d array with BZ --&gt; IBZ mapping</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ngkpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">ngkpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
 
     <span class="c1"># Extract (FM) symmetry operations in reciprocal space.</span>
     <span class="n">abispg</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">abi_spacegroup</span>
@@ -353,10 +357,10 @@
     <span class="n">symrec_fm</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span><span class="o">.</span><span class="n">rot_g</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">abispg</span><span class="o">.</span><span class="n">fm_symmops</span><span class="p">]</span>
 
     <span class="c1"># Compute TS k_ibz.</span>
-    <span class="n">bzgrid2ibz</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">bzgrid2ibz</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">ik_ibz</span><span class="p">,</span> <span class="n">kibz</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ibz</span><span class="p">):</span>
-        <span class="n">gp_ibz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">kibz</span> <span class="o">*</span> <span class="n">ngkpt</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="n">gp_ibz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">kibz</span> <span class="o">*</span> <span class="n">ngkpt</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">rot</span> <span class="ow">in</span> <span class="n">symrec_fm</span><span class="p">:</span>
             <span class="n">rot_gp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">gp_ibz</span><span class="p">)</span>
             <span class="n">gp_bz</span> <span class="o">=</span> <span class="n">rot_gp</span> <span class="o">%</span> <span class="n">ngkpt</span>
@@ -468,7 +472,7 @@
     <span class="n">kmap</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;kmap&quot;</span><span class="p">,</span> <span class="s2">&quot;ik_ref, tsign, isym, g0&quot;</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">ik_oth</span><span class="p">,</span> <span class="n">okpt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">other_kpoints</span><span class="p">):</span>
-        <span class="c1"># Get other k-point in reduced coordinates in the referece lattice.</span>
+        <span class="c1"># Get other k-point in reduced coordinates in the reference lattice.</span>
         <span class="n">okpt_red</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">ref_gprimd_inv</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">other_gprimd</span><span class="p">,</span> <span class="n">okpt</span><span class="p">))</span>
 
         <span class="c1"># k_other = TS k_ref + G0</span>
@@ -585,7 +589,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered with &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">uc_kcoords</span><span class="p">),</span> <span class="s2">&quot;k-points&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">irred_map</span><span class="p">),</span> <span class="s2">&quot;irred k-points&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">irred_map</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">irred_map</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">irred_map</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">irred_map</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">kpath_from_bounds_and_ndivsm</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">ndivsm</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
@@ -615,7 +619,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Found two equivalent consecutive points in bounds!&quot;</span><span class="p">)</span>
 
     <span class="n">minlen</span> <span class="o">=</span> <span class="n">minlen</span> <span class="o">/</span> <span class="n">ndivsm</span>
-    <span class="n">ndivs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">lens</span> <span class="o">/</span> <span class="n">minlen</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">ndivs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">lens</span> <span class="o">/</span> <span class="n">minlen</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">path</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nbounds</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndivs</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
@@ -687,16 +691,26 @@
         <span class="s2">&quot;_hash&quot;</span><span class="p">,</span>
     <span class="p">]</span>
 
+<div class="viewcode-block" id="Kpoint.from_name_and_structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpoint.from_name_and_structure">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_name_and_structure</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build Kpoint object from string with name and structure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">get_kcoords_from_names</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span></div>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">lattice</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            frac_coords: Reduced coordinates.</span>
+<span class="sd">            frac_coords: Reduced coordinates of the k-point.</span>
 <span class="sd">            lattice: |Lattice| object describing the reciprocal lattice.</span>
 <span class="sd">            weights: k-point weight (optional, set to zero if not given).</span>
 <span class="sd">            name: string with the name of the k-point (optional)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expecting vector with 3 items, got `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_lattice</span> <span class="o">=</span> <span class="n">lattice</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_weight</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
@@ -1245,7 +1259,7 @@
         <span class="n">k2kqg</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qfrac_coords</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1e-6</span><span class="p">):</span>
             <span class="c1"># Gamma point, DOH!</span>
-            <span class="n">g0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="n">g0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="n">k2kqg</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ik</span><span class="p">,</span> <span class="n">g0</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1319,7 +1333,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">gmet</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">metric_tensor</span>
         <span class="n">vnames</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">vn</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">vn</span> <span class="ow">in</span> <span class="n">vertices_names</span><span class="p">]</span>
-        <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">vn</span> <span class="ow">in</span> <span class="n">vertices_names</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">vn</span> <span class="ow">in</span> <span class="n">vertices_names</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">vertices</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 
         <span class="n">dl_vals</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1850,8 +1864,16 @@
 
     <span class="k">def</span> <span class="nf">read_kmpdivs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the Monkhorst-Pack divisions defining the mesh. None if not found.&quot;&quot;&quot;</span>
-        <span class="c1">#return self.read_value(&quot;monkhorst_pack_folding&quot;)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_if_masked_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;monkhorst_pack_folding&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="s2">&quot;monkhorst_pack_folding&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_if_masked_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;monkhorst_pack_folding&quot;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kptrlatt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_kptrlatt</span><span class="p">()</span>
+            <span class="n">kmpdivs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">kptrlatt</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span> <span class="ow">and</span> <span class="n">kptrlatt</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">kmpdivs</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">kmpdivs</span>
 
     <span class="k">def</span> <span class="nf">read_kptrlatt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns ABINIT variable kptrlatt. None if not found.&quot;&quot;&quot;</span>
@@ -1908,7 +1930,7 @@
             <span class="n">is_shift</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_shift</span><span class="p">,</span> <span class="n">is_time_reversal</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">has_timrev</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">_SPGLIB_SYMPREC</span><span class="p">)</span>
 
         <span class="n">uniq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nibz</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniq</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kshift</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_shift</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">is_shift</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="p">[</span><span class="n">uniq</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">kshift</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span>
@@ -1917,7 +1939,7 @@
 
         <span class="c1"># All k-points and mapping to ir-grid points.</span>
         <span class="c1"># FIXME This is slow.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bz2ibz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bz</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bz2ibz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bz</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ik_bz</span><span class="p">,</span> <span class="n">ir_gp_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mapping</span><span class="p">):</span>
             <span class="n">inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">uniq</span> <span class="o">==</span> <span class="n">ir_gp_id</span><span class="p">)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">inds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
@@ -1964,6 +1986,7 @@
 <div class="viewcode-block" id="find_points_along_path"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.find_points_along_path">[docs]</a><span class="k">def</span> <span class="nf">find_points_along_path</span><span class="p">(</span><span class="n">cart_bounds</span><span class="p">,</span> <span class="n">cart_coords</span><span class="p">,</span> <span class="n">dist_tol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find points in ``cart_coords`` lying on the path defined by ``cart_bounds``.</span>
+<span class="sd">    Result are ordered according to distance along the path.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        cart_bounds: [N, 3] array with the boundaries of the path in Cartesian coordinates.</span>
@@ -2060,8 +2083,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

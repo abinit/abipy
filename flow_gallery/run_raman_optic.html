@@ -1,26 +1,30 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Raman Flow with independent-particle approximation (optic) &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Raman Flow with independent-particle approximation (optic) &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Flows How-To" href="../flows_howto.html" />
+    <link rel="next" title="Effective masses with finite difference" href="run_conducwork.html" />
     <link rel="prev" title="Flow for Relaxation + Bands" href="run_relax_and_ebands.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -108,7 +112,7 @@
     </a>
   </li>
   <li>
-    <a href="../flows_howto.html" title="Next Chapter: Flows How-To"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Flows How-To &raquo;</span>
+    <a href="run_conducwork.html" title="Next Chapter: Effective masses with finite difference"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Effective mas... &raquo;</span>
     </a>
   </li>
               
@@ -144,21 +148,14 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-raman-optic-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-raman-optic-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="raman-flow-with-independent-particle-approximation-optic">
 <span id="sphx-glr-flow-gallery-run-raman-optic-py"></span><h1>Raman Flow with independent-particle approximation (optic)<a class="headerlink" href="#raman-flow-with-independent-particle-approximation-optic" title="Permalink to this headline">¶</a></h1>
 <p>This script shows how to perform a Raman calculation with excitonic effects
 included with the BSE formalism.</p>
-<img alt="../_images/sphx_glr_run_raman_optic_001.png" class="sphx-glr-single-img" src="../_images/sphx_glr_run_raman_optic_001.png" />
-<p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-</pre></div>
-</div>
-<div class="line-block">
-<div class="line"><br /></div>
-</div>
+<img alt="run raman optic" class="sphx-glr-single-img" src="../_images/sphx_glr_run_raman_optic_001.png" />
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -168,15 +165,15 @@ included with the BSE formalism.</p>
 <span class="kn">import</span> <span class="nn">abipy.flowtk</span> <span class="k">as</span> <span class="nn">flowtk</span>
 
 
-<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">):</span>
     <span class="c1"># Get the unperturbed structure.</span>
-    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">)</span>
-    <span class="n">base_structure</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">structure_from_ucell</span><span class="p">(</span><span class="s2">&quot;Si&quot;</span><span class="p">)</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <a href="../api/data_api.html#abipy.data.pseudos" title="abipy.data.pseudos" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span></a><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">)</span>
+    <span class="n">base_structure</span> <span class="o">=</span> <a href="../api/data_api.html#abipy.data.structure_from_ucell" title="abipy.data.structure_from_ucell" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">structure_from_ucell</span></a><span class="p">(</span><span class="s2">&quot;Si&quot;</span><span class="p">)</span>
 
     <span class="n">ngkpt</span> <span class="o">=</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
 
     <span class="n">etas</span> <span class="o">=</span> <span class="p">[</span><span class="o">-.</span><span class="mi">001</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">+.</span><span class="mi">001</span><span class="p">]</span>
-    <span class="n">ph_displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">base_structure</span><span class="p">)),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">ph_displ</span> <span class="o">=</span> <a href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.reshape.html#numpy.reshape" title="numpy.reshape" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">reshape</span></a><span class="p">(</span><a href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.zeros.html#numpy.zeros" title="numpy.zeros" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">zeros</span></a><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">base_structure</span><span class="p">)),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
     <span class="n">ph_displ</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">[</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
     <span class="n">ph_displ</span><span class="p">[</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 
@@ -188,14 +185,14 @@ included with the BSE formalism.</p>
     <span class="n">displaced_structures</span> <span class="o">=</span> <span class="n">modifier</span><span class="o">.</span><span class="n">displace</span><span class="p">(</span><span class="n">ph_displ</span><span class="p">,</span> <span class="n">etas</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1"># Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
-        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a><span class="p">:</span>
+        <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/os.path.html#os.path.basename" title="os.path.basename" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sys</span><span class="o">.</span><span class="n">argv</span></a><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
 
-    <span class="n">flow</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+    <span class="n">flow</span> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.nodes.Node" title="abipy.flowtk.nodes.Node" class="sphx-glr-backref-module-abipy-flowtk-nodes sphx-glr-backref-type-py-class"><span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
 
     <span class="c1"># Generate the different shifts to average</span>
     <span class="n">ndiv</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">shift1D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">ndiv</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ndiv</span><span class="p">)</span>
+    <span class="n">shift1D</span> <span class="o">=</span> <a href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">ndiv</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ndiv</span><span class="p">)</span>
     <span class="n">all_shifts</span> <span class="o">=</span> <span class="p">[[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">shift1D</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">shift1D</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">shift1D</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">structure</span><span class="p">,</span> <span class="n">eta</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">displaced_structures</span><span class="p">,</span> <span class="n">etas</span><span class="p">):</span>
@@ -220,7 +217,7 @@ included with the BSE formalism.</p>
         <span class="c1">#accesswff=3</span>
     <span class="p">)</span>
 
-    <span class="n">multi</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">multi</span> <span class="o">=</span> <a href="../api/abio_api.html#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset" class="sphx-glr-backref-module-abipy-abio-inputs sphx-glr-backref-type-py-class"><span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span></a><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
     <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">global_vars</span><span class="p">)</span>
     <span class="n">multi</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">)</span>
 
@@ -270,7 +267,7 @@ included with the BSE formalism.</p>
     <span class="n">scf_inp</span><span class="p">,</span> <span class="n">nscf_inp</span><span class="p">,</span> <span class="n">ddk1</span><span class="p">,</span> <span class="n">ddk2</span><span class="p">,</span> <span class="n">ddk3</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
     <span class="n">ddk_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ddk1</span><span class="p">,</span> <span class="n">ddk2</span><span class="p">,</span> <span class="n">ddk3</span><span class="p">]</span>
 
-    <span class="n">work</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Work</span><span class="p">()</span>
+    <span class="n">work</span> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.nodes.Node" title="abipy.flowtk.nodes.Node" class="sphx-glr-backref-module-abipy-flowtk-nodes sphx-glr-backref-type-py-class"><span class="n">flowtk</span><span class="o">.</span><span class="n">Work</span></a><span class="p">()</span>
     <span class="n">scf_t</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">scf_inp</span><span class="p">)</span>
     <span class="n">nscf_t</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">nscf_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">scf_t</span><span class="p">:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">})</span>
 
@@ -279,7 +276,7 @@ included with the BSE formalism.</p>
         <span class="n">ddk_t</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">register_ddk_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">nscf_t</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
         <span class="n">ddk_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ddk_t</span><span class="p">)</span>
 
-    <span class="n">optic_input</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">OpticInput</span><span class="p">(</span>
+    <span class="n">optic_input</span> <span class="o">=</span> <a href="../api/abio_api.html#abipy.abio.inputs.OpticInput" title="abipy.abio.inputs.OpticInput" class="sphx-glr-backref-module-abipy-abio-inputs sphx-glr-backref-type-py-class"><span class="n">abilab</span><span class="o">.</span><span class="n">OpticInput</span></a><span class="p">(</span>
         <span class="n">broadening</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>     <span class="c1"># Value of the smearing factor, in Hartree</span>
         <span class="n">domega</span><span class="o">=</span><span class="mf">0.0003</span><span class="p">,</span>        <span class="c1"># Frequency mesh.</span>
         <span class="n">maxomega</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
@@ -291,7 +288,7 @@ included with the BSE formalism.</p>
         <span class="c1">#nonlin_comp=(123, 222),</span>
     <span class="p">)</span>
 
-    <span class="n">optic_t</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">OpticTask</span><span class="p">(</span><span class="n">optic_input</span><span class="p">,</span> <span class="n">nscf_node</span><span class="o">=</span><span class="n">nscf_t</span><span class="p">,</span> <span class="n">ddk_nodes</span><span class="o">=</span><span class="n">ddk_nodes</span><span class="p">)</span>
+    <span class="n">optic_t</span> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.nodes.Node" title="abipy.flowtk.nodes.Node" class="sphx-glr-backref-module-abipy-flowtk-nodes sphx-glr-backref-type-py-class"><span class="n">flowtk</span><span class="o">.</span><span class="n">OpticTask</span></a><span class="p">(</span><span class="n">optic_input</span><span class="p">,</span> <span class="n">nscf_node</span><span class="o">=</span><span class="n">nscf_t</span><span class="p">,</span> <span class="n">ddk_nodes</span><span class="o">=</span><span class="n">ddk_nodes</span><span class="p">)</span>
     <span class="n">work</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">optic_t</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">work</span>
@@ -299,33 +296,33 @@ included with the BSE formalism.</p>
 
 <span class="c1"># This block generates the thumbnails in the AbiPy gallery.</span>
 <span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
-<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/os.html#os.getenv" title="os.getenv" class="sphx-glr-backref-module-os sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">getenv</span></a><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
-    <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
+    <a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.build_flow_main_parser" title="abipy.flowtk.build_flow_main_parser" class="sphx-glr-backref-module-abipy-flowtk sphx-glr-backref-type-py-function"><span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span></a><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <a href="https://docs.python.org/3/library/tempfile.html#tempfile.mkdtemp" title="tempfile.mkdtemp" class="sphx-glr-backref-module-tempfile sphx-glr-backref-type-py-function"><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span></a><span class="p">()])</span>
+    <span class="n">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
 
 
 <span class="nd">@flowtk</span><span class="o">.</span><span class="n">flow_main</span>
-<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is our main function that will be invoked by the script.</span>
 <span class="sd">    flow_main is a decorator implementing the command line interface.</span>
 <span class="sd">    Command line args are stored in `options`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">)</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <a href="https://docs.python.org/3/library/sys.html#sys.exit" title="sys.exit" class="sphx-glr-backref-module-sys sphx-glr-backref-type-py-function"><span class="n">sys</span><span class="o">.</span><span class="n">exit</span></a><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.908 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.862 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-raman-optic-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/9ac7250bb8ff689a5b0f8d2124989086/run_raman_optic.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_raman_optic.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/c31150e9efd7a5d747f8ae2ee0f74e57/run_raman_optic.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_raman_optic.ipynb</span></code></a></p>
 </div>
 </div>
@@ -345,8 +342,8 @@ included with the BSE formalism.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

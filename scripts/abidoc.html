@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abidoc.py &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abidoc.py &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="abinp.py" href="abinp.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -247,9 +251,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </pre></div>
 </div>
 <p>Complete command line reference</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
-                 <span class="p">{</span><span class="n">man</span><span class="p">,</span><span class="n">graphviz</span><span class="p">,</span><span class="n">browse</span><span class="p">,</span><span class="n">apropos</span><span class="p">,</span><span class="n">find</span><span class="p">,</span><span class="n">withdim</span><span class="p">,</span><span class="nb">list</span><span class="p">,</span><span class="n">manager</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">abibuild</span><span class="p">}</span>
-                 <span class="o">...</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">{</span><span class="n">man</span><span class="p">,</span><span class="n">graphviz</span><span class="p">,</span><span class="n">browse</span><span class="p">,</span><span class="n">apropos</span><span class="p">,</span><span class="n">find</span><span class="p">,</span><span class="n">withdim</span><span class="p">,</span><span class="nb">list</span><span class="p">,</span><span class="n">manager</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">abibuild</span><span class="p">}</span> <span class="o">...</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments">
@@ -307,8 +309,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <div class="section" id="graphviz">
 <h3>graphviz<a class="headerlink" href="#graphviz" title="Permalink to this headline">¶</a></h3>
 <p>Draw variable dependencies with graphviz package.See <a class="reference external" href="https://graphviz.readthedocs.io/">https://graphviz.readthedocs.io/</a>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">graphviz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENGINE</span><span class="p">]</span>
-                   <span class="n">varname</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">graphviz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENGINE</span><span class="p">]</span> <span class="n">varname</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat1">
@@ -593,8 +594,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

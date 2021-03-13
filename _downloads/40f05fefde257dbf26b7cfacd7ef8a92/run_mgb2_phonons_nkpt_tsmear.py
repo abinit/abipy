@@ -15,7 +15,7 @@ import abipy.abilab as abilab
 from abipy import flowtk
 
 
-def make_scf_input(structure, ngkpt, tsmear, pseudos, paral_kgb=1):
+def make_scf_input(structure, ngkpt, tsmear, pseudos, paral_kgb=0):
     """Build and return Ground-state input for MgB2 given ngkpt and tsmear."""
 
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)

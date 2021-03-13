@@ -1,0 +1,7 @@
+<map id="inheritance44d2641f3b" name="inheritance44d2641f3b">
+<area shape="rect" id="node1" href="#abipy.tools.tensors.ZstarTensor" target="_top" title="Born effective charge tensor (for a single atom)." alt="" coords="598,24,764,44"/>
+<area shape="rect" id="node2" title="Base class for doing useful general operations on second rank tensors" alt="" coords="365,24,560,44"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="4,4,128,24"/>
+<area shape="rect" id="node5" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="166,24,327,44"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="22,43,110,63"/>
+</map>

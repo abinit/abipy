@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Quasi-harmonic approximation &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quasi-harmonic approximation &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Spin-polarized e-bands" href="plot_ebands_spin.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,35 +148,30 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-qha-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-qha-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="quasi-harmonic-approximation">
 <span id="sphx-glr-gallery-plot-qha-py"></span><h1>Quasi-harmonic approximation<a class="headerlink" href="#quasi-harmonic-approximation" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to use the GSR.nc and PHDOS.nc files computed with different volumes
 to compute thermodynamic properties within the quasi-harmonic approximation.</p>
 <ul class="sphx-glr-horizontal">
-<li><img alt="../_images/sphx_glr_plot_qha_001.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_001.png" />
+<li><img alt="Energies as a function of volume for different T" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_001.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_qha_002.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_002.png" />
+<li><img alt="Thermal expansion coefficient as a function of T" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_002.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_qha_003.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_003.png" />
+<li><img alt="Volume as a function of T" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_003.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_qha_004.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_004.png" />
+<li><img alt="Phonon band structures with color depending on T" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_004.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
 [33mWARNING combiblot: Bands have different number of k-points:
 [83, 81][0m
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
+
+&lt;Figure size 640x480 with 1 Axes&gt;
 </pre></div>
 </div>
 <div class="line-block">
@@ -186,30 +185,30 @@ to compute thermodynamic properties within the quasi-harmonic approximation.</p>
 
 <span class="c1"># We use a list of GSR.nc and PHDOS.nc files corresponding to different isotropic strains.</span>
 <span class="c1"># These files are shipped with AbiPy so that we don&#39;t need to run calculations from scratch.</span>
-<span class="n">strains</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
-<span class="n">dirpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;refs&quot;</span><span class="p">,</span> <span class="s2">&quot;si_qha&quot;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">strains</span></a> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">dirpath</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">abidata</span><span class="o">.</span><span class="n">dirpath</span></a><span class="p">,</span> <span class="s2">&quot;refs&quot;</span><span class="p">,</span> <span class="s2">&quot;si_qha&quot;</span><span class="p">)</span>
 
-<span class="n">gsr_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;mp-149_</span><span class="si">{:+d}</span><span class="s2">_GSR.nc&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">strains</span><span class="p">]</span>
-<span class="n">dos_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;mp-149_</span><span class="si">{:+d}</span><span class="s2">_PHDOS.nc&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">strains</span><span class="p">]</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gsr_paths</span></a> <span class="o">=</span> <span class="p">[</span><a href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">dirpath</span></a><span class="p">,</span> <span class="s2">&quot;mp-149_</span><span class="si">{:+d}</span><span class="s2">_GSR.nc&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">strains</span></a><span class="p">]</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">dos_paths</span></a> <span class="o">=</span> <span class="p">[</span><a href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">dirpath</span></a><span class="p">,</span> <span class="s2">&quot;mp-149_</span><span class="si">{:+d}</span><span class="s2">_PHDOS.nc&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">strains</span></a><span class="p">]</span>
 
 <span class="c1"># Initialize QHA object from files.</span>
 <span class="c1"># The PHDOS.nc files can be obtained from the DDB used ddb.anaget_phbst_and_phdos_files(...)</span>
-<span class="n">qha</span> <span class="o">=</span> <span class="n">QHA</span><span class="o">.</span><span class="n">from_files</span><span class="p">(</span><span class="n">gsr_paths</span><span class="p">,</span> <span class="n">dos_paths</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.qha.QHA" title="abipy.dfpt.qha.QHA" class="sphx-glr-backref-module-abipy-dfpt-qha sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">qha</span></a> <span class="o">=</span> <a href="../api/dfpt_api.html#abipy.dfpt.qha.QHA.from_files" title="abipy.dfpt.qha.QHA.from_files" class="sphx-glr-backref-module-abipy-dfpt-qha sphx-glr-backref-type-py-method"><span class="n">QHA</span><span class="o">.</span><span class="n">from_files</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gsr_paths</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">dos_paths</span></a><span class="p">)</span>
 
 <span class="c1"># To change the default EOS (vinet), use</span>
 <span class="c1">#qha.set_eos(&quot;murnaghan&quot;)</span>
 
-<span class="n">qha</span><span class="o">.</span><span class="n">plot_energies</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Energies as a function of volume for different T&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_energies" title="abipy.dfpt.qha.AbstractQHA.plot_energies" class="sphx-glr-backref-module-abipy-dfpt-qha sphx-glr-backref-type-py-method"><span class="n">qha</span><span class="o">.</span><span class="n">plot_energies</span></a><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Energies as a function of volume for different T&quot;</span><span class="p">)</span>
 
-<span class="n">qha</span><span class="o">.</span><span class="n">plot_thermal_expansion_coeff</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Thermal expansion coefficient as a function of T&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_thermal_expansion_coeff" title="abipy.dfpt.qha.AbstractQHA.plot_thermal_expansion_coeff" class="sphx-glr-backref-module-abipy-dfpt-qha sphx-glr-backref-type-py-method"><span class="n">qha</span><span class="o">.</span><span class="n">plot_thermal_expansion_coeff</span></a><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Thermal expansion coefficient as a function of T&quot;</span><span class="p">)</span>
 
-<span class="n">qha</span><span class="o">.</span><span class="n">plot_vol_vs_t</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Volume as a function of T&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_vol_vs_t" title="abipy.dfpt.qha.AbstractQHA.plot_vol_vs_t" class="sphx-glr-backref-module-abipy-dfpt-qha sphx-glr-backref-type-py-method"><span class="n">qha</span><span class="o">.</span><span class="n">plot_vol_vs_t</span></a><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Volume as a function of T&quot;</span><span class="p">)</span>
 
 <span class="c1"># Fake temperatures to test the plotting function.</span>
-<span class="n">phbs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">PhononBands</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;mp-149_</span><span class="si">{:+d}</span><span class="s2">_PHBST.nc&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">)))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span>
-             <span class="n">strains</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">phbs_list</span></a> <span class="o">=</span> <span class="p">[</span><a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.from_file" title="abipy.dfpt.phonons.PhononBands.from_file" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">PhononBands</span><span class="o">.</span><span class="n">from_file</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">dirpath</span></a><span class="p">,</span> <span class="s2">&quot;mp-149_</span><span class="si">{:+d}</span><span class="s2">_PHBST.nc&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">)))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span>
+             <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">strains</span></a><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span>
 
-<span class="n">qha</span><span class="o">.</span><span class="n">plot_phbs</span><span class="p">(</span><span class="n">phbs_list</span><span class="p">,</span> <span class="n">temperatures</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Phonon band structures with color depending on T&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_phbs" title="abipy.dfpt.qha.AbstractQHA.plot_phbs" class="sphx-glr-backref-module-abipy-dfpt-qha sphx-glr-backref-type-py-method"><span class="n">qha</span><span class="o">.</span><span class="n">plot_phbs</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">phbs_list</span></a><span class="p">,</span> <span class="n">temperatures</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Phonon band structures with color depending on T&quot;</span><span class="p">)</span>
 
 <span class="c1"># Here we build a Phonopy QHA object.</span>
 <span class="c1"># Cannot run this code because it breaks sphinx-gallery</span>
@@ -219,12 +218,12 @@ to compute thermodynamic properties within the quasi-harmonic approximation.</p>
 <span class="c1">#qha_phonopy.plot_bulk_modulus_temperature().show()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.875 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  2.747 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-qha-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/4e3fa75639d0b25bed3c7495aa52020a/plot_qha.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_qha.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/427c0697f663c87d8d496657eaada749/plot_qha.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_qha.ipynb</span></code></a></p>
 </div>
 </div>
@@ -244,8 +243,8 @@ to compute thermodynamic properties within the quasi-harmonic approximation.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

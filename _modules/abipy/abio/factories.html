@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abipy.abio.factories &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abipy.abio.factories &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
@@ -42,7 +46,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -157,6 +161,7 @@
     <span class="s2">&quot;scf_for_phonons&quot;</span><span class="p">,</span>
     <span class="s2">&quot;dte_from_gsinput&quot;</span><span class="p">,</span>
     <span class="s2">&quot;dfpt_from_gsinput&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;minimal_scf_input&quot;</span>
 <span class="p">]</span>
 
 
@@ -1540,6 +1545,136 @@
     <span class="k">return</span> <span class="n">multi</span></div>
 
 
+<span class="k">def</span> <span class="nf">conduc_from_inputs</span><span class="p">(</span><span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">,</span> <span class="n">tmesh</span><span class="p">,</span> <span class="n">ddb_ngqpt</span><span class="p">,</span> <span class="n">eph_ngqpt_fine</span><span class="p">,</span> <span class="n">sigma_erange</span><span class="p">,</span> <span class="n">boxcutmin</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">mixprec</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity.</span>
+<span class="sd">    This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need</span>
+<span class="sd">    a work to get DDB and DVDB since |ConducWork| needs these files.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scf_input: |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.</span>
+<span class="sd">        nscf_input: |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.</span>
+<span class="sd">            most parameters for subsequent tasks will be taken from this inputs.</span>
+<span class="sd">        tmesh: The mesh of temperature (in Kelvin) where we calculate the conductivity.</span>
+<span class="sd">        ddb_ngqpt: the coarse grid of q-points used to compute the DDB and DVDB files in the previous phonon_work.</span>
+<span class="sd">        eph_ngqpt_fine: the fine grid of q-points used for the Fourier nterpolation.</span>
+<span class="sd">        boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.</span>
+<span class="sd">        mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create a MultiDataset from scf input</span>
+    <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">([</span><span class="n">scf_input</span><span class="p">])</span>
+
+    <span class="c1"># Add 2 times the nscf input at the end of the MultiDataset</span>
+    <span class="n">extension</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">replicate_input</span><span class="p">(</span><span class="n">nscf_input</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">extension</span><span class="p">)</span>
+
+    <span class="c1"># Modify the second nscf input to get a task that interpolate the DVDB</span>
+    <span class="c1">#multi[2].pop_vars(&quot;iscf&quot;)</span>
+    <span class="c1">#multi[2].set_vars(irdden=0, optdriver=7,</span>
+    <span class="c1">#                  ddb_ngqpt=ddb_ngqpt,</span>
+    <span class="c1">#                  eph_task=5,</span>
+    <span class="c1">#                  eph_ngqpt_fine=eph_ngqpt_fine)</span>
+
+    <span class="c1"># Modify the third nscf input to get a conductivity task</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">(</span><span class="s2">&quot;iscf&quot;</span><span class="p">)</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">irdden</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                      <span class="n">optdriver</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+                      <span class="n">ddb_ngqpt</span><span class="o">=</span><span class="n">ddb_ngqpt</span><span class="p">,</span>
+                      <span class="n">eph_ngqpt_fine</span><span class="o">=</span><span class="n">eph_ngqpt_fine</span><span class="p">,</span>
+                      <span class="n">eph_task</span><span class="o">=-</span><span class="mi">4</span><span class="p">,</span>
+                      <span class="n">tmesh</span><span class="o">=</span><span class="n">tmesh</span><span class="p">,</span>
+                      <span class="n">sigma_erange</span><span class="o">=</span><span class="n">sigma_erange</span><span class="p">,</span>
+                      <span class="n">boxcutmin</span><span class="o">=</span><span class="n">boxcutmin</span><span class="p">,</span>
+                      <span class="n">mixprec</span><span class="o">=</span><span class="n">mixprec</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">multi</span>
+
+
+<span class="k">def</span> <span class="nf">conduc_kerange_from_inputs</span><span class="p">(</span><span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">,</span> <span class="n">tmesh</span><span class="p">,</span> <span class="n">ddb_ngqpt</span><span class="p">,</span> <span class="n">eph_ngqpt_fine</span><span class="p">,</span>
+                               <span class="n">sigma_ngkpt</span><span class="p">,</span> <span class="n">sigma_erange</span><span class="p">,</span> <span class="n">einterp</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">boxcutmin</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">mixprec</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine the conductivity.</span>
+<span class="sd">    This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need</span>
+<span class="sd">    a work to get DDB and DVDB since |ConducWork| needs these files.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scf_input: |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.</span>
+<span class="sd">        nscf_input: |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.</span>
+<span class="sd">            most parameters for subsequent tasks will be taken from this inputs.</span>
+<span class="sd">        ddb_ngqpt: the coarse q-point grid used to get the DDB and DVDB files.</span>
+<span class="sd">        eph_ngqpt_fine: the fine qpoints grid that will be interpolated.</span>
+<span class="sd">        sigma_ngkpt: The fine grid of kpt inside the sigma interval</span>
+<span class="sd">        sigma_erange: The energy range for Sigma_nk</span>
+<span class="sd">        einterp: The interpolation used. By default it is a star-function interpolation.</span>
+<span class="sd">        boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.</span>
+<span class="sd">        mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create a MultiDataset from scf input</span>
+    <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">([</span><span class="n">scf_input</span><span class="p">])</span>
+
+    <span class="c1"># Add 4 times the nscf input at the end of the MultiDataset</span>
+    <span class="n">extension</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">replicate_input</span><span class="p">(</span><span class="n">nscf_input</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">extension</span><span class="p">)</span>
+
+    <span class="c1"># Modify the second nscf input to get a task that calculate the kpt in the sigma interval (Kerange.nc file)</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">optdriver</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">wfk_task</span><span class="o">=</span><span class="s1">&#39;&quot;wfk_kpts_erange&quot;&#39;</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                      <span class="n">sigma_ngkpt</span><span class="o">=</span><span class="n">sigma_ngkpt</span><span class="p">,</span> <span class="n">einterp</span><span class="o">=</span><span class="n">einterp</span><span class="p">,</span> <span class="n">sigma_erange</span><span class="o">=</span><span class="n">sigma_erange</span><span class="p">)</span>
+
+    <span class="c1"># Modify the third nscf input to get a task that add the kpt of Kerange.nc to the WFK file</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">optdriver</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ddb_ngqpt</span><span class="o">=</span><span class="n">ddb_ngqpt</span><span class="p">)</span>
+
+    <span class="c1"># Modify the fourth nscf input to get a task that interpolate the DVDB</span>
+    <span class="c1">#multi[4].pop_vars(&quot;iscf&quot;)</span>
+    <span class="c1">#multi[4].set_vars(irdden=0, optdriver=7,</span>
+    <span class="c1">#                  ddb_ngqpt=ddb_ngqpt,</span>
+    <span class="c1">#                  eph_task=5,</span>
+    <span class="c1">#                  eph_ngqpt_fine=eph_ngqpt_fine)</span>
+
+    <span class="c1"># Modify the third nscf input to get a conductivity task</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">(</span><span class="s2">&quot;iscf&quot;</span><span class="p">)</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">irdden</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                      <span class="n">optdriver</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+                      <span class="n">ddb_ngqpt</span><span class="o">=</span><span class="n">ddb_ngqpt</span><span class="p">,</span>
+                      <span class="n">eph_ngqpt_fine</span><span class="o">=</span><span class="n">eph_ngqpt_fine</span><span class="p">,</span>
+                      <span class="n">eph_task</span><span class="o">=-</span><span class="mi">4</span><span class="p">,</span>
+                      <span class="n">tmesh</span><span class="o">=</span><span class="n">tmesh</span><span class="p">,</span>
+                      <span class="n">sigma_erange</span><span class="o">=</span><span class="n">sigma_erange</span><span class="p">,</span>
+                      <span class="n">ngkpt</span><span class="o">=</span><span class="n">sigma_ngkpt</span><span class="p">,</span>
+                      <span class="n">boxcutmin</span><span class="o">=</span><span class="n">boxcutmin</span><span class="p">,</span>
+                      <span class="n">mixprec</span><span class="o">=</span><span class="n">mixprec</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">multi</span>
+
+
+<div class="viewcode-block" id="minimal_scf_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.minimal_scf_input">[docs]</a><span class="k">def</span> <span class="nf">minimal_scf_input</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides an input for a calculation with the minimum possible requirements.</span>
+<span class="sd">    Can be used to execute abinit with minimal requirements when needing files</span>
+<span class="sd">    that are produced only after a full calculation completes.</span>
+<span class="sd">    In general this will contain 1 kpt, 1 band, very low cutoff, no polarization,</span>
+<span class="sd">    no smearing. Disables checks on primitive cell and symmetries.</span>
+<span class="sd">    Even for large system it will require small memory allocations and few seconds</span>
+<span class="sd">    to execute.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        structure: |Structure| object.</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">scf_input</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;unpolarized&quot;</span><span class="p">)</span>
+    <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;nshiftk&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;shiftk&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+    <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;nstep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ecut&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># should be reasonable, otherwise abinit raises an error</span>
+    <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;nband&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;chkprim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;chksymbreak&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;charge&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">num_valence_electrons</span><span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;boxcutmin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.2</span>
+    <span class="k">return</span> <span class="n">inp</span></div>
+
+
 <span class="c1">#FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,</span>
 <span class="c1"># it would be better to filter on the structure elements</span>
 <span class="k">class</span> <span class="nc">InputFactory</span><span class="p">(</span><span class="n">MSONable</span><span class="p">):</span>
@@ -1635,8 +1770,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

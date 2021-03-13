@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abipy.dfpt.ifc &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abipy.dfpt.ifc &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
@@ -42,7 +46,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -143,7 +147,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">atoms_indices</span><span class="p">,</span> <span class="n">neighbours_indices</span><span class="p">,</span> <span class="n">ifc_cart_coord</span><span class="p">,</span>
-                 <span class="n">ifc_cart_coord_short_range</span><span class="p">,</span> <span class="n">local_vectors</span><span class="p">,</span> <span class="n">distances</span><span class="p">):</span>
+                 <span class="n">ifc_cart_coord_short_range</span><span class="p">,</span> <span class="n">local_vectors</span><span class="p">,</span> <span class="n">distances</span><span class="p">,</span> <span class="n">atoms_cart_coord</span><span class="p">,</span>
+                 <span class="n">ifc_weights</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            structure: |Structure| object.</span>
@@ -152,6 +157,9 @@
 <span class="sd">            ifc_cart_coord: ifc in Cartesian coordinates</span>
 <span class="sd">            ifc_cart_coord_short_range: short range part of the ifc in Cartesian coordinates</span>
 <span class="sd">            local_vectors: local basis used to determine the ifc_local_coord</span>
+<span class="sd">            atoms_cart_coord: cartesian coordinates in Bohr of the atoms corresponding to the atoms in</span>
+<span class="sd">                atoms_index</span>
+<span class="sd">            ifc_weights: list of weights used for the interpolation for each atoms in atoms_index</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">atoms_indices</span> <span class="o">=</span> <span class="n">atoms_indices</span>
@@ -160,6 +168,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ifc_cart_coord_short_range</span> <span class="o">=</span> <span class="n">ifc_cart_coord_short_range</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">local_vectors</span> <span class="o">=</span> <span class="n">local_vectors</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">distances</span> <span class="o">=</span> <span class="n">distances</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms_cart_coord</span> <span class="o">=</span> <span class="n">atoms_cart_coord</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ifc_weights</span> <span class="o">=</span> <span class="n">ifc_weights</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">number_of_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -178,17 +188,21 @@
                 <span class="n">ifc_cart_coord</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ifc_matrix_cart_coord&quot;</span><span class="p">)</span>
                 <span class="n">ifc_cart_coord_short_range</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ifc_matrix_cart_coord_short_range&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
                 <span class="n">local_vectors</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ifc_local_vectors&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="c1"># The following are set to None by default to keep backward</span>
+                <span class="c1"># compatibility with anaddb.nc files generated by versions of abinit&lt;9.2</span>
+                <span class="n">atoms_cart_coord</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ifc_atoms_cart_coord&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="n">ifc_weights</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ifc_weights&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">traceback</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
                 <span class="n">msg</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;Error while trying to read IFCs from file.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                       <span class="s2">&quot;Verify that the required variables are used in anaddb: ifcflag, natifc, atifc, ifcout</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="s2">&quot;Verify that the required variables are used in anaddb: ifcflag, natifc, atifc, ifcout</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">atoms_indices</span><span class="o">=</span><span class="n">atoms_indices</span><span class="p">,</span> <span class="n">neighbours_indices</span><span class="o">=</span><span class="n">neighbours_indices</span><span class="p">,</span>
                        <span class="n">ifc_cart_coord</span><span class="o">=</span><span class="n">ifc_cart_coord</span><span class="p">,</span>
                        <span class="n">ifc_cart_coord_short_range</span><span class="o">=</span><span class="n">ifc_cart_coord_short_range</span><span class="p">,</span> <span class="n">local_vectors</span><span class="o">=</span><span class="n">local_vectors</span><span class="p">,</span>
-                       <span class="n">distances</span><span class="o">=</span><span class="n">distances</span><span class="p">)</span></div>
+                       <span class="n">distances</span><span class="o">=</span><span class="n">distances</span><span class="p">,</span> <span class="n">atoms_cart_coord</span><span class="o">=</span><span class="n">atoms_cart_coord</span><span class="p">,</span> <span class="n">ifc_weights</span><span class="o">=</span><span class="n">ifc_weights</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -442,8 +456,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

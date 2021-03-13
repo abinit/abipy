@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abipy.eph.transportfile &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abipy.eph.transportfile &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
@@ -42,7 +46,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -127,14 +131,18 @@
       
   <h1>Source code for abipy.eph.transportfile</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
-<span class="sd">&quot;&quot;&quot;TRANSPORT.nc file.&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TRANSPORT.nc file.</span>
+
+<span class="sd">Warning: This fileformat is deprecated and will be removed when Abinit 9.2 is released</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
 
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">marquee</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="kn">import</span> <span class="n">ElectronsReader</span><span class="p">,</span> <span class="n">RobotWithEbands</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="kn">import</span> <span class="n">Robot</span>
@@ -145,7 +153,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="TransportFile"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile">[docs]</a><span class="k">class</span> <span class="nc">TransportFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+<div class="viewcode-block" id="TransportFile"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile">[docs]</a><span class="k">class</span> <span class="nc">TransportFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
 
 <div class="viewcode-block" id="TransportFile.from_file"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
@@ -157,8 +165,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">TransportReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
         <span class="c1">#self.fermi = self.ebands.fermie * abu.eV_Ha</span>
-        <span class="c1">#self.volume = self.ebands.structure.volume * abu.Ang_Bohr**3</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">tmesh</span>
+        <span class="c1">#self.transport_ngkpt = self.reader.read_value(&quot;transport_ngkpt&quot;)</span>
+        <span class="c1">#self.transport_extrael = self.reader.read_value(&quot;transport_extrael&quot;)</span>
+        <span class="c1">#self.transport_fermie = self.reader.read_value(&quot;transport_fermie&quot;)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ntemp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -181,10 +191,39 @@
         <span class="n">od</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ebands_params</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">od</span></div>
 
-<div class="viewcode-block" id="TransportFile.plot_dos"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile.plot_dos">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_dos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="TransportFile.to_string"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;KS Electron Bands&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Transport section.</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Transport calculation&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of temperatures: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntemp</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Mobility:&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Temperature [K]     Electrons [cm^2/Vs]     Holes [cm^2/Vs]&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">itemp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntemp</span><span class="p">):</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="n">itemp</span><span class="p">]</span>
+            <span class="n">mobility_mu_e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mobility_mu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">itemp</span><span class="p">)</span>
+            <span class="n">mobility_mu_h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mobility_mu</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">itemp</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%14.1lf</span><span class="s2"> </span><span class="si">%18.6lf</span><span class="s2"> </span><span class="si">%18.6lf</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">mobility_mu_e</span><span class="p">,</span> <span class="n">mobility_mu_h</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TransportFile.plot_edos"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile.plot_edos">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_edos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the density of states</span>
+<span class="sd">        Plot the electronic density of states</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
@@ -200,8 +239,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="TransportFile.plot_vvdos"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile.plot_vvdos">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_vvdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s1">&#39;jet&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="TransportFile.plot_vvtau_dos"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile.plot_vvtau_dos">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_vvtau_dos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s1">&#39;jet&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot velocity * lifetime density of states.</span>
 
@@ -271,43 +310,28 @@
         <span class="k">if</span> <span class="n">ef</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s1">&#39;transport_mu_e&#39;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">]</span>
         <span class="n">wmesh</span><span class="p">,</span> <span class="n">mobility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_mobility</span><span class="p">(</span><span class="n">eh</span><span class="p">,</span> <span class="n">itemp</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">spin</span><span class="p">)</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">wmesh</span><span class="p">,</span> <span class="n">mobility</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">ef</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;String representation&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+    <span class="c1">#@add_fig_kwargs</span>
+    <span class="c1">#def plot_onsanger(self, nn=0, ax=None, **kwargs):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Plot Onsanger</span>
 
-<div class="viewcode-block" id="TransportFile.to_string"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;String representation&quot;&quot;&quot;</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        ax: |matplotlib-Axes| or None if a new figure should be created.</span>
 
-        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;KS Electron Bands&quot;</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Transport section.</span>
-        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Transport calculation&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of temperatures: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntemp</span><span class="p">)</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Mobility:&quot;</span><span class="p">)</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Temperature [K]     Electrons [cm^2/Vs]     Holes [cm^2/Vs]&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">itemp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntemp</span><span class="p">):</span>
-            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="n">itemp</span><span class="p">]</span>
-            <span class="n">mobility_mu_e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mobility_mu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">itemp</span><span class="p">)</span>
-            <span class="n">mobility_mu_h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mobility_mu</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">itemp</span><span class="p">)</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%14.1lf</span><span class="s2"> </span><span class="si">%18.6lf</span><span class="s2"> </span><span class="si">%18.6lf</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">mobility_mu_e</span><span class="p">,</span> <span class="n">mobility_mu_h</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+    <span class="c1">#    Return: |matplotlib-Figure|</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    ax, fig, plt = get_ax_fig_plt(ax=ax)</span>
+    <span class="c1">#    return fig</span>
 
 <div class="viewcode-block" id="TransportFile.yield_figs"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return figures plotting the transport data</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_dos</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Density of states&quot;</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_vvdos</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;VVDOS&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_edos</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Density of states&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_vvtau_dos</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;VVDOS&quot;</span><span class="p">)</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_mobility</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Mobility&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TransportFile.close"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.transportfile.TransportFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -324,8 +348,8 @@
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(ncfile)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_dos();&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_vvdos();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_edos();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_vvtau_dos();&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_mobility();&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
@@ -340,6 +364,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span> <span class="o">=</span> <span class="n">filepath</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
         <span class="n">ktmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;kTmesh&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span> <span class="o">=</span> <span class="n">ktmesh</span> <span class="o">/</span> <span class="n">abu</span><span class="o">.</span><span class="n">kb_HaK</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s1">&#39;nsppol&#39;</span><span class="p">)</span>
@@ -347,30 +372,35 @@
     <span class="k">def</span> <span class="nf">read_vvdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read the group velocity density of states</span>
-<span class="sd">        The vvdos_vals array has 3 dimensions (9,nsppolplus1,nw)</span>
+<span class="sd">        The vvdos_vals array has 3 dimensions (3, 3, nsppolplus1, nw)</span>
+
 <span class="sd">          1. 3x3 components of the tensor</span>
 <span class="sd">          2. the spin polarization + 1 for the sum</span>
 <span class="sd">          3. the number of frequencies</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">s2itup</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+        <span class="c1"># nctkarr_t(&#39;vvdos_vals&#39;, &quot;dp&quot;, &quot;edos_nw, nsppol_plus1, three, three&quot;), &amp;</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">s2itup</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
         <span class="n">wmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;vvdos_mesh&quot;</span><span class="p">)[:]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span>
         <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;vvdos_vals&quot;</span><span class="p">)</span>
         <span class="n">vvdos</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">spin</span><span class="p">,:]</span>
+
         <span class="k">return</span> <span class="n">wmesh</span><span class="p">,</span> <span class="n">vvdos</span>
 
     <span class="k">def</span> <span class="nf">read_vvdos_tau</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">itemp</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Read the group velocity density of states times lifetime for different temperatures</span>
-<span class="sd">        The vvdos_tau array has 4 dimensions (ntemp,9,nsppolplus1,nw)</span>
-<span class="sd">          1. the number of temperatures</span>
-<span class="sd">          2. 3x3 components of the tensor</span>
-<span class="sd">          3. the spin polarization + 1 for the sum</span>
-<span class="sd">          4. the number of frequencies</span>
+<span class="sd">        Read the group velocity density of states</span>
+<span class="sd">        The vvdos_vals array has 3 dimensions (3, 3, nsppolplus1, nw)</span>
+
+<span class="sd">          1. 3x3 components of the tensor</span>
+<span class="sd">          2. the spin polarization + 1 for the sum</span>
+<span class="sd">          3. the number of frequencies</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># nctkarr_t(&#39;vvdos_tau&#39;, &quot;dp&quot;, &quot;edos_nw, nsppol_plus1, three, three, ntemp&quot;), &amp;</span>
         <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">s2itup</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
         <span class="n">wmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;vvdos_mesh&quot;</span><span class="p">)[:]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span>
         <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;vvdos_tau&quot;</span><span class="p">)</span>
         <span class="n">vvdos_tau</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">itemp</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">spin</span><span class="p">,:]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_s</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">wmesh</span><span class="p">,</span> <span class="n">vvdos_tau</span>
 
     <span class="k">def</span> <span class="nf">read_dos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -388,16 +418,20 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read the Onsager coefficients computed in the transport driver in Abinit</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># nctkarr_t(&#39;L0&#39;, &quot;dp&quot;, &quot;edos_nw, nsppol, three, three, ntemp&quot;), &amp;</span>
         <span class="n">L0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;L0&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">L1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;L1&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">L2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;L2&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
         <span class="k">return</span> <span class="n">L0</span><span class="p">,</span> <span class="n">L1</span><span class="p">,</span> <span class="n">L2</span>
 
     <span class="k">def</span> <span class="nf">read_transport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">itemp</span><span class="p">):</span>
-        <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span>     <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">kappa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;kappa&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span>     <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">seebeck</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;seebeck&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;pi&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span>           <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># nctkarr_t(&#39;sigma&#39;,   &quot;dp&quot;, &quot;edos_nw, nsppol, three, three, ntemp&quot;), &amp;</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span>     <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">kappa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;kappa&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span>     <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">seebeck</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;seebeck&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;pi&quot;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">,:],</span>           <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
         <span class="k">return</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">kappa</span><span class="p">,</span> <span class="n">seebeck</span><span class="p">,</span> <span class="n">pi</span>
 
     <span class="k">def</span> <span class="nf">read_mobility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eh</span><span class="p">,</span> <span class="n">itemp</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">spin</span><span class="p">):</span>
@@ -405,19 +439,21 @@
 <span class="sd">        Read mobility from the TRANSPORT.nc file</span>
 <span class="sd">        The mobility is computed separately for electrons and holes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">s2itup</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+        <span class="c1"># nctkarr_t(&#39;mobility&#39;,&quot;dp&quot;, &quot;edos_nw, nsppol, three, three, ntemp, two&quot;), &amp;</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">s2itup</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
         <span class="n">wvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;vvdos_mesh&quot;</span><span class="p">)</span>
         <span class="n">mobility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;mobility&quot;</span><span class="p">)[</span><span class="n">eh</span><span class="p">,</span><span class="n">itemp</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">spin</span><span class="p">,:]</span>
+
         <span class="k">return</span> <span class="n">wvals</span><span class="p">,</span> <span class="n">mobility</span>
 
-    <span class="k">def</span> <span class="nf">read_evk_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Read the group velocities i.e the diagonal matrix elements.</span>
-<span class="sd">        Return (nsppol, nkpt) |numpy-array| of real numbers.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">vels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;vred_diagonal&quot;</span><span class="p">)</span>
-        <span class="c1"># Cartesian? Ha --&gt; eV?</span>
-        <span class="k">return</span> <span class="n">vels</span> <span class="o">*</span> <span class="p">(</span><span class="n">abu</span><span class="o">.</span><span class="n">Ha_to_eV</span> <span class="o">/</span> <span class="n">abu</span><span class="o">.</span><span class="n">Bohr_Ang</span><span class="p">)</span>
+    <span class="c1">#def read_evk_diagonal(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Read the group velocities i.e the diagonal matrix elements.</span>
+    <span class="c1">#    Return (nsppol, nkpt) |numpy-array| of real numbers.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    vels = self.read_variable(&quot;vred_diagonal&quot;)</span>
+    <span class="c1">#    # Cartesian? Ha --&gt; eV?</span>
+    <span class="c1">#    return vels * (abu.Ha_to_eV / abu.Bohr_Ang)</span>
 
 
 <span class="k">class</span> <span class="nc">TransportRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">,</span> <span class="n">RobotWithEbands</span><span class="p">):</span>
@@ -448,16 +484,16 @@
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">s2itup</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">s2itup</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
 
         <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">:</span>
-            <span class="n">kptrlatt</span>  <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s1">&#39;kptrlatt&#39;</span><span class="p">)</span>
+            <span class="n">kptrlatt</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s1">&#39;kptrlatt&#39;</span><span class="p">)</span>
             <span class="n">kptrlattx</span> <span class="o">=</span> <span class="n">kptrlatt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
             <span class="n">kptrlatty</span> <span class="o">=</span> <span class="n">kptrlatt</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
             <span class="n">kptrlattz</span> <span class="o">=</span> <span class="n">kptrlatt</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-            <span class="c1">#nkpt      = ncfile.nkpt</span>
-            <span class="n">mobility</span>  <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s1">&#39;mobility_mu&#39;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">][</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">][</span><span class="n">spin</span><span class="p">][</span><span class="n">eh</span><span class="p">]</span>
+            <span class="c1">#nkpt = ncfile.nkpt</span>
+            <span class="n">mobility</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s1">&#39;mobility_mu&#39;</span><span class="p">)[</span><span class="n">itemp</span><span class="p">][</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">][</span><span class="n">spin</span><span class="p">][</span><span class="n">eh</span><span class="p">]</span>
             <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">kptrlattx</span><span class="p">,</span> <span class="n">mobility</span><span class="p">])</span>
 
         <span class="n">res</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -474,12 +510,12 @@
         <span class="kn">from</span> <span class="nn">fractions</span> <span class="kn">import</span> <span class="n">Fraction</span>
         <span class="n">ratio1</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">kptrlatty</span><span class="p">,</span> <span class="n">kptrlattx</span><span class="p">)</span>
         <span class="n">ratio2</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">kptrlattz</span><span class="p">,</span> <span class="n">kptrlattx</span><span class="p">)</span>
-        <span class="n">text1</span>  <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">ratio1</span><span class="o">.</span><span class="n">numerator</span> <span class="o">==</span> <span class="n">ratio1</span><span class="o">.</span><span class="n">denominator</span> <span class="k">else</span> \
-                 <span class="sa">r</span><span class="s1">&#39;$\frac{{</span><span class="si">{0}</span><span class="s1">}}{{</span><span class="si">{1}</span><span class="s1">}}$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ratio1</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">ratio1</span><span class="o">.</span><span class="n">denominator</span><span class="p">)</span>
-        <span class="n">text2</span>  <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">ratio2</span><span class="o">.</span><span class="n">numerator</span> <span class="o">==</span> <span class="n">ratio2</span><span class="o">.</span><span class="n">denominator</span> <span class="k">else</span> \
-                 <span class="sa">r</span><span class="s1">&#39;$\frac{{</span><span class="si">{0}</span><span class="s1">}}{{</span><span class="si">{1}</span><span class="s1">}}$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ratio2</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">ratio2</span><span class="o">.</span><span class="n">denominator</span><span class="p">)</span>
+        <span class="n">text1</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">ratio1</span><span class="o">.</span><span class="n">numerator</span> <span class="o">==</span> <span class="n">ratio1</span><span class="o">.</span><span class="n">denominator</span> <span class="k">else</span> \
+                <span class="sa">r</span><span class="s1">&#39;$\frac{{</span><span class="si">{0}</span><span class="s1">}}{{</span><span class="si">{1}</span><span class="s1">}}$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ratio1</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">ratio1</span><span class="o">.</span><span class="n">denominator</span><span class="p">)</span>
+        <span class="n">text2</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">ratio2</span><span class="o">.</span><span class="n">numerator</span> <span class="o">==</span> <span class="n">ratio2</span><span class="o">.</span><span class="n">denominator</span> <span class="k">else</span> \
+                <span class="sa">r</span><span class="s1">&#39;$\frac{{</span><span class="si">{0}</span><span class="s1">}}{{</span><span class="si">{1}</span><span class="s1">}}$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ratio2</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">ratio2</span><span class="o">.</span><span class="n">denominator</span><span class="p">)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Homogeneous $N_k \times$ &#39;</span><span class="o">+</span> <span class="n">text1</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;$N_k \times$ &#39;</span><span class="o">+</span> <span class="n">text2</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;$N_k$ $\mathbf</span><span class="si">{k}</span><span class="s1">$-point grid&#39;</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Homogeneous $N_k \times$ &#39;</span> <span class="o">+</span> <span class="n">text1</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;$N_k \times$ &#39;</span> <span class="o">+</span> <span class="n">text2</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;$N_k$ $\mathbf</span><span class="si">{k}</span><span class="s1">$-point grid&#39;</span><span class="p">,</span>
                       <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">res</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">res</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -493,7 +529,7 @@
 <span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
 <span class="sd">        Used in abiview.py to get a quick look at the results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_lattice_convergence</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1">#yield self.plot_lattice_convergence(show=False)</span>
         <span class="c1">#yield self.plot_gsr_convergence(show=False)</span>
         <span class="c1">#for fig in self.get_ebands_plotter().yield_figs(): yield fig</span>
         <span class="c1">#self.plot_mobility_conv(eh=0, component=&#39;xx&#39;, itemp=0, spin=0, fontsize=14, ax=None, **kwargs):</span>
@@ -570,8 +606,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

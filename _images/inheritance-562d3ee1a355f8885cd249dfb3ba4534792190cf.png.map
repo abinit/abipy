@@ -1,0 +1,7 @@
+<map id="inheritancea2761343ac" name="inheritancea2761343ac">
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,144,26"/>
+<area shape="rect" id="node2" title=".. rubric:: Inheritance Diagram" alt="" coords="196,4,361,26"/>
+<area shape="rect" id="node5" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="413,26,551,47"/>
+<area shape="rect" id="node3" title="Mixin classes for `Work` and `Flow` objects providing helper functions" alt="" coords="184,46,372,67"/>
+<area shape="rect" id="node4" href="#abipy.flowtk.works.QptdmWork" target="_top" title="This work parallelizes the calculation of the q&#45;points of the screening." alt="" coords="591,26,764,47"/>
+</map>

@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Post-processing How-To &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post-processing How-To &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="TaskManager" href="workflows/taskmanager.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -171,7 +175,7 @@
 <p>This is a list of Frequently Asked Questions about the usage of the AbiPy scripts.
 Feel free to suggest new entries!</p>
 <div class="contents topic" id="contents">
-<p class="topic-title first">Contents</p>
+<p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#post-processing-how-to" id="id1">Post-processing How-To</a></p>
 <ul>
@@ -323,6 +327,7 @@ COHPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.CoxpFile&#39;&gt;
 COOPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.CoxpFile&#39;&gt;
 ICOHPLIST.lobster  &lt;class &#39;abipy.electrons.lobster.ICoxpFile&#39;&gt;
 DOSCAR.lobster     &lt;class &#39;abipy.electrons.lobster.LobsterDoscarFile&#39;&gt;
+EDOS               &lt;class &#39;abipy.electrons.ebands.EdosFile&#39;&gt;
 GSR.nc             &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
 ESKW.nc            &lt;class &#39;abipy.electrons.eskw.EskwFile&#39;&gt;
 DEN.nc             &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
@@ -348,6 +353,7 @@ OPTIC.nc           &lt;class &#39;abipy.electrons.optic.OpticNcFile&#39;&gt;
 A2F.nc             &lt;class &#39;abipy.eph.a2f.A2fFile&#39;&gt;
 SIGEPH.nc          &lt;class &#39;abipy.eph.sigeph.SigEPhFile&#39;&gt;
 TRANSPORT.nc       &lt;class &#39;abipy.eph.transportfile.TransportFile&#39;&gt;
+RTA.nc             &lt;class &#39;abipy.eph.rta.RtaFile&#39;&gt;
 V1SYM.nc           &lt;class &#39;abipy.eph.v1sym.V1symFile&#39;&gt;
 GKQ.nc             &lt;class &#39;abipy.eph.gkq.GkqFile&#39;&gt;
 V1QNU.nc           &lt;class &#39;abipy.eph.v1qnu.V1qnuFile&#39;&gt;
@@ -538,7 +544,7 @@ we can analyze the different coordinations with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">neighbors</span> <span class="n">sic_relax_HIST</span><span class="o">.</span><span class="n">nc</span>
 </pre></div>
 </div>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Finding neighbors <span class="k">for</span> each atom in the unit cell, out to a distance <span class="m">2</span> <span class="o">[</span>Angstrom<span class="o">]</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Finding neighbors <span class="k">for</span> each atom <span class="k">in</span> the unit cell, out to a distance <span class="m">2</span> <span class="o">[</span>Angstrom<span class="o">]</span>
 
 <span class="o">[</span><span class="m">0</span><span class="o">]</span> site PeriodicSite: C <span class="o">(</span><span class="m">0</span>.0000, -0.0000, <span class="m">0</span>.0000<span class="o">)</span> <span class="o">[</span>-0.0000, <span class="m">0</span>.0000, -0.0000<span class="o">]</span> has <span class="m">4</span> neighbors:
          PeriodicSite: Si <span class="o">(</span><span class="m">1</span>.0836, -1.0836, -1.0836<span class="o">)</span> <span class="o">[</span>-0.7500, <span class="m">0</span>.2500, <span class="m">0</span>.2500<span class="o">]</span>  at distance <span class="m">1</span>.8767766107
@@ -821,8 +827,8 @@ to open/visualize the files stored on the cluster.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

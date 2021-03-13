@@ -1,0 +1,6 @@
+<map id="inheritancefe6ca5ff52" name="inheritancefe6ca5ff52">
+<area shape="rect" id="node1" title="Abstract base class defining the methods that must be implemented" alt="" coords="26,5,206,31"/>
+<area shape="rect" id="node4" href="#abipy.wannier90.wout.WoutFile" target="_top" title="Main output file produced by Wannier90" alt="" coords="275,55,481,80"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="9,55,223,80"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,104,227,129"/>
+</map>

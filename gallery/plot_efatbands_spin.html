@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>spin-polarized fatbands &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>spin-polarized fatbands &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="GW with scissors operator" href="plot_qpbands_with_scissor.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,24 +148,25 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-efatbands-spin-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-efatbands-spin-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="spin-polarized-fatbands">
 <span id="sphx-glr-gallery-plot-efatbands-spin-py"></span><h1>spin-polarized fatbands<a class="headerlink" href="#spin-polarized-fatbands" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to plot the L-projected fatbands of Ni
 using the results stored in the FATBANDS.nc files produced with prtdos 3.</p>
 <ul class="sphx-glr-horizontal">
-<li><img alt="../_images/sphx_glr_plot_efatbands_spin_001.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_001.png" />
+<li><img alt="type=Ni, $\sigma=\uparrow$, type=Ni, $\sigma=\downarrow$" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_001.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_efatbands_spin_002.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_002.png" />
+<li><img alt="$l=s$, $\sigma=\uparrow$, $l=p$, $\sigma=\uparrow$, $l=d$, $\sigma=\uparrow$, $l=s$, $\sigma=\downarrow$, $l=p$, $\sigma=\downarrow$, $l=d$, $\sigma=\downarrow$" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_002.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_efatbands_spin_003.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_003.png" />
+<li><img alt="Type: Ni" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_003.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_efatbands_spin_004.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_004.png" />
+<li><img alt="$l=s$, $l=p$, $l=d$" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_004.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_efatbands_spin_005.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_005.png" />
+<li><img alt="type=Ni, $\sigma=\uparrow$, type=Ni, $\sigma=\downarrow$" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_005.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_efatbands_spin_006.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_006.png" />
+<li><img alt="$l=s$, $\sigma=\uparrow$, $l=p$, $\sigma=\uparrow$, $l=d$, $\sigma=\uparrow$, $l=s$, $\sigma=\downarrow$, $l=p$, $\sigma=\downarrow$, $l=d$, $\sigma=\downarrow$" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_efatbands_spin_006.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
@@ -169,7 +174,7 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.</p>
 Name: ni_kpath_FATBANDS.nc
 Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/ni_ebands
 Size: 619.35 kb
-Access Time: Sat Feb 22 16:03:31 2020
+Access Time: Wed Mar 20 21:31:02 2019
 Modification Time: Wed Mar 20 16:53:35 2019
 Change Time: Wed Mar 20 16:53:35 2019
 
@@ -200,7 +205,7 @@ Abinit Spacegroup: spgid: 225, num_spatial_symmetries: 48, has_timerev: True, sy
 
 Number of electrons: 18.0, Fermi level: 11.296 (eV)
 nsppol: 2, nkpt: 101, mband: 12, nspinor: 1, nspden: 2
-smearing scheme: gaussian, tsmear_eV: 0.204, occopt: 7
+smearing scheme: gaussian (occopt 7), tsmear_eV: 0.204
 
 =============================== Fatbands Info ===============================
 prtdos: 3, prtdosm: 1, mbesslang: 5, pawprtdos: 0, usepaw: 0
@@ -209,18 +214,6 @@ nsppol: 2, nkpt: 101, mband: 12
   Idx  Symbol    Reduced_Coords             Lmax    Ratsph [Bohr]  Has_Atom
 -----  --------  -----------------------  ------  ---------------  ----------
     0  Ni        0.00000 0.00000 0.00000       4                2  Yes
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
 </pre></div>
 </div>
 <div class="line-block">
@@ -232,58 +225,58 @@ nsppol: 2, nkpt: 101, mband: 12
 <span class="c1"># Open the file (alternatively one can use the shell and `abiopen.py FILE -nb`</span>
 <span class="c1"># to open the file in a jupyter notebook</span>
 <span class="c1"># This file has been produced on a k-path so it&#39;s not suitable for DOS calculations.</span>
-<span class="n">fbnc_kpath</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;ni_kpath_FATBANDS.nc&quot;</span><span class="p">))</span>
+<a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile" title="abipy.electrons.fatbands.FatBandsFile" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbnc_kpath</span></a> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;ni_kpath_FATBANDS.nc&quot;</span><span class="p">))</span>
 
 <span class="c1"># NC files have contributions up to L = 4 (g channel)</span>
 <span class="c1"># but here we are intererested in s,p,d terms only so we use the optional argument lmax</span>
-<span class="n">lmax</span> <span class="o">=</span> <span class="mi">2</span>
+<a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a> <span class="o">=</span> <span class="mi">2</span>
 
 <span class="c1"># Energy limits in eV for plots. The pseudo contains semi-core states but</span>
 <span class="c1"># we are not interested in this energy region. Fermi level set to zero.</span>
-<span class="n">elims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">elims</span></a> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 
 <span class="c1"># Print file info (dimensions, variables ...)</span>
 <span class="c1"># Note that prtdos = 3, so LM decomposition is not available.</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">fbnc_kpath</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile" title="abipy.electrons.fatbands.FatBandsFile" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbnc_kpath</span></a><span class="p">)</span>
 
 <span class="c1"># Plot the k-points belonging to the path.</span>
 <span class="c1">#fbnc_kpath.ebands.kpoints.plot()</span>
 
 <span class="c1"># Plot the electronic fatbands grouped by atomic type.</span>
-<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span><span class="p">(</span><span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_typeview" title="abipy.electrons.fatbands.FatBandsFile.plot_fatbands_typeview" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-method"><span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span></a><span class="p">(</span><span class="n">ylims</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">elims</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Plot the electronic fatbands grouped by L.</span>
-<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_lview</span><span class="p">(</span><span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_lview" title="abipy.electrons.fatbands.FatBandsFile.plot_fatbands_lview" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-method"><span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_lview</span></a><span class="p">(</span><span class="n">ylims</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">elims</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Now we read another FATBANDS file produced on 18x18x18 k-mesh</span>
-<span class="n">fbnc_kmesh</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;ni_666k_FATBANDS.nc&quot;</span><span class="p">))</span>
+<a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile" title="abipy.electrons.fatbands.FatBandsFile" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbnc_kmesh</span></a> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;ni_666k_FATBANDS.nc&quot;</span><span class="p">))</span>
 
 <span class="c1"># Plot the L-PJDOS grouped by atomic type.</span>
-<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span><span class="p">(</span><span class="n">xlims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_typeview" title="abipy.electrons.fatbands.FatBandsFile.plot_pjdos_typeview" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-method"><span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span></a><span class="p">(</span><span class="n">xlims</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">elims</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Plot the L-PJDOS grouped by L.</span>
-<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_lview</span><span class="p">(</span><span class="n">xlims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_lview" title="abipy.electrons.fatbands.FatBandsFile.plot_pjdos_lview" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-method"><span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_lview</span></a><span class="p">(</span><span class="n">xlims</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">elims</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Now we use the two netcdf files to produce plots with fatbands + PJDOSEs.</span>
 <span class="c1"># The data for the DOS is taken from pjdosfile.</span>
-<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><span class="n">fbnc_kmesh</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span>
-                                    <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_with_pjdos" title="abipy.electrons.fatbands.FatBandsFile.plot_fatbands_with_pjdos" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-method"><span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span></a><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile" title="abipy.electrons.fatbands.FatBandsFile" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbnc_kmesh</span></a><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">elims</span></a><span class="p">,</span>
+                                    <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># fatbands + PJDOS grouped by L</span>
-<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><span class="n">fbnc_kmesh</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span>
-                                    <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;lview&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_with_pjdos" title="abipy.electrons.fatbands.FatBandsFile.plot_fatbands_with_pjdos" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-method"><span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span></a><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile" title="abipy.electrons.fatbands.FatBandsFile" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbnc_kmesh</span></a><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">elims</span></a><span class="p">,</span>
+                                    <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmax</span></a><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;lview&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Close files.</span>
-<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.close" title="abipy.electrons.fatbands.FatBandsFile.close" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-method"><span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">close</span></a><span class="p">()</span>
+<a href="../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.close" title="abipy.electrons.fatbands.FatBandsFile.close" class="sphx-glr-backref-module-abipy-electrons-fatbands sphx-glr-backref-type-py-method"><span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">close</span></a><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  3.873 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  5.277 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-efatbands-spin-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/a4a0f804e9a204289ebdd44767fcc986/plot_efatbands_spin.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_efatbands_spin.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/8a8e31cba55a1ec8d2b04098b434335c/plot_efatbands_spin.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_efatbands_spin.ipynb</span></code></a></p>
 </div>
 </div>
@@ -303,8 +296,8 @@ nsppol: 2, nkpt: 101, mband: 12
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

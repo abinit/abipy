@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Estimate the ZPR of band edges with generalized Frohlich mode &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estimate the ZPR of band edges with generalized Frohlich mode &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Estimate the ZPR at band edges with the generalized Frohlich model" href="run_frohlich_zpr.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,7 +148,8 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-frohlich-zpr-from-ddb-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-frohlich-zpr-from-ddb-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="estimate-the-zpr-of-band-edges-with-generalized-frohlich-mode">
 <span id="sphx-glr-flow-gallery-run-frohlich-zpr-from-ddb-py"></span><h1>Estimate the ZPR of band edges with generalized Frohlich mode<a class="headerlink" href="#estimate-the-zpr-of-band-edges-with-generalized-frohlich-mode" title="Permalink to this headline">¶</a></h1>
@@ -159,20 +164,20 @@ and uses an external DDB file providing BECS, eps_inf and phonon frequencies at 
 <span class="kn">import</span> <span class="nn">abipy.flowtk</span> <span class="k">as</span> <span class="nn">flowtk</span>
 
 
-<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">):</span>
 
     <span class="c1"># Set working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
-        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a><span class="p">:</span>
+        <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/os.path.html#os.path.basename" title="os.path.basename" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sys</span><span class="o">.</span><span class="n">argv</span></a><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
 
     <span class="c1"># Get structure from DDB file.</span>
-    <span class="n">ddb_path</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;refs/mgo_v8t57/mgo_zpr_t57o_DS3_DDB&quot;</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">ddb_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">ddb</span><span class="p">:</span>
+    <span class="n">ddb_path</span> <span class="o">=</span> <a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;refs/mgo_v8t57/mgo_zpr_t57o_DS3_DDB&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span></a><span class="p">(</span><span class="n">ddb_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">ddb</span><span class="p">:</span>
         <span class="n">structure</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">structure</span>
 
     <span class="c1"># Build SCF input using structure from DDB file.</span>
-    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;Ca.psp8&quot;</span><span class="p">,</span> <span class="s2">&quot;O.psp8&quot;</span><span class="p">)</span>
-    <span class="n">scf_input</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">AbinitInput</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">)</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <a href="../api/data_api.html#abipy.data.pseudos" title="abipy.data.pseudos" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span></a><span class="p">(</span><span class="s2">&quot;Ca.psp8&quot;</span><span class="p">,</span> <span class="s2">&quot;O.psp8&quot;</span><span class="p">)</span>
+    <span class="n">scf_input</span> <span class="o">=</span> <a href="../api/abio_api.html#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput" class="sphx-glr-backref-module-abipy-abio-inputs sphx-glr-backref-type-py-class"><span class="n">abilab</span><span class="o">.</span><span class="n">AbinitInput</span></a><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">)</span>
 
     <span class="c1"># Set other input variables. These quantities are system-depedent.</span>
     <span class="c1"># Here we use parameters similar to https://docs.abinit.org/tests/v8/Input/t57.in</span>
@@ -192,50 +197,45 @@ and uses an external DDB file providing BECS, eps_inf and phonon frequencies at 
     <span class="c1"># Build the flow to detect band edges, compute effective masses and finally obtain an estimate for the ZPR</span>
     <span class="c1"># BECS/phonons/eps_inf are taken from ddb_node.</span>
     <span class="kn">from</span> <span class="nn">abipy.flowtk.effmass_works</span> <span class="kn">import</span> <span class="n">FrohlichZPRFlow</span>
-    <span class="n">flow</span> <span class="o">=</span> <span class="n">FrohlichZPRFlow</span><span class="o">.</span><span class="n">from_scf_input</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">ddb_node</span><span class="o">=</span><span class="n">ddb_path</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span>
-                                          <span class="n">manager</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+    <span class="n">flow</span> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.effmass_works.FrohlichZPRFlow.from_scf_input" title="abipy.flowtk.effmass_works.FrohlichZPRFlow.from_scf_input" class="sphx-glr-backref-module-abipy-flowtk-effmass_works-FrohlichZPRFlow sphx-glr-backref-type-py-method"><span class="n">FrohlichZPRFlow</span><span class="o">.</span><span class="n">from_scf_input</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">ddb_node</span><span class="o">=</span><span class="n">ddb_path</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span>
+                                          <span class="n">manager</span><span class="o">=</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">flow</span>
 
 
 <span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
 <span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
-<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/os.html#os.getenv" title="os.getenv" class="sphx-glr-backref-module-os sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">getenv</span></a><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
-    <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
+    <a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.build_flow_main_parser" title="abipy.flowtk.build_flow_main_parser" class="sphx-glr-backref-module-abipy-flowtk sphx-glr-backref-type-py-function"><span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span></a><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <a href="https://docs.python.org/3/library/tempfile.html#tempfile.mkdtemp" title="tempfile.mkdtemp" class="sphx-glr-backref-module-tempfile sphx-glr-backref-type-py-function"><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span></a><span class="p">()])</span>
+    <span class="n">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
 
 
 <span class="nd">@flowtk</span><span class="o">.</span><span class="n">flow_main</span>
-<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is our main function that will be invoked by the script.</span>
 <span class="sd">    flow_main is a decorator implementing the command line interface.</span>
 <span class="sd">    Command line args are stored in `options`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">)</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <a href="https://docs.python.org/3/library/sys.html#sys.exit" title="sys.exit" class="sphx-glr-backref-module-sys sphx-glr-backref-type-py-function"><span class="n">sys</span><span class="o">.</span><span class="n">exit</span></a><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<img alt="../_images/sphx_glr_run_frohlich_zpr_from_ddb_001.png" class="sphx-glr-single-img" src="../_images/sphx_glr_run_frohlich_zpr_from_ddb_001.png" />
-<p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-</pre></div>
-</div>
+<img alt="run frohlich zpr from ddb" class="sphx-glr-single-img" src="../_images/sphx_glr_run_frohlich_zpr_from_ddb_001.png" />
 <p>Run the script with:</p>
 <blockquote>
 <div><p>run_frohlich_zpr_from_ddb.py -s</p>
 </div></blockquote>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.670 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.209 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-frohlich-zpr-from-ddb-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/8983ec86075b370ac523329de34662e6/run_frohlich_zpr_from_ddb.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_frohlich_zpr_from_ddb.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/e48f7b263b8558f03aa1b5837563dcbe/run_frohlich_zpr_from_ddb.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_frohlich_zpr_from_ddb.ipynb</span></code></a></p>
 </div>
 </div>
@@ -255,8 +255,8 @@ and uses an external DDB file providing BECS, eps_inf and phonon frequencies at 
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Graphical interface &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Graphical interface &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="AbiPy Gallery" href="gallery/index.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -181,12 +185,15 @@ jupyter labextension install @pyviz/jupyterlab_pyviz
 <p>The AbiPy structure and many AbiPY files provide a <code class="docutils literal notranslate"><span class="pre">get_panel</span></code> method that returns
 a dashboard that can be used inside the jupyter notebook.
 To enable the integration with <code class="docutils literal notranslate"><span class="pre">panel</span></code> inside a jupyter notebook, execute the below code:</p>
-<div class="jupyter_container docutils container">
-<div class="code_cell highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import panel and activate extensions</span>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import panel and activate extensions</span>
 <span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
 <span class="n">pn</span><span class="o">.</span><span class="n">extension</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="cell_output docutils container">
 <script type="application/javascript">
 (function(root) {
   function now() {
@@ -1362,6 +1369,24 @@ if ((window.PyViz === undefined) || (window.PyViz instanceof HTMLElement)) {
         window.PyViz.kernels[plot_id].registerCommTarget(comm_id, function(comm) {
           comm.onMsg = msg_handler;
         });
+      } else if (typeof google != 'undefined' && google.colab.kernel != null) {
+        google.colab.kernel.comms.registerTarget(comm_id, (comm) => {
+          var messages = comm.messages[Symbol.asyncIterator]();
+          function processIteratorResult(result) {
+            var message = result.value;
+            console.log(message)
+            var content = {data: message.data, comm_id};
+            var buffers = []
+            for (var buffer of message.buffers || []) {
+              buffers.push(new DataView(buffer))
+            }
+            var metadata = message.metadata || {};
+            var msg = {content, buffers, metadata}
+            msg_handler(msg);
+            return messages.next().then(processIteratorResult);
+          }
+          return messages.next().then(processIteratorResult);
+        })
       }
     }
 
@@ -1380,12 +1405,35 @@ if ((window.PyViz === undefined) || (window.PyViz instanceof HTMLElement)) {
         if (msg_handler) {
           comm.onMsg = msg_handler;
         }
+      } else if (typeof google != 'undefined' && google.colab.kernel != null) {
+        var comm_promise = google.colab.kernel.comms.open(comm_id)
+        comm_promise.then((comm) => {
+          window.PyViz.comms[comm_id] = comm;
+          if (msg_handler) {
+            var messages = comm.messages[Symbol.asyncIterator]();
+            function processIteratorResult(result) {
+              var message = result.value;
+              var content = {data: message.data};
+              var metadata = message.metadata || {comm_id};
+              var msg = {content, metadata}
+              msg_handler(msg);
+              return messages.next().then(processIteratorResult);
+            }
+            return messages.next().then(processIteratorResult);
+          }
+        }) 
+        var sendClosure = (data, metadata, buffers, disposeOnDone) => {
+          return comm_promise.then((comm) => {
+            comm.send(data, metadata, buffers, disposeOnDone);
+          });
+        };
+        var comm = {
+          send: sendClosure
+        };
       }
-
       window.PyViz.comms[comm_id] = comm;
       return comm;
     }
-
     window.PyViz.comm_manager = new JupyterCommManager();
     
 
@@ -1542,11 +1590,13 @@ if (window.Jupyter !== undefined) {
   }
 }
 </script></div>
+</div>
 <p>Now one can start to construct AbiPy objects and use the <code class="docutils literal notranslate"><span class="pre">get_panel</span></code> method to generate graphical interfaces.
 In our first example, we use the <code class="docutils literal notranslate"><span class="pre">abiopen</span></code> function to open a <code class="docutils literal notranslate"><span class="pre">GSR</span></code> file
 and then we call <code class="docutils literal notranslate"><span class="pre">get_panel</span></code> to build a set of widgets that allows us to interact with the object:</p>
-<div class="jupyter_container docutils container">
-<div class="code_cell highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import AbiPy modules.</span>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import AbiPy modules.</span>
 <span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">abilab</span>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
@@ -1556,18 +1606,20 @@ and then we call <code class="docutils literal notranslate"><span class="pre">ge
 <span class="n">gsr</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="cell_output docutils container">
 <div class="output text_html"><div id='1002'>
 
 
 
 
 
-  <div class="bk-root" id="6fe00512-e2e2-4343-b0c3-566787dea030" data-root-id="1002"></div>
+  <div class="bk-root" id="cfc9cff7-f0fb-46c4-8fd0-6ca6f321bdfc" data-root-id="1002"></div>
 </div>
 <script type="application/javascript">(function(root) {
   function embed_document(root) {
-  var docs_json = {"e8e90bf4-500b-4628-bf12-124f6d9f635f":{"roots":{"references":[{"attributes":{"labels":["Set Fermie to VBM"],"margin":[5,10,5,10]},"id":"1008","type":"CheckboxGroup"},{"attributes":{"children":[{"id":"1011"}],"margin":[0,0,0,0],"name":"Row00031"},"id":"1010","type":"Row"},{"attributes":{"labels":["Show gaps"],"margin":[5,10,5,10]},"id":"1007","type":"CheckboxGroup"},{"attributes":{"children":[{"id":"1006"},{"id":"1010"}],"margin":[0,0,0,0],"name":"Row00032"},"id":"1005","type":"Row"},{"attributes":{"children":[{"id":"1001"}],"margin":[0,0,0,0],"name":"Row00025"},"id":"1003","type":"Row"},{"attributes":{"sizing_mode":"scale_both","text":"================================= File Info =================================\nName: si_nscf_GSR.nc\nDirectory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/si_ebands\nSize: 12.31 kb\nAccess Time: Fri May 29 11:20:59 2020\nModification Time: Wed Mar 20 16:53:35 2019\nChange Time: Wed Mar 20 16:53:35 2019\n\n================================= Structure =================================\nFull Formula (Si2)\nReduced Formula: Si\nabc   :   3.866975   3.866975   3.866975\nangles:  60.000000  60.000000  60.000000\nSites (2)\n  #  SP       a     b     c  cartesian_forces\n---  ----  ----  ----  ----  -----------------------------------------------------------\n  0  Si    0     0     0     [5.14220671e+101 5.14220671e+101 5.14220671e+101] eV ang^-1\n  1  Si    0.25  0.25  0.25  [5.14220671e+101 5.14220671e+101 5.14220671e+101] eV ang^-1\n\nAbinit Spacegroup: spgid: 227, num_spatial_symmetries: 48, has_timerev: True, symmorphic: True\n\nStress tensor (Cartesian coordinates in GPa):\n[[2.94210108e+104 2.94210108e+104 2.94210108e+104]\n [2.94210108e+104 2.94210108e+104 2.94210108e+104]\n [2.94210108e+104 2.94210108e+104 2.94210108e+104]]\n\nPressure: -294210108029007021798593732450854339797442512732257107491275409743734121486157862082944796572910801125376.000 (GPa)\nEnergy: -241.23646832 (eV)\n\n============================== Electronic Bands ==============================\nNumber of electrons: 8.0, Fermi level: 5.598 (eV)\nnsppol: 1, nkpt: 14, mband: 8, nspinor: 1, nspden: 1\nsmearing scheme: none, tsmear_eV: 0.272, occopt: 1\nDirect gap:\n    Energy: 2.532 (eV)\n    Initial state: spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\\Gamma$, weight: 0.000, band: 3, eig: 5.598, occ: 2.000\n    Final state:   spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\\Gamma$, weight: 0.000, band: 4, eig: 8.130, occ: 0.000\nFundamental gap:\n    Energy: 0.524 (eV)\n    Initial state: spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\\Gamma$, weight: 0.000, band: 3, eig: 5.598, occ: 2.000\n    Final state:   spin: 0, kpt: [+0.000, +0.429, +0.429], weight: 0.000, band: 4, eig: 6.123, occ: 0.000\nBandwidth: 11.856 (eV)\nValence maximum located at:\n    spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\\Gamma$, weight: 0.000, band: 3, eig: 5.598, occ: 2.000\nConduction minimum located at:\n    spin: 0, kpt: [+0.000, +0.429, +0.429], weight: 0.000, band: 4, eig: 6.123, occ: 0.000\n\nTIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor\n"},"id":"1001","type":"PreText"},{"attributes":{"child":{"id":"1003"},"name":"Row00025","title":"Summary"},"id":"1004","type":"Panel"},{"attributes":{"child":{"id":"1005"},"name":"Row00032","title":"e-Bands"},"id":"1012","type":"Panel"},{"attributes":{"client_comm_id":"00cb40c9c0e14484a6d92fc20efe77f9","comm_id":"bdab50228374476f9131a38e969ce880","plot_id":"1002"},"id":"1013","type":"panel.models.comm_manager.CommManager"},{"attributes":{"margin":[5,5,5,5],"name":"Str00029"},"id":"1011","type":"panel.models.markup.HTML"},{"attributes":{"margin":[0,0,0,0],"tabs":[{"id":"1004"},{"id":"1012"}]},"id":"1002","type":"Tabs"},{"attributes":{"button_type":"primary","icon":null,"label":"Plot e-bands","margin":[5,10,5,10],"subscribed_events":["button_click"]},"id":"1009","type":"Button"},{"attributes":{"children":[{"id":"1007"},{"id":"1008"},{"id":"1009"}],"margin":[0,0,0,0],"name":"Column00026"},"id":"1006","type":"Column"}],"root_ids":["1002","1013"]},"title":"Bokeh Application","version":"2.0.1"}};
-  var render_items = [{"docid":"e8e90bf4-500b-4628-bf12-124f6d9f635f","root_ids":["1002"],"roots":{"1002":"6fe00512-e2e2-4343-b0c3-566787dea030"}}];
+  var docs_json = {"2c7ecdf0-ee32-4788-8628-04e6e2d57e30":{"roots":{"references":[{"attributes":{"child":{"id":"1005"},"name":"Row00032","title":"e-Bands"},"id":"1012","type":"Panel"},{"attributes":{"labels":["Show gaps"],"margin":[5,10,5,10]},"id":"1007","type":"CheckboxGroup"},{"attributes":{"labels":["Set Fermie to VBM"],"margin":[5,10,5,10]},"id":"1008","type":"CheckboxGroup"},{"attributes":{"client_comm_id":"a522c43b62ed480ead66c5f5f71409fe","comm_id":"7107d1fc6f2f4437b88a7391e49ee6ce","plot_id":"1002"},"id":"1013","type":"panel.models.comm_manager.CommManager"},{"attributes":{"sizing_mode":"scale_both","text":"================================= File Info =================================\nName: si_nscf_GSR.nc\nDirectory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/si_ebands\nSize: 12.31 kb\nAccess Time: Fri Mar  5 14:27:34 2021\nModification Time: Wed Mar 20 16:53:35 2019\nChange Time: Wed Mar 20 16:53:35 2019\n\n================================= Structure =================================\nFull Formula (Si2)\nReduced Formula: Si\nabc   :   3.866975   3.866975   3.866975\nangles:  60.000000  60.000000  60.000000\nSites (2)\n  #  SP       a     b     c  cartesian_forces\n---  ----  ----  ----  ----  -----------------------------------------------------------\n  0  Si    0     0     0     [5.14220675e+101 5.14220675e+101 5.14220675e+101] eV ang^-1\n  1  Si    0.25  0.25  0.25  [5.14220675e+101 5.14220675e+101 5.14220675e+101] eV ang^-1\n\nAbinit Spacegroup: spgid: 227, num_spatial_symmetries: 48, has_timerev: True, symmorphic: True\n\nStress tensor (Cartesian coordinates in GPa):\n[[2.94210108e+104 2.94210108e+104 2.94210108e+104]\n [2.94210108e+104 2.94210108e+104 2.94210108e+104]\n [2.94210108e+104 2.94210108e+104 2.94210108e+104]]\n\nPressure: -294210108029007021798593732450854339797442512732257107491275409743734121486157862082944796572910801125376.000 (GPa)\nEnergy: -241.23647031 (eV)\n\n============================== Electronic Bands ==============================\nNumber of electrons: 8.0, Fermi level: 5.598 (eV)\nnsppol: 1, nkpt: 14, mband: 8, nspinor: 1, nspden: 1\nsmearing scheme: none (occopt 1), tsmear_eV: 0.272\nDirect gap:\n    Energy: 2.532 (eV)\n    Initial state: spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\\Gamma$, weight: 0.000, band: 3, eig: 5.598, occ: 2.000\n    Final state:   spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\\Gamma$, weight: 0.000, band: 4, eig: 8.130, occ: 0.000\nFundamental gap:\n    Energy: 0.524 (eV)\n    Initial state: spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\\Gamma$, weight: 0.000, band: 3, eig: 5.598, occ: 2.000\n    Final state:   spin: 0, kpt: [+0.000, +0.429, +0.429], weight: 0.000, band: 4, eig: 6.123, occ: 0.000\nBandwidth: 11.856 (eV)\nValence maximum located at:\n    spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\\Gamma$, weight: 0.000, band: 3, eig: 5.598, occ: 2.000\nConduction minimum located at:\n    spin: 0, kpt: [+0.000, +0.429, +0.429], weight: 0.000, band: 4, eig: 6.123, occ: 0.000\n\nTIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor\n"},"id":"1001","type":"PreText"},{"attributes":{"margin":[0,0,0,0],"tabs":[{"id":"1004"},{"id":"1012"}]},"id":"1002","type":"Tabs"},{"attributes":{"margin":[5,5,5,5],"name":"Str00029"},"id":"1011","type":"panel.models.markup.HTML"},{"attributes":{"children":[{"id":"1007"},{"id":"1008"},{"id":"1009"}],"margin":[0,0,0,0],"name":"Column00026"},"id":"1006","type":"Column"},{"attributes":{"child":{"id":"1003"},"name":"Row00025","title":"Summary"},"id":"1004","type":"Panel"},{"attributes":{"children":[{"id":"1011"}],"margin":[0,0,0,0],"name":"Row00031"},"id":"1010","type":"Row"},{"attributes":{"button_type":"primary","icon":null,"label":"Plot e-bands","margin":[5,10,5,10],"subscribed_events":["button_click"]},"id":"1009","type":"Button"},{"attributes":{"children":[{"id":"1001"}],"margin":[0,0,0,0],"name":"Row00025"},"id":"1003","type":"Row"},{"attributes":{"children":[{"id":"1006"},{"id":"1010"}],"margin":[0,0,0,0],"name":"Row00032"},"id":"1005","type":"Row"}],"root_ids":["1002","1013"]},"title":"Bokeh Application","version":"2.0.1"}};
+  var render_items = [{"docid":"2c7ecdf0-ee32-4788-8628-04e6e2d57e30","root_ids":["1002"],"roots":{"1002":"cfc9cff7-f0fb-46c4-8fd0-6ca6f321bdfc"}}];
   root.Bokeh.embed.embed_items_notebook(docs_json, render_items);
   }
 if (root.Bokeh !== undefined) {
@@ -1588,36 +1640,44 @@ if (root.Bokeh !== undefined) {
     }, 10, root)
   }
 })(window);</script></div></div>
+</div>
 <p>The same approach can be used with a <code class="docutils literal notranslate"><span class="pre">DDB</span></code> file.
 In this case, we get more tabs and options because one can use the GUI
 to set the input parameters, invoke <code class="docutils literal notranslate"><span class="pre">anaddb</span></code> and visualize the results:</p>
-<div class="jupyter_container docutils container">
-<div class="code_cell highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Open DDB file with abiopen and invoke get_panel method.</span>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Open DDB file with abiopen and invoke get_panel method.</span>
 <span class="c1">#ddb_path = abidata.ref_file(&quot;mp-1009129-9x9x10q_ebecs_DDB&quot;)</span>
 
 <span class="c1">#abilab.abiopen(ddb_path).get_panel()</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+</div>
+</div>
 <p>Calling <code class="docutils literal notranslate"><span class="pre">get_structure</span></code> with an AbiPy structure, creates a set of widgets
 to facilitate common operations such as exporting to a different format or
 generating a Abinit input file for GS calculations:</p>
-<div class="jupyter_container docutils container">
-<div class="code_cell highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gsr</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()</span>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gsr</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="cell_output docutils container">
 <div class="output text_html"><div id='1018'>
 
 
 
 
 
-  <div class="bk-root" id="b2b2e7bd-e244-4aca-9790-4fa9e3dfe1c6" data-root-id="1018"></div>
+  <div class="bk-root" id="24363319-c4a1-4031-8d3f-be957d270a56" data-root-id="1018"></div>
 </div>
 <script type="application/javascript">(function(root) {
   function embed_document(root) {
-  var docs_json = {"a6cbf58a-cb2f-4172-82df-dc1e75c700c8":{"roots":{"references":[{"attributes":{"css_classes":["markdown"],"margin":[5,5,5,5],"name":"Markdown00078","text":"&lt;h1&gt;Convert structure&lt;/h1&gt;"},"id":"1039","type":"panel.models.markup.HTML"},{"attributes":{"css_classes":["markdown"],"margin":[5,5,5,5],"name":"Markdown00065","text":"&lt;h1&gt;K-path options&lt;/h1&gt;"},"id":"1031","type":"panel.models.markup.HTML"},{"attributes":{"margin":[5,10,5,10],"options":["abinit","cif","xsf","poscar","qe","siesta","wannier90","cssr","json"],"title":"format","value":"abinit"},"id":"1040","type":"Select"},{"attributes":{"text":" natom 2\n ntypat 1\n typat 1 1\n znucl 14\n xred\n    0.0000000000    0.0000000000    0.0000000000\n    0.2500000000    0.2500000000    0.2500000000\n acell    1.0    1.0    1.0\n rprim\n    6.3285005521    0.0000000000    3.6537614973\n    2.1095001840    5.9665675402    3.6537614973\n    0.0000000000    0.0000000000    7.3075229946"},"id":"1017","type":"PreText"},{"attributes":{"margin":[5,5,5,5],"name":"Str00096"},"id":"1050","type":"panel.models.markup.HTML"},{"attributes":{"children":[{"id":"1050"}],"margin":[0,0,0,0],"name":"Row00098"},"id":"1049","type":"Row"},{"attributes":{"children":[{"id":"1046"},{"id":"1047"},{"id":"1048"}],"margin":[0,0,0,0],"name":"Column00093"},"id":"1045","type":"Column"},{"attributes":{"child":{"id":"1044"},"name":"Row00099","title":"View"},"id":"1051","type":"Panel"},{"attributes":{"children":[{"id":"1035"}],"margin":[0,0,0,0],"name":"Row00072"},"id":"1034","type":"Row"},{"attributes":{"children":[{"id":"1045"},{"id":"1049"}],"margin":[0,0,0,0],"name":"Row00099"},"id":"1044","type":"Row"},{"attributes":{"margin":[5,10,5,10],"options":["unpolarized","polarized","anti-ferromagnetic","non-collinear with magnetism","non-collinear, no magnetism"],"title":"SpinMode","value":"unpolarized"},"id":"1056","type":"Select"},{"attributes":{"sizing_mode":"stretch_width","text":"# Abinit Structure\n natom 2\n ntypat 1\n typat 1 1\n znucl 14\n xred\n    0.0000000000    0.0000000000    0.0000000000\n    0.2500000000    0.2500000000    0.2500000000\n acell    1.0    1.0    1.0\n rprim\n    6.3285005521    0.0000000000    3.6537614973\n    2.1095001840    5.9665675402    3.6537614973\n    0.0000000000    0.0000000000    7.3075229946\n\n# tolwfr 1e-20 iscf -2 # NSCF run\n# To read previous DEN file, use: getden -1 or specify filename via getden_path \"out_DEN\"\n\n# K-path in reduced coordinates:\n ndivsm 10\n kptopt -11\n kptbounds\n    +0.00000  +0.00000  +0.00000  # $\\Gamma$\n    +0.50000  +0.00000  +0.50000  # X\n    +0.50000  +0.25000  +0.75000  # W\n    +0.37500  +0.37500  +0.75000  # K\n    +0.00000  +0.00000  +0.00000  # $\\Gamma$\n    +0.50000  +0.50000  +0.50000  # L\n    +0.62500  +0.25000  +0.62500  # U\n    +0.50000  +0.25000  +0.75000  # W\n    +0.50000  +0.50000  +0.50000  # L\n    +0.37500  +0.37500  +0.75000  # K\n    +0.62500  +0.25000  +0.62500  # U\n    +0.50000  +0.00000  +0.50000  # X"},"id":"1016","type":"PreText"},{"attributes":{"margin":[5,10,5,10],"options":["scf","relax"],"title":"GS type","value":"scf"},"id":"1055","type":"Select"},{"attributes":{"margin":[5,5,5,5],"name":"Str00112"},"id":"1066","type":"panel.models.markup.HTML"},{"attributes":{"children":[{"id":"1017"}],"margin":[0,0,0,0],"name":"Row00089"},"id":"1042","type":"Row"},{"attributes":{"child":{"id":"1037"},"name":"Row00090","title":"Convert"},"id":"1043","type":"Panel"},{"attributes":{"children":[{"id":"1031"},{"id":"1032"},{"id":"1033"}],"margin":[0,0,0,0],"name":"Column00067"},"id":"1030","type":"Column"},{"attributes":{"low":0.0,"margin":[5,10,5,10],"title":"angtol","value":5},"id":"1025","type":"Spinner"},{"attributes":{"css_classes":["markdown"],"margin":[5,5,5,5],"name":"Markdown00091","text":"&lt;h1&gt;Visualize structure&lt;/h1&gt;"},"id":"1046","type":"panel.models.markup.HTML"},{"attributes":{"margin":[5,10,5,10],"options":["vesta","xcrysden","vtk","matplotlib","mayavi"],"title":"Viewer","value":"vesta"},"id":"1047","type":"Select"},{"attributes":{"client_comm_id":"9ddbba3dca7e401c91d75623682ee051","comm_id":"4f6d1c646e914b7fac58308449a23815","plot_id":"1018"},"id":"1068","type":"panel.models.comm_manager.CommManager"},{"attributes":{"child":{"id":"1029"},"name":"Row00077","title":"Kpath"},"id":"1036","type":"Panel"},{"attributes":{"margin":[0,0,0,0],"tabs":[{"id":"1020"},{"id":"1028"},{"id":"1036"},{"id":"1043"},{"id":"1051"},{"id":"1061"},{"id":"1067"}]},"id":"1018","type":"Tabs"},{"attributes":{"children":[{"id":"1042"}],"margin":[0,0,0,0],"name":"Row00085"},"id":"1041","type":"Row"},{"attributes":{"css_classes":["markdown"],"margin":[5,5,5,5],"name":"Markdown00052","text":"&lt;h1&gt;Spglib options&lt;/h1&gt;"},"id":"1023","type":"panel.models.markup.HTML"},{"attributes":{"children":[{"id":"1066"}],"margin":[0,0,0,0],"name":"Row00114"},"id":"1065","type":"Row"},{"attributes":{"low":0,"margin":[5,10,5,10],"step":5,"title":"line density","value":10},"id":"1033","type":"Spinner"},{"attributes":{"button_type":"primary","icon":null,"label":"View structure","margin":[5,10,5,10],"subscribed_events":["button_click"]},"id":"1048","type":"Button"},{"attributes":{"children":[{"id":"1030"},{"id":"1034"}],"margin":[0,0,0,0],"name":"Row00077"},"id":"1029","type":"Row"},{"attributes":{"children":[{"id":"1038"},{"id":"1041"}],"margin":[0,0,0,0],"name":"Row00090"},"id":"1037","type":"Row"},{"attributes":{"css_classes":["markdown"],"margin":[5,5,5,5],"name":"Markdown00100","text":"&lt;h1&gt;Generate GS input&lt;/h1&gt;"},"id":"1054","type":"panel.models.markup.HTML"},{"attributes":{"children":[{"id":"1014"}],"margin":[0,0,0,0],"name":"Row00051"},"id":"1019","type":"Row"},{"attributes":{"children":[{"id":"1016"}],"margin":[0,0,0,0],"name":"Row00076"},"id":"1035","type":"Row"},{"attributes":{"child":{"id":"1019"},"name":"Row00051","title":"Summary"},"id":"1020","type":"Panel"},{"attributes":{"low":0,"margin":[5,10,5,10],"step":1000,"title":"kppra","value":1000},"id":"1057","type":"Spinner"},{"attributes":{"children":[{"id":"1015"}],"margin":[0,0,0,0],"name":"Row00063"},"id":"1027","type":"Row"},{"attributes":{"children":[{"id":"1022"},{"id":"1026"}],"margin":[0,0,0,0],"name":"Row00064"},"id":"1021","type":"Row"},{"attributes":{"button_type":"primary","icon":null,"label":"Generate input","margin":[5,10,5,10],"subscribed_events":["button_click"]},"id":"1058","type":"Button"},{"attributes":{"children":[{"id":"1063"},{"id":"1065"}],"margin":[0,0,0,0],"name":"Row00115"},"id":"1062","type":"Row"},{"attributes":{"child":{"id":"1052"},"name":"Row00108","title":"GS-input"},"id":"1061","type":"Panel"},{"attributes":{"sizing_mode":"stretch_width","text":"Full Formula (Si2)\nReduced Formula: Si\nabc   :   3.866975   3.866975   3.866975\nangles:  60.000000  60.000000  60.000000\n\nSpglib space group info (magnetic symmetries not taken into account).\nSpacegroup: Fd-3m (227), Hall: F 4d 2 3 -1d, Abinit spg_number: 227\nCrystal_system: cubic, Lattice_type: cubic, Point_group: m-3m\n\n  Idx  Symbol    Reduced_Coords              Wyckoff      EqIdx\n-----  --------  --------------------------  ---------  -------\n    0  Si        +0.00000 +0.00000 +0.00000  (2a)             0\n    1  Si        +0.25000 +0.25000 +0.25000  (2a)             0"},"id":"1015","type":"PreText"},{"attributes":{"child":{"id":"1021"},"name":"Row00064","title":"Spglib"},"id":"1028","type":"Panel"},{"attributes":{"children":[{"id":"1023"},{"id":"1024"},{"id":"1025"}],"margin":[0,0,0,0],"name":"Column00054"},"id":"1022","type":"Column"},{"attributes":{"children":[{"id":"1039"},{"id":"1040"}],"margin":[0,0,0,0],"name":"Column00080"},"id":"1038","type":"Column"},{"attributes":{"margin":[5,5,5,5],"name":"Str00105"},"id":"1060","type":"panel.models.markup.HTML"},{"attributes":{"child":{"id":"1062"},"name":"Row00115","title":"MP-match"},"id":"1067","type":"Panel"},{"attributes":{"children":[{"id":"1027"}],"margin":[0,0,0,0],"name":"Row00059"},"id":"1026","type":"Row"},{"attributes":{"children":[{"id":"1054"},{"id":"1055"},{"id":"1056"},{"id":"1057"},{"id":"1058"}],"margin":[0,0,0,0],"name":"Column00102"},"id":"1053","type":"Column"},{"attributes":{"margin":[5,10,5,10],"options":["abinit","siesta","wannier90"],"title":"format","value":"abinit"},"id":"1032","type":"Select"},{"attributes":{"button_type":"primary","icon":null,"label":"Connect to Materials Project","margin":[5,10,5,10],"subscribed_events":["button_click"]},"id":"1064","type":"Button"},{"attributes":{"children":[{"id":"1064"}],"margin":[0,0,0,0],"name":"Column00109"},"id":"1063","type":"Column"},{"attributes":{"sizing_mode":"scale_both","text":"Full Formula (Si2)\nReduced Formula: Si\nabc   :   3.866975   3.866975   3.866975\nangles:  60.000000  60.000000  60.000000\nSites (2)\n  #  SP       a     b     c  cartesian_forces\n---  ----  ----  ----  ----  -----------------------------------------------------------\n  0  Si    0     0     0     [5.14220671e+101 5.14220671e+101 5.14220671e+101] eV ang^-1\n  1  Si    0.25  0.25  0.25  [5.14220671e+101 5.14220671e+101 5.14220671e+101] eV ang^-1\n\nAbinit Spacegroup: spgid: 227, num_spatial_symmetries: 48, has_timerev: True, symmorphic: True"},"id":"1014","type":"PreText"},{"attributes":{"children":[{"id":"1060"}],"margin":[0,0,0,0],"name":"Row00107"},"id":"1059","type":"Row"},{"attributes":{"low":0.0,"margin":[5,10,5,10],"step":0.01,"title":"symprec","value":0.01},"id":"1024","type":"Spinner"},{"attributes":{"children":[{"id":"1053"},{"id":"1059"}],"margin":[0,0,0,0],"name":"Row00108"},"id":"1052","type":"Row"}],"root_ids":["1018","1068"]},"title":"Bokeh Application","version":"2.0.1"}};
-  var render_items = [{"docid":"a6cbf58a-cb2f-4172-82df-dc1e75c700c8","root_ids":["1018"],"roots":{"1018":"b2b2e7bd-e244-4aca-9790-4fa9e3dfe1c6"}}];
+  var docs_json = {"f26fc759-1369-4444-8a9c-1b6e7b78b439":{"roots":{"references":[{"attributes":{"children":[{"id":"1027"}],"margin":[0,0,0,0],"name":"Row00059"},"id":"1026","type":"Row"},{"attributes":{"child":{"id":"1052"},"name":"Row00108","title":"GS-input"},"id":"1061","type":"Panel"},{"attributes":{"sizing_mode":"scale_both","text":"Full Formula (Si2)\nReduced Formula: Si\nabc   :   3.866975   3.866975   3.866975\nangles:  60.000000  60.000000  60.000000\nSites (2)\n  #  SP       a     b     c  cartesian_forces\n---  ----  ----  ----  ----  -----------------------------------------------------------\n  0  Si    0     0     0     [5.14220675e+101 5.14220675e+101 5.14220675e+101] eV ang^-1\n  1  Si    0.25  0.25  0.25  [5.14220675e+101 5.14220675e+101 5.14220675e+101] eV ang^-1\n\nAbinit Spacegroup: spgid: 227, num_spatial_symmetries: 48, has_timerev: True, symmorphic: True"},"id":"1014","type":"PreText"},{"attributes":{"children":[{"id":"1054"},{"id":"1055"},{"id":"1056"},{"id":"1057"},{"id":"1058"}],"margin":[0,0,0,0],"name":"Column00102"},"id":"1053","type":"Column"},{"attributes":{"css_classes":["markdown"],"margin":[5,5,5,5],"name":"Markdown00065","text":"&lt;h1&gt;K-path options&lt;/h1&gt;"},"id":"1031","type":"panel.models.markup.HTML"},{"attributes":{"children":[{"id":"1063"},{"id":"1065"}],"margin":[0,0,0,0],"name":"Row00115"},"id":"1062","type":"Row"},{"attributes":{"css_classes":["markdown"],"margin":[5,5,5,5],"name":"Markdown00100","text":"&lt;h1&gt;Generate GS input&lt;/h1&gt;"},"id":"1054","type":"panel.models.markup.HTML"},{"attributes":{"children":[{"id":"1060"}],"margin":[0,0,0,0],"name":"Row00107"},"id":"1059","type":"Row"},{"attributes":{"children":[{"id":"1015"}],"margin":[0,0,0,0],"name":"Row00063"},"id":"1027","type":"Row"},{"attributes":{"children":[{"id":"1050"}],"margin":[0,0,0,0],"name":"Row00098"},"id":"1049","type":"Row"},{"attributes":{"margin":[5,5,5,5],"name":"Str00105"},"id":"1060","type":"panel.models.markup.HTML"},{"attributes":{"margin":[5,10,5,10],"options":["scf","relax"],"title":"GS type","value":"scf"},"id":"1055","type":"Select"},{"attributes":{"child":{"id":"1062"},"name":"Row00115","title":"MP-match"},"id":"1067","type":"Panel"},{"attributes":{"css_classes":["markdown"],"margin":[5,5,5,5],"name":"Markdown00052","text":"&lt;h1&gt;Spglib options&lt;/h1&gt;"},"id":"1023","type":"panel.models.markup.HTML"},{"attributes":{"low":0.0,"margin":[5,10,5,10],"title":"angtol","value":5},"id":"1025","type":"Spinner"},{"attributes":{"margin":[5,10,5,10],"options":["abinit","siesta","wannier90"],"title":"format","value":"abinit"},"id":"1032","type":"Select"},{"attributes":{"margin":[5,10,5,10],"options":["unpolarized","polarized","anti-ferromagnetic","non-collinear with magnetism","non-collinear, no magnetism"],"title":"SpinMode","value":"unpolarized"},"id":"1056","type":"Select"},{"attributes":{"children":[{"id":"1066"}],"margin":[0,0,0,0],"name":"Row00114"},"id":"1065","type":"Row"},{"attributes":{"low":0,"margin":[5,10,5,10],"step":5,"title":"line density","value":10},"id":"1033","type":"Spinner"},{"attributes":{"margin":[5,5,5,5],"name":"Str00112"},"id":"1066","type":"panel.models.markup.HTML"},{"attributes":{"children":[{"id":"1038"},{"id":"1041"}],"margin":[0,0,0,0],"name":"Row00090"},"id":"1037","type":"Row"},{"attributes":{"children":[{"id":"1031"},{"id":"1032"},{"id":"1033"}],"margin":[0,0,0,0],"name":"Column00067"},"id":"1030","type":"Column"},{"attributes":{"children":[{"id":"1014"}],"margin":[0,0,0,0],"name":"Row00051"},"id":"1019","type":"Row"},{"attributes":{"children":[{"id":"1035"}],"margin":[0,0,0,0],"name":"Row00072"},"id":"1034","type":"Row"},{"attributes":{"children":[{"id":"1016"}],"margin":[0,0,0,0],"name":"Row00076"},"id":"1035","type":"Row"},{"attributes":{"child":{"id":"1021"},"name":"Row00064","title":"Spglib"},"id":"1028","type":"Panel"},{"attributes":{"margin":[0,0,0,0],"tabs":[{"id":"1020"},{"id":"1028"},{"id":"1036"},{"id":"1043"},{"id":"1051"},{"id":"1061"},{"id":"1067"}]},"id":"1018","type":"Tabs"},{"attributes":{"child":{"id":"1019"},"name":"Row00051","title":"Summary"},"id":"1020","type":"Panel"},{"attributes":{"children":[{"id":"1064"}],"margin":[0,0,0,0],"name":"Column00109"},"id":"1063","type":"Column"},{"attributes":{"child":{"id":"1044"},"name":"Row00099","title":"View"},"id":"1051","type":"Panel"},{"attributes":{"low":0,"margin":[5,10,5,10],"step":1000,"title":"kppra","value":1000},"id":"1057","type":"Spinner"},{"attributes":{"child":{"id":"1037"},"name":"Row00090","title":"Convert"},"id":"1043","type":"Panel"},{"attributes":{"low":0.0,"margin":[5,10,5,10],"step":0.01,"title":"symprec","value":0.01},"id":"1024","type":"Spinner"},{"attributes":{"children":[{"id":"1039"},{"id":"1040"}],"margin":[0,0,0,0],"name":"Column00080"},"id":"1038","type":"Column"},{"attributes":{"children":[{"id":"1017"}],"margin":[0,0,0,0],"name":"Row00089"},"id":"1042","type":"Row"},{"attributes":{"text":" natom 2\n ntypat 1\n typat 1 1\n znucl 14\n xred\n    0.0000000000    0.0000000000    0.0000000000\n    0.2500000000    0.2500000000    0.2500000000\n acell    1.0    1.0    1.0\n rprim\n    6.3285005521    0.0000000000    3.6537614973\n    2.1095001840    5.9665675402    3.6537614973\n    0.0000000000    0.0000000000    7.3075229946"},"id":"1017","type":"PreText"},{"attributes":{"css_classes":["markdown"],"margin":[5,5,5,5],"name":"Markdown00091","text":"&lt;h1&gt;Visualize structure&lt;/h1&gt;"},"id":"1046","type":"panel.models.markup.HTML"},{"attributes":{"children":[{"id":"1042"}],"margin":[0,0,0,0],"name":"Row00085"},"id":"1041","type":"Row"},{"attributes":{"sizing_mode":"stretch_width","text":"Full Formula (Si2)\nReduced Formula: Si\nabc   :   3.866975   3.866975   3.866975\nangles:  60.000000  60.000000  60.000000\n\nSpglib space group info (magnetic symmetries not taken into account).\nSpacegroup: Fd-3m (227), Hall: F 4d 2 3 -1d, Abinit spg_number: 227\nCrystal_system: cubic, Lattice_type: cubic, Point_group: m-3m\n\n  Idx  Symbol    Reduced_Coords              Wyckoff      EqIdx\n-----  --------  --------------------------  ---------  -------\n    0  Si        +0.00000 +0.00000 +0.00000  (2a)             0\n    1  Si        +0.25000 +0.25000 +0.25000  (2a)             0"},"id":"1015","type":"PreText"},{"attributes":{"child":{"id":"1029"},"name":"Row00077","title":"Kpath"},"id":"1036","type":"Panel"},{"attributes":{"margin":[5,10,5,10],"options":["abinit","cif","xsf","poscar","qe","siesta","wannier90","cssr","json"],"title":"format","value":"abinit"},"id":"1040","type":"Select"},{"attributes":{"margin":[5,10,5,10],"options":["vesta","xcrysden","vtk","matplotlib","mayavi"],"title":"Viewer","value":"vesta"},"id":"1047","type":"Select"},{"attributes":{"children":[{"id":"1022"},{"id":"1026"}],"margin":[0,0,0,0],"name":"Row00064"},"id":"1021","type":"Row"},{"attributes":{"button_type":"primary","icon":null,"label":"Generate input","margin":[5,10,5,10],"subscribed_events":["button_click"]},"id":"1058","type":"Button"},{"attributes":{"children":[{"id":"1045"},{"id":"1049"}],"margin":[0,0,0,0],"name":"Row00099"},"id":"1044","type":"Row"},{"attributes":{"button_type":"primary","icon":null,"label":"View structure","margin":[5,10,5,10],"subscribed_events":["button_click"]},"id":"1048","type":"Button"},{"attributes":{"children":[{"id":"1053"},{"id":"1059"}],"margin":[0,0,0,0],"name":"Row00108"},"id":"1052","type":"Row"},{"attributes":{"children":[{"id":"1046"},{"id":"1047"},{"id":"1048"}],"margin":[0,0,0,0],"name":"Column00093"},"id":"1045","type":"Column"},{"attributes":{"client_comm_id":"bd4b892c300c46e6a3ed05bc3e1a6cbb","comm_id":"476bd6869bd34ad597fa16b25be35bf4","plot_id":"1018"},"id":"1068","type":"panel.models.comm_manager.CommManager"},{"attributes":{"button_type":"primary","icon":null,"label":"Connect to Materials Project","margin":[5,10,5,10],"subscribed_events":["button_click"]},"id":"1064","type":"Button"},{"attributes":{"children":[{"id":"1030"},{"id":"1034"}],"margin":[0,0,0,0],"name":"Row00077"},"id":"1029","type":"Row"},{"attributes":{"css_classes":["markdown"],"margin":[5,5,5,5],"name":"Markdown00078","text":"&lt;h1&gt;Convert structure&lt;/h1&gt;"},"id":"1039","type":"panel.models.markup.HTML"},{"attributes":{"margin":[5,5,5,5],"name":"Str00096"},"id":"1050","type":"panel.models.markup.HTML"},{"attributes":{"sizing_mode":"stretch_width","text":"# Abinit Structure\n natom 2\n ntypat 1\n typat 1 1\n znucl 14\n xred\n    0.0000000000    0.0000000000    0.0000000000\n    0.2500000000    0.2500000000    0.2500000000\n acell    1.0    1.0    1.0\n rprim\n    6.3285005521    0.0000000000    3.6537614973\n    2.1095001840    5.9665675402    3.6537614973\n    0.0000000000    0.0000000000    7.3075229946\n\n# tolwfr 1e-20 iscf -2 # NSCF run\n# To read previous DEN file, use: getden -1 or specify filename via getden_path \"out_DEN\"\n\n# K-path in reduced coordinates:\n ndivsm 10\n kptopt -11\n kptbounds\n    +0.00000  +0.00000  +0.00000  # $\\Gamma$\n    +0.50000  +0.00000  +0.50000  # X\n    +0.50000  +0.25000  +0.75000  # W\n    +0.37500  +0.37500  +0.75000  # K\n    +0.00000  +0.00000  +0.00000  # $\\Gamma$\n    +0.50000  +0.50000  +0.50000  # L\n    +0.62500  +0.25000  +0.62500  # U\n    +0.50000  +0.25000  +0.75000  # W\n    +0.50000  +0.50000  +0.50000  # L\n    +0.37500  +0.37500  +0.75000  # K\n    +0.62500  +0.25000  +0.62500  # U\n    +0.50000  +0.00000  +0.50000  # X"},"id":"1016","type":"PreText"},{"attributes":{"children":[{"id":"1023"},{"id":"1024"},{"id":"1025"}],"margin":[0,0,0,0],"name":"Column00054"},"id":"1022","type":"Column"}],"root_ids":["1018","1068"]},"title":"Bokeh Application","version":"2.0.1"}};
+  var render_items = [{"docid":"f26fc759-1369-4444-8a9c-1b6e7b78b439","root_ids":["1018"],"roots":{"1018":"24363319-c4a1-4031-8d3f-be957d270a56"}}];
   root.Bokeh.embed.embed_items_notebook(docs_json, render_items);
   }
 if (root.Bokeh !== undefined) {
@@ -1638,6 +1698,7 @@ if (root.Bokeh !== undefined) {
     }, 10, root)
   }
 })(window);</script></div></div>
+</div>
 <p>There are, however, cases in which you don’t need the interactive environment provided
 by jupyter notebooks as you are mainly interested in the visualization of the results.
 In this case, it is possible to use the command line interface to automatically generate
@@ -1667,10 +1728,11 @@ For instance, one can create a dashboard to interact with a <code class="docutil
 <div><p>abiopen.py FLOWDIR/__AbinitFlow__.pickle –panel</p>
 </div></blockquote>
 </div>
-<div class="jupyter_container docutils container">
-<div class="code_cell highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span>
-<span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">1E-3</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 
@@ -1679,7 +1741,10 @@ For instance, one can create a dashboard to interact with a <code class="docutil
 <span class="n">pyplot</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="cell_output docutils container">
 <img alt="_images/graphical_interface_4_0.png" src="_images/graphical_interface_4_0.png" />
+</div>
 </div>
 </div>
 </div>
@@ -1697,8 +1762,8 @@ For instance, one can create a dashboard to interact with a <code class="docutil
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

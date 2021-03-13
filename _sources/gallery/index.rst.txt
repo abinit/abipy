@@ -31,9 +31,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_scatter3d_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_scatter3d_thumb.png
+     :alt: e-bands scatter3d
 
-        :ref:`sphx_glr_gallery_plot_ebands_scatter3d.py`
+     :ref:`sphx_glr_gallery_plot_ebands_scatter3d.py`
 
 .. raw:: html
 
@@ -51,9 +52,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_bz_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_bz_thumb.png
+     :alt: Brillouin zone
 
-        :ref:`sphx_glr_gallery_plot_bz.py`
+     :ref:`sphx_glr_gallery_plot_bz.py`
 
 .. raw:: html
 
@@ -71,9 +73,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_structure_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_structure_thumb.png
+     :alt: Unit cell
 
-        :ref:`sphx_glr_gallery_plot_structure.py`
+     :ref:`sphx_glr_gallery_plot_structure.py`
 
 .. raw:: html
 
@@ -91,9 +94,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_boxplot_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_boxplot_thumb.png
+     :alt: Seaborn boxplot
 
-        :ref:`sphx_glr_gallery_plot_ebands_boxplot.py`
+     :ref:`sphx_glr_gallery_plot_ebands_boxplot.py`
 
 .. raw:: html
 
@@ -111,9 +115,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_gw_spectral_functions_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_gw_spectral_functions_thumb.png
+     :alt: G0W0 spectral function
 
-        :ref:`sphx_glr_gallery_plot_gw_spectral_functions.py`
+     :ref:`sphx_glr_gallery_plot_gw_spectral_functions.py`
 
 .. raw:: html
 
@@ -131,9 +136,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_xrd_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_xrd_thumb.png
+     :alt: X-ray diffraction pattern
 
-        :ref:`sphx_glr_gallery_plot_xrd.py`
+     :ref:`sphx_glr_gallery_plot_xrd.py`
 
 .. raw:: html
 
@@ -151,9 +157,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_speed_of_sound_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_speed_of_sound_thumb.png
+     :alt: Speed of Sound
 
-        :ref:`sphx_glr_gallery_plot_speed_of_sound.py`
+     :ref:`sphx_glr_gallery_plot_speed_of_sound.py`
 
 .. raw:: html
 
@@ -171,9 +178,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_scqpgw_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_scqpgw_thumb.png
+     :alt: self-consistent GW
 
-        :ref:`sphx_glr_gallery_plot_scqpgw.py`
+     :ref:`sphx_glr_gallery_plot_scqpgw.py`
 
 .. raw:: html
 
@@ -191,9 +199,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qps_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_qps_thumb.png
+     :alt: SIGRES file (GW)
 
-        :ref:`sphx_glr_gallery_plot_qps.py`
+     :ref:`sphx_glr_gallery_plot_qps.py`
 
 .. raw:: html
 
@@ -211,9 +220,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_wannier90_wout_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_wannier90_wout_thumb.png
+     :alt: Wannier90 wout file
 
-        :ref:`sphx_glr_gallery_plot_wannier90_wout.py`
+     :ref:`sphx_glr_gallery_plot_wannier90_wout.py`
 
 .. raw:: html
 
@@ -231,9 +241,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_multiple_hist_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_multiple_hist_thumb.png
+     :alt: Multiple Structural relaxations
 
-        :ref:`sphx_glr_gallery_plot_multiple_hist.py`
+     :ref:`sphx_glr_gallery_plot_multiple_hist.py`
 
 .. raw:: html
 
@@ -251,9 +262,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ddb_asr_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_ddb_asr_thumb.png
+     :alt: Phonon Bands with/without ASR
 
-        :ref:`sphx_glr_gallery_plot_ddb_asr.py`
+     :ref:`sphx_glr_gallery_plot_ddb_asr.py`
 
 .. raw:: html
 
@@ -271,9 +283,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_fold2bloch_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_fold2bloch_thumb.png
+     :alt: Unfolding with fold2bloch
 
-        :ref:`sphx_glr_gallery_plot_fold2bloch.py`
+     :ref:`sphx_glr_gallery_plot_fold2bloch.py`
 
 .. raw:: html
 
@@ -291,9 +304,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_edos_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_edos_thumb.png
+     :alt: Electron DOS
 
-        :ref:`sphx_glr_gallery_plot_edos.py`
+     :ref:`sphx_glr_gallery_plot_edos.py`
 
 .. raw:: html
 
@@ -311,9 +325,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_kpath_from_ibz_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_kpath_from_ibz_thumb.png
+     :alt: K-path from IBZ
 
-        :ref:`sphx_glr_gallery_plot_kpath_from_ibz.py`
+     :ref:`sphx_glr_gallery_plot_kpath_from_ibz.py`
 
 .. raw:: html
 
@@ -331,9 +346,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_hist_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_hist_thumb.png
+     :alt: Structural relaxation
 
-        :ref:`sphx_glr_gallery_plot_hist.py`
+     :ref:`sphx_glr_gallery_plot_hist.py`
 
 .. raw:: html
 
@@ -351,9 +367,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_dfpt_cycle_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_dfpt_cycle_thumb.png
+     :alt: DFPT SCF cycle
 
-        :ref:`sphx_glr_gallery_plot_dfpt_cycle.py`
+     :ref:`sphx_glr_gallery_plot_dfpt_cycle.py`
 
 .. raw:: html
 
@@ -371,9 +388,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_gscycle_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_gscycle_thumb.png
+     :alt: Ground-state SCF cycle
 
-        :ref:`sphx_glr_gallery_plot_gscycle.py`
+     :ref:`sphx_glr_gallery_plot_gscycle.py`
 
 .. raw:: html
 
@@ -391,9 +409,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_fermisurface_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_fermisurface_thumb.png
+     :alt: MgB2 Fermi surface
 
-        :ref:`sphx_glr_gallery_plot_fermisurface.py`
+     :ref:`sphx_glr_gallery_plot_fermisurface.py`
 
 .. raw:: html
 
@@ -411,9 +430,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_scr_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_scr_thumb.png
+     :alt: Dielectric function with LFE
 
-        :ref:`sphx_glr_gallery_plot_scr.py`
+     :ref:`sphx_glr_gallery_plot_scr.py`
 
 .. raw:: html
 
@@ -431,9 +451,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_lobster_files_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_lobster_files_thumb.png
+     :alt: Lobster COHP/COP/DOS
 
-        :ref:`sphx_glr_gallery_plot_lobster_files.py`
+     :ref:`sphx_glr_gallery_plot_lobster_files.py`
 
 .. raw:: html
 
@@ -451,9 +472,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_multiple_mdf_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_multiple_mdf_thumb.png
+     :alt: Multiple Bethe-Salpeter calculations
 
-        :ref:`sphx_glr_gallery_plot_multiple_mdf.py`
+     :ref:`sphx_glr_gallery_plot_multiple_mdf.py`
 
 .. raw:: html
 
@@ -471,9 +493,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_a2f_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_a2f_thumb.png
+     :alt: Eliashberg function
 
-        :ref:`sphx_glr_gallery_plot_a2f.py`
+     :ref:`sphx_glr_gallery_plot_a2f.py`
 
 .. raw:: html
 
@@ -491,9 +514,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ejdos_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_ejdos_thumb.png
+     :alt: Joint Density of States
 
-        :ref:`sphx_glr_gallery_plot_ejdos.py`
+     :ref:`sphx_glr_gallery_plot_ejdos.py`
 
 .. raw:: html
 
@@ -511,9 +535,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_thumb.png
+     :alt: Band structure plot
 
-        :ref:`sphx_glr_gallery_plot_ebands.py`
+     :ref:`sphx_glr_gallery_plot_ebands.py`
 
 .. raw:: html
 
@@ -531,9 +556,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_edos_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_edos_thumb.png
+     :alt: Bands + DOS
 
-        :ref:`sphx_glr_gallery_plot_ebands_edos.py`
+     :ref:`sphx_glr_gallery_plot_ebands_edos.py`
 
 .. raw:: html
 
@@ -551,9 +577,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_lobster_cohp_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_lobster_cohp_thumb.png
+     :alt: Lobster COHPCAR
 
-        :ref:`sphx_glr_gallery_plot_lobster_cohp.py`
+     :ref:`sphx_glr_gallery_plot_lobster_cohp.py`
 
 .. raw:: html
 
@@ -571,9 +598,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonon_pjdos_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_phonon_pjdos_thumb.png
+     :alt: Projected phonon DOS
 
-        :ref:`sphx_glr_gallery_plot_phonon_pjdos.py`
+     :ref:`sphx_glr_gallery_plot_phonon_pjdos.py`
 
 .. raw:: html
 
@@ -591,9 +619,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phthermo_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_phthermo_thumb.png
+     :alt: Thermodinamic properties
 
-        :ref:`sphx_glr_gallery_plot_phthermo.py`
+     :ref:`sphx_glr_gallery_plot_phthermo.py`
 
 .. raw:: html
 
@@ -611,9 +640,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_infrared_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_infrared_thumb.png
+     :alt: Infrared spectrum of AlAs
 
-        :ref:`sphx_glr_gallery_plot_phonons_infrared.py`
+     :ref:`sphx_glr_gallery_plot_phonons_infrared.py`
 
 .. raw:: html
 
@@ -631,9 +661,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_scr_matrix_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_scr_matrix_thumb.png
+     :alt: SCR matrix
 
-        :ref:`sphx_glr_gallery_plot_scr_matrix.py`
+     :ref:`sphx_glr_gallery_plot_scr_matrix.py`
 
 .. raw:: html
 
@@ -651,9 +682,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpconvergence_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_qpconvergence_thumb.png
+     :alt: GW Convergence
 
-        :ref:`sphx_glr_gallery_plot_qpconvergence.py`
+     :ref:`sphx_glr_gallery_plot_qpconvergence.py`
 
 .. raw:: html
 
@@ -671,9 +703,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phbands_nkpt_tsmear_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_phbands_nkpt_tsmear_thumb.png
+     :alt: Multiple phonon bands
 
-        :ref:`sphx_glr_gallery_plot_phbands_nkpt_tsmear.py`
+     :ref:`sphx_glr_gallery_plot_phbands_nkpt_tsmear.py`
 
 .. raw:: html
 
@@ -691,9 +724,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_den_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_den_thumb.png
+     :alt: Density
 
-        :ref:`sphx_glr_gallery_plot_den.py`
+     :ref:`sphx_glr_gallery_plot_den.py`
 
 .. raw:: html
 
@@ -711,9 +745,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_funcs_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_funcs_thumb.png
+     :alt: Function1D object
 
-        :ref:`sphx_glr_gallery_plot_funcs.py`
+     :ref:`sphx_glr_gallery_plot_funcs.py`
 
 .. raw:: html
 
@@ -731,9 +766,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_lm_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_lm_thumb.png
+     :alt: LM-fatbands
 
-        :ref:`sphx_glr_gallery_plot_efatbands_lm.py`
+     :ref:`sphx_glr_gallery_plot_efatbands_lm.py`
 
 .. raw:: html
 
@@ -751,9 +787,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_mdf_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_mdf_thumb.png
+     :alt: Bethe-Salpeter
 
-        :ref:`sphx_glr_gallery_plot_mdf.py`
+     :ref:`sphx_glr_gallery_plot_mdf.py`
 
 .. raw:: html
 
@@ -771,9 +808,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_thumb.png
+     :alt: AlAs Phonon bands
 
-        :ref:`sphx_glr_gallery_plot_phonons.py`
+     :ref:`sphx_glr_gallery_plot_phonons.py`
 
 .. raw:: html
 
@@ -791,9 +829,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phbands_and_dos_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_phbands_and_dos_thumb.png
+     :alt: Phonon Band structures
 
-        :ref:`sphx_glr_gallery_plot_phbands_and_dos.py`
+     :ref:`sphx_glr_gallery_plot_phbands_and_dos.py`
 
 .. raw:: html
 
@@ -811,9 +850,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_lo_to_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_lo_to_thumb.png
+     :alt: Phonon Bands with LO-TO
 
-        :ref:`sphx_glr_gallery_plot_phonons_lo_to.py`
+     :ref:`sphx_glr_gallery_plot_phonons_lo_to.py`
 
 .. raw:: html
 
@@ -831,9 +871,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_gruneisen_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_gruneisen_thumb.png
+     :alt: Gruneisen parameters
 
-        :ref:`sphx_glr_gallery_plot_gruneisen.py`
+     :ref:`sphx_glr_gallery_plot_gruneisen.py`
 
 .. raw:: html
 
@@ -851,9 +892,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_grid_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_grid_thumb.png
+     :alt: ElectronBandsPlotter
 
-        :ref:`sphx_glr_gallery_plot_ebands_grid.py`
+     :ref:`sphx_glr_gallery_plot_ebands_grid.py`
 
 .. raw:: html
 
@@ -871,9 +913,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_edos_vs_broad_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_edos_vs_broad_thumb.png
+     :alt: Multiple e-DOSes
 
-        :ref:`sphx_glr_gallery_plot_edos_vs_broad.py`
+     :ref:`sphx_glr_gallery_plot_edos_vs_broad.py`
 
 .. raw:: html
 
@@ -891,9 +934,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonon_fatbands_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_phonon_fatbands_thumb.png
+     :alt: Phonon fatbands
 
-        :ref:`sphx_glr_gallery_plot_phonon_fatbands.py`
+     :ref:`sphx_glr_gallery_plot_phonon_fatbands.py`
 
 .. raw:: html
 
@@ -911,9 +955,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qha_vs_qmesh_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_qha_vs_qmesh_thumb.png
+     :alt: Quasi-harmonic approximation (convergence wrt Q-mesh)
 
-        :ref:`sphx_glr_gallery_plot_qha_vs_qmesh.py`
+     :ref:`sphx_glr_gallery_plot_qha_vs_qmesh.py`
 
 .. raw:: html
 
@@ -931,9 +976,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_wannier90_abiwan_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_wannier90_abiwan_thumb.png
+     :alt: Band structure interpolation with Wannier functions
 
-        :ref:`sphx_glr_gallery_plot_wannier90_abiwan.py`
+     :ref:`sphx_glr_gallery_plot_wannier90_abiwan.py`
 
 .. raw:: html
 
@@ -951,9 +997,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_optic_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_optic_thumb.png
+     :alt: Optic results
 
-        :ref:`sphx_glr_gallery_plot_optic.py`
+     :ref:`sphx_glr_gallery_plot_optic.py`
 
 .. raw:: html
 
@@ -971,9 +1018,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_msqd_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_msqd_thumb.png
+     :alt: Projected phonon DOS
 
-        :ref:`sphx_glr_gallery_plot_phonons_msqd.py`
+     :ref:`sphx_glr_gallery_plot_phonons_msqd.py`
 
 .. raw:: html
 
@@ -991,9 +1039,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phbands_grid_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_phbands_grid_thumb.png
+     :alt: Multiple phonon bands
 
-        :ref:`sphx_glr_gallery_plot_phbands_grid.py`
+     :ref:`sphx_glr_gallery_plot_phbands_grid.py`
 
 .. raw:: html
 
@@ -1011,9 +1060,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_potentials_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_potentials_thumb.png
+     :alt: Potentials
 
-        :ref:`sphx_glr_gallery_plot_potentials.py`
+     :ref:`sphx_glr_gallery_plot_potentials.py`
 
 .. raw:: html
 
@@ -1031,9 +1081,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_wfk_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_wfk_thumb.png
+     :alt: Wavefunction file
 
-        :ref:`sphx_glr_gallery_plot_wfk.py`
+     :ref:`sphx_glr_gallery_plot_wfk.py`
 
 .. raw:: html
 
@@ -1051,9 +1102,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qha_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_qha_thumb.png
+     :alt: Quasi-harmonic approximation
 
-        :ref:`sphx_glr_gallery_plot_qha.py`
+     :ref:`sphx_glr_gallery_plot_qha.py`
 
 .. raw:: html
 
@@ -1071,9 +1123,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_spin_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_spin_thumb.png
+     :alt: Spin-polarized e-bands
 
-        :ref:`sphx_glr_gallery_plot_ebands_spin.py`
+     :ref:`sphx_glr_gallery_plot_ebands_spin.py`
 
 .. raw:: html
 
@@ -1091,9 +1144,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_eph_from_mp_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_eph_from_mp_thumb.png
+     :alt: Electrons and Phonons from the materials project website
 
-        :ref:`sphx_glr_gallery_plot_eph_from_mp.py`
+     :ref:`sphx_glr_gallery_plot_eph_from_mp.py`
 
 .. raw:: html
 
@@ -1111,9 +1165,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_thumb.png
+     :alt: MgB2 fatbands
 
-        :ref:`sphx_glr_gallery_plot_efatbands.py`
+     :ref:`sphx_glr_gallery_plot_efatbands.py`
 
 .. raw:: html
 
@@ -1131,9 +1186,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_spin_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_spin_thumb.png
+     :alt: spin-polarized fatbands
 
-        :ref:`sphx_glr_gallery_plot_efatbands_spin.py`
+     :ref:`sphx_glr_gallery_plot_efatbands_spin.py`
 
 .. raw:: html
 
@@ -1151,9 +1207,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpbands_with_scissor_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_qpbands_with_scissor_thumb.png
+     :alt: GW with scissors operator
 
-        :ref:`sphx_glr_gallery_plot_qpbands_with_scissor.py`
+     :ref:`sphx_glr_gallery_plot_qpbands_with_scissor.py`
 
 .. raw:: html
 
@@ -1171,9 +1228,10 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpbands_with_interpolation_thumb.png
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_qpbands_with_interpolation_thumb.png
+     :alt: GW corrections
 
-        :ref:`sphx_glr_gallery_plot_qpbands_with_interpolation.py`
+     :ref:`sphx_glr_gallery_plot_qpbands_with_interpolation.py`
 
 .. raw:: html
 
@@ -1186,7 +1244,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
    /gallery/plot_qpbands_with_interpolation
 .. raw:: html
 
-    <div style='clear:both'></div>
+    <div class="sphx-glr-clear"></div>
 
 
 
@@ -1196,15 +1254,15 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
     :class: sphx-glr-footer-gallery
 
 
-  .. container:: sphx-glr-download
+  .. container:: sphx-glr-download sphx-glr-download-python
 
-    :download:`Download all examples in Python source code: gallery_python.zip <//Users/gmatteo/git_repos/abipy/docs/gallery/gallery_python.zip>`
+    :download:`Download all examples in Python source code: gallery_python.zip </gallery/gallery_python.zip>`
 
 
 
-  .. container:: sphx-glr-download
+  .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-    :download:`Download all examples in Jupyter notebooks: gallery_jupyter.zip <//Users/gmatteo/git_repos/abipy/docs/gallery/gallery_jupyter.zip>`
+    :download:`Download all examples in Jupyter notebooks: gallery_jupyter.zip </gallery/gallery_jupyter.zip>`
 
 
 .. only:: html

@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abiview.py &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abiview.py &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Graphical interface" href="../graphical_interface.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -148,19 +152,34 @@
 <li><a class="reference internal" href="#Named Arguments_repeat10">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ddb_ifc">ddb_ifc</a><ul>
+<li><a class="reference internal" href="#ddb_asr">ddb_asr</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat10">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat11">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#phbands">phbands</a><ul>
+<li><a class="reference internal" href="#ddb_dipdip">ddb_dipdip</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat11">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat12">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#lobster">lobster</a><ul>
+<li><a class="reference internal" href="#ddb_isodistort_ph">ddb_isodistort_ph</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat12">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat13">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ddb_ifc">ddb_ifc</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat13">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat14">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#phbands">phbands</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat14">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat15">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#lobster">lobster</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat15">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat16">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -220,7 +239,7 @@
 It can also visualize data (structures, densities)  with external graphical applications.</p>
 <p>Complete command line reference</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
-                  <span class="p">{</span><span class="n">structure</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">dirviz</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">skw</span><span class="p">,</span><span class="n">fs</span><span class="p">,</span><span class="n">ddb</span><span class="p">,</span><span class="n">ddb_vs</span><span class="p">,</span><span class="n">ddb_ir</span><span class="p">,</span><span class="n">ddb_ifc</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">lobster</span><span class="p">}</span>
+                  <span class="p">{</span><span class="n">structure</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">dirviz</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">skw</span><span class="p">,</span><span class="n">fs</span><span class="p">,</span><span class="n">ddb</span><span class="p">,</span><span class="n">ddb_vs</span><span class="p">,</span><span class="n">ddb_ir</span><span class="p">,</span><span class="n">ddb_asr</span><span class="p">,</span><span class="n">ddb_dipdip</span><span class="p">,</span><span class="n">ddb_isodistort_ph</span><span class="p">,</span><span class="n">ddb_ifc</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">lobster</span><span class="p">}</span>
                   <span class="o">...</span>
 </pre></div>
 </div>
@@ -237,7 +256,7 @@ It can also visualize data (structures, densities)  with external graphical appl
 <p>Valid subcommands</p>
 <dl class="option-list">
 <dt><kbd>command</kbd></dt>
-<dd><p>Possible choices: structure, hist, data, dirviz, ebands, skw, fs, ddb, ddb_vs, ddb_ir, ddb_ifc, phbands, lobster</p>
+<dd><p>Possible choices: structure, hist, data, dirviz, ebands, skw, fs, ddb, ddb_vs, ddb_ir, ddb_asr, ddb_dipdip, ddb_isodistort_ph, ddb_ifc, phbands, lobster</p>
 <p>sub-command help</p>
 </dd>
 </dl>
@@ -250,9 +269,7 @@ It can also visualize data (structures, densities)  with external graphical appl
 <div><p>Visualize the structure with the specified visualizer. Requires external app
 or optional python modules (mayavi, vtk)</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-                     <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPNAME</span><span class="p">]]</span>
-                     <span class="n">filepath</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPNAME</span><span class="p">]]</span> <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments">
@@ -293,9 +310,8 @@ or optional python modules (mayavi, vtk)</p>
 <div><p>Visualize structural relaxation/molecular-dynamics run
 from data stored in the HIST.nc file. Requires mayavi.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-                <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPNAME</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">xdatcar</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">to</span><span class="o">-</span><span class="n">unit</span><span class="o">-</span><span class="n">cell</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPNAME</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">xdatcar</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">to</span><span class="o">-</span><span class="n">unit</span><span class="o">-</span><span class="n">cell</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
                 <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -350,9 +366,7 @@ in tabular format and plot data with matplotlib.
 Multiple datasets are supported.
 No attempt is made to handle metadata (e.g. column name)</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-                <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
-                <span class="n">filepath</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span> <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat2">
@@ -392,9 +406,7 @@ No attempt is made to handle metadata (e.g. column name)</p>
 <blockquote>
 <div><p>Visualize directory tree with graphviz.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">dirviz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENGINE</span><span class="p">]</span>
-                  <span class="n">filepath</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">dirviz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENGINE</span><span class="p">]</span> <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat3">
@@ -435,8 +447,7 @@ No attempt is made to handle metadata (e.g. column name)</p>
 <div><p>Plot electronic bands if file contains high-symmetry k-path or DOS if k-sampling.
 Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span>
                   <span class="p">[</span><span class="o">--</span><span class="n">bxsf</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
                   <span class="n">filepath</span>
 </pre></div>
@@ -499,8 +510,7 @@ Note that the interpolation will likely fail if there are symmetrical k-points i
 so it’s recommended to call this method with energies obtained in the IBZ.
 Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">skw</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">lp</span> <span class="n">LPRATIO</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ld</span> <span class="n">LINE_DENSITY</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">skw</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">lp</span> <span class="n">LPRATIO</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ld</span> <span class="n">LINE_DENSITY</span><span class="p">]</span>
                <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -545,9 +555,7 @@ Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
 <blockquote>
 <div><p>Extract eigenvalues in the IBZ from file and visualize Fermi surface with –appname</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">fs</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-              <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="n">APPNAME</span><span class="p">]</span>
-              <span class="n">filepath</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">fs</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="n">APPNAME</span><span class="p">]</span> <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat6">
@@ -587,9 +595,8 @@ Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
 <blockquote>
 <div><p>Invoke Anaddb to compute phonon bands and DOS from the DDB, plot the results.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">web</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">BROWSER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">web</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">BROWSER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
                <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -648,8 +655,7 @@ Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
 <blockquote>
 <div><p>Compute speed of sound by fitting phonon frequencies along selected directions.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb_vs</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb_vs</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
                   <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -697,8 +703,7 @@ Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
 <blockquote>
 <div><p>Compute infra-red spectrum from DDB. Plot results.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb_ir</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb_ir</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
                   <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -741,13 +746,12 @@ Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
 </dl>
 </div>
 </div>
-<div class="section" id="ddb_ifc">
-<h3>ddb_ifc<a class="headerlink" href="#ddb_ifc" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="ddb_asr">
+<h3>ddb_asr<a class="headerlink" href="#ddb_asr" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div><p>Visualize interatomic force constants in real space.</p>
+<div><p>Compute phonon band structure from DDB with/without acoustic sum rule. Plot results.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb_ifc</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb_asr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
                    <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -790,13 +794,13 @@ Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
 </dl>
 </div>
 </div>
-<div class="section" id="phbands">
-<h3>phbands<a class="headerlink" href="#phbands" title="Permalink to this headline">¶</a></h3>
-<p>Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, …</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">web</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">BROWSER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
-                   <span class="n">filepath</span>
+<div class="section" id="ddb_dipdip">
+<h3>ddb_dipdip<a class="headerlink" href="#ddb_dipdip" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>Compute phonon band structure from DDB with/without acoustic sum rule. Plot results.</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb_dipdip</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                      <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat11">
@@ -809,6 +813,145 @@ Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
 </div>
 <div class="section" id="Named Arguments_repeat12">
 <h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat12" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>--loglevel</kbd></dt>
+<dd><p>Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p>Default: “ERROR”</p>
+</dd>
+<dt><kbd>-v, --verbose</kbd></dt>
+<dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
+<p>Default: 0</p>
+</dd>
+<dt><kbd>-sns, --seaborn</kbd></dt>
+<dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
+</dd>
+<dt><kbd>-mpl, --mpl-backend</kbd></dt>
+<dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
+</dd>
+<dt><kbd>-c, --clipboard</kbd></dt>
+<dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-s, --slide-mode</kbd></dt>
+<dd><p>Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-t, --slide-timeout</kbd></dt>
+<dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="ddb_isodistort_ph">
+<h3>ddb_isodistort_ph<a class="headerlink" href="#ddb_isodistort_ph" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>Compute ph-freqs for given q-point (default: Gamma), produce CIF files for unperturbed and distorded structure
+that can be used with ISODISTORT (<a class="reference external" href="https://stokes.byu.edu/iso/isodistort.php">https://stokes.byu.edu/iso/isodistort.php</a>) to analyze the symmetry of phonon modes.
+See README.me file produced in output directory.</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb_isodistort_ph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                             <span class="p">[</span><span class="o">-</span><span class="n">q</span> <span class="n">QPOINT</span> <span class="n">QPOINT</span> <span class="n">QPOINT</span><span class="p">]</span>
+                             <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat12">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat12" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>filepath</kbd></dt>
+<dd><p>File to visualize.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments_repeat13">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat13" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>--loglevel</kbd></dt>
+<dd><p>Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p>Default: “ERROR”</p>
+</dd>
+<dt><kbd>-v, --verbose</kbd></dt>
+<dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
+<p>Default: 0</p>
+</dd>
+<dt><kbd>-sns, --seaborn</kbd></dt>
+<dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
+</dd>
+<dt><kbd>-mpl, --mpl-backend</kbd></dt>
+<dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
+</dd>
+<dt><kbd>-q, --qpoint</kbd></dt>
+<dd><p>q-point in reduced coordinates e.g. 0.25 0 0. Default: 0, 0, 0</p>
+<p>Default: [0, 0, 0]</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="ddb_ifc">
+<h3>ddb_ifc<a class="headerlink" href="#ddb_ifc" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>Visualize interatomic force constants in real space.</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb_ifc</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                   <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat13">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat13" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>filepath</kbd></dt>
+<dd><p>File to visualize.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments_repeat14">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat14" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>--loglevel</kbd></dt>
+<dd><p>Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p>Default: “ERROR”</p>
+</dd>
+<dt><kbd>-v, --verbose</kbd></dt>
+<dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
+<p>Default: 0</p>
+</dd>
+<dt><kbd>-sns, --seaborn</kbd></dt>
+<dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
+</dd>
+<dt><kbd>-mpl, --mpl-backend</kbd></dt>
+<dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
+</dd>
+<dt><kbd>-c, --clipboard</kbd></dt>
+<dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-s, --slide-mode</kbd></dt>
+<dd><p>Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-t, --slide-timeout</kbd></dt>
+<dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="phbands">
+<h3>phbands<a class="headerlink" href="#phbands" title="Permalink to this headline">¶</a></h3>
+<p>Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, …</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">web</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">BROWSER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+                   <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat14">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat14" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>filepath</kbd></dt>
+<dd><p>File to visualize.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments_repeat15">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat15" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>--loglevel</kbd></dt>
 <dd><p>Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
@@ -852,22 +995,21 @@ Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
 <div class="section" id="lobster">
 <h3>lobster<a class="headerlink" href="#lobster" title="Permalink to this headline">¶</a></h3>
 <p>Analyze lobster output files in directory.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">lobster</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">lobster</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
                    <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span>
                    <span class="n">filepath</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat12">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat12" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat15">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat15" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>filepath</kbd></dt>
 <dd><p>File to visualize.</p>
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat13">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat13" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat16">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat16" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>--loglevel</kbd></dt>
 <dd><p>Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
@@ -918,8 +1060,8 @@ Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

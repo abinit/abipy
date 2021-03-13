@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Phonon fatbands &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phonon fatbands &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Quasi-harmonic approximation (convergence wrt Q-mesh)" href="plot_qha_vs_qmesh.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,22 +148,23 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-phonon-fatbands-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-phonon-fatbands-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="phonon-fatbands">
 <span id="sphx-glr-gallery-plot-phonon-fatbands-py"></span><h1>Phonon fatbands<a class="headerlink" href="#phonon-fatbands" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to plot the phonon fatbands of AlAs.
 See tutorial/lesson_rf2.html</p>
 <ul class="sphx-glr-horizontal">
-<li><img alt="../_images/sphx_glr_plot_phonon_fatbands_001.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phonon_fatbands_001.png" />
+<li><img alt="AlAs phonon fatbands without LO-TO splitting" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phonon_fatbands_001.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_phonon_fatbands_002.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phonon_fatbands_002.png" />
+<li><img alt="AlAs phonon fatbands with PJDOS" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phonon_fatbands_002.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_phonon_fatbands_003.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phonon_fatbands_003.png" />
+<li><img alt="phonon displacements at $\Gamma$, qpoint = [+0.000, +0.000, +0.000] $\Gamma$" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phonon_fatbands_003.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_phonon_fatbands_004.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phonon_fatbands_004.png" />
+<li><img alt="phonon eigenvectors at $\Gamma$, qpoint = [+0.000, +0.000, +0.000] $\Gamma$" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phonon_fatbands_004.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_phonon_fatbands_005.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phonon_fatbands_005.png" />
+<li><img alt="qpoint = [+0.000, +0.000, +0.000] $\Gamma$, qpoint = [+0.000, +0.000, +0.000] $\Gamma$, qpoint = [+0.000, +0.000, +0.000] $\Gamma$" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phonon_fatbands_005.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
@@ -167,52 +172,44 @@ See tutorial/lesson_rf2.html</p>
 Particular methods need them![0m
 /Users/gmatteo/git_repos/abipy/abipy/dfpt/phtk.py:53: UserWarning: get_dyn_mat_eigenvec has been called with amu=None. Eigenvectors may not be orthonormal.
   warnings.warn(&quot;get_dyn_mat_eigenvec has been called with amu=None. Eigenvectors may not be orthonormal.&quot;)
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
+
+&lt;Figure size 640x480 with 3 Axes&gt;
 </pre></div>
 </div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abiopen</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
 <span class="c1"># Open the PHBST file produced by anaddb and get the phonon bands.</span>
-<span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHBST.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
-    <span class="n">phbands</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span>
+<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHBST.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile" title="abipy.dfpt.phonons.PhbstFile" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncfile</span></a><span class="p">:</span>
+    <a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">phbands</span></a> <span class="o">=</span> <a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.phbands" title="abipy.dfpt.phonons.PhbstFile.phbands" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span></a>
 
 <span class="c1"># Plot the phonon band structure.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot_fatbands</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs phonon fatbands without LO-TO splitting&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_fatbands" title="abipy.dfpt.phonons.PhononBands.plot_fatbands" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">phbands</span><span class="o">.</span><span class="n">plot_fatbands</span></a><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs phonon fatbands without LO-TO splitting&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot the phonon band structure + PJDOS</span>
 <span class="c1"># sphinx_gallery_thumbnail_number = 2</span>
-<span class="n">phdos_path</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHDOS.nc&quot;</span><span class="p">)</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot_fatbands</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;Thz&quot;</span><span class="p">,</span> <span class="n">phdos_file</span><span class="o">=</span><span class="n">phdos_path</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs phonon fatbands with PJDOS&quot;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">phdos_path</span></a> <span class="o">=</span> <a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHDOS.nc&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_fatbands" title="abipy.dfpt.phonons.PhononBands.plot_fatbands" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">phbands</span><span class="o">.</span><span class="n">plot_fatbands</span></a><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;Thz&quot;</span><span class="p">,</span> <span class="n">phdos_file</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">phdos_path</span></a><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs phonon fatbands with PJDOS&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot contributions to the phonon displacement at the Gamma point grouped by atom type.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot_phdispl</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;meV&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;phonon displacements at $\Gamma$&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_phdispl" title="abipy.dfpt.phonons.PhononBands.plot_phdispl" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">phbands</span><span class="o">.</span><span class="n">plot_phdispl</span></a><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;meV&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;phonon displacements at $\Gamma$&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot (orthonormal) eigenvectors instead of displacements.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot_phdispl</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">use_eigvec</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;meV&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;phonon eigenvectors at $\Gamma$&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_phdispl" title="abipy.dfpt.phonons.PhononBands.plot_phdispl" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">phbands</span><span class="o">.</span><span class="n">plot_phdispl</span></a><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">use_eigvec</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;meV&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;phonon eigenvectors at $\Gamma$&quot;</span><span class="p">)</span>
 
 <span class="c1"># Decompose contributions along the three Cartesian directions.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot_phdispl_cartdirs</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_phdispl_cartdirs" title="abipy.dfpt.phonons.PhononBands.plot_phdispl_cartdirs" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">phbands</span><span class="o">.</span><span class="n">plot_phdispl_cartdirs</span></a><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.496 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  2.237 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-phonon-fatbands-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/e1f951716651663bb1a8f53ca7f6ac8f/plot_phonon_fatbands.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_phonon_fatbands.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/7043c4f5a7ff8dcdfdf49ba1bdb26c2a/plot_phonon_fatbands.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_phonon_fatbands.ipynb</span></code></a></p>
 </div>
 </div>
@@ -232,8 +229,8 @@ Particular methods need them![0m
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

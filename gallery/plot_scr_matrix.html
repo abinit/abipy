@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>SCR matrix &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SCR matrix &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="GW Convergence" href="plot_qpconvergence.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,7 +148,8 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-scr-matrix-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-scr-matrix-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="scr-matrix">
 <span id="sphx-glr-gallery-plot-scr-matrix-py"></span><h1>SCR matrix<a class="headerlink" href="#scr-matrix" title="Permalink to this headline">¶</a></h1>
@@ -152,11 +157,11 @@
 inverse dielectric function stored in the SCR file (optdriver 3)
 See also <cite>plot_scr.py</cite> for the optical spectrum.</p>
 <ul class="sphx-glr-horizontal">
-<li><img alt="../_images/sphx_glr_plot_scr_matrix_001.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_scr_matrix_001.png" />
+<li><img alt="inverse_dielectric_function, kpoint: [+0.500, +0.000, +0.000], weight: 0.000" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_scr_matrix_001.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_scr_matrix_002.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_scr_matrix_002.png" />
+<li><img alt="inverse_dielectric_function, kpoint: [+0.500, +0.000, +0.000], weight: 0.000" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_scr_matrix_002.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_scr_matrix_003.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_scr_matrix_003.png" />
+<li><img alt="(abs) $||\epsilon^{-1}||$ $\omega=0.1741265921124269j$, (abs) $||\epsilon^{-1}||$ $\omega=0.4505353276073309j$, (abs) $||\epsilon^{-1}||$ $\omega=0.8893068451051416j$, (abs) $||\epsilon^{-1}||$ $\omega=1.585813213554849j$, (abs) $||\epsilon^{-1}||$ $\omega=2.6914481555344656j$" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_scr_matrix_003.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
@@ -166,19 +171,15 @@ See also <cite>plot_scr.py</cite> for the optical spectrum.</p>
   Total number of frequencies: 35 (real: 30, imaginary: 5)
   Real frequencies up to 0.73 (eV)
   Imaginary frequencies up to 2.69 (eV)
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
 </pre></div>
 </div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
-<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abiopen</span>
+<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a>
 
-<span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;sio2_SCR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
+<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;sio2_SCR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <a href="../api/electrons_api.html#abipy.electrons.scr.ScrFile" title="abipy.electrons.scr.ScrFile" class="sphx-glr-backref-module-abipy-electrons-scr sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncfile</span></a><span class="p">:</span>
     <span class="c1">#print(ncfile)</span>
     <span class="c1"># The SCR file contains a structure and electron bands in the IBZ.</span>
     <span class="c1"># We can thus use the ebands object to plot bands + DOS.</span>
@@ -186,30 +187,30 @@ See also <cite>plot_scr.py</cite> for the optical spectrum.</p>
 
     <span class="c1"># Read e^{-1}_{G1, G2}(k, omega)</span>
 
-    <span class="n">kpoint</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-    <span class="n">em1</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_wggmat</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">em1</span><span class="p">)</span>
+    <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">kpoint</span></a> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <a href="../api/electrons_api.html#abipy.electrons.scr.InverseDielectricFunction" title="abipy.electrons.scr.InverseDielectricFunction" class="sphx-glr-backref-module-abipy-electrons-scr sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">em1</span></a> <span class="o">=</span> <a href="../api/electrons_api.html#abipy.electrons.scr.ScrReader.read_wggmat" title="abipy.electrons.scr.ScrReader.read_wggmat" class="sphx-glr-backref-module-abipy-electrons-scr sphx-glr-backref-type-py-method"><span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_wggmat</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">kpoint</span></a><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><a href="../api/electrons_api.html#abipy.electrons.scr.InverseDielectricFunction" title="abipy.electrons.scr.InverseDielectricFunction" class="sphx-glr-backref-module-abipy-electrons-scr sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">em1</span></a><span class="p">)</span>
 
-    <span class="n">gvec1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-    <span class="n">gvec2</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gvec1</span></a> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gvec2</span></a> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 
     <span class="c1"># Plot matrix element as function of frequency along the real axis</span>
-    <span class="n">em1</span><span class="o">.</span><span class="n">plot_freq</span><span class="p">(</span><span class="n">gvec1</span><span class="o">=</span><span class="n">gvec1</span><span class="p">,</span> <span class="n">gvec2</span><span class="o">=</span><span class="n">gvec2</span><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">)</span>
+    <a href="../api/electrons_api.html#abipy.electrons.scr.InverseDielectricFunction" title="abipy.electrons.scr.InverseDielectricFunction" class="sphx-glr-backref-module-abipy-electrons-scr sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">em1</span></a><span class="o">.</span><span class="n">plot_freq</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gvec1</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gvec1</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gvec2</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gvec2</span></a><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">)</span>
 
     <span class="c1"># Plot data along the imaginary axis</span>
     <span class="c1"># Note that gvectors can also be specifined in terms of their index.</span>
-    <span class="n">em1</span><span class="o">.</span><span class="n">plot_freq</span><span class="p">(</span><span class="n">gvec1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gvec2</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="s2">&quot;imag&quot;</span><span class="p">)</span>
+    <a href="../api/electrons_api.html#abipy.electrons.scr.InverseDielectricFunction" title="abipy.electrons.scr.InverseDielectricFunction" class="sphx-glr-backref-module-abipy-electrons-scr sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">em1</span></a><span class="o">.</span><span class="n">plot_freq</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gvec1</span></a><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gvec2</span></a><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="s2">&quot;imag&quot;</span><span class="p">)</span>
 
     <span class="c1"># Plot e^{-1}_{G1, G2} along the imaginary axis.</span>
-    <span class="n">em1</span><span class="o">.</span><span class="n">plot_gg</span><span class="p">(</span><span class="n">wpos</span><span class="o">=</span><span class="s2">&quot;imag&quot;</span><span class="p">)</span>
+    <a href="../api/electrons_api.html#abipy.electrons.scr.InverseDielectricFunction" title="abipy.electrons.scr.InverseDielectricFunction" class="sphx-glr-backref-module-abipy-electrons-scr sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">em1</span></a><span class="o">.</span><span class="n">plot_gg</span><span class="p">(</span><span class="n">wpos</span><span class="o">=</span><span class="s2">&quot;imag&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.775 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.009 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-scr-matrix-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/b6a62d819b161dfdc58eafe1313e8ed0/plot_scr_matrix.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_scr_matrix.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/780eb8eed05e9687e59451c14079395c/plot_scr_matrix.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_scr_matrix.ipynb</span></code></a></p>
 </div>
 </div>
@@ -229,8 +230,8 @@ See also <cite>plot_scr.py</cite> for the optical spectrum.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

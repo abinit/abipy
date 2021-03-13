@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Unfolding with fold2bloch &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unfolding with fold2bloch &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Electron DOS" href="plot_edos.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,26 +148,27 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-fold2bloch-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-fold2bloch-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="unfolding-with-fold2bloch">
 <span id="sphx-glr-gallery-plot-fold2bloch-py"></span><h1>Unfolding with fold2bloch<a class="headerlink" href="#unfolding-with-fold2bloch" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to plot the results produced by fold2bloch.
 &lt;<a class="reference external" href="http://www.abinit.org/doc/helpfiles/for-v8.0/tutorial/lesson_fold2Bloch.html">http://www.abinit.org/doc/helpfiles/for-v8.0/tutorial/lesson_fold2Bloch.html</a>&gt;</p>
 <ul class="sphx-glr-horizontal">
-<li><img alt="../_images/sphx_glr_plot_fold2bloch_001.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_fold2bloch_001.png" />
+<li><img alt="Folded bands" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_fold2bloch_001.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_fold2bloch_002.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_fold2bloch_002.png" />
+<li><img alt="Unfolded bands" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_fold2bloch_002.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
 ================================= File Info =================================
 Name: h6_FOLD2BLOCH.nc
 Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs
 Size: 35.26 kb
-Access Time: Sat Feb 22 16:01:48 2020
+Access Time: Mon Nov 11 03:43:05 2019
 Modification Time: Wed Mar 20 16:53:35 2019
 Change Time: Wed Mar 20 16:53:35 2019
 
@@ -185,23 +190,21 @@ Sites (6)
 Abinit Spacegroup: spgid: 0, num_spatial_symmetries: 48, has_timerev: True, symmorphic: True
 
 ============================== Electronic Bands ==============================
-Number of electrons: 6.0, Fermi level: 3.437 (eV)
+Number of electrons: 6.0, Fermi level: -1.060 (eV)
 nsppol: 1, nkpt: 42, mband: 4, nspinor: 1, nspden: 1
-smearing scheme: none, tsmear_eV: 0.272, occopt: 1
+smearing scheme: none (occopt 1), tsmear_eV: 0.272
 WARNING: Cannot compute direct and fundamental gap.
-Bandwidth: 12.642 (eV)
+Bandwidth: 11.116 (eV)
 Valence maximum located at:
-    spin: 0, kpt: [+0.000, +0.000, -0.500], weight: 0.000, band: 3, eig: 0.466, occ: 0.000
+    spin: 0, kpt: [+0.000, +0.000, +0.500], weight: 0.000, band: 2, eig: -1.060, occ: 2.000
 TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor
 
 Direct lattice of the primitive cell:
 abc   :   1.587532   1.587532   1.587532
 angles:  90.000000  90.000000  90.000000
 Diagonal folding: [1 2 3]
-/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
+/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
 </pre></div>
 </div>
 <div class="line-block">
@@ -213,24 +216,24 @@ Diagonal folding: [1 2 3]
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
 
-<span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;h6_FOLD2BLOCH.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ncfile</span><span class="p">)</span>
+<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;h6_FOLD2BLOCH.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <a href="../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile" title="abipy.electrons.fold2bloch.Fold2BlochNcfile" class="sphx-glr-backref-module-abipy-electrons-fold2bloch sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncfile</span></a><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><a href="../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile" title="abipy.electrons.fold2bloch.Fold2BlochNcfile" class="sphx-glr-backref-module-abipy-electrons-fold2bloch sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncfile</span></a><span class="p">)</span>
     <span class="c1"># Plot folded bands</span>
-    <span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Folded bands&quot;</span><span class="p">)</span>
+    <a href="../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile.ebands" title="abipy.electrons.fold2bloch.Fold2BlochNcfile.ebands" class="sphx-glr-backref-module-abipy-electrons-fold2bloch sphx-glr-backref-type-py-method"><span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Folded bands&quot;</span><span class="p">)</span>
 
     <span class="c1"># Plot unfolded bands along the path defined by kbounds.</span>
-    <span class="n">kbounds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">klabels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\Gamma$&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span>
+    <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">kbounds</span></a> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span>
+    <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">klabels</span></a> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\Gamma$&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span>
     <span class="c1"># sphinx_gallery_thumbnail_number = 2</span>
-    <span class="n">ncfile</span><span class="o">.</span><span class="n">plot_unfolded</span><span class="p">(</span><span class="n">kbounds</span><span class="p">,</span> <span class="n">klabels</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Unfolded bands&quot;</span><span class="p">)</span>
+    <a href="../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile.plot_unfolded" title="abipy.electrons.fold2bloch.Fold2BlochNcfile.plot_unfolded" class="sphx-glr-backref-module-abipy-electrons-fold2bloch sphx-glr-backref-type-py-method"><span class="n">ncfile</span><span class="o">.</span><span class="n">plot_unfolded</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">kbounds</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">klabels</span></a><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Unfolded bands&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.511 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.565 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-fold2bloch-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/6fae8575434abce879109dad332b5f2a/plot_fold2bloch.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_fold2bloch.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/1b6a8f41d8db711be30135a1ee311675/plot_fold2bloch.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_fold2bloch.ipynb</span></code></a></p>
 </div>
 </div>
@@ -250,8 +253,8 @@ Diagonal folding: [1 2 3]
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

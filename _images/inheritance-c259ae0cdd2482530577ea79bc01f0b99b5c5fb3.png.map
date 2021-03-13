@@ -1,0 +1,7 @@
+<map id="inheritance9126c67f60" name="inheritance9126c67f60">
+<area shape="rect" id="node1" href="#abipy.tools.tensors.DielectricTensor" target="_top" title="Subclass of |pmg&#45;Tensor| describing a dielectric tensor." alt="" coords="583,24,764,43"/>
+<area shape="rect" id="node2" title="Base class for doing useful general operations on second rank tensors" alt="" coords="356,24,546,43"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="4,4,125,24"/>
+<area shape="rect" id="node5" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="162,24,319,43"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="22,42,107,62"/>
+</map>

@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Multiple phonon bands &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multiple phonon bands &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Density" href="plot_den.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,7 +148,8 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-phbands-nkpt-tsmear-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-phbands-nkpt-tsmear-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="multiple-phonon-bands">
 <span id="sphx-glr-gallery-plot-phbands-nkpt-tsmear-py"></span><h1>Multiple phonon bands<a class="headerlink" href="#multiple-phonon-bands" title="Permalink to this headline">¶</a></h1>
@@ -155,26 +160,22 @@
 trf2_5.out_PHDOS.nc: phonon DOS compute with anaddb.</p>
 </div></blockquote>
 <ul class="sphx-glr-horizontal">
-<li><img alt="../_images/sphx_glr_plot_phbands_nkpt_tsmear_001.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phbands_nkpt_tsmear_001.png" />
+<li><img alt="tsmear = 0.01, tsmear = 0.04" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phbands_nkpt_tsmear_001.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_phbands_nkpt_tsmear_002.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phbands_nkpt_tsmear_002.png" />
+<li><img alt="tsmear = 0.01, tsmear = 0.04" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_phbands_nkpt_tsmear_002.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
-/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
-/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
-/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
-/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
+/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
+/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
+/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
+/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warn(
 </pre></div>
 </div>
 <div class="line-block">
@@ -184,7 +185,7 @@ trf2_5.out_PHDOS.nc: phonon DOS compute with anaddb.</p>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="n">paths</span> <span class="o">=</span> <span class="p">[</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">paths</span></a> <span class="o">=</span> <span class="p">[</span>
     <span class="c1">#&quot;mgb2_444k_0.01tsmear_DDB&quot;,</span>
     <span class="c1">#&quot;mgb2_444k_0.02tsmear_DDB&quot;,</span>
     <span class="c1">#&quot;mgb2_444k_0.04tsmear_DDB&quot;,</span>
@@ -196,31 +197,31 @@ trf2_5.out_PHDOS.nc: phonon DOS compute with anaddb.</p>
     <span class="s2">&quot;mgb2_121212k_0.04tsmear_DDB&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
-<span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;refs&quot;</span><span class="p">,</span> <span class="s2">&quot;mgb2_phonons_nkpt_tsmear&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">]</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">paths</span></a> <span class="o">=</span> <span class="p">[</span><a href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">abidata</span><span class="o">.</span><span class="n">dirpath</span></a><span class="p">,</span> <span class="s2">&quot;refs&quot;</span><span class="p">,</span> <span class="s2">&quot;mgb2_phonons_nkpt_tsmear&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">paths</span></a><span class="p">]</span>
 
-<span class="n">robot</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">DdbRobot</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
-    <span class="n">robot</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot" title="abipy.dfpt.ddb.DdbRobot" class="sphx-glr-backref-module-abipy-dfpt-ddb sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">robot</span></a> <span class="o">=</span> <a href="../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot" title="abipy.dfpt.ddb.DdbRobot" class="sphx-glr-backref-module-abipy-dfpt-ddb sphx-glr-backref-type-py-class"><span class="n">abilab</span><span class="o">.</span><span class="n">DdbRobot</span></a><span class="p">()</span>
+<span class="k">for</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">i</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">path</span></a> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">paths</span></a><span class="p">):</span>
+    <a href="../api/abio_api.html#abipy.abio.robots.Robot.add_file" title="abipy.abio.robots.Robot.add_file" class="sphx-glr-backref-module-abipy-abio-robots sphx-glr-backref-type-py-method"><span class="n">robot</span><span class="o">.</span><span class="n">add_file</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">path</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">path</span></a><span class="p">)</span>
 
-<span class="n">robot</span><span class="o">.</span><span class="n">remap_labels</span><span class="p">(</span><span class="k">lambda</span> <span class="n">ddb</span><span class="p">:</span> <span class="s2">&quot;nkpt: </span><span class="si">%s</span><span class="s2">, tsmear: </span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;nkpt&quot;</span><span class="p">],</span> <span class="n">ddb</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;tsmear&quot;</span><span class="p">]))</span>
+<a href="../api/abio_api.html#abipy.abio.robots.Robot.remap_labels" title="abipy.abio.robots.Robot.remap_labels" class="sphx-glr-backref-module-abipy-abio-robots sphx-glr-backref-type-py-method"><span class="n">robot</span><span class="o">.</span><span class="n">remap_labels</span></a><span class="p">(</span><span class="k">lambda</span> <span class="n">ddb</span><span class="p">:</span> <span class="s2">&quot;nkpt: </span><span class="si">%s</span><span class="s2">, tsmear: </span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;nkpt&quot;</span><span class="p">],</span> <span class="n">ddb</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;tsmear&quot;</span><span class="p">]))</span>
 
-<span class="n">r</span> <span class="o">=</span> <span class="n">robot</span><span class="o">.</span><span class="n">anaget_phonon_plotters</span><span class="p">(</span><span class="n">nqsmall</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<a href="https://pythonhosted.org/monty/monty.html#monty.collections.dict2namedtuple" title="monty.collections.dict2namedtuple" class="sphx-glr-backref-module-monty-collections sphx-glr-backref-type-py-function"><span class="n">r</span></a> <span class="o">=</span> <a href="../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.anaget_phonon_plotters" title="abipy.dfpt.ddb.DdbRobot.anaget_phonon_plotters" class="sphx-glr-backref-module-abipy-dfpt-ddb sphx-glr-backref-type-py-method"><span class="n">robot</span><span class="o">.</span><span class="n">anaget_phonon_plotters</span></a><span class="p">(</span><span class="n">nqsmall</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-<span class="n">r</span><span class="o">.</span><span class="n">phbands_plotter</span><span class="o">.</span><span class="n">gridplot_with_hue</span><span class="p">(</span><span class="s2">&quot;tsmear&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.gridplot_with_hue" title="abipy.dfpt.phonons.PhononBandsPlotter.gridplot_with_hue" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">r</span><span class="o">.</span><span class="n">phbands_plotter</span><span class="o">.</span><span class="n">gridplot_with_hue</span></a><span class="p">(</span><span class="s2">&quot;tsmear&quot;</span><span class="p">)</span>
 
-<span class="n">r</span><span class="o">.</span><span class="n">phbands_plotter</span><span class="o">.</span><span class="n">gridplot_with_hue</span><span class="p">(</span><span class="s2">&quot;tsmear&quot;</span><span class="p">,</span> <span class="n">with_dos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.gridplot_with_hue" title="abipy.dfpt.phonons.PhononBandsPlotter.gridplot_with_hue" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">r</span><span class="o">.</span><span class="n">phbands_plotter</span><span class="o">.</span><span class="n">gridplot_with_hue</span></a><span class="p">(</span><span class="s2">&quot;tsmear&quot;</span><span class="p">,</span> <span class="n">with_dos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1">#r.phbands_plotter.gridplot_with_hue(&quot;nkpt&quot;)</span>
 
-<span class="n">robot</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a href="../api/abio_api.html#abipy.abio.robots.Robot.close" title="abipy.abio.robots.Robot.close" class="sphx-glr-backref-module-abipy-abio-robots sphx-glr-backref-type-py-method"><span class="n">robot</span><span class="o">.</span><span class="n">close</span></a><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  5.963 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  18.082 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-phbands-nkpt-tsmear-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/8a001040bff5d8060e8edc40fa14c989/plot_phbands_nkpt_tsmear.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_phbands_nkpt_tsmear.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/0ce3c158647297bb5bb873f851d1c149/plot_phbands_nkpt_tsmear.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_phbands_nkpt_tsmear.ipynb</span></code></a></p>
 </div>
 </div>
@@ -240,8 +241,8 @@ trf2_5.out_PHDOS.nc: phonon DOS compute with anaddb.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

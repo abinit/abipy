@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>AlAs Phonon bands &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AlAs Phonon bands &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Phonon Band structures" href="plot_phbands_and_dos.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,35 +148,36 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-phonons-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-phonons-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="alas-phonon-bands">
 <span id="sphx-glr-gallery-plot-phonons-py"></span><h1>AlAs Phonon bands<a class="headerlink" href="#alas-phonon-bands" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to plot the phonon band structure of AlAs.
 See tutorial/lesson_rf2.html</p>
-<img alt="../_images/sphx_glr_plot_phonons_001.png" class="sphx-glr-single-img" src="../_images/sphx_glr_plot_phonons_001.png" />
+<img alt="AlAs without LO-TO splitting" class="sphx-glr-single-img" src="../_images/sphx_glr_plot_phonons_001.png" />
 <p class="sphx-glr-script-out">Out:</p>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[31mWarning: file /Users/gmatteo/git_repos/abipy/abipy/data/refs/alas_phonons/trf2_5.out_PHBST.nc does not contain atomic_numbers.
 Particular methods need them![0m
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
+
+&lt;Figure size 640x480 with 1 Axes&gt;
 </pre></div>
 </div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abiopen</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
 <span class="c1"># Open PHBST file produced by anaddb and extract the phonon bands object.</span>
 <span class="c1"># (alternatively one can use the shell and `abiopen.py OUT_PHBST.nc -nb`</span>
 <span class="c1"># to open the file in a jupyter notebook.</span>
-<span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHBST.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
-    <span class="n">phbands</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span>
+<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHBST.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile" title="abipy.dfpt.phonons.PhbstFile" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncfile</span></a><span class="p">:</span>
+    <a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">phbands</span></a> <span class="o">=</span> <a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.phbands" title="abipy.dfpt.phonons.PhbstFile.phbands" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span></a>
 
 <span class="c1"># Plot the phonon frequencies. Note that the labels for the q-points</span>
 <span class="c1"># are found automatically in an internal database.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs without LO-TO splitting&quot;</span><span class="p">)</span>
+<a href="../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot" title="abipy.dfpt.phonons.PhononBands.plot" class="sphx-glr-backref-module-abipy-dfpt-phonons sphx-glr-backref-type-py-method"><span class="n">phbands</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs without LO-TO splitting&quot;</span><span class="p">)</span>
 
 <span class="c1"># Alternatively you can use the optional argument qlabels</span>
 <span class="c1"># that defines the mapping reduced_coordinates --&gt; name of the q-point.</span>
@@ -189,12 +194,12 @@ Particular methods need them![0m
 <span class="c1">#phbands.plot(title=&quot;AlAs without LO-TO splitting&quot;, qlabels=qlabels)</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.877 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.026 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-phonons-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/98b758e130f618aa504cae83acec15b9/plot_phonons.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_phonons.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/109d251c20e720e61cd148d06d722e99/plot_phonons.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_phonons.ipynb</span></code></a></p>
 </div>
 </div>
@@ -214,8 +219,8 @@ Particular methods need them![0m
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

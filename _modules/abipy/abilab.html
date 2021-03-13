@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abipy.abilab &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abipy.abilab &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
 <meta charset='utf-8'>
@@ -42,7 +46,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -167,7 +171,7 @@
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">get_ax3d_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ElectronBands</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">,</span> <span class="n">ElectronDos</span><span class="p">,</span> <span class="n">ElectronDosPlotter</span><span class="p">,</span>
-    <span class="n">dataframe_from_ebands</span><span class="p">)</span>
+    <span class="n">dataframe_from_ebands</span><span class="p">,</span> <span class="n">EdosFile</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.gsr</span> <span class="kn">import</span> <span class="n">GsrFile</span><span class="p">,</span> <span class="n">GsrRobot</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.eskw</span> <span class="kn">import</span> <span class="n">EskwFile</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.psps</span> <span class="kn">import</span> <span class="n">PspsFile</span>
@@ -193,11 +197,12 @@
 <span class="kn">from</span> <span class="nn">abipy.eph.v1sym</span> <span class="kn">import</span> <span class="n">V1symFile</span>
 <span class="kn">from</span> <span class="nn">abipy.eph.gkq</span> <span class="kn">import</span> <span class="n">GkqFile</span><span class="p">,</span> <span class="n">GkqRobot</span>
 <span class="kn">from</span> <span class="nn">abipy.eph.v1qnu</span> <span class="kn">import</span> <span class="n">V1qnuFile</span>
-<span class="c1">#from abipy.eph.wr import WrNcFile</span>
 <span class="kn">from</span> <span class="nn">abipy.eph.v1qavg</span> <span class="kn">import</span> <span class="n">V1qAvgFile</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.rta</span> <span class="kn">import</span> <span class="n">RtaFile</span><span class="p">,</span> <span class="n">RtaRobot</span>
 <span class="kn">from</span> <span class="nn">abipy.eph.transportfile</span> <span class="kn">import</span> <span class="n">TransportFile</span>
 <span class="kn">from</span> <span class="nn">abipy.wannier90</span> <span class="kn">import</span> <span class="n">WoutFile</span><span class="p">,</span> <span class="n">AbiwanFile</span><span class="p">,</span> <span class="n">AbiwanRobot</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.lobster</span> <span class="kn">import</span> <span class="n">CoxpFile</span><span class="p">,</span> <span class="n">ICoxpFile</span><span class="p">,</span> <span class="n">LobsterDoscarFile</span><span class="p">,</span> <span class="n">LobsterInput</span><span class="p">,</span> <span class="n">LobsterAnalyzer</span>
+<span class="c1">#from abipy.electrons.abitk import ZinvConvFile, TetraTestFile</span>
 
 <span class="c1"># Abinit Documentation.</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="kn">import</span> <span class="n">get_abinit_variables</span><span class="p">,</span> <span class="n">abinit_help</span><span class="p">,</span> <span class="n">docvar</span>
@@ -232,6 +237,9 @@
     <span class="p">(</span><span class="s2">&quot;COOPCAR.lobster&quot;</span><span class="p">,</span> <span class="n">CoxpFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;ICOHPLIST.lobster&quot;</span><span class="p">,</span> <span class="n">ICoxpFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;DOSCAR.lobster&quot;</span><span class="p">,</span> <span class="n">LobsterDoscarFile</span><span class="p">),</span>
+    <span class="c1">#(&quot;ZINVCONV.nc&quot;, ZinvConvFile),</span>
+    <span class="c1">#(&quot;TETRATEST.nc&quot;, TetraTestFile),</span>
+    <span class="p">(</span><span class="s2">&quot;EDOS&quot;</span><span class="p">,</span> <span class="n">EdosFile</span><span class="p">),</span>
 <span class="p">])</span>
 
 <span class="c1"># Abinit files require a special treatment.</span>
@@ -261,11 +269,11 @@
     <span class="p">(</span><span class="s2">&quot;A2F.nc&quot;</span><span class="p">,</span> <span class="n">A2fFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;SIGEPH.nc&quot;</span><span class="p">,</span> <span class="n">SigEPhFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;TRANSPORT.nc&quot;</span><span class="p">,</span><span class="n">TransportFile</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;RTA.nc&quot;</span><span class="p">,</span><span class="n">RtaFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;V1SYM.nc&quot;</span><span class="p">,</span> <span class="n">V1symFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;GKQ.nc&quot;</span><span class="p">,</span> <span class="n">GkqFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;V1QNU.nc&quot;</span><span class="p">,</span> <span class="n">V1qnuFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;V1QAVG.nc&quot;</span><span class="p">,</span> <span class="n">V1qAvgFile</span><span class="p">),</span>
-    <span class="c1">#(&quot;WR.nc&quot;, WrNcFile),</span>
     <span class="p">(</span><span class="s2">&quot;ABIWAN.nc&quot;</span><span class="p">,</span> <span class="n">AbiwanFile</span><span class="p">),</span>
 <span class="p">])</span>
 
@@ -446,6 +454,12 @@
     <span class="c1"># These packages are required</span>
     <span class="kn">import</span> <span class="nn">numpy</span><span class="o">,</span> <span class="nn">scipy</span><span class="o">,</span> <span class="nn">netCDF4</span><span class="o">,</span> <span class="nn">pymatgen</span><span class="o">,</span> <span class="nn">apscheduler</span><span class="o">,</span> <span class="nn">pydispatch</span><span class="o">,</span> <span class="nn">yaml</span>
 
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">pmg_version</span>
+        <span class="c1">#from pymatgen.settings import __version__ as pmg_version</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">pmg_version</span> <span class="o">=</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">__version__</span>
+
     <span class="n">d</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">([</span>
         <span class="p">(</span><span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="n">system</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;python_version&quot;</span><span class="p">,</span> <span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">()),</span>
@@ -455,7 +469,7 @@
         <span class="p">(</span><span class="s2">&quot;apscheduler&quot;</span><span class="p">,</span> <span class="n">apscheduler</span><span class="o">.</span><span class="n">version</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;pydispatch&quot;</span><span class="p">,</span> <span class="n">pydispatch</span><span class="o">.</span><span class="n">__version__</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;yaml&quot;</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">__version__</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">&quot;pymatgen&quot;</span><span class="p">,</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">__version__</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;pymatgen&quot;</span><span class="p">,</span> <span class="n">pmg_version</span><span class="p">),</span>
     <span class="p">])</span>
 
     <span class="c1"># Optional but strongly suggested.</span>
@@ -675,7 +689,6 @@
 <span class="s2">   `  ..` `:-                            :+              /:         --` `-` `</span>
 <span class="s2">            `.`                                                   ..`</span>
 <span class="s2">&quot;&quot;&quot;</span></div>
-
 </pre></div>
 
     </div>
@@ -690,8 +703,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Bethe-Salpeter &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bethe-Salpeter &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="AlAs Phonon bands" href="plot_phonons.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,51 +148,38 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-mdf-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-mdf-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="bethe-salpeter">
 <span id="sphx-glr-gallery-plot-mdf-py"></span><h1>Bethe-Salpeter<a class="headerlink" href="#bethe-salpeter" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to plot the macroscopic dielectric function (MDF)
 computed in the Bethe-Salpeter code.</p>
 <ul class="sphx-glr-horizontal">
-<li><img alt="../_images/sphx_glr_plot_mdf_001.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_mdf_001.png" />
+<li><img alt="Si absorption spectrum: EXC vs RPA (averaged over small q-points)" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_mdf_001.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_mdf_002.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_mdf_002.png" />
+<li><img alt="Real part for the first q-point: EXC vs RPA" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_mdf_002.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_mdf_003.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_mdf_003.png" />
+<li><img alt="Si macroscopic dielectric tensor (Reduced coord)" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_mdf_003.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_mdf_004.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_mdf_004.png" />
+<li><img alt="Si macroscopic dielectric tensor (Cartesian coord)" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_mdf_004.png" />
 </li>
 </ul>
-<p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-</pre></div>
-</div>
-<div class="line-block">
-<div class="line"><br /></div>
-</div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
-<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abiopen</span>
+<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a>
 
 <span class="c1"># Open the MDF file produced in the tutorial.</span>
-<span class="n">mdf_file</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;tbs_4o_DS2_MDF.nc&quot;</span><span class="p">))</span>
+<span class="n">mdf_file</span> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;tbs_4o_DS2_MDF.nc&quot;</span><span class="p">))</span>
 
 <span class="c1"># Plot the imaginary part of the macroscopic</span>
 <span class="c1"># dielectric function (EXC, RPA, GWRPA) between 2 and 5 eV.</span>
-<span class="n">xlims</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">xlims</span></a> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 
-<span class="n">mdf_file</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">xlims</span><span class="o">=</span><span class="n">xlims</span><span class="p">,</span>
+<span class="n">mdf_file</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">xlims</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">xlims</span></a><span class="p">,</span>
                    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Si absorption spectrum: EXC vs RPA (averaged over small q-points)&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot the real part for the first q-point --&gt; 0</span>
-<span class="n">mdf_file</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;Re&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="n">xlims</span><span class="p">,</span>
+<span class="n">mdf_file</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;Re&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">xlims</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">xlims</span></a><span class="p">,</span>
                    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Real part for the first q-point: EXC vs RPA&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot the 6 different components of the macroscopic dielectric tensor</span>
@@ -202,12 +193,12 @@ computed in the Bethe-Salpeter code.</p>
 <span class="n">mdf_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  8.411 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  11.308 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-mdf-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/9538125bb6057749e6b6dd1535b25f8d/plot_mdf.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_mdf.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/54e4887d233aad39e2173f3915511f19/plot_mdf.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_mdf.ipynb</span></code></a></p>
 </div>
 </div>
@@ -227,8 +218,8 @@ computed in the Bethe-Salpeter code.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

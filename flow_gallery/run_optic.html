@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Optic Flow &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Optic Flow &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Raman Flow with BSE and frozen phonon" href="run_raman_bse.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,7 +148,8 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-optic-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-optic-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="optic-flow">
 <span id="sphx-glr-flow-gallery-run-optic-py"></span><h1>Optic Flow<a class="headerlink" href="#optic-flow" title="Permalink to this headline">¶</a></h1>
@@ -158,18 +163,18 @@ a convergence study with respect to the k-point sampling.</p>
 <span class="kn">import</span> <span class="nn">abipy.flowtk</span> <span class="k">as</span> <span class="nn">flowtk</span>
 
 
-<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">paral_kgb</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">,</span> <span class="n">paral_kgb</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build flow for the calculation of optical properties with optic + band structure</span>
 <span class="sd">    along high-symmetry k-path. DDK are computed with 3 k-meshes of increasing density</span>
 <span class="sd">    to monitor the convergece of the spectra.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
-        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a><span class="p">:</span>
+        <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/os.path.html#os.path.basename" title="os.path.basename" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sys</span><span class="o">.</span><span class="n">argv</span></a><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
 
-    <span class="n">multi</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">abidata</span><span class="o">.</span><span class="n">structure_from_ucell</span><span class="p">(</span><span class="s2">&quot;GaAs&quot;</span><span class="p">),</span>
-                                <span class="n">pseudos</span><span class="o">=</span><span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;31ga.pspnc&quot;</span><span class="p">,</span> <span class="s2">&quot;33as.pspnc&quot;</span><span class="p">),</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">multi</span> <span class="o">=</span> <a href="../api/abio_api.html#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset" class="sphx-glr-backref-module-abipy-abio-inputs sphx-glr-backref-type-py-class"><span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span></a><span class="p">(</span><span class="n">structure</span><span class="o">=</span><a href="../api/data_api.html#abipy.data.structure_from_ucell" title="abipy.data.structure_from_ucell" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">structure_from_ucell</span></a><span class="p">(</span><span class="s2">&quot;GaAs&quot;</span><span class="p">),</span>
+                                <span class="n">pseudos</span><span class="o">=</span><a href="../api/data_api.html#abipy.data.pseudos" title="abipy.data.pseudos" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span></a><span class="p">(</span><span class="s2">&quot;31ga.pspnc&quot;</span><span class="p">,</span> <span class="s2">&quot;33as.pspnc&quot;</span><span class="p">),</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
     <span class="c1"># Usa same shifts in all tasks.</span>
     <span class="n">shiftk</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
@@ -189,15 +194,15 @@ a convergence study with respect to the k-point sampling.</p>
     <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_kpath</span><span class="p">(</span><span class="n">ndivsm</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
     <span class="c1"># Initialize the flow.</span>
-    <span class="n">flow</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+    <span class="n">flow</span> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.nodes.Node" title="abipy.flowtk.nodes.Node" class="sphx-glr-backref-module-abipy-flowtk-nodes sphx-glr-backref-type-py-class"><span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
 
     <span class="c1"># GS to get the density + NSCF along the path.</span>
     <span class="n">scf_inp</span><span class="p">,</span> <span class="n">nscf_inp</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
-    <span class="n">bands_work</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">BandStructureWork</span><span class="p">(</span><span class="n">scf_inp</span><span class="p">,</span> <span class="n">nscf_inp</span><span class="p">)</span>
+    <span class="n">bands_work</span> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.nodes.Node" title="abipy.flowtk.nodes.Node" class="sphx-glr-backref-module-abipy-flowtk-nodes sphx-glr-backref-type-py-class"><span class="n">flowtk</span><span class="o">.</span><span class="n">BandStructureWork</span></a><span class="p">(</span><span class="n">scf_inp</span><span class="p">,</span> <span class="n">nscf_inp</span><span class="p">)</span>
     <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">bands_work</span><span class="p">)</span>
 
     <span class="c1"># Build OpticInput used to compute optical properties.</span>
-    <span class="n">optic_input</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">OpticInput</span><span class="p">(</span>
+    <span class="n">optic_input</span> <span class="o">=</span> <a href="../api/abio_api.html#abipy.abio.inputs.OpticInput" title="abipy.abio.inputs.OpticInput" class="sphx-glr-backref-module-abipy-abio-inputs sphx-glr-backref-type-py-class"><span class="n">abilab</span><span class="o">.</span><span class="n">OpticInput</span></a><span class="p">(</span>
         <span class="n">broadening</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>          <span class="c1"># Value of the smearing factor, in Hartree</span>
         <span class="n">domega</span><span class="o">=</span><span class="mf">0.0003</span><span class="p">,</span>             <span class="c1"># Frequency mesh.</span>
         <span class="n">maxomega</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
@@ -219,11 +224,11 @@ a convergence study with respect to the k-point sampling.</p>
     <span class="k">for</span> <span class="n">ddk_ngkpt</span> <span class="ow">in</span> <span class="n">ngkpt_convergence</span><span class="p">:</span>
         <span class="c1"># Build work for NSCF from DEN produced by the first GS task + 3 DDKs.</span>
         <span class="c1"># All tasks use more bands and a denser k-mesh defined by ddk_ngkpt.</span>
-        <span class="n">ddks_work</span> <span class="o">=</span> <span class="n">NscfDdksWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="n">bands_work</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ddk_ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">,</span> <span class="n">ddk_nband</span><span class="p">)</span>
+        <span class="n">ddks_work</span> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.dfpt_works.NscfDdksWork.from_scf_task" title="abipy.flowtk.dfpt_works.NscfDdksWork.from_scf_task" class="sphx-glr-backref-module-abipy-flowtk-dfpt_works-NscfDdksWork sphx-glr-backref-type-py-method"><span class="n">NscfDdksWork</span><span class="o">.</span><span class="n">from_scf_task</span></a><span class="p">(</span><span class="n">bands_work</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ddk_ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">,</span> <span class="n">ddk_nband</span><span class="p">)</span>
         <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">ddks_work</span><span class="p">)</span>
 
         <span class="c1"># Build optic task to compute chi with this value of ddk_ngkpt.</span>
-        <span class="n">optic_task</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">OpticTask</span><span class="p">(</span><span class="n">optic_input</span><span class="p">,</span> <span class="n">nscf_node</span><span class="o">=</span><span class="n">ddks_work</span><span class="o">.</span><span class="n">task_with_ks_energies</span><span class="p">,</span>
+        <span class="n">optic_task</span> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.nodes.Node" title="abipy.flowtk.nodes.Node" class="sphx-glr-backref-module-abipy-flowtk-nodes sphx-glr-backref-type-py-class"><span class="n">flowtk</span><span class="o">.</span><span class="n">OpticTask</span></a><span class="p">(</span><span class="n">optic_input</span><span class="p">,</span> <span class="n">nscf_node</span><span class="o">=</span><span class="n">ddks_work</span><span class="o">.</span><span class="n">task_with_ks_energies</span><span class="p">,</span>
                                       <span class="n">ddk_nodes</span><span class="o">=</span><span class="n">ddks_work</span><span class="o">.</span><span class="n">ddk_tasks</span><span class="p">,</span> <span class="n">use_ddknc</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">ddks_work</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="n">optic_task</span><span class="p">)</span>
 
@@ -232,33 +237,28 @@ a convergence study with respect to the k-point sampling.</p>
 
 <span class="c1"># This block generates the thumbnails in the AbiPy gallery.</span>
 <span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
-<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/os.html#os.getenv" title="os.getenv" class="sphx-glr-backref-module-os sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">getenv</span></a><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
-    <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
+    <a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.build_flow_main_parser" title="abipy.flowtk.build_flow_main_parser" class="sphx-glr-backref-module-abipy-flowtk sphx-glr-backref-type-py-function"><span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span></a><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <a href="https://docs.python.org/3/library/tempfile.html#tempfile.mkdtemp" title="tempfile.mkdtemp" class="sphx-glr-backref-module-tempfile sphx-glr-backref-type-py-function"><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span></a><span class="p">()])</span>
+    <span class="n">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
 
 
 <span class="nd">@flowtk</span><span class="o">.</span><span class="n">flow_main</span>
-<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is our main function that will be invoked by the script.</span>
 <span class="sd">    flow_main is a decorator implementing the command line interface.</span>
 <span class="sd">    Command line args are stored in `options`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">)</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <a href="https://docs.python.org/3/library/sys.html#sys.exit" title="sys.exit" class="sphx-glr-backref-module-sys sphx-glr-backref-type-py-function"><span class="n">sys</span><span class="o">.</span><span class="n">exit</span></a><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<img alt="../_images/sphx_glr_run_optic_001.png" class="sphx-glr-single-img" src="../_images/sphx_glr_run_optic_001.png" />
-<p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-</pre></div>
-</div>
+<img alt="run optic" class="sphx-glr-single-img" src="../_images/sphx_glr_run_optic_001.png" />
 <p>Run the script with:</p>
 <blockquote>
 <div><p>run_optic.py -s</p>
@@ -273,12 +273,12 @@ a convergence study with respect to the k-point sampling.</p>
 </pre></div>
 </div>
 <img alt="Convergence of (linear) optical spectra wrt k-points." src="https://github.com/abinit/abipy_assets/blob/master/run_optic.png?raw=true" />
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.063 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.688 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-optic-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/a169e7651ceb5f628ee8a3c0c2628b1c/run_optic.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_optic.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/81fc1c10ca9f2f156d6d100a2fa1a012/run_optic.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_optic.ipynb</span></code></a></p>
 </div>
 </div>
@@ -298,8 +298,8 @@ a convergence study with respect to the k-point sampling.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

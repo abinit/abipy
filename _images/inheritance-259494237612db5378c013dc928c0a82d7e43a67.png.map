@@ -1,8 +1,0 @@
-<map id="inheritance7cf8f6d793" name="inheritance7cf8f6d793">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="243,149,441,173"/>
-<area shape="rect" id="node6" href="#abipy.electrons.scr.ScrFile" target="_top" title="This object provides an interface to the ``SCR.nc`` file produced by the GW code." alt="" coords="500,77,676,101"/>
-<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,149,184,173"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf_ files containing the Abinit header." alt="" coords="241,5,443,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="236,53,448,77"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,101,452,125"/>
-</map>

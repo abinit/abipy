@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abipy.flowtk.tasks &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abipy.flowtk.tasks &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
@@ -42,7 +46,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -710,7 +714,10 @@
                 <span class="s2">&quot;PLEASE READ THIS: !!!</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="s2">&quot;To use AbiPy to run jobs this file must be present</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="s2">&quot;It provides a description of the cluster/computer you are running on</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="s2">&quot;Examples are provided in abipy/data/managers.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">YAML_FILE</span><span class="p">,</span> <span class="n">path</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">))</span>
+                <span class="s2">&quot;Examples are provided in abipy/data/managers.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;Use `abidoc.py manager` to access the documentation in the terminal.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;See also: https://abinit.github.io/abipy/workflows/manager_examples.html</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="bp">cls</span><span class="o">.</span><span class="n">YAML_FILE</span><span class="p">,</span> <span class="n">path</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">))</span>
 
         <span class="n">_USER_CONFIG_TASKMANAGER</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_USER_CONFIG_TASKMANAGER</span></div>
@@ -2087,10 +2094,10 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S_ABICRITICAL</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">report</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S_ERROR</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;got None report!&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S_ERROR</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Got None report!&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">report</span><span class="o">.</span><span class="n">run_completed</span><span class="p">:</span>
-                <span class="c1"># Here we  set the correct timing data reported by Abinit</span>
+                <span class="c1"># Here we set the correct timing data reported by Abinit</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">datetimes</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">start_datetime</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">datetimes</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">end_datetime</span>
 
@@ -2759,8 +2766,10 @@
 <span class="sd">            mpi_procs: Number of MPI processes to use.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Build a simple manager to run the job in a shell subprocess</span>
+        <span class="c1"># Allow users to specify the temporary directory via env variable.</span>
+        <span class="nb">dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ABIPY_TMPDIR&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="kn">import</span> <span class="nn">tempfile</span>
-        <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
         <span class="k">if</span> <span class="n">manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span>
 
         <span class="c1"># Construct the task and run it</span>
@@ -2860,8 +2869,7 @@
         <span class="c1"># Here we reorder the pseudos if the order is wrong.</span>
         <span class="n">ord_pseudos</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="n">znucl</span> <span class="o">=</span> <span class="p">[</span><span class="n">specie</span><span class="o">.</span><span class="n">number</span> <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span>
-                 <span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">types_of_specie</span><span class="p">]</span>
+        <span class="n">znucl</span> <span class="o">=</span> <span class="p">[</span><span class="n">specie</span><span class="o">.</span><span class="n">number</span> <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">species_by_znucl</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">znucl</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span><span class="p">:</span>
@@ -2991,6 +2999,9 @@
             <span class="k">except</span> <span class="n">parser</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;Error while parsing Autoparal section:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">straceback</span><span class="p">())</span>
                 <span class="k">return</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="s2">&quot;paral_kgb&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">paral_kgb</span><span class="o">=</span><span class="n">pconfs</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;paral_kgb&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
         <span class="c1">######################################################</span>
         <span class="c1"># Select the optimal configuration according to policy</span>
@@ -4761,35 +4772,28 @@
 <span class="sd">        hence we don&#39;t need to create symbolic links.</span>
 <span class="sd">        &quot;&quot;&quot;</span></div>
 
+<div class="viewcode-block" id="AnaddbTask.outpath_from_ext"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.AnaddbTask.outpath_from_ext">[docs]</a>    <span class="k">def</span> <span class="nf">outpath_from_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;anaddb.nc&quot;</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;anaddb.nc&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span> <span class="k">return</span> <span class="n">path</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wdir</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Anaddb task `</span><span class="si">%s</span><span class="s2">` didn&#39;t produce file with extenstion: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">path</span></div>
+
 <div class="viewcode-block" id="AnaddbTask.open_phbst"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.AnaddbTask.open_phbst">[docs]</a>    <span class="k">def</span> <span class="nf">open_phbst</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Open PHBST file produced by Anaddb and returns |PhbstFile| object.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="kn">import</span> <span class="n">PhbstFile</span>
-        <span class="n">phbst_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.abo_PHBST.nc&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">phbst_path</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_OK</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> reached S_OK but didn&#39;t produce a PHBST file in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">))</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">PhbstFile</span><span class="p">(</span><span class="n">phbst_path</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;Exception while reading GSR file at </span><span class="si">%s</span><span class="s2">:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">phbst_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)))</span>
-            <span class="k">return</span> <span class="kc">None</span></div>
+        <span class="n">phbst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outpath_from_ext</span><span class="p">(</span><span class="s2">&quot;PHBST.nc&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">PhbstFile</span><span class="p">(</span><span class="n">phbst_path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnaddbTask.open_phdos"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.AnaddbTask.open_phdos">[docs]</a>    <span class="k">def</span> <span class="nf">open_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Open PHDOS file produced by Anaddb and returns |PhdosFile| object.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="kn">import</span> <span class="n">PhdosFile</span>
-        <span class="n">phdos_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.abo_PHDOS.nc&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">phdos_path</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_OK</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> reached S_OK but didn&#39;t produce a PHBST file in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">))</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">PhdosFile</span><span class="p">(</span><span class="n">phdos_path</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;Exception while reading GSR file at </span><span class="si">%s</span><span class="s2">:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">phdos_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)))</span>
-            <span class="k">return</span> <span class="kc">None</span></div>
+        <span class="n">phdos_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outpath_from_ext</span><span class="p">(</span><span class="s2">&quot;PHDOS.nc&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">PhdosFile</span><span class="p">(</span><span class="n">phdos_path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnaddbTask.get_results"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.AnaddbTask.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_results</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
@@ -4844,8 +4848,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

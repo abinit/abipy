@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abicheck.py &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abicheck.py &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="abicomp.py" href="abicomp.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -151,6 +155,8 @@
 and the environment on the local machine are properly configured.
 Please consult the documentation on the <a class="reference internal" href="../workflows/taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> for a more detailed description of these <a class="reference external" href="https://en.wikipedia.org/wiki/YAML">YAML</a> files.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abicheck.py --no-colors
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/testing.py:43: UserWarning: It is recommended that you set the PMG_TEST_FILES_DIR environment variable explicity. Now using a fallback location based on relative path from this module.
+  &quot;It is recommended that you set the PMG_TEST_FILES_DIR environment variable explicity. &quot;
 AbiPy Manager:
 [Qadapter 0]
 ShellAdapter:gmac
@@ -160,26 +166,26 @@ Qadapter selected: 0
 
 Abinitbuild:
 Abinit Build Information:
-    Abinit version: 9.0.0
+    Abinit version: 9.3.4
     MPI: True, MPI-IO: True, OpenMP: False
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 54070
+PyFlowScheduler, Pid: 38242
 Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 2}
 
 Installed packages:
 Package         Version
 --------------  ---------
 system          Darwin
-python_version  3.7.0
-numpy           1.18.1
-scipy           1.3.1
+python_version  3.7.1
+numpy           1.20.1
+scipy           1.5.1
 netCDF4         1.5.1.2
 apscheduler     2.1.0
 pydispatch      2.0.5
-yaml            5.3
-pymatgen        2020.1.28
+yaml            5.1
+pymatgen        2022.0.4
 
 
 Abipy requirements are properly configured
@@ -188,8 +194,7 @@ Abipy requirements are properly configured
 <p>The command <code class="docutils literal notranslate"><span class="pre">abicheck.py</span> <span class="pre">--with-flow</span></code> can be used to run a small AbiPy flow in order to
 check the interface with the Abinit executables.</p>
 <p>Complete command line reference</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abicheck</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">flow</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abicheck</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">flow</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">FLOW_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments">
@@ -213,6 +218,9 @@ check the interface with the Abinit executables.</p>
 <dt><kbd>--with-flow</kbd></dt>
 <dd><p>Build and run small abipy flow for testing.</p>
 <p>Default: False</p>
+</dd>
+<dt><kbd>-d, --flow-dir</kbd></dt>
+<dd><p>Create AbiPy flow in this directory. If None, a default directory is used,</p>
 </dd>
 <dt><kbd>-m, --show-managers</kbd></dt>
 <dd><p>Print table with manager files provided by AbiPy.</p>
@@ -243,8 +251,8 @@ check the interface with the Abinit executables.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

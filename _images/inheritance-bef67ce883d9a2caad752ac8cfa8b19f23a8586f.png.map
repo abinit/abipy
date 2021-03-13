@@ -1,8 +1,0 @@
-<map id="inheritancee0818c4a88" name="inheritancee0818c4a88">
-<area shape="rect" id="node1" href="#abipy.tools.tensors.Stress" target="_top" title="Stress tensor. rank2 symmetric tensor with shape [3, 3]." alt="" coords="658,18,765,33"/>
-<area shape="rect" id="node2" title="This class extends SquareTensor as a representation of the" alt="" coords="463,18,628,33"/>
-<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="3,3,99,18"/>
-<area shape="rect" id="node6" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="128,18,253,33"/>
-<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="17,33,85,48"/>
-<area shape="rect" id="node5" title="Base class for doing useful general operations on second rank tensors" alt="" coords="282,18,433,33"/>
-</map>

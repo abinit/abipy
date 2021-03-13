@@ -38,9 +38,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_ebands_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_ebands_thumb.png
+     :alt: Band structure Flow with factory functions
 
-        :ref:`sphx_glr_flow_gallery_run_ht_si_ebands.py`
+     :ref:`sphx_glr_flow_gallery_run_ht_si_ebands.py`
 
 .. raw:: html
 
@@ -58,9 +59,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonopy_si_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonopy_si_thumb.png
+     :alt: Phonopy + Abinit Flow
 
-        :ref:`sphx_glr_flow_gallery_run_phonopy_si.py`
+     :ref:`sphx_glr_flow_gallery_run_phonopy_si.py`
 
 .. raw:: html
 
@@ -78,9 +80,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_sic_relax_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_sic_relax_thumb.png
+     :alt: Relaxation Flow
 
-        :ref:`sphx_glr_flow_gallery_run_sic_relax.py`
+     :ref:`sphx_glr_flow_gallery_run_sic_relax.py`
 
 .. raw:: html
 
@@ -98,9 +101,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eos_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eos_thumb.png
+     :alt: Flow for Equation of State
 
-        :ref:`sphx_glr_flow_gallery_run_eos.py`
+     :ref:`sphx_glr_flow_gallery_run_eos.py`
 
 .. raw:: html
 
@@ -118,9 +122,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_g0w0ppm_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_g0w0ppm_thumb.png
+     :alt: G0W0 Flow with factory functions
 
-        :ref:`sphx_glr_flow_gallery_run_ht_si_g0w0ppm.py`
+     :ref:`sphx_glr_flow_gallery_run_ht_si_g0w0ppm.py`
 
 .. raw:: html
 
@@ -138,9 +143,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_bsemdf_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_bsemdf_thumb.png
+     :alt: Bethe-Salpeter Flow with factory functions
 
-        :ref:`sphx_glr_flow_gallery_run_ht_si_bsemdf.py`
+     :ref:`sphx_glr_flow_gallery_run_ht_si_bsemdf.py`
 
 .. raw:: html
 
@@ -158,9 +164,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_nonlinear_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_nonlinear_thumb.png
+     :alt: Flow for Non-linear optic with DFPT
 
-        :ref:`sphx_glr_flow_gallery_run_nonlinear.py`
+     :ref:`sphx_glr_flow_gallery_run_nonlinear.py`
 
 .. raw:: html
 
@@ -178,9 +185,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gruneisen_abinit_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gruneisen_abinit_thumb.png
+     :alt: Gruneisen parameters with DFPT phonons and finite difference
 
-        :ref:`sphx_glr_flow_gallery_run_gruneisen_abinit.py`
+     :ref:`sphx_glr_flow_gallery_run_gruneisen_abinit.py`
 
 .. raw:: html
 
@@ -198,9 +206,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_from_ddb_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_from_ddb_thumb.png
+     :alt: Estimate the ZPR of band edges with generalized Frohlich mode
 
-        :ref:`sphx_glr_flow_gallery_run_frohlich_zpr_from_ddb.py`
+     :ref:`sphx_glr_flow_gallery_run_frohlich_zpr_from_ddb.py`
 
 .. raw:: html
 
@@ -218,9 +227,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_thumb.png
+     :alt: Estimate the ZPR at band edges with the generalized Frohlich model
 
-        :ref:`sphx_glr_flow_gallery_run_frohlich_zpr.py`
+     :ref:`sphx_glr_flow_gallery_run_frohlich_zpr.py`
 
 .. raw:: html
 
@@ -238,9 +248,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_si_ebands_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_si_ebands_thumb.png
+     :alt: Band structure Flow
 
-        :ref:`sphx_glr_flow_gallery_run_si_ebands.py`
+     :ref:`sphx_glr_flow_gallery_run_si_ebands.py`
 
 .. raw:: html
 
@@ -258,9 +269,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gkq_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gkq_thumb.png
+     :alt: Flow to compute e-ph matrix elements along a q-path
 
-        :ref:`sphx_glr_flow_gallery_run_gkq.py`
+     :ref:`sphx_glr_flow_gallery_run_gkq.py`
 
 .. raw:: html
 
@@ -278,9 +290,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_fe_ebands_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_fe_ebands_thumb.png
+     :alt: Band structure w/wo magnetization
 
-        :ref:`sphx_glr_flow_gallery_run_fe_ebands.py`
+     :ref:`sphx_glr_flow_gallery_run_fe_ebands.py`
 
 .. raw:: html
 
@@ -298,9 +311,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_vs_kpts_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_vs_kpts_thumb.png
+     :alt: Relaxation of GaN with different K-meshes
 
-        :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts.py`
+     :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts.py`
 
 .. raw:: html
 
@@ -318,9 +332,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_wkq_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_wkq_thumb.png
+     :alt: Phonons with WFQ files (q-mesh denser than k-mesh)
 
-        :ref:`sphx_glr_flow_gallery_run_phonons_wkq.py`
+     :ref:`sphx_glr_flow_gallery_run_phonons_wkq.py`
 
 .. raw:: html
 
@@ -338,9 +353,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_mgb2_edoses_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_mgb2_edoses_thumb.png
+     :alt: Flow for convergence studies of e-DOS wrt ngkpt
 
-        :ref:`sphx_glr_flow_gallery_run_mgb2_edoses.py`
+     :ref:`sphx_glr_flow_gallery_run_mgb2_edoses.py`
 
 .. raw:: html
 
@@ -358,9 +374,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_from_files_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_from_files_thumb.png
+     :alt: Starting a Flow from external files
 
-        :ref:`sphx_glr_flow_gallery_run_from_files.py`
+     :ref:`sphx_glr_flow_gallery_run_from_files.py`
 
 .. raw:: html
 
@@ -378,9 +395,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png
+     :alt: Flow for Born effective charges and dielectric tensors with DFPT
 
-        :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py`
+     :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py`
 
 .. raw:: html
 
@@ -398,9 +416,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_thumb.png
+     :alt: Flow for phonons with DFPT
 
-        :ref:`sphx_glr_flow_gallery_run_phonons.py`
+     :ref:`sphx_glr_flow_gallery_run_phonons.py`
 
 .. raw:: html
 
@@ -418,9 +437,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phfrozen_ebands_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phfrozen_ebands_thumb.png
+     :alt: Flow for e-Bands with frozen phonon
 
-        :ref:`sphx_glr_flow_gallery_run_phfrozen_ebands.py`
+     :ref:`sphx_glr_flow_gallery_run_phfrozen_ebands.py`
 
 .. raw:: html
 
@@ -438,9 +458,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gaas_ebands_soc_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gaas_ebands_soc_thumb.png
+     :alt: Band structure with/without spin-orbit
 
-        :ref:`sphx_glr_flow_gallery_run_gaas_ebands_soc.py`
+     :ref:`sphx_glr_flow_gallery_run_gaas_ebands_soc.py`
 
 .. raw:: html
 
@@ -458,9 +479,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_mgb2_phonons_nkpt_tsmear_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_mgb2_phonons_nkpt_tsmear_thumb.png
+     :alt: Flow to analyze the convergence of phonons in metals wrt ngkpt and tsmear
 
-        :ref:`sphx_glr_flow_gallery_run_mgb2_phonons_nkpt_tsmear.py`
+     :ref:`sphx_glr_flow_gallery_run_mgb2_phonons_nkpt_tsmear.py`
 
 .. raw:: html
 
@@ -478,9 +500,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_thumb.png
+     :alt: Relaxation Flow
 
-        :ref:`sphx_glr_flow_gallery_run_relax.py`
+     :ref:`sphx_glr_flow_gallery_run_relax.py`
 
 .. raw:: html
 
@@ -498,9 +521,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_effmass_finitediff_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_effmass_finitediff_thumb.png
+     :alt: Effective masses with finite difference
 
-        :ref:`sphx_glr_flow_gallery_run_effmass_finitediff.py`
+     :ref:`sphx_glr_flow_gallery_run_effmass_finitediff.py`
 
 .. raw:: html
 
@@ -518,9 +542,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_effmass_dfpt_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_effmass_dfpt_thumb.png
+     :alt: Effective masses with DFPT
 
-        :ref:`sphx_glr_flow_gallery_run_effmass_dfpt.py`
+     :ref:`sphx_glr_flow_gallery_run_effmass_dfpt.py`
 
 .. raw:: html
 
@@ -538,9 +563,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_elastic_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_elastic_thumb.png
+     :alt: Flow for elastic constants and piezoelectric tensor with DFPT
 
-        :ref:`sphx_glr_flow_gallery_run_elastic.py`
+     :ref:`sphx_glr_flow_gallery_run_elastic.py`
 
 .. raw:: html
 
@@ -558,9 +584,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ldaus_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ldaus_thumb.png
+     :alt: Flow for LDA+U calculations
 
-        :ref:`sphx_glr_flow_gallery_run_ldaus.py`
+     :ref:`sphx_glr_flow_gallery_run_ldaus.py`
 
 .. raw:: html
 
@@ -578,9 +605,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eph_al_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eph_al_thumb.png
+     :alt: Flow for E-PH calculations
 
-        :ref:`sphx_glr_flow_gallery_run_eph_al.py`
+     :ref:`sphx_glr_flow_gallery_run_eph_al.py`
 
 .. raw:: html
 
@@ -598,9 +626,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eph_pot_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eph_pot_thumb.png
+     :alt: Flow to compute e-ph scattering potentials
 
-        :ref:`sphx_glr_flow_gallery_run_eph_pot.py`
+     :ref:`sphx_glr_flow_gallery_run_eph_pot.py`
 
 .. raw:: html
 
@@ -618,9 +647,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gwconv_ecuteps_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gwconv_ecuteps_thumb.png
+     :alt: G0W0 convergence study
 
-        :ref:`sphx_glr_flow_gallery_run_gwconv_ecuteps.py`
+     :ref:`sphx_glr_flow_gallery_run_gwconv_ecuteps.py`
 
 .. raw:: html
 
@@ -638,9 +668,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_si_g0w0_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_si_g0w0_thumb.png
+     :alt: G0W0 Flow with convergence study wrt nband
 
-        :ref:`sphx_glr_flow_gallery_run_si_g0w0.py`
+     :ref:`sphx_glr_flow_gallery_run_si_g0w0.py`
 
 .. raw:: html
 
@@ -658,9 +689,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_optic_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_optic_thumb.png
+     :alt: Optic Flow
 
-        :ref:`sphx_glr_flow_gallery_run_optic.py`
+     :ref:`sphx_glr_flow_gallery_run_optic.py`
 
 .. raw:: html
 
@@ -678,9 +710,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_raman_bse_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_raman_bse_thumb.png
+     :alt: Raman Flow with BSE and frozen phonon
 
-        :ref:`sphx_glr_flow_gallery_run_raman_bse.py`
+     :ref:`sphx_glr_flow_gallery_run_raman_bse.py`
 
 .. raw:: html
 
@@ -698,9 +731,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png
+     :alt: Relaxation of GaN with different K-meshes
 
-        :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts_tsmear.py`
+     :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts_tsmear.py`
 
 .. raw:: html
 
@@ -718,9 +752,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_and_ebands_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_and_ebands_thumb.png
+     :alt: Flow for Relaxation + Bands
 
-        :ref:`sphx_glr_flow_gallery_run_relax_and_ebands.py`
+     :ref:`sphx_glr_flow_gallery_run_relax_and_ebands.py`
 
 .. raw:: html
 
@@ -738,9 +773,10 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_raman_optic_thumb.png
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_raman_optic_thumb.png
+     :alt: Raman Flow with independent-particle approximation (optic)
 
-        :ref:`sphx_glr_flow_gallery_run_raman_optic.py`
+     :ref:`sphx_glr_flow_gallery_run_raman_optic.py`
 
 .. raw:: html
 
@@ -751,9 +787,30 @@ where `FLOWDIR` is the directory of the Flow.
    :hidden:
 
    /flow_gallery/run_raman_optic
+
 .. raw:: html
 
-    <div style='clear:both'></div>
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with finite difference method. Derivatives are computed along ...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_conducwork_thumb.png
+     :alt: Effective masses with finite difference
+
+     :ref:`sphx_glr_flow_gallery_run_conducwork.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_conducwork
+.. raw:: html
+
+    <div class="sphx-glr-clear"></div>
 
 
 
@@ -763,15 +820,15 @@ where `FLOWDIR` is the directory of the Flow.
     :class: sphx-glr-footer-gallery
 
 
-  .. container:: sphx-glr-download
+  .. container:: sphx-glr-download sphx-glr-download-python
 
-    :download:`Download all examples in Python source code: flow_gallery_python.zip <//Users/gmatteo/git_repos/abipy/docs/flow_gallery/flow_gallery_python.zip>`
+    :download:`Download all examples in Python source code: flow_gallery_python.zip </flow_gallery/flow_gallery_python.zip>`
 
 
 
-  .. container:: sphx-glr-download
+  .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-    :download:`Download all examples in Jupyter notebooks: flow_gallery_jupyter.zip <//Users/gmatteo/git_repos/abipy/docs/flow_gallery/flow_gallery_jupyter.zip>`
+    :download:`Download all examples in Jupyter notebooks: flow_gallery_jupyter.zip </flow_gallery/flow_gallery_jupyter.zip>`
 
 
 .. only:: html

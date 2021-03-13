@@ -1,6 +1,0 @@
-<map id="inheritancecb0cf3a7e1" name="inheritancecb0cf3a7e1">
-<area shape="rect" id="node1" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,5,184,29"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="236,53,448,77"/>
-<area shape="rect" id="node5" href="#abipy.dfpt.ddb.DdbFile" target="_top" title="This object provides an interface to the DDB_ file produced by ABINIT" alt="" coords="500,53,653,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,101,452,125"/>
-</map>

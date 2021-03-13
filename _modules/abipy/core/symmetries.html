@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>abipy.core.symmetries &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abipy.core.symmetries &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
@@ -42,7 +46,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -189,9 +193,9 @@
 <span class="sd">       Used for symmetry operations. This function applies to *ORTHOGONAL* matrices only.</span>
 <span class="sd">       Since these form a group, inverses are also integer arrays.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">mat3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mat3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">mat3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mat3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
-    <span class="n">mit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">mit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">mit</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">mit</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">mit</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
@@ -300,9 +304,9 @@
         <span class="n">difmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">difmin</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
         <span class="n">err</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="n">difmax</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">difmax</span> <span class="o">&gt;</span> <span class="n">tolsym</span><span class="p">:</span>
-            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">Trouble finding symmetrically equivalent atoms.</span>
-<span class="s2">Applying inverse of symm number </span><span class="si">{isym}</span><span class="s2"> to atom number </span><span class="si">{iatom}</span><span class="s2"> of typat&#39;,typat(iatom) gives tratom=&#39;,tratom(1:3)</span>
+<span class="s2">Applying inverse of symm number </span><span class="si">{</span><span class="n">isym</span><span class="si">}</span><span class="s2"> to atom number </span><span class="si">{</span><span class="n">iatom</span><span class="si">}</span><span class="s2"> of typat&#39;,typat(iatom) gives tratom=&#39;,tratom(1:3)</span>
 <span class="s2">This is further away from every atom in crystal than the allowed tolerance.</span>
 <span class="s2">The inverse symmetry matrix is&#39;,symrec(1,1:3,isym),ch10,&amp;</span>
 <span class="s2">                               &#39;,symrec(2,1:3,isym),ch10,&amp;</span>
@@ -313,7 +317,7 @@
 <span class="s2">This indicates that when symatm attempts to find atoms symmetrically</span>
 <span class="s2">related to a given atom, the nearest candidate is further away than some tolerance.</span>
 <span class="s2">Should check atomic coordinates and symmetry group input data.</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">err</span> <span class="o">&gt;</span> <span class="n">tolsym</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;maximum err </span><span class="si">%s</span><span class="s2"> is larger than tolsym: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="n">tolsym</span><span class="p">))</span>
@@ -446,7 +450,7 @@
     <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">isE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;True if identity operator.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">))</span> <span class="ow">and</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span> <span class="ow">and</span>
                 <span class="n">is_integer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ATOL_TAU</span><span class="p">)</span> <span class="ow">and</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
@@ -544,7 +548,7 @@
         <span class="n">sk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotate_k</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">wrap_tows</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">ret_g0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">issamek</span><span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">sk</span> <span class="o">-</span> <span class="n">frac_coords</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">issamek</span><span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">sk</span> <span class="o">-</span> <span class="n">frac_coords</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">issamek</span><span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">)</span>
 
@@ -689,7 +693,7 @@
 <span class="sd">        this routine constructs the multiplication table of the group.</span>
 <span class="sd">        mtable[i,j] gives the index of the product S_i * S_j.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">mtable</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="n">mtable</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
 
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">op1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1012,7 +1016,22 @@
 
         <span class="c1"># List with the symmetry operation that preserve the kpoint.</span>
         <span class="n">k_symmops</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">to_spgrp</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">LittleGroup</span><span class="p">(</span><span class="n">kpoint</span><span class="p">,</span> <span class="n">k_symmops</span><span class="p">,</span> <span class="n">g0vecs</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">LittleGroup</span><span class="p">(</span><span class="n">kpoint</span><span class="p">,</span> <span class="n">k_symmops</span><span class="p">,</span> <span class="n">g0vecs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbinitSpaceGroup.get_spglib_hall_number"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.get_spglib_hall_number">[docs]</a>    <span class="k">def</span> <span class="nf">get_spglib_hall_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uses spglib.get_hall_number_from_symmetry to determine the hall number</span>
+<span class="sd">        based on the symmetry operations. Useful when the space group number</span>
+<span class="sd">        is not available, but the symmetries are (e.g. the DDB file)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            symprec: distance tolerance in fractional coordinates (not the standard</span>
+<span class="sd">                in cartesian coordinates). See spglib docs for more details.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: the hall number.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">spglib</span><span class="o">.</span><span class="n">get_hall_number_from_symmetry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symrel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tnons</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">)</span></div></div>
 
 
 <span class="c1"># FIXME To maintain backward compatibility.</span>
@@ -1137,10 +1156,10 @@
 
 <span class="sd">        This object is immutable and therefore we do not inherit from |numpy-array|.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_E3D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">_E3D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="nb">int</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mat</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_find_order_and_rootinv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1601,8 +1620,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on May 29, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>

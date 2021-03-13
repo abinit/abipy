@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Relaxation of GaN with different K-meshes &#8212; abipy 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relaxation of GaN with different K-meshes &#8212; abipy 0.9.0 documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
     <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Flow for Relaxation + Bands" href="run_relax_and_ebands.html" />
@@ -44,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,7 +148,8 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="relaxation-of-gan-with-different-k-meshes">
 <span id="sphx-glr-flow-gallery-run-relax-vs-kpts-tsmear-py"></span><h1>Relaxation of GaN with different K-meshes<a class="headerlink" href="#relaxation-of-gan-with-different-k-meshes" title="Permalink to this headline">¶</a></h1>
@@ -169,8 +174,8 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 <span class="sd">    at fixed number of k points and broadening. Similar to tbase4_1.in with minor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#structure = abilab.Structure.fcc()</span>
-    <span class="n">inp</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">AbinitInput</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">abidata</span><span class="o">.</span><span class="n">ucells</span><span class="o">.</span><span class="n">structure_from_ucell</span><span class="p">(</span><span class="s2">&quot;Al&quot;</span><span class="p">),</span>
-                             <span class="n">pseudos</span><span class="o">=</span><span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;13al.981214.fhi&quot;</span><span class="p">))</span>
+    <span class="n">inp</span> <span class="o">=</span> <a href="../api/abio_api.html#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput" class="sphx-glr-backref-module-abipy-abio-inputs sphx-glr-backref-type-py-class"><span class="n">abilab</span><span class="o">.</span><span class="n">AbinitInput</span></a><span class="p">(</span><span class="n">structure</span><span class="o">=</span><a href="../api/data_api.html#abipy.data.structure_from_ucell" title="abipy.data.structure_from_ucell" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ucells</span><span class="o">.</span><span class="n">structure_from_ucell</span></a><span class="p">(</span><span class="s2">&quot;Al&quot;</span><span class="p">),</span>
+                             <span class="n">pseudos</span><span class="o">=</span><a href="../api/data_api.html#abipy.data.pseudos" title="abipy.data.pseudos" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span></a><span class="p">(</span><span class="s2">&quot;13al.981214.fhi&quot;</span><span class="p">))</span>
 
     <span class="c1"># Define k-point sampling.</span>
     <span class="c1"># nshiftk and shift are automatically selected from the lattice and the number of divisions</span>
@@ -201,13 +206,13 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
     <span class="k">return</span> <span class="n">inp</span>
 
 
-<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build and return a flow performing structural relaxations with different k-point samplings.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Set working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
-        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a><span class="p">:</span>
+        <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/os.path.html#os.path.basename" title="os.path.basename" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sys</span><span class="o">.</span><span class="n">argv</span></a><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
 
     <span class="c1"># Let generate multiple inputs for different (tsmear, nksmall)</span>
     <span class="c1"># Product computes the Cartesian product of input iterables.</span>
@@ -215,8 +220,8 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
     <span class="n">tsmear_list</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.04</span><span class="p">)</span>
     <span class="n">nksmall_list</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
 
-    <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
-    <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">relax_input</span><span class="p">(</span><span class="n">tsmear</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">)</span> <span class="k">for</span> <span class="n">tsmear</span><span class="p">,</span> <span class="n">nksmall</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="n">tsmear_list</span><span class="p">,</span> <span class="n">nksmall_list</span><span class="p">)]</span>
+    <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <a href="https://docs.python.org/3/library/itertools.html#itertools.product" title="itertools.product" class="sphx-glr-backref-module-itertools sphx-glr-backref-type-py-function"><span class="n">product</span></a>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">relax_input</span><span class="p">(</span><span class="n">tsmear</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">)</span> <span class="k">for</span> <span class="n">tsmear</span><span class="p">,</span> <span class="n">nksmall</span> <span class="ow">in</span> <a href="https://docs.python.org/3/library/itertools.html#itertools.product" title="itertools.product" class="sphx-glr-backref-module-itertools sphx-glr-backref-type-py-function"><span class="n">product</span></a><span class="p">(</span><span class="n">tsmear_list</span><span class="p">,</span> <span class="n">nksmall_list</span><span class="p">)]</span>
 
     <span class="c1"># Build flow form inputs.</span>
     <span class="c1"># As the calculations are independent, we can use Flow.from_inputs</span>
@@ -226,38 +231,33 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
     <span class="c1"># AbiPy will use this piece of information to handle the restart of the RelaxTask that differs</span>
     <span class="c1"># from the one provided by GsTask.</span>
 
-    <span class="k">return</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">task_class</span><span class="o">=</span><span class="n">flowtk</span><span class="o">.</span><span class="n">RelaxTask</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">task_class</span><span class="o">=</span><a href="../api/flowtk_api.html#abipy.flowtk.nodes.Node" title="abipy.flowtk.nodes.Node" class="sphx-glr-backref-module-abipy-flowtk-nodes sphx-glr-backref-type-py-class"><span class="n">flowtk</span><span class="o">.</span><span class="n">RelaxTask</span></a><span class="p">)</span>
 
 
 <span class="c1"># This block generates the thumbnails in the AbiPy gallery.</span>
 <span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
-<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/os.html#os.getenv" title="os.getenv" class="sphx-glr-backref-module-os sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">getenv</span></a><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
-    <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
+    <a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.build_flow_main_parser" title="abipy.flowtk.build_flow_main_parser" class="sphx-glr-backref-module-abipy-flowtk sphx-glr-backref-type-py-function"><span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span></a><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <a href="https://docs.python.org/3/library/tempfile.html#tempfile.mkdtemp" title="tempfile.mkdtemp" class="sphx-glr-backref-module-tempfile sphx-glr-backref-type-py-function"><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span></a><span class="p">()])</span>
+    <span class="n">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
 
 
 <span class="nd">@flowtk</span><span class="o">.</span><span class="n">flow_main</span>
-<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is our main function that will be invoked by the script.</span>
 <span class="sd">    flow_main is a decorator implementing the command line interface.</span>
 <span class="sd">    Command line args are stored in `options`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">)</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <a href="https://docs.python.org/3/library/sys.html#sys.exit" title="sys.exit" class="sphx-glr-backref-module-sys sphx-glr-backref-type-py-function"><span class="n">sys</span><span class="o">.</span><span class="n">exit</span></a><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<img alt="../_images/sphx_glr_run_relax_vs_kpts_tsmear_001.png" class="sphx-glr-single-img" src="../_images/sphx_glr_run_relax_vs_kpts_tsmear_001.png" />
-<p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
-  plt.show()
-</pre></div>
-</div>
+<img alt="run relax vs kpts tsmear" class="sphx-glr-single-img" src="../_images/sphx_glr_run_relax_vs_kpts_tsmear_001.png" />
 <p>Run the script with:</p>
 <blockquote>
 <div><blockquote>
@@ -307,12 +307,12 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 <span class="c1">#    :alt: optimized acell as function of nkpt and tsmear</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.177 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.683 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-relax-vs-kpts-tsmear-py">
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/219751794b4d2f1c817192df3e446d76/run_relax_vs_kpts_tsmear.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_relax_vs_kpts_tsmear.py</span></code></a></p>
 </div>
-<div class="sphx-glr-download docutils container">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/787e0f31158a72b5cf73fcc57e1cfc4f/run_relax_vs_kpts_tsmear.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_relax_vs_kpts_tsmear.ipynb</span></code></a></p>
 </div>
 </div>
@@ -332,8 +332,8 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Feb 22, 2020.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+      Last updated on Mar 13, 2021.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
     </p>
   </div>
 </footer>
