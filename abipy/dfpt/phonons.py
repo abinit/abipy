@@ -25,7 +25,7 @@ from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.numtools import gaussian, sort_and_groupby
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible, set_ax_xylabels
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible, set_ax_xylabels, get_figs_ploty, add_ploty_fig_kwargs
 from .phtk import match_eigenvectors, get_dyn_mat_eigenvec, open_file_phononwebsite, NonAnalyticalPh
 
 __all__ = [
@@ -2637,7 +2637,12 @@ _THERMO_YLABELS = {  # [name][units] --> latex string
     "entropy": {"eV": "$S(T)$ (eV/cell)", "Jmol": "$S(T)$ (J/mole)"},
     "cv": {"eV": "$C_V(T)$ (eV/cell)", "Jmol": "$C_V(T)$ (J/mole)"},
 }
-
+_PLOTLY_THERMO_YLABELS = {  # [name][units] --> string
+            "internal_energy": {"eV": "U(T) (eV/cell)", "Jmol": "U(T) (J/mole)"},
+            "free_energy": {"eV": "F(T) + ZPE (eV/cell)", "Jmol": "F(T) + ZPE (J/mole)"},
+            "entropy": {"eV": "S(T) (eV/cell)", "Jmol": "S(T) (J/mole)"},
+            "cv": {"eV": "C_V(T) (eV/cell)", "Jmol": "C_V(T) (J/mole)"},
+        }
 
 class PhononDos(Function1D):
     """
@@ -2936,8 +2941,11 @@ class PhononDos(Function1D):
 
         return fig
 
-    def plot_interact_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
-                                      quantities=None, fontsize=16):  #, **kwargs):
+
+
+    @add_ploty_fig_kwargs
+    def ploty_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
+                                      quantities=None, fontsize=16, **kwargs):
         """
         Plot thermodynamic properties from the phonon DOSes within the harmonic approximation.
         Args:
@@ -2954,16 +2962,7 @@ class PhononDos(Function1D):
 
 
         Returns |plotly.graph_objects.Figure|
-       """
-        _THERMO_YLABELS = {  # [name][units] --> string
-            "internal_energy": {"eV": "U(T) (eV/cell)", "Jmol": "U(T) (J/mole)"},
-            "free_energy": {"eV": "F(T) + ZPE (eV/cell)", "Jmol": "F(T) + ZPE (J/mole)"},
-            "entropy": {"eV": "S(T) (eV/cell)", "Jmol": "S(T) (J/mole)"},
-            "cv": {"eV": "C_V(T) (eV/cell)", "Jmol": "C_V(T) (J/mole)"},
-        }
-
-        from plotly.subplots import make_subplots
-        import plotly.graph_objects as go
+        """
         quantities = list_strings(quantities) if quantities is not None else \
             ["internal_energy", "free_energy", "entropy", "cv"]
 
@@ -2974,7 +2973,7 @@ class PhononDos(Function1D):
             ncols = 2
             nrows = num_plots // ncols + num_plots % ncols
 
-        fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=quantities)
+        fig, go = get_figs_ploty(nrows=nrows, ncols=ncols, subplot_titles=quantities, sharex=False, sharey=False)
 
         for iq, qname in enumerate(quantities):
             irow, icol = divmod(iq, ncols)
@@ -2986,11 +2985,9 @@ class PhononDos(Function1D):
             fig.add_trace(go.Scatter(x=f1d.mesh, y=ys, mode="lines", name=qname), row=irow + 1, col=icol + 1)
             fig.layout.annotations[iq].font.size=fontsize
             iax = iq + 1
-            fig.layout['yaxis%u' % iax].title= {'text': _THERMO_YLABELS[qname][units], 'font_size': fontsize}
+            fig.layout['yaxis%u' % iax].title= {'text': _PLOTLY_THERMO_YLABELS[qname][units], 'font_size': fontsize}
             fig.layout['xaxis%u' % iax].title= {'text': 'Temperature(K)', 'font_size': fontsize}
 
-        # fig.show()
-        # return type(fig)    # <class 'plotly.graph_objs._figure.Figure'>
         return fig
 
 
