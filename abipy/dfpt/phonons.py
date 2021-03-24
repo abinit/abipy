@@ -25,7 +25,8 @@ from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.numtools import gaussian, sort_and_groupby
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible, set_ax_xylabels, get_figs_ploty, add_ploty_fig_kwargs
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible,\
+    set_ax_xylabels, get_figs_ploty, get_fig_ploty, add_ploty_fig_kwargs
 from .phtk import match_eigenvectors, get_dyn_mat_eigenvec, open_file_phononwebsite, NonAnalyticalPh
 
 __all__ = [
@@ -998,6 +999,52 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
 
+    def decorate_ploty(self, fig, units='eV', **kwargs):
+        """
+        Add q-labels, #! title and unit name to figure ``fig``.
+        Use units="" to add k-labels without unit name.
+
+        Args:
+            #title:  ! has already in add_ploty_fig_kwargs
+            #fontsize
+            qlabels:
+            qlabel_size:
+            row:
+            col:
+        """
+            # title = kwargs.pop("title", None)
+            # fontsize = kwargs.pop("fontsize", 12)
+            # if title is not None: ax.set_title(title, fontsize=fontsize)
+
+        #     ax.grid(True)
+        #    fig.layout.xaxis.showgrid=True  ! Default
+        #    fig.layout.yaxis.showgrid=True
+
+        row = kwargs.pop("row", 1)
+        col = kwargs.pop("col", 1)
+        if row==1 and col==1:
+
+            # Handle conversion factor.
+            if units:
+                # ! simply replace, but for cm-1, can not print -1 as superscript
+                fig.update_layout(yaxis_title=abu.wlabel_from_units(units).replace('$', ''))
+
+            fig.update_layout(xaxis_title="Wave Vector")
+
+            # Set ticks and labels.
+            ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
+            if ticks:
+                # Don't show label if previous k-point is the same.
+                for il in range(1, len(labels)):
+                    if labels[il] == labels[il - 1]: labels[il] = ""
+                fig.layout.xaxis.tickvals = ticks
+                fig.layout.xaxis.ticktext = labels
+                fig.layout.xaxis.tickfont.size = kwargs.pop("qlabel_size", 12)
+                # print("ticks", len(ticks), ticks)
+                fig.layout.xaxis.range = (ticks[0], ticks[-1])
+        else:
+            raise NotImplementedError("For rol!=1 or col!=1 still need to be implemented.")
+
     @add_fig_kwargs
     def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
              fontsize=12, **kwargs):
@@ -1051,6 +1098,64 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return fig
 
+    @add_ploty_fig_kwargs
+    def ploty(self, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
+              fontsize=12, **kwargs):
+        r"""
+        Plot the phonon band structure.
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
+            match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
+            temp: Temperature in Kelvin. If not None, a scatter plot with the Bose-Einstein occupation factor
+                at temperature `temp` is added.
+    # !        fontsize: Legend and title fontsize.   it is only used for temp title
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        # Select the band range.
+        branch_range = range(self.num_branches) if branch_range is None else \
+            range(branch_range[0], branch_range[1], 1)
+
+        fig, go = get_fig_ploty()
+
+        # Decorate the axis (e.g. add ticks and labels).
+        self.decorate_ploty(fig, units=units, qlabels=qlabels)
+
+        if "color" not in kwargs: kwargs["color"] = "black"
+        if "linewidth" not in kwargs: kwargs["linewidth"] = 2.0
+
+        # Plot the phonon branches.
+        self.ploty_traces(fig, branch_range, units=units, match_bands=match_bands, **kwargs)
+
+        if temp is not None:
+            # Scatter plot with Bose-Einstein occupation factors for T = temp
+            factor = abu.phfactor_ev2units(units)
+            if temp < 1: temp = 1
+            # this will be covered if the title is set by the user
+            fig.layout.title.text = "T = %.1f K" % temp
+            fig.layout.title.font.size = fontsize
+            xs = np.arange(self.num_qpoints)
+            for nu in self.branches:
+                ws = self.phfreqs[:, nu]
+                wkt = self.phfreqs[:, nu] / (abu.kb_eVK * temp)
+                # 1 / (np.exp(1e-6) - 1)) ~ 999999.5
+                wkt = np.where(wkt > 1e-6, wkt, 1e-6)
+                occ = 1.0 / (np.exp(wkt) - 1.0)
+                s = np.where(occ < 2, occ, 2) * 3 + 3
+                fig.add_trace(go.Scatter(x=xs, y=ws * factor, mode='markers',
+                                         marker=dict(color='blue', size=s, opacity=0.6, line_width=0),
+                                         showlegend=False))
+                # ax.scatter(xs, ws, s=s, marker="o", c=occ, cmap="jet")
+
+        # ! Or set hover label as branch index,  go.Scatter(... name='branch_i')
+        fig.layout.hovermode = False
+        return fig
+
     def plot_ax(self, ax, branch, units='eV', match_bands=False, **kwargs):
         """
         Plots the frequencies for the given branches indices as a function of the q-index on axis ``ax``.
@@ -1081,6 +1186,51 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             first_xx = xx[-1]
 
         return lines
+
+    def ploty_traces(self, fig, branch, row=1, col=1, units='eV', match_bands=False, **kwargs):
+        """
+        Plots the frequencies for the given branches indices as a function of the q-index on
+        figure ``fig`` using plotly.graph_objects ''go''
+        If ``branch`` is None, all phonon branches are plotted.
+
+    # !   Return: The list of matplotlib lines added.
+
+        """
+        import plotly.graph_objects as go
+        linecolor = kwargs.pop("color", "black")
+        linewidth = kwargs.pop("linewidth", 2.0)
+
+        if branch is None:
+            branch_range = range(self.num_branches)
+        elif isinstance(branch, (list, tuple, np.ndarray, range)):
+            branch_range = branch
+        else:
+            branch_range = [branch]
+
+        first_xx = 0
+        #     lines = []
+
+        factor = abu.phfactor_ev2units(units)
+
+        for i, pf in enumerate(self.split_phfreqs):
+            if match_bands:
+                ind = self.split_matched_indices[i]
+                pf = pf[np.arange(len(pf))[:, None], ind]
+            pf = pf * factor
+            xx = list(range(first_xx, first_xx + len(pf)))
+            for branch in branch_range:
+                #             lines.extend(ax.plot(xx, pf[:, branch], **kwargs))
+                if row==1 and col==1:
+                    fig.add_trace(
+                        go.Scatter(x=xx, y=pf[:, branch], mode='lines', line=dict(color=linecolor, width=linewidth),
+                                   showlegend=False, **kwargs))
+                else:
+                    fig.add_trace(
+                        go.Scatter(x=xx, y=pf[:, branch], mode='lines', line=dict(color=linecolor, width=linewidth),
+                                   showlegend=False, **kwargs), row=row, col=col)
+            first_xx = xx[-1]
+
+    #     return lines
 
     @add_fig_kwargs
     def plot_colored_matched(self, ax=None, units="eV", qlabels=None, branch_range=None,
@@ -1587,7 +1737,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         emax = np.max(self.maxfreq)
         emax += 0.05 * abs(emax)
         emax *= factor
-        ax1.yaxis.set_view_interval(emin, emax)
+        ax1.set_ylim(emin, emax)
 
         # Plot Phonon DOS
         phdos.plot_dos_idos(ax2, what="d", units=units, exchange_xy=True, **kwargs)
@@ -1597,6 +1747,54 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         #ax2.yaxis.set_label_position("right")
 
         return fig
+
+    @add_ploty_fig_kwargs
+    def ploty_with_phdos(self, phdos, units="eV", qlabels=None, fig=None, width_ratios=(2, 1), **kwargs):
+        r"""
+        Plot the phonon band structure with the phonon DOS.
+
+        Args:
+            phdos: An instance of |PhononDos| or a netcdf file providing a PhononDos object.
+            units: Units for plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            fig: The fig for the bandstructure plot and the DOS plot. If fig is None, a new figure
+                is created.
+            width_ratios: Ratio between the width of the bands plots and the DOS plots.
+                Used if ``fig`` is None
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        phdos = PhononDos.as_phdos(phdos, phdos_kwargs=None)
+
+
+        if fig is None:
+            # build fig and align bands and DOS.
+            fig, go = get_figs_ploty(nrows=1, ncols=2, subplot_titles=[], sharex=False, sharey=True,
+                                     horizontal_spacing=0.03, column_widths=width_ratios)
+
+        if not kwargs:
+            kwargs = {"line_color": "black", "line_width": 2.0}
+
+        # Plot the phonon band structure.
+        self.ploty_traces(fig, branch=None, row=1, col=1, units=units, **kwargs)
+        self.decorate_ploty(fig, units=units, qlabels=qlabels, row=1, col=1)
+
+        factor = abu.phfactor_ev2units(units)
+        emin = np.min(self.minfreq)
+        emin -= 0.05 * abs(emin)
+        emin *= factor
+        emax = np.max(self.maxfreq)
+        emax += 0.05 * abs(emax)
+        emax *= factor
+        fig.layout.yaxis.range = (emin, emax)
+
+        # Plot Phonon DOS
+        phdos.ploty_dos_idos(fig, row=1, col=2, what="d", units=units, exchange_xy=True, **kwargs)
+
+        return fig
+
 
     @add_fig_kwargs
     def plot_phdispl(self, qpoint, cart_dir=None, use_reduced_coords=False, ax=None, units="eV",
@@ -2752,6 +2950,37 @@ class PhononDos(Function1D):
 
         return lines
 
+
+    def ploty_dos_idos(self, fig, row=1, col=1, what="d", exchange_xy=False, units="eV", **kwargs):
+        """
+        Helper function to plot DOS/IDOS on the figure ``fig`` using plotly.graph_objects ''go''.
+
+        Args:
+            fig: |plotly.graph_objects.Figure|
+            what: string selecting the quantity to plot:
+                "d" for DOS, "i" for IDOS. chars can be concatenated
+                hence what="id" plots both IDOS and DOS. (default "d").
+            exchange_xy: True to exchange axis
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            kwargs: Options passed to plotly.graph_objects Scatter method.
+
+    #!    Return:
+    #        list of lines added to the plot.
+        """
+        opts = [c.lower() for c in what]
+
+        for c in opts:
+            f = {"d": self, "i": self.idos}[c]
+            trace_name = {"d": 'DOS', "i": 'IDOS'}[c]
+            xfactor = abu.phfactor_ev2units(units)
+            # Don't rescale IDOS
+            yfactor = 1 / xfactor if c == "d" else 1
+
+            f.ploty_traces(fig, row=row, col=col, exchange_xy=exchange_xy, xfactor=xfactor, yfactor=yfactor,
+                         name=trace_name, **kwargs)
+
+
     # TODO: This should be called plot_dos_idos!
     @add_fig_kwargs
     def plot(self, units="eV", **kwargs):
@@ -2784,6 +3013,33 @@ class PhononDos(Function1D):
         self.plot_dos_idos(ax2, what="d", units=units, **kwargs)
 
         return fig
+
+    # TODO: This should be called ploty_dos_idos!
+    @add_ploty_fig_kwargs
+    def ploty(self, units="eV", **kwargs):
+        """
+        Plot Phonon DOS and IDOS on two distict plots.
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            kwargs: Keyword arguments passed to mod:`ploty`.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+
+        fig, go = get_figs_ploty(nrows=2, ncols=1, subplot_titles=[], sharex=True, sharey=False, vertical_spacing=0.05
+                                 , row_heights=[1, 2])
+
+        fig.layout['xaxis2'].title = {'text': 'Energy %s' % abu.phunit_tag(units).replace('$', '')}
+        fig.layout['yaxis1'].title = {'text': "IDOS (states)"}
+        fig.layout['yaxis2'].title = {'text': "DOS %s" % abu.phdos_label_from_units(units).replace('$', '')}
+
+        self.ploty_dos_idos(fig, row=1, col=1, what="i", units=units, **kwargs)
+        self.ploty_dos_idos(fig, row=2, col=1, what="d", units=units, **kwargs)
+
+        return fig
+
 
     def get_internal_energy(self, tstart=5, tstop=300, num=50):
         """
