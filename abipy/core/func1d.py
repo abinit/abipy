@@ -500,6 +500,54 @@ class Function1D(object):
 
         return lines
 
+    def ploty_traces(self, fig, row=1, col=1, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
+        """
+        Helper function to plot self on axis ax.
+        Args:
+            fig: |plotly.graph_objects.Figure|.
+            row, col: only used when the fig has subplots, for specifying to add traces on which subplot.
+            exchange_xy: True to exchange the axis in the plot.
+            args: Positional arguments passed to 'plotly.graph_objects.Scatter'
+            xfactor, yfactor: xvalues and yvalues are multiplied by this factor before plotting.
+            kwargs: Keyword arguments passed to 'plotly.graph_objects.Scatter'. Accepts
+        ==============  ===============================================================
+        kwargs          Meaning
+        ==============  ===============================================================
+        cplx_mode       string defining the data to print.
+                        Possible choices are (case-insensitive): `re` for the real part
+                        "im" for the imaginary part, "abs" for the absolute value.
+                        "angle" to display the phase of the complex number in radians.
+                        Options can be concatenated with "-"
+        ==============  ===============================================================
+    # !!   Returns:
+    #        List of lines added.
+        """
+
+        import plotly.graph_objects as go
+
+        if self.iscomplexobj:
+            cplx_mode = kwargs.pop("cplx_mode", "re-im")
+        else:
+            cplx_mode = kwargs.pop("cplx_mode", "re")
+
+        #     lines = []
+        for c in cplx_mode.lower().split("-"):
+            xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
+            if xfactor != 1: xx = xx * xfactor
+            if yfactor != 1: yy = yy * yfactor
+
+            if exchange_xy:
+                xx, yy = yy, xx
+
+            #         lines.extend(ax.plot(xx, yy, *args, **kwargs))
+            if row == 1 and col == 1:
+                fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=False, *args, **kwargs))
+
+            else:
+                fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=False, *args, **kwargs), row=row, col=col)
+
+    #     return lines
+
     @add_fig_kwargs
     def plot(self, ax=None, **kwargs):
         """

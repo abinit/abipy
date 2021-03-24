@@ -850,6 +850,12 @@ class GenericDataFilesPlotter(object):
 
 
 def get_figs_ploty(nrows=1, ncols=1, subplot_titles=[], sharex=False, sharey=False, **fig_kw):
+    """
+    Helper function used in plot functions that build the `ploty` figure by calling plotly.subplots.
+    Returns:
+        figure: ploty graph_objects figure
+        go: ploty graph_objects module.
+    """
     from plotly.subplots import make_subplots
     import plotly.graph_objects as go
 
@@ -858,11 +864,27 @@ def get_figs_ploty(nrows=1, ncols=1, subplot_titles=[], sharex=False, sharey=Fal
 
     return fig, go
 
+
+def get_fig_ploty(**fig_kw):
+    """
+    Helper function used in plot functions that build the `ploty` figure by calling
+    plotly.graph_objects.Figure.
+    Returns:
+        figure: ploty graph_objects figure
+        go: ploty graph_objects module.
+    """
+    import plotly.graph_objects as go
+
+    fig = go.Figure(**fig_kw)
+
+    return fig, go
+
+
 def add_ploty_fig_kwargs(func):
     """
     Decorator that adds keyword arguments for functions returning ploty figures.
-    The function should return either a ploty figure or None to signal
-    some sort of error/unexpected event.
+    The function should return either a ploty figure or None to signal some
+    sort of error/unexpected event.
     See doc string below for the list of supported options.
     """
     from functools import wraps
@@ -878,22 +900,16 @@ def add_ploty_fig_kwargs(func):
         fig = func(*args, **kwargs)
         if fig is None:
             return fig
-
         # Operate on matplotlib figure.
         if title is not None:
             fig.layout.title.text = title
-
-
         if savefig:
             fig.write_image(savefig)
-
         if show:
             fig.show()
-
         return fig
 
-        # Add docstring to the decorated method.
-
+    # Add docstring to the decorated method.
     s = (
             "\n\n"
             + """\
