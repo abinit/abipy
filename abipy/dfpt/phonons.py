@@ -1003,6 +1003,11 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         """
         Add q-labels and unit name to figure ``fig``.
         Use units="" to add k-labels without unit name.
+
+        Args:
+            qlabels:
+            qlabel_size:
+            iax: An int, used(iax=n) to specify to decorate on the nth axis, when the fig has subplots.
         """
 
         iax = kwargs.pop("iax", 1)
