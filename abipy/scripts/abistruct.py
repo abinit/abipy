@@ -604,6 +604,8 @@ def main():
                 print(sanitized)
 
         # Save file.
+        #print("sanitized structure\n", sanitized)
+        #print("lattice matrix:\n", sanitized.lattice.matrix)
         save_structure(sanitized, options)
 
     elif options.command == "primitive":

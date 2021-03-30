@@ -1139,8 +1139,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         return fig
 
     @add_fig_kwargs
-    def plot_lt_character(self, units="eV", qlabels=None, ax=None, xlims=None, ylims=None,
-                          colormap="jet", fontsize=12, **kwargs):
+    def plot_lt_character(self, units="eV", qlabels=None, ax=None, xlims=None, ylims=None, scale_size=50,
+                          use_becs=True, colormap="jet", fontsize=12, **kwargs):
         r"""
         Plot the phonon band structure with colored lines. The color of the lines indicates
         the degree to which the mode is longitudinal:
@@ -1155,12 +1155,15 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
             ylims: y-axis limits.
+            scale_size: Scaling factor for marker size. Increase this value to enlarge the markers.
+            use_becs: True to compute polar strength: q . Z[atom] . disp[q, nu, atom]
+                False to use: q . disp[q, nu, atom]. Useful to highlight LA/TA modes.
             colormap: Matplotlib colormap.
             fontsize: legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        if self.zcart is None:
+        if use_becs and self.zcart is None:
             cprint("Bandstructure does not have Born effective charges", "yellow")
             return None
 
@@ -1186,9 +1189,12 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
                 # We are not interested in the amplitudes so normalize all displacements to one.
                 dis = dis.reshape(self.num_branches, self.num_atoms, 3)
-                # q x Z[atom] x disp[q, nu, atom]
                 for nu in range(self.num_branches):
-                    v = sum(np.dot(qcart, np.dot(self.zcart[iatom], dis[nu, iatom])) for iatom in range(self.num_atoms))
+                    if use_becs:
+                        # q . Z[atom] . disp[q, nu, atom]
+                        v = sum(np.dot(qcart, np.dot(self.zcart[iatom], dis[nu, iatom])) for iatom in range(self.num_atoms))
+                    else:
+                        v = sum(np.dot(qcart, dis[nu, iatom])) for iatom in range(self.num_atoms))
                     scatt_x.append(xx[iq])
                     scatt_y.append(ws[nu])
                     scatt_s.append(v * inv_qepsq)
@@ -1200,8 +1206,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         scatt_y = np.array(scatt_y) * factor
         scatt_s = np.abs(np.array(scatt_s))
         scatt_s /= scatt_s.max()
-        scatt_s *= 50
-        print("scatt_s", scatt_s, "min", scatt_s.min(), "max", scatt_s.max())
+        scatt_s *= scale_size
+        #print("scatt_s", scatt_s, "min", scatt_s.min(), "max", scatt_s.max())
 
         ax.scatter(scatt_x, scatt_y, s=scatt_s,
             #c=None, marker=None, cmap=None, norm=None, vmin=None, vmax=None, alpha=None,
