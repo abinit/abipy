@@ -26,7 +26,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.numtools import gaussian, sort_and_groupby
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible,\
-    set_ax_xylabels, get_figs_ploty, get_fig_ploty, add_ploty_fig_kwargs
+    set_ax_xylabels, get_figs_plotly, get_fig_plotly, add_plotly_fig_kwargs
 from .phtk import match_eigenvectors, get_dyn_mat_eigenvec, open_file_phononwebsite, NonAnalyticalPh
 
 __all__ = [
@@ -999,15 +999,10 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
 
-    def decorate_ploty(self, fig, units='eV', **kwargs):
+    def decorate_plotly(self, fig, units='eV', **kwargs):
         """
         Add q-labels and unit name to figure ``fig``.
         Use units="" to add k-labels without unit name.
-
-        Args:
-            qlabels:
-            qlabel_size:
-            iax: only used when the fig has subplots, for specifying to decorate which subplot.
         """
 
         iax = kwargs.pop("iax", 1)
@@ -1084,8 +1079,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return fig
 
-    @add_ploty_fig_kwargs
-    def ploty(self, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
+    @add_plotly_fig_kwargs
+    def plotly(self, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
               fontsize=16, **kwargs):
         r"""
         Plot the phonon band structure.
@@ -1107,16 +1102,16 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         branch_range = range(self.num_branches) if branch_range is None else \
             range(branch_range[0], branch_range[1], 1)
 
-        fig, go = get_fig_ploty()
+        fig, go = get_fig_plotly()
 
         # Decorate the axis (e.g. add ticks and labels).
-        self.decorate_ploty(fig, units=units, qlabels=qlabels)
+        self.decorate_plotly(fig, units=units, qlabels=qlabels)
 
         if "color" not in kwargs: kwargs["color"] = "black"
         if "linewidth" not in kwargs: kwargs["linewidth"] = 2.0
 
         # Plot the phonon branches.
-        self.ploty_traces(fig, branch_range, units=units, match_bands=match_bands, **kwargs)
+        self.plotly_traces(fig, branch_range, units=units, match_bands=match_bands, **kwargs)
 
         if temp is not None:
             # Scatter plot with Bose-Einstein occupation factors for T = temp
@@ -1171,7 +1166,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return lines
 
-    def ploty_traces(self, fig, branch, row=1, col=1, units='eV', match_bands=False, **kwargs):
+    def plotly_traces(self, fig, branch, row=1, col=1, units='eV', match_bands=False, **kwargs):
         """
         Plots the frequencies for the given branches indices as a function of the q-index on
         figure ``fig`` .
@@ -1729,8 +1724,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return fig
 
-    @add_ploty_fig_kwargs
-    def ploty_with_phdos(self, phdos, units="eV", qlabels=None, fig=None, width_ratios=(2, 1), **kwargs):
+    @add_plotly_fig_kwargs
+    def plotly_with_phdos(self, phdos, units="eV", qlabels=None, fig=None, width_ratios=(2, 1), **kwargs):
         r"""
         Plot the phonon band structure with the phonon DOS.
 
@@ -1751,15 +1746,15 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         if fig is None:
             # build fig and align bands and DOS.
-            fig, go = get_figs_ploty(nrows=1, ncols=2, subplot_titles=[], sharex=False, sharey=True,
+            fig, go = get_figs_plotly(nrows=1, ncols=2, subplot_titles=[], sharex=False, sharey=True,
                                      horizontal_spacing=0.03, column_widths=width_ratios)
 
         if not kwargs:
             kwargs = {"line_color": "black", "line_width": 2.0}
 
         # Plot the phonon band structure.
-        self.ploty_traces(fig, branch=None, row=1, col=1, units=units, **kwargs)
-        self.decorate_ploty(fig, units=units, qlabels=qlabels, iax=1)
+        self.plotly_traces(fig, branch=None, row=1, col=1, units=units, **kwargs)
+        self.decorate_plotly(fig, units=units, qlabels=qlabels, iax=1)
         fig.layout.hovermode = False
 
         factor = abu.phfactor_ev2units(units)
@@ -1772,7 +1767,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         fig.layout.yaxis.range = (emin, emax)
 
         # Plot Phonon DOS
-        phdos.ploty_dos_idos(fig, row=1, col=2, what="d", units=units, exchange_xy=True, **kwargs)
+        phdos.plotly_dos_idos(fig, row=1, col=2, what="d", units=units, exchange_xy=True, **kwargs)
 
         return fig
 
@@ -2931,7 +2926,7 @@ class PhononDos(Function1D):
 
         return lines
 
-    def ploty_dos_idos(self, fig, row=1, col=1, what="d", exchange_xy=False, units="eV", **kwargs):
+    def plotly_dos_idos(self, fig, row=1, col=1, what="d", exchange_xy=False, units="eV", **kwargs):
         """
         Helper function to plot DOS/IDOS on the figure ``fig`` using plotly.graph_objects ''go''.
 
@@ -2957,7 +2952,7 @@ class PhononDos(Function1D):
             # Don't rescale IDOS
             yfactor = 1 / xfactor if c == "d" else 1
 
-            f.ploty_traces(fig, row=row, col=col, exchange_xy=exchange_xy, xfactor=xfactor, yfactor=yfactor,
+            f.plotly_traces(fig, row=row, col=col, exchange_xy=exchange_xy, xfactor=xfactor, yfactor=yfactor,
                          name=trace_name, **kwargs)
 
     # TODO: This should be called plot_dos_idos!
@@ -2993,28 +2988,28 @@ class PhononDos(Function1D):
 
         return fig
 
-    # TODO: This should be called ploty_dos_idos!
-    @add_ploty_fig_kwargs
-    def ploty(self, units="eV", **kwargs):
+    # TODO: This should be called plotly_dos_idos!
+    @add_plotly_fig_kwargs
+    def plotly(self, units="eV", **kwargs):
         """
         Plot Phonon DOS and IDOS on two distict plots.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
-            kwargs: Keyword arguments passed to mod:`ploty`.
+            kwargs: Keyword arguments passed to mod:`plotly`.
 
         Returns: |plotly.graph_objects.Figure|
         """
-        fig, go = get_figs_ploty(nrows=2, ncols=1, subplot_titles=[], sharex=True, sharey=False, vertical_spacing=0.05
+        fig, go = get_figs_plotly(nrows=2, ncols=1, subplot_titles=[], sharex=True, sharey=False, vertical_spacing=0.05
                                  , row_heights=[1, 2])
 
         fig.layout['xaxis2'].title = {'text': 'Energy %s' % abu.phunit_tag(units).replace('$', '')}
         fig.layout['yaxis1'].title = {'text': "IDOS (states)"}
         fig.layout['yaxis2'].title = {'text': "DOS %s" % abu.phdos_label_from_units(units).replace('$', '')}
 
-        self.ploty_dos_idos(fig, row=1, col=1, what="i", units=units, **kwargs)
-        self.ploty_dos_idos(fig, row=2, col=1, what="d", units=units, **kwargs)
+        self.plotly_dos_idos(fig, row=1, col=1, what="i", units=units, **kwargs)
+        self.plotly_dos_idos(fig, row=2, col=1, what="d", units=units, **kwargs)
 
         return fig
 
@@ -3174,8 +3169,8 @@ class PhononDos(Function1D):
 
         return fig
 
-    @add_ploty_fig_kwargs
-    def ploty_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
+    @add_plotly_fig_kwargs
+    def plotly_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
                                       quantities=None, fontsize=16, **kwargs):
         """
         Plot thermodynamic properties from the phonon DOSes within the harmonic approximation.
@@ -3204,7 +3199,7 @@ class PhononDos(Function1D):
             ncols = 2
             nrows = num_plots // ncols + num_plots % ncols
 
-        fig, go = get_figs_ploty(nrows=nrows, ncols=ncols, subplot_titles=quantities, sharex=False, sharey=False)
+        fig, go = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=quantities, sharex=False, sharey=False)
 
         for iq, qname in enumerate(quantities):
             irow, icol = divmod(iq, ncols)

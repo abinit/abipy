@@ -500,7 +500,7 @@ class Function1D(object):
 
         return lines
 
-    def ploty_traces(self, fig, row=1, col=1, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
+    def plotly_traces(self, fig, row=1, col=1, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
         """
         Helper function to plot self on axis ax.
         Args:
