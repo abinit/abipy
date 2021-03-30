@@ -847,3 +847,88 @@ class GenericDataFilesPlotter(object):
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
+
+
+def get_figs_plotly(nrows=1, ncols=1, subplot_titles=[], sharex=False, sharey=False, **fig_kw):
+    """
+    Helper function used in plot functions that build the `plotly` figure by calling plotly.subplots.
+    Returns:
+        figure: plotly graph_objects figure
+        go: plotly graph_objects module.
+    """
+    from plotly.subplots import make_subplots
+    import plotly.graph_objects as go
+
+    fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=subplot_titles, shared_xaxes=sharex,
+                        shared_yaxes=sharey, **fig_kw)
+
+    return fig, go
+
+
+def get_fig_plotly(**fig_kw):
+    """
+    Helper function used in plot functions that build the `plotly` figure by calling
+    plotly.graph_objects.Figure.
+    Returns:
+        figure: plotly graph_objects figure
+        go: plotly graph_objects module.
+    """
+    import plotly.graph_objects as go
+
+    fig = go.Figure(**fig_kw)
+
+    return fig, go
+
+
+def add_plotly_fig_kwargs(func):
+    """
+    Decorator that adds keyword arguments for functions returning plotly figures.
+    The function should return either a plotly figure or None to signal some
+    sort of error/unexpected event.
+    See doc string below for the list of supported options.
+    """
+    from functools import wraps
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # pop the kwds used by the decorator.
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
+
+        # Call func and return immediately if None is returned.
+        fig = func(*args, **kwargs)
+        if fig is None:
+            return fig
+        # Operate on matplotlib figure.
+        if title is not None:
+            fig.layout.title.text = title
+        if savefig:
+            fig.write_image(savefig)
+        if show:
+            fig.show()
+        return fig
+
+    # Add docstring to the decorated method.
+    s = (
+            "\n\n"
+            + """\
+                Keyword arguments controlling the display of the figure:
+                ================  ====================================================================
+                kwargs            Meaning
+                ================  ====================================================================
+                title             Title of the plot (Default: None).
+                show              True to show the figure (default: True).
+                savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
+                ================  ====================================================================
+        """
+    )
+
+    if wrapper.__doc__ is not None:
+        # Add s at the end of the docstring.
+        wrapper.__doc__ += "\n" + s
+    else:
+        # Use s
+        wrapper.__doc__ = s
+
+    return wrapper
