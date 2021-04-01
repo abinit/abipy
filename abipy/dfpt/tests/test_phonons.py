@@ -108,7 +108,7 @@ class PhononBandsTest(AbipyTest):
         }
 
         if self.has_matplotlib():
-            assert phbands.plot(units="Thz", show=False, temp=300)
+            assert phbands.plot(units="Thz", temp=300, show=False)
             assert phbands.plot_fatbands(units="ha", qlabels=qlabels, show=False)
             assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             assert phbands.plot_colored_matched(units="cm^-1", show=False)
@@ -126,6 +126,10 @@ class PhononBandsTest(AbipyTest):
             assert phbands.plot_longitudinal_fraction([0.0375, 0.0375, 0.075], show=False)
             assert phbands.plot_qpt_distance(ngqpt=[2,2,2], plot_distances=True, show=False)
             assert phbands.plot_qpt_distance(qpt_list=[[0.1,0.1,0.1]], plot_distances=False, log_scale=True, show=False)
+
+        if self.has_plotly():
+            assert phbands.plotly(units="cm-1", temp=300, show=False)
+            #assert phbands.plotly_with_phdos(units="Thz", temp=300, show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):
@@ -409,12 +413,17 @@ class PhononDosTest(AbipyTest):
             assert ncfile.plot_pjdos_cartdirs_site(units="meV", view="all", stacked=True, alpha=0.5, show=False)
 
             assert phdos.plot(units="cm-1", show=False)
-            assert phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="eV", formula_units=1, show=False)
-            assert phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="Jmol", formula_units=2, show=False)
+            assert phdos.plot_harmonic_thermo(tstart=20, tstop=350, units="eV", formula_units=1, show=False)
+            assert phdos.plot_harmonic_thermo(tstart=20, tstop=350, units="Jmol", formula_units=2, show=False)
 
         # Test notebook
         if self.has_nbformat():
             ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
+
+        if self.has_plotly():
+            assert phdos.plotly(show=False)
+            #assert phdos.plotly_dos_idos()
+            assert phdos.plot_harmonic_thermo(tstart=20, tstop=350, units="Jmol", formula_units=2, show=False)
 
         ncfile.close()
 

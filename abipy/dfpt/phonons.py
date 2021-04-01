@@ -1007,9 +1007,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         Args:
             qlabels:
             qlabel_size:
-            iax: An int, used(iax=n) to specify to decorate on the nth axis, when the fig has subplots.
+            iax: An int, use iax=n) to decorate the nth axis when the fig has subplots.
         """
-
         iax = kwargs.pop("iax", 1)
         xaxis = 'xaxis%u' % iax
 
@@ -1035,7 +1034,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
              fontsize=12, **kwargs):
         r"""
-        Plot the phonon band structure.
+        Plot the phonon band structure with matplotlib.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -1088,7 +1087,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     def plotly(self, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
               fontsize=16, **kwargs):
         r"""
-        Plot the phonon band structure.
+        Plot the phonon band structure with plotly.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
@@ -1099,13 +1098,13 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
             temp: Temperature in Kelvin. If not None, a scatter plot with the Bose-Einstein occupation factor
                 at temperature `temp` is added.
-    #       fontsize: Title fontsize.
+            fontsize: Title fontsize.
 
         Returns: |plotly.graph_objects.Figure|
         """
         # Select the band range.
         branch_range = range(self.num_branches) if branch_range is None else \
-            range(branch_range[0], branch_range[1], 1)
+                       range(branch_range[0], branch_range[1], 1)
 
         fig, go = get_fig_plotly()
 
@@ -1173,13 +1172,9 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     def plotly_traces(self, fig, branch, row=1, col=1, units='eV', match_bands=False, **kwargs):
         """
-        Plots the frequencies for the given branches indices as a function of the q-index on
-        figure ``fig`` .
-        If ``fig`` has subplots, ``row`` and ``col`` are used for specifying to add traces on which subplot.
+        Plots the frequencies for the given branches indices as a function of the q-index on figure ``fig`` .
+        If ``fig`` has subplots, ``row`` and ``col`` are used to add traces on these subplots.
         If ``branch`` is None, all phonon branches are plotted.
-
-    # !!   Return: The list of matplotlib lines added.
-
         """
         import plotly.graph_objects as go
         linecolor = kwargs.pop("color", "black")
@@ -1193,7 +1188,6 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             branch_range = [branch]
 
         first_xx = 0
-
         factor = abu.phfactor_ev2units(units)
 
         for i, pf in enumerate(self.split_phfreqs):
@@ -1231,7 +1225,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 sequential order to avoid difficulties in distinguishing the lines.
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             max_colors: maximum number of colors to be used. If max_colors < num_braches the colors will be reapeated.
-                It useful to better distinguish close bands when the number of branch is large.
+                It may be useful to better distinguish close bands when the number of branches is large.
 
         Returns: |matplotlib-Figure|
         """
@@ -1325,7 +1319,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                         # q . Z[atom] . disp[q, nu, atom]
                         v = sum(np.dot(qcart, np.dot(self.zcart[iatom], dis[nu, iatom])) for iatom in range(self.num_atoms))
                     else:
-                        v = sum(np.dot(qcart, dis[nu, iatom])) for iatom in range(self.num_atoms))
+                        v = sum(np.dot(qcart, dis[nu, iatom]) for iatom in range(self.num_atoms))
                     scatt_x.append(xx[iq])
                     scatt_y.append(ws[nu])
                     scatt_s.append(v * inv_qepsq)
@@ -1738,7 +1732,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     @add_plotly_fig_kwargs
     def plotly_with_phdos(self, phdos, units="eV", qlabels=None, fig=None, width_ratios=(2, 1), **kwargs):
         r"""
-        Plot the phonon band structure with the phonon DOS.
+        Plot the phonon band structure with the phonon DOS with plotly.
 
         Args:
             phdos: An instance of |PhononDos| or a netcdf file providing a PhononDos object.
@@ -1758,7 +1752,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         if fig is None:
             # build fig and align bands and DOS.
             fig, go = get_figs_plotly(nrows=1, ncols=2, subplot_titles=[], sharex=False, sharey=True,
-                                     horizontal_spacing=0.03, column_widths=width_ratios)
+                                      horizontal_spacing=0.03, column_widths=width_ratios)
 
         if not kwargs:
             kwargs = {"line_color": "black", "line_width": 2.0}
@@ -2821,7 +2815,8 @@ _THERMO_YLABELS = {  # [name][units] --> latex string
     "entropy": {"eV": "$S(T)$ (eV/cell)", "Jmol": "$S(T)$ (J/mole)"},
     "cv": {"eV": "$C_V(T)$ (eV/cell)", "Jmol": "$C_V(T)$ (J/mole)"},
 }
-_PLOTLY_THERMO_YLABELS = {  # [name][units] --> string
+
+_PLOTLY_THERMO_YLABELS = {  # [name][units] --> string (no latex allowed here!)
             "internal_energy": {"eV": "U(T) (eV/cell)", "Jmol": "U(T) (J/mole)"},
             "free_energy": {"eV": "F(T) + ZPE (eV/cell)", "Jmol": "F(T) + ZPE (J/mole)"},
             "entropy": {"eV": "S(T) (eV/cell)", "Jmol": "S(T) (J/mole)"},
@@ -3157,6 +3152,7 @@ class PhononDos(Function1D):
 
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
+
         # don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
 
@@ -3171,7 +3167,7 @@ class PhononDos(Function1D):
 
             ax.set_title(qname, fontsize=fontsize)
             ax.grid(True)
-            ax.set_xlabel("Temperature (K)", fontsize=fontsize)
+            ax.set_xlabel("T (K)", fontsize=fontsize)
             ax.set_ylabel(_THERMO_YLABELS[qname][units], fontsize=fontsize)
             #ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -3182,9 +3178,10 @@ class PhononDos(Function1D):
 
     @add_plotly_fig_kwargs
     def plotly_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
-                                      quantities=None, fontsize=16, **kwargs):
+                               quantities=None, fontsize=16, **kwargs):
         """
-        Plot thermodynamic properties from the phonon DOSes within the harmonic approximation.
+        Plot thermodynamic properties from the phonon DOS within the harmonic approximation.
+
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
@@ -3196,7 +3193,6 @@ class PhononDos(Function1D):
             formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
             fontsize: Legend and title fontsize.
-
 
         Returns |plotly.graph_objects.Figure|
         """
@@ -3210,7 +3206,7 @@ class PhononDos(Function1D):
             ncols = 2
             nrows = num_plots // ncols + num_plots % ncols
 
-        fig, go = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=quantities, sharex=False, sharey=False)
+        fig, go = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=quantities, sharex=True, sharey=False)
 
         for iq, qname in enumerate(quantities):
             irow, icol = divmod(iq, ncols)
@@ -3223,7 +3219,7 @@ class PhononDos(Function1D):
             fig.layout.annotations[iq].font.size = fontsize
             iax = iq + 1
             fig.layout['yaxis%u' % iax].title = {'text': _PLOTLY_THERMO_YLABELS[qname][units], 'font_size': fontsize}
-            fig.layout['xaxis%u' % iax].title = {'text': 'Temperature(K)', 'font_size': fontsize}
+            fig.layout['xaxis%u' % iax].title = {'text': 'T (K)', 'font_size': fontsize}
 
         return fig
 
@@ -4561,7 +4557,7 @@ class PhononDosPlotter(NotebookWriter):
             ax.set_title(qname, fontsize=fontsize)
             ax.grid(True)
             ax.set_ylabel(_THERMO_YLABELS[qname][units], fontsize=fontsize)
-            ax.set_xlabel("Temperature (K)", fontsize=fontsize)
+            ax.set_xlabel("T (K)", fontsize=fontsize)
             if iax == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

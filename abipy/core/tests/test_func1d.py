@@ -92,6 +92,11 @@ class TestFunction1D(AbipyTest):
             eix.plot(show=False)
             eix.plot(cplx_mode="re", exchange_xy=True, xfactor=2, yfactor=3, show=False)
 
+        if self.has_plotly():
+            from abipy.tools.plotting import get_fig_plotly
+            fig, go = get_fig_plotly()
+            eix.plotly_traces(fig, cplx_mode="re", exchange_xy=True, xfactor=2, yfactor=3)
+
     def test_fft(self):
         """Test FFT transforms."""
         sinf, cosf, eix = self.sinf, self.cosf, self.eix

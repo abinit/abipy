@@ -1,3 +1,12 @@
+
+Release 0.9.1: 
+
+   AbinitInput set_kpath and make_ebands_input now support negative values of ndivsm that 
+   are interpreted as line_density following pymatgen conventions.
+   This option is the recommended one if the k-path contains two consecutive high symmetry k-points 
+   that are very close as ndivsm > 0 may produce a very large number of wavevectors.
+
+
 Release 0.9.0: 
 
     * Require pymatgen >= 2019.12.22

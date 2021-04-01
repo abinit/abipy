@@ -200,6 +200,9 @@ class TestAbinitInput(AbipyTest):
         inp.set_kpath(ndivsm=3, kptbounds=None)
         assert inp["ndivsm"] == 3 and inp["iscf"] == -2 and len(inp["kptbounds"]) == 12
 
+        inp.set_kpath(ndivsm=-20)
+        assert inp["nkpt"] == 156 and inp["iscf"] == -2
+
         inp.set_qpath(ndivsm=3, qptbounds=None)
         assert len(inp["ph_qpath"]) == 12 and inp["ph_nqpath"] == 12 and inp["ph_ndivsm"] == 3
 
@@ -438,7 +441,7 @@ class TestAbinitInput(AbipyTest):
         )
 
         # Test make_nscf_kptopt0_input
-        nscf_inp = gs_inp.make_nscf_kptopt0_input(kpts=[1,2,3,4,5,6])
+        nscf_inp = gs_inp.make_nscf_kptopt0_input(kpts=[1, 2, 3, 4, 5, 6])
         assert "ngkpt" not in nscf_inp and "shiftk" not in nscf_inp
         assert nscf_inp["kptopt"] == 0 and nscf_inp["nkpt"] == 2 and nscf_inp["iscf"] == -2
 
@@ -447,6 +450,12 @@ class TestAbinitInput(AbipyTest):
         assert "ngkpt" not in nscf_inp and "shiftk" not in nscf_inp
         assert nscf_inp["iscf"] == -2 and nscf_inp["tolwfr"] == 1e-5
         assert nscf_inp["nband"] == gs_inp["nband"] + 10
+
+        nscf_inp = gs_inp.make_ebands_input(ndivsm=-20, tolwfr=1e-5)
+        assert "ngkpt" not in nscf_inp and "shiftk" not in nscf_inp
+        assert nscf_inp["iscf"] == -2 and nscf_inp["tolwfr"] == 1e-5
+        assert nscf_inp["nkpt"] == 149
+        self.abivalidate_input(nscf_inp)
 
         # Test make_edos_input
         ngkpt = [4, 4, 4]

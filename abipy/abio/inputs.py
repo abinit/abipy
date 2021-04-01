@@ -827,15 +827,23 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Set the variables for the computation of the (NSCF) electronic band structure.
 
         Args:
-            ndivsm: Number of divisions for the smallest segment of the path.
+            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two consecutive high symmetry k-points
+                that are very close as ndivsm > 0 may produce a very large number of wavevectors.
             kptbounds: k-points defining the path in k-space.
                 If None, we use the default high-symmetry k-path defined in the pymatgen database.
         """
-        if kptbounds is None: kptbounds = self.structure.calc_kptbounds()
-        kptbounds = np.reshape(kptbounds, (-1, 3))
         #self.pop_vars(["ngkpt", "shiftk"]) ??
 
-        return self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds) - 1), ndivsm=ndivsm, iscf=iscf)
+        if ndivsm > 0:
+            if kptbounds is None: kptbounds = self.structure.calc_kptbounds()
+            kptbounds = np.reshape(kptbounds, (-1, 3))
+            return self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds) - 1), ndivsm=ndivsm, iscf=iscf)
+        else:
+            kpts = kpoints_from_line_density(self.structure, abs(ndivsm))
+            return self.set_vars(kptopt=0, nkpt=len(kpts), kpt=kpts, iscf=iscf)
 
     def set_qpath(self, ndivsm, qptbounds=None):
         """
@@ -1218,7 +1226,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Generate an input file for NSCF band structure calculation from a GS SCF input.
 
         Args:
-            ndivsm: Number of divisions used to sample the smallest segment of the k-path.
+            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two high symmetry k-points that are very close
+                as ndivsm > 0 may produce a very large number of wavevectors.
             tolwfr: Tolerance on residuals for NSCF calculation.
             nscf_nband: Number of bands for NSCF calculation. +10 if None.
         """
@@ -1227,10 +1239,14 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         nscf_input.pop_tolerances()
 
         # Define k-path.
-        nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, self.structure)
-        nscf_nband = self["nband"] + 10 if nscf_nband is None else nscf_nband
+        if ndivsm > 0:
+            nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, self.structure)
+            nscf_input.set_vars(nscf_ksampling.to_abivars())
+        else:
+            kpts = kpoints_from_line_density(self.structure, abs(ndivsm))
+            nscf_input.set_vars(kptopt=0, nkpt=len(kpts), kpt=kpts)
 
-        nscf_input.set_vars(nscf_ksampling.to_abivars())
+        nscf_nband = self["nband"] + 10 if nscf_nband is None else nscf_nband
         nscf_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr)
 
         return nscf_input
@@ -2797,15 +2813,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         # Parameters for the Bandstructure.
         if line_density:
-            hs = HighSymmKpath(structure, symprec=1e-2)
-            qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)
-            # remove repeated q-points since those do
-            # interfere with _set_split_vals in the phonon plotter
-            qph1l = [qpts[0]]
-            for qpt in qpts[1:]:
-                if not np.array_equal(qpt,qph1l[-1]):
-                    qph1l.append(qpt)
-            #set new variables
+            qph1l = kpoints_from_line_density(structure, line_density)
+            # Set new variables
             new['qph1l'] = [q.tolist()+[1] for q in qph1l]
             new['nph1l'] = len(qph1l)
             qptbounds = structure.calc_kptbounds()
@@ -3623,3 +3632,30 @@ def product_dict(d):
         vars_prod.append(dprod)
 
     return vars_prod
+
+
+def kpoints_from_line_density(structure, line_density, symprec=1e-2):
+    """
+    Compute an high-symmetry k-path using pymatgen conventions and line_density
+
+    Args:
+        line_density: Number of points in each segment is computed as: int(ceil(distance * line_density))
+            where distance is the lenght of the segment.
+            This option is the recommended one if the k-path contains two consecutive high symmetry k-points
+            that are very close as ndivsm > 0 may produce a very large number of wavevectors.
+        symprec: Symmetry precision passed to spglib.
+
+    Return: (nkpt,3) numpy array with k-points in reduced coords.
+    """
+    if line_density <= 0:
+        raise ValueError(f"Invalid line_density: {line_density}")
+
+    hs = HighSymmKpath(structure, symprec=1e-2)
+    qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)
+    # remove repeated q-points since those do interfere with _set_split_vals in the phonon plotter
+    qph1l = [qpts[0]]
+    for qpt in qpts[1:]:
+        if not np.array_equal(qpt, qph1l[-1]):
+            qph1l.append(qpt)
+
+    return np.reshape(qph1l, (-1, 3))

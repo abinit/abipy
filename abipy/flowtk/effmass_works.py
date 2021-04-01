@@ -134,7 +134,11 @@ class EffMassAutoDFPTWork(Work):
 
         Args:
             scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.
-            ndivsm: Number of divisions used to sample the smallest segment of the k-path.
+            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two high symmetry k-points that are very close
+                as ndivsm > 0 may produce a very large number of wavevectors.
             tolwfr: Tolerance on residuals for NSCF calculation
             manager: |TaskManager| instance. Use default if None.
         """

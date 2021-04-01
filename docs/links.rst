@@ -139,6 +139,7 @@
 .. |pandas-DataFrame| replace:: :class:`pandas.DataFrame`
 .. |pandas-DataFrames| replace:: :class:`pandas.DataFrame`
 .. |numpy-array| replace:: :class:`numpy.ndarray`
+.. |plotly.graph_objects.Figure| replace:: :class:`plotly.graph_objects.Figure`
 
 .. Badges
 .. |pypi-version| image:: https://badge.fury.io/py/abipy.svg

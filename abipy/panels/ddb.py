@@ -105,11 +105,13 @@ class DdbFilePanel(AbipyParameterized):
 
             # Build grid
             gspec = pn.GridSpec(sizing_mode='scale_width')
-            gspec[0, 0] = phbands.plot_with_phdos(phdos, units=self.units, **self.fig_kwargs)
+            #gspec[0, 0] = phbands.plot_with_phdos(phdos, units=self.units, **self.fig_kwargs)
+            gspec[0, 0] = phbands.plotly_with_phdos(phdos, units=self.units, show=False)
             gspec[0, 1] = phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.fig_kwargs)
             gspec[1, 0] = phdos_file.msqd_dos.plot(units=self.units, **self.fig_kwargs)
             temps = self.temp_range.value
-            gspec[1, 1] = phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.fig_kwargs)
+            #gspec[1, 1] = phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.fig_kwargs)
+            gspec[1, 1] = phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)
             #msqd_dos.plot_tensor(**self.fig_kwargs)
             #self.plot_phbands_btn.button_type = "primary"
 

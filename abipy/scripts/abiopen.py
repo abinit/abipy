@@ -225,7 +225,7 @@ def main():
 
         elif options.panel:
             try:
-                import panel  # noqa: F401
+                import panel as pn
             except ImportError as exc:
                 cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
                 raise exc
@@ -235,7 +235,13 @@ def main():
 
             import matplotlib
             matplotlib.use("Agg")
-            abifile.get_panel().show()  #threaded=True)
+
+            try:
+                pn.extension("plotly")
+            except Exception:
+                cprint("Use `conda install plotly` or `pip install plotly` to install the plotly package.", "red")
+
+            abifile.get_panel().show() # threaded=True)
             return 0
 
         # Start ipython shell with namespace

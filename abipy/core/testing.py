@@ -96,6 +96,22 @@ def has_matplotlib(version=None, op=">="):
     return cmp_version(matplotlib.__version__, version, op=op)
 
 
+def has_plotly(version=None, op=">="):
+    """
+    True if plotly is installed.
+    If version is None, the result of plotly.__version__ `op` version is returned.
+    """
+    try:
+        import plotly
+        # have_display = "DISPLAY" in os.environ
+    except ImportError:
+        print("Skipping plotlyt test")
+        return False
+
+    if version is None: return True
+    return cmp_version(plotly.__version__, version, op=op)
+
+
 def has_seaborn():
     """True if seaborn_ is installed."""
     try:
@@ -325,6 +341,10 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def has_matplotlib(version=None, op=">="):
         return has_matplotlib(version=version, op=op)
+
+    @staticmethod
+    def has_plotly(version=None, op=">="):
+        return has_plotly(version=version, op=op)
 
     @staticmethod
     def has_seaborn():

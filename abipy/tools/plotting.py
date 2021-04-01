@@ -4,7 +4,7 @@ Utilities for generating matplotlib plots.
 
 .. note::
 
-    Avoid importing matplotlib in the module namespace otherwise startup is very slow.
+    Avoid importing matplotlib or plotly in the module namespace otherwise startup is very slow.
 """
 import os
 import time
@@ -852,6 +852,7 @@ class GenericDataFilesPlotter(object):
 def get_figs_plotly(nrows=1, ncols=1, subplot_titles=[], sharex=False, sharey=False, **fig_kw):
     """
     Helper function used in plot functions that build the `plotly` figure by calling plotly.subplots.
+
     Returns:
         figure: plotly graph_objects figure
         go: plotly graph_objects module.
@@ -869,6 +870,7 @@ def get_fig_plotly(**fig_kw):
     """
     Helper function used in plot functions that build the `plotly` figure by calling
     plotly.graph_objects.Figure.
+
     Returns:
         figure: plotly graph_objects figure
         go: plotly graph_objects module.
@@ -895,18 +897,24 @@ def add_plotly_fig_kwargs(func):
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
+        write_json = kwargs.pop("write_json", None)
 
         # Call func and return immediately if None is returned.
         fig = func(*args, **kwargs)
         if fig is None:
             return fig
-        # Operate on matplotlib figure.
+        # Operate on plotly figure.
         if title is not None:
-            fig.layout.title.text = title
+            #fig.layout.title.text = title
+            fig.update_layout(title_text=title, title_x=0.5)
         if savefig:
             fig.write_image(savefig)
+        if write_json:
+            import plotly.io as pio
+            pio.write_json(fig, write_json)
         if show:
             fig.show()
+
         return fig
 
     # Add docstring to the decorated method.
@@ -920,6 +928,12 @@ def add_plotly_fig_kwargs(func):
                 title             Title of the plot (Default: None).
                 show              True to show the figure (default: True).
                 savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
+                write_json        Write plotly figure to `write_json` JSON file.
+                                  Inside jupyter-lab, one can right-click the `write_json` file from the file menu
+                                  and open with "Plotly Editor".
+                                  Make some changes to the figure, then use the file menu to save the customized plotly plot.
+                                  Requires `jupyter labextension install jupyterlab-chart-editor`.
+                                  See https://github.com/plotly/jupyterlab-chart-editor
                 ================  ====================================================================
         """
     )
