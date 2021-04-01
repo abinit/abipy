@@ -2450,7 +2450,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             width = []
             for iq, (q, pf) in enumerate(zip(q_l, pf_l)):
 
-                print(q)
+                #print(q)
                 if np.allclose(np.mod(q, 1), [0, 0, 0]):
                     if self.non_anal_ph is not None:
                         if iq == 0:

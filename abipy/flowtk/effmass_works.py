@@ -128,7 +128,7 @@ class EffMassAutoDFPTWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, ndivsm=15, tolwfr=1e-20, manager=None):
+    def from_scf_input(cls, scf_input, ndivsm=15, tolwfr=1e-20, den_node=None, manager=None):
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -140,6 +140,9 @@ class EffMassAutoDFPTWork(Work):
                 This option is the recommended one if the k-path contains two high symmetry k-points that are very close
                 as ndivsm > 0 may produce a very large number of wavevectors.
             tolwfr: Tolerance on residuals for NSCF calculation
+            den_node: Path to the DEN file or Task object producing a DEN file.
+                Can be used to avoid the initial SCF calculation if a DEN file is already available.
+                If None, a GS calculation is performed.
             manager: |TaskManager| instance. Use default if None.
         """
         if scf_input.get("nsppol", 1) != 1:
@@ -150,11 +153,14 @@ class EffMassAutoDFPTWork(Work):
         new.scf_input = scf_input.deepcopy()
 
         # Need SCF run to get DEN file.
-        new.scf_task = new.register_scf_task(new.scf_input)
+        if den_node is None:
+            new.den_node = new.register_scf_task(new.scf_input)
+        else:
+            new.den_node = Node.as_node(den_node)
 
         # Perform NSCF run along k-path that will be used to find band extrema.
         bands_input = scf_input.make_ebands_input(ndivsm=ndivsm, tolwfr=tolwfr)
-        new.bands_task = new.register_nscf_task(bands_input, deps={new.scf_task: "DEN"})
+        new.bands_task = new.register_nscf_task(bands_input, deps={new.den_node: "DEN"})
 
         return new
 
@@ -174,7 +180,7 @@ class EffMassAutoDFPTWork(Work):
 
         # Create the work for effective mass computation with DFPT and add it to the flow.
         # Keep a reference in generated_effmass_dfpt_work.
-        work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90, den_node=self.scf_task)
+        work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90, den_node=self.den_node)
 
         self.generated_effmass_dfpt_work = work
         self.flow.register_work(work)
