@@ -1007,7 +1007,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         Args:
             qlabels:
             qlabel_size:
-            iax: An int, use iax=n) to decorate the nth axis when the fig has subplots.
+            iax: An int, use iax=n to decorate the nth axis when the fig has subplots.
         """
         iax = kwargs.pop("iax", 1)
         xaxis = 'xaxis%u' % iax
@@ -1170,7 +1170,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return lines
 
-    def plotly_traces(self, fig, branch, row=1, col=1, units='eV', match_bands=False, **kwargs):
+    def plotly_traces(self, fig, branch, row=1, col=1, units='eV', name='', match_bands=False,
+                      showlengend=False, **kwargs):
         """
         Plots the frequencies for the given branches indices as a function of the q-index on figure ``fig`` .
         If ``fig`` has subplots, ``row`` and ``col`` are used to add traces on these subplots.
@@ -1199,13 +1200,16 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             for branch in branch_range:
                 if row == 1 and col == 1:
                     fig.add_trace(
-                        go.Scatter(x=xx, y=pf[:, branch], mode='lines', line=dict(color=linecolor, width=linewidth),
-                                   showlegend=False, **kwargs))
+                        go.Scatter(x=xx, y=pf[:, branch], mode='lines', name=name, legendgroup=name, showlegend=False,
+                                   line=dict(color=linecolor, width=linewidth), **kwargs))
                 else:
                     fig.add_trace(
-                        go.Scatter(x=xx, y=pf[:, branch], mode='lines', line=dict(color=linecolor, width=linewidth),
-                                   showlegend=False, **kwargs), row=row, col=col)
+                        go.Scatter(x=xx, y=pf[:, branch], mode='lines', name=name, legendgroup=name, showlegend=False,
+                                   line=dict(color=linecolor, width=linewidth), **kwargs), row=row, col=col)
             first_xx = xx[-1]
+
+        if showlengend:
+            fig.data[-1].showlegend = True
 
     @add_fig_kwargs
     def plot_colored_matched(self, ax=None, units="eV", qlabels=None, branch_range=None,
@@ -3178,7 +3182,7 @@ class PhononDos(Function1D):
 
     @add_plotly_fig_kwargs
     def plotly_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
-                               quantities=None, fontsize=16, **kwargs):
+                               quantities=None, fontsize=12, **kwargs):
         """
         Plot thermodynamic properties from the phonon DOS within the harmonic approximation.
 
@@ -3796,8 +3800,9 @@ class PhononBandsPlotter(NotebookWriter):
         plotter.gridplot()
     """
     # Used in iter_lineopt to generate matplotlib linestyles.
-    _LINE_COLORS = ["b", "r", "g", "m", "y", "k"]
+    _LINE_COLORS = ["blue", "red", "green", "magenta", "yellow", "black"]
     _LINE_STYLES = ["-", ":", "--", "-.",]
+    _LINE_STYLES_PLOTLY = ['solid', "dot", 'dash', 'dashdot',]
     _LINE_WIDTHS = [2, ]
 
     def __init__(self, key_phbands=None, key_phdos=None, phdos_kwargs=None):
@@ -3895,6 +3900,11 @@ class PhononBandsPlotter(NotebookWriter):
         for o in itertools.product(self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
+    def iter_lineopt_plotly(self):
+        """Generates plotly linestyles."""
+        for o in itertools.product(self._LINE_WIDTHS,  self._LINE_STYLES_PLOTLY, self._LINE_COLORS):
+            yield {"line_width": o[0], "line_dash": o[1], "line_color": o[2]}
+
     def add_phbands(self, label, bands, phdos=None, dos=None, phdos_kwargs=None):
         """
         Adds a band structure for plotting.
@@ -3924,7 +3934,7 @@ class PhononBandsPlotter(NotebookWriter):
     def combiplot(self, qlabels=None, units='eV', ylims=None, width_ratios=(2, 1), fontsize=8,
                   linestyle_dict=None, **kwargs):
         r"""
-        Plot the band structure and the DOS on the same figure.
+        Plot the band structure and the DOS on the same figure with matplotlib.
         Use ``gridplot`` to plot band structures on different figures.
 
         Args:
@@ -4001,6 +4011,80 @@ class PhononBandsPlotter(NotebookWriter):
             for label, dos in self.phdoses_dict.items():
                 dos.plot_dos_idos(ax, exchange_xy=True, units=units, **opts_label[label])
 
+        return fig
+
+    @add_plotly_fig_kwargs
+    def combiplotly(self, qlabels=None, units='eV', ylims=None, width_ratios=(2, 1), fontsize=12,
+                  linestyle_dict=None, **kwargs):
+        r"""
+        Plot the band structure and the DOS on the same figure with plotly.
+        Use ``gridplot`` to plot band structures on different figures.
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.
+                The values are the labels e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   # or scalar e.g. ``left``. If left (right) is None, default values are used
+            width_ratios: Ratio between the width of the phonon bands plots and the DOS plots.
+                Used if plotter has DOSes.
+            fontsize: fontsize for titles and legend.
+            linestyle_dict: Dictionary mapping labels to plotly linestyle options.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        if self.phdoses_dict:
+            fig, go = get_figs_plotly(nrows=1, ncols=2, subplot_titles=[], sharex=False, sharey=True,
+                                      horizontal_spacing=0.03, column_widths=width_ratios)
+        else:
+            fig, go = get_fig_plotly()
+
+        if ylims is not None:
+            try:
+                len_lims = len(lims)
+            except TypeError:
+                # Assume Scalar
+                raise NotImplementedError()
+
+            if len_lims is not None:
+                if len(lims) == 2:
+                    fig.layout.yaxis.range = ylims
+                elif len(lims) == 1:
+                    raise NotImplementedError()
+
+        # Plot phonon bands.
+        my_kwargs, opts_label = kwargs.copy(), {}
+        i = -1
+        nqpt_list = [phbands.nqpt for phbands in self._bands_dict.values()]
+        if any(nq != nqpt_list[0] for nq in nqpt_list):
+            cprint("WARNING combiblot: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
+
+        for (label, phbands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt_plotly()):
+            i += 1
+            if linestyle_dict is not None and label in linestyle_dict:
+                my_kwargs.update(linestyle_dict[label])
+            else:
+                my_kwargs.update(lineopt)
+            opts_label[label] = my_kwargs.copy()
+
+            # Use relative paths if label is a file.
+            if os.path.isfile(label):
+                label=os.path.relpath(label)
+
+            phbands.plotly_traces(fig, branch=None, units=units, name=label, showlengend=True, **my_kwargs)
+
+            # Set ticks and labels, legends.
+            if i == 0:
+                phbands.decorate_plotly(fig, qlabels=qlabels, units=units, iax=1)
+        fig.layout.legend.font.size = fontsize
+
+        # Add DOSes
+        if self.phdoses_dict:
+            for label, dos in self.phdoses_dict.items():
+                dos.plotly_dos_idos(fig, row=1, col=2, exchange_xy=True, units=units, **opts_label[label])
+
+        fig.layout.hovermode = False
         return fig
 
     def plot(self, *args, **kwargs):
