@@ -1014,7 +1014,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         # Handle conversion factor.
         if units:
-            fig.layout['yaxis%u' % iax].title.text = abu.wlabel_from_units(units).replace('$', '')
+            fig.layout['yaxis%u' % iax].title.text = abu.wlabel_from_units(units).replace('$^{-1}$', '⁻¹')
 
         fig.layout[xaxis].title.text = "Wave Vector"
 
@@ -1135,8 +1135,6 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 fig.add_trace(go.Scatter(x=xs, y=ws * factor, mode='markers',
                                          marker=dict(color=occ, colorscale='jet', size=s, opacity=0.6, line_width=0),
                                          showlegend=False))
-
-        fig.layout.hovermode = False
         return fig
 
     def plot_ax(self, ax, branch, units='eV', match_bands=False, **kwargs):
@@ -1764,7 +1762,6 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         # Plot the phonon band structure.
         self.plotly_traces(fig, branch=None, row=1, col=1, units=units, **kwargs)
         self.decorate_plotly(fig, units=units, qlabels=qlabels, iax=1)
-        fig.layout.hovermode = False
 
         factor = abu.phfactor_ev2units(units)
         emin = np.min(self.minfreq)
@@ -3014,9 +3011,9 @@ class PhononDos(Function1D):
         fig, go = get_figs_plotly(nrows=2, ncols=1, subplot_titles=[], sharex=True, sharey=False, vertical_spacing=0.05
                                  , row_heights=[1, 2])
 
-        fig.layout['xaxis2'].title = {'text': 'Energy %s' % abu.phunit_tag(units).replace('$', '')}
+        fig.layout['xaxis2'].title = {'text': 'Energy %s' % abu.phunit_tag(units).replace('$^{-1}$', '⁻¹')}
         fig.layout['yaxis1'].title = {'text': "IDOS (states)"}
-        fig.layout['yaxis2'].title = {'text': "DOS %s" % abu.phdos_label_from_units(units).replace('$', '')}
+        fig.layout['yaxis2'].title = {'text': "DOS %s" % abu.phdos_label_from_units(units).replace('$^{-1}$', '⁻¹')}
 
         self.plotly_dos_idos(fig, row=1, col=1, what="i", units=units, **kwargs)
         self.plotly_dos_idos(fig, row=2, col=1, what="d", units=units, **kwargs)
@@ -3140,7 +3137,7 @@ class PhononDos(Function1D):
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
-            fontsize: Legend and title fontsize.
+            fontsize: Title fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -3946,7 +3943,7 @@ class PhononBandsPlotter(NotebookWriter):
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             width_ratios: Ratio between the width of the phonon bands plots and the DOS plots.
                 Used if plotter has DOSes.
-            fontsize: fontsize for titles and legend.
+            fontsize: fontsize for legend.
             linestyle_dict: Dictionary mapping labels to matplotlib linestyle options.
 
         Returns: |matplotlib-Figure|
@@ -4078,13 +4075,13 @@ class PhononBandsPlotter(NotebookWriter):
             if i == 0:
                 phbands.decorate_plotly(fig, qlabels=qlabels, units=units, iax=1)
         fig.layout.legend.font.size = fontsize
+        fig.layout.title.font.size = fontsize
 
         # Add DOSes
         if self.phdoses_dict:
             for label, dos in self.phdoses_dict.items():
                 dos.plotly_dos_idos(fig, row=1, col=2, exchange_xy=True, units=units, **opts_label[label])
 
-        fig.layout.hovermode = False
         return fig
 
     def plot(self, *args, **kwargs):
