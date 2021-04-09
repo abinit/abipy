@@ -11,6 +11,7 @@ import pymatgen.core.units as units
 from pymatgen.core.lattice import Lattice
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import KpointList, is_diagonal, find_points_along_path
+from abipy.core.globals import get_workdir
 from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools.numtools import gaussian
@@ -49,8 +50,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         fold2bloch = flowtk.Fold2Bloch(manager=manager, verbose=verbose)
 
         # Create temporary directory and link to the WFK file
-        import tempfile
-        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        workdir = get_workdir(workdir)
         wfkpath = os.path.abspath(wfkpath)
         link = os.path.join(workdir, os.path.basename(wfkpath))
         os.symlink(wfkpath, link)

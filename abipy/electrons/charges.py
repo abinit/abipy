@@ -1,13 +1,15 @@
 # coding: utf-8
 """HirshfeldCharges."""
-from abipy.core.mixins import Has_Structure
-from abipy.core.fields import Density
-from abipy.electrons.denpot import DensityFortranFile
+
+from monty.dev import requires
+from monty.os.path import which
 from pymatgen.command_line.bader_caller import BaderAnalysis
 from pymatgen.io.abinit.pseudos import Pseudo
 from pymatgen.core.units import bohr_to_angstrom
-from monty.dev import requires
-from monty.os.path import which
+from abipy.core.mixins import Has_Structure
+from abipy.core.fields import Density
+from abipy.core.globals import get_workdir
+from abipy.electrons.denpot import DensityFortranFile
 
 import numpy as np
 import os
@@ -161,7 +163,7 @@ class BaderCharges(Charges):
                 r = psp8_get_densities(ppath)
                 rhoc[specie] = [r.rmesh * bohr_to_angstrom, r.aecore / (4.0 * np.pi) / (bohr_to_angstrom ** 3)]
 
-            workdir = tempfile.mkdtemp() if workdir is None else workdir
+            workdir = get_workdir(workdir)
 
             # extrapolate the core density on the density grid
             core_density = Density.ae_core_density_on_mesh(density, structure, rhoc, **kwargs)

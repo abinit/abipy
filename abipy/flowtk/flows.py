@@ -29,6 +29,7 @@ from monty.json import MSONable
 from pymatgen.util.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_serialize
 from pymatgen.core.units import Memory
 from pymatgen.util.io_utils import AtomicFile
+from abipy.core.globals import get_workdir
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.printing import print_dataframe
 from abipy.flowtk import wrappers
@@ -252,9 +253,10 @@ class Flow(Node, NodeContainer, MSONable):
         return cls.pickle_load(d["workdir"], **kwargs)
 
     @classmethod
-    def temporary_flow(cls, manager=None):
+    def temporary_flow(cls, manager=None, workdir=None):
         """Return a Flow in a temporary directory. Useful for unit tests."""
-        return cls(workdir=tempfile.mkdtemp(), manager=manager)
+        workdir = get_workdir(workdir)
+        return cls(workdir=workdir, manager=manager)
 
     def set_workdir(self, workdir, chroot=False):
         """

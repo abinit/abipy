@@ -5,6 +5,7 @@ import numpy as np
 
 from monty.string import list_strings
 from io import StringIO
+from abipy.core.globals import get_workdir
 
 import logging
 logger = logging.getLogger(__name__)
@@ -298,8 +299,7 @@ class Fold2Bloch(ExecWrapper):
     _name = "fold2Bloch"
 
     def unfold(self, wfkpath, folds, workdir=None):
-        import tempfile
-        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        workdir = get_workdir(workdir)
 
         self.stdin_fname = None
         self.stdout_fname, self.stderr_fname = \

@@ -7,6 +7,7 @@ import tempfile
 from monty.string import marquee
 from monty.termcolor import cprint
 from monty.functools import lazy_property
+from abipy.core.globals import get_workdir
 from abipy.core.mixins import (AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter,
     AbinitFortranFile, CubeFile)
 from abipy.flowtk import Cut3D
@@ -313,7 +314,7 @@ class DensityFortranFile(AbinitFortranFile):
         """
         Internal function to run a conversion using cut3d.
         """
-        workdir = os.path.abspath(tempfile.mkdtemp() if workdir is None else workdir)
+        workdir = get_workdir(workdir)
         outfile, converted_file = Cut3D().cut3d(cut3d_input, workdir)
 
         return converted_file
@@ -440,7 +441,7 @@ class DensityFortranFile(AbinitFortranFile):
         else:
             cut3d_input = Cut3DInput.hirshfeld_from_fhi_path(self.filepath, structure, fhi_all_el_path)
 
-        workdir = os.path.abspath(tempfile.mkdtemp() if workdir is None else workdir)
+        workdir = get_workdir(workdir)
 
         cut3d = Cut3D()
         outfile, converted_file = cut3d.cut3d(cut3d_input, workdir)
@@ -455,7 +456,7 @@ class DensityFortranFile(AbinitFortranFile):
         Args:
             workdir: directory in which cut3d is executed.
         """
-        workdir = os.path.abspath(tempfile.mkdtemp() if workdir is None else workdir)
+        workdir = get_workdir(workdir)
         output_filepath = os.path.join(workdir, "field_CUT3DDENPOT.nc")
         # FIXME Converters with nspden > 1 won't work since cut3d asks for the ispden index.
         cut3d_input = Cut3DInput(infile_path=self.filepath, output_filepath=output_filepath,

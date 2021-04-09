@@ -185,6 +185,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
             keys: string or list of strings with variable names.
 
         Example:
+
             inp.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])
         """
         return self.remove_vars(keys, strict=False)

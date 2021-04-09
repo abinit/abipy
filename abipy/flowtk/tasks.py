@@ -21,6 +21,7 @@ from monty.json import MSONable
 from monty.fnmatch import WildCard
 from pymatgen.core.units import Memory
 from pymatgen.util.serialization import json_pretty_dump, pmg_serialize
+from abipy.core.globals import get_workdir
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
 from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
 from . import qutils as qu
@@ -60,6 +61,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Tools and helper functions.
+
+
+def yaml_safe_load(s):
+    return yaml.safe_load(s)
+    #return yaml.YAML(typ='safe', pure=True).load(s)
+
+
+def yaml_unsafe_load(s):
+    return yaml.load(s)
+    #return yaml.YAML(typ='unsafe', pure=True).load(s)
 
 
 def straceback():
@@ -221,7 +232,7 @@ class ParalHintsParser(object):
         with abiinspect.YamlTokenizer(filename) as r:
             doc = r.next_doc_with_tag("!Autoparal")
             try:
-                d = yaml.safe_load(doc.text_notag)
+                d = yaml_safe_load(doc.text_notag)
                 return ParalHints(info=d["info"], confs=d["configurations"])
             except Exception:
                 import traceback
@@ -595,7 +606,7 @@ batch_adapter:
         """Read the configuration parameters from the Yaml file filename."""
         try:
             with open(filename, "rt") as fh:
-                return cls.from_dict(yaml.safe_load(fh))
+                return cls.from_dict(yaml_safe_load(fh))
         except Exception as exc:
             print("Error while reading TaskManager parameters from %s\n" % filename)
             raise
@@ -603,7 +614,7 @@ batch_adapter:
     @classmethod
     def from_string(cls, s):
         """Create an instance from string s containing a YAML dictionary."""
-        return cls.from_dict(yaml.safe_load(s))
+        return cls.from_dict(yaml_safe_load(s))
 
     @classmethod
     def as_manager(cls, obj):
@@ -1064,8 +1075,7 @@ class AbinitBuild(object):
         manager = TaskManager.as_manager(manager).to_shell_manager(mpi_procs=1)
 
         # Build a simple manager to run the job in a shell subprocess
-        import tempfile
-        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        workdir = get_workdir(workdir)
 
         # Generate a shell script to execute `abinit -b`
         stdout = os.path.join(workdir, "run.abo")
@@ -2634,10 +2644,7 @@ class AbinitTask(Task):
             mpi_procs: Number of MPI processes to use.
         """
         # Build a simple manager to run the job in a shell subprocess
-        # Allow users to specify the temporary directory via env variable.
-        dir = os.getenv("ABIPY_TMPDIR", default=None)
-        import tempfile
-        workdir = tempfile.mkdtemp(dir=dir) if workdir is None else workdir
+        workdir = get_workdir(workdir)
         if manager is None: manager = TaskManager.from_user_config()
 
         # Construct the task and run it
@@ -4563,8 +4570,7 @@ class AnaddbTask(Task):
         See `AnaddbInit` for the meaning of the other arguments.
         """
         # Build a simple manager to run the job in a shell subprocess
-        import tempfile
-        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        workdir = get_workdir(workdir)
         if manager is None: manager = TaskManager.from_user_config()
 
         # Construct the task and run it

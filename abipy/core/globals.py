@@ -78,3 +78,16 @@ def abinb_mkstemp(force_abinb_workdir=False, use_relpath=False, **kwargs):
         path = os.path.relpath(path)
 
     return fd, path
+
+
+def get_workdir(workdir):
+    """
+    Return temporary directory if workdir is None else workdir.
+    Allow users to specify the temporary directory via ABIPY_TMPDIR env variable.
+    """
+    if workdir is None:
+        dir = os.getenv("ABIPY_TMPDIR", default=None)
+        import tempfile
+        workdir = tempfile.mkdtemp(dir=dir)
+
+    return workdir
