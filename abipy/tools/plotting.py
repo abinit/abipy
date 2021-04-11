@@ -896,6 +896,7 @@ def add_plotly_fig_kwargs(func):
         # pop the kwds used by the decorator.
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)
+        hovermode = kwargs.pop("hovermode", False)
         savefig = kwargs.pop("savefig", None)
         write_json = kwargs.pop("write_json", None)
 
@@ -912,6 +913,7 @@ def add_plotly_fig_kwargs(func):
         if write_json:
             import plotly.io as pio
             pio.write_json(fig, write_json)
+        fig.layout.hovermode = hovermode
         if show:
             fig.show()
 
@@ -927,6 +929,7 @@ def add_plotly_fig_kwargs(func):
                 ================  ====================================================================
                 title             Title of the plot (Default: None).
                 show              True to show the figure (default: True).
+                hovormode         True to show the hover info (default: False)
                 savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
                 write_json        Write plotly figure to `write_json` JSON file.
                                   Inside jupyter-lab, one can right-click the `write_json` file from the file menu
