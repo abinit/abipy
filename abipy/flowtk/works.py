@@ -50,6 +50,7 @@ __all__ = [
 
 
 class WorkResults(NodeResults):
+
     JSON_SCHEMA = NodeResults.JSON_SCHEMA.copy()
 
     @classmethod
@@ -504,6 +505,7 @@ class Work(BaseWork, NodeContainer):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Work
     """
+
     def __init__(self, workdir=None, manager=None):
         """
         Args:
@@ -583,6 +585,19 @@ class Work(BaseWork, NodeContainer):
 
     def __getitem__(self, slice):
         return self._tasks[slice]
+
+    def postpone_on_all_ok(self):
+        """
+        This method should be called when additional tasks are added to the Work at runtime.
+        e.g inside an on_all_ok method. This call triggers the allocations of new tasks
+        so that the scheduler will continue execution since new tasks have been added
+        and the finalized flag is set to False.
+        """
+        self.flow.allocate()
+        self.flow.build_and_pickle_dump()
+        self.finalized = False
+
+        return super().on_all_ok()
 
     def chunks(self, chunk_size):
         """Yield successive chunks of tasks of lenght chunk_size."""
@@ -2009,6 +2024,7 @@ class ConducWork(Work):
         # Verify phwork
         if not isinstance(phwork, PhononWork):
             raise TypeError("Work `%s` does not inherit from PhononWork" % phwork)
+
         # Verify Multi
         if (not with_kerange) and (multi.ndtset != 3): #Without kerange, multi should contain 3 datasets
             raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
@@ -2076,8 +2092,10 @@ class ConducWork(Work):
         # Make sure both file exists
         if not os.path.exists(ddb_path):
             raise ValueError("The DDB file doesn't exists : `%s`" % ddb_path)
+
         if not os.path.exists(dvdb_path):
             raise ValueError("The DVDB file doesn't exists : `%s`" % dvdb_path)
+
         # Verify nbr_proc and flow are defined if with_kerange
         if with_kerange and (flow is None or nbr_proc is None):
             raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
@@ -2089,7 +2107,7 @@ class ConducWork(Work):
         new.register_task(multi[1], deps={new[0]: "DEN"})
         taskNumber = 2 # To keep track of the task in new and multi
 
-        if(with_kerange): # Using Kerange
+        if with_kerange: # Using Kerange
             new.register_task(multi[2], deps={new[1]: "WFK"})
             new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
             taskNumber = 4 # We have 2 more task
@@ -2109,4 +2127,5 @@ class ConducWork(Work):
             if nbr_proc is not None:
                 for task in new[2:]:
                     task.with_fixed_mpi_omp(nbr_proc, omp_nbr_thread)
+
         return new

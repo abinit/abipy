@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-This module defines the Node class that is inherited by Task, Work and Flow objects.
+This module defines the Node base class inherited by Task, Work and Flow objects.
 """
 
 import sys
@@ -62,6 +62,7 @@ class Status(int):
         # Execution completed successfully.
         (11, "Completed", "green", None, None),
     ]
+
     _STATUS2STR = OrderedDict([(t[0], t[1]) for t in _STATUS_INFO])
     _STATUS2COLOR_OPTS = OrderedDict([(t[0], {"color": t[2], "on_color": t[3], "attrs": _2attrs(t[4])}) for t in _STATUS_INFO])
 
@@ -262,12 +263,14 @@ class Product(object):
 
 class GridFsFile(AttrDict):
     """Information on a file that will stored in the MongoDb gridfs collection."""
+
     def __init__(self, path, fs_id=None, mode="b"):
         super().__init__(path=path, fs_id=fs_id, mode=mode)
 
 
 class NodeResults(dict, MSONable):
     """Dictionary used to store the most important results produced by a |Node|."""
+
     JSON_SCHEMA = {
         "type": "object",
         "properties": {
@@ -961,6 +964,16 @@ class Node(metaclass=abc.ABCMeta):
         if self.in_spectator_mode: return None
         self.history.debug("Node %s broadcasts signal %s" % (self, signal))
         dispatcher.send(signal=signal, sender=self)
+
+    def write_json_in_outdir(self, filename, data):
+        """
+        Write data to json file of basename filename inside the outdir directory of the node.
+        Support MSONable objects.
+        """
+        from monty.json import jsanitize
+        data = jsanitize(data, strict=False)
+        path = self.outdir.path_in(filename)
+        json_pretty_dump(data, path)
 
     ##########################
     ### Abstract protocol ####

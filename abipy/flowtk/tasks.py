@@ -2717,12 +2717,9 @@ class AbinitTask(Task):
         Return the subclass of ScfCycle associated to the task or
         None if no SCF algorithm if associated to the task.
         """
-        if isinstance(self, RelaxTask):
-            return abiinspect.Relaxation
-        elif isinstance(self, GsTask):
-            return abiinspect.GroundStateScfCycle
-        elif self.is_dfpt_task:
-            return abiinspect.D2DEScfCycle
+        if isinstance(self, RelaxTask): return abiinspect.Relaxation
+        if isinstance(self, GsTask): return abiinspect.GroundStateScfCycle
+        if self.is_dfpt_task: return abiinspect.D2DEScfCycle
 
         return None
 
@@ -3326,6 +3323,27 @@ class ScfTask(GsTask):
 
         return results
 
+    def add_ebands_task_to_work(self, work, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10):
+        """
+        Generate an NSCF task form band structure calculation from a GS SCF task and add it to the work.
+
+        Args:
+            work:
+            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two high symmetry k-points that are very close
+                as ndivsm > 0 may produce a very large number of wavevectors.
+            tolwfr: Tolerance on residuals for NSCF calculation.
+            nscf_nband: Number of bands for NSCF calculation. If None, use nband + nb_extra
+
+        return: NscfTask object.
+        """
+        ebands_inp = self.input.make_ebands_input(ndivsm=ndivsm, tolwfr=tolwfr,
+                                                  nscf_nband=nscf_nband, nb_extra=nb_extra)
+
+        return work.register_nscf_task(ebands_inp, deps={self: "DEN"})
+
 
 class CollinearThenNonCollinearScfTask(ScfTask):
     """
@@ -3550,16 +3568,16 @@ class RelaxTask(GsTask, ProduceHist):
 
     def reduce_dilatmx(self, target=1.01):
         actual_dilatmx = self.get_inpvar('dilatmx', 1.)
-        new_dilatmx = actual_dilatmx - min((actual_dilatmx-target), actual_dilatmx*0.05)
+        new_dilatmx = actual_dilatmx - min((actual_dilatmx - target), actual_dilatmx * 0.05)
         self.set_vars(dilatmx=new_dilatmx)
 
     def fix_ofiles(self):
         """
         Note that ABINIT produces lots of out_TIM1_DEN files for each step.
-        Here we list all TIM*_DEN files, we select the last one and we rename it in out_DEN
+        Here we list all TIM*_DEN files, we select the last one and we rename it as out_DEN
 
         This change is needed so that we can specify dependencies with the syntax {node: "DEN"}
-        without having to know the number of iterations needed to converge the run in node!
+        without having to know the number of iterations needed to converge.
         """
         super().fix_ofiles()
 

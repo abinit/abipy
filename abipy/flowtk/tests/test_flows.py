@@ -191,6 +191,9 @@ class FlowTest(FlowUnitTest):
         # Save the flow in pickle format.
         flow.build_and_pickle_dump()
 
+        data = {"foo": 1, "structure": flow[0][0].input.structure}
+        flow[0][0].write_json_in_outdir("foo.json", data)
+
         # Find the pickle file in workdir and recreate the flow.
         same_flow = Flow.pickle_load(self.workdir)
         assert same_flow == flow

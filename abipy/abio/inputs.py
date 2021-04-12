@@ -26,6 +26,7 @@ from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.abio.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables, get_anaddb_variables
+from abipy.tools import duck
 from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
 from abipy.flowtk import abiobjects as aobj
@@ -740,6 +741,31 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return self._structure
 
+    def _check_nsppol_nspinor(self, nsppol, nspinor):
+        """
+        Internal function to check consistency between nsppol and nspinor provided by the user.
+        Raises: AbinitInputError if inconsistent values.
+        """
+        errors = []
+        eapp = errors.append
+
+        if nsppol not in (1, 2): eapp(f"nsppol should be either 1 or 2 while it is: {nsppol}")
+
+        if nspinor == 1:
+            if nsppol not in (1, 2):
+                eapp(f"nsppol should be 1 or 2 when nspinor == 2 while it is: {nsppol}")
+
+        elif nspinor == 2:
+            if nsppol != 1: eapp(f"nsppol must be 1 when nspinor == 1 while it is: {nsppol}")
+            nspden = self.get("nspden", None)
+            if nspden is not None and nspden not in (1, 4):
+                eapp(f"nspden should be either 1 or 4 when nspinor == 2 while it is: {nspden}")
+        else:
+            eapp(f"Invalid value for nspinor: {nspinor}")
+
+        if errors:
+            raise self.Error("\n".join(errors))
+
     ########################################################################
     # Helper functions to facilitate the specification of several variables.
     ########################################################################
@@ -825,7 +851,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
-        Set the variables for the computation of the (NSCF) electronic band structure.
+        Set the variables for the NSCF computation of the electronic band structure.
 
         Args:
             ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
@@ -941,6 +967,132 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return self.set_vars(spinat=spinat)
 
+    def set_spinat_from_symbols(self, symb2spinat, default=(0, 0, 0)):
+        """
+        Set spinat parameters from a dictionary mapping chemical simbol to spinat value.
+        If an element in the structure is not present in symb2luj, default is used.
+
+        Example:
+
+            symb2spinat = {"Eu": [0, 0, 7]}
+            inp.set_spinat_from_symbols(symb2spinat)
+        """
+        spinat = []
+        for site in self.structure:
+            m = symb2spinat.get(site.species_string, default)
+            spinat.append(np.reshape(m, (3,)))
+
+        # Use "*" Abinit syntax to shorten a bit the string by grouping repeated magnetization
+        # vectors e.g. 0 0 0 0 0 0 0 0 7 --> 9*0 0 0 7
+        # TODO: This piece of code can be encapsulate in a more genering function
+        natom = len(self.structure)
+        np.reshape(spinat, (natom, 3))
+        stack = [[spinat[0], 1]]
+        for iat in range(1, natom):
+            vec = spinat[iat]
+            if np.all(vec == stack[-1][0]) and np.all(vec == vec[0]):
+                stack[-1][1] += 1
+            else:
+                stack.append([vec, 1])
+
+        s = ""
+        for item in stack:
+            vec, count = item
+            if count > 1:
+                assert np.all(vec == vec[0])
+                s += f"{count*len(vec)}*{vec[0]} "
+            else:
+                s += f"{vec[0]} {vec[1]} {vec[2]} "
+        #print(s)
+
+        return self.set_vars(spinat=s)
+
+    def set_usepawu(self, usepawu, symb2luj, units="eV"):
+        """
+        Set DFT+U parameters for PAW calculations.
+
+        Args:
+            usepawu: Option specifying the DFT+U flavor (Abinit input variable).
+            symb2luj: Dictionary mapping chemical symbol to the values of `lpawu`, `upawu` and `jpawu`.
+                If an element in the structure is not present in symb2luj, the U+J term is automatically
+                disabled for this element. In other words, only the element on which U+J should be applied
+                must be speficied.
+            units: Energy units for U and J. Note that defaultis eV although ABINIT uses Hartree by default!
+
+        Example:
+
+            symb2luj = {"Eu": {"lpawu": 3, "upawu": 7, "jpawu": 0.7}
+            inp.set_luj(symb2luj)
+        """
+        lpawu, upawu, jpawu = [], [], []
+
+        for element in self.structure.species_by_znucl:
+            d = symb2luj.get(element.name, None)
+            if d is None:
+                lpawu.append(-1)
+                upawu.append(0)
+                jpawu.append(0)
+            else:
+                lpawu.append(d["lpawu"])
+                upawu.append(d["upawu"])
+                jpawu.append(d["jpawu"])
+
+        # Add units.
+        upawu.append(units)
+        jpawu.append(units)
+
+        return self.set_vars(usepawu=usepawu, lpawu=lpawu, upawu=upawu, jpawu=jpawu)
+
+    def set_kmesh_nband_and_occ(self, ngkpt, shiftk, nsppol, occ1k_spin, nspinor=1, kptopt=1, occopt=2):
+        """
+        Helper function to set occupancies when occopt == 2
+
+        Args:
+            ngkpt: Divisions of the k-mesh.
+            shiftk: Shifts in reduced coordinates.
+            nsppol: Spin polarization (Abinit input variable).
+            occ1k_spin: List of `nppols` strings with the occupations for a single kpoint and
+                the spin_up, spin_down channels if nsppol is 2.
+            nspinor:
+            kptopt:
+            occopt:
+        """
+        self._check_nsppol_nspinor(nsppol, spinor)
+
+        # Call Abinit to get the list of irreducible k-points.
+        #from abipy.core.kpoints import IrredZone
+        #ibz = IrredZone.from_ngkpt(self.structure, ngkpt, shiftk, kptopt=kptopt, spin_mode=spin_mode)
+        #nkpt = len(ibz)
+
+        d = self.set_kmesh(ngkpt, shiftk, kptopt=kptopt)
+        d.update(self.set_vars(nspinor=nspinor, nsppol=nsppol, occopt=occopt))
+        ibz = self.abiget_ibz()
+        nkpt = len(ibz.points)
+
+        occ1k_spin = np.reshape(occ1k_spin, (nsppol,))
+        #print("occ1k_spin", occ1k_spin)
+        occ_str = ""
+        from abipy.abio.abivars import expand_star_syntax
+
+        nband_spin = []
+        for spin in range(nsppol):
+            s = occ1k_spin[spin]
+            nband_k = len(expand_star_syntax(s).split())
+            #print("nband_k", nband_k)
+            nband_spin.append(nband_k)
+            occ_str += s * nkpt + "\n"
+
+        #print("nkpt:", nkpt, "\nnband_spin:", nband_spin, "\nocc_str:", occ_str)
+        if nsppol == 2 and nband_spin[0] != nband_spin[1]:
+            raise ValueError("Different number of bands for the two spin channels: %s", str(nband_spin))
+
+        nband = "*%d" % nband_spin[0]
+
+        d.update(self.set_vars(nband=nband, occ=occ_str))
+        d["nkpt"] = nkpt # Return nkpt as well as it may be useful for generating workflows.
+
+        return d
+
     @property
     def pseudos(self):
         """List of |Pseudo| objects."""
@@ -948,12 +1100,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     @property
     def ispaw(self):
-        """True if PAW calculation."""
+        """True if this is a PAW calculation."""
         return all(p.ispaw for p in self.pseudos)
 
     @property
     def isnc(self):
-        """True if norm-conserving calculation."""
+        """True if this is a norm-conserving calculation."""
         return all(p.isnc for p in self.pseudos)
 
     @property
@@ -1222,7 +1374,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return tolvar, value
 
-    def make_ebands_input(self, ndivsm=15, tolwfr=1e-20, nscf_nband=None):
+    def make_ebands_input(self, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10):
         """
         Generate an input file for NSCF band structure calculation from a GS SCF input.
 
@@ -1233,7 +1385,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 This option is the recommended one if the k-path contains two high symmetry k-points that are very close
                 as ndivsm > 0 may produce a very large number of wavevectors.
             tolwfr: Tolerance on residuals for NSCF calculation.
-            nscf_nband: Number of bands for NSCF calculation. +10 if None.
+            nscf_nband: Number of bands for NSCF calculation. If None, use nband + nb_extra
         """
         nscf_input = self.deepcopy()
         nscf_input.pop_vars(["ngkpt", "shiftk"])
@@ -1247,7 +1399,19 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             kpts = kpoints_from_line_density(self.structure, abs(ndivsm))
             nscf_input.set_vars(kptopt=0, nkpt=len(kpts), kpt=kpts)
 
-        nscf_nband = self["nband"] + 10 if nscf_nband is None else nscf_nband
+        if nscf_nband is None:
+            nb = self["nband"]
+            has_star = False
+            if duck.is_string(nb):
+                # Handle the case in which nband is specified with the `*91` syntax (occopt 2)
+                if nb.startswith("*"):
+                    has_star = True
+                    nb = nb.replace("*", "", 1)
+                nb = int(nb)
+
+            nscf_nband = nb + nb_extra
+            if has_star: nscf_nband = f"*{nscf_nband}"
+
         nscf_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr)
 
         return nscf_input

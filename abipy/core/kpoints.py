@@ -1405,14 +1405,14 @@ class IrredZone(KpointList):
     #        return cls.from_kppa(structure, kppa, shiftk, kptopt=kptopt, verbose=verbose)
 
     @classmethod
-    def from_ngkpt(cls, structure, ngkpt, shiftk, kptopt=1, verbose=0):
+    def from_ngkpt(cls, structure, ngkpt, shiftk, kptopt=1, spin_mode="unpolarized", verbose=0):
         """
         Build an IrredZone object from (ngkpt, shift) by calling Abinit
         to get the list of irreducible k-points.
         """
         from abipy.abio.factories import gs_input
         from abipy.data.hgh_pseudos import HGH_TABLE
-        gsinp = gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
+        gsinp = gs_input(structure, HGH_TABLE, spin_mode=spin_mode)
         ibz = gsinp.abiget_ibz(ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt, verbose=verbose)
         ksampling = KSamplingInfo.from_mpdivs(ngkpt, shiftk, kptopt)
 

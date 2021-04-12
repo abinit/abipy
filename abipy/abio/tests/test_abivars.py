@@ -6,10 +6,21 @@ import abipy.data as abidata
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
 from abipy.core.testing import AbipyTest
-from abipy.abio.abivars import AbinitInputFile, AbinitInputParser
+from abipy.abio.abivars import AbinitInputFile, AbinitInputParser, expand_star_syntax
 
 
 class TestAbinitInputParser(AbipyTest):
+
+    def test_helper_functions(self):
+        assert expand_star_syntax("3*2") == '2 2 2'
+        assert expand_star_syntax("2 *1") == '1 1'
+        assert expand_star_syntax("1 2*2") == '1 2 2'
+        assert expand_star_syntax("*2") == '*2'
+
+        s = expand_star_syntax("64*1 6*1 0 1/3 1/3 1/3 17*0")
+        values = s.split()
+        assert len(values) == 91
+        #assert np.sum(values) == 71
 
     def test_static_methods(self):
         """Testing AbinitInputParser static methods."""

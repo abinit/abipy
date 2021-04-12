@@ -47,6 +47,10 @@ class TestAbinitInput(AbipyTest):
         with self.assertRaises(inp.Error):
             inp["foo"] = 1
 
+        with self.assertRaises(inp.Error): inp._check_nsppol_nspinor(3, 1)
+        with self.assertRaises(inp.Error): inp._check_nsppol_nspinor(2, 2)
+        with self.assertRaises(inp.Error): inp._check_nsppol_nspinor(1, 4)
+
         # unless we deactive spell_check
         assert inp.spell_check
         inp.set_spell_check(False)
@@ -357,8 +361,9 @@ class TestAbinitInput(AbipyTest):
         self.assertMSONable(inp)
 
     def test_enforce_znucl_and_typat(self):
-        """Test the order of typat and znucl in the Abinit input when  enforce_typat, enforce_znucl are used."""
-
+        """
+        Test the order of typat and znucl in the Abinit input when enforce_typat, enforce_znucl are used.
+        """
         # Ga  Ga1  1  0.33333333333333  0.666666666666667  0.500880  1.0
         # Ga  Ga2  1  0.66666666666667  0.333333333333333  0.000880  1.0
         # N  N3  1  0.333333333333333  0.666666666666667  0.124120  1.0
@@ -455,6 +460,12 @@ class TestAbinitInput(AbipyTest):
         assert "ngkpt" not in nscf_inp and "shiftk" not in nscf_inp
         assert nscf_inp["iscf"] == -2 and nscf_inp["tolwfr"] == 1e-5
         assert nscf_inp["nkpt"] == 149
+        self.abivalidate_input(nscf_inp)
+
+        # Test make_ebands_input with nband = "*91" (occopt 2)
+        gs_occopt2 = gs_inp.new_with_vars(nband="*91", occopt=2)
+        nscf_inp = gs_occopt2.make_ebands_input(nb_extra=10)
+        assert nscf_inp["nband"] == "*101"
         self.abivalidate_input(nscf_inp)
 
         # Test make_edos_input
@@ -599,6 +610,68 @@ class TestAbinitInput(AbipyTest):
         ecut = inp.pop('ecut')
         inp.set_vars({'ecut': ecut})
         assert inp_cs == inp.variable_checksum()
+
+    def test_explicit_occ(self):
+        """Testing helper function to set occupancies when occopt == 2"""
+
+        abi_kwargs = dict(ecut=15, pawecutdg=30, tolvrs=1e-12, chksymbreak=0)
+
+        inp = AbinitInput(structure=abidata.cif_file("SrO_Eu_222.cif"),
+                          pseudos=abidata.pseudos("Sr.xml", "o.paw", "Eu.xml"),
+                          #pseudos=abidata.pseudos("Sr.xml", "O.xml", "Eu.xml"))
+                          abi_kwargs=abi_kwargs)
+
+        assert inp.ispaw and len(inp.structure) == 16
+        #abivars = inp.to_abivars()
+        symb2luj = {"Eu": {"lpawu": 3, "upawu": 7, "jpawu": 0.7}}
+        usepawu = 1
+        inp.set_usepawu(usepawu, symb2luj, units="eV")
+
+        assert inp["usepawu"] == usepawu
+        assert inp["lpawu"] == [-1, 3, -1]
+        assert inp["upawu"] == [0, 7, 0, "eV"]
+        assert inp["jpawu"] == [0, 0.7, 0, "eV"]
+
+        symb2spinat = {"Eu": [0, 0, 7]}
+        inp.set_spinat_from_symbols(symb2spinat, default=(0, 0, 0))
+        assert inp["spinat"] == "21*0 0 0 7 24*0 "
+
+        nsppol = 2
+        ngkpt = [2, 2, 2]
+        shiftk = [0.5, 0.5, 0.5]
+        n_cond = round(20)
+        n_val = inp.num_valence_electrons
+
+        spin_up_gs = f"\n{int((n_val - 7) / 2)}*1 7*1 {n_cond}*0"
+        spin_up_ex = f"\n{int((n_val - 7) / 2)}*1 6*1 0 1/3 1/3 1/3 {n_cond - 3}*0" # Fractional occ works better for SrO
+        spin_dn = f"\n{int((n_val - 7) / 2)}*1 7*0 {n_cond}*0"
+
+        #occ1k_spin = [spin_up_gs, spin_dn]
+        occ1k_spin = [spin_up_ex, spin_dn]
+
+        inp.set_kmesh_nband_and_occ(ngkpt, shiftk, nsppol, occ1k_spin,
+                                    # nspinor=1, kptopt=1, occopt=2)
+                                    )
+
+        assert inp["kptopt"] == 1 and inp["occopt"] == 2
+
+        # nband
+        # shiftk    0.5    0.5    0.5
+        # ngkpt 2 2 2
+        assert inp["nsppol"] == 2 and inp["occopt"] == 2 # and inp["nspden"] == 2
+
+        # occ
+        assert inp["nband"] == "*91"
+        assert inp["occ"] == """
+64*1 6*1 0 1/3 1/3 1/3 17*0
+64*1 6*1 0 1/3 1/3 1/3 17*0
+
+64*1 7*0 20*0
+64*1 7*0 20*0
+"""
+
+        # Call Abinit in dry run mode to validate input.
+        self.abivalidate_input(inp)
 
 
 class TestMultiDataset(AbipyTest):
