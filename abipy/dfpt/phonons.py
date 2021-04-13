@@ -4096,6 +4096,14 @@ class PhononBandsPlotter(NotebookWriter):
             yield self.combiplot(show=False)
             yield self.combiboxplot(show=False)
 
+    #def plotly_expose(self, **kwargs):  # pragma: no cover
+    #    """This function *generates* a predefined list of plotly figures with minimal input from the user."""
+    #    #yield self.gridplot(show=False)
+    #    #yield self.boxplot(show=False)
+    #    if self.has_same_formula():
+    #        self.combiplotly(**kwargs)
+    #        #yield self.combiboxplot(**kwargs))
+
     @add_fig_kwargs
     def gridplot(self, with_dos=True, units="eV", fontsize=8, **kwargs):
         """

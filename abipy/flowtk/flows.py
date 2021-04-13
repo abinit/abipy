@@ -1826,7 +1826,10 @@ class Flow(Node, NodeContainer, MSONable):
                         break
 
             if not count:
-                cprint("Houston, we could not find any error message that can explain the problem",
+                cprint("""
+Houston, we could not find any error message that can explain the problem.
+Use the `abirun.py FLOWDIR history` command to print the log files of the different nodes.
+""",
                         color="magenta", file=stream)
 
         print("Number of tasks analyzed: %d" % ntasks, file=stream)
@@ -3041,6 +3044,9 @@ def g0w0_flow(workdir, scf_input, nscf_input, scr_input, sigma_inputs, manager=N
     flow.register_work(work)
     if allocate: flow.allocate()
     return flow
+
+
+# TODO: Deprecate PhononFlow, Use PhononWork
 
 
 class PhononFlow(Flow):

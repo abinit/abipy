@@ -899,6 +899,12 @@ def add_plotly_fig_kwargs(func):
         hovermode = kwargs.pop("hovermode", False)
         savefig = kwargs.pop("savefig", None)
         write_json = kwargs.pop("write_json", None)
+        config = kwargs.pop("config", None)
+        renderer = kwargs.pop("renderer", None)
+
+        # Allow users to specify the renderer via shell env.
+        if renderer is not None and os.getenv("PLOTLY_RENDERER", default=None) is not None:
+            renderer = None
 
         # Call func and return immediately if None is returned.
         fig = func(*args, **kwargs)
@@ -915,7 +921,7 @@ def add_plotly_fig_kwargs(func):
             pio.write_json(fig, write_json)
         fig.layout.hovermode = hovermode
         if show:
-            fig.show()
+            fig.show(renderer=renderer, config=config)
 
         return fig
 
@@ -937,6 +943,12 @@ def add_plotly_fig_kwargs(func):
                                   Make some changes to the figure, then use the file menu to save the customized plotly plot.
                                   Requires `jupyter labextension install jupyterlab-chart-editor`.
                                   See https://github.com/plotly/jupyterlab-chart-editor
+                renderer          (str or None (default None)) –
+                                  A string containing the names of one or more registered renderers
+                                  (separated by ‘+’ characters) or None. If None, then the default
+                                  renderers specified in plotly.io.renderers.default are used.
+                                  See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
+                config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
                 ================  ====================================================================
         """
     )

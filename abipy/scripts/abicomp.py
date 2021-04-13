@@ -36,14 +36,6 @@ def df_to_clipboard(options, df):
         df.to_clipboard()
 
 
-def abiview_fields(options):
-    """Animate fields with Mayavi. Accept any file with density or potential ..."""
-    from abipy.display.mvtk import MayaviFieldAnimator
-    a = MayaviFieldAnimator(options.filepath)
-    a.volume_animate()
-    return 0
-
-
 def abicomp_structure(options):
     """
     Compare crystalline structures. Use `--group` to compare for similarity.
@@ -361,6 +353,10 @@ def abicomp_phbands(options):
     elif options.expose:
         plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                        verbose=options.verbose)
+
+    #elif options.plotly:
+    #    plotter.plotly_expose(renderer="browser")
+
     else:
         # Print pandas Dataframe.
         abilab.print_dataframe(plotter.get_phbands_frame())

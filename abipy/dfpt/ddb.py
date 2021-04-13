@@ -208,6 +208,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("Has (all) strain terms: %s" % self.has_strain_terms(select="all"))
         app("Has (all) internal strain terms: %s" % self.has_internalstrain_terms(select="all"))
         app("Has (all) piezoelectric terms: %s" % self.has_piezoelectric_terms(select="all"))
+        #app("Has (all) dynamical quadrupole terms: %s" % self.has_quadrupole_terms(select="all"))
 
         if verbose:
             # Print q-points
@@ -1358,6 +1359,62 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             label = "rifcsph: %f" % rifcsph
             phbands_plotter.add_phbands(label, phbst_file.phbands)
+            phbst_file.close()
+
+        return phbands_plotter
+
+    def anacompare_quad(self, asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
+                        nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
+                        verbose=0, mpi_procs=1):
+        """
+        Invoke anaddb to compute the phonon band structure and the phonon DOS by including
+        dipole-quadrupole and quadrupole-quadrupole terms in the dynamical matrix
+        Build and return |PhononBandsPlotter| object.
+
+        Args:
+            asr: Acoustic sum rule input variable.
+            chneut: Charge neutrality for BECS
+            dipdip: 1 to activate treatment of dipole-dipole interaction (requires BECS and dielectric tensor).
+            lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
+                If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
+                non_anal_phfreqs attributes will be addeded to the phonon band structure.
+                "automatic" activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.
+            nqsmall: Defines the q-mesh for the phonon DOS in terms of
+                the number of divisions to be used to sample the smallest reciprocal lattice vector.
+                0 to disable DOS computation.
+            ndivsm: Number of division used for the smallest segment of the q-path
+            dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening
+            ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
+            verbose: Verbosity level.
+            mpi_procs: Number of MPI processes used by anaddb.
+
+        Return:
+            |PhononBandsPlotter| object.
+
+            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
+        """
+        phbands_plotter = PhononBandsPlotter()
+
+        confs = [
+            dict(dipquad=0, quadquad=0),
+            dict(dipquad=1, quadquad=0),
+            dict(dipquad=1, quadquad=1),
+        ]
+
+        for conf in confs:
+            phbst_file, phdos_file = self.anaget_phbst_and_phdos_files(
+                nqsmall=nqsmall, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
+                lo_to_splitting=lo_to_splitting, ngqpt=ngqpt, qptbounds=None,
+                anaddb_kwargs=conf, verbose=verbose, mpi_procs=mpi_procs, workdir=None, manager=None)
+
+            label = "asr: %d, chneut: %d, dipdip: %d, dipquad: %d, quadquad: %d " % (
+                    asr, dipdip, chneut, conf["dipquad"], conf["quadquad"])
+            if phdos_file is not None:
+                phbands_plotter.add_phbands(label, phbst_file.phbands, phdos=phdos_file.phdos)
+                phdos_file.close()
+            else:
+                phbands_plotter.add_phbands(label, phbst_file.phbands)
             phbst_file.close()
 
         return phbands_plotter

@@ -90,6 +90,8 @@ ext2file = collections.OrderedDict([
     (".out", AbinitOutputFile),
     (".log", AbinitLogFile),
     (".cif", Structure),
+    (".abivars", Structure),
+    (".ucell", Structure),
     ("POSCAR", Structure),
     (".cssr", Structure),
     (".cube", CubeFile),

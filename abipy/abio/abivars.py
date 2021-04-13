@@ -3,7 +3,7 @@ import os
 import warnings
 import numpy as np
 
-from pprint import pformat
+from pprint import pformat #, pprint
 from monty.string import is_string, boxed
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -17,6 +17,7 @@ __all__ = [
     "is_abiunit",
     "AbinitInputFile",
     "AbinitInputParser",
+    "structure_from_abistruct_fmt",
 ]
 
 
@@ -127,6 +128,76 @@ def str2array(obj, dtype=float):
     return np.fromstring(s, sep=" ", dtype=dtype)
 
 
+def eval_abinit_operators(tokens):
+    """
+    Receive a list of strings, find the occurences of operators supported
+    in the input file (e.g. sqrt), evalute the expression and return new list of strings.
+
+    .. note:
+
+        This function is not recursive hence expr like sqrt(1/2) are not supported
+    """
+    import math # noqa: F401
+    import re
+    re_sqrt = re.compile(r"[+|-]?sqrt\((.+)\)")
+
+    values = []
+    for tok in tokens:
+        if tok.startswith("'") or tok.startswith('"'):
+            values.append(tok)
+        else:
+            m = re_sqrt.match(tok)
+            if m:
+                tok = tok.replace("sqrt", "math.sqrt")
+                tok = str(eval(tok))
+            if "/" in tok:
+                tok = str(eval(tok))
+            values.append(tok)
+
+    return values
+
+
+def abi_tokenize(string):
+
+    string = string.strip()
+
+    # stack = [(char, [start, end]), ...] where char is " or '
+    stack = []
+    for i, c in enumerate(string):
+        if c in ("'", '"'):
+            if stack and stack[-1][1][1] == -1:
+                # Close quotation mark. Note that the algo is not very robust as nested quotation marks are not supported!
+                entry = stack[-1]
+                if c != entry[0]:
+                    raise ValueError("Found unclosed quotation marks in: %s" % string)
+                entry = stack[-1][1][1] = i
+            else:
+                # First hit.
+                stack.append((c, [i, -1]))
+
+    if not stack:
+        # No ' or " found in string.
+        return string.split()
+
+    # Unroll stack and buid tokens so that e.g. "foo bar" is treated as a single token.
+    tokens = []
+    base = 0
+    for item in stack:
+        start, stop = item[1][0], item[1][1]
+        # Consistency check:
+        if stop == -1:
+            raise ValueError("Found unclosed quotation mark in: %s" % string)
+        if start > 0:
+            tokens.extend(string[base:start-1].strip().split())
+            base = stop + 1
+        tokens.append(string[start:stop + 1])
+
+    if base < len(string):
+        tokens.append(string[base:])
+
+    return tokens
+
+
 class Dataset(dict, Has_Structure):
 
     @lazy_property
@@ -135,13 +206,28 @@ class Dataset(dict, Has_Structure):
         The initial structure associated to the dataset.
         """
 
-        # First of all check whether the structure is defined through external file.
+        # First of all check whether the structure is defined through an external file.
         if "structure" in self:
             s = self["structure"].replace('"', "")
             filetype, path = s.split(":")
+            #print("filetype:", filetype)
             from abipy import abilab
-            with abilab.abiopen(path) as abifile:
-                return abifile.structure
+            if filetype == "poscar":
+                return abilab.Structure.from_file(path)
+
+            elif filetype == "abivars":
+                with open(path, "rt") as fh:
+                    return structure_from_abistruct_fmt(fh.read())
+
+            else:
+                try:
+                    with abilab.abiopen(path) as abifile:
+                        if hasattr(abifile, "final_structure"):
+                            return abifile.final_structure
+                        else:
+                            return abifile.structure
+                except Exception as exc:
+                    raise RuntimeError("Error while opening file: `%s`:\n%s" % (path, exc))
 
         # Get lattice.
         kwargs = {}
@@ -375,6 +461,7 @@ for dataset in abinp.datasets:
 
 
 class AbinitInputParser(object):
+
     verbose = 0
 
     def parse(self, s):
@@ -382,9 +469,9 @@ class AbinitInputParser(object):
         This function receives a string `s` with the Abinit input and return
         a list of :class:`Dataset` objects.
         """
-        # TODO: Parse PSEUDO section if present!
-        # Remove comments from lines.
+        # Remove "=" and comments from lines.
         lines = []
+        s = s.replace("=", " ")
         for line in s.splitlines():
             line.strip()
             i = line.find("#")
@@ -393,35 +480,46 @@ class AbinitInputParser(object):
             if i != -1: line = line[:i]
             if line: lines.append(line)
 
-        # 1) Build string of the form "var1 value1 var2 value2"
-        # 2) split string in tokens.
+        # 1) Build string of the form `var1 value1 var2 value2`
+        # 2) Split string in tokens.
         # 3) Evaluate star syntax i.e. "3*2" ==> '2 2 2'
         # 4) Evaluate operators e.g. sqrt(0.75)
-        tokens = " ".join(lines).split()
-        # Step 3 is needed because we are gonna use python to evaluate the operators and
-        # in abinit `2*sqrt(0.75)` means `sqrt(0.75) sqrt(0.75)` and not math multiplication!
+        #
+        # NB: Step 3 is needed because we are gonna use python to evaluate the operators and
+        #     in abinit `2*sqrt(0.75)` means `sqrt(0.75) sqrt(0.75)` and not math multiplication!
+        #
+        #tokens = " ".join(lines).split()
+        #print("tokens:\n", pformat(tokens))
+
+        tokens = abi_tokenize(" ".join(lines))  #print("new tokens:\n", pformat(tokens))
         if self.verbose: print("tokens", tokens)
+
+        # Step 3-4
         new_tokens = []
         for t in tokens:
-            l = expand_star_syntax(t).split()
-            #print("t", t, "l", l)
-            new_tokens.extend(l)
+            if t.startswith("'") or t.startswith('"'):
+                new_tokens.append(t)
+            else:
+                l = expand_star_syntax(t).split() # ;print(l)
+                new_tokens.extend(l)
+
         tokens = new_tokens
         if self.verbose: print("new_tokens", new_tokens)
 
-        tokens = self.eval_abinit_operators(tokens)
-        #print(tokens)
+        tokens = self.eval_abinit_operators(tokens) # ; print(tokens)
 
         varpos = []
         for pos, tok in enumerate(tokens):
             #if not isnewvar(ok): continue
+            #print("token:", tok)
 
             if tok[0].isalpha():
-                # Either new variable, string defining the unit or operator e.g. sqrt
+                #print("tok[0]", tok[0])
+                # Either new variable or string defining the unit or operator e.g. sqrt
                 if is_abiunit(tok) or tok in ABI_OPERATORS or "?" in tok:
                     continue
 
-                # Have new variable
+                # Got new variable
                 if tok[-1].isdigit(): # and "?" not in tok:
                     # Handle dataset index.
                     l = []
@@ -435,7 +533,7 @@ class AbinitInputParser(object):
                         #continue
                         #raise ValueError("Expecting variable but got: %s" % tok)
 
-                #print("new var", tok, pos)
+                #print("new varname `", tok, "` at positions", pos)
                 varpos.append(pos)
 
         varpos.append(len(tokens))
@@ -443,13 +541,13 @@ class AbinitInputParser(object):
         # Build dict {varname --> value_string}
         dvars = {}
         for i, pos in enumerate(varpos[:-1]):
-            varname = tokens[pos]
+            varname = tokens[pos]  # ; print("varname:", varname)
             if pos + 2 == len(tokens):
                 dvars[varname] = tokens[-1]
             else:
                 dvars[varname] = " ".join(tokens[pos+1: varpos[i+1]])
+        # print("dvars:\n", pformat(dvars))
 
-        #print(dvars)
         err_lines = []
         for k, v in dvars.items():
             if not v:
@@ -539,28 +637,7 @@ class AbinitInputParser(object):
 
     @staticmethod
     def eval_abinit_operators(tokens):
-        """
-        Receive a list of strings, find the occurences of operators supported
-        in the input file (e.g. sqrt), evalute the expression and return new list of strings.
-
-        .. note:
-
-            This function is not recursive hence expr like sqrt(1/2) are not supported
-        """
-        import math # noqa: F401
-        import re
-        re_sqrt = re.compile(r"[+|-]?sqrt\((.+)\)")
-
-        values = []
-        for tok in tokens:
-            m = re_sqrt.match(tok)
-            if m:
-                tok = tok.replace("sqrt", "math.sqrt")
-                tok = str(eval(tok))
-            if "/" in tok:
-                tok = str(eval(tok))
-            values.append(tok)
-        return values
+        return eval_abinit_operators(tokens)
 
     @staticmethod
     def varname_dtindex(tok):
@@ -582,6 +659,99 @@ class AbinitInputParser(object):
         varname = tok[:len(tok)-i]
 
         return varname, dtidx
+
+
+def structure_from_abistruct_fmt(string):
+    """
+    Parse geometrical information given in the structure:abivars format return Structure object
+
+    A typical input file in "structure:abivars" format looks like:
+
+        # MgB2 lattice structure.
+        natom   3
+        acell   2*3.086  3.523 Angstrom
+        rprim   0.866025403784439  0.5  0.0
+               -0.866025403784439  0.5  0.0
+                0.0                0.0  1.0
+
+        # Atomic positions
+        xred_symbols
+            0.0  0.0  0.0 Mg
+            1/3  2/3  0.5 B
+            2/3  1/3  0.5 B
+
+    i.e. the zcucl, typat and ntypat vars are implicitly defined via the xred_symbols table.
+    """
+    # Algorithm is as follows:
+    #     1) parse the xred_symbols section using a record-based parser.
+    #     2) Compute xred, znucl, ntypat and typat from the xred_symbols section
+    #     3) Add these values in string format to the head to get a "standard" Abinit input file.
+    #     4) Init structure from the "standard" Abinit input file.
+    found = 0
+    head = []
+    xred, symbols = [], []
+
+    for line in string.split("\n"):
+        line = line.strip()
+
+        if line.lower() == "xred_symbols":
+            found += 1
+            continue
+        if not found:
+            head.append(line)
+        if found and line:
+            tokens = line.split() #; print(line)
+            xred.append([float(t) for t in eval_abinit_operators(tokens[:3])])
+            symbols.append(tokens[3])
+
+    if not xred:
+        raise ValueError("Cannot find xred_symbols section in string:\n %s" % string)
+
+    xred = np.reshape(xred, (-1, 3))
+
+    # Set small values to zero. This usually happens when the CIF file
+    # does not give structure parameters with enough digits.
+    xred = np.where(np.abs(xred) > 1e-8, xred, 0.0)
+
+    # Compute ntypat, typat, znucl from xred and symbols.
+    natom = len(xred)
+    ntypat = 1
+    typat = [0]
+    for iatom in range(1, natom):
+        found = -1
+        for jj in range(ntypat):
+            if symbols[iatom] == symbols[typat[jj]]:
+                found = jj
+                break
+        if found == -1:
+            ntypat += 1
+            typat.append(ntypat - 1)
+        else:
+            typat.append(found)
+
+    from pymatgen.core.periodic_table import Element
+    znucl = np.empty(ntypat)
+    for iatom in range(natom):
+        itypat = typat[iatom]
+        znucl[itypat] = Element(symbols[iatom]).Z
+
+    # Convert C indexing to Fortran.
+    typat = np.array(typat) + 1
+
+    # Build standard Abinit input string.
+    lines = []
+    app = lines.append
+    app("ntypat %d" % ntypat)
+    app("typat " + " ".join("%d" % t for t in typat))
+    app("znucl " + " ".join("%f" % z for z in znucl))
+    app("xred ")
+    for iatom in range(natom):
+        v = xred[iatom]
+        lines.append("%.16f %.16f %.16f" % (v[0], v[1], v[2]))
+
+    s =  "\n".join(head) + "\n" + "\n".join(lines) #; print(s)
+
+    return AbinitInputFile.from_string(s).structure
 
 
 def validate_input_parser(abitests_dir=None, input_files=None):

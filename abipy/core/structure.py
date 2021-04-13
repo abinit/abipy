@@ -251,6 +251,11 @@ class Structure(pmg_Structure, NotebookWriter):
                 if out.initial_structures: return out.initial_structure
             raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
 
+        elif filepath.endswith(".abivars") or filepath.endswith(".ucell"):
+            #print("in abivars")
+            with open(filepath, "rt") as fh:
+                return cls.from_abistring(fh.read())
+
         elif filepath.endswith("_DDB") or root.endswith("_DDB"):
             # DDB file.
             from abipy.abilab import abiopen
@@ -507,9 +512,16 @@ class Structure(pmg_Structure, NotebookWriter):
 
     @classmethod
     def from_abistring(cls, string):
-        """Initialize Structure from string with Abinit input variables."""
-        from abipy.abio.abivars import AbinitInputFile
-        return AbinitInputFile.from_string(string).structure
+        """
+        Initialize Structure from string with Abinit input variables.
+        """
+        from abipy.abio.abivars import AbinitInputFile, structure_from_abistruct_fmt
+
+        if "xred_symbols" not in string:
+            # Standard (verbose) input file with znucl, typat etc.
+            return AbinitInputFile.from_string(string).structure
+        else:
+            return structure_from_abistruct_fmt(string)
 
     @classmethod
     def from_abivars(cls, *args, **kwargs):
@@ -625,7 +637,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Returns a dictionary with the ABINIT variables.
 
-        enforce_znucl[ntypat] =
+        enforce_znucl[ntypat] = Enforce this value for znucl.
         enforce_typat[natom] = Fortran conventions. Start to count from 1.
         """
         return structure_to_abivars(self, enforce_znucl=enforce_znucl, enforce_typat=enforce_typat, **kwargs)

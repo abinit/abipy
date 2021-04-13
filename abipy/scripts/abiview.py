@@ -32,6 +32,14 @@ def df_to_clipboard(options, df):
         df.to_clipboard()
 
 
+#def abiview_fields(options):
+#    """Animate fields with Mayavi. Accept any file with density or potential ..."""
+#    from abipy.display.mvtk import MayaviFieldAnimator
+#    a = MayaviFieldAnimator(options.filepath)
+#    a.volume_animate()
+#    return 0
+
+
 def abiview_structure(options):
     """
     Visualize the structure with the specified visualizer. Requires external app
@@ -273,7 +281,10 @@ def abiview_ddb_asr(options):
                                      nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
                                      verbose=0, mpi_procs=1)
 
-        plotter.plot()
+        if options.plotly:
+            plotter.combiplotly(renderer="browser")
+        else:
+            plotter.plot()
 
     return 0
 
@@ -289,7 +300,29 @@ def abiview_ddb_dipdip(options):
                                         nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
                                         verbose=0, mpi_procs=1)
 
-        plotter.plot()
+        if options.plotly:
+            plotter.combiplotly(renderer="browser")
+        else:
+            plotter.plot()
+
+    return 0
+
+
+def abiview_ddb_quad(options):
+    """
+    Compute phonon band structure from DDB with/without quadrupole terms. Plot results.
+    """
+    print("Computing phonon frequencies with/without dip-quad and quad-quad terms.")
+
+    with abilab.abiopen(options.filepath) as ddb:
+        plotter = ddb.anacompare_quad(asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
+                                      nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
+                                      verbose=0, mpi_procs=1)
+
+        if options.plotly:
+            plotter.combiplotly(renderer="browser")
+        else:
+            plotter.plot()
 
     return 0
 
@@ -441,8 +474,12 @@ Usage example:
     abiview.py ddb in_DDB                 ==>  Compute ph-bands and DOS from DDB, plot results.
     abiview.py ddb_vs                     ==>  Compute speed of sound from DDB by fitting phonon frequencies.
     abiview.py ddb_ir                     ==>  Compute infra-red spectrum from DDB. Plot results.
-    abiview.py ddb_asr                    ==>  Compute ph-bands from DDB with/wo acoustic rule. Plot results.
-    abiview.py ddb_dipdip                 ==>  Compute ph-bands from DDB with/wo dipole-dipole treatment. Plot results.
+    abiview.py ddb_asr                    ==>  Compute ph-bands from DDB with/wo acoustic rule.
+                                               Plot results with matplotlib (default) or plotly (--plotly)
+    abiview.py ddb_dipdip                 ==>  Compute ph-bands from DDB with/wo dipole-dipole treatment.
+                                               Plot results with matplotlib (default) or plotly (--plotly)
+    abiview.py ddb_quad                   ==>  Compute ph-bands from DDB with/wo dipole-quadrupole terms.
+                                               Plot results with matplotlib (default) or plotly (--plotly)
     abiview.py ddb_ifc                    ==>  Visualize interatomic force constants in real space.
     abiview.py phbands out_PHBST.nc -web  ==>  Visualize ph-bands and displacements with phononwebsite.
 
@@ -500,6 +537,11 @@ def get_parser(with_epilog=False):
     nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
     nb_parser.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
+
+    # Parent parser for commands supporting plotly plots
+    plotly_parser = argparse.ArgumentParser(add_help=False)
+    plotly_parser.add_argument('--plotly', default=False, action="store_true",
+                              help='Generate plotly plots in browser instead of matplotlib.')
 
     # Parent parser for commands supporting expose.
     #expose_parser = argparse.ArgumentParser(add_help=False)
@@ -603,12 +645,16 @@ def get_parser(with_epilog=False):
                                      help=abiview_ddb_ir.__doc__)
 
     # Subparser for ddb_asr command.
-    p_ddb_asr = subparsers.add_parser('ddb_asr', parents=[copts_parser, pandas_parser, slide_parser],
+    p_ddb_asr = subparsers.add_parser('ddb_asr', parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
                                       help=abiview_ddb_asr.__doc__)
 
     # Subparser for ddb_dipdip command.
-    p_ddb_dipdip = subparsers.add_parser('ddb_dipdip', parents=[copts_parser, pandas_parser, slide_parser],
-                                          help=abiview_ddb_dipdip.__doc__)
+    p_ddb_dipdip = subparsers.add_parser('ddb_dipdip', parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
+                                         help=abiview_ddb_dipdip.__doc__)
+
+    # Subparser for ddb_quad command.
+    p_ddb_quad = subparsers.add_parser('ddb_quad', parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
+                                       help=abiview_ddb_quad.__doc__)
 
     # Subparser for ddb_ph_isodistort command.
     p_ddb_isodistort_ph = subparsers.add_parser('ddb_isodistort_ph', parents=[copts_parser],

@@ -1057,7 +1057,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             kptopt:
             occopt:
         """
-        self._check_nsppol_nspinor(nsppol, spinor)
+        self._check_nsppol_nspinor(nsppol, nspinor)
 
         # Call Abinit to get the list of irreducible k-points.
         #from abipy.core.kpoints import IrredZone

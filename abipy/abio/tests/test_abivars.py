@@ -6,7 +6,7 @@ import abipy.data as abidata
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
 from abipy.core.testing import AbipyTest
-from abipy.abio.abivars import AbinitInputFile, AbinitInputParser, expand_star_syntax
+from abipy.abio.abivars import AbinitInputFile, AbinitInputParser, expand_star_syntax, structure_from_abistruct_fmt
 
 
 class TestAbinitInputParser(AbipyTest):
@@ -221,6 +221,48 @@ typat 1 1         # For the first dataset, both numbers will be read,
         assert len(inp.datasets[1].structure) == 1
         str(inp)
 
+    def test_abinitv9(self):
+        """Test Abinit input file with v9 syntax."""
+
+        s = """
+    pseudos = "Cd.psp8, Se.psp8"
+    optdriver 7
+
+    getwfk_filepath  "flow_phonons/w0/t0/outdata/out_WFK"
+    getddb_filepath  "flow_phonons/w0/outdata/out_DDB"
+    getdvdb_filepath 'flow_phonons/w0/outdata/out_DVDB'
+    ddb_ngqpt 2 2 2
+
+    eph_task +4
+    #sigma_erange -0.2 -0.2 eV
+    nkptgw 1
+    kptgw 0 0 0
+    bdgw 36 37
+
+    ##############################################
+     natom 2
+     ntypat 2
+     typat 1 2
+     znucl 48 34
+     xred
+        0.0000000000    0.0000000000    0.0000000000
+        0.2500000000    0.2500000000    0.2500000000
+     acell    1.0    1.0    1.0
+     rprim
+        0.0000000000    5.8556815705    5.8556815705
+        5.8556815705    0.0000000000    5.8556815705
+        5.8556815705    5.8556815705    0.0000000000
+"""
+
+        inp = AbinitInputFile.from_string(s)
+        assert inp.ndtset == 1 and len(inp.structure) == 2
+        dt = inp.datasets[0]
+        assert int(dt["eph_task"]) == 4
+        assert dt["pseudos"] == '"Cd.psp8, Se.psp8"'
+        assert dt["getwfk_filepath"] == '"flow_phonons/w0/t0/outdata/out_WFK"'
+        assert dt["getdvdb_filepath"] == "'flow_phonons/w0/outdata/out_DVDB'"
+        str(inp)
+
     def test_all_inputs_in_tests(self):
         """
         Try to parse all Abinit input files inside the Abinit `tests` directory.
@@ -237,3 +279,37 @@ typat 1 1         # For the first dataset, both numbers will be read,
         assert os.path.exists(abitests_dir)
         retcode = validate_input_parser(abitests_dir=abitests_dir)
         assert retcode == 0
+
+    def test_abistruct_from_abistruct_format(self):
+
+        string = """
+# MgB2 lattice structure.
+natom   3
+acell   2*3.086  3.523 Angstrom
+rprim   0.866025403784439  0.5  0.0
+       -0.866025403784439  0.5  0.0
+        0.0                0.0  1.0
+
+# Atomic positions
+xred_symbols
+ 0.0  0.0  0.0 Mg
+ 1/3  2/3  0.5 B
+ 2/3  1/3  0.5 B
+"""
+
+        mgb2 = structure_from_abistruct_fmt(string)
+
+        assert len(mgb2) == 3
+        assert [site.specie.symbol for site in mgb2] == ["Mg", "B", "B"]
+        abivars = mgb2.to_abivars()
+        assert abivars["ntypat"] == 2
+        self.assert_equal(abivars["typat"], [1, 2, 2])
+        self.assert_equal(abivars["znucl"], [12, 5])
+        self.assert_equal(abivars["xred"].flatten(), [0.0, 0.0, 0.0,
+                                                      1/3, 2/3, 0.5,
+                                                      2/3, 1/3, 0.5])
+
+        # Test wrapper provided by AbiPy structure.
+        from abipy.core.structure import Structure
+        same_mgb2 = Structure.from_abistring(string)
+        assert same_mgb2 == mgb2

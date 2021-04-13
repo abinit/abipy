@@ -570,7 +570,7 @@ class TestAbinitInput(AbipyTest):
         self.abivalidate_multi(dde_inputs)
 
         dde_inputs = gs_inp.make_dde_inputs(tolerance=None, use_symmetries=True)
-        print("DDE inputs\n", dde_inputs)
+        #print("DDE inputs\n", dde_inputs)
         assert len(dde_inputs) == 1
         assert all(np.all(inp["tolvrs"] == 1.0e-22 for inp in dde_inputs))
         assert all(inp["rfelfd"] == 3 for inp in dde_inputs)
