@@ -135,11 +135,7 @@ class Dependency(object):
         if exts and is_string(exts): exts = exts.split()
 
         # Extract extensions.
-        self.exts = [e for e in exts if not e.startswith("@")]
-
-        # Save getters
-        self.getters = [e for e in exts if e.startswith("@")]
-        #if self.getters: print(self.getters)
+        self.exts = [e for e in exts]
 
     def __hash__(self):
         return hash(self._node)
@@ -174,9 +170,16 @@ class Dependency(object):
 
         return _products
 
+    def get_getters(self):
+        """
+        Return the list of getters.
+        Getters are special ext starting with @.
+        """
+        return [e for e in self.exts if e.startswith("@")]
+
     def apply_getters(self, task):
         """
-        This function is called when we specify the task dependencies with the syntax:
+        This function apply particular exts with the syntax:
 
             deps={node: "@property"}
 
@@ -186,9 +189,8 @@ class Dependency(object):
 
             - @structure
         """
-        if not self.getters: return
-
-        for getter in self.getters:
+        getters = self.get_getters()
+        for getter in getters:
             if getter == "@structure":
                 task.history.info("Getting structure from %s" % self.node)
                 new_structure = self.node.get_final_structure()
@@ -226,7 +228,7 @@ class Product(object):
             ext: ABINIT file extension
             path: (asbolute) filepath
         """
-        if ext not in abi_extensions():
+        if ext not in abi_extensions() and not ext.startswith("@"):
             raise ValueError("Extension `%s` has not been registered in the internal database" % str(ext))
 
         self.ext = ext

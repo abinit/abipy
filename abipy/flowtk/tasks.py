@@ -2188,7 +2188,16 @@ class Task(Node, metaclass=abc.ABCMeta):
         This method calls self.setup after having performed additional operations
         such as the creation of the symbolic links needed to connect different tasks.
         """
-        self.make_links()
+        for d in self.deps:
+            print("d.exts: ", d.exts)
+            if [e for e in d.exts if not e.startswith("@")]: #Here we work on normal deps
+                self.make_links()
+                cvars = d.connecting_vars()
+                self.history.info("Adding connecting vars %s" % cvars)
+                self.set_vars(cvars)
+
+            d.apply_getters(self) #Here we work on getters
+
         self.setup()
 
     def get_event_report(self, source="log"):
@@ -2453,15 +2462,6 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         self.build()
         self._setup()
-
-        # Add the variables needed to connect the node.
-        for d in self.deps:
-            cvars = d.connecting_vars()
-            self.history.info("Adding connecting vars %s" % cvars)
-            self.set_vars(cvars)
-
-            # Get (python) data from other nodes
-            d.apply_getters(self)
 
         # Automatic parallelization
         if kwargs.pop("autoparal", True) and hasattr(self, "autoparal_run"):
