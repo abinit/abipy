@@ -31,10 +31,10 @@ class LumiWork(Work):
                 This option is the recommended one if the k-path contains two high symmetry k-points that are very close
                 as ndivsm > 0 may produce a very large number of wavevectors.
             nb_extra: Number of extra bands added to the input nband when computing band structures (ndivsm != 0).
-            tolwfr: Tolerance of the residuals used for the NSCF band structure calculations.
+            tolwfr: Tolerance on the residuals used for the NSCF band structure calculations.
             ngqpt: If not None, activates computation of phonons with DFPT using this q-mesh.
                 Usually Gamma-only that is ngqpt = [1, 1, 1].
-            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+            manager: |TaskManager| of the work. If None, the manager is initialized from the config file.
         """
         new = cls(manager=manager)
 
@@ -68,7 +68,7 @@ class LumiWork(Work):
 
     def on_all_ok(self):
         """
-        This method is called when all the works in the flow have reached S_OK.
+        This method is called when all the tasks in the work have reached S_OK.
 
         This is the section in which we implement most of the workflow logic at runtime.
         since we need to generate input files with relaxed structures.
@@ -136,7 +136,7 @@ class LumiWork(Work):
 
             if self.ngqpt is not None:
                 # Create new work to compute phonons for the Ae configuration. Make sure prtwf == 1
-                self.ae_scf_task["prtwf"] = 1
+                self.ae_scf_task.input["prtwf"] = 1
                 ph_work = PhononWork.from_scf_task(self.ae_scf_task, self.ngqpt, is_ngqpt=True,
                                                    tolerance=None, with_becs=True, ddk_tolerance=None)
                 self.flow.register_work(ph_work)

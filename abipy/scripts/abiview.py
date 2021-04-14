@@ -201,11 +201,12 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
         elif options.phononwebsite:
             return phbands.view_phononwebsite(browser=options.browser, verbose=options.verbose)
         else:
+            # matplotlib output
             phdos = phdos_file.phdos
             units = "mev"
             with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
-                #e(phbst_file.expose())
-                #e(phdos_file.expose())
+                #e(phbands.expose())
+                #e(phdos.expose())
                 e(phbands.qpoints.plot(show=False))
                 e(phbands.plot_with_phdos(phdos, units=units, show=False))
                 e(phbands.plot_colored_matched(units=units, show=False))
@@ -281,10 +282,9 @@ def abiview_ddb_asr(options):
                                      nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
                                      verbose=0, mpi_procs=1)
 
-        if options.plotly:
-            plotter.combiplotly(renderer="browser")
-        else:
-            plotter.plot()
+
+        title = ddb.structure.formula
+        plotter.combiplotly(renderer="browser", title=title) if options.plotly else plotter.plot(title=title)
 
     return 0
 
@@ -300,10 +300,8 @@ def abiview_ddb_dipdip(options):
                                         nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
                                         verbose=0, mpi_procs=1)
 
-        if options.plotly:
-            plotter.combiplotly(renderer="browser")
-        else:
-            plotter.plot()
+        title = ddb.structure.formula
+        plotter.combiplotly(renderer="browser", title=title) if options.plotly else plotter.plot(title=title)
 
     return 0
 
@@ -319,10 +317,8 @@ def abiview_ddb_quad(options):
                                       nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
                                       verbose=0, mpi_procs=1)
 
-        if options.plotly:
-            plotter.combiplotly(renderer="browser")
-        else:
-            plotter.plot()
+        title = ddb.structure.formula
+        plotter.combiplotly(renderer="browser", title=title) if options.plotly else plotter.plot(title=title)
 
     return 0
 
@@ -375,7 +371,9 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
 
 
 def abiview_phbands(options):
-    """Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, ..."""
+    """
+    Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, ...
+    """
     with abilab.abiopen(options.filepath) as abifile:
         if options.xmgrace:
             outpath = options.filepath + ".agr"
