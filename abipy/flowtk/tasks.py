@@ -2189,7 +2189,6 @@ class Task(Node, metaclass=abc.ABCMeta):
         such as the creation of the symbolic links needed to connect different tasks.
         """
         for d in self.deps:
-            print("d.exts: ", d.exts)
             if [e for e in d.exts if not e.startswith("@")]: #Here we work on normal deps
                 self.make_links()
                 cvars = d.connecting_vars()
