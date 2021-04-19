@@ -29,6 +29,14 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`fatbands` Module
+----------------------
+
+.. automodule:: abipy.panels.fatbands
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`flows` Module
 -------------------
 
@@ -45,10 +53,42 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`hist` Module
+------------------
+
+.. automodule:: abipy.panels.hist
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`outputs` Module
+---------------------
+
+.. automodule:: abipy.panels.outputs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`phonons` Module
 ---------------------
 
 .. automodule:: abipy.panels.phonons
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`pipelines` Module
+---------------------
+
+.. automodule:: abipy.panels.pipelines
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`sigeph` Module
+---------------------
+
+.. automodule:: abipy.panels.pipelines
    :members:
    :undoc-members:
    :show-inheritance:

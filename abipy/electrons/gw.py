@@ -1207,6 +1207,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 cprint("Number of bands in KS band structure smaller than the number of bands in GW corrections", "red")
                 cprint("Highest GW bands will be ignored", "red")
 
+            if not ks_ebands_kpath.kpoints.is_path:
+                cprint("Energies in ks_ebands_kpath should be along a k-path!", "red")
+
         # Interpolate QP energies if ks_ebands_kpath is None else interpolate QP corrections
         # and re-apply them on top of the KS band structure.
         gw_kcoords = [k.frac_coords for k in self.gwkpoints]
@@ -1272,6 +1275,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             if ks_ebands_kpath.structure != self.structure:
                 cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
                 #raise ValueError("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!")
+            if not ks_ebands_kmesh.kpoints.is_ibz:
+                cprint("Energies in ks_ebands_kmesh should be given in the IBZ", "red")
 
             # K-points and weight for DOS are taken from ks_ebands_kmesh
             dos_kcoords = [k.frac_coords for k in ks_ebands_kmesh.kpoints]

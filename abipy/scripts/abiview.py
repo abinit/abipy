@@ -11,7 +11,7 @@ from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExpose, GenericDataFilePlotter
+from abipy.tools.plotting import MplExpose, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
 
 
 def handle_overwrite(path, options):
@@ -189,6 +189,7 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
         print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
         phbands = phbst_file.phbands
+        units = "mev"
 
         if options.xmgrace:
             outpath = options.filepath + ".agr"
@@ -198,12 +199,23 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
         #    outpath = options.filepath + ".bxsf"
         #    phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
+
         elif options.phononwebsite:
             return phbands.view_phononwebsite(browser=options.browser, verbose=options.verbose)
+
+        elif options.plotly:
+            # plotly output
+            phdos = phdos_file.phdos
+            figs = []
+            e = figs.append
+            e(phbands.plotly_with_phdos(phdos, units=units, show=False))
+            e(phdos.plotly(units=units, show=False))
+            push_to_chart_studio(figs) if options.chart_studio else plotlyfigs_to_browser(figs)
+
         else:
             # matplotlib output
             phdos = phdos_file.phdos
-            units = "mev"
+
             with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
                 #e(phbands.expose())
                 #e(phdos.expose())
@@ -282,16 +294,16 @@ def abiview_ddb_asr(options):
                                      nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
                                      verbose=0, mpi_procs=1)
 
-
         title = ddb.structure.formula
-        plotter.combiplotly(renderer="browser", title=title) if options.plotly else plotter.plot(title=title)
+        renderer = "browser" if not options.chart_studio else "chart_studio"
+        plotter.combiplotly(renderer=renderer, title=title) if options.plotly else plotter.plot(title=title)
 
     return 0
 
 
 def abiview_ddb_dipdip(options):
     """
-    Compute phonon band structure from DDB with/without acoustic sum rule. Plot results.
+    Compute phonon band structure from DDB with/without dipole-dipole interaction. Plot results.
     """
     print("Computing phonon frequencies with/without dipdip")
 
@@ -301,7 +313,8 @@ def abiview_ddb_dipdip(options):
                                         verbose=0, mpi_procs=1)
 
         title = ddb.structure.formula
-        plotter.combiplotly(renderer="browser", title=title) if options.plotly else plotter.plot(title=title)
+        renderer = "browser" if not options.chart_studio else "chart_studio"
+        plotter.combiplotly(renderer=renderer, title=title) if options.plotly else plotter.plot(title=title)
 
     return 0
 
@@ -318,7 +331,8 @@ def abiview_ddb_quad(options):
                                       verbose=0, mpi_procs=1)
 
         title = ddb.structure.formula
-        plotter.combiplotly(renderer="browser", title=title) if options.plotly else plotter.plot(title=title)
+        renderer = "browser" if not options.chart_studio else "chart_studio"
+        plotter.combiplotly(renderer=renderee, title=title) if options.plotly else plotter.plot(title=title)
 
     return 0
 
@@ -474,6 +488,9 @@ Usage example:
     abiview.py ddb_ir                     ==>  Compute infra-red spectrum from DDB. Plot results.
     abiview.py ddb_asr                    ==>  Compute ph-bands from DDB with/wo acoustic rule.
                                                Plot results with matplotlib (default) or plotly (--plotly)
+    abiview.py ddb_asr --plotly -cs       ==>  Compute ph-bands from DDB with/wo acoustic rule.
+                                               Plot results with plotly and push figure to plotly chart studio cloud.
+                                               See: https://chart-studio.plotly.com/
     abiview.py ddb_dipdip                 ==>  Compute ph-bands from DDB with/wo dipole-dipole treatment.
                                                Plot results with matplotlib (default) or plotly (--plotly)
     abiview.py ddb_quad                   ==>  Compute ph-bands from DDB with/wo dipole-quadrupole terms.
@@ -539,16 +556,10 @@ def get_parser(with_epilog=False):
     # Parent parser for commands supporting plotly plots
     plotly_parser = argparse.ArgumentParser(add_help=False)
     plotly_parser.add_argument('--plotly', default=False, action="store_true",
-                              help='Generate plotly plots in browser instead of matplotlib.')
-
-    # Parent parser for commands supporting expose.
-    #expose_parser = argparse.ArgumentParser(add_help=False)
-    #expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
-    #        help='Execute robot.expose to produce a pre-defined list of matplotlib figures.')
-    #expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
-    #        help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
-    #expose_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
-    #        help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
+        help='Generate plotly plots in browser instead of matplotlib.')
+    plotly_parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
+        help="Push figure to plotly chart studio. " +
+             "Requires --plotly and user account at https://chart-studio.plotly.com.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
@@ -611,7 +622,7 @@ def get_parser(with_epilog=False):
     p_dirviz.add_argument("-e", "--engine", type=str, default="fdp",
         help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
             "See http://www.graphviz.org/pdf/dot.1.pdf "
-            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package"))
+            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package."))
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, slide_parser], help=abiview_ebands.__doc__)
@@ -631,7 +642,7 @@ def get_parser(with_epilog=False):
         help="Application name. Possible options: mpl (matplotlib, default), xsf (xcrysden), mayavi.")
 
     # Subparser for ddb command.
-    p_ddb = subparsers.add_parser('ddb', parents=[copts_parser, slide_parser], help=abiview_ddb.__doc__)
+    p_ddb = subparsers.add_parser('ddb', parents=[copts_parser, slide_parser, plotly_parser], help=abiview_ddb.__doc__)
     add_args(p_ddb, "xmgrace", "phononweb", "browser", "force")
 
     # Subparser for ddb_vs command.
@@ -713,8 +724,8 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    if options.verbose > 2:
-        print(options)
+    if getattr(options, "plotly", False): options.expose = True
+    if options.verbose > 2: print(options)
 
     if options.mpl_backend is not None:
         # Set matplotlib backend

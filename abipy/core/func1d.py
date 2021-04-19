@@ -500,18 +500,18 @@ class Function1D(object):
 
         return lines
 
-    def plotly_traces(self, fig, row=1, col=1, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
+    def plotly_traces(self, fig, rcd=None, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
         """
-        Helper function to plot self with plotly.
+        Helper function to plot the function with plotly.
 
         Args:
             fig: |plotly.graph_objects.Figure|.
-            row, col: only used when the fig has subplots, for specifying the subplot where traces should be added.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
             exchange_xy: True to exchange the x and y in the plot.
             xfactor, yfactor: xvalues and yvalues are multiplied by this factor before plotting.
             args: Positional arguments passed to 'plotly.graph_objects.Scatter'
             kwargs: Keyword arguments passed to 'plotly.graph_objects.Scatter'.
-                Accepts also Abipy specific kwargs:
+                Accepts also AbiPy specific kwargs:
 
         ==============  ===============================================================
         kwargs          Meaning
@@ -523,12 +523,20 @@ class Function1D(object):
                         Options can be concatenated with "-"
         ==============  ===============================================================
         """
+        from abipy.tools.plotting import PlotlyRowColDesc
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        ply_row, ply_col = rcd.ply_row, rcd.ply_col
+
         import plotly.graph_objects as go
 
         if self.iscomplexobj:
             cplx_mode = kwargs.pop("cplx_mode", "re-im")
         else:
             cplx_mode = kwargs.pop("cplx_mode", "re")
+
+        showlegend = False
+        if "name" in kwargs: showlegend = True
+        showlegend = kwargs.pop("showlegend", showlegend)
 
         for c in cplx_mode.lower().split("-"):
             xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
@@ -538,16 +546,17 @@ class Function1D(object):
             if exchange_xy:
                 xx, yy = yy, xx
 
-            if row == 1 and col == 1:
-                fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=False, *args, **kwargs))
+            if ply_row == 1 and ply_col == 1:
+                fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=showlegend, *args, **kwargs))
 
             else:
-                fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=False, *args, **kwargs), row=row, col=col)
+                fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=showlegend, *args, **kwargs),
+                              row=ply_row, col=ply_col)
 
     @add_fig_kwargs
     def plot(self, ax=None, **kwargs):
         """
-        Plot the function.
+        Plot the function with matplotlib.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.

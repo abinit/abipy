@@ -30,19 +30,50 @@ def sizing_mode_select(name="sizing_mode", value="scale_both"):
     """
     Widget to select the value of sizing_mode. See https://panel.holoviz.org/user_guide/Customization.html
     """
-    return pn.widgets.Select(name=name, value=value, options=["fixed",
-                 "stretch_width", "stretch_height", "stretch_both",
-                 "scale_height", "scale_width", "scale_both"])
+    return pnw.Select(name=name, value=value, options=["fixed",
+                      "stretch_width", "stretch_height", "stretch_both",
+                      "scale_height", "scale_width", "scale_both"])
+
+
+class ButtonContext(object):
+    """
+    A context manager for buttons.
+    Disable the button when we enter the manager, and set to name to "running".
+    Revert to the initial state of the buttong in __exit__ after showing the exc_type if any.
+    """
+
+    def __init__(self, btn):
+        self.btn = btn
+        self.prev_name, self.prev_type = btn.name, btn.button_type
+
+    def __enter__(self):
+        # Disable the button.
+        self.btn.name = "Running ..."
+        self.btn.button_type = "warning"
+        self.btn.disabled = True
+        return self.btn
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        # First of all, reenable the button
+        self.btn.disabled = False
+
+        if exc_type:
+            # Signal to the user that something went wrong for 4 seconds
+            self.btn.name = str(exc_type)
+            self.btn.button_type = "danger"
+            import time
+            time.sleep(3)
+
+        # Back the original button.
+        self.btn.name, self.btn.button_type = self.prev_name, self.prev_type
+
+        return None
 
 
 class AbipyParameterized(param.Parameterized):
 
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
-    mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used when runnin Fortran code")
-    #fontsize =
-
-    #def get_global_widgets(self):
-    #    return pn.Column(self.verbose, self.mpi_procs)
+    mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used for running Abinit")
 
     @lazy_property
     def fig_kwargs(self):
@@ -55,12 +86,32 @@ class AbipyParameterized(param.Parameterized):
 
     @staticmethod
     def _df(df, disabled=True, sizing_mode="scale_width"):
-        return pn.widgets.DataFrame(df, disabled=disabled, sizing_mode=sizing_mode)
+        return pnw.DataFrame(df, disabled=disabled, sizing_mode=sizing_mode)
+
+    def pws(self, *keys):
+        """helper function to return a list of parameters, widgets in self."""
+        items, miss = [], []
+        for k in keys:
+            if isinstance(k, str):
+                if k in self.param:
+                    items.append(self.param[k])
+                elif hasattr(self, k):
+                    items.append(getattr(self, k))
+                else:
+                    miss.append(k)
+            else:
+                # Assume widget instance.
+                items.append(k)
+
+        if miss:
+            raise ValueError("Cannot find `%s` in param or in attribute space" % str(miss))
+
+        return items
 
 
 #class PanelWithNcFile(AbipyParameterized): #, metaclass=abc.ABCMeta):
 #    """
-#    This frame allows the user to inspect the dimensions and the variables reported in  a netcdf file.
+#    This frame allows the user to inspect the dimensions and the variables reported in a netcdf file.
 #    Tab showing information on the netcdf file.
 #    """
 
@@ -101,16 +152,20 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
     def on_plot_ebands_btn(self):
         """Button triggering ebands plot."""
         if self.plot_ebands_btn.clicks == 0: return
-        if self.set_fermie_to_vbm.value:
-            self.ebands.set_fermie_to_vbm()
 
-        fig1 = self.ebands.plot(e0="fermie", ylims=None,
-            with_gaps=self.with_gaps.value, max_phfreq=None, fontsize=8, **self.fig_kwargs)
+        with ButtonContext(self.plot_ebands_btn):
 
-        fig2 = self.ebands.kpoints.plot(**self.fig_kwargs)
-        row = pn.Row(self._mp(fig1), self._mp(fig2)) #, sizing_mode='scale_width')
-        text = bkw.PreText(text=self.ebands.to_string(verbose=self.verbose))
-        return pn.Column(row, text, sizing_mode='scale_width')
+            if self.set_fermie_to_vbm.value:
+                self.ebands.set_fermie_to_vbm()
+
+            fig1 = self.ebands.plot(e0="fermie", ylims=None,
+                with_gaps=self.with_gaps.value, max_phfreq=None, fontsize=8, **self.fig_kwargs)
+
+            fig2 = self.ebands.kpoints.plot(**self.fig_kwargs)
+            row = pn.Row(self._mp(fig1), self._mp(fig2)) #, sizing_mode='scale_width')
+            text = bkw.PreText(text=self.ebands.to_string(verbose=self.verbose))
+
+            return pn.Column(row, text, sizing_mode='scale_width')
 
     def get_plot_edos_widgets(self):
         """Widgets to compute e-DOS."""
@@ -120,9 +175,12 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
     def on_plot_edos_btn(self):
         """Button triggering edos plot."""
         if self.plot_edos_btn.clicks == 0: return
-        edos = self.ebands.get_edos(method=self.edos_method.value, step=self.edos_step.value, width=self.edos_width.value)
-        fig = edos.plot(**self.fig_kwargs)
-        return pn.Row(self._mp(fig), sizing_mode='scale_width')
+
+        with ButtonContext(self.edos_btn):
+            edos = self.ebands.get_edos(method=self.edos_method.value,
+                                        step=self.edos_step.value, width=self.edos_width.value)
+            fig = edos.plot(**self.fig_kwargs)
+            return pn.Row(self._mp(fig), sizing_mode='scale_width')
 
     def get_plot_fermi_surface_widgets(self):
         """Widgets to compute e-DOS."""
@@ -182,19 +240,22 @@ class PanelWithEbandsRobot(BaseRobotPanel): #, metaclass=abc.ABCMeta):
     @param.depends("ebands_plotter_btn.clicks")
     def on_ebands_plotter_btn(self):
         if self.ebands_plotter_btn.clicks == 0: return
-        ebands_plotter = self.robot.get_ebands_plotter()
-        plot_mode = self.ebands_plotter_mode.value
-        plotfunc = getattr(ebands_plotter, plot_mode, None)
-        if plotfunc is None:
-            raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
-        fig = plotfunc(**self.fig_kwargs)
-        col = pn.Column(self._mp(fig), sizing_mode='scale_width')
-        if self.ebands_df_checkbox.value:
-            df = ebands_plotter.get_ebands_frame(with_spglib=True)
-            col.append(self._df(df))
+        with ButtonContext(self.ebands_plotter_btn):
 
-        return pn.Row(col, sizing_mode='scale_width')
+            ebands_plotter = self.robot.get_ebands_plotter()
+            plot_mode = self.ebands_plotter_mode.value
+            plotfunc = getattr(ebands_plotter, plot_mode, None)
+            if plotfunc is None:
+                raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+
+            fig = plotfunc(**self.fig_kwargs)
+            col = pn.Column(self._mp(fig), sizing_mode='scale_width')
+            if self.ebands_df_checkbox.value:
+                df = ebands_plotter.get_ebands_frame(with_spglib=True)
+                col.append(self._df(df))
+
+            return pn.Row(col, sizing_mode='scale_width')
 
     def get_edos_plotter_widgets(self):
         return pn.Column(self.edos_plotter_mode, self.edos_plotter_btn)
@@ -202,11 +263,14 @@ class PanelWithEbandsRobot(BaseRobotPanel): #, metaclass=abc.ABCMeta):
     @param.depends("edos_plotter_btn.clicks")
     def on_edos_plotter_btn(self):
         if self.edos_plotter_btn.clicks == 0: return
-        edos_plotter = self.robot.get_edos_plotter()
-        plot_mode = self.edos_plotter_mode.value
-        plotfunc = getattr(edos_plotter, plot_mode, None)
-        if plotfunc is None:
-            raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
-        fig = plotfunc(**self.fig_kwargs)
-        return pn.Row(pn.Column(self._mp(fig)), sizing_mode='scale_width')
+        with ButtonContext(self.edos_plotter_btn):
+            edos_plotter = self.robot.get_edos_plotter()
+            plot_mode = self.edos_plotter_mode.value
+            plotfunc = getattr(edos_plotter, plot_mode, None)
+            if plotfunc is None:
+                raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+
+            fig = plotfunc(**self.fig_kwargs)
+
+            return pn.Row(pn.Column(self._mp(fig)), sizing_mode='scale_width')

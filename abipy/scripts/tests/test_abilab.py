@@ -53,3 +53,10 @@ class AbilabTest(AbipyTest):
         assert not abilab.in_notebook()
 
         assert abilab.install_config_files(workdir=self.mkdtemp()) == 0
+
+    def extscls_supporint_panel(self):
+        table = abilab.extcls_supporting_panel(as_table=True)
+        exscls = abilab.extcls_supporting_panel(as_table=False)
+        exts = [item[0] for item in extcls]
+        assert "DDB" in exts
+        assert ".cube" not in exts

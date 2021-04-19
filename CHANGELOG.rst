@@ -1,6 +1,9 @@
 
 Release 0.9.1: 
 
+   * abiopen, abiview and abicom now supports --plotly to produce plotly figures in the local browser 
+     and --chart-studio to push the figure to the chart studio service.
+     Note that, at present, only DDB files support plotly.
    * AbinitInput set_kpath and make_ebands_input now support negative values of ndivsm that 
      are interpreted as line_density following pymatgen conventions.
      This option is the recommended one if the k-path contains two consecutive high symmetry k-points 

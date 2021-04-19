@@ -82,7 +82,9 @@ Usage example:
     abiopen.py FILE -p       => Print info on object to terminal.
     abiopen.py FILE -e       => Generate matplotlib figures automatically.
                                 Use -sns to activate seaborn settings.
-    abiopen.py FILE --panel  => Generate GUI in web browser to interact with FILE
+    abiopen.py FILE -e --plotly  => Generate plotly figures automatically. Show them in the BROWSER.
+                                Note that not all FILEs support plotly.
+    abiopen.py FILE --panel  => Generate GUI in web BROWSER to interact with FILE
                                 Requires panel package (WARNING: still under development!)
 
 where `FILE` is any file supported by abipy/pymatgen e.g. Netcdf files, Abinit input, POSCAR, xsf.
@@ -130,7 +132,7 @@ def get_parser(with_epilog=False):
     parser.add_argument('--panel', action='store_true', default=False,
                         help="Open GUI in web browser, requires panel package.")
 
-    # expose option.
+    # Expose option.
     parser.add_argument('-e', '--expose', action='store_true', default=False,
         help="Open file and generate matplotlib figures automatically by calling expose method.")
     parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
@@ -143,6 +145,11 @@ def get_parser(with_epilog=False):
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
+    parser.add_argument("--plotly", default=False, action="store_true",
+            help='Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.')
+    parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
+            help="Push figure to plotly chart studio. " +
+                 "Requires --plotly and user account at https://chart-studio.plotly.com.")
 
     return parser
 
@@ -172,8 +179,11 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    if options.verbose > 2:
-        print(options)
+    # Plotly automatically activate expose mode.
+    if options.plotly: options.expose = True
+    if options.classic_notebook: options.notebook = True
+
+    if options.verbose > 2: print(options)
 
     if options.mpl_backend is not None:
         # Set matplotlib backend
@@ -210,7 +220,15 @@ def main():
             else:
                 print(abifile)
 
-            if hasattr(abifile, "expose"):
+            if options.plotly:
+                # plotly version
+                if hasattr(abifile, "plotly_expose"):
+                    abifile.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+                else:
+                    cprint("`%s` does not implement plotly_expose method" % type(abifile), "red")
+
+            elif hasattr(abifile, "expose"):
+                # matplotlib version
                 abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                                verbose=options.verbose)
             else:
@@ -236,6 +254,7 @@ def main():
             import matplotlib
             matplotlib.use("Agg")
 
+            #pn.extension("katex")
             try:
                 pn.extension("plotly")
             except Exception:

@@ -4,6 +4,9 @@ This module gathers the most important classes and helper functions used for scr
 import os
 import collections
 
+from itertools import chain
+from tabulate import tabulate
+
 ####################
 ### Monty import ###
 ####################
@@ -152,14 +155,27 @@ def abiopen_ext2class_table():
     """
     Print the association table between file extensions and File classes.
     """
-    from itertools import chain
-    from tabulate import tabulate
     table = []
 
     for ext, cls in chain(ext2file.items(), abiext2ncfile.items()):
         table.append((ext, str(cls)))
 
     return tabulate(table, headers=["Extension", "Class"])
+
+
+def extcls_supporting_panel(as_table=True, **tabulate_kwargs):
+    """
+    Return list of (ext, cls) tuples where ext is the file extension supporting the `get_panel` method
+    i.e files that can be integrated with the panel dashboard and `cls` the python class associated to it.
+    """
+    items = []
+
+    for ext, cls in chain(ext2file.items(), abiext2ncfile.items()):
+        if hasattr(cls, "get_panel"): items.append((ext, str(cls)))
+
+    if not as_table: return items
+
+    return tabulate(items, headers=["Extension", "Class"], **tabulate_kwargs)
 
 
 def abifile_subclass_from_filename(filename):
@@ -389,7 +405,6 @@ def abicheck(verbose=0):
     except Exception as exc:
         app(_straceback())
 
-    from tabulate import tabulate
     try:
         d = software_stack()
         cprint("Installed packages:", color="blue")

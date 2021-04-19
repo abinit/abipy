@@ -312,8 +312,13 @@ def abicomp_edos(options):
                                        no_browser=options.no_browser)
 
     elif options.expose:
-        plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
+        if options.plotly:
+            # Plotly version.
+            plotter.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+        else:
+            # Matplotlib version.
+            plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                           verbose=options.verbose)
 
     else:
         # Optionally, print info on gaps and their location
@@ -351,11 +356,13 @@ def abicomp_phbands(options):
                                        no_browser=options.no_browser)
 
     elif options.expose:
-        plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
-
-    #elif options.plotly:
-    #    plotter.plotly_expose(renderer="browser")
+        if options.plotly:
+            # Plotly version.
+            plotter.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+        else:
+            # Matplotlib version.
+            plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                            verbose=options.verbose)
 
     else:
         # Print pandas Dataframe.
@@ -394,8 +401,13 @@ def abicomp_phdos(options):
                       plotter=plotter)
 
     elif options.expose:
-        plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
+        if options.plotly:
+            # Plotly version.
+            plotter.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+        else:
+            # matplotlib version.
+            plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                           verbose=options.verbose)
 
     elif options.notebook:
         plotter.make_and_open_notebook(foreground=options.foreground,
@@ -538,13 +550,6 @@ def abicomp_gkq(options):
         return _invoke_robot(options)
 
 
-#def abicomp_wrmax(options):
-#    """
-#    Compare multiple WRmax files with first order potential in real-space.
-#    """
-#    return _invoke_robot(options)
-
-
 def abicomp_v1qavg(options):
     """
     Compare multiple V1QAVG files with the average of the DFPT V1 potentials as function of q-point.
@@ -640,8 +645,12 @@ def _invoke_robot(options):
             cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
             raise exc
 
-        robot.get_panel().show()
-        return 0
+        if hasattr(robot, "get_panel"):
+            robot.get_panel().show()
+            return 0
+        else:
+            cprint(f"`{type(robot)} does not provide get_panel method", color="red")
+            return 1
 
     elif options.print or options.expose:
         robot.trim_paths()
@@ -664,12 +673,21 @@ def _invoke_robot(options):
         if not options.verbose:
             print("\nUse --verbose for more information")
 
-        if options.expose and hasattr(robot, "expose"):
-            robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                         verbose=options.verbose)
+        if options.expose:
 
-    #elif options.ipython:
+            if options.plotly:
+               # plotly version.
+               if hasattr(robot, "plotly_expose"):
+                   robot.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+               else:
+                   cprint("<%s> does not implement plotly_expose method" % type(robot), color="red")
+
+            elif hasattr(robot, "expose"):
+                # matplotlib version.
+                robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                             verbose=options.verbose)
     else:
+        # Default behaviour: use ipython
         import IPython
         robot.trim_paths()
         IPython.embed(header=repr(robot) + "\n\nType `robot` in the terminal and use <TAB> to list its methods",
@@ -952,11 +970,16 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
     # Parent parser for commands supporting expose
     expose_parser = argparse.ArgumentParser(add_help=False)
     expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
-            help='Execute robot.expose to produce a pre-defined list of matplotlib figures.')
+            help='Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.')
     expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
             help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
     expose_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
+    expose_parser.add_argument("--plotly", default=False, action="store_true",
+            help='Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.')
+    expose_parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
+            help="Push figure to plotly chart studio ." +
+                 "Requires --plotly option and user account at https://chart-studio.plotly.com.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
@@ -1124,6 +1147,10 @@ def main():
         options = parser.parse_args()
     except Exception:
         show_examples_and_exit(error_code=1)
+
+    # Plotly automatically activate expose mode.
+    if getattr(options, "plotly", None): options.expose = True
+    if getattr(options, "classic_notebook", None): options.notebook = True
 
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug

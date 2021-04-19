@@ -26,7 +26,8 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.numtools import gaussian, sort_and_groupby
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible,\
-    set_ax_xylabels, get_figs_plotly, get_fig_plotly, add_plotly_fig_kwargs
+    set_ax_xylabels, get_figs_plotly, get_fig_plotly, add_plotly_fig_kwargs,\
+    plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc, plotly_klabels
 from .phtk import match_eigenvectors, get_dyn_mat_eigenvec, open_file_phononwebsite, NonAnalyticalPh
 
 __all__ = [
@@ -1021,9 +1022,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
         if ticks:
-            # Don't show label if previous k-point is the same.
-            for il in range(1, len(labels)):
-                if labels[il] == labels[il - 1]: labels[il] = ""
+            labels = plotly_klabels(labels)
+
             fig.layout[xaxis].tickvals = ticks
             fig.layout[xaxis].ticktext = labels
             fig.layout[xaxis].tickfont.size = kwargs.pop("qlabel_size", 16)
@@ -1085,7 +1085,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @add_plotly_fig_kwargs
     def plotly(self, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
-              fontsize=16, **kwargs):
+               fig=None, rcd=None, fontsize=16, **kwargs):
         r"""
         Plot the phonon band structure with plotly.
 
@@ -1098,6 +1098,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
             temp: Temperature in Kelvin. If not None, a scatter plot with the Bose-Einstein occupation factor
                 at temperature `temp` is added.
+            fig: plotly figure or None if a new figure should be created.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
             fontsize: Title fontsize.
 
         Returns: |plotly.graph_objects.Figure|
@@ -1106,16 +1108,17 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         branch_range = range(self.num_branches) if branch_range is None else \
                        range(branch_range[0], branch_range[1], 1)
 
-        fig, go = get_fig_plotly()
+        fig, go = get_fig_plotly(fig=fig)
 
         # Decorate the axis (e.g. add ticks and labels).
-        self.decorate_plotly(fig, units=units, qlabels=qlabels)
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        self.decorate_plotly(fig, units=units, qlabels=qlabels, iax=rcd.iax)
 
         if "color" not in kwargs: kwargs["color"] = "black"
         if "linewidth" not in kwargs: kwargs["linewidth"] = 2.0
 
         # Plot the phonon branches.
-        self.plotly_traces(fig, branch_range, units=units, match_bands=match_bands, **kwargs)
+        self.plotly_traces(fig, branch_range, rcd=rcd, units=units, match_bands=match_bands, **kwargs)
 
         if temp is not None:
             # Scatter plot with Bose-Einstein occupation factors for T = temp
@@ -1132,9 +1135,10 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 wkt = np.where(wkt > 1e-6, wkt, 1e-6)
                 occ = 1.0 / (np.exp(wkt) - 1.0)
                 s = np.where(occ < 0.3, occ, 0.3) * 50
+                #print("rcd", rcd)
                 fig.add_trace(go.Scatter(x=xs, y=ws * factor, mode='markers',
                                          marker=dict(color=occ, colorscale='jet', size=s, opacity=0.6, line_width=0),
-                                         showlegend=False))
+                                         showlegend=False), row=rcd.ply_row, col=rcd.ply_col)
         return fig
 
     def plot_ax(self, ax, branch, units='eV', match_bands=False, **kwargs):
@@ -1168,16 +1172,19 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return lines
 
-    def plotly_traces(self, fig, branch, row=1, col=1, units='eV', name='', match_bands=False,
+    def plotly_traces(self, fig, branch, rcd=None, units='eV', name='', match_bands=False,
                       showlengend=False, **kwargs):
         """
         Plots the frequencies for the given branches indices as a function of the q-index on figure ``fig`` .
-        If ``fig`` has subplots, ``row`` and ``col`` are used to add traces on these subplots.
+        If ``fig`` has subplots, ``rcd`` is used to add traces on these subplots.
         If ``branch`` is None, all phonon branches are plotted.
         """
         import plotly.graph_objects as go
         linecolor = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", 2.0)
+
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        ply_row, ply_col = rcd.ply_row, rcd.ply_col
 
         if branch is None:
             branch_range = range(self.num_branches)
@@ -1196,14 +1203,14 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             pf = pf * factor
             xx = list(range(first_xx, first_xx + len(pf)))
             for branch in branch_range:
-                if row == 1 and col == 1:
+                if ply_row == 1 and ply_col == 1:
                     fig.add_trace(
                         go.Scatter(x=xx, y=pf[:, branch], mode='lines', name=name, legendgroup=name, showlegend=False,
                                    line=dict(color=linecolor, width=linewidth), **kwargs))
                 else:
                     fig.add_trace(
                         go.Scatter(x=xx, y=pf[:, branch], mode='lines', name=name, legendgroup=name, showlegend=False,
-                                   line=dict(color=linecolor, width=linewidth), **kwargs), row=row, col=col)
+                                   line=dict(color=linecolor, width=linewidth), **kwargs), row=ply_row, col=ply_col)
             first_xx = xx[-1]
 
         if showlengend:
@@ -1515,7 +1522,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     def _make_ticks_and_labels(self, qlabels):
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
-        #TODO should be modified in order to handle the "split" list of qpoints
+        # TODO should be modified in order to handle the "split" list of qpoints
         if qlabels is not None:
             d = OrderedDict()
 
@@ -1732,7 +1739,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         return fig
 
     @add_plotly_fig_kwargs
-    def plotly_with_phdos(self, phdos, units="eV", qlabels=None, fig=None, width_ratios=(2, 1), **kwargs):
+    def plotly_with_phdos(self, phdos, units="eV", qlabels=None, fig=None, rcd_phbands=None, rcd_phdos=None,
+                          width_ratios=(2, 1), **kwargs):
         r"""
         Plot the phonon band structure with the phonon DOS with plotly.
 
@@ -1753,15 +1761,16 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         if fig is None:
             # build fig and align bands and DOS.
-            fig, go = get_figs_plotly(nrows=1, ncols=2, subplot_titles=[], sharex=False, sharey=True,
-                                      horizontal_spacing=0.03, column_widths=width_ratios)
+            fig, _ = get_figs_plotly(nrows=1, ncols=2, subplot_titles=[], sharex=False, sharey=True,
+                                     horizontal_spacing=0.03, column_widths=width_ratios)
 
         if not kwargs:
             kwargs = {"line_color": "black", "line_width": 2.0}
 
         # Plot the phonon band structure.
-        self.plotly_traces(fig, branch=None, row=1, col=1, units=units, **kwargs)
-        self.decorate_plotly(fig, units=units, qlabels=qlabels, iax=1)
+        rcd_phbands = PlotlyRowColDesc.from_object(rcd_phbands)
+        self.plotly_traces(fig, branch=None, rcd=rcd_phbands, units=units, **kwargs)
+        self.decorate_plotly(fig, units=units, qlabels=qlabels, iax=rcd_phbands.iax)
 
         factor = abu.phfactor_ev2units(units)
         emin = np.min(self.minfreq)
@@ -1773,7 +1782,12 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         fig.layout.yaxis.range = (emin, emax)
 
         # Plot Phonon DOS
-        phdos.plotly_dos_idos(fig, row=1, col=2, what="d", units=units, exchange_xy=True, **kwargs)
+        if rcd_phdos is not None:
+            rcd_phdos = PlotlyRowColDesc.from_object(rcd_phdos)
+        else:
+            rcd_phdos = PlotlyRowColDesc(0, 1, 1, 2)
+
+        phdos.plotly_dos_idos(fig, rcd=rcd_phdos, what="d", units=units, exchange_xy=True, **kwargs)
 
         return fig
 
@@ -1932,7 +1946,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             x += (width + pad) / 2
 
         ax.set_xticks(xticks)
-        ax.set_xticklabels((xticklabels))
+        ax.set_xticklabels(xticklabels)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -2236,9 +2250,9 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         Returns:
             A namedtuple with:
-                the three breaking of the acoustic modes
-                the maximum breaking with sign
-                the absolute value of the maximum breaking
+                - the three breaking of the acoustic modes
+                - the maximum breaking with sign
+                - the absolute value of the maximum breaking
         """
         gamma_ind = self.qpoints.index((0, 0, 0))
         ind = self.acoustic_indices(gamma_ind, threshold=threshold, raise_on_no_indices=raise_on_no_indices)
@@ -2792,6 +2806,13 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         """
         return self.yield_phbands_figs(**kwargs)
 
+    def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        """
+        renderer = "chart_studio" if chart_studio else None
+        self.phbands.plotly(renderer=renderer)
+
     def write_notebook(self, nbpath=None):
         """
         Write an jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -2933,9 +2954,9 @@ class PhononDos(Function1D):
 
         return lines
 
-    def plotly_dos_idos(self, fig, row=1, col=1, what="d", exchange_xy=False, units="eV", **kwargs):
+    def plotly_dos_idos(self, fig, what="d", trace_name=None, exchange_xy=False, units="eV", rcd=None, **kwargs):
         """
-        Helper function to plot DOS/IDOS on the figure ``fig`` using plotly.graph_objects ''go''.
+        Helper function to plot DOS/IDOS on the figure ``fig``.
 
         Args:
             fig: |plotly.graph_objects.Figure|
@@ -2945,28 +2966,27 @@ class PhononDos(Function1D):
             exchange_xy: True to exchange axis
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
             kwargs: Options passed to plotly.graph_objects Scatter method.
-
-    #!!    Return:
-    #        list of lines added to the plot.
         """
         opts = [c.lower() for c in what]
 
         for c in opts:
             f = {"d": self, "i": self.idos}[c]
-            trace_name = {"d": 'DOS', "i": 'IDOS'}[c]
+            if trace_name is None:
+                trace_name = {"d": 'DOS', "i": 'IDOS'}[c]
             xfactor = abu.phfactor_ev2units(units)
             # Don't rescale IDOS
             yfactor = 1 / xfactor if c == "d" else 1
 
-            f.plotly_traces(fig, row=row, col=col, exchange_xy=exchange_xy, xfactor=xfactor, yfactor=yfactor,
-                         name=trace_name, **kwargs)
+            f.plotly_traces(fig, rcd=rcd, exchange_xy=exchange_xy, xfactor=xfactor, yfactor=yfactor,
+                            name=trace_name, **kwargs)
 
     # TODO: This should be called plot_dos_idos!
     @add_fig_kwargs
     def plot(self, units="eV", **kwargs):
         """
-        Plot Phonon DOS and IDOS on two distict plots.
+        Plot Phonon DOS and IDOS on two distinct plots.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
@@ -2999,7 +3019,7 @@ class PhononDos(Function1D):
     @add_plotly_fig_kwargs
     def plotly(self, units="eV", **kwargs):
         """
-        Plot Phonon DOS and IDOS on two distict plots.
+        Plot Phonon DOS and IDOS on two distinct plots.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
@@ -3008,15 +3028,17 @@ class PhononDos(Function1D):
 
         Returns: |plotly.graph_objects.Figure|
         """
-        fig, go = get_figs_plotly(nrows=2, ncols=1, subplot_titles=[], sharex=True, sharey=False, vertical_spacing=0.05
-                                 , row_heights=[1, 2])
+        fig, _ = get_figs_plotly(nrows=2, ncols=1, subplot_titles=[], sharex=True, sharey=False,
+                                 vertical_spacing=0.05, row_heights=[1, 2])
 
-        fig.layout['xaxis2'].title = {'text': 'Energy %s' % abu.phunit_tag(units).replace('$^{-1}$', '⁻¹')}
+        fig.layout['xaxis2'].title = {'text': 'Energy %s' % abu.phunit_tag(units, unicode=True)}
         fig.layout['yaxis1'].title = {'text': "IDOS (states)"}
-        fig.layout['yaxis2'].title = {'text': "DOS %s" % abu.phdos_label_from_units(units).replace('$^{-1}$', '⁻¹')}
+        fig.layout['yaxis2'].title = {'text': "DOS %s" % abu.phdos_label_from_units(units, unicode=True)}
 
-        self.plotly_dos_idos(fig, row=1, col=1, what="i", units=units, **kwargs)
-        self.plotly_dos_idos(fig, row=2, col=1, what="d", units=units, **kwargs)
+        rcd = PlotlyRowColDesc(0, 0, 2, 1)
+        self.plotly_dos_idos(fig, rcd=rcd, what="i", units=units, **kwargs)
+        rcd = PlotlyRowColDesc(1, 0, 2, 1)
+        self.plotly_dos_idos(fig, rcd=rcd, what="d", units=units, **kwargs)
 
         return fig
 
@@ -3249,7 +3271,7 @@ class PhononDos(Function1D):
         Args:
             nsites: the number of sites in the cell.
         """
-        return self.debye_temp/nsites**(1/3)
+        return self.debye_temp / nsites**(1/3)
 
 
 class PhdosReader(ETSF_Reader):
@@ -3258,7 +3280,7 @@ class PhdosReader(ETSF_Reader):
 
     .. note::
 
-            Frequencies are in eV, DOSes are in states/eV.
+            Frequencies are in eV, DOSes are in states/eV per unit cell.
     """
     @lazy_property
     def structure(self):
@@ -3307,7 +3329,7 @@ class PhdosReader(ETSF_Reader):
         where PhononDos is the contribution to the total DOS summed over atoms
         with chemical symbol ``symbol``.
         """
-        # [ntypat, nomega] array with PH-DOS projected over atom types."""
+        # [ntypat, nomega] array with PH-DOS projected over atom types.
         values = self.read_pjdos_type()
 
         od = OrderedDict()
@@ -3642,6 +3664,11 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if msqd_dos is not None:
             yield msqd_dos.plot(units=units, show=False)
             yield msqd_dos.plot_tensor(show=False)
+
+    def plotly_expose(self, chart_studio=False, units="meV", verbose=0, **kwargs):
+        renderer = "chart_studio" if chart_studio else None
+        #self.phdos.plotly_dos_idos(units=units, renderer=renderer, show=False)
+        self.phdos.plotly(units=units, renderer=renderer, show=True)
 
     def write_notebook(self, nbpath=None):
         """
@@ -4015,7 +4042,7 @@ class PhononBandsPlotter(NotebookWriter):
                   linestyle_dict=None, **kwargs):
         r"""
         Plot the band structure and the DOS on the same figure with plotly.
-        Use ``gridplot`` to plot band structures on different figures.
+        Use ``gridplotply`` to plot band structures on different figures.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
@@ -4023,7 +4050,7 @@ class PhononBandsPlotter(NotebookWriter):
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.
                 The values are the labels e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-                   # or scalar e.g. ``left``. If left (right) is None, default values are used
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             width_ratios: Ratio between the width of the phonon bands plots and the DOS plots.
                 Used if plotter has DOSes.
             fontsize: fontsize for titles and legend.
@@ -4032,22 +4059,24 @@ class PhononBandsPlotter(NotebookWriter):
         Returns: |plotly.graph_objects.Figure|
         """
         if self.phdoses_dict:
-            fig, go = get_figs_plotly(nrows=1, ncols=2, subplot_titles=[], sharex=False, sharey=True,
+            nrows, ncols = (1, 2)
+            fig, go = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=[], sharex=False, sharey=True,
                                       horizontal_spacing=0.03, column_widths=width_ratios)
         else:
+            nrows, ncols = (1, 1)
             fig, go = get_fig_plotly()
 
         if ylims is not None:
             try:
-                len_lims = len(lims)
+                len_lims = len(ylims)
             except TypeError:
                 # Assume Scalar
                 raise NotImplementedError()
 
             if len_lims is not None:
-                if len(lims) == 2:
+                if len(ylims) == 2:
                     fig.layout.yaxis.range = ylims
-                elif len(lims) == 1:
+                elif len(ylims) == 1:
                     raise NotImplementedError()
 
         # Plot phonon bands.
@@ -4066,21 +4095,23 @@ class PhononBandsPlotter(NotebookWriter):
             opts_label[label] = my_kwargs.copy()
 
             # Use relative paths if label is a file.
-            if os.path.isfile(label):
-                label=os.path.relpath(label)
+            if os.path.isfile(label): label = os.path.relpath(label)
 
-            phbands.plotly_traces(fig, branch=None, units=units, name=label, showlengend=True, **my_kwargs)
+            rcd = PlotlyRowColDesc(0, 0, nrows, ncols)
+            phbands.plotly_traces(fig, branch=None, rcd=rcd, units=units, name=label, showlengend=True, **my_kwargs)
 
             # Set ticks and labels, legends.
             if i == 0:
-                phbands.decorate_plotly(fig, qlabels=qlabels, units=units, iax=1)
+                phbands.decorate_plotly(fig, qlabels=qlabels, units=units, iax=rcd.iax)
+
         fig.layout.legend.font.size = fontsize
         fig.layout.title.font.size = fontsize
 
         # Add DOSes
         if self.phdoses_dict:
+            rcd = PlotlyRowColDesc(0, 1, nrows, ncols)
             for label, dos in self.phdoses_dict.items():
-                dos.plotly_dos_idos(fig, row=1, col=2, exchange_xy=True, units=units, **opts_label[label])
+                dos.plotly_dos_idos(fig, rcd=rcd, exchange_xy=True, units=units, **opts_label[label])
 
         return fig
 
@@ -4096,13 +4127,16 @@ class PhononBandsPlotter(NotebookWriter):
             yield self.combiplot(show=False)
             yield self.combiboxplot(show=False)
 
-    #def plotly_expose(self, **kwargs):  # pragma: no cover
-    #    """This function *generates* a predefined list of plotly figures with minimal input from the user."""
-    #    #yield self.gridplot(show=False)
-    #    #yield self.boxplot(show=False)
-    #    if self.has_same_formula():
-    #        self.combiplotly(**kwargs)
-    #        #yield self.combiboxplot(**kwargs))
+    def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):  # pragma: no cover
+        """This function *generates* a predefined list of plotly figures with minimal input from the user."""
+        kwargs["show"] = False
+
+        figs = []; f = figs.append
+        f(self.gridplotly(**kwargs))
+        if self.has_same_formula():
+            f(self.combiplotly(**kwargs))
+
+        push_to_chart_studio(figs) if chart_studio else plotlyfigs_to_browser(figs)
 
     @add_fig_kwargs
     def gridplot(self, with_dos=True, units="eV", fontsize=8, **kwargs):
@@ -4125,6 +4159,50 @@ class PhononBandsPlotter(NotebookWriter):
 
         return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects,
                                 units=units, fontsize=fontsize, show=False)
+
+    @add_plotly_fig_kwargs
+    def gridplotly(self, with_dos=True, units="eV", fontsize=8, **kwargs):
+        """
+        Plot multiple phonon bandstructures and optionally DOSes on a grid.
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            with_dos: True to plot phonon DOS (if available).
+            fontsize: legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        titles = list(self._bands_dict.keys())
+        phb_objects = list(self._bands_dict.values())
+        phdos_objects = None
+        if self.phdoses_dict and with_dos:
+            phdos_objects = list(self.phdoses_dict.values())
+
+        # Build grid of plots.
+        ncols, nrows = 1, 1
+        num_plots = len(phb_objects)
+        if num_plots > 1:
+            ncols = 2
+            nrows = num_plots // ncols + num_plots % ncols
+
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=titles, sharex=True, sharey=False)
+
+        if self.phdoses_dict and with_dos:
+            raise NotImplementedError("")
+            for i, (phbands, phdos) in enumerate(zip(phb_objects, phdos_objects)):
+                row, col = divmod(i, ncols)
+                #rcd_phdos = PlotlyRowColDesc(row, col, nrows, ncols)
+                #rcd_phbands = PlotlyRowColDesc(row, col, nrows, ncols)
+                phbands.plotly_with_phdos(phdos, fig=fig, rcd_phbands=None, rcd_phdos=None,
+                                          width_ratios=(2, 1), show=False)
+        else:
+            for i, phbands in enumerate(phb_objects):
+                row, col = divmod(i, ncols)
+                rcd = PlotlyRowColDesc(row, col, nrows, ncols)
+                phbands.plotly(fig=fig, rcd=rcd, show=False)
+
+        return fig
 
     @add_fig_kwargs
     def gridplot_with_hue(self, hue, with_dos=False, units="eV", width_ratios=(2, 1),
@@ -4511,7 +4589,7 @@ class PhononDosPlotter(NotebookWriter):
 
     #def has_same_formula(self):
     #    """
-    #    True of plotter contains structures with same chemical formula.
+    #    True of plotter contains structures with the same chemical formula.
     #    """
     #    structures = [phdos.structure for phdos in self._phdoses_dict.values()]
     #    if structures and any(s.formula != structures[0].formula for s in structures): return False
@@ -4548,6 +4626,37 @@ class PhononDosPlotter(NotebookWriter):
 
         # Set legends.
         ax.legend(lines, legends, loc='best', fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def combiplotly(self, fig=None, units="eV", xlims=None, ylims=None, fontsize=8, **kwargs):
+        """
+        Plot DOSes on the same plotly figure. Use ``gridplotly`` to plot DOSes on different figures.
+
+        Args:
+            fig: plotly figure or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: y-axis limits.
+            fontsize: Legend and title fontsize.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        fig, _ = get_fig_plotly(fig=fig)
+        #set_axlims(ax, xlims, "x")
+        #set_axlims(ax, ylims, "y")
+
+        fig.layout['xaxis1'].title = {'text': 'Energy %s' % abu.phunit_tag(units, unicode=True)}
+        fig.layout['yaxis1'].title = {"text": 'DOS %s' % abu.phdos_label_from_units(units, unicode=True)}
+
+        for label, dos in self._phdoses_dict.items():
+            dos.plotly_dos_idos(fig, units=units, trace_name="DOS: %s" % label)
+
+        # Set legends.
+        #ax.legend(lines, legends, loc='best', fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -4688,6 +4797,18 @@ class PhononDosPlotter(NotebookWriter):
         yield self.plot_harmonic_thermo(show=False)
         #if self.has_same_formula():
         yield self.combiplot(show=False)
+
+    def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):  # pragma: no cover
+        """This function *generates* a predefined list of plotly figures with minimal input from the user."""
+        raise NotImplementedError("plotly_expose")
+        #kwargs["show"] = False
+        #figs = []
+        #f = figs.append
+        #f(self.gridplotly(**kwargs))
+        #if self.has_same_formula():
+        #    f(self.combiplotly(**kwargs))
+
+        #push_to_chart_studio(figs) if chart_studio else plotlyfigs_to_browser(figs)
 
     def write_notebook(self, nbpath=None):
         """

@@ -89,17 +89,24 @@ def phfactor_ev2units(units):
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
 
-def phunit_tag(units):
+def phunit_tag(units, unicode=False):
     """
-    Return latex string from ``units`` (used for phonons)
+    Mainly used for phonons.
+    Return latex string from ``units``.
+    If unicode is True, replace Latex superscript with unitcode.
     """
     d = {"ev": "(eV)", "mev": "(meV)", "ha": '(Ha)',
          "cm-1": "(cm$^{-1}$)", 'cm^-1': "(cm$^{-1}$)", "thz": '(Thz)',
          }
     try:
-        return d[units.lower().strip()]
+        s = d[units.lower().strip()]
     except KeyError:
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+
+    if unicode:
+        s = s.replace('$^{-1}$', '⁻¹')
+
+    return s
 
 
 def wlabel_from_units(units):
@@ -117,7 +124,7 @@ def wlabel_from_units(units):
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
 
-def phdos_label_from_units(units):
+def phdos_label_from_units(units, unicode=False):
     """
     Return latex string for phonon DOS values in ``units``.
     """
@@ -126,9 +133,14 @@ def phdos_label_from_units(units):
          "thz": '(states/Thz)',
         }
     try:
-        return d[units.lower().strip()]
+        s = d[units.lower().strip()]
     except KeyError:
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+
+    if unicode:
+        s = s.replace('$^{-1}$', '⁻¹')
+
+    return s
 
 
 def s2itup(comp):

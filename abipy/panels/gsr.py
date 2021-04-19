@@ -22,19 +22,40 @@ class GsrFilePanel(PanelWithElectronBands):
 
     def get_panel(self):
         """Return tabs with widgets to interact with the DDB file."""
+
+        #def info(method_name):
+        #    # Add accordion after the button with warning and help taken from the docstring of the callback
+        #    col = pn.Column(); ca = col.append
+        #    acc = pn.Accordion(("Help", pn.pane.Markdown(getattr(self, method_name).__doc__)))
+        #    acc.append(("Warning", self.warning_md))
+        #    ca(pn.layout.Divider())
+        #    ca(acc)
+        #    return col
+
+
         tabs = pn.Tabs(); app = tabs.append
-        app(("Summary", pn.Row(bkw.PreText(text=self.gsr.to_string(verbose=self.verbose),
-                               sizing_mode="scale_both"))))
-        app(("e-Bands", pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)))
+
+        app(("Summary",
+            pn.Row(bkw.PreText(text=self.gsr.to_string(verbose=self.verbose), sizing_mode="scale_both"))
+        ))
+        app(("e-Bands", pn.Row(
+            self.get_plot_ebands_widgets(),
+            self.on_plot_ebands_btn)
+        ))
 
         # Add DOS tab only if k-sampling.
         kpoints = self.gsr.ebands.kpoints
         if kpoints.is_ibz:
-            app(("e-DOS", pn.Row(self.get_plot_edos_widgets(), self.on_plot_edos_btn)))
+            app(("e-DOS", pn.Row(
+                self.get_plot_edos_widgets(),
+                self.on_plot_edos_btn)
+            ))
 
             if self.gsr.ebands.supports_fermi_surface:
                 # Fermi surface requires gamma-centered k-mesh
-                app(("Fermi Surface", pn.Row(self.get_plot_fermi_surface_widgets(), self.on_plot_fermi_surface_btn)))
+                app(("Fermi Surface", pn.Row(
+                    self.get_plot_fermi_surface_widgets(),
+                    self.on_plot_fermi_surface_btn)))
 
         return tabs
 

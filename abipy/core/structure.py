@@ -1511,6 +1511,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Visualize the structure with crystal_toolkit inside the jupyter notebook.
         """
         try:
+            # FIXME: It seems they changed the API.
             from crystal_toolkit import view
         except ImportError:
             raise ImportError("crystal_toolkit is not installed. See https://docs.crystaltoolkit.org/jupyter")

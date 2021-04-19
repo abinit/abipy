@@ -570,6 +570,34 @@ batch_adapter:
         return s
 
     @classmethod
+    def get_simple_manager(cls):
+
+        return """
+qadapters:
+    # List of qadapters objects
+    - priority: 1
+      queue:
+            qtype: shell       # We are using the shell to "submit" jobs
+            qname: localhost
+      job:
+        mpi_runner: mpirun
+        pre_run:  
+            # List of shell commands executed before running abinit
+            # Change this part according to your Abinit installation and the location of the shared libs
+            - export OMP_NUM_THREADS=1
+            - export PATH=$HOME/git_repos/abinit/_build/src/98_main:$PATH
+            #- export LD_LIBRARY_PATH=$HOME/local/lib:$LD_LIBRARY_PATH
+      limits:
+            timelimit: 1:00:00
+            max_cores: 2
+      hardware:
+            num_nodes: 1
+            sockets_per_node: 1
+            cores_per_socket: 2
+            mem_per_node: 4 Gb
+"""
+
+    @classmethod
     def from_user_config(cls):
         """
         Initialize the |TaskManager| from the YAML file 'manager.yaml'.
@@ -588,15 +616,24 @@ batch_adapter:
             path = os.path.join(cls.USER_CONFIG_DIR, cls.YAML_FILE)
 
         if not os.path.exists(path):
-            raise RuntimeError(colored(
-                "\nCannot locate %s neither in current directory nor in %s\n"
-                "PLEASE READ THIS: !!!\n"
-                "To use AbiPy to run jobs this file must be present\n"
-                "It provides a description of the cluster/computer you are running on\n"
-                "Examples are provided in abipy/data/managers.\n"
-                "Use `abidoc.py manager` to access the documentation in the terminal.\n"
-                "See also: https://abinit.github.io/abipy/workflows/manager_examples.html\n" % (
-                    cls.YAML_FILE, path), color="red"))
+            raise RuntimeError(colored(f"""
+
+Cannot locate `{cls.YAML_FILE}` neither in current directory nor in `{path}`
+
+!!! PLEASE READ THIS !!!
+
+    To run AbiPy flows you need a manager.yaml describing your computer/cluster 
+    as well as the job submission engine being used (shell, Slurm, PBS, etc).
+    
+    Examples are provided in the `abipy/data/managers` directory.
+    Use `abidoc.py manager` to access the documentation from the terminal.
+    See also https://abinit.github.io/abipy/workflows/manager_examples.html for examples.
+    
+A minimalistic example of manager.yml for a laptop with the shell engine is reported below:
+    
+{cls.get_simple_manager()}
+
+""", color="red"))
 
         _USER_CONFIG_TASKMANAGER = cls.from_file(path)
         return _USER_CONFIG_TASKMANAGER
@@ -649,7 +686,7 @@ batch_adapter:
         """
         Args:
             policy:None
-            qadapters:List of qadapters in YAML format
+            qadapters: List of qadapters in YAML format
             db_connector:Dictionary with data used to connect to the database (optional)
         """
         # Keep a copy of kwargs
@@ -1079,13 +1116,18 @@ class AbinitBuild(object):
 
         # Generate a shell script to execute `abinit -b`
         stdout = os.path.join(workdir, "run.abo")
+
+        #stdin = os.path.join(workdir, "run.files")
+        #with open(stdin, "wt") as fh:
+        #    fh.write("foo")
+
         script = manager.qadapter.get_script_str(
             job_name="abinit_b",
             launch_dir=workdir,
             executable="abinit",
             qout_path=os.path.join(workdir, "queue.qout"),
             qerr_path=os.path.join(workdir, "queue.qerr"),
-            #stdin=os.path.join(workdir, "run.files"),
+            #stdin=stdin,
             stdout=stdout,
             stderr=os.path.join(workdir, "run.err"),
             exec_args=["-b"],

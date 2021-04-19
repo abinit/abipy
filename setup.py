@@ -149,11 +149,13 @@ install_requires = [
     "numpy",
     "scipy",
     "spglib",
-    #"pymatgen>=2020.11.11",
     "pymatgen>=2022.0.4",
     "netCDF4",
     "matplotlib",
     "seaborn",
+    "plotly",
+    #"chart-studio",
+    #panel
 ]
 
 with_wxpython = False

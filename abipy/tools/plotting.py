@@ -51,6 +51,10 @@ linestyles = OrderedDict(
 )
 
 
+###################
+# Matplotlib tools
+###################
+
 def ax_append_title(ax, title, loc="center", fontsize=None):
     """Add title to previous ax.title. Return new title."""
     prev_title = ax.get_title(loc=loc)
@@ -849,7 +853,63 @@ class GenericDataFilesPlotter(object):
         return fig
 
 
-def get_figs_plotly(nrows=1, ncols=1, subplot_titles=[], sharex=False, sharey=False, **fig_kw):
+##########################
+# Plotly helper functions
+##########################
+
+
+class PlotlyRowColDesc(object):
+    """
+    This object specifies the position of a plotly subplot inside a grid.
+
+    rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
+    """
+
+    @classmethod
+    def from_object(cls, obj):
+        """
+        Build an instance for a generic object.
+        If oject is None, a simple descriptor corresponding to a (1,1) grid is returned.
+        """
+        if obj is None: return cls(0, 0, 1, 1)
+        if isinstance(obj, cls): return obj
+
+        # Assume list with 4 integers
+        try:
+            return cls(*obj)
+        except exc:
+            raise TypeError(f"Dont know how to convert `{type(obj)}` into `{cls}`")
+
+    def __init__(self, py_row, py_col, nrows, ncols):
+        """
+        Args:
+            py_row, py_col: python index of the subplot in the grid (starts from 0)
+            nrows, ncols: Number of rows/cols in the grid.
+        """
+        self.py_row, self.py_col = (py_row, py_col)
+        self.nrows, self.ncols = (nrows, ncols)
+        self.iax = 1 + self.py_col + self.py_row * self.ncols
+        # Note that plotly col and row start from 1.
+        if nrows == 1 and ncols == 1:
+            self.ply_row, self.ply_col = (None, None)
+        else:
+            self.ply_row, self.ply_col = (self.py_row + 1, self.py_col + 1)
+
+    def __str__(self):
+        lines = []
+        app = lines.append
+        app("py_rowcol: (%d, %d) in grid: (%d, %d)" % (self.py_row, self.py_col, self.nrows, self.ncols))
+        app("plotly_rowcol: (%s, %s)" % (self.ply_row, self.ply_col))
+
+        return "\n".join(lines)
+
+    #@lazy_property
+    #def rowcol_dict(self):
+    #    if self.nrows == 1 and self.ncols == 1: return {}
+    #    return dict(row=self.ply_row, col=self.ply_col)
+
+
+def get_figs_plotly(nrows=1, ncols=1, subplot_titles=(), sharex=False, sharey=False, **fig_kw):
     """
     Helper function used in plot functions that build the `plotly` figure by calling plotly.subplots.
 
@@ -866,10 +926,10 @@ def get_figs_plotly(nrows=1, ncols=1, subplot_titles=[], sharex=False, sharey=Fa
     return fig, go
 
 
-def get_fig_plotly(**fig_kw):
+def get_fig_plotly(fig=None, **fig_kw):
     """
     Helper function used in plot functions that build the `plotly` figure by calling
-    plotly.graph_objects.Figure.
+    plotly.graph_objects.Figure if fig is None else return fig
 
     Returns:
         figure: plotly graph_objects figure
@@ -877,9 +937,56 @@ def get_fig_plotly(**fig_kw):
     """
     import plotly.graph_objects as go
 
-    fig = go.Figure(**fig_kw)
+    if fig is None:
+        fig = go.Figure(**fig_kw)
 
     return fig, go
+
+
+def plotly_set_lims(fig, lims, axname):
+    """
+    Set the data limits for the axis ax.
+
+    Args:
+        lims: tuple(2) for (left, right), tuple(1) or scalar for left only.
+        axname: "x" for x-axis, "y" for y-axis.
+
+    Return: (left, right)
+    """
+    left, right = None, None
+    if lims is None: return (left, right)
+
+    # iax = kwargs.pop("iax", 1)
+    # xaxis = 'xaxis%u' % iax
+    #fig.layout[xaxis].title.text = "Wave Vector"
+
+    axis = dict(x=fig.layout.xaxis, y=fig.layout.yaxis)[axname]
+
+    len_lims = None
+    try:
+        len_lims = len(lims)
+    except TypeError:
+        # Assume Scalar
+        left = float(lims)
+
+    if len_lims is not None:
+        if len(lims) == 2:
+            left, right = lims[0], lims[1]
+        elif len(lims) == 1:
+            left = lims[0]
+
+    ax_range = axis.range
+    if ax_range is None and (left is None or right is None):
+        return None, None
+
+    #if left is not None: ax_range[0] = left
+    #if right is not None: ax_range[1] = right
+
+    # Example: fig.update_layout(yaxis_range=[-4,4])
+    k = dict(x="xaxis_range", y="yaxis_range")[axname]
+    fig.update_layout(k=[left, right])
+
+    return left, right
 
 
 def add_plotly_fig_kwargs(func):
@@ -910,18 +1017,25 @@ def add_plotly_fig_kwargs(func):
         fig = func(*args, **kwargs)
         if fig is None:
             return fig
+
         # Operate on plotly figure.
         if title is not None:
-            #fig.layout.title.text = title
             fig.update_layout(title_text=title, title_x=0.5)
+
         if savefig:
             fig.write_image(savefig)
+
         if write_json:
             import plotly.io as pio
             pio.write_json(fig, write_json)
+
         fig.layout.hovermode = hovermode
+
         if show:
-            fig.show(renderer=renderer, config=config)
+            if renderer == "chart_studio":
+                push_to_chart_studio(fig)
+            else:
+                fig.show(renderer=renderer, config=config)
 
         return fig
 
@@ -948,6 +1062,8 @@ def add_plotly_fig_kwargs(func):
                                   (separated by ‘+’ characters) or None. If None, then the default
                                   renderers specified in plotly.io.renderers.default are used.
                                   See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
+                                  Note that if renderee is equal to `chart_studio`, the file is uploaded to the chart studio
+                                  cloud. This is an AbiPy extension on top of the plotly API.
                 config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
                 ================  ====================================================================
         """
@@ -965,13 +1081,14 @@ def add_plotly_fig_kwargs(func):
 
 def plotlyfigs_to_browser(figs, filename=None, browser=None):
     """
-    Saves a list of plotly figures in an HTML file and open it the browser.
-    Useful to display multiple figures generated by different methods.
+    Save a list of plotly figures in an HTML file and open it the browser.
+    Useful to display multiple figures generated by different AbiPy methods
+    without having to construct a plotly subplot grid.
 
     Args:
         figs: List of plotly figures.
         filename: File name to save in. Use temporary filename if filename is None.
-        browser: Open webpage in ``browser``. Use default if $BROWSER if None.
+        browser: Open webpage in ``browser``. Use $BROWSER if None.
 
     Example:
 
@@ -997,4 +1114,81 @@ def plotlyfigs_to_browser(figs, filename=None, browser=None):
     import webbrowser
     print("Opening HTML file:", filename)
     webbrowser.get(browser).open_new_tab("file://" + filename)
+
     return filename
+
+
+def plotly_klabels(labels):
+    """
+    This helper function polish a list of k-points labels before calling plotly by:
+
+        - Checking if we have two equivalent consequtive labels (only the first one is shown and the second one is set to "")
+        - Replacing particulat Latex tokens with unicode as plotly support for Latex is far from optimal.
+
+    Return: New list labels, same length as input labels.
+    """
+    new_labels = labels.copy()
+
+    # Don't show label if previous k-point is the same.
+    for il in range(1, len(new_labels)):
+        if new_labels[il] == new_labels[il - 1]: new_labels[il] = ""
+
+    replace = {
+        r"$\Gamma$": "Γ",
+    }
+
+    for il in range(len(new_labels)):
+        if new_labels[il] in replace:
+            new_labels[il] = replace[new_labels[il]]
+
+    return new_labels
+
+
+_PLOTLY_AUTHEHTICATED = False
+
+
+def plotly_chartstudio_authenticate():
+    """
+    Authenticate the user on the chart studio portal by reading `PLOTLY_USERNAME` and `PLOTLY_API_KEY`
+    from the pymatgen configuration file located in $HOME/.pmgrc.yaml.
+    """
+    global _PLOTLY_AUTHEHTICATED
+    if _PLOTLY_AUTHEHTICATED: return
+
+    try:
+        from pymatgen.core import SETTINGS
+        #from pymatgen.settings import SETTINGS
+    except ImportError:
+        from pymatgen import SETTINGS
+
+    example = """
+Add it to $HOME/.pmgrc.yaml using the follow syntax:
+
+PLOTLY_USERNAME: john_doe
+PMG_MAPI_KEY: secret  # to the your api_key go to profile > settings > regenerate key
+
+"""
+
+    username = SETTINGS.get("PLOTLY_USERNAME")
+    if username is None:
+        raise RuntimeError(f"Cannot find PLOTLY_USERNAME in pymatgen settings.\n{example}")
+
+    api_key = SETTINGS.get("PLOTLY_API_KEY")
+    if api_key is None:
+        raise RuntimeError(f"Cannot find PLOTLY_API_KEY in pymatgen settings.\n{example}")
+
+    import chart_studio
+    # https://towardsdatascience.com/how-to-create-a-plotly-visualization-and-embed-it-on-websites-517c1a78568b
+    chart_studio.tools.set_credentials_file(username=username, api_key=api_key)
+    _PLOTLY_AUTHEHTICATED = True
+
+
+def push_to_chart_studio(figs):
+    """
+    Push a plotly figure or a list of figures to the chart studio cloud.
+    """
+    plotly_chartstudio_authenticate()
+    import chart_studio.plotly as py
+    if not isinstance(figs, (list, tuple)): figs = [figs]
+    for fig in figs:
+        py.plot(fig, auto_open=True)

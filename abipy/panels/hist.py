@@ -3,7 +3,7 @@ import param
 import panel as pn
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import sizing_mode_select, AbipyParameterized
+from abipy.panels.core import sizing_mode_select, AbipyParameterized, ButtonContext
 
 
 _what_list = ["pressure", "forces", "energy", "abc", "angles", "volume"]
@@ -38,23 +38,27 @@ class HistFilePanel(AbipyParameterized):
         """
         if self.plot_relax_btn.clicks == 0: return
 
-        num_plots, nrows, ncols = len(self.what_list.value), 1, 1
-        if num_plots > 1:
-            ncols = 2
-            nrows = (num_plots // ncols) + (num_plots % ncols)
+        with ButtonContext(self.plot_relax_btn):
 
-        box = pn.GridBox(nrows=nrows, ncols=ncols, sizing_mode=self.sizing_mode.value) #'scale_width')
-        for i, what in enumerate(self.what_list.value):
-            irow, icol = divmod(i, ncols)
-            box.append(self._mp(self.hist.plot(what, title=what, **self.fig_kwargs)))
+            num_plots, nrows, ncols = len(self.what_list.value), 1, 1
+            if num_plots > 1:
+                ncols = 2
+                nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        return box
-        #return pn.Column(box, box.controls(jslink=True))
+            box = pn.GridBox(nrows=nrows, ncols=ncols, sizing_mode=self.sizing_mode.value) #'scale_width')
+            for i, what in enumerate(self.what_list.value):
+                irow, icol = divmod(i, ncols)
+                box.append(self._mp(self.hist.plot(what, title=what, **self.fig_kwargs)))
+
+            return box
+            #return pn.Column(box, box.controls(jslink=True))
 
     @param.depends('view_relax_btn.clicks')
     def on_view_relax_btn(self):
         if self.view_relax_btn.clicks == 0: return
-        return self.hist.visualize(appname=self.appname.value, to_unit_cell=self.to_unit_cell.value)
+
+        with ButtonContext(self.view_relax_btn):
+            return self.hist.visualize(appname=self.appname.value, to_unit_cell=self.to_unit_cell.value)
 
     def get_panel(self):
         """Return tabs with widgets to interact with the DDB file."""

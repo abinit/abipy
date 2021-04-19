@@ -18,9 +18,17 @@ class _Tensor33(object):
         """Integration with jupyter notebooks."""
         return self.get_dataframe()._repr_html_()
 
-    def get_dataframe(self, tol=1e-3):
-        """Return |pandas-Dataframe| with tensor elements set to zero below `tol`."""
+    def get_dataframe(self, tol=1e-3, cmode=None):
+        """
+        Return |pandas-Dataframe| with tensor elements set to zero below `tol`.
+
+        Args:
+            cmode: "real" or "imag" to include only the real/imaginary part.
+        """
         tensor = self.zeroed(tol=tol)
+        if cmode == "real": tensor = tensor.real
+        if cmode == "imag": tensor = tensor.imag
+
         return pd.DataFrame({"x": tensor[:,0], "y": tensor[:,1], "z": tensor[:,2]}, index=["x", "y", "z"])
 
     def get_voigt_dataframe(self, tol=1e-3):

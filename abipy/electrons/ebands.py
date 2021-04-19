@@ -1868,7 +1868,7 @@ class ElectronBands(Has_Structure):
     def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
              points=None, with_gaps=False, max_phfreq=None, fontsize=8, **kwargs):
         r"""
-        Plot the electronic band structure.
+        Plot the electronic band structure with matplotlib.
 
         Args:
             spin: Spin index. None to plot both spins.
@@ -1908,9 +1908,6 @@ class ElectronBands(Has_Structure):
         if band_range is None:
             band_list = list(range(self.mband))
         else:
-            # This does not work in py2.7 because range is not a class
-            #if not isinstance(band_range, range):
-            #    band_list = list(band_range)
             band_list = list(range(band_range[0], band_range[1], 1))
 
         e0 = self.get_e0(e0)
@@ -2232,7 +2229,7 @@ class ElectronBands(Has_Structure):
     def plot_lws_vs_e0(self, ax=None, e0="fermie", function=lambda x: x, exchange_xy=False,
                        xlims=None, ylims=None, fontsize=12, **kwargs):
         r"""
-        Plot electronic linewidths vs KS energy.
+        Plot electronic linewidths vs KS energy with matplotlib.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -3511,7 +3508,7 @@ class ElectronDos(object):
 
     def plot_ax(self, ax, e0, spin=None, what="dos", fact=1.0, exchange_xy=False, **kwargs):
         """
-        Helper function to plot the DOS data on the axis ``ax``.
+        Helper function to plot the DOS data on the matplotlib axis ``ax``.
 
         Args:
             ax: |matplotlib-Axes|.
@@ -3542,7 +3539,7 @@ class ElectronDos(object):
     @add_fig_kwargs
     def plot(self, e0="fermie", spin=None, ax=None, exchange_xy=False, xlims=None, ylims=None, **kwargs):
         """
-        Plot electronic DOS
+        Plot electronic DOS with matplotlib.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -3582,7 +3579,7 @@ class ElectronDos(object):
     @add_fig_kwargs
     def plot_dos_idos(self, e0="fermie", ax_list=None, xlims=None, height_ratios=(1, 2), **kwargs):
         """
-        Plot electronic DOS and Integrated DOS on two different subplots.
+        Plot electronic DOS and Integrated DOS on two different subplots with matplotlib.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -3631,7 +3628,7 @@ class ElectronDos(object):
     @add_fig_kwargs
     def plot_up_minus_down(self, e0="fermie", ax=None, xlims=None, **kwargs):
         """
-        Plot Dos_up - Dow_down
+        Plot Dos_up - Dow_down with matplotlib.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -4244,7 +4241,7 @@ class Bands3D(Has_Structure):
     @add_fig_kwargs
     def plot_contour(self, band, spin=0, plane="xy", elevation=0, ax=None, fontsize=8, **kwargs):
         """
-        Contour plot with matplotlib_.
+        Contour plot with matplotlib.
 
         Args:
             band: Band index

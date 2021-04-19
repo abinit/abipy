@@ -33,7 +33,7 @@ from abipy.dfpt.ifc import InteratomicForceConstants
 from abipy.dfpt.elastic import ElasticData
 from abipy.dfpt.raman import Raman
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, push_to_chart_studio
 from abipy.tools import duck
 from abipy.tools.iotools import ExitStackWithFiles
 from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
@@ -2262,7 +2262,7 @@ class DielectricTensorGenerator(Has_Structure):
         else:
             gammas = np.ones(len(self.phfreqs)) * float(gamma_ev)
 
-        t = np.zeros((3, 3),dtype=complex)
+        t = np.zeros((3, 3), dtype=complex)
         for i in range(3, len(self.phfreqs)):
             g = gammas[i] * self.phfreqs[i]
             t += self.oscillator_strength[i].real / (self.phfreqs[i]**2 - w**2 - 1j*g)
@@ -2982,6 +2982,26 @@ class DdbRobot(Robot):
             r = self.anaget_phonon_plotters()
             for fig in r.phbands_plotter.yield_figs(): yield fig
             for fig in r.phdos_plotter.yield_figs(): yield fig
+
+    def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        """
+        renderer = "chart_studio" if chart_studio else None
+        figs = []; f = figs.append
+        if all(ddb.has_at_least_one_atomic_perturbation() for ddb in self.abifiles):
+            print("Invoking anaddb through anaget_phonon_plotters...")
+            r = self.anaget_phonon_plotters()
+            #for fig in r.phbands_plotter.yield_figs(): yield fig
+            #for fig in r.phdos_plotter.yield_figs(): yield fig
+            f(r.phbands_plotter.combiplotly(show=False))
+
+        push_to_chart_studio(figs) if chart_studio else plotlyfigs_to_browser(figs)
+
+    def get_panel(self):
+        """Return a panel object that allows the user to compare the results with a web-based interface."""
+        from abipy.panels.ddb import DdbRobotPanel
+        return DdbRobotPanel(self).get_panel()
 
     def write_notebook(self, nbpath=None):
         """
