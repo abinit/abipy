@@ -47,15 +47,13 @@ class GsrFilePanel(PanelWithElectronBands):
         kpoints = self.gsr.ebands.kpoints
         if kpoints.is_ibz:
             app(("e-DOS", pn.Row(
-                self.get_plot_edos_widgets(),
-                self.on_plot_edos_btn)
+                self.get_plot_edos_widgets(), self.on_plot_edos_btn)
             ))
 
             if self.gsr.ebands.supports_fermi_surface:
                 # Fermi surface requires gamma-centered k-mesh
                 app(("Fermi Surface", pn.Row(
-                    self.get_plot_fermi_surface_widgets(),
-                    self.on_plot_fermi_surface_btn)))
+                    self.get_plot_fermi_surface_widgets(), self.on_plot_fermi_surface_btn)))
 
         return tabs
 

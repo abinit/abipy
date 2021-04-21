@@ -589,7 +589,7 @@ def abicomp_pseudos(options):
     return 0
 
 
-def _build_robot(options, trim_paths=False):
+def _build_robot(options, trim_paths=True):
     """Build robot instance from CLI options."""
     robot_cls = abilab.Robot.class_for_ext(options.command.upper())
 
@@ -1087,7 +1087,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     # Parent parser for *robot* commands
     robot_parser = argparse.ArgumentParser(add_help=False)
     robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
-    robot_parser.add_argument('--panel', default=False, action="store_true",
+    robot_parser.add_argument("-pn", '--panel', default=False, action="store_true",
                               help="Open GUI in web browser, requires panel package. WARNING: Experimental")
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]

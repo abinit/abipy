@@ -35,11 +35,90 @@ def sizing_mode_select(name="sizing_mode", value="scale_both"):
                       "scale_height", "scale_width", "scale_both"])
 
 
+def mpl(fig, sizing_mode='stretch_width', with_controls=False):
+    """
+    Helper function returning a panel Column with a matplotly pane followed by
+    a divider and (optionally) controls to customize the figure.
+    """
+    col = pn.Column(sizing_mode=sizing_mode); ca = col.append
+    mpl_pane = pn.pane.Matplotlib(fig)
+    ca(mpl_pane)
+    ca(pn.layout.Divider())
+
+    if with_controls:
+        ca(pn.Accordion(("matplotlib controls", mpl_pane.controls(jslink=True))))
+        ca(pn.layout.Divider())
+
+    return col
+
+
+def ply(fig, sizing_mode='stretch_width', with_controls=False):
+    """
+    Helper function returnin a panel Column with a plotly pane followed by
+    a divider and (optionally) controls to customize the figure.
+    """
+    col = pn.Column(sizing_mode=sizing_mode); ca = col.append
+    plotly_pane = pn.pane.Plotly(fig, config={'responsive': True})
+    ca(plotly_pane)
+    ca(pn.layout.Divider())
+
+    if with_controls:
+        ca(pn.Accordion(("plotly controls", plotly_pane.controls(jslink=True))))
+        ca(pn.layout.Divider())
+
+    return col
+
+
+def df(df, wdg_type="dataframe", with_controls=False, **kwargs):
+    """
+    Helper function returning a panel Column with a plotly pane followed by
+    a divider and (optionally) controls to customize the figure.
+
+    Note that not all the options work as exected. See comments below.
+    """
+    if "disabled" not in kwargs: kwargs["disabled"] = False
+    if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "stretch_width"
+
+    if wdg_type == "dataframe":
+        if "auto_edit" not in kwargs: kwargs["auto_edit"] = False
+        w = pnw.DataFrame(df, **kwargs)
+    elif wdg_type == "tabulator":
+        # This seems to be buggy
+        w = pnw.Tabulator(df, **kwargs)
+    else:
+        raise ValueError(f"Don't know how to handle widget type: {wdg_type}")
+
+    return w
+    col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+
+    ca(w)
+    ca(pn.layout.Divider())
+    if with_controls:
+        # This seems to be buggy.
+        ca(pn.Accordion(("dataframe controls", w.controls(jslink=True))))
+        ca(pn.layout.Divider())
+
+    return col
+
+
 class ButtonContext(object):
     """
-    A context manager for buttons.
-    Disable the button when we enter the manager, and set to name to "running".
-    Revert to the initial state of the buttong in __exit__ after showing the exc_type if any.
+    A context manager for buttons triggering computations on the server.
+
+    This manager disables the button when we __enter__ and changes the name of the button to "running".
+    It reverts to the initial state of the button one __exit__ is invoked, showing the Exception type in a "red"
+    button if an exeption was raised during the computation.
+
+    This a very important tool because we need to disable the button when we start the computation
+    to prevent the user from triggering multiple fallbacks while the server is still working on the first task.
+    At the same time, whathever happens in the callback, the button should go back to "clickable" mode
+    when the callback returns so that the user can try to change the parameters and rerun.
+
+    Note also that we want to provide some graphical feedback to the user if something goes wrong on the server side.
+    At present we don't expose the python traceback on the client.
+    It would be nice but we need panel machinery to do that.
+    Moreover this is not the recommended approach for security reasons so we just change the "color" of the button
+    and use the string representation of the exception as button name.
     """
 
     def __init__(self, btn):
@@ -54,42 +133,53 @@ class ButtonContext(object):
         return self.btn
 
     def __exit__(self, exc_type, exc_value, traceback):
-        # First of all, reenable the button
+        # First of all, reenable the button so that the user can stil interact with the GUI.
         self.btn.disabled = False
 
         if exc_type:
-            # Signal to the user that something went wrong for 4 seconds
+            # Excetion --> signal to the user that something went wrong for 4 seconds.
             self.btn.name = str(exc_type)
             self.btn.button_type = "danger"
             import time
             time.sleep(3)
 
-        # Back the original button.
+        # Back the original button state.
         self.btn.name, self.btn.button_type = self.prev_name, self.prev_type
 
+        # Don't handle the exception
         return None
 
 
 class AbipyParameterized(param.Parameterized):
+    """
+    Base classs for AbiPy panels. Provide widgets for parameters supported by the differet AbiPy methods.
+    and helper functions to perform typical operations when build dashboards from python.
+    """
 
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used for running Abinit")
 
+    # TODO: RENAME IT TO mpl_kwargs
     @lazy_property
     def fig_kwargs(self):
-        """Default arguments passed to AbiPy plot methods."""
+        """Default arguments passed to AbiPy matplotlib plot methods."""
         return dict(show=False, fig_close=True)
 
+    # TODO: DEPRECATED
     @staticmethod
     def _mp(fig):
         return pn.pane.Matplotlib(fig, sizing_mode="scale_width")
 
+    # TODO: DEPRECATED
     @staticmethod
-    def _df(df, disabled=True, sizing_mode="scale_width"):
-        return pnw.DataFrame(df, disabled=disabled, sizing_mode=sizing_mode)
+    def _df(df, wdg_type="tabulator", **kwargs):
+        return df(df, wdg_type=wdg_type, **kwargs)
 
     def pws(self, *keys):
-        """helper function to return a list of parameters, widgets in self."""
+        """
+        Helper function returning list of parameters, widgets defined self from list of strings.
+        Accepts also widget or parameter instances.
+        """
         items, miss = [], []
         for k in keys:
             if isinstance(k, str):
@@ -116,10 +206,13 @@ class AbipyParameterized(param.Parameterized):
 #    """
 
 
-class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
+class PanelWithElectronBands(AbipyParameterized):
+    """
+    Mixin class for panel object associate to AbiPy object providing an |ElectronBands| object.
+    """
 
     # Bands plot
-    with_gaps = pnw.Checkbox(name='Show gaps')
+    with_gaps = pnw.Checkbox(name='show gaps')
     #ebands_ylims
     #ebands_e0
     # e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -130,13 +223,13 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
 
     plot_ebands_btn = pnw.Button(name="Plot e-bands", button_type='primary')
 
-    # DOS plot.
+    # e-DOS plot.
     edos_method = pnw.Select(name="e-DOS method", options=["gaussian", "tetra"])
     edos_step = pnw.Spinner(name='e-DOS step (eV)', value=0.1, step=0.05, start=1e-6, end=None)
     edos_width = pnw.Spinner(name='e-DOS Gaussian broadening (eV)', value=0.2, step=0.05, start=1e-6, end=None)
     plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type='primary')
 
-    # Fermi surface plot.
+    # Fermi surface plotter.
     fs_viewer = pnw.Select(name="FS viewer", options=["matplotlib", "xcrysden"])
     plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
 

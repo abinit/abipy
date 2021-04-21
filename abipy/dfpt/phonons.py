@@ -3858,6 +3858,12 @@ class PhononBandsPlotter(NotebookWriter):
         """Invoked by str"""
         return self.to_string(func=str)
 
+    def append_plotter(self, other):
+        """Append phbands and phdos from other plotter to self."""
+        for label, phbands in other._bands_dict.items():
+            phdos = self._phdoses_dict.get(label, None)
+            self.add_phbands(label, phbands, phdos=phdos)
+
     def add_plotter(self, other):
         """Merge two plotters, return new plotter."""
         if not isinstance(other, self.__class__):

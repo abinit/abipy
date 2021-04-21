@@ -129,7 +129,7 @@ def get_parser(with_epilog=False):
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
 
     # panel option
-    parser.add_argument('--panel', action='store_true', default=False,
+    parser.add_argument("-pn", '--panel', action='store_true', default=False,
                         help="Open GUI in web browser, requires panel package.")
 
     # Expose option.

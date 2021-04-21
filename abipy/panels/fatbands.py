@@ -24,8 +24,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
     def get_panel(self):
         """Return tabs with widgets to interact with the FATBANDS.nc file."""
         tabs = pn.Tabs(); app = tabs.append
-        app(("Summary", pn.Row(bkw.PreText(text=self.ncfile.to_string(verbose=self.verbose),
-                               sizing_mode="scale_both"))))
+        app(("Summary", pn.Row(bkw.PreText(text=self.ncfile.to_string(verbose=self.verbose), sizing_mode="scale_both"))))
         app(("e-Bands", pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)))
 
         if self.ncfile.ebands.kpoints.is_ibz:

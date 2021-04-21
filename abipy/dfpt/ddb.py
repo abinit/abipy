@@ -33,7 +33,8 @@ from abipy.dfpt.ifc import InteratomicForceConstants
 from abipy.dfpt.elastic import ElasticData
 from abipy.dfpt.raman import Raman
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, push_to_chart_studio
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
+                                  plotlyfigs_to_browser, push_to_chart_studio)
 from abipy.tools import duck
 from abipy.tools.iotools import ExitStackWithFiles
 from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
@@ -1140,7 +1141,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting="automatic",
                        nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
-                       verbose=0, mpi_procs=1):
+                       verbose=0, mpi_procs=1, pre_label=None):
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
         values of the ``asr`` input variable (acoustic sum rule treatment).
@@ -1163,6 +1164,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
             verbose: Verbosity level.
             mpi_procs: Number of MPI processes used by anaddb.
+            pre_label: String to prepend to the default label used by the Plotter.
 
         Return:
             |PhononBandsPlotter| object.
@@ -1177,19 +1179,24 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 lo_to_splitting=lo_to_splitting, ngqpt=ngqpt, qptbounds=None,
                 anaddb_kwargs=None, verbose=verbose, mpi_procs=mpi_procs, workdir=None, manager=None)
 
-            label = "asr: %d, dipdip: %d, chneut: %d" % (asr, dipdip, chneut)
+            if pre_label is not None:
+                label = "%s (asr: %d, dipdip: %d, chneut: %d)" % (pre_label, asr, dipdip, chneut)
+            else:
+                label = "asr: %d, dipdip: %d, chneut: %d" % (asr, dipdip, chneut)
+
             if phdos_file is not None:
                 phbands_plotter.add_phbands(label, phbst_file.phbands, phdos=phdos_file.phdos)
                 phdos_file.close()
             else:
                 phbands_plotter.add_phbands(label, phbst_file.phbands)
+
             phbst_file.close()
 
         return phbands_plotter
 
     def anacompare_dipdip(self, chneut_list=(1,), asr=2, lo_to_splitting="automatic",
                           nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
-                          verbose=0, mpi_procs=1):
+                          verbose=0, mpi_procs=1, pre_label=None):
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
         values of the ``dipdip`` input variable (dipole-dipole treatment).
@@ -1211,6 +1218,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
             verbose: Verbosity level.
             mpi_procs: Number of MPI processes used by anaddb.
+            pre_label: String to prepen to the default label used by the Plotter.
 
         Return:
             |PhononDosPlotter| object.
@@ -1227,7 +1235,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     lo_to_splitting=lo_to_splitting, ngqpt=ngqpt, qptbounds=None,
                     anaddb_kwargs=None, verbose=verbose, mpi_procs=mpi_procs, workdir=None, manager=None)
 
-                label = "asr: %d, dipdip: %d, chneut: %d" % (asr, dipdip, chneut)
+                if pre_label is not None:
+                    label = "%s (asr: %d, dipdip: %d, chneut: %d)" % (pre_label, asr, dipdip, chneut)
+                else:
+                    label = "asr: %d, dipdip: %d, chneut: %d" % (asr, dipdip, chneut)
+
                 if phdos_file is not None:
                     phbands_plotter.add_phbands(label, phbst_file.phbands, phdos=phdos_file.phdos)
                     phdos_file.close()
@@ -2580,7 +2592,9 @@ class DielectricTensorGenerator(Has_Structure):
 
 class DdbRobot(Robot):
     """
-    This robot analyzes the results contained in multiple DDB_ files.
+    This robot analyzes the results contained in multiple DDB files.
+    Obviously, some `compare` methods make sense only if the DDB files have the same structures
+    and have computed with different parameters e.g. qmesh, tsmear, ecut ....
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: DdbRobot
@@ -2743,7 +2757,7 @@ class DdbRobot(Robot):
 
             # Call anaddb to get the phonon frequencies. Note lo_to_splitting set to False.
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut,
-               dipdip=dipdip, lo_to_splitting=False)
+                                                   dipdip=dipdip, lo_to_splitting=False)
             # [nq, nmodes] array
             freqs = phbands.phfreqs[0, :] * phfactor_ev2units(units)
 
@@ -2765,15 +2779,22 @@ class DdbRobot(Robot):
 
     def anaget_phonon_plotters(self, **kwargs):
         r"""
-        Invoke anaddb to compute phonon bands and DOS using the arguments passed via \*\*kwargs.
+        Invoke anaddb to compute phonon bands and DOS using the arguments passed via `kwargs`.
         Collect results and return `namedtuple` with the following attributes:
 
             phbands_plotter: |PhononBandsPlotter| object.
             phdos_plotter: |PhononDosPlotter| object.
         """
-        # TODO: Multiprocessing?
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
+
+        def find_anaddb_ncpath(filepath):
+            from abipy.flowtk.utils import Directory
+            directory = Directory(os.path.dirname(filepath))
+            p = directory.has_abiext("anaddb.nc")
+            if not p:
+                raise RuntimeError("Cannot find `anaddb.nc` in directory %s" % (directory))
+            return p
 
         phbands_plotter, phdos_plotter = PhononBandsPlotter(), PhononDosPlotter()
 
@@ -2781,16 +2802,12 @@ class DdbRobot(Robot):
             # Invoke anaddb to get phonon bands and DOS.
             phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
 
-            def find_anaddb_ncpath(filepath):
-                from abipy.flowtk.utils import Directory
-                directory = Directory(os.path.dirname(filepath))
-                return directory.outpath_from_ext("anaddb.nc")
-
             # Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc
             # Those results should be fetched from there and added to the phonon bands.
             # lo_to_splitting in ["automatic", True, False] and defaults to automatic.
-            if kwargs.get("lo_to_splitting", False):
-                #anaddb_path = os.path.join(os.path.dirname(phbst_file.filepath), "anaddb.nc")
+            loto_mode = kwargs.get("lo_to_splitting", False)
+            if loto_mode:
+                #print("lo_to_splitting:", kwargs["lo_to_splitting"])
                 anaddb_path = find_anaddb_ncpath(phbst_file.filepath)
                 phbst_file.phbands.read_non_anal_from_file(anaddb_path)
 
