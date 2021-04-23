@@ -639,11 +639,7 @@ def _invoke_robot(options):
                                      no_browser=options.no_browser)
 
     elif options.panel:
-        try:
-            import panel  # noqa: F401
-        except ImportError as exc:
-            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
-            raise exc
+        abilab.abipanel()
 
         if hasattr(robot, "get_panel"):
             robot.get_panel().show()

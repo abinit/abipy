@@ -5,39 +5,20 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import AbipyParameterized, gen_id, ButtonContext
+from abipy.panels.core import HasStructureParams, ButtonContext, dfc #gen_id,
 
-pn.config.js_files.update({
-    #'$': 'https://code.jquery.com/jquery-3.4.1.slim.min.js',
-    "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
-})
+#pn.config.js_files.update({
+#    #'$': 'https://code.jquery.com/jquery-3.4.1.slim.min.js',
+#    "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
+#})
 
 #pn.config.js_files["ngl"] = "https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
 
 
-_html_with_copy_to_clipboard_ncalls = 0
-
-
-def html_with_copy_to_clipboard(html, btn_cls="btn-primary btn-sm"):
-    global _html_with_copy_to_clipboard_ncalls
-    _html_with_copy_to_clipboard_ncalls += 1
-    myid = gen_id()
-    html = f"""
-<button class="btn {btn_cls}" data-clipboard-target="#{myid}"> Copy to clipboard </button>
-<div id="{myid}"> {html} </div>
-"""
-    if _html_with_copy_to_clipboard_ncalls == 1:
-        html += "<script>$(document).ready(function () {new ClipboardJS('.btn')})</script>"
-
-    return pn.pane.HTML(html)
-
-
-class StructurePanel(AbipyParameterized):
+class StructurePanel(HasStructureParams):
     """
     Panel with widgets to interact with an AbiPy Structure
     """
-    verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
-
     # Convert widgets.
     output_format = pnw.Select(name="format", value="abinit",
                                options="abinit,cif,xsf,poscar,qe,siesta,wannier90,cssr,json".split(","))
@@ -50,15 +31,10 @@ class StructurePanel(AbipyParameterized):
     kpath_format = pnw.Select(name="format", value="abinit", options=["abinit", "siesta", "wannier90"])
     line_density = pnw.Spinner(name="line density", value=10, step=5, start=0, end=None)
 
-    # Viewer widgets.
-    viewer_btn = pnw.Button(name="View structure", button_type='primary')
-    viewer = pnw.Select(name="Viewer", value="vesta",
-                        options=["jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl", "matplotlib", "mayavi"])
-
-    # Mp-match
+    # MP-match
     mp_match_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
 
-    # Mp-search
+    # MP-search
     #mp_search_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
     #mp_api_key
 
@@ -84,8 +60,8 @@ class StructurePanel(AbipyParameterized):
     @param.depends("output_format.value")
     def convert(self):
         """Convert the input structure to one of the format selected by the user."""
-        return pn.Row(bkw.PreText(text=self.structure.convert(fmt=self.output_format.value)),
-                      sizing_mode='stretch_width')
+        s = self.structure.convert(fmt=self.output_format.value)
+        return self.html_with_clipboard_btn(f"<pre> {s} </pre>")
 
     @param.depends("spglib_symprec.value", "spglib_angtol.value")
     def spglib_summary(self):
@@ -99,116 +75,11 @@ class StructurePanel(AbipyParameterized):
         """Generate high-symmetry k-path from input structure in ABINIT format.."""
         s = self.structure.get_kpath_input_string(fmt=self.kpath_format.value,
                                                   line_density=self.line_density.value)
-        return pn.Row(bkw.PreText(text=s, sizing_mode='stretch_width'))
-
-    @param.depends("viewer_btn.clicks")
-    def view(self):
-        """Visualize input structure."""
-        if self.viewer_btn.clicks == 0: return
-
-        with ButtonContext(self.viewer_btn):
-            v = self.viewer.value
-
-            if v == "jsmol":
-                pn.extension(comms='ipywidgets') #, js_files=js_files)
-                view = self.structure.get_jsmol_view()
-                from ipywidgets_bokeh import IPyWidget
-                view = IPyWidget(widget=view) #, width=800, height=300)
-                #import ipywidgets as ipw
-                from IPython.display import display
-                #display(view)
-                return pn.Row(display(view))
-
-            if v == "crystalk":
-                view = self.structure.get_crystaltk_view()
-                return pn.panel(view)
-
-            if v == "ngl":
-                js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
-                pn.extension(comms='ipywidgets', js_files=js_files)
-                view = self.structure.get_ngl_view()
-                return pn.panel(view)
-
-                #pn.config.js_files["ngl"]="https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
-                #pn.extension()
-
-                html = """<div id="viewport" style="width:100%; height:100%;"></div>
-                <script>
-                stage = new NGL.Stage("viewport");
-                stage.loadFile("rcsb://1NKT.mmtf", {defaultRepresentation: true});
-                </script>"""
-
-                #        html = """
-                #         <script>
-                #    document.addeventlistener("domcontentloaded", function () {
-                #      var stage = new ngl.stage("viewport");
-                #      stage.loadfile("rcsb://1crn", {defaultrepresentation: true});
-                #    });
-                #  </script>"""
-
-                #        html = """
-                #<script>
-                #document.addeventlistener("domcontentloaded", function () {
-                #    // create a `stage` object
-                #    var stage = new NGL.Stage("viewport");
-                #    // load a PDB structure and consume the returned `Promise`
-                #    stage.loadFile("rcsb://1CRN").then(function (component) {
-                #    // add a "cartoon" representation to the structure component
-                #    component.addRepresentation("cartoon");
-                #    // provide a "good" view of the structure
-                #    component.autoView();
-                #  });
-                #});
-                #</script>"""
-
-                ngl_pane = pn.pane.HTML(html, height=500, width=500)
-                return pn.Row(ngl_pane)
-                view = self.structure.get_ngl_view()
-
-            #return self.structure.crystaltoolkitview()
-            #import nglview as nv
-            #view = nv.demo(gui=False)
-
-            #from bokeh.models import ColumnDataSource
-            #from bokeh.io import show, curdoc
-            #from bokeh.models.widgets import Button, TextInput
-            #from bokeh.layouts import layout, widgetbox
-            #from jsmol_bokeh_extension import JSMol
-            #script_source = ColumnDataSource()
-
-            #info = dict(
-            #    height="100%",
-            #    width="100%",
-            #    serverURL="https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
-            #    use="HTML5",
-            #    j2sPath="https://chemapps.stolaf.edu/jmol/jsmol/j2s",
-            #    script=
-            #    "background black;load https://chemapps.stolaf.edu/jmol/jsmol-2013-09-18/data/caffeine.mol",
-            #)
-
-            #applet = JSMol(
-            #    width=600,
-            #    height=600,
-            #    script_source=script_source,
-            #    info=info,
-            #)
-
-            #button = Button(label='Execute')
-            #inp_script = TextInput(value='background white;')
-
-            #def run_script():
-            #    script_source.data['script'] = [inp_script.value]
-
-            #button.on_click(run_script)
-            #ly = layout([applet, widgetbox(button, inp_script)])
-            #show(ly)
-            #curdoc().add_root(ly)
-            #return pn.Row(applet)
-            return self.structure.visualize(appname=self.viewer.value)
+        return self.html_with_clipboard_btn(f"<pre> {s} </pre>")
 
     @param.depends("gs_input_btn.clicks")
     def on_gs_input_btn(self):
-        """Generate minimalistic input file from the input file."""
+        """Generate minimalistic input file from the input structure."""
         if self.gs_input_btn.clicks == 0: return
 
         with ButtonContext(self.gs_input_btn):
@@ -221,14 +92,17 @@ class StructurePanel(AbipyParameterized):
                 smearing=None)
 
             gs_inp.pop_vars(("charge", "chksymbreak"))
-            gs_inp.set_vars(ecut="?? # depends on pseudos", nband="?? # depends on pseudos")
+            gs_inp.set_vars(ecut="?? # depends on pseudos",
+                            nband="?? # depends on pseudos",
+                            pseudos='"pseudo1, pseudo2, ..."'
+                           )
 
             if self.gs_type.value == "relax":
                 gs_inp.set_vars(optcell=2, ionmov=2, ecutsm=0.5, dilatmx=1.05)
 
             gs_inp.set_mnemonics(False)
 
-            return html_with_copy_to_clipboard(gs_inp._repr_html_())
+            return self.html_with_clipboard_btn(gs_inp._repr_html_())
 
     @param.depends("mp_match_btn.clicks")
     def on_mp_match_btn(self):
@@ -239,9 +113,9 @@ class StructurePanel(AbipyParameterized):
             from abipy.core.structure import mp_match_structure
             mp = mp_match_structure(self.structure, api_key=None, endpoint=None, final=True)
             if not mp.structures:
-                raise RuntimeError("No structure found in MP database")
+                raise RuntimeError("No structure found in the MP database")
 
-            return pn.Column(self._df(mp.lattice_dataframe), sizing_mode='stretch_width')
+            return pn.Column(dfc(mp.lattice_dataframe), sizing_mode='stretch_width')
 
     #@param.depends("mp_search_btn.clicks")
     #def on_mp_search_btn(self):
@@ -252,18 +126,10 @@ class StructurePanel(AbipyParameterized):
     #    if not mp.structures:
     #        raise RuntimeError("No structure found in MP database")
 
-    #    return pn.Column(self._df(mp.lattice_dataframe), sizing_mode='stretch_width')
+    #    return pn.Column(dfc(mp.lattice_dataframe), sizing_mode='stretch_width')
 
     def get_panel(self):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
-
-        def info(method_name):
-            # Add accordion after the button with warning and help taken from the docstring of the callback
-            col = pn.Column(); ca = col.append
-            acc = pn.Accordion(("Help", pn.pane.Markdown(getattr(self, method_name).__doc__)))
-            ca(pn.layout.Divider())
-            ca(acc)
-            return col
 
         tabs = pn.Tabs(); app = tabs.append
 
@@ -271,24 +137,21 @@ class StructurePanel(AbipyParameterized):
             pn.Row(bkw.PreText(text=self.structure.to_string(verbose=self.verbose), sizing_mode="scale_both"))
         ))
         app(("Spglib", pn.Row(
-            pn.Column('# Spglib options', *self.pws("spglib_symprec", "spglib_angtol", info("spglib_summary"))),
+            pn.Column('# Spglib options', *self.pws("spglib_symprec", "spglib_angtol", self.helpc("spglib_summary"))),
             self.spglib_summary)
         ))
         app(("Kpath", pn.Row(
-            pn.Column('# K-path options', *self.pws("kpath_format", "line_density", info("get_kpath"))),
+            pn.Column('# K-path options', *self.pws("kpath_format", "line_density", self.helpc("get_kpath"))),
             self.get_kpath)
         ))
         app(("Convert", pn.Row(
-            pn.Column("# Convert structure", *self.pws("output_format", info("convert"))),
+            pn.Column("# Convert structure", *self.pws("output_format", self.helpc("convert"))),
             self.convert)
         ))
-        app(("View", pn.Row(
-            pn.Column("# Visualize structure", *self.pws("viewer", "viewer_btn", info("view"))),
-            self.view)
-        ))
+        app(self.get_struct_view_tab_entry())
         app(("GS-input", pn.Row(
             pn.Column('# Generate GS input', *self.pws("gs_type", "spin_mode", "kppra", "gs_input_btn",
-                      info("on_gs_input_btn"))),
+                      self.helpc("on_gs_input_btn"))),
             self.on_gs_input_btn)
         ))
         app(("MP-match", pn.Row(

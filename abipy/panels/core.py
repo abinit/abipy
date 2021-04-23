@@ -1,12 +1,40 @@
 """"Base classes and mixins for AbiPy panels."""
 
-#import abc
 import param
 import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from monty.functools import lazy_property
+from monty.termcolor import cprint
+from abipy.tools.plotting import push_to_chart_studio
+
+
+def abipanel():
+    """
+    Activate panel extensions used by AbiPy. Return panel module.
+    """
+    try:
+        import panel as pn
+    except ImportError as exc:
+        cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
+        raise exc
+
+    extensions = [
+        "plotly",
+        #"mathjax",
+        #"katex",
+    ]
+
+    pn.extension(*extensions)
+
+    pn.config.js_files.update({
+        #'$': 'https://code.jquery.com/jquery-3.4.1.slim.min.js',
+        # This for the copy to clipboard.
+        "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
+    })
+
+    return pn
 
 
 def gen_id(n=1, pre="uuid-"):
@@ -26,6 +54,31 @@ def gen_id(n=1, pre="uuid-"):
         raise ValueError("n must be > 0 but got %s" % str(n))
 
 
+_html_with_copy_to_clipboard_ncalls = 0
+
+
+def html_with_clipboard_btn(html_str, btn_cls="bk bk-btn bk-btn-primary"):
+    """
+    Receives an HTML string and return an HTML pane with a button that allows the user
+    to copy the content to the system clipboard. Requires call to abipanel to load JS extension.
+    """
+    global _html_with_copy_to_clipboard_ncalls
+    _html_with_copy_to_clipboard_ncalls += 1
+    my_id = gen_id()
+
+    col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+    html_str = f"""
+<div id="{my_id}">{html_str}</div>
+<br>
+<button class="clip-btn {btn_cls}" type="button" data-clipboard-target="#{my_id}"> Copy to clipboard </button>
+<hr>
+"""
+    if _html_with_copy_to_clipboard_ncalls == 1:
+        html_str += "<script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
+
+    return pn.pane.HTML(html_str)
+
+
 def sizing_mode_select(name="sizing_mode", value="scale_both"):
     """
     Widget to select the value of sizing_mode. See https://panel.holoviz.org/user_guide/Customization.html
@@ -35,13 +88,13 @@ def sizing_mode_select(name="sizing_mode", value="scale_both"):
                       "scale_height", "scale_width", "scale_both"])
 
 
-def mpl(fig, sizing_mode='stretch_width', with_controls=False):
+def mpl(fig, sizing_mode='stretch_width', with_controls=False, **kwargs):
     """
     Helper function returning a panel Column with a matplotly pane followed by
     a divider and (optionally) controls to customize the figure.
     """
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
-    mpl_pane = pn.pane.Matplotlib(fig)
+    mpl_pane = pn.pane.Matplotlib(fig, **kwargs)
     ca(mpl_pane)
     ca(pn.layout.Divider())
 
@@ -52,31 +105,59 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False):
     return col
 
 
-def ply(fig, sizing_mode='stretch_width', with_controls=False):
+def ply(fig, sizing_mode='stretch_width', with_chart_studio=True, with_controls=False):
     """
-    Helper function returnin a panel Column with a plotly pane followed by
-    a divider and (optionally) controls to customize the figure.
+    Helper function returning a panel Column with a plotly pane,  buttons to push the figure
+    to plotly chart studio and, optionally, controls to customize the figure.
     """
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
     plotly_pane = pn.pane.Plotly(fig, config={'responsive': True})
     ca(plotly_pane)
-    ca(pn.layout.Divider())
+
+    if with_chart_studio:
+        md = pn.pane.Markdown("""
+
+The button on the left allows you to **upload the figure** to the
+plotly [chart studio server](https://plotly.com/chart-studio-help/)
+so that it is possible to share the figure with colleagues or customize the figure via the chart studio editor.
+In order to use this feature, you need to create a free account following the instructions
+reported [in this page](https://plotly.com/chart-studio-help/how-to-sign-up-to-plotly/).
+Then you have to **add the following section** to your $HOME/.pmgrc.yaml configuration file:
+
+```yaml
+PLOTLY_USERNAME: john_doe  # Replace with your username
+PLOTLY_API_KEY: secret     # To get your api_key go to: profile > settings > regenerate key
+```
+
+so that AbiPy can authenticate your user on the chart studio portal before pushing the figure to the cloud.
+If everything is properly configured, a new window should be automatically created in your browser.
+"""
+)
+        acc = pn.Accordion(("What is this?", md))
+        button = pnw.Button(name="Upload figure to chart studio server", button_type='primary')
+        def push_to_cs(event):
+            push_to_chart_studio(fig)
+
+        button.on_click(push_to_cs)
+        ca(pn.Row(button, acc))
 
     if with_controls:
         ca(pn.Accordion(("plotly controls", plotly_pane.controls(jslink=True))))
         ca(pn.layout.Divider())
 
+    ca(pn.layout.Divider())
+
     return col
 
 
-def df(df, wdg_type="dataframe", with_controls=False, **kwargs):
+def dfc(df, wdg_type="dataframe", with_copy_to_clipboard=True, with_controls=False, **kwargs):
     """
     Helper function returning a panel Column with a plotly pane followed by
     a divider and (optionally) controls to customize the figure.
 
     Note that not all the options work as exected. See comments below.
     """
-    if "disabled" not in kwargs: kwargs["disabled"] = False
+    if "disabled" not in kwargs: kwargs["disabled"] = True
     if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "stretch_width"
 
     if wdg_type == "dataframe":
@@ -88,15 +169,30 @@ def df(df, wdg_type="dataframe", with_controls=False, **kwargs):
     else:
         raise ValueError(f"Don't know how to handle widget type: {wdg_type}")
 
-    return w
+    #return w
     col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-
     ca(w)
-    ca(pn.layout.Divider())
+
+    if with_copy_to_clipboard:
+        md = pn.pane.Markdown("""
+
+The button on the left allows you to write a text representation of the dataframe to the system clipboard.
+This can be pasted into Excel, for example.
+"""
+)
+        acc = pn.Accordion(("What is this?", md))
+        button = pnw.Button(name="Copy to clipboard", button_type='primary')
+        def to_clipboard(event):
+            df.to_clipboard()
+
+        button.on_click(to_clipboard)
+        ca(pn.Row(button, acc))
+
     if with_controls:
         # This seems to be buggy.
         ca(pn.Accordion(("dataframe controls", w.controls(jslink=True))))
-        ca(pn.layout.Divider())
+
+    ca(pn.layout.Divider())
 
     return col
 
@@ -137,7 +233,7 @@ class ButtonContext(object):
         self.btn.disabled = False
 
         if exc_type:
-            # Excetion --> signal to the user that something went wrong for 4 seconds.
+            # Exception --> signal to the user that something went wrong for 4 seconds.
             self.btn.name = str(exc_type)
             self.btn.button_type = "danger"
             import time
@@ -159,25 +255,22 @@ class AbipyParameterized(param.Parameterized):
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used for running Abinit")
 
-    # TODO: RENAME IT TO mpl_kwargs
+    # mode = "webapp" This flag may be used to limit the user and/or decide the options that should
+    # be exposed. For instance struct_viewer == "Vesta" does not make sense in webapp mode
+
+    warning = pn.pane.Markdown(
+"""
+Please **refresh** the page using the refresh button of the browser if plotly figures are not shown.
+""")
+
     @lazy_property
-    def fig_kwargs(self):
+    def mpl_kwargs(self):
         """Default arguments passed to AbiPy matplotlib plot methods."""
         return dict(show=False, fig_close=True)
 
-    # TODO: DEPRECATED
-    @staticmethod
-    def _mp(fig):
-        return pn.pane.Matplotlib(fig, sizing_mode="scale_width")
-
-    # TODO: DEPRECATED
-    @staticmethod
-    def _df(df, wdg_type="tabulator", **kwargs):
-        return df(df, wdg_type=wdg_type, **kwargs)
-
     def pws(self, *keys):
         """
-        Helper function returning list of parameters, widgets defined self from list of strings.
+        Helper function returning the list of parameters and widgets defined in self from a list of strings.
         Accepts also widget or parameter instances.
         """
         items, miss = [], []
@@ -198,8 +291,169 @@ class AbipyParameterized(param.Parameterized):
 
         return items
 
+    def helpc(self, method_name, extra_items=None):
+        """
+        Add accordion with a brief description and a warning after the button.
+        The description of the tool is taken from the docstring of the callback.
+        Return Column.
+        """
+        col = pn.Column(); ca = col.append
 
-#class PanelWithNcFile(AbipyParameterized): #, metaclass=abc.ABCMeta):
+        acc = pn.Accordion(("Help", pn.pane.Markdown(getattr(self, method_name).__doc__)))
+
+        if hasattr(self, "warning"):
+            acc.append(("Warning", self.warning))
+
+        if extra_items is not None:
+            for name, attr in extra_items:
+                acc.append((name, item))
+
+        ca(pn.layout.Divider())
+        ca(acc)
+
+        return col
+
+    @staticmethod
+    def html_with_clipboard_btn(html_str, **kwargs):
+        return html_with_clipboard_btn(html_str, **kwargs)
+
+
+class HasStructureParams(AbipyParameterized):
+    """
+    Mixin class for panel objects providing a |Structure| object.
+    """
+    # Viewer widgets.
+    struct_view_btn = pnw.Button(name="View structure", button_type='primary')
+    struct_viewer = pnw.Select(name="Viewer", value="vesta",
+                               options=["jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
+                                        "matplotlib", "ase_atoms", "mayavi"])
+
+    @property
+    def structure(self):
+        """Structure object provided by the subclass."""
+        raise NotImplementedError(f"Subclass {type(self)} should implement `structure` attribute.")
+
+    def get_struct_view_tab_entry(self):
+        """
+        Return tab entry to visualize the structure.
+         """
+        return ("View Structure", pn.Row(
+            pn.Column("# Visualize structure", *self.pws("struct_viewer", "struct_view_btn", self.helpc("view_structure"))),
+            self.view_structure)
+        )
+
+    @param.depends("struct_view_btn.clicks")
+    def view_structure(self):
+        """Visualize input structure."""
+        if self.struct_view_btn.clicks == 0: return
+
+        with ButtonContext(self.struct_view_btn):
+            v = self.struct_viewer.value
+
+            if v == "jsmol":
+                pn.extension(comms='ipywidgets') #, js_files=js_files)
+                view = self.structure.get_jsmol_view()
+                from ipywidgets_bokeh import IPyWidget
+                view = IPyWidget(widget=view) #, width=800, height=300)
+                #import ipywidgets as ipw
+                from IPython.display import display
+                #display(view)
+                return pn.panel(view)
+                #return pn.Row(display(view))
+
+            if v == "crystalk":
+                view = self.structure.get_crystaltk_view()
+                return pn.panel(view)
+
+            if v == "ngl":
+                js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
+                pn.extension(comms='ipywidgets', js_files=js_files)
+                view = self.structure.get_ngl_view()
+                return pn.panel(view)
+
+                #pn.config.js_files["ngl"]="https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
+                #pn.extension()
+
+                html = """<div id="viewport" style="width:100%; height:100%;"></div>
+                <script>
+                stage = new NGL.Stage("viewport");
+                stage.loadFile("rcsb://1NKT.mmtf", {defaultRepresentation: true});
+                </script>"""
+
+                #        html = """
+                #         <script>
+                #    document.addeventlistener("domcontentloaded", function () {
+                #      var stage = new ngl.stage("viewport");
+                #      stage.loadfile("rcsb://1crn", {defaultrepresentation: true});
+                #    });
+                #  </script>"""
+
+                #        html = """
+                #<script>
+                #document.addeventlistener("domcontentloaded", function () {
+                #    // create a `stage` object
+                #    var stage = new NGL.Stage("viewport");
+                #    // load a PDB structure and consume the returned `Promise`
+                #    stage.loadFile("rcsb://1CRN").then(function (component) {
+                #    // add a "cartoon" representation to the structure component
+                #    component.addRepresentation("cartoon");
+                #    // provide a "good" view of the structure
+                #    component.autoView();
+                #  });
+                #});
+                #</script>"""
+
+                ngl_pane = pn.pane.HTML(html, height=500, width=500)
+                return pn.Row(ngl_pane)
+                view = self.structure.get_ngl_view()
+
+            #return self.structure.crystaltoolkitview()
+            #import nglview as nv
+            #view = nv.demo(gui=False)
+
+            #from bokeh.models import ColumnDataSource
+            #from bokeh.io import show, curdoc
+            #from bokeh.models.widgets import Button, TextInput
+            #from bokeh.layouts import layout, widgetbox
+            #from jsmol_bokeh_extension import JSMol
+            #script_source = ColumnDataSource()
+
+            #info = dict(
+            #    height="100%",
+            #    width="100%",
+            #    serverURL="https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+            #    use="HTML5",
+            #    j2sPath="https://chemapps.stolaf.edu/jmol/jsmol/j2s",
+            #    script=
+            #    "background black;load https://chemapps.stolaf.edu/jmol/jsmol-2013-09-18/data/caffeine.mol",
+            #)
+
+            #applet = JSMol(
+            #    width=600,
+            #    height=600,
+            #    script_source=script_source,
+            #    info=info,
+            #)
+
+            #button = Button(label='Execute')
+            #inp_script = TextInput(value='background white;')
+
+            #def run_script():
+            #    script_source.data['script'] = [inp_script.value]
+
+            #button.on_click(run_script)
+            #ly = layout([applet, widgetbox(button, inp_script)])
+            #show(ly)
+            #curdoc().add_root(ly)
+            #return pn.Row(applet)
+
+            if v == "ase_atoms":
+                return mpl(self.structure.plot_atoms(rotations="default", **self.mpl_kwargs))
+
+            return self.structure.visualize(appname=self.struct_viewer.value)
+
+
+#class PanelWithNcFile(AbipyParameterized):
 #    """
 #    This frame allows the user to inspect the dimensions and the variables reported in a netcdf file.
 #    Tab showing information on the netcdf file.
@@ -238,7 +492,7 @@ class PanelWithElectronBands(AbipyParameterized):
     #    """Returns the |ElectronBands| object."""
 
     def get_plot_ebands_widgets(self):
-        """Widgets to plot ebands."""
+        """Column with the widgets used to plot ebands."""
         return pn.Column(self.with_gaps, self.set_fermie_to_vbm, self.plot_ebands_btn)
 
     @param.depends('plot_ebands_btn.clicks')
@@ -247,15 +501,14 @@ class PanelWithElectronBands(AbipyParameterized):
         if self.plot_ebands_btn.clicks == 0: return
 
         with ButtonContext(self.plot_ebands_btn):
-
             if self.set_fermie_to_vbm.value:
                 self.ebands.set_fermie_to_vbm()
 
             fig1 = self.ebands.plot(e0="fermie", ylims=None,
-                with_gaps=self.with_gaps.value, max_phfreq=None, fontsize=8, **self.fig_kwargs)
+                with_gaps=self.with_gaps.value, max_phfreq=None, fontsize=8, **self.mpl_kwargs)
 
-            fig2 = self.ebands.kpoints.plot(**self.fig_kwargs)
-            row = pn.Row(self._mp(fig1), self._mp(fig2)) #, sizing_mode='scale_width')
+            fig2 = self.ebands.kpoints.plot(**self.mpl_kwargs)
+            row = pn.Row(mpl(fig1), mpl(fig2)) #, sizing_mode='scale_width')
             text = bkw.PreText(text=self.ebands.to_string(verbose=self.verbose))
 
             return pn.Column(row, text, sizing_mode='scale_width')
@@ -269,11 +522,11 @@ class PanelWithElectronBands(AbipyParameterized):
         """Button triggering edos plot."""
         if self.plot_edos_btn.clicks == 0: return
 
-        with ButtonContext(self.edos_btn):
+        with ButtonContext(self.plot_edos_btn):
             edos = self.ebands.get_edos(method=self.edos_method.value,
                                         step=self.edos_step.value, width=self.edos_width.value)
-            fig = edos.plot(**self.fig_kwargs)
-            return pn.Row(self._mp(fig), sizing_mode='scale_width')
+            fig = edos.plot(**self.mpl_kwargs)
+            return pn.Row(mpl(fig), sizing_mode='scale_width')
 
     def get_plot_fermi_surface_widgets(self):
         """Widgets to compute e-DOS."""
@@ -293,8 +546,8 @@ class PanelWithElectronBands(AbipyParameterized):
         if self.fs_viewer.value == "matplotlib":
             # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
             # Warning: requires skimage package, rendering could be slow.
-            fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.fig_kwargs)
-            return pn.Row(self._mp(fig), sizing_mode='scale_width')
+            fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.mpl_kwargs)
+            return pn.Row(mpl(fig), sizing_mode='scale_width')
 
         else:
             raise ValueError("Invalid choice: %s" % self.fs_viewer.value)
@@ -311,7 +564,7 @@ class BaseRobotPanel(AbipyParameterized):
     """pass"""
 
 
-class PanelWithEbandsRobot(BaseRobotPanel): #, metaclass=abc.ABCMeta):
+class PanelWithEbandsRobot(BaseRobotPanel):
     """
     Mixin class for panels with a robot that owns a list of of |ElectronBands|
     """
@@ -338,15 +591,15 @@ class PanelWithEbandsRobot(BaseRobotPanel): #, metaclass=abc.ABCMeta):
 
             ebands_plotter = self.robot.get_ebands_plotter()
             plot_mode = self.ebands_plotter_mode.value
-            plotfunc = getattr(ebands_plotter, plot_mode, None)
-            if plotfunc is None:
+            plot_func = getattr(ebands_plotter, plot_mode, None)
+            if plot_func is None:
                 raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
-            fig = plotfunc(**self.fig_kwargs)
-            col = pn.Column(self._mp(fig), sizing_mode='scale_width')
+            fig = plot_func(**self.mpl_kwargs)
+            col = pn.Column(mpl(fig), sizing_mode='scale_width')
             if self.ebands_df_checkbox.value:
                 df = ebands_plotter.get_ebands_frame(with_spglib=True)
-                col.append(self._df(df))
+                col.append(dfc(df))
 
             return pn.Row(col, sizing_mode='scale_width')
 
@@ -355,15 +608,16 @@ class PanelWithEbandsRobot(BaseRobotPanel): #, metaclass=abc.ABCMeta):
 
     @param.depends("edos_plotter_btn.clicks")
     def on_edos_plotter_btn(self):
+        """Plot the electronic density of states."""
         if self.edos_plotter_btn.clicks == 0: return
 
         with ButtonContext(self.edos_plotter_btn):
             edos_plotter = self.robot.get_edos_plotter()
             plot_mode = self.edos_plotter_mode.value
-            plotfunc = getattr(edos_plotter, plot_mode, None)
-            if plotfunc is None:
+            plot_func = getattr(edos_plotter, plot_mode, None)
+            if plot_func is None:
                 raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
-            fig = plotfunc(**self.fig_kwargs)
+            fig = plot_func(**self.mpl_kwargs)
 
-            return pn.Row(pn.Column(self._mp(fig)), sizing_mode='scale_width')
+            return pn.Row(pn.Column(mpl(fig)), sizing_mode='scale_width')

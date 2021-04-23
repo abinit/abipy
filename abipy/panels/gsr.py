@@ -1,10 +1,11 @@
 """Panels to interact with GSR files."""
+
 import param
 import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from .core import PanelWithElectronBands, PanelWithEbandsRobot
+from .core import PanelWithElectronBands, PanelWithEbandsRobot, ply, mpl, dfc
 
 
 class GsrFilePanel(PanelWithElectronBands):
@@ -17,43 +18,44 @@ class GsrFilePanel(PanelWithElectronBands):
 
     @property
     def ebands(self):
-        """|ElectronBands|."""
+        """|ElectronBands| object"""
         return self.gsr.ebands
 
     def get_panel(self):
-        """Return tabs with widgets to interact with the DDB file."""
-
-        #def info(method_name):
-        #    # Add accordion after the button with warning and help taken from the docstring of the callback
-        #    col = pn.Column(); ca = col.append
-        #    acc = pn.Accordion(("Help", pn.pane.Markdown(getattr(self, method_name).__doc__)))
-        #    acc.append(("Warning", self.warning_md))
-        #    ca(pn.layout.Divider())
-        #    ca(acc)
-        #    return col
-
+        """Return tabs with widgets to interact with the GSR file."""
 
         tabs = pn.Tabs(); app = tabs.append
 
-        app(("Summary",
-            pn.Row(bkw.PreText(text=self.gsr.to_string(verbose=self.verbose), sizing_mode="scale_both"))
+        app(("Summary", pn.Row(
+            bkw.PreText(text=self.gsr.to_string(verbose=self.verbose),  sizing_mode="scale_both"))
         ))
         app(("e-Bands", pn.Row(
-            self.get_plot_ebands_widgets(),
+            pn.Column("# Options",
+                      self.get_plot_ebands_widgets(),
+                      self.helpc("on_plot_ebands_btn"),
+            ),
             self.on_plot_ebands_btn)
         ))
-
-        # Add DOS tab only if k-sampling.
+        # Add DOS tab but only if k-sampling.
         kpoints = self.gsr.ebands.kpoints
         if kpoints.is_ibz:
             app(("e-DOS", pn.Row(
-                self.get_plot_edos_widgets(), self.on_plot_edos_btn)
+                pn.Column("# Options",
+                    self.get_plot_edos_widgets(),
+                    self.helpc("on_plot_edos_btn"),
+            ),
+            self.on_plot_edos_btn)
             ))
 
             if self.gsr.ebands.supports_fermi_surface:
-                # Fermi surface requires gamma-centered k-mesh
+                # Fermi surface requires Gamma-centered k-mesh
                 app(("Fermi Surface", pn.Row(
-                    self.get_plot_fermi_surface_widgets(), self.on_plot_fermi_surface_btn)))
+                    pn.Column("# Options",
+                        self.get_plot_fermi_surface_widgets(),
+                        self.helpc("on_plot_fermi_surface_btn"),
+                ),
+                self.on_plot_fermi_surface_btn)
+                ))
 
         return tabs
 
@@ -73,19 +75,20 @@ class GsrRobotPanel(PanelWithEbandsRobot):
     def on_gsr_dataframe_btn(self):
         if self.gsr_dataframe_btn.clicks == 0: return
         df = self.robot.get_dataframe(with_geo=True)
-        return pn.Column(self._df(df), sizing_mode='stretch_width')
+        return pn.Column(dfc(df), sizing_mode='stretch_width')
 
     def get_panel(self):
         """Return tabs with widgets to interact with the |GsrRobot|."""
         tabs = pn.Tabs(); app = tabs.append
+
         app(("Summary", pn.Row(bkw.PreText(text=self.robot.to_string(verbose=self.verbose),
                                sizing_mode="scale_both"))))
         app(("e-Bands", pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)))
 
-        # Add e-DOS tab only if all ebands have k-sampling.
+        # Add e-DOS tab but only if all ebands have k-sampling.
         if all(abifile.ebands.kpoints.is_ibz for abifile in self.robot.abifiles):
             app(("e-DOS", pn.Row(self.get_edos_plotter_widgets(), self.on_edos_plotter_btn)))
 
-        app(("GSR-DataFrame", pn.Row(self.gsr_dataframe_btn, self.on_gsr_dataframe_btn)))
+        app(("GSR-dataFrame", pn.Row(self.gsr_dataframe_btn, self.on_gsr_dataframe_btn)))
 
         return tabs

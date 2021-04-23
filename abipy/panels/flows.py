@@ -5,7 +5,7 @@ import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from io import StringIO
-from abipy.panels.core import AbipyParameterized
+from abipy.panels.core import AbipyParameterized, mpl, ply, dfc
 
 
 class FlowPanel(AbipyParameterized):
@@ -122,14 +122,14 @@ class FlowPanel(AbipyParameterized):
         varnames = [s.strip() for s in self.vars_text.value.split(",")]
         df = self.flow.compare_abivars(varnames=varnames, # nids=selected_nids(flow, options),
                                        printout=False, with_colors=False)
-        return pn.Row(self._df(df))
+        return pn.Row(dfc(df))
 
     @param.depends('dims_btn.clicks')
     def on_dims_btn(self):
         if self.dims_btn.clicks == 0: return
         df = self.flow.get_dims_dataframe(# nids=selected_nids(flow, options),
                                           printout=False, with_colors=False)
-        return pn.Row(self._df(df), sizing_mode="scale_width")
+        return pn.Row(dfc(df), sizing_mode="scale_width")
 
     @param.depends('structures_btn.clicks')
     def on_structures_btn(self):
@@ -142,7 +142,7 @@ class FlowPanel(AbipyParameterized):
                                            verbose=self.verbose.value, with_spglib=False, printout=False,
                                            with_colors=False)
 
-        return pn.Row(self._df(dfs.lattice), sizing_mode="scale_width")
+        return pn.Row(dfc(dfs.lattice), sizing_mode="scale_width")
 
     @param.depends('ebands_plotter_btn.clicks')
     def on_ebands_btn(self):
@@ -164,10 +164,10 @@ class FlowPanel(AbipyParameterized):
         if plotfunc is None:
             raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
-        fig = plotfunc(**self.fig_kwargs)
-        col = pn.Column(self._mp(fig))
+        fig = plotfunc(**self.mpl_kwargs)
+        col = pn.Column(mpl(fig))
         if self.ebands_df_checkbox.value:
-            col.append(self._df(df))
+            col.append(dfc(df))
 
         return pn.Row(col) #, sizing_mode='scale_width')
 

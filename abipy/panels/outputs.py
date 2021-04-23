@@ -4,7 +4,7 @@
 import panel as pn
 #import panel.widgets as pnw
 import bokeh.models.widgets as bkw
-from abipy.panels.core import AbipyParameterized #, ButtonContext
+from abipy.panels.core import AbipyParameterized, mpl, ply, dfc #, ButtonContext
 
 
 class AbinitOutputFilePanel(AbipyParameterized):
@@ -33,7 +33,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
         box = pn.GridBox(nrows=nrows, ncols=ncols) #, sizing_mode='scale_both')
         for icycle, cycle in enumerate(cycles):
-            box.append(self._mp(cycle.plot(title="%s cycle #%d" % (what, icycle), **self.fig_kwargs)))
+            box.append(mpl(cycle.plot(title="%s cycle #%d" % (what, icycle), **self.mpl_kwargs)))
 
         return box
 
@@ -46,7 +46,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
         ))
         df = self.outfile.get_dims_spginfo_dataframe().transpose()
         df.index.name = "Dataset"
-        app(("Dims", self._df(df)))
+        app(("Dims", dfc(df)))
 
         # Add tabs with plots for the GS/DFPT SCF cycles.
         for what in ("GS", "DFPT"):
@@ -55,6 +55,6 @@ class AbinitOutputFilePanel(AbipyParameterized):
                 app(("%s cycles" % what, box))
 
         #timer = self.get_timer()
-        #timer.plot_all(**self.fig_kwargs)
+        #timer.plot_all(**self.mpl_kwargs)
 
         return tabs

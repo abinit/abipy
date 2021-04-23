@@ -763,13 +763,8 @@ def main():
 
     elif options.command == "panel":
         structure = abilab.Structure.from_file(options.filepath)
-        try:
-            import panel  # noqa: F401
-        except ImportError as exc:
-            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
-            raise exc
-
-        structure.get_panel().show()  #threaded=True)
+        abilab.abipanel()
+        structure.get_panel().show()
         return 0
 
     elif options.command == "visualize":

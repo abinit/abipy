@@ -17,5 +17,5 @@ netCDF4
 matplotlib
 seaborn
 plotly
-#chart-studio
+chart-studio
 #panel

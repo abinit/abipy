@@ -242,23 +242,12 @@ def main():
             return 0
 
         elif options.panel:
-            try:
-                import panel as pn
-            except ImportError as exc:
-                cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
-                raise exc
+            import matplotlib
+            matplotlib.use("Agg")
+            abilab.abipanel()
 
             if not hasattr(abifile, "get_panel"):
                 raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
-
-            import matplotlib
-            matplotlib.use("Agg")
-
-            #pn.extension("katex")
-            try:
-                pn.extension("plotly")
-            except Exception:
-                cprint("Use `conda install plotly` or `pip install plotly` to install the plotly package.", "red")
 
             abifile.get_panel().show() # threaded=True)
             return 0

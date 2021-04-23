@@ -3,7 +3,7 @@ import param
 import panel as pn
 import panel.widgets as pnw
 
-from abipy.panels.core import AbipyParameterized, ButtonContext
+from abipy.panels.core import AbipyParameterized, ButtonContext, mpl, ply, dfc
 
 
 class PhononBandsPlotterPanel(AbipyParameterized):
@@ -29,9 +29,9 @@ class PhononBandsPlotterPanel(AbipyParameterized):
             if plotfunc is None:
                 raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
-            fig = plotfunc(units=self.phbands_plotter_units.value, **self.fig_kwargs)
+            fig = plotfunc(units=self.phbands_plotter_units.value, **self.mpl_kwargs)
             df = self.plotter.get_phbands_frame(with_spglib=True)
-            return pn.Row(pn.Column(self._mp(fig), self._df(df)), sizing_mode='scale_width')
+            return pn.Row(pn.Column(mpl(fig), dfc(df)), sizing_mode='scale_width')
 
     def get_panel(self):
         """Return tabs with widgets to interact with the |PhononBandsPlotter|."""

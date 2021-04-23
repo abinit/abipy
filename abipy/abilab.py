@@ -178,6 +178,14 @@ def extcls_supporting_panel(as_table=True, **tabulate_kwargs):
     return tabulate(items, headers=["Extension", "Class"], **tabulate_kwargs)
 
 
+def abipanel(**kwargs):
+    """
+    Activate panel extensions used by AbiPy. Return panel module.
+    """
+    from abipy.panels.core import abipanel
+    return abipanel(**kwargs)
+
+
 def abifile_subclass_from_filename(filename):
     """
     Returns the appropriate class associated to the given filename.

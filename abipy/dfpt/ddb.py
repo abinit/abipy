@@ -1923,6 +1923,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         nb.cells.extend([
             nbv.new_code_cell("ddb = abilab.abiopen('%s')" % self.filepath),
+
+            nbv.new_markdown_cell("## Panel dashboard"),
+            nbv.new_code_cell("""\
+# Comment the two lines below to display the panel GUI (requires panel package).
+# To display the dashboard inside the broweser use `abiopen.py FILE --panel`.
+
+#abilab.abipanel()
+#ddb.get_panel()
+"""),
             nbv.new_code_cell("units = 'eV'\nprint(ddb)"),
             nbv.new_code_cell("# display(ddb.header)"),
             nbv.new_markdown_cell("## Invoke `anaddb` to compute bands and dos"),

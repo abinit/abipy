@@ -6,7 +6,7 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import AbipyParameterized, ButtonContext, mpl, ply, df
+from abipy.panels.core import AbipyParameterized, HasStructureParams, ButtonContext, mpl, ply, dfc
 from abipy.dfpt.ddb import PhononBandsPlotter
 
 
@@ -37,8 +37,10 @@ class HasAnaddbParams(AbipyParameterized):
     nqsmall_list = pnw.LiteralInput(name='nsmalls (python list)', value=[10, 20, 30], type=list)
     #nqqpt = pnw.LiteralInput(name='nsmalls (list)', value=[10, 20, 30], type=list)
 
-    warning_md = pn.pane.Markdown(
+    warning = pn.pane.Markdown(
 """
+Refresh the page if the plotly figure is not shown.
+
 Note that widgets for input variables such as *asr*, *chneut*, *dipdip*, *dos_method*, *etc.*
 are **shared by the different tabs**.
 
@@ -70,9 +72,10 @@ recompute the new results by clicking the button.
         return d
 
 
-class DdbFilePanel(HasAnaddbParams):
+class DdbFilePanel(HasStructureParams, HasAnaddbParams):
     """
-    A panel to analyze a |DdbFile|. Provides widgets to invoke anaddb and visualize the results.
+    A panel to analyze a |DdbFile|.
+    Provides widgets to invoke anaddb and visualize the results.
     """
 
     # Buttons
@@ -88,6 +91,11 @@ class DdbFilePanel(HasAnaddbParams):
     def __init__(self, ddb, **params):
         super().__init__(**params)
         self.ddb = ddb
+
+    @property
+    def structure(self):
+        """Structure object provided by subclass."""
+        return self.ddb.structure
 
     @param.depends('get_epsinf_btn.clicks')
     def get_epsinf(self):
@@ -109,11 +117,11 @@ class DdbFilePanel(HasAnaddbParams):
 
             eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.gamma_ev)
             ca(r"## $\epsilon^0$ in Cart. coords (computed with Gamma_eV):")
-            ca(df(eps0.get_dataframe(cmode="real"), **df_kwargs))
+            ca(dfc(eps0.get_dataframe(cmode="real"), **df_kwargs))
             ca(r"## $\epsilon^\infty$ in Cart. coords:")
-            ca(df(epsinf.get_dataframe(), **df_kwargs))
+            ca(dfc(epsinf.get_dataframe(), **df_kwargs))
             ca("## Born effective charges in Cart. coords:")
-            ca(df(becs.get_voigt_dataframe(), **df_kwargs))
+            ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
             ca("## Anaddb input file.")
             ca(pn.pane.HTML(inp._repr_html_()))
 
@@ -134,7 +142,7 @@ class DdbFilePanel(HasAnaddbParams):
 
             def p(component, reim):
                 return gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
-                                reim=reim, units=self.units, **self.fig_kwargs)
+                                reim=reim, units=self.units, **self.mpl_kwargs)
 
             # Build grid
             gspec = pn.GridSpec(sizing_mode='scale_width')
@@ -166,18 +174,18 @@ class DdbFilePanel(HasAnaddbParams):
 
             ca("## Phonon band structure and DOS:")
             ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
-            #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.fig_kwargs)))
-            #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.fig_kwargs)))
-            #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.fig_kwargs)))
+            #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))
+            #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.mpl_kwargs)))
+            #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
             temps = self.temp_range.value
             ca("## Thermodynamic properties in the harmonic approximation:")
-            #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.fig_kwargs))
+            #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
             ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
-            #msqd_dos.plot_tensor(**self.fig_kwargs)
+            #msqd_dos.plot_tensor(**self.mpl_kwargs)
 
-            # Add HTML pane with input
+            # Add Anaddb input file
             ca("## Anaddb input file:")
-            ca(pn.pane.HTML(g.input._repr_html_()))
+            ca(self.html_with_clipboard_btn(g.input._repr_html_()))
 
             return col
 
@@ -198,7 +206,7 @@ class DdbFilePanel(HasAnaddbParams):
             # Insert results in grid.
             gspec = pn.GridSpec(sizing_mode='scale_width')
             gspec[0, :1] = sv.get_dataframe()
-            gspec[1, :1] = sv.plot(**self.fig_kwargs)
+            gspec[1, :1] = sv.plot(**self.mpl_kwargs)
 
             return gspec
 
@@ -227,10 +235,10 @@ class DdbFilePanel(HasAnaddbParams):
             col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
             ca("## Phonon bands and DOS with/wo acoustic sum rule:")
-            #ca(mpl(asr_plotter.plot(**self.fig_kwargs)))
+            #ca(mpl(asr_plotter.plot(**self.mpl_kwargs)))
             ca(ply(asr_plotter.combiplotly(show=False)))
             ca("## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
-            #ca(mpl(dipdip_plotter.plot(**self.fig_kwargs)))
+            #ca(mpl(dipdip_plotter.plot(**self.mpl_kwargs)))
             ca(ply(dipdip_plotter.combiplotly(show=False)))
 
             return col
@@ -261,7 +269,7 @@ class DdbFilePanel(HasAnaddbParams):
             ca("## Convergence of termodynamic properties.")
             temps = self.temp_range.value
             ca(mpl(r.plotter.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50,
-                                                  units=self.units, **self.fig_kwargs)))
+                                                  units=self.units, **self.mpl_kwargs)))
 
             return col
 
@@ -295,24 +303,14 @@ class DdbFilePanel(HasAnaddbParams):
 
         # Fill column
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-        ca(mpl(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", **self.fig_kwargs)))
-        ca(mpl(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", **self.fig_kwargs)))
-        ca(mpl(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", **self.fig_kwargs)))
+        ca(mpl(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", **self.mpl_kwargs)))
+        ca(mpl(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", **self.mpl_kwargs)))
+        ca(mpl(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", **self.mpl_kwargs)))
 
         return col
 
     def get_panel(self):
         """Return tabs with widgets to interact with the DDB file."""
-
-        def info(method_name):
-            # Add accordion with brief desciption and warning after the button.
-            # The description of the tool is taken from the docstring of the callback.
-            col = pn.Column(); ca = col.append
-            acc = pn.Accordion(("Help", pn.pane.Markdown(getattr(self, method_name).__doc__)))
-            acc.append(("Warning", self.warning_md))
-            ca(pn.layout.Divider())
-            ca(acc)
-            return col
 
         tabs = pn.Tabs(); app = tabs.append
 
@@ -323,56 +321,57 @@ class DdbFilePanel(HasAnaddbParams):
             pn.Column("# PH-bands options",
                       *self.pws("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
                                 "lo_to_splitting", "dos_method", "temp_range", "plot_phbands_btn",
-                                info("plot_phbands_and_phdos")),
+                                self.helpc("plot_phbands_and_phdos")),
                       ),
             self.plot_phbands_and_phdos)
         ))
         app(("BECs", pn.Row(
             pn.Column("# Born effective charges options",
-                      *self.pws("asr", "chneut", "dipdip", "gamma_ev", "get_epsinf_btn", info("get_epsinf")),
+                      *self.pws("asr", "chneut", "dipdip", "gamma_ev", "get_epsinf_btn", self.helpc("get_epsinf")),
                      ),
             self.get_epsinf)
         ))
         app(("eps0", pn.Row(
             pn.Column("# epsilon_0",
                       *self.pws("asr", "chneut", "dipdip", "gamma_ev", "w_range", "plot_eps0w_btn",
-                                info("plot_eps0w")),
+                                self.helpc("plot_eps0w")),
                       ),
             self.plot_eps0w)
         ))
         app(("Speed of sound", pn.Row(
             pn.Column("# Speed of sound options",
-                      *self.pws("asr", "chneut", "dipdip", "plot_vsound_btn", info("plot_vsound")),
+                      *self.pws("asr", "chneut", "dipdip", "plot_vsound_btn", self.helpc("plot_vsound")),
                       ),
             self.plot_vsound)
         ))
         app(("ASR & DIPDIP", pn.Row(
             pn.Column("# ASR & DIPDIP options",
                       *self.pws("nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
-                                info("plot_without_asr_dipdip")),
+                                self.helpc("plot_without_asr_dipdip")),
                       ),
             self.plot_without_asr_dipdip)
         ))
         app(("DOS vs q-mesh", pn.Row(
             pn.Column("# DOS vs q-mesh options",
                       *self.pws("asr", "chneut", "dipdip", "dos_method", "nqsmall_list",
-                                "temp_range", "plot_dos_vs_qmesh_btn", info("plot_dos_vs_qmesh")),
+                                "temp_range", "plot_dos_vs_qmesh_btn", self.helpc("plot_dos_vs_qmesh")),
                       ),
             self.plot_dos_vs_qmesh)
         ))
         app(("Quadrupoles", pn.Row(
             pn.Column("# Quadrupoles options",
                       *self.pws("asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
-                                "plot_phbands_quad_btn", info("plot_phbands_quad")),
+                                "plot_phbands_quad_btn", self.helpc("plot_phbands_quad")),
                       ),
             self.plot_phbands_quad)
         ))
         app(("IFCs", pn.Row(
             pn.Column("# IFCs options",
-                      *self.pws("asr", "dipdip", "chneut", "plot_ifc_btn", info("plot_ifc")),
+                      *self.pws("asr", "dipdip", "chneut", "plot_ifc_btn", self.helpc("plot_ifc")),
                       ),
             self.plot_ifc)
         ))
+        app(self.get_struct_view_tab_entry())
         app(("Global options",
             pn.Column("# Global options",
                 *self.pws("units", "mpi_procs", "verbose"),
@@ -433,7 +432,7 @@ class DdbRobotPanel(HasAnaddbParams):
             #if "temp_range" in self.combiplot_check_btn.value:
             #temps = self.temp_range.value
             #ca("## Thermodynamic properties in the harmonic approximation:")
-            ##ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.fig_kwargs))
+            ##ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
             #ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
 
 
@@ -459,11 +458,11 @@ class DdbRobotPanel(HasAnaddbParams):
 
     #        eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.gamma_ev)
     #        ca(r"## $\epsilon^0$ in Cart. coords (computed with Gamma_eV):")
-    #        ca(df(eps0.get_dataframe(cmode="real"), **df_kwargs))
+    #        ca(dfc(eps0.get_dataframe(cmode="real"), **df_kwargs))
     #        ca(r"## $\epsilon^\infty$ in Cart. coords:")
-    #        ca(df(epsinf.get_dataframe(), **df_kwargs))
+    #        ca(dfc(epsinf.get_dataframe(), **df_kwargs))
     #        ca("## Born effective charges in Cart. coords:")
-    #        ca(df(becs.get_voigt_dataframe(), **df_kwargs))
+    #        ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
     #        ca("## Anaddb input file.")
     #        ca(pn.pane.HTML(inp._repr_html_()))
 
@@ -484,7 +483,7 @@ class DdbRobotPanel(HasAnaddbParams):
 
     #        def p(component, reim):
     #            return gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
-    #                            reim=reim, units=self.units, **self.fig_kwargs)
+    #                            reim=reim, units=self.units, **self.mpl_kwargs)
 
     #        # Build grid
     #        gspec = pn.GridSpec(sizing_mode='scale_width')
@@ -519,14 +518,14 @@ class DdbRobotPanel(HasAnaddbParams):
 
     #        ca("## Phonon band structure and DOS:")
     #        ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
-    #        #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.fig_kwargs)))
-    #        #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.fig_kwargs)))
-    #        #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.fig_kwargs)))
+    #        #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))
+    #        #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.mpl_kwargs)))
+    #        #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
     #        temps = self.temp_range.value
     #        ca("## Thermodynamic properties in the harmonic approximation:")
-    #        #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.fig_kwargs))
+    #        #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
     #        ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
-    #        #msqd_dos.plot_tensor(**self.fig_kwargs)
+    #        #msqd_dos.plot_tensor(**self.mpl_kwargs)
     #        #self.plot_phbands_btn.button_type = "primary"
 
     #        # Add HTML pane with input
@@ -552,7 +551,7 @@ class DdbRobotPanel(HasAnaddbParams):
     #        # Insert results in grid.
     #        gspec = pn.GridSpec(sizing_mode='scale_width')
     #        gspec[0, :1] = sv.get_dataframe()
-    #        gspec[1, :1] = sv.plot(**self.fig_kwargs)
+    #        gspec[1, :1] = sv.plot(**self.mpl_kwargs)
 
     #        return gspec
 
@@ -603,16 +602,6 @@ class DdbRobotPanel(HasAnaddbParams):
 
         robot = self.robot
 
-        def info(method_name):
-            # Add accordion after the button with warning and help taken from the docstring of the callback
-            col = pn.Column(); ca = col.append
-            ca(pn.pane.Alert("Refresh the page if the plotly figure is not shown.", alert_type="danger"))
-            acc = pn.Accordion(("Help", pn.pane.Markdown(getattr(self, method_name).__doc__)))
-            acc.append(("Warning", self.warning_md))
-            ca(pn.layout.Divider())
-            ca(acc)
-            return col
-
         tabs = pn.Tabs(); app = tabs.append
 
         app(("Summary", pn.Row(
@@ -621,8 +610,8 @@ class DdbRobotPanel(HasAnaddbParams):
 
         dfs = robot.get_structure_dataframes()
         app(("Structures",
-            pn.Column("# Lattice daframe", self._df(dfs.lattice),
-                      "# Atomic positions", self._df(dfs.coords),)
+            pn.Column("# Lattice daframe", dfc(dfs.lattice),
+                      "# Atomic positions", dfc(dfs.coords),)
         ))
 
         app(("Combiplot", pn.Row(
@@ -630,7 +619,7 @@ class DdbRobotPanel(HasAnaddbParams):
                       *self.pws("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
                                 "lo_to_splitting", "dos_method", "temp_range",
                                 "combiplot_check_btn", "plot_combiplot_btn",
-                                info("plot_combiplot")),
+                                self.helpc("plot_combiplot")),
                       ),
             self.plot_combiplot)
         ))
@@ -638,56 +627,56 @@ class DdbRobotPanel(HasAnaddbParams):
         #    pn.Column("# PH-bands options",
         #              *self.pws("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
         #                        "lo_to_splitting", "dos_method", "temp_range", "plot_phbands_btn",
-        #                        info("plot_phbands_and_phdos")),
+        #                        self.helpc("plot_phbands_and_phdos")),
         #              ),
         #    self.plot_phbands_and_phdos)
         #))
         #app(("BECs", pn.Row(
         #    pn.Column("# Born effective charges options",
         #              *self.pws("asr", "chneut", "dipdip", "gamma_ev", "get_epsinf_btn",
-        #                        info("get_epsinf")),
+        #                        self.helpc("get_epsinf")),
         #             ),
         #    self.get_epsinf)
         #))
         #app(("eps0", pn.Row(
         #    pn.Column("# epsilon_0",
         #              *self.pws("asr", "chneut", "dipdip", "gamma_ev", "w_range", "plot_eps0w_btn",
-        #                        info("plot_eps0w")),
+        #                        self.helpc("plot_eps0w")),
         #              ),
         #    self.plot_eps0w)
         #))
         #app(("Speed of sound", pn.Row(
         #    pn.Column("# Speed of sound options",
         #              *self.pws("asr", "chneut", "dipdip", "plot_vsound_btn",
-        #                        info("plot_vsound")),
+        #                        self.helpc("plot_vsound")),
         #              ),
         #    self.plot_vsound)
         #))
         app(("ASR & DIPDIP", pn.Row(
             pn.Column("# ASR & DIPDIP options",
                       *self.pws("nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
-                                info("plot_without_asr_dipdip")),
+                                self.helpc("plot_without_asr_dipdip")),
                       ),
             self.plot_without_asr_dipdip)
         ))
         #app(("DOS vs q-mesh", pn.Row(
         #    pn.Column("# DOS vs q-mesh options",
         #              *self.pws("asr", "chneut", "dipdip", "dos_method", "nqsmall_list", "plot_dos_vs_qmesh_btn",
-        #                        info("plot_dos_vs_qmesh")),
+        #                        self.helpc("plot_dos_vs_qmesh")),
         #              ),
         #    self.plot_dos_vs_qmesh)
         #))
         #app(("Quadrupoles", pn.Row(
         #    pn.Column("# Quadrupoles options",
         #              *self.pws("asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method", "plot_phbands_quad_btn",
-        #                        info("plot_phbands_quad")),
+        #                        self.helpc("plot_phbands_quad")),
         #              ),
         #    self.plot_phbands_quad)
         #))
         #app(("IFCs", pn.Row(
         #    pn.Column("# IFCs options",
         #              *self.pws("asr", "dipdip", "chneut", "plot_ifc_btn",
-        #                        info("plot_ifc")),
+        #                        self.helpc("plot_ifc")),
         #              ),
         #    self.plot_ifc)
         #))

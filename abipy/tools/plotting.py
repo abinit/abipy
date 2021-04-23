@@ -1151,6 +1151,10 @@ def plotly_chartstudio_authenticate():
     """
     Authenticate the user on the chart studio portal by reading `PLOTLY_USERNAME` and `PLOTLY_API_KEY`
     from the pymatgen configuration file located in $HOME/.pmgrc.yaml.
+
+        PLOTLY_USERNAME: johndoe
+        PLOTLY_API_KEY: XXXXXXXXXXXXXXXXXXXX
+
     """
     global _PLOTLY_AUTHEHTICATED
     if _PLOTLY_AUTHEHTICATED: return
@@ -1165,7 +1169,7 @@ def plotly_chartstudio_authenticate():
 Add it to $HOME/.pmgrc.yaml using the follow syntax:
 
 PLOTLY_USERNAME: john_doe
-PMG_MAPI_KEY: secret  # to the your api_key go to profile > settings > regenerate key
+PLOTLY_API_KEY: secret  # to get your api_key go to profile > settings > regenerate key
 
 """
 

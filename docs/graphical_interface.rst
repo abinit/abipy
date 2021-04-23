@@ -15,7 +15,7 @@ generate dashboards either with the command line interface or inside jupyter not
 .. important::
 
     Note that you will need a running python kernel to execute the callbacks triggerered 
-    by the GUI hence the examples given in this page are only meant to show how to build the the GUI.
+    by the GUI hence the examples given in this page are only meant to show how to build the GUI.
 
 Installation
 ------------
@@ -44,7 +44,7 @@ the optional PyViz JupyterLab extension:
 Basic Usage
 -----------
 
-The AbiPy structure and many AbiPY files provide a ``get_panel`` method that returns 
+The AbiPy structure and many AbipY files provide a ``get_panel`` method returning
 a dashboard that can be used inside the jupyter notebook.
 To enable the integration with ``panel`` inside a jupyter notebook, execute the below code:
 
@@ -80,13 +80,12 @@ to set the input parameters, invoke ``anaddb`` and visualize the results:
 
     # Open DDB file with abiopen and invoke get_panel method.
     #ddb_path = abidata.ref_file("mp-1009129-9x9x10q_ebecs_DDB")
-
     #abilab.abiopen(ddb_path).get_panel()
 
 
 Calling ``get_structure`` with an AbiPy structure, creates a set of widgets 
 to facilitate common operations such as exporting to a different format or
-generating a Abinit input file for GS calculations:
+generating a basic Abinit input file for GS calculations:
 
 .. jupyter-execute::
 
@@ -98,14 +97,14 @@ by jupyter notebooks as you are mainly interested in the visualization of the re
 In this case, it is possible to use the command line interface to automatically generate 
 a dashboard with widgets without having to start a jupyter-lab application.
 
-To build a dashboard for a ``Structure`` object extract from ``FILE``, use:
+To build a dashboard for a ``Structure`` object extracted from ``FILE``, use:
 
 .. code-block:: shell
 
     abistruct.py panel FILE
 
 
-where ``FILE`` is any file providing a ``Structure`` object e.g. netcdf file, cif files, abi, abo etc.
+where ``FILE`` is **any** file providing a ``Structure`` object e.g. netcdf file, cif files, abi, abo etc.
 
 To build a dashboard associated to one of the AbiPy file, use the syntax:
 
@@ -127,7 +126,7 @@ For instance, one can create a dashboard to interact with a ``DDB`` file with:
 
         abirun.py FLOWDIR panel
 
-    or, alternatively:
+    or alternatively:
 
         abiopen.py FLOWDIR/__AbinitFlow__.pickle --panel
 
