@@ -1451,7 +1451,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return nscf_input
 
-    def make_dfpt_effmass_inputs(self, kpts, effmass_bands_f90, tolwfr=1e-20, iscf=-2):
+    def make_dfpt_effmass_inputs(self, kpts, effmass_bands_f90, ngfft=None, tolwfr=1e-20, iscf=-2):
         """
         Return a |MultiDataset| object with 2 inputs for the calculation of effective masses with DFPT
         The first input in a standard NSCF run, the second input computes the effective masses.
@@ -1460,6 +1460,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             kpts: List of k-points in reduced coordinates where effective masses are wanted.
             efmas_bands_f90: (nkpt, 2) array with band range for effmas computation.
                 WARNING: Assumes Fortran convention with indices starting from 1.
+            ngfft: FFT divisions (3 integers). Used to enforce the same FFT mesh in the NSCF run as the one used for GS.
             tolwfr: Tolerance on residuals.
         """
         multi = MultiDataset.replicate_input(input=self, ndtset=3)
@@ -1469,7 +1470,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         kpts = np.reshape(kpts, (-1, 3))
         nkpt = len(kpts)
         # NSCF calculation (requires DEN)
-        multi[0].set_vars(tolwfr=tolwfr, kptopt=0, iscf=-2, nkpt=nkpt, kpt=kpts, prtwf=1)
+        multi[0].set_vars(tolwfr=tolwfr, kptopt=0, iscf=-2, nkpt=nkpt, kpt=kpts, prtwf=1, ngfft=ngfft)
 
         # Response function calculation: d/dk (requires DEN and GS WFK)
         multi[1].set_vars(
@@ -1484,6 +1485,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             efmas_calc_dirs=1,
             efmas_n_dirs=7,
             efmas_dirs=np.reshape([1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0], (7, 3)),
+            ngfft=ngfft,
         )
 
         # Input variables for Frohlich model calculation (need DDB, WFK and EFMAS file)
