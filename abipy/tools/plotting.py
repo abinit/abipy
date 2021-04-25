@@ -989,6 +989,17 @@ def plotly_set_lims(fig, lims, axname):
     return left, right
 
 
+_PLOTLY_DEFAULT_SHOW = [True]
+
+
+def set_plotly_default_show(true_or_false):
+    """
+    Set the default value of show in the add_plotly_fig_kwargs decorator.
+    Usefule for instance when generating the sphinx gallery of plotly plots.
+    """
+    _PLOTLY_DEFAULT_SHOW[0] = true_or_false
+
+
 def add_plotly_fig_kwargs(func):
     """
     Decorator that adds keyword arguments for functions returning plotly figures.
@@ -1002,7 +1013,7 @@ def add_plotly_fig_kwargs(func):
     def wrapper(*args, **kwargs):
         # pop the kwds used by the decorator.
         title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
+        show = kwargs.pop("show", _PLOTLY_DEFAULT_SHOW[0])
         hovermode = kwargs.pop("hovermode", False)
         savefig = kwargs.pop("savefig", None)
         write_json = kwargs.pop("write_json", None)
@@ -1031,7 +1042,7 @@ def add_plotly_fig_kwargs(func):
 
         fig.layout.hovermode = hovermode
 
-        if show:
+        if show: # and _PLOTLY_DEFAULT_SHOW:
             if renderer == "chart_studio":
                 push_to_chart_studio(fig)
             else:

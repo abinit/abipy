@@ -14,21 +14,26 @@ class FatBandsFilePanel(PanelWithElectronBands):
     """
     def __init__(self, ncfile, **params):
         super().__init__(**params)
-        self.ncfile = ncfile
+        self._ncfile = ncfile
+
+    @property
+    def ncfile(self):
+        return self._ncfile
 
     @property
     def ebands(self):
         """|ElectronBands|."""
-        return self.ncfile.ebands
+        return self._ncfile.ebands
 
     def get_panel(self):
         """Return tabs with widgets to interact with the FATBANDS.nc file."""
         tabs = pn.Tabs(); app = tabs.append
+
         app(("Summary", pn.Row(bkw.PreText(text=self.ncfile.to_string(verbose=self.verbose), sizing_mode="scale_both"))))
         app(("e-Bands", pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)))
 
         if self.ncfile.ebands.kpoints.is_ibz:
-            # Add DOS tab only if k-sampling.
+            # Add DOS tab but only if k-sampling.
             app(("e-DOS", pn.Row(self.get_plot_edos_widgets(), self.on_plot_edos_btn)))
 
             # Plot the L-PJDOS grouped by atomic type.

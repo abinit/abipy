@@ -764,7 +764,7 @@ def main():
     elif options.command == "panel":
         structure = abilab.Structure.from_file(options.filepath)
         abilab.abipanel()
-        structure.get_panel().show()
+        structure.get_panel().show(debug=options.verbose > 0)
         return 0
 
     elif options.command == "visualize":

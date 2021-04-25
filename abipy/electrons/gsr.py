@@ -505,7 +505,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
     def get_energyterms_dataframe(self, iref=None):
         """
-        Build and return with the different contributions to the total energy in eV
+        Build and return dataframe with the different contributions to the total energy in eV
 
         Args:
             iref: Index of the abifile used as reference: the energies of the

@@ -5,10 +5,10 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from .core import PanelWithElectronBands, PanelWithEbandsRobot, ply, mpl, dfc
+from .core import PanelWithElectronBands, PanelWithNcFile, PanelWithEbandsRobot, ply, mpl, dfc
 
 
-class GsrFilePanel(PanelWithElectronBands):
+class GsrFilePanel(PanelWithElectronBands, PanelWithNcFile):
     """
     Panel with widgets to interact with a |GsrFile|.
     """
@@ -20,6 +20,11 @@ class GsrFilePanel(PanelWithElectronBands):
     def ebands(self):
         """|ElectronBands| object"""
         return self.gsr.ebands
+
+    @property
+    def ncfile(self):
+        """This for for the PanelWithNcFile mixin"""
+        return self.gsr
 
     def get_panel(self):
         """Return tabs with widgets to interact with the GSR file."""
@@ -56,6 +61,9 @@ class GsrFilePanel(PanelWithElectronBands):
                 ),
                 self.on_plot_fermi_surface_btn)
                 ))
+
+        # TODO
+        #app(("NcFile", self.get_ncfile_panel()))
 
         return tabs
 

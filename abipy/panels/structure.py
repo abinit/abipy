@@ -55,7 +55,11 @@ class StructurePanel(HasStructureParams):
 
     def __init__(self, structure,  **params):
         super().__init__(**params)
-        self.structure = structure
+        self._structure = structure
+
+    @property
+    def structure(self):
+        return self._structure
 
     @param.depends("output_format.value")
     def convert(self):

@@ -1,4 +1,4 @@
-""""Panels for AbiPy flows."""
+""""Panels to interact with AbiPy flows."""
 import param
 import panel as pn
 import panel.widgets as pnw
@@ -13,8 +13,7 @@ class FlowPanel(AbipyParameterized):
     """
     verbose = pn.widgets.IntSlider(start=0, end=10, step=1, value=0)
 
-    engine = pn.widgets.Select(value="fdp",
-        options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
+    engine = pn.widgets.Select(value="fdp", options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
     dirtree = pn.widgets.Checkbox(name='Dirtree', value=False)
     graphviz_btn = pn.widgets.Button(name="Show graph", button_type='primary')
 
@@ -70,6 +69,7 @@ class FlowPanel(AbipyParameterized):
     @param.depends('graphviz_btn.clicks')
     def on_graphviz_btn(self):
         """
+        Visualize the flow with graphviz.
         """
         if self.graphviz_btn.clicks == 0: return
         node = self.flow
@@ -174,6 +174,7 @@ class FlowPanel(AbipyParameterized):
     def get_panel(self):
         """Return tabs with widgets to interact with the flow."""
         tabs = pn.Tabs(); app = tabs.append
+
         #row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose.value), sizing_mode="scale_both"))
         app(("Status", pn.Row(self.status_btn, self.on_status_btn)))
         app(("History", pn.Row(self.history_btn, self.on_history_btn)))

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Phonon bands with/without the ASR
-=================================
+Phonon bands with/without the ASR (Plotly version)
+==================================================
 
 This example shows how to plot a phonon band structure
 with and without enforcing the acoustic sum rule (ASR).
@@ -22,18 +22,21 @@ ddb = abilab.abiopen(filepath)
 
 #%%
 # The ddb.anacompare_asr method computes the phonon bands and DOS by calling anaddb
-# with different values of asr and returns a PhononBandsPlotter object:
+# with different values of asr and returns a PhononBandsPlotter object.
+# To make the computation faster we used the **advanced** options dipdip -1.
 
-plotter = ddb.anacompare_asr(asr_list=(0, 2))
-plotter.combiplot()
+plotter = ddb.anacompare_asr(asr_list=(0, 2), dipdip=-1)
+plotter.combiplotly()
 
 #%%
 # To disable the DOS computation, set nqsmall to 0:
 
-plotter = ddb.anacompare_asr(asr_list=(0, 2), nqsmall=0, ndivsm=10)
-plotter.gridplot()
+plotter = ddb.anacompare_asr(asr_list=(0, 2), nqsmall=0, ndivsm=10, dipdip=-1)
+plotter.gridplotly()
 
 #%%
 # Remember to close the file with:
 
 ddb.close()
+
+# sphinx_gallery_thumbnail_path = '_static/plotly_logo.png'

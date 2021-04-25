@@ -1,4 +1,4 @@
-""""Base classes and mixins for AbiPy panels."""
+""""Basic tools and mixin classes for AbiPy panels."""
 
 import param
 import panel as pn
@@ -26,11 +26,11 @@ def abipanel():
         #"katex",
     ]
 
-    pn.extension(*extensions)
+    #print("loading extensions:", extensions)
+    pn.extension(*extensions) # , raw_css=[css])
 
     pn.config.js_files.update({
-        #'$': 'https://code.jquery.com/jquery-3.4.1.slim.min.js',
-        # This for the copy to clipboard.
+        # This for copy to clipboard.
         "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
     })
 
@@ -54,38 +54,36 @@ def gen_id(n=1, pre="uuid-"):
         raise ValueError("n must be > 0 but got %s" % str(n))
 
 
-_html_with_copy_to_clipboard_ncalls = 0
-
-
-def html_with_clipboard_btn(html_str, btn_cls="bk bk-btn bk-btn-primary"):
+class HTMLwithClipboardBtn(pn.pane.HTML):
     """
     Receives an HTML string and return an HTML pane with a button that allows the user
-    to copy the content to the system clipboard. Requires call to abipanel to load JS extension.
+    to copy the content to the system clipboard. 
+    Requires call to abipanel to load JS extension.
     """
-    global _html_with_copy_to_clipboard_ncalls
-    _html_with_copy_to_clipboard_ncalls += 1
-    my_id = gen_id()
 
-    col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-    html_str = f"""
-<div id="{my_id}">{html_str}</div>
+    # This counter is shared by all the instances. We use it so that the js script is included only once.
+    _init_counter = [0]
+
+    def __init__(self, object=None, **params):
+        super().__init__(object=object, **params)
+
+        self._init_counter[0] += 1
+        my_id = gen_id()
+        btn_cls = "bk bk-btn bk-btn-primary"
+
+        # Build new HTML string with js section if first call.
+        new_text = f"""
+
+<div id="{my_id}">{self.object}</div>
 <br>
 <button class="clip-btn {btn_cls}" type="button" data-clipboard-target="#{my_id}"> Copy to clipboard </button>
 <hr>
+
 """
-    if _html_with_copy_to_clipboard_ncalls == 1:
-        html_str += "<script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
+        if self._init_counter[0] == 1:
+            new_text += "<script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
 
-    return pn.pane.HTML(html_str)
-
-
-def sizing_mode_select(name="sizing_mode", value="scale_both"):
-    """
-    Widget to select the value of sizing_mode. See https://panel.holoviz.org/user_guide/Customization.html
-    """
-    return pnw.Select(name=name, value=value, options=["fixed",
-                      "stretch_width", "stretch_height", "stretch_both",
-                      "scale_height", "scale_width", "scale_both"])
+        self.object = new_text
 
 
 def mpl(fig, sizing_mode='stretch_width', with_controls=False, **kwargs):
@@ -119,10 +117,10 @@ def ply(fig, sizing_mode='stretch_width', with_chart_studio=True, with_controls=
 
 The button on the left allows you to **upload the figure** to the
 plotly [chart studio server](https://plotly.com/chart-studio-help/)
-so that it is possible to share the figure with colleagues or customize the figure via the chart studio editor.
+so that it is possible to share the figure or customize it via the chart studio editor.
 In order to use this feature, you need to create a free account following the instructions
 reported [in this page](https://plotly.com/chart-studio-help/how-to-sign-up-to-plotly/).
-Then you have to **add the following section** to your $HOME/.pmgrc.yaml configuration file:
+Then **add the following section** to your $HOME/.pmgrc.yaml configuration file:
 
 ```yaml
 PLOTLY_USERNAME: john_doe  # Replace with your username
@@ -130,15 +128,16 @@ PLOTLY_API_KEY: secret     # To get your api_key go to: profile > settings > reg
 ```
 
 so that AbiPy can authenticate your user on the chart studio portal before pushing the figure to the cloud.
-If everything is properly configured, a new window should be automatically created in your browser.
-"""
-)
+If everything is properly configured, a new window is automatically created in your browser.
+""")
+
         acc = pn.Accordion(("What is this?", md))
-        button = pnw.Button(name="Upload figure to chart studio server", button_type='primary')
+
+        button = pnw.Button(name="Upload to chart studio server", button_type='primary')
         def push_to_cs(event):
             push_to_chart_studio(fig)
-
         button.on_click(push_to_cs)
+
         ca(pn.Row(button, acc))
 
     if with_controls:
@@ -169,13 +168,11 @@ def dfc(df, wdg_type="dataframe", with_copy_to_clipboard=True, with_controls=Fal
     else:
         raise ValueError(f"Don't know how to handle widget type: {wdg_type}")
 
-    #return w
     col = pn.Column(sizing_mode='stretch_width'); ca = col.append
     ca(w)
 
     if with_copy_to_clipboard:
-        md = pn.pane.Markdown("""
-
+        md = pn.pane.Markdown(r"""
 The button on the left allows you to write a text representation of the dataframe to the system clipboard.
 This can be pasted into Excel, for example.
 """
@@ -184,9 +181,10 @@ This can be pasted into Excel, for example.
         button = pnw.Button(name="Copy to clipboard", button_type='primary')
         def to_clipboard(event):
             df.to_clipboard()
-
         button.on_click(to_clipboard)
+
         ca(pn.Row(button, acc))
+        #ca(pn.Row(button, md))
 
     if with_controls:
         # This seems to be buggy.
@@ -197,24 +195,45 @@ This can be pasted into Excel, for example.
     return col
 
 
+class MyMarkdown(pn.pane.Markdown):
+    """
+    A Markdown pane renders the markdown markup language to HTML and
+    displays it inside a bokeh Div model. It has no explicit
+    priority since it cannot be easily be distinguished from a
+    standard string, therefore it has to be invoked explicitly.
+    """
+
+    extensions = param.List(default=[
+        # Extensions used by the superclass.
+        "extra", "smarty", "codehilite",
+        # My extensions
+        'pymdownx.arithmatex',
+        'pymdownx.details',
+        "pymdownx.tabbed",
+    ],
+
+        doc="""Markdown extension to apply when transforming markup."""
+    )
+
+
 class ButtonContext(object):
     """
     A context manager for buttons triggering computations on the server.
 
     This manager disables the button when we __enter__ and changes the name of the button to "running".
-    It reverts to the initial state of the button one __exit__ is invoked, showing the Exception type in a "red"
-    button if an exeption was raised during the computation.
+    It reverts to the initial state of the button one __exit__ is invoked, showing the Exception type 
+    in a "red" button if an exception is raised during the computation.
 
     This a very important tool because we need to disable the button when we start the computation
-    to prevent the user from triggering multiple fallbacks while the server is still working on the first task.
+    to prevent the user from triggering multiple callbacks while the server is still working.
     At the same time, whathever happens in the callback, the button should go back to "clickable" mode
     when the callback returns so that the user can try to change the parameters and rerun.
 
-    Note also that we want to provide some graphical feedback to the user if something goes wrong on the server side.
+    Note also that we want to provide some graphical feedback to the user if something goes wrong.
     At present we don't expose the python traceback on the client.
     It would be nice but we need panel machinery to do that.
-    Moreover this is not the recommended approach for security reasons so we just change the "color" of the button
-    and use the string representation of the exception as button name.
+    Moreover this is not the recommended approach for security reasons so we just change the "color" 
+    of the button and use the string representation of the exception as button name.
     """
 
     def __init__(self, btn):
@@ -315,7 +334,7 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
 
     @staticmethod
     def html_with_clipboard_btn(html_str, **kwargs):
-        return html_with_clipboard_btn(html_str, **kwargs)
+        return HTMLwithClipboardBtn(html_str, **kwargs)
 
 
 class HasStructureParams(AbipyParameterized):
@@ -453,16 +472,46 @@ class HasStructureParams(AbipyParameterized):
             return self.structure.visualize(appname=self.struct_viewer.value)
 
 
-#class PanelWithNcFile(AbipyParameterized):
-#    """
-#    This frame allows the user to inspect the dimensions and the variables reported in a netcdf file.
-#    Tab showing information on the netcdf file.
-#    """
+class PanelWithNcFile(AbipyParameterized):
+    """
+    This frame allows the user to inspect the dimensions and the variables reported in a netcdf file.
+    Tab showing information on the netcdf file.
+
+    Subclasses should implement the `ncfile` property 
+    """
+
+    @property
+    def ncfile(self):
+        """abc does not play well with parametrized so we rely on this to enforce the protocol."""
+        raise NotImplementedError("subclass should implement `ncfile` property.")
+
+    def get_ncfile_panel(self):
+
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+
+        #nc_grpname = pnw.Select(name="nc group name", options=["/"])
+            
+        # Get dataframe with dimesions.
+        dims_df = self.ncfile.get_dims_dataframe(path="/")
+        ca(dfc(dims_df))
+
+        #vars_df = self.ncfile.get_dims_dataframe(path="/")
+        #ca(dfc(vars_df))
+
+        #ca(("NCFile", pn.Row(
+        #    pn.Column("# NC dimensions and variables",
+        #              dfc(dims_df, wdg_type="tabulator"),
+        #             )),
+        #))
+
+        return col
 
 
 class PanelWithElectronBands(AbipyParameterized):
     """
-    Mixin class for panel object associate to AbiPy object providing an |ElectronBands| object.
+    Mixin class for panel object associated to AbiPy object providing an |ElectronBands| object.
+
+    Subclasses should implement `ebands` property 
     """
 
     # Bands plot
@@ -487,9 +536,10 @@ class PanelWithElectronBands(AbipyParameterized):
     fs_viewer = pnw.Select(name="FS viewer", options=["matplotlib", "xcrysden"])
     plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
 
-    #@abc.abstractproperty
-    #def ebands(self):
-    #    """Returns the |ElectronBands| object."""
+    @property
+    def ebands(self):
+        """abc does not play well with parametrized so we rely on this to enforce the protocol."""
+        raise NotImplementedError("subclass should implement `ebands` property.")
 
     def get_plot_ebands_widgets(self):
         """Column with the widgets used to plot ebands."""
@@ -504,8 +554,8 @@ class PanelWithElectronBands(AbipyParameterized):
             if self.set_fermie_to_vbm.value:
                 self.ebands.set_fermie_to_vbm()
 
-            fig1 = self.ebands.plot(e0="fermie", ylims=None,
-                with_gaps=self.with_gaps.value, max_phfreq=None, fontsize=8, **self.mpl_kwargs)
+            fig1 = self.ebands.plot(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None, 
+                                    fontsize=8, **self.mpl_kwargs)
 
             fig2 = self.ebands.kpoints.plot(**self.mpl_kwargs)
             row = pn.Row(mpl(fig1), mpl(fig2)) #, sizing_mode='scale_width')

@@ -377,7 +377,7 @@ def abicomp_phbands(options):
 
         # Select the plot method to call.
         if options.plot_mode == "panel":
-            plotter.get_panel().show()
+            plotter.get_panel().show(debug=options.verbose > 0)
 
         elif options.plot_mode != "None":
             plotfunc = getattr(plotter, options.plot_mode, None)

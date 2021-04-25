@@ -7,3 +7,5 @@ sphinx-argparse
 sphinx_bootstrap_theme
 sphinxcontrib-bibtex<2.0.0
 jupyter-sphinx
+#graphviz or python-graphviz if conda
+graphviz

@@ -249,7 +249,7 @@ def main():
             if not hasattr(abifile, "get_panel"):
                 raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
 
-            abifile.get_panel().show() # threaded=True)
+            abifile.get_panel().show(debug=options.verbose > 0)
             return 0
 
         # Start ipython shell with namespace

@@ -601,7 +601,6 @@ class DdbRobotPanel(HasAnaddbParams):
         """Return tabs with widgets to interact with the DDB file."""
 
         robot = self.robot
-
         tabs = pn.Tabs(); app = tabs.append
 
         app(("Summary", pn.Row(

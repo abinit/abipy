@@ -1412,7 +1412,11 @@ class ElectronBands(Has_Structure):
                 k0_list.append(k)
                 effmass_bands_f90.append(v)
 
+
+        # Set small values to zero.
         k0_list = np.reshape(k0_list, (-1, 3))
+        k0_list = np.where(np.abs(k0_list) > 1e-12, k0_list, 0.0)
+
         effmass_bands_f90 = np.reshape(effmass_bands_f90, (-1, 2))
         #print("k0_list:\n", k0_list, "\neffmass_bands_f90:\n", effmass_bands_f90)
 

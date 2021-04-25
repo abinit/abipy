@@ -9,19 +9,23 @@ import sys
 import os
 import shutil
 
-#import warnings
+
+# Remove matplotlib agg warnings from generated doc when using plt.show
+import warnings
+
 #warnings.filterwarnings("ignore", category=UserWarning,
 #                        message='Matplotlib is currently using agg, which is a'
 #                                ' non-GUI backend, so cannot show the figure.')
+
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 ABIPY_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-
 sys.path.insert(0, ABIPY_ROOT)
-
 
 import imp
 mod_name = os.path.join(ABIPY_ROOT, "abipy", "core", "release.py")
@@ -53,7 +57,6 @@ extensions = [
     "sphinxarg.ext",         # CLI doc
     'sphinxcontrib.bibtex',
     "jupyter_sphinx",
-    #"jupyter_sphinx.execute",
     #'nbsphinx',
     #"releases",
     #'sphinx.ext.coverage',
@@ -113,7 +116,16 @@ mpl.rcParams['figure.dpi'] = 300
 #        return figure_rst(image_names, gallery_conf['src_dir'])
 
 
-from sphinx_gallery.sorting import FileNameSortKey, NumberOfCodeLinesSortKey
+# Set plotly renderer to capture _repr_html_ for sphinx-gallery
+# https://sphinx-gallery.github.io/stable/auto_examples/plot_9_plotly.html
+import plotly.io as pio
+pio.renderers.default = 'sphinx_gallery'
+
+# Here we change the default value of show used in the plotly decorator.
+from abipy.tools.plotting import set_plotly_default_show
+set_plotly_default_show(False)
+
+from sphinx_gallery.sorting import ExampleTitleSortKey
 
 sphinx_gallery_conf = {
     # path to your examples scripts
@@ -121,15 +133,14 @@ sphinx_gallery_conf = {
         "../abipy/examples/plot",
         "../abipy/examples/flows",
     ],
-    #'examples_dirs': [],
     # path where to save gallery generated examples
     'gallery_dirs': [
         "gallery",
         "flow_gallery",
     ],
-    'filename_pattern': "(/plot_*|/run_*)",
+    'filename_pattern': "(/plot*|/run_*)",
     'default_thumb_file': '_static/abipy_logo.png',
-    'within_subsection_order': NumberOfCodeLinesSortKey,
+    'within_subsection_order': ExampleTitleSortKey,
     'backreferences_dir': None,
     #'reset_modules': (reset_mpl,),
     #'find_mayavi_figures': True,
@@ -143,6 +154,11 @@ sphinx_gallery_conf = {
     #'image_scrapers': ('matplotlib',),
     #'image_scrapers': ('matplotlib', 'mayavi'),
     #'image_scrapers': ('matplotlib', PNGScraper()),
+    #'image_scrapers': ('matplotlib', plotly),
+
+    # capture raw HTML or, if not present, __repr__ of last expression in
+    # each code block
+    'capture_repr': ('_repr_html_', '__repr__'),
     # TODO
     #https://sphinx-gallery.github.io/advanced_configuration.html#generate-binder-links-for-gallery-notebooks-experimental
     #'binder': {
@@ -174,7 +190,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'abipy'
-copyright = '2018, ' + relmod.author
+copyright = '2021, ' + relmod.author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -182,6 +198,7 @@ copyright = '2018, ' + relmod.author
 #
 # The short X.Y version.
 version = relmod.__version__
+
 # The full version, including alpha/beta/rc tags.
 release = relmod.__version__
 
@@ -223,6 +240,13 @@ pygments_style = 'sphinx'
 # -- Options for HTML output ---------------------------------------------------
 
 # Activate the theme.
+
+import sphinx_rtd_theme
+html_theme = 'sphinx_rtd_theme'
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+"""
+# This for the old bootstrap theme
 import sphinx_bootstrap_theme
 html_theme = 'bootstrap'
 html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
@@ -286,26 +310,18 @@ html_theme_options = {
     # Options are "nav" (default), "footer" or anything else to exclude.
     'source_link_position': "nav",
 
-    # Bootswatch (http://bootswatch.com/) theme.
-    # Options are nothing (default) or the name of a valid theme
-    # such as "cosmo" or "sandstone".
-    #'bootswatch_theme': "united",
-    #'bootswatch_theme': "flatly",
-    #'bootswatch_theme': "litera",
-    #'bootswatch_theme': "simplex",
-    #'bootswatch_theme': "sandstone",
-
     # Choose Bootstrap version.
     # Values: "3" (default) or "2" (in quotes)
     'bootstrap_version': "3",
 }
+"""
 
 
 def setup(app):
     """
     Sphinx automatically calls your setup function defined in "conf.py" during the build process for you.
     There is no need to, nor should you, call this function directly in your code.
-    http://www.sphinx-doc.org/en/stable/extdev/appapi.html
+    See http://www.sphinx-doc.org/en/stable/extdev/appapi.html
     """
     # Add custom css in _static
     #app.add_stylesheet("my_style.css")
@@ -504,7 +520,6 @@ class AbiPyStyle(Style):
 from pybtex.plugin import register_plugin
 register_plugin('pybtex.style.labels', 'abipy', AbiPyLabelStyle)
 register_plugin('pybtex.style.formatting', 'abipystyle', AbiPyStyle)
-
 
 # This is for releases http://releases.readthedocs.io/en/latest/usage.html
 releases_github_path = "abinit/abipy"

@@ -14,7 +14,8 @@ import abipy.data as abidata
 with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gsr:
     ebands = gsr.ebands
 
+#%%
 import matplotlib.pyplot as plt
-# `swarm=True` to show the datapoints on top of the boxes
+# Use `swarm=True` to show the datapoints on top of the boxes
 ebands.boxplot(swarm=True)
 plt.show()
