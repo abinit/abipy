@@ -57,7 +57,7 @@ def gen_id(n=1, pre="uuid-"):
 class HTMLwithClipboardBtn(pn.pane.HTML):
     """
     Receives an HTML string and return an HTML pane with a button that allows the user
-    to copy the content to the system clipboard. 
+    to copy the content to the system clipboard.
     Requires call to abipanel to load JS extension.
     """
 
@@ -221,7 +221,7 @@ class ButtonContext(object):
     A context manager for buttons triggering computations on the server.
 
     This manager disables the button when we __enter__ and changes the name of the button to "running".
-    It reverts to the initial state of the button one __exit__ is invoked, showing the Exception type 
+    It reverts to the initial state of the button one __exit__ is invoked, showing the Exception type
     in a "red" button if an exception is raised during the computation.
 
     This a very important tool because we need to disable the button when we start the computation
@@ -232,7 +232,7 @@ class ButtonContext(object):
     Note also that we want to provide some graphical feedback to the user if something goes wrong.
     At present we don't expose the python traceback on the client.
     It would be nice but we need panel machinery to do that.
-    Moreover this is not the recommended approach for security reasons so we just change the "color" 
+    Moreover this is not the recommended approach for security reasons so we just change the "color"
     of the button and use the string representation of the exception as button name.
     """
 
@@ -477,20 +477,20 @@ class PanelWithNcFile(AbipyParameterized):
     This frame allows the user to inspect the dimensions and the variables reported in a netcdf file.
     Tab showing information on the netcdf file.
 
-    Subclasses should implement the `ncfile` property 
+    Subclasses should implement the `ncfile` property
     """
 
     @property
     def ncfile(self):
         """abc does not play well with parametrized so we rely on this to enforce the protocol."""
-        raise NotImplementedError("subclass should implement `ncfile` property.")
+        raise NotImplementedError("subclass should implement the `ncfile` property.")
 
     def get_ncfile_panel(self):
 
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
         #nc_grpname = pnw.Select(name="nc group name", options=["/"])
-            
+
         # Get dataframe with dimesions.
         dims_df = self.ncfile.get_dims_dataframe(path="/")
         ca(dfc(dims_df))
@@ -511,7 +511,7 @@ class PanelWithElectronBands(AbipyParameterized):
     """
     Mixin class for panel object associated to AbiPy object providing an |ElectronBands| object.
 
-    Subclasses should implement `ebands` property 
+    Subclasses should implement `ebands` property
     """
 
     # Bands plot
@@ -554,7 +554,7 @@ class PanelWithElectronBands(AbipyParameterized):
             if self.set_fermie_to_vbm.value:
                 self.ebands.set_fermie_to_vbm()
 
-            fig1 = self.ebands.plot(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None, 
+            fig1 = self.ebands.plot(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None,
                                     fontsize=8, **self.mpl_kwargs)
 
             fig2 = self.ebands.kpoints.plot(**self.mpl_kwargs)

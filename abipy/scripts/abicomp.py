@@ -971,7 +971,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
             help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
     expose_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
-    expose_parser.add_argument("--plotly", default=False, action="store_true",
+    expose_parser.add_argument("-ply", "--plotly", default=False, action="store_true",
             help='Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.')
     expose_parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
             help="Push figure to plotly chart studio ." +

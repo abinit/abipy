@@ -3881,7 +3881,7 @@ class PhononBandsPlotter(NotebookWriter):
         for i, (label, phbands) in enumerate(self.phbands_dict.items()):
             app("[%d] %s --> %s" % (i, label, func(phbands)))
 
-        if self.phdoses_dict:
+        if self.phdoses_dict and verbose:
             for i, (label, phdos) in enumerate(self.phdoses_dict.items()):
                 app("[%d] %s --> %s" % (i, label, func(phdos)))
 

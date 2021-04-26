@@ -145,7 +145,7 @@ def get_parser(with_epilog=False):
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
-    parser.add_argument("--plotly", default=False, action="store_true",
+    parser.add_argument("-ply", "--plotly", default=False, action="store_true",
             help='Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.')
     parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
             help="Push figure to plotly chart studio. " +

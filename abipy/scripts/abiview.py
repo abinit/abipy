@@ -555,7 +555,7 @@ def get_parser(with_epilog=False):
 
     # Parent parser for commands supporting plotly plots
     plotly_parser = argparse.ArgumentParser(add_help=False)
-    plotly_parser.add_argument('--plotly', default=False, action="store_true",
+    plotly_parser.add_argument("-ply", '--plotly', default=False, action="store_true",
         help='Generate plotly plots in browser instead of matplotlib.')
     plotly_parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
         help="Push figure to plotly chart studio. " +
