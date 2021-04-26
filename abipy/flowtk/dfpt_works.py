@@ -125,6 +125,7 @@ class NscfDdksWork(Work):
     def from_scf_task(cls, scf_task, ddk_ngkpt, ddk_shiftk, ddk_nband, manager=None):
         """
         Build NscfDdksWork from a scf_task.
+
         Args:
             scf_task: GS task. Must produce the DEN file required for the NSCF run.
             ddk_ngkpt: k-mesh used for the NSCF run and the non self-consistent DDK tasks.

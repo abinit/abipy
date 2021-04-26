@@ -6,9 +6,10 @@ import abipy.data as abidata
 
 from abipy import flowtk
 
-def make_scf_input(paral_kgb=0):
+def make_scf_input(scf_ngkpt, paral_kgb=0):
     """
     This function constructs the input file for the GS calculation:
+    on a scf_ngkpt Gamma-centered k-mesh.
     """
     structure = abilab.Structure.from_abivars(
         acell=[7.7030079150, 7.7030079150, 7.7030079150],
@@ -28,17 +29,12 @@ def make_scf_input(paral_kgb=0):
     gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
     gs_inp.set_vars(
-        nband=10,
         ecut=50.0,
-        istwfk="*1",
-        ngkpt=[8, 8, 8],
-        nshiftk=1,
+        ngkpt=scf_ngkpt,
         shiftk=[0, 0, 0],
+        nband=10,
         paral_kgb=paral_kgb,
-        tolvrs=1.0e-12,
-        diemac=9.0,
-        nstep=150,
-        nbdbuf=4,
+        tolvrs=1.0e-10,
     )
 
     return gs_inp
@@ -46,7 +42,7 @@ def make_scf_input(paral_kgb=0):
 
 def build_flow(options):
     """
-    Create a `Flow` for phonon calculations. The flow has two works.
+    Create a `Flow` for ZPR calculations.
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
@@ -54,91 +50,88 @@ def build_flow(options):
 
     flow = flowtk.Flow(workdir=options.workdir)
 
-    # Build input for GS calculation and create first work with 1 ScfTask.
-    gs_inp = make_scf_input()
+    # Build input for the GS calculation and register the first GS ScfTask.
+    gs_inp = make_scf_input(scf_ngkpt=[8, 8, 8])
     work = flow.register_scf_task(gs_inp)
     scf_task = work[0]
 
-
-    # Build new input for NSCF calculation with k-path (automatically selected by AbiPy)
-    # Used to plot the KS band structure and interpolate the QP corrections.
-    nscf_kpath_inp = gs_inp.new_with_vars(
-        nband=12,
-        tolwfr=1e-20,
-        iscf=-2,
-    )
-    nscf_kpath_inp.set_kpath(ndivsm=10)
+    # Build input for NSCF calculation along k-path (automatically selected by AbiPy)
+    nscf_kpath_inp = gs_inp.make_ebands_input()
     work.register_nscf_task(nscf_kpath_inp, deps={scf_task: "DEN"})
 
-    # Build another NSCF input with k-mesh and empty states.
-    # This step generates the WFK file used to build the EPH self-energy.
-    nscf_empty_kmesh_inp = gs_inp.new_with_vars(
-        nband=630,     # Too low. ~300
-        nbdbuf=30,     # Reduces considerably the time needed to converge empty states!
-        tolwfr=1e-18,
-        iscf=-2,
-    )
-    nscf_empty_task = work.register_nscf_task(nscf_empty_kmesh_inp, deps={scf_task: "DEN"})
+    # This is the ab-initio q-mesh that should be commensurate with scf_ngkpt
+    ddb_ngqpt = [4, 4, 4]
 
+    # Now we build the NSCF tasks with different k-meshes and empty states.
+    # Each NSCF task generates one of the WFK files used to build the EPH self-energy.
+    # These WFK files are then used to erform convergece tests with respect to 
+    # the interpolated fine q-mesh. NOTE that we are assuming q == k.
+    ngkpt_fine_list = [
+        [12, 12, 12],
+        #[32, 32, 32],
+    ]
 
-    NGQPT = [32, 32, 32]
-    nscf_empty_kmesh_inp.set_kmesh(
-        ngkpt=NGQPT,
-        shiftk=[0.0, 0.0, 0.0],
-    )
+    nscf_empty_states_tasks = []
+    for ngkpt_fine in ngkpt_fine_list:
+        nscf_empty_kmesh_inp = gs_inp.new_with_vars(
+            ngkpt=ngkpt_fine,
+            nband=630,      # Too low. ~300
+            nbdbuf=30,      # Reduces considerably the time needed to converge empty states!
+            tolwfr=1e-18,
+            iscf=-2,
+        )
+        t = work.register_nscf_task(nscf_empty_kmesh_inp, deps={scf_task: "DEN"})
+        nscf_empty_states_tasks.append(t)
 
-    # Create work for phonon calculation with WFQ files with a [4, 4, 4] q-mesh.
-    # Electric field and Born effective charges are also computed.
-    ph_work = flowtk.PhononWfkqWork.from_scf_task(scf_task, ngqpt=NGQPT, with_becs=True)
-
-    #for task in ph_work:
-    #   task.input.set_vars(prtwf=-1)
-
+    # Create work for phonon calculation with a ddb_ngqpt q-mesh.
+    # Electric field and Born effective charges are computed.
+    ph_work = flowtk.PhononWfkqWork.from_scf_task(scf_task, ngqpt=ddb_ngqpt, with_becs=True)
+    for task in ph_work:
+       task.input.set_vars(prtwf=-1)
     flow.register_work(ph_work)
 
-    # Build template for self-energy calculation. See also v8/Input/t44.in
+    # Build template for self-energy calculation. 
     # The k-points must be in the WFK file
-    #
-    eph_inp = gs_inp.new_with_vars(
+    eph_template = gs_inp.new_with_vars(
         optdriver=7,             # Enter EPH driver.
         eph_task=4,              # Activate computation of EPH self-energy.
-        ngkpt=NGQPT,
-        ddb_ngqpt=NGQPT,         # q-mesh used to produce the DDB file (must be consistent with DDB data)
-        symsigma=1,              # Use symmetries in self-energy integration (IBZ_k instead of BZ)
-        # For more k-points...
-        nkptgw=2,
-        kptgw=[0, 0, 0,
-               0.5, 5, 0],
-        bdgw=[1, 8, 1, 8],
+        ddb_ngqpt=ddb_ngqpt,      # Ab-initio q-mesh used to produce the DDB file.
+        #nkptgw=2,
+        #kptgw=[0, 0, 0,
+        #       0.5, 5, 0],
+        #bdgw=[1, 8, 1, 8],
         #gw_qprange=-4,
         tmesh=[0, 200, 1],    # (start, step, num)
         zcut="0.1 eV",
     )
 
     # Set q-path for Fourier interpolation of phonons.
-    eph_inp.set_qpath(10)
-
+    eph_template.set_qpath(10)
     # Set q-mesh for phonons DOS.
-    eph_inp.set_phdos_qmesh(nqsmall=16, method="tetra")
-
-    # EPH part requires the GS WFK, the DDB file with all perturbations
-    # and the database of DFPT potentials (already merged by PhononWork)
-    deps = {nscf_empty_task: "WFK", ph_work: ["DDB", "DVDB"]}
+    eph_template.set_phdos_qmesh(nqsmall=16, method="tetra")
 
     # Now we use the EPH template to perform a convergence study in which
     # we change the q-mesh used to integrate the self-energy and the number of bands.
-    # The code will activate the Fourier interpolation of the DFPT potentials if eph_ngqpt_fine != ddb_ngqpt
+    # The code will activate the Fourier interpolation of the DFPT potentials 
+    # if eph_ngqpt_fine != ddb_ngqpt
 
-    #for eph_ngqpt_fine in [[4, 4, 4], [8, 8, 8]]:
-    for eph_ngqpt_fine in [NGQPT]:
-        # Create empty work to contain EPH tasks with this value of eph_ngqpt_fine
-        eph_work = flow.register_work(flowtk.Work())
-        for nband in [200, 300, 400, 500]:
-            new_inp = eph_inp.new_with_vars(eph_ngqpt_fine=eph_ngqpt_fine, nband=nband)
-            eph_work.register_eph_task(new_inp, deps=deps)
+    # Create empty work to contain EPH tasks with this value of eph_ngqpt_fine
+    eph_work = flow.new_work()
 
-    flow.allocate()
+    for ngkpt_fine, nscf_task in zip(ngkpt_fine_list, nscf_empty_states_tasks):
+        new_inp = eph_template.new_with_vars(
+            ngkpt=ngkpt_fine,
+            eph_ngqpt_fine=eph_ngqpt_fine
+        ) #, nband=nband)
+
+        # The EPH code requires the GS WFK, the DDB file with all perturbations
+        # and the DVDB file with the DFPT potentials (already merged by PhononWork)
+        deps = {nscf_task: "WFK", ph_work: ["DDB", "DVDB"]}
+        eph_work.register_eph_task(new_inp, deps=deps)
+
+    #flow.allocate()
     return flow
+
 
 @flowtk.flow_main
 def main(options):

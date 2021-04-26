@@ -461,9 +461,10 @@ class NodeContainer(metaclass=abc.ABCMeta):
         """Register an electron-phonon task."""
         kwargs["task_class"] = EphTask
         eph_inp = args[0]
-        seq_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)
         if eph_inp.get("eph_frohlichm", 0) != 0 or abs(eph_inp.get("eph_task", 0)) == 15:
-            # FIXME: Hack to run task in sequential if calculation does not support MPI with nprocs > 1.
+            # FIXME: Hack to run task in sequential since this  calculation does 
+            # not support MPI with nprocs > 1.
+            seq_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)
             kwargs.update({"manager": seq_manager})
 
         return self.register_task(*args, **kwargs)
@@ -1101,7 +1102,7 @@ class RelaxWork(Work):
 
 class G0W0Work(Work):
     """
-    Work for general G0W0 calculations.
+    Work for generic G0W0 calculations.
     All input can be either single inputs or lists of inputs
 
     .. rubric:: Inheritance Diagram
@@ -1470,8 +1471,8 @@ class PhononWork(Work, MergeDdb):
     This work consists of nirred Phonon tasks where nirred is
     the number of irreducible atomic perturbations for a given set of q-points.
     It provides the callback method (on_all_ok) that calls mrgddb (mrgdv) to merge
-    all the partial DDB (POT) files produced. The two files are available in the
-    output directory of the Work.
+    all the partial DDB (POT) files produced. 
+    The two files are available in the output directory of the Work.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: PhononWork
@@ -1479,7 +1480,7 @@ class PhononWork(Work, MergeDdb):
 
     @classmethod
     def from_scf_task(cls, scf_task, qpoints, is_ngqpt=False, tolerance=None, with_becs=False,
-                      ddk_tolerance=None, manager=None):
+                      ddk_tolerance=None, prtwf=-1, manager=None):
         """
         Construct a `PhononWork` from a |ScfTask| object.
         The input file for phonons is automatically generated from the input of the ScfTask.
@@ -1495,6 +1496,11 @@ class PhononWork(Work, MergeDdb):
             with_becs: Activate calculation of Electric field and Born effective charges.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if with_becs.
                 None to use AbiPy default.
+            prtwf: Controls the output of the first-order WFK. 
+                By default we set it to -1 when q != 0 so that AbiPy is still able 
+                to restart the DFPT task if the calculation is not converged (worst case scenario) 
+                but we avoid the output of the 1-st WFK if the calculation converged successfully. 
+                Non-linear DFT applications should not be affected since they assume q == 0.
             manager: |TaskManager| object.
         """
         if not isinstance(scf_task, ScfTask):
@@ -1509,16 +1515,19 @@ class PhononWork(Work, MergeDdb):
             new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance)
 
         for qpt in qpoints:
-            if with_becs and np.sum(qpt ** 2) < 1e-12: continue
+            is_gamma = np.sum(qpt ** 2) < 1e-12
+            if with_becs and is_gamma: continue
             multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance)
             for ph_inp in multi:
+                # Here we set the value of prtwf for the DFPT tasks if q != Gamma.
+                if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
                 new.register_phonon_task(ph_inp, deps={scf_task: "WFK"})
 
         return new
 
     @classmethod
     def from_scf_input(cls, scf_input, qpoints, is_ngqpt=False, tolerance=None,
-                       with_becs=False, ddk_tolerance=None, manager=None):
+                       with_becs=False, ddk_tolerance=None, prtwf=-1, manager=None):
         """
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation. A new |ScfTask| is created and added to the Work.
@@ -1537,9 +1546,12 @@ class PhononWork(Work, MergeDdb):
             new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance)
 
         for qpt in qpoints:
-            if with_becs and np.sum(qpt ** 2) < 1e-12: continue
+            is_gamma = np.sum(qpt ** 2) < 1e-12
+            if with_becs and is_gamma: continue
             multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance)
             for ph_inp in multi:
+                # Here we set the value of prtwf for the DFPT tasks if q != Gamma.
+                if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
                 new.register_phonon_task(ph_inp, deps={scf_task: "WFK"})
 
         return new
@@ -1548,7 +1560,7 @@ class PhononWork(Work, MergeDdb):
     def on_all_ok(self):
         """
         This method is called when all the q-points have been computed.
-        Ir runs `mrgddb` in sequential on the local machine to produce
+        It runs `mrgddb` in sequential on the local machine to produce
         the final DDB file in the outdir of the |Work|.
         """
         # Merge DDB files.

@@ -148,6 +148,9 @@ class TestAbinitInput(AbipyTest):
         assert popped["npband"] == 2 and "npband" not in new_inp
         assert popped["npfft"] == 3 and "npfft" not in new_inp
 
+        new_inp.set_vars(shiftk=[0, 0, 0, 0.5, 0, 0, 0, 0, 0.5])
+        assert new_inp["nshiftk"] == 3
+
     def test_input_errors(self):
         """Testing typical AbinitInput Error"""
         si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))

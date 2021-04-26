@@ -2008,9 +2008,28 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         return work
 
+    def new_work(self, deps=None, manager=None, workdir=None):
+        """
+        Helper function to add a new empty |Work| and add it to the internal list.
+        Client code is responsible for filling the new work.
+
+        Args:
+            deps: List of :class:`Dependency` objects specifying the dependency of this node.
+                  An empy list of deps implies that this node has no dependencies.
+            manager: The |TaskManager| responsible for the submission of the task.
+                     If manager is None, we use the `TaskManager` specified during the creation of the work.
+            workdir: The name of the directory used for the |Work|.
+
+        Returns:
+            The registered |Work|.
+        """
+        work = Work()
+        return self.register_work(work, deps=deps, manager=manager, workdir=workdir)
+
     def register_work(self, work, deps=None, manager=None, workdir=None):
         """
-        Register a new |Work| and add it to the internal list, taking into account possible dependencies.
+        Register a new |Work| and add it to the internal list, taking into account
+        possible dependencies.
 
         Args:
             work: |Work| object.
@@ -2392,7 +2411,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     def single_shot(self, check_status=True, **kwargs):
         """
-        Use :class:`PyLauncher` to submits one task.
+        Use :class:`PyLauncher` to submit one task.
         kwargs contains the options passed to the launcher.
 
         Return: Number of tasks submitted.
