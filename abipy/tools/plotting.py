@@ -983,8 +983,8 @@ def plotly_set_lims(fig, lims, axname):
     #if right is not None: ax_range[1] = right
 
     # Example: fig.update_layout(yaxis_range=[-4,4])
-    k = dict(x="xaxis_range", y="yaxis_range")[axname]
-    fig.update_layout(k=[left, right])
+    k = dict(x="xaxis", y="yaxis")[axname]
+    fig.layout[k].range = [left, right]
 
     return left, right
 
@@ -1142,6 +1142,15 @@ def plotly_klabels(labels):
             new_labels[il] = replace[new_labels[il]]
 
     return new_labels
+
+
+def plotly_set_xylabels(fig, xlabel, ylabel, exchange_xy):
+    """
+    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy
+    """
+    if exchange_xy: xlabel, ylabel = ylabel, xlabel
+    fig.layout.xaxis.title.text = xlabel
+    fig.layout.yaxis.title.text = ylabel
 
 
 _PLOTLY_AUTHEHTICATED = False
