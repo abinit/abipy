@@ -546,11 +546,7 @@ class Function1D(object):
             if exchange_xy:
                 xx, yy = yy, xx
 
-            if ply_row == 1 and ply_col == 1:
-                fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=showlegend, *args, **kwargs))
-
-            else:
-                fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=showlegend, *args, **kwargs),
+            fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=showlegend, *args, **kwargs),
                               row=ply_row, col=ply_col)
 
     @add_fig_kwargs
