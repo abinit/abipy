@@ -40,14 +40,17 @@ def build_flow(options):
     )
 
     ddb_ngqpt = [4, 4, 4]
+    kx, ky, kz = 4, 4, 4
 
-    qpoints = scf_input.abiget_ibz(ngkpt=ddb_ngqpt, shiftk=[0, 0, 0], kptopt=1).points
-        
     # Add the ground-state work to the flow
     work_scf = flow.register_scf_task(scf_input)
 
+    # Band structure calculation to make sure everything is ok
+    bs_input = scf_input.make_ebands_input(tolwfr=1e-12, ndivsm=10, nb_extra=4)
+    work_bs  = flow.register_nscf_task(bs_input, deps={work_scf[0]: "DEN"})
+
     # Add the phonon work to the flow
-    ph_work = flowtk.PhononWork.from_scf_task(work_scf[0], qpoints)
+    ph_work = flowtk.PhononWork.from_scf_task(work_scf[0], qpoints=ddb_ngqpt, is_ngqpt=True, with_becs=True)
     flow.register_work(ph_work)
 
     # NSCF input for the WFK needed to interpolate with kerange
@@ -77,6 +80,10 @@ def build_flow(options):
         # Generate the input file for the transport calculation
         eph_input = wfk_input.make_eph_transport_input(ddb_ngqpt=ddb_ngqpt, sigma_erange=sigma_erange,
                                                        tmesh=tmesh, eph_ngqpt_fine=sigma_ngkpt)
+
+        # We compute the phonon dispersion to be able to check they are ok
+        if i==0:
+            eph_input.set_qpath(20)
 
         work_eph.register(eph_input, deps={work_eph[1]: "WFK", ph_work: ["DDB", "DVDB"]})
 
