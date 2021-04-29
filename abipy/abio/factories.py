@@ -1485,7 +1485,7 @@ def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqp
     extension = MultiDataset.replicate_input(nscf_input, 4)
     multi.extend(extension)
 
-    if sigma_kerange == None:
+    if sigma_kerange is None:
         sigma_kerange = sigma_erange
     # Modify the second nscf input to get a task that calculate the kpt in the sigma interval (Kerange.nc file)
     multi[2].set_vars(optdriver=8, wfk_task='"wfk_kpts_erange"', kptopt=1,
