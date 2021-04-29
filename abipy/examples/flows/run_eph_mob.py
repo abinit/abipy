@@ -40,13 +40,14 @@ def build_flow(options):
     )
 
     ddb_ngqpt = [4, 4, 4]
+    kx, ky, kz = 4, 4, 4
 
     # Add the ground-state work to the flow
     work_scf = flow.register_scf_task(scf_input)
 
     # Band structure calculation to make sure everything is ok
     bs_input = scf_input.make_ebands_input(tolwfr=1e-12, ndivsm=10, nb_extra=4)
-    work_bs  = flow.register_nscf_task(bs_input, deps={work_scf[0]: "DEN"})
+    work_scf.register_nscf_task(bs_input, deps={work_scf[0]: "DEN"})
 
     # Add the phonon work to the flow
     ph_work = flowtk.PhononWork.from_scf_task(work_scf[0], qpoints=ddb_ngqpt, is_ngqpt=True, with_becs=True)
