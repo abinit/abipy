@@ -40,7 +40,6 @@ def build_flow(options):
     )
 
     ddb_ngqpt = [4, 4, 4]
-    kx, ky, kz = 4, 4, 4
 
     # Add the ground-state work to the flow
     work_scf = flow.register_scf_task(scf_input)
