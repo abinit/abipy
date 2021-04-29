@@ -1885,9 +1885,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ibte_prep: Set it to 1 to activate the iterative Boltzmann equation. Default is RTA.
         """
         eph_ngqpt_fine = self.get("ngkpt") if eph_ngqpt_fine is None else eph_ngqpt_fine
-        nband = self.get("nband")-self.get("nbdbuf") # If nbdbuf is used in the NSCF computation,
-                                                     # it cannot be used in the EPH driver and should
-                                                     # be removed
+        nbdbuf = 0 if self.get("nbdbuf") is None else self.get("nbdbuf")
+        nband = self.get("nband")-nbdbuf # If nbdbuf is used in the NSCF computation,
+                                         # it cannot be used in the EPH driver and should
+                                         # be removed
         new = self.new_with_vars(
             optdriver=7,                    # Enter EPH driver.
             eph_task=-4,                    # Compute imag part of sigma_eph.
