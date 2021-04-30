@@ -9,7 +9,8 @@ from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvectors
 from abipy.abio.inputs import AnaddbInput
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible, get_figs_plotly, add_plotly_fig_kwargs,\
+    plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc
 from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
 
 
@@ -284,14 +285,14 @@ class SoundVelocity(Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_fit_freqs_dir(self, idir, ax=None, units="eV", fontsize=8, **kwargs):
         """
-        Plots the phonon frequencies, if available, along the specified direction.
+        Plots the phonon frequencies with matplotlib, if available, along the specified direction.
         The line representing the fitted value will be shown as well.
 
         Args:
             idir: index of the direction.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
-            fontsize: fontsize for legends and titles
+            fontsize: fontsize for subtitles
 
         Returns: |matplotlib-Figure|
         """
@@ -323,16 +324,68 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         return fig
 
+    @add_plotly_fig_kwargs
+    def plotly_fit_freqs_dir(self, idir, fig, rcd, units="eV", fontsize=12, **kwargs):
+        """
+        Plots the phonon frequencies with plotly, if available, along the specified direction.
+        The line representing the fitted value will be shown as well.
+
+        Args:
+            idir: index of the direction.
+            fig: |plotly.graph_objects.Figure|
+            rcd: PlotlyRowColDesc object used to specify the (row, col) of the subplot in the grid.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            fontsize: fontsize for subtitles
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        if self.phfreqs is None or self.qpts is None:
+            raise ValueError("The plot requires phonon frequencies and qpoints.")
+
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        ply_row, ply_col = rcd.ply_row, rcd.ply_col
+
+        rlatt = self.structure.lattice.reciprocal_lattice
+        freqs = self.phfreqs[idir]
+        qpt_cart_coords = np.array([np.linalg.norm(rlatt.get_cartesian_coords(c)) for c in self.qpts[idir]])
+        slope = self.sound_velocities[idir] / abu.velocity_at_to_si * bohr_to_angstrom / eV_to_Ha
+
+        units_factor = abu.phfactor_ev2units(units)
+
+        title = "[{:.3f}, {:.3f}, {:.3f}]".format(*self.directions[idir])
+        if self.labels:
+            title += " - {}".format(self.labels[idir])
+
+        for i, c in enumerate(["red", "blue", "green"]):
+            fig.add_scatter(x=qpt_cart_coords, y=slope[i] * qpt_cart_coords * units_factor, line_color=c,
+                          name='', showlegend=False, mode='lines', row=ply_row, col=ply_col)
+            fig.add_scatter(x=qpt_cart_coords, y=freqs[i] * units_factor, marker=dict(symbol=4, size=8, color=c),
+                          name='', showlegend=False, mode='markers', row=ply_row, col=ply_col)
+
+        xaxis = 'xaxis%u' % rcd.iax
+        yaxis = 'yaxis%u' % rcd.iax
+        fig.layout[xaxis].rangemode = 'tozero'
+        fig.layout[yaxis].rangemode = 'tozero'
+
+        if idir == self.n_directions - 1:
+            fig.layout[xaxis].title.text = "Wave Vector"
+        if idir == 0:
+            fig.layout[yaxis].title.text = abu.wlabel_from_units(units, unicode=True)
+
+        fig.layout.annotations[idir].text = title
+        fig.layout.annotations[idir].font.size = fontsize
+
+        return fig
+
     @add_fig_kwargs
     def plot(self, units="eV", fontsize=8, **kwargs):
         """
-        Plots the phonon frequencies, if available, along all the directions.
+        Plots the phonon frequencies with matplotlib, if available, along all the directions.
         The lines representing the fitted values will be shown as well.
 
         Args:
-            ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
-            fontsize: fontsize for legends and titles
+            fontsize: fontsize for subtitles
 
         Returns: |matplotlib-Figure|
         """
@@ -349,6 +402,29 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                 set_visible(axi, False, "xlabel")
             if i != 0:
                 set_visible(axi, False, "ylabel")
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly(self, units="eV", fontsize=12, **kwargs):
+        """
+        Plots the phonon frequencies with plotly, if available, along all the directions.
+        The lines representing the fitted values will be shown as well.
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            fontsize: fontsize for subtitles
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+
+        nrows, ncols = math.ceil(self.n_directions / 2),  2
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, self.n_directions+1)),
+                                 horizontal_spacing=0.05)
+
+        for i in range(self.n_directions):
+            rcd = PlotlyRowColDesc(i//2, i%2, nrows, ncols)
+            self.plotly_fit_freqs_dir(i, fig, rcd, units=units, fontsize=fontsize, show=False)
 
         return fig
 

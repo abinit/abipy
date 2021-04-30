@@ -948,7 +948,7 @@ def plotly_set_lims(fig, lims, axname):
     Set the data limits for the axis ax.
 
     Args:
-        lims: tuple(2) for (left, right), tuple(1) or scalar for left only.
+        lims: tuple(2) for (left, right), if tuple(1) or scalar for left only, none is set.
         axname: "x" for x-axis, "y" for y-axis.
 
     Return: (left, right)
