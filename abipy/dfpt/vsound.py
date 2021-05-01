@@ -9,8 +9,8 @@ from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvectors
 from abipy.abio.inputs import AnaddbInput
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible, get_figs_plotly, add_plotly_fig_kwargs,\
-    plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible, get_fig_plotly, get_figs_plotly, \
+    add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc
 from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
 
 
@@ -325,7 +325,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         return fig
 
     @add_plotly_fig_kwargs
-    def plotly_fit_freqs_dir(self, idir, fig, rcd, units="eV", fontsize=12, **kwargs):
+    def plotly_fit_freqs_dir(self, idir, fig=None, rcd=None, units="eV", fontsize=12, **kwargs):
         """
         Plots the phonon frequencies with plotly, if available, along the specified direction.
         The line representing the fitted value will be shown as well.
@@ -342,8 +342,31 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         if self.phfreqs is None or self.qpts is None:
             raise ValueError("The plot requires phonon frequencies and qpoints.")
 
+        title = "[{:.3f}, {:.3f}, {:.3f}]".format(*self.directions[idir])
+        if self.labels:
+            title += " - {}".format(self.labels[idir])
+
         rcd = PlotlyRowColDesc.from_object(rcd)
         ply_row, ply_col = rcd.ply_row, rcd.ply_col
+        xaxis = 'xaxis%u' % rcd.iax
+        yaxis = 'yaxis%u' % rcd.iax
+
+        if fig is None:
+            fig, _ = get_fig_plotly()
+            fig.layout=dict(annotations=[dict(text=title, font_size=fontsize, x=0.5, xref='paper', xanchor='center',
+                                         y=1, yref='paper', yanchor='bottom' ,showarrow=False)],
+                            yaxis_title_text=abu.wlabel_from_units(units, unicode=True),
+                            xaxis_title_text= "Wave Vector")
+        else:
+            fig.layout.annotations[idir].text = title
+            fig.layout.annotations[idir].font.size = fontsize
+            if idir == self.n_directions - 1:
+                fig.layout[xaxis].title.text = "Wave Vector"
+            if idir == 0:
+                fig.layout[yaxis].title.text = abu.wlabel_from_units(units, unicode=True)
+
+        fig.layout[xaxis].rangemode = 'tozero'
+        fig.layout[yaxis].rangemode = 'tozero'
 
         rlatt = self.structure.lattice.reciprocal_lattice
         freqs = self.phfreqs[idir]
@@ -352,28 +375,11 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         units_factor = abu.phfactor_ev2units(units)
 
-        title = "[{:.3f}, {:.3f}, {:.3f}]".format(*self.directions[idir])
-        if self.labels:
-            title += " - {}".format(self.labels[idir])
-
         for i, c in enumerate(["red", "blue", "green"]):
             fig.add_scatter(x=qpt_cart_coords, y=slope[i] * qpt_cart_coords * units_factor, line_color=c,
                           name='', showlegend=False, mode='lines', row=ply_row, col=ply_col)
             fig.add_scatter(x=qpt_cart_coords, y=freqs[i] * units_factor, marker=dict(symbol=4, size=8, color=c),
                           name='', showlegend=False, mode='markers', row=ply_row, col=ply_col)
-
-        xaxis = 'xaxis%u' % rcd.iax
-        yaxis = 'yaxis%u' % rcd.iax
-        fig.layout[xaxis].rangemode = 'tozero'
-        fig.layout[yaxis].rangemode = 'tozero'
-
-        if idir == self.n_directions - 1:
-            fig.layout[xaxis].title.text = "Wave Vector"
-        if idir == 0:
-            fig.layout[yaxis].title.text = abu.wlabel_from_units(units, unicode=True)
-
-        fig.layout.annotations[idir].text = title
-        fig.layout.annotations[idir].font.size = fontsize
 
         return fig
 

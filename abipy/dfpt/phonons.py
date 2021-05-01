@@ -1124,9 +1124,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             # Scatter plot with Bose-Einstein occupation factors for T = temp
             factor = abu.phfactor_ev2units(units)
             if temp < 1: temp = 1
-            # this will be covered if the title is set by the user
-            fig.layout.title.text = "T = %.1f K" % temp
-            fig.layout.title.font.size = fontsize
+            fig.layout.annotations=[dict(text="T = %.1f K" % temp, font_size=fontsize, x=0.5, xref='paper',
+                                         xanchor='center', y=1, yref='paper', yanchor='bottom' ,showarrow=False)]
             xs = np.arange(self.num_qpoints)
             for nu in self.branches:
                 ws = self.phfreqs[:, nu]
