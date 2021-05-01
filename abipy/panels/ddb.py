@@ -88,6 +88,8 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
     plot_phbands_quad_btn = pnw.Button(name="Plot PHbands with/without quadrupoles", button_type='primary')
     plot_dos_vs_qmesh_btn = pnw.Button(name="Plot PHDos vs Qmesh", button_type='primary')
 
+    stacked_pjdos = pn.widgets.Toggle(name="Stacked PJDOS", value=True)
+
     def __init__(self, ddb, **params):
         super().__init__(**params)
         self.ddb = ddb
@@ -169,25 +171,27 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
                 phbst_file, phdos_file = g
                 phbands, phdos = phbst_file.phbands, phdos_file.phdos
 
-            # Fill column
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+                # Fill column
+                col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-            ca("## Phonon band structure and DOS:")
-            ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
-            #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))
-            #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.mpl_kwargs)))
-            #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
-            temps = self.temp_range.value
-            ca("## Thermodynamic properties in the harmonic approximation:")
-            #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
-            ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
-            #msqd_dos.plot_tensor(**self.mpl_kwargs)
+                ca("## Phonon band structure and DOS:")
+                ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
+                #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))
+                ca("## Type-projected phonon DOS:")
+                #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, **self.mpl_kwargs)))
+                ca(ply(phdos_file.plotly_pjdos_type(units=self.units, stacked=self.stacked_pjdos.value, show=False)))
+                #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
+                ca("## Thermodynamic properties in the harmonic approximation:")
+                temps = self.temp_range.value
+                #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
+                ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
+                #msqd_dos.plot_tensor(**self.mpl_kwargs)
 
-            # Add Anaddb input file
-            ca("## Anaddb input file:")
-            ca(self.html_with_clipboard_btn(g.input._repr_html_()))
+                # Add Anaddb input file
+                ca("## Anaddb input file:")
+                ca(self.html_with_clipboard_btn(g.input._repr_html_()))
 
-            return col
+                return col
 
     @param.depends('plot_vsound_btn.clicks')
     def plot_vsound(self):
@@ -197,18 +201,18 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         """
         if self.plot_vsound_btn.clicks == 0: return
 
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
+
         with ButtonContext(self.plot_vsound_btn):
             from abipy.dfpt.vsound import SoundVelocity
             sv = SoundVelocity.from_ddb(self.ddb.filepath, num_points=20, qpt_norm=0.1,
                                         ignore_neg_freqs=True, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                                         verbose=self.verbose, mpi_procs=self.mpi_procs)
 
-            # Insert results in grid.
-            gspec = pn.GridSpec(sizing_mode='scale_width')
-            gspec[0, :1] = sv.get_dataframe()
-            gspec[1, :1] = sv.plot(**self.mpl_kwargs)
+            ca(dfc(sv.get_dataframe()))
+            ca(mpl(sv.plot(**self.mpl_kwargs)))
 
-            return gspec
+            return col
 
     @param.depends('plot_check_asr_dipdip_btn.clicks')
     def plot_without_asr_dipdip(self):
@@ -309,9 +313,10 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
 
         return col
 
-    def get_panel(self):
-        """Return tabs with widgets to interact with the DDB file."""
-
+    def get_panel(self, **kwargs):
+        """
+        Return tabs with widgets to interact with the DDB file.
+        """
         tabs = pn.Tabs(); app = tabs.append
 
         app(("Summary", pn.Row(
@@ -320,7 +325,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         app(("PH-bands", pn.Row(
             pn.Column("# PH-bands options",
                       *self.pws("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
-                                "lo_to_splitting", "dos_method", "temp_range", "plot_phbands_btn",
+                                "lo_to_splitting", "dos_method", "stacked_pjdos", "temp_range", "plot_phbands_btn",
                                 self.helpc("plot_phbands_and_phdos")),
                       ),
             self.plot_phbands_and_phdos)
@@ -377,7 +382,8 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
                 *self.pws("units", "mpi_procs", "verbose"),
         )))
 
-        return tabs
+        template = kwargs.get("template", None)
+        return self.get_template_from_tabs(tabs, template)
 
 
 class DdbRobotPanel(HasAnaddbParams):

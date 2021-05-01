@@ -153,8 +153,8 @@ class AbinitNcFile(BaseFile):
         """
         grp = self.reader.rootgrp if path == "/" else self.path2group[path]
         d = {k: len(v) for k, v in grp.dimensions.items()}
-        # Since this is a Series but we want a dataframe to faciliate interpolatibly
-        # we have to call init with additiona kwargs.
+        # Since this is a Series but we want a dataframe to faciliate interoperability.
+        # we have to call init with additional kwargs.
         import pandas as pd
         return pd.DataFrame.from_dict(d, orient='index', columns=['value'])
 

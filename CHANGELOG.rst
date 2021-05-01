@@ -9,7 +9,7 @@ Release 0.9.1:
      This option is the recommended one if the k-path contains two consecutive high symmetry k-points 
      that are very close as ndivsm > 0 may produce a very large number of wavevectors.
    * Preliminary support for plotly plots (phonons).
-   * AbinitInputParser now can parse strings in the input file and read structure is the `suctructre:abivars`
+   * AbinitInputParser now can parse strings in the input file and read structure is the `structure:abivars`
      syntax in used.
 
 
@@ -24,7 +24,7 @@ Release 0.9.0:
     * Use last version of apscheduler.
     * Minor bug fixes
     * New tools for Phonon and EPH calculations.
-    * Note that this is last AbiPy version supporting Abinit8.
+    * Note that this is the last AbiPy version supporting Abinit8.
       AbiPy version 1.0 will start to take advantage of features and ameliorations introduced in Abinit9
       We will also take the opportunity to refactor the code base so backward incompatibe changes in the API
       are expected in the next major version.

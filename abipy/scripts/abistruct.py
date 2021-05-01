@@ -346,6 +346,11 @@ closest points in this particular structure. This is usually what you want in a 
 
     p_panel = subparsers.add_parser('panel', parents=[copts_parser, path_selector],
         help="Open GUI in web browser, requires panel package.")
+    p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
+                        help="Specify template for panel dasboard." +
+                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                             "Default: FastList"
+                        )
 
     # Subparser for kpath.
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
@@ -764,7 +769,8 @@ def main():
     elif options.command == "panel":
         structure = abilab.Structure.from_file(options.filepath)
         abilab.abipanel()
-        structure.get_panel().show(debug=options.verbose > 0)
+        app = structure.get_panel(template=options.panel_template)
+        app.show(debug=options.verbose > 0)
         return 0
 
     elif options.command == "visualize":

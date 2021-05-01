@@ -26,7 +26,7 @@ class GsrFilePanel(PanelWithElectronBands, PanelWithNcFile):
         """This for for the PanelWithNcFile mixin"""
         return self.gsr
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the GSR file."""
 
         tabs = pn.Tabs(); app = tabs.append
@@ -65,7 +65,8 @@ class GsrFilePanel(PanelWithElectronBands, PanelWithNcFile):
         # TODO
         #app(("NcFile", self.get_ncfile_panel()))
 
-        return tabs
+        template = kwargs.get("template", None)
+        return self.get_template_from_tabs(tabs, template)
 
 
 class GsrRobotPanel(PanelWithEbandsRobot):

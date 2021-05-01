@@ -2032,7 +2032,7 @@ class ElectronBands(Has_Structure):
 
     @add_plotly_fig_kwargs
     def plotly(self, spin=None, band_range=None, klabels=None, e0="fermie", fig=None, ylims=None,
-             points=None, with_gaps=False, max_phfreq=None, fontsize=12, **kwargs):
+               points=None, with_gaps=False, max_phfreq=None, fontsize=12, **kwargs):
         r"""
         Plot the electronic band structure with plotly.
 

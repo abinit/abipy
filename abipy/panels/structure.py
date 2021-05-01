@@ -132,7 +132,7 @@ class StructurePanel(HasStructureParams):
 
     #    return pn.Column(dfc(mp.lattice_dataframe), sizing_mode='stretch_width')
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
 
         tabs = pn.Tabs(); app = tabs.append
@@ -163,4 +163,5 @@ class StructurePanel(HasStructureParams):
             self.on_mp_match_btn)
         ))
 
-        return tabs
+        template = kwargs.get("template", None)
+        return self.get_template_from_tabs(tabs, template)

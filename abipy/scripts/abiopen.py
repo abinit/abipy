@@ -130,7 +130,13 @@ def get_parser(with_epilog=False):
 
     # panel option
     parser.add_argument("-pn", '--panel', action='store_true', default=False,
-                        help="Open GUI in web browser, requires panel package.")
+                        help="Open Dashboard in web browser, requires panel package.")
+
+    parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
+                        help="Specify template for panel dasboard." +
+                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                             "Default: FastList"
+                        )
 
     # Expose option.
     parser.add_argument('-e', '--expose', action='store_true', default=False,
@@ -249,7 +255,8 @@ def main():
             if not hasattr(abifile, "get_panel"):
                 raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
 
-            abifile.get_panel().show(debug=options.verbose > 0)
+            app = abifile.get_panel(template=options.panel_template)
+            app.show(debug=options.verbose > 0)
             return 0
 
         # Start ipython shell with namespace

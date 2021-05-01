@@ -1,13 +1,19 @@
 """"Basic tools and mixin classes for AbiPy panels."""
 
+import io
+import pathlib
 import param
 import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
+import pandas as pd
 
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.tools.plotting import push_to_chart_studio
+
+
+#pathlib.Path(__file__) / "assets"
 
 
 def abipanel():
@@ -56,29 +62,27 @@ def gen_id(n=1, pre="uuid-"):
 
 class HTMLwithClipboardBtn(pn.pane.HTML):
     """
-    Receives an HTML string and return an HTML pane with a button that allows the user
+    Receives an HTML string and returns an HTML pane with a button that allows the user
     to copy the content to the system clipboard.
-    Requires call to abipanel to load JS extension.
+    Requires call to abipanel to load JS the extension.
     """
 
     # This counter is shared by all the instances. We use it so that the js script is included only once.
     _init_counter = [0]
 
-    def __init__(self, object=None, **params):
+    def __init__(self, object=None, btn_cls=None, **params):
         super().__init__(object=object, **params)
 
         self._init_counter[0] += 1
         my_id = gen_id()
-        btn_cls = "bk bk-btn bk-btn-primary"
+        btn_cls = "bk bk-btn bk-btn-default" if btn_cls is None else str(btn_cls)
 
         # Build new HTML string with js section if first call.
         new_text = f"""
-
 <div id="{my_id}">{self.object}</div>
 <br>
 <button class="clip-btn {btn_cls}" type="button" data-clipboard-target="#{my_id}"> Copy to clipboard </button>
 <hr>
-
 """
         if self._init_counter[0] == 1:
             new_text += "<script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
@@ -133,7 +137,7 @@ If everything is properly configured, a new window is automatically created in y
 
         acc = pn.Accordion(("What is this?", md))
 
-        button = pnw.Button(name="Upload to chart studio server", button_type='primary')
+        button = pnw.Button(name="Upload to chart studio server")
         def push_to_cs(event):
             push_to_chart_studio(fig)
         button.on_click(push_to_cs)
@@ -149,9 +153,9 @@ If everything is properly configured, a new window is automatically created in y
     return col
 
 
-def dfc(df, wdg_type="dataframe", with_copy_to_clipboard=True, with_controls=False, **kwargs):
+def dfc(df, wdg_type="dataframe", with_export_buttons=True, with_controls=False, **kwargs):
     """
-    Helper function returning a panel Column with a plotly pane followed by
+    Helper function returning a panel Column with a DataFrame or Tabulator widget followed by
     a divider and (optionally) controls to customize the figure.
 
     Note that not all the options work as exected. See comments below.
@@ -171,20 +175,54 @@ def dfc(df, wdg_type="dataframe", with_copy_to_clipboard=True, with_controls=Fal
     col = pn.Column(sizing_mode='stretch_width'); ca = col.append
     ca(w)
 
-    if with_copy_to_clipboard:
-        md = pn.pane.Markdown(r"""
-The button on the left allows you to write a text representation of the dataframe to the system clipboard.
-This can be pasted into Excel, for example.
-"""
-)
-        acc = pn.Accordion(("What is this?", md))
-        button = pnw.Button(name="Copy to clipboard", button_type='primary')
+    if with_export_buttons:
+#        md = pn.pane.Markdown(r"""
+#The button on the left allows you to write a text representation of the dataframe to the system clipboard.
+#This can be pasted into Excel, for example.
+#"""
+#)
+
+        clip_button = pnw.Button(name="Copy to clipboard")
         def to_clipboard(event):
             df.to_clipboard()
-        button.on_click(to_clipboard)
+        clip_button.on_click(to_clipboard)
 
-        ca(pn.Row(button, acc))
+        #acc = pn.Accordion(("What is this?", md))
+        #ca(pn.Row(button, acc))
         #ca(pn.Row(button, md))
+
+        def as_xlsx():
+            """
+            Based on https://panel.holoviz.org/gallery/simple/file_download_examples.html
+            NB: This requires xlsxwriter package else pandas raises ModuleNotFoundError.
+            """
+            output = io.BytesIO()
+            writer = pd.ExcelWriter(output, engine='xlsxwriter')
+            df.to_excel(writer, sheet_name="DataFrame")
+            writer.save()  # Important!
+            output.seek(0)
+            return output
+
+        def as_latex():
+            """Convert DataFrame to latex string."""
+            output = io.StringIO()
+            df.to_latex(buf=output)
+            output.seek(0)
+            return output
+
+        def as_md():
+            """Convert DataFrame to latex string."""
+            output = io.StringIO()
+            df.to_markdown(buf=output)
+            output.seek(0)
+            return output
+
+        # Add Row with buttons to export and download file.
+        xlsx_download = pn.widgets.FileDownload(filename="data.xlsx", callback=as_xlsx)
+        latex_download = pn.widgets.FileDownload(filename="data.tex", callback=as_latex)
+        md_download = pn.widgets.FileDownload(filename="data.md", callback=as_md)
+        row = pn.Row(clip_button, xlsx_download, latex_download, md_download, sizing_mode="stretch_width")
+        ca(row)
 
     if with_controls:
         # This seems to be buggy.
@@ -335,6 +373,53 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
     @staticmethod
     def html_with_clipboard_btn(html_str, **kwargs):
         return HTMLwithClipboardBtn(html_str, **kwargs)
+
+    @staticmethod
+    def get_template_cls_from_name(name):
+        """
+        Return panel template from string.
+        Support name in the form `FastList` as well as `FastListTemplate`.
+        """
+        # Example: pn.template.FastGridTemplate or pn.template.GoldenTemplate
+        if hasattr(pn.template, name):
+            return getattr(pn.template, name)
+
+        try_name =  name + "Template"
+        if hasattr(pn.template, try_name):
+            return getattr(pn.template, try_name)
+
+        raise ValueError(f"""
+Don't know how to return panel template from string: {name}
+Possible Templates are: {list(pn.template.__dict__.keys())}
+""")
+
+    def get_template_from_tabs(self, tabs, template):
+        if template is None:
+            return tabs
+
+        cls = self.get_template_cls_from_name(template)
+
+        kwargs = dict(
+            title="%s <small>(%s)</small>" % (self.__class__.__name__, str(cls.__name__)),
+            # A title to show in the header. Also added to the document head meta settings #and as the browser tab title.
+            header_background="#ff8c00 ",
+            #header_background="orange",
+            #header_color="#ff8c00",
+            #favicon (str): URI of favicon to add to the document head (if local file, favicon is base64 encoded as URI).
+            #logo (str): URI of logo to add to the header (if local file, logo is base64 encoded as URI).
+            #sidebar_footer (str): Can be used to insert additional HTML. For example a menu, some additional info, links etc.
+            #enable_theme_toggle=False,  # If True a switch to toggle the Theme is shown. Default is True.
+        )
+
+        template = cls(**kwargs)
+        if hasattr(template.main, "append"):
+            template.main.append(tabs)
+        else:
+            # Assume .main area acts like a GridSpec
+            template.main[:,:] = tabs
+
+        #pn.config.sizing_mode = 'stretch_width'
+        return template
 
 
 class HasStructureParams(AbipyParameterized):
@@ -554,14 +639,20 @@ class PanelWithElectronBands(AbipyParameterized):
             if self.set_fermie_to_vbm.value:
                 self.ebands.set_fermie_to_vbm()
 
-            fig1 = self.ebands.plot(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None,
-                                    fontsize=8, **self.mpl_kwargs)
+            #fig1 = self.ebands.plot(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None,
+            #                        fontsize=8, **self.mpl_kwargs)
+
+            fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None,
+                                    fontsize=8, show=False)
 
             fig2 = self.ebands.kpoints.plot(**self.mpl_kwargs)
-            row = pn.Row(mpl(fig1), mpl(fig2)) #, sizing_mode='scale_width')
+
+            #col = pn.Column(mpl(fig1), mpl(fig2)) #, sizing_mode='scale_width')
+            col = pn.Column(ply(fig1), mpl(fig2)) #, sizing_mode='scale_width')
+
             text = bkw.PreText(text=self.ebands.to_string(verbose=self.verbose))
 
-            return pn.Column(row, text, sizing_mode='scale_width')
+            return pn.Column(col, text, sizing_mode='scale_width')
 
     def get_plot_edos_widgets(self):
         """Widgets to compute e-DOS."""

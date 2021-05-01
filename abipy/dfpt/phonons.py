@@ -4101,7 +4101,7 @@ class PhononBandsPlotter(NotebookWriter):
         return fig
 
     @add_plotly_fig_kwargs
-    def combiplotly(self, qlabels=None, units='eV', ylims=None, fontsize=12,
+    def combiplotly(self, qlabels=None, units='eV', ylims=None, width_ratios=(2, 1), fontsize=12,
                   linestyle_dict=None, **kwargs):
         r"""
         Plot the band structure and the DOS on the same figure with plotly.
@@ -4113,6 +4113,8 @@ class PhononBandsPlotter(NotebookWriter):
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.
                 The values are the labels e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``.
+            width_ratios: Ratio between the width of the phonon bands plots and the DOS plots.
+                Used if plotter has DOSes.
             fontsize: fontsize for titles and legend.
             linestyle_dict: Dictionary mapping labels to plotly linestyle options.
 

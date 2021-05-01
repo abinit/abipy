@@ -1909,10 +1909,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             self.insert_block(block_data, replace=replace)
 
-    def get_panel(self):
-        """Build panel with widgets to interact with the |DdbFile| either in a notebook or in panel app."""
+    def get_panel(self, **kwargs):
+        """
+        Build panel with widgets to interact with the |DdbFile| either in a notebook or in a bokeh app.
+        """
         from abipy.panels.ddb import DdbFilePanel
-        return DdbFilePanel(self).get_panel()
+        return DdbFilePanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """
