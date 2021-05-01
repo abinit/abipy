@@ -33,12 +33,26 @@ from abipy.dfpt.ifc import InteratomicForceConstants
 from abipy.dfpt.elastic import ElasticData
 from abipy.dfpt.raman import Raman
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-                                  plotlyfigs_to_browser, push_to_chart_studio)
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_figs_plotly, get_fig_plotly,
+                                  add_plotly_fig_kwargs, PlotlyRowColDesc, plotlyfigs_to_browser, push_to_chart_studio)
 from abipy.tools import duck
 from abipy.tools.iotools import ExitStackWithFiles
 from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.robots import Robot
+
+
+SUBSCRIPT_UNICODE = {
+                "0": "₀",
+                "1": "₁",
+                "2": "₂",
+                "3": "₃",
+                "4": "₄",
+                "5": "₅",
+                "6": "₆",
+                "7": "₇",
+                "8": "₈",
+                "9": "₉",
+            }
 
 
 class DdbError(Exception):
@@ -2298,7 +2312,7 @@ class DielectricTensorGenerator(Has_Structure):
     def plot(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component='diag', reim="reim", units='eV',
              with_phfreqs=True, ax=None, fontsize=12, **kwargs):
         """
-        Plots the selected components of the dielectric tensor as a function of frequency.
+        Plots the selected components of the dielectric tensor as a function of frequency with matplotlib.
 
         Args:
             w_min: minimum frequency in units `units`.
@@ -2334,8 +2348,8 @@ class DielectricTensorGenerator(Has_Structure):
         if 'linewidth' not in kwargs:
             kwargs['linewidth'] = 2
 
-        ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
-        ax.set_ylabel(r'$\epsilon(\omega)$')
+        ax.set_xlabel('Frequency {}'.format(phunit_tag(units)), fontsize=fontsize)
+        ax.set_ylabel(r'$\epsilon(\omega)$', fontsize=fontsize)
         ax.grid(True)
 
         reimfs = []
@@ -2358,7 +2372,7 @@ class DielectricTensorGenerator(Has_Structure):
                         label = reims % r'$\epsilon_{%d%d}$' % (i, j)
                         ax.plot(wmesh, reimf(t[:, i, j]), label=label, **kwargs)
             elif component == 'diag_av':
-                label = r'$Average\, %s\epsilon_{ii}$' % reims
+                label = r'Average %s' % (reims % r'$\epsilon_{ii}$')
                 ax.plot(wmesh, np.trace(reimf(t), axis1=1, axis2=2)/3, label=label, **kwargs)
             else:
                 raise ValueError('Unkwnown component {}'.format(component))
@@ -2366,6 +2380,89 @@ class DielectricTensorGenerator(Has_Structure):
         self._add_phfreqs(ax, units, with_phfreqs)
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component='diag', reim="reim", units='eV',
+             with_phfreqs=True, fig=None, rcd=None, fontsize=16, **kwargs):
+        """
+        Plots the selected components of the dielectric tensor as a function of frequency with plotly.
+
+        Args:
+            w_min: minimum frequency in units `units`.
+            w_max: maximum frequency. If None it will be set to the value of the maximum frequency + 5*gamma_ev.
+            gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+                Accept scalar or [nfreq] array.
+            num: number of values of the frequencies between w_min and w_max.
+            component: determine which components of the tensor will be displayed. Can be a list/tuple of two
+                elements, indicating the indices [i, j] of the desired component or a string among:
+
+                * 'diag_av' to plot the average of the components on the diagonal
+                * 'diag' to plot the elements on diagonal
+                * 'all' to plot all the components in the upper triangle.
+                * 'offdiag' to plot the off-diagonal components in the upper triangle.
+
+            reim: a string with "re" will plot the real part, with "im" selects the imaginary part.
+            units: string specifying the units used for phonon frequencies. Possible values in
+                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            with_phfreqs: True to show phonon frequencies with dots.
+            fig: |plotly.graph_objects.Figure| or None if a new figure should be created.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
+            fontsize: Legend and label fontsize.
+
+        Return: |plotly.graph_objects.Figure|
+        """
+        wmesh = self._get_wmesh(gamma_ev, num, units, w_min, w_max)
+        t = np.zeros((num, 3, 3), dtype=complex)
+
+        for i, w in enumerate(wmesh):
+            t[i] = self.tensor_at_frequency(w, units=units, gamma_ev=gamma_ev)
+
+        if fig is None:
+            fig, _ = get_fig_plotly()
+
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        iax, ply_row, ply_col = rcd.iax, rcd.ply_row, rcd.ply_col
+        xaxis = 'xaxis%u' % iax
+        yaxis = 'yaxis%u' % iax
+        fig.layout[xaxis].title = dict(text='Frequency {}'.format(phunit_tag(units, unicode=True)), font_size=fontsize)
+        fig.layout[yaxis].title = dict(text='ε(ω)', font_size=fontsize)
+
+        if 'line_width' not in kwargs:
+            kwargs['line_width'] = 2
+
+        reimfs = []
+        if 're' in reim: reimfs.append((np.real, "Re{%s}"))
+        if 'im' in reim: reimfs.append((np.imag, "Im{%s}"))
+
+        for reimf, reims in reimfs:
+            if isinstance(component, (list, tuple)):
+                label = reims % r'ε%s%s' % (SUBSCRIPT_UNICODE[str(component[0])],SUBSCRIPT_UNICODE[str(component[1])])
+                fig.add_scatter(x=wmesh, y=reimf(t[:,component[0], component[1]]), mode='lines', showlegend=True,
+                                name=label, row=ply_row, col=ply_col, **kwargs)
+            elif component == 'diag':
+                for i in range(3):
+                    s = SUBSCRIPT_UNICODE[str(i)]
+                    label = reims % r'ε%s%s' % (s, s)
+                    fig.add_scatter(x=wmesh, y=reimf(t[:, i, i]), mode='lines', name=label, row=ply_row, col=ply_col, **kwargs)
+            elif component in ('all', "offdiag"):
+                for i in range(3):
+                    for j in range(3):
+                        if component == "all" and i > j: continue
+                        if component == "offdiag" and i >= j: continue
+                        label = reims % r'ε%s%s' % (SUBSCRIPT_UNICODE[str(i)], SUBSCRIPT_UNICODE[str(j)])
+                        fig.add_scatter(x=wmesh, y=reimf(t[:, i, j]), mode='lines', name=label, row=ply_row,
+                                        col=ply_col, **kwargs)
+            elif component == 'diag_av':
+                label = r'Average %s' % (reims % r'εᵢᵢ')
+                fig.add_scatter(x=wmesh, y=np.trace(reimf(t), axis1=1, axis2=2)/3, mode='lines', name=label,
+                                row=ply_row, col=ply_col, **kwargs)
+            else:
+                raise ValueError('Unkwnown component {}'.format(component))
+
+        self._add_phfreqs_plotly(fig, rcd, units, with_phfreqs)
+        fig.layout.legend.font.size = fontsize
 
         return fig
 
@@ -2508,6 +2605,22 @@ class DielectricTensorGenerator(Has_Structure):
         if with_phfreqs:
             wvals = self.phfreqs[3:] * phfactor_ev2units(units)
             ax.scatter(wvals, np.zeros_like(wvals), s=30, marker="o", c="blue")
+
+    def _add_phfreqs_plotly(self, fig, rcd, units, with_phfreqs):
+        """
+        Helper functions to add the phonon frequencies to the plotly fig.
+        Args:
+            fig: |plotly.graph_objects.Figure|
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
+            units: string specifying the units used for phonon frequencies. Possible values in
+                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            with_phfreqs: True to show phonon frequencies with dots.
+        """
+        # Add points showing phonon energies.
+        if with_phfreqs:
+            wvals = self.phfreqs[3:] * phfactor_ev2units(units)
+            fig.add_scatter(x=wvals, y=np.zeros_like(wvals), mode='markers', marker=dict(color='blue', size=10),
+                            name='', row=rcd.ply_row, col=rcd.ply_col, showlegend=False)
 
     def reflectivity(self, qdir, w, gamma_ev=1e-4, units='eV'):
         """
