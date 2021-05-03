@@ -65,16 +65,17 @@ def build_flow(options):
     )
 
     work_nscf = flowtk.Work()
-    work_nscf.register(nscf_input, deps={work_scf[0]: "DEN"})
+    work_nscf.register_nscf_task(nscf_input, deps={work_scf[0]: "DEN"})
     flow.register_work(work_nscf)
 
     # We loop over the dense meshes
     for i, sigma_ngkpt in enumerate(dense_meshes):
         # Use the kerange trick to generate a WFK file
         kerange_input, wfk_input = nscf_input.make_wfk_kerange_input(sigma_erange=sigma_kerange, sigma_ngkpt=sigma_ngkpt).split_datasets()
+
         work_eph = flowtk.Work()
-        work_eph.register(kerange_input, deps={work_nscf[0]: "WFK"})
-        work_eph.register(wfk_input, deps={work_scf[0]: "DEN", work_eph[0]: "KERANGE.nc"})
+        work_eph.register_kerange_task(kerange_input, deps={work_nscf[0]: "WFK"})
+        work_eph.register_nscf_task(wfk_input, deps={work_scf[0]: "DEN", work_eph[0]: "KERANGE.nc"})
 
         # Generate the input file for the transport calculation
         eph_input = wfk_input.make_eph_transport_input(ddb_ngqpt=ddb_ngqpt, sigma_erange=sigma_erange,
@@ -84,9 +85,10 @@ def build_flow(options):
         if i==0:
             eph_input.set_qpath(20)
 
-        work_eph.register(eph_input, deps={work_eph[1]: "WFK", ph_work: ["DDB", "DVDB"]})
+        work_eph.register_eph_task(eph_input, deps={work_eph[1]: "WFK", ph_work: ["DDB", "DVDB"]})
 
         flow.register_work(work_eph)
+        
 
     flow.allocate(use_smartio=True)
 
