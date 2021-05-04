@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Work subclasses for the computation of luminiscent properties."""
+"""Work subclasses for the computation of luminescent properties."""
 
 from .works import Work, PhononWork
 
