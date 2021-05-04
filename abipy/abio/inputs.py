@@ -1869,7 +1869,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return multi
 
     def make_eph_transport_input(self, ddb_ngqpt, sigma_erange, tmesh, eph_ngqpt_fine=None,
-                                 mixprec=1, boxcutmin=1.1, ibte_prep=0):
+                                 mixprec=1, boxcutmin=1.1, ibte_prep=0, ibte_niter=200, ibte_abs_tol=1e-3):
         """
         Return an |AbinitInput| to perform phonon-limited transport calculations.
         This method is usually called with with the input associated to the NSCF run that produces
@@ -1883,6 +1883,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.
             mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.
             ibte_prep: Set it to 1 to activate the iterative Boltzmann equation. Default is RTA.
+            ibte_niter: Number of iterations to solve the Boltzmann equation. 
+            ibte_abs_tol: Stopping criterion for the IBTE.
         """
         eph_ngqpt_fine = self.get("ngkpt") if eph_ngqpt_fine is None else eph_ngqpt_fine
         nbdbuf = 0 if self.get("nbdbuf") is None else self.get("nbdbuf")
@@ -1899,6 +1901,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             mixprec=mixprec,
             boxcutmin=boxcutmin,
             ibte_prep=ibte_prep,
+            ibte_niter=ibte_niter,
+            ibte_abs_tol=ibte_abs_tol,
             nband=nband,
         )
         new.pop_vars(["iscf","prtwf","tolwfr","prtden","nbdbuf","kptopt"])

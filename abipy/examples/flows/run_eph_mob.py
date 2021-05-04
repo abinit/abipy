@@ -20,7 +20,7 @@ def build_flow(options):
     dense_meshes = [[30,30,30],
                     [40,40,40]]
 
-    # We first compute the DDB and DVDB files
+    # Initialize the structure and pseudos
     structure = abidata.structure_from_ucell("AlAs")
     pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
 
@@ -39,34 +39,35 @@ def build_flow(options):
         #iomode=3,
     )
 
-    ddb_ngqpt = [4, 4, 4]
-
-    # Add the ground-state work to the flow
-    work_scf = flow.register_scf_task(scf_input)
+    # Initialize the first work and add the ground-state task
+    work_init = flowtk.Work()
+    work_init.register_scf_task(scf_input)
 
     # Band structure calculation to make sure everything is ok
+    # Also allows to compare the results obtained with abitk to 
+    # check the SKW interpolation works as needed
     bs_input = scf_input.make_ebands_input(tolwfr=1e-12, ndivsm=10, nb_extra=4)
-    work_scf.register_nscf_task(bs_input, deps={work_scf[0]: "DEN"})
-
-    # Add the phonon work to the flow
-    ph_work = flowtk.PhononWork.from_scf_task(work_scf[0], qpoints=ddb_ngqpt, is_ngqpt=True, with_becs=True)
-    flow.register_work(ph_work)
+    work_init.register_nscf_task(bs_input, deps={work_init[0]: "DEN"})
 
     # NSCF input for the WFK needed to interpolate with kerange
     nscf_input = abilab.AbinitInput(structure, pseudos)
     nscf_input.set_vars(
-            ecut=2,
-            nband=8,
-            iscf=-2,
-            tolwfr=1e-20,
-            prtwf=1,
-            ngkpt=[16, 16, 16], # Should be dense enough so that the kerange interpolation works
-            shiftk=[0.0, 0.0, 0.0],
+        ecut=2,
+        nband=8,
+        iscf=-2,
+        tolwfr=1e-20,
+        prtwf=1,
+        ngkpt=[16, 16, 16], # Should be dense enough so that the kerange interpolation works
+        shiftk=[0.0, 0.0, 0.0],
     )
 
-    work_nscf = flowtk.Work()
-    work_nscf.register_nscf_task(nscf_input, deps={work_scf[0]: "DEN"})
-    flow.register_work(work_nscf)
+    work_init.register_nscf_task(nscf_input, deps={work_init[0]: "DEN"})
+    flow.register_work(work_init)
+
+    # Add the phonon work to the flow
+    ddb_ngqpt = [4, 4, 4]
+    ph_work = flowtk.PhononWork.from_scf_task(work_init[0], qpoints=ddb_ngqpt, is_ngqpt=True, with_becs=True)
+    flow.register_work(ph_work)
 
     # We loop over the dense meshes
     for i, sigma_ngkpt in enumerate(dense_meshes):
@@ -74,12 +75,12 @@ def build_flow(options):
         kerange_input, wfk_input = nscf_input.make_wfk_kerange_input(sigma_erange=sigma_kerange, sigma_ngkpt=sigma_ngkpt).split_datasets()
 
         work_eph = flowtk.Work()
-        work_eph.register_kerange_task(kerange_input, deps={work_nscf[0]: "WFK"})
-        work_eph.register_nscf_task(wfk_input, deps={work_scf[0]: "DEN", work_eph[0]: "KERANGE.nc"})
+        work_eph.register_kerange_task(kerange_input, deps={work_init[2]: "WFK"})
+        work_eph.register_nscf_task(wfk_input, deps={work_init[0]: "DEN", work_eph[0]: "KERANGE.nc"})
 
         # Generate the input file for the transport calculation
         eph_input = wfk_input.make_eph_transport_input(ddb_ngqpt=ddb_ngqpt, sigma_erange=sigma_erange,
-                                                       tmesh=tmesh, eph_ngqpt_fine=sigma_ngkpt)
+                                                       tmesh=tmesh, eph_ngqpt_fine=sigma_ngkpt, ibte_prep=1)
 
         # We compute the phonon dispersion to be able to check they are ok
         if i==0:
