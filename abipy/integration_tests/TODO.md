@@ -2,6 +2,28 @@ TODO list:
 
 ## High priority
 
+* Add new section to manager.yml that allows users to customize limits according
+  to task.__class__.__name__.
+  Possible Yaml syntax for `task_class_limits`:
+
+      limits:
+         min_cores: 1
+         max_cores: 1000
+         timelimit: 2:0:0
+
+         task_class_limits:
+            # TaskClassName --> dict with new limits
+            # Accept absolute values or `scale_name` syntax to scale `name` (mutually exclusive)
+            # If a new limit is not specified, the global value is used.
+            #
+            NscfTask: {scale_max_cores: 0.5, scale_timelimit: 0.2}
+            KerangeTask: {max_cores: 2, timelimit: 0:5:0}
+
+* Implement Task modifier i.e. operations that change the input file if some condition occurs.
+  This extra logic is require to handle problematic cases in which for instance the ScfTask does not converge
+  and modification in the input file are required
+  For instance, one may need to increase nline and/or diemac before restarting.
+
 * Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice
   (tricky because input settings should be preserved)
 
@@ -26,14 +48,12 @@ TODO list:
 * Refactor wrappers for mrgddb and mrgdvdb (problems with subprocess when
   merging large number of partial files (likely due to Popen with large stderr/stdout)
 
-* Move to new version of APSscheduler
-
 * BECS: 3x3 Tensor is not symmetric. Remove get_voigt_dataframe
 
-* Parse stderr to detect runtime errors such as 
+* Parse stderr to detect runtime errors such as
 
     forrtl: severe (24): end-of-file during read, unit 5, file /proc/59090/fd/0
-    Image              PC                Routine            Line        Source             
+    Image              PC                Routine            Line        Source
     abinit             0000000008914AC2  for__io_return        Unknown  Unknown
     abinit             000000000894378D  for_read_seq_fmt      Unknown  Unknown
     abinit             000000000194409E  Unknown               Unknown  Unknown
@@ -51,7 +71,7 @@ TODO list:
 * Add support for PSML/UPF format
 
 * Add support for new Abinit9 interface (getden_path, getwfk_path, pp_dirpath and pseudos)
-  but remember that strings in the input should not be too long. 
+  but remember that strings in the input should not be too long.
   Use common root for pseudos, what about getwfk_path? Need to refactor treatment of string lengths in Abinit!
 
 * Interface abitk with AbiPy to compute DOS with tetra.

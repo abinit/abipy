@@ -1307,6 +1307,30 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return od
 
+    def get_symb2coords_dataframe(self, with_cart_coords=False):
+        """
+        Return dictionary mapping element symbol to DataFrame with atomic positions
+        in cartesian coordinates.
+
+        Args:
+            with_cart_coords: True if Cartesian coordinates should be added as well.
+        """
+        from collections import defaultdict
+        if with_cart_coords:
+            group = {symb: {"idx": [], "frac_coords": [], "cart_coords": []} for symb in self.symbol_set}
+        else:
+            group = {symb: {"idx": [], "frac_coords": []} for symb in self.symbol_set}
+
+        for idx, site in enumerate(self):
+            symb = site.specie.symbol
+            group[symb]["idx"].append(idx)
+            group[symb]["frac_coords"].append(site.frac_coords)
+            if with_cart_coords:
+                group[symb]["cart_coords"].append(site.coords)
+
+        import pandas as pd
+        return {symb: pd.DataFrame.from_dict(d) for symb, d in group.items()}
+
     @add_fig_kwargs
     def plot(self, **kwargs):
         """
@@ -1534,17 +1558,17 @@ class Structure(pmg_Structure, NotebookWriter):
             raise ImportError("jupyter_jsmol is not installed. See https://github.com/fekad/jupyter-jsmol")
 
         cif_str = self.write_cif_with_spglib_symms(None, symprec=symprec, ret_string=True)
-        print("cif_str:\n", cif_str)
+        #print("cif_str:\n", cif_str)
         #return JsmolView.from_str(cif_str)
 
-        from IPython.display import display, HTML
+        #from IPython.display import display, HTML
         # FIXME TEMPORARY HACK TO LOAD JSMOL.js
         # See discussion at
         #   https://stackoverflow.com/questions/16852885/ipython-adding-javascript-scripts-to-ipython-notebook
-        display(HTML('<script type="text/javascript" src="/nbextensions/jupyter-jsmol/jsmol/JSmol.min.js"></script>'))
+        #display(HTML('<script type="text/javascript" src="/nbextensions/jupyter-jsmol/jsmol/JSmol.min.js"></script>'))
 
         jsmol = JsmolView(color='white')
-        display(jsmol)
+        #display(jsmol)
         cmd = 'load inline "%s" {1 1 1}' % cif_str
         if verbose: print("executing cmd:", cmd)
         jsmol.script(cmd)

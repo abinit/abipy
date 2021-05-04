@@ -489,6 +489,16 @@ class NotebookWriter(metaclass=abc.ABCMeta):
     Subclasses must provide a concrete implementation of `write_notebook`.
     """
 
+    def has_panel(self):
+        """
+        Return panel module (that evaluates to True) if panel is installed else False.
+        """
+        try:
+            import panel as pn
+            return pn
+        except ImportError:
+            return False
+
     def make_and_open_notebook(self, nbpath=None, foreground=False,
                                classic_notebook=False, no_browser=False):  # pragma: no cover
         """

@@ -10,36 +10,37 @@ from abipy.panels.core import AbipyParameterized, mpl, ply, dfc
 
 class FlowPanel(AbipyParameterized):
     """
+    Panel to interact with an AbiPy Flow.
     """
-    verbose = pn.widgets.IntSlider(start=0, end=10, step=1, value=0)
+    verbose = pnw.IntSlider(start=0, end=10, step=1, value=0)
 
-    engine = pn.widgets.Select(value="fdp", options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
-    dirtree = pn.widgets.Checkbox(name='Dirtree', value=False)
-    graphviz_btn = pn.widgets.Button(name="Show graph", button_type='primary')
+    engine = pnw.Select(value="fdp", options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
+    dirtree = pnw.Checkbox(name='Dirtree', value=False)
+    graphviz_btn = pnw.Button(name="Show graph", button_type='primary')
 
-    status_btn = pn.widgets.Button(name="Show status", button_type='primary')
-    history_btn = pn.widgets.Button(name="Show history", button_type='primary')
-    debug_btn = pn.widgets.Button(name="Debug", button_type='primary')
-    events_btn = pn.widgets.Button(name="Events", button_type='primary')
-    corrections_btn = pn.widgets.Button(name="Corrections", button_type='primary')
-    handlers_btn = pn.widgets.Button(name="Handlers", button_type='primary')
+    status_btn = pnw.Button(name="Show status", button_type='primary')
+    history_btn = pnw.Button(name="Show history", button_type='primary')
+    debug_btn = pnw.Button(name="Debug", button_type='primary')
+    events_btn = pnw.Button(name="Events", button_type='primary')
+    corrections_btn = pnw.Button(name="Corrections", button_type='primary')
+    handlers_btn = pnw.Button(name="Handlers", button_type='primary')
 
-    vars_text = pn.widgets.TextInput(name='Abivars', placeholder='Enter list of variables separated by comma')
-    vars_btn = pn.widgets.Button(name="Show Variables", button_type='primary')
+    vars_text = pnw.TextInput(name='Abivars', placeholder='Enter list of variables separated by comma')
+    vars_btn = pnw.Button(name="Show Variables", button_type='primary')
 
-    dims_btn = pn.widgets.Button(name="Show Dimensions", button_type='primary')
+    dims_btn = pnw.Button(name="Show Dimensions", button_type='primary')
 
-    structures_btn = pn.widgets.Button(name="Show Structures", button_type='primary')
-    structures_io_checkbox = pn.widgets.CheckBoxGroup(
+    structures_btn = pnw.Button(name="Show Structures", button_type='primary')
+    structures_io_checkbox = pnw.CheckBoxGroup(
         name='Input/Output Structure', value=['output'], options=['input', 'output'], inline=True)
 
     # Widgets to plot ebands.
-    ebands_btn = pn.widgets.Button(name="Show Ebands", button_type='primary')
+    ebands_btn = pnw.Button(name="Show Ebands", button_type='primary')
     ebands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
         options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
     ebands_plotter_btn = pnw.Button(name="Plot", button_type='primary')
     ebands_df_checkbox = pnw.Checkbox(name='With Ebands DataFrame', value=False)
-    ebands_ksamp_checkbox = pn.widgets.CheckBoxGroup(
+    ebands_ksamp_checkbox = pnw.CheckBoxGroup(
         name='Input/Output Structure', value=["with_path", "with_ibz"], options=['with_path', 'with_ibz'], inline=True)
 
     #TODO: Implement widget for selected_nids(flow, options),
@@ -144,34 +145,34 @@ class FlowPanel(AbipyParameterized):
 
         return pn.Row(dfc(dfs.lattice), sizing_mode="scale_width")
 
-    @param.depends('ebands_plotter_btn.clicks')
-    def on_ebands_btn(self):
-        if self.ebands_plotter_btn.clicks == 0: return
+    #@param.depends('ebands_plotter_btn.clicks')
+    #def on_ebands_btn(self):
+    #    if self.ebands_plotter_btn.clicks == 0: return
 
-        df, ebands_plotter = self.flow.compare_ebands(
-                                nids=None, # select_nids(flow, options),
-                                with_path="with_path" in self.ebands_ksamp_checkbox.value,
-                                with_ibz="with_ibz" in self.ebands_ksamp_checkbox.value,
-                                verbose=self.verbose.value,
-                                with_spglib=False
-                                )
+    #    df, ebands_plotter = self.flow.compare_ebands(
+    #                            nids=None, # select_nids(flow, options),
+    #                            with_path="with_path" in self.ebands_ksamp_checkbox.value,
+    #                            with_ibz="with_ibz" in self.ebands_ksamp_checkbox.value,
+    #                            verbose=self.verbose.value,
+    #                            with_spglib=False
+    #                            )
 
-        if ebands_plotter is None:
-            return
+    #    if ebands_plotter is None:
+    #        return
 
-        plot_mode = self.ebands_plotter_mode.value
-        plotfunc = getattr(ebands_plotter, plot_mode, None)
-        if plotfunc is None:
-            raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+    #    plot_mode = self.ebands_plotter_mode.value
+    #    plotfunc = getattr(ebands_plotter, plot_mode, None)
+    #    if plotfunc is None:
+    #        raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
-        fig = plotfunc(**self.mpl_kwargs)
-        col = pn.Column(mpl(fig))
-        if self.ebands_df_checkbox.value:
-            col.append(dfc(df))
+    #    fig = plotfunc(**self.mpl_kwargs)
+    #    col = pn.Column(mpl(fig))
+    #    if self.ebands_df_checkbox.value:
+    #        col.append(dfc(df))
 
-        return pn.Row(col) #, sizing_mode='scale_width')
+    #    return pn.Row(col) #, sizing_mode='scale_width')
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the flow."""
         tabs = pn.Tabs(); app = tabs.append
 
@@ -183,10 +184,12 @@ class FlowPanel(AbipyParameterized):
         app(("Handlers", pn.Row(self.handlers_btn, self.on_handlers_btn)))
         app(("Structures", pn.Row(pn.Column(self.structures_io_checkbox, self.structures_btn), self.on_structures_btn)))
         ws = pn.Column(self.ebands_plotter_mode, self.ebands_ksamp_checkbox, self.ebands_df_checkbox, self.ebands_plotter_btn)
-        app(("Ebands", pn.Row(ws, self.on_ebands_btn)))
+        #app(("Ebands", pn.Row(ws, self.on_ebands_btn)))
         app(("Abivars", pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)))
         app(("Dims", pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)))
         app(("Debug", pn.Row(self.debug_btn, self.on_debug_btn)))
         app(("Graphviz", pn.Row(pn.Column(self.engine, self.dirtree, self.graphviz_btn),
                                 self.on_graphviz_btn)))
-        return tabs
+
+        template = kwargs.get("template", None)
+        return self.get_template_from_tabs(tabs, template)

@@ -5,16 +5,21 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from .core import PanelWithElectronBands, PanelWithNcFile, PanelWithEbandsRobot, ply, mpl, dfc
+from .core import PanelWithElectronBands, HasStructureParams, PanelWithNcFile, PanelWithEbandsRobot, ply, mpl, dfc
 
 
-class GsrFilePanel(PanelWithElectronBands, PanelWithNcFile):
+class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
     """
     Panel with widgets to interact with a |GsrFile|.
     """
     def __init__(self, gsr, **params):
         super().__init__(**params)
         self.gsr = gsr
+
+    @property
+    def structure(self):
+        """|Structure| object"""
+        return self.gsr.structure
 
     @property
     def ebands(self):
@@ -62,6 +67,7 @@ class GsrFilePanel(PanelWithElectronBands, PanelWithNcFile):
                 self.on_plot_fermi_surface_btn)
                 ))
 
+        app(self.get_struct_view_tab_entry())
         # TODO
         #app(("NcFile", self.get_ncfile_panel()))
 

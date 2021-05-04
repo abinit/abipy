@@ -1059,6 +1059,30 @@ class KpointList(collections.abc.Sequence):
             err_msg += "%s\n%s" % (self.__class__, self.to_string(verbose=0))
             raise ValueError(err_msg)
 
+    def get_highsym_datataframe(self, with_cart_coords=False):
+        """
+        Return pandas Dataframe with the names of the high-symmetry k-points
+        and the reduced coordinates.
+
+        Args:
+            with_cart_coords: True to add extra column with the Cartesian coordinates.
+
+        Return: |pandas-DataFrame|
+        """
+        import pandas as pd
+        rows, index = [], []
+        for ik, kpt in enumerate(self):
+            if kpt.name is None: continue
+            d = dict(name=kpt.name, frac_coords=kpt.frac_coords)
+            if with_cart_coords: d["cart_coords"] = kpt.cart_coords
+            rows.append(d)
+            index.append(ik)
+
+        df = pd.DataFrame(rows, index=index)
+        df.index.name = "Idx"
+
+        return df
+
     def remove_duplicated(self):
         """
         Remove duplicated k-points from self. Returns new :class:`KpointList` instance.

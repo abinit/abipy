@@ -27,3 +27,4 @@ abilab.print_dataframe(df)
 
 # Plot fit
 sv.plot()
+sv.plotly()

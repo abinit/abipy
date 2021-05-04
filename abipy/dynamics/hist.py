@@ -515,10 +515,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         anim()
 
-    def get_panel(self):
-        """Build panel with widgets to interact with the |HistFile| either in a notebook or in panel app."""
+    def get_panel(self, **kwargs):
+        """
+        Build panel with widgets to interact with the |HistFile| either in a notebook or in panel app.
+        """
         from abipy.panels.hist import HistFilePanel
-        return HistFilePanel(self).get_panel()
+        return HistFilePanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """

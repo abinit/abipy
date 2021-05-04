@@ -347,10 +347,10 @@ class Flow(Node, NodeContainer, MSONable):
         flow = pmg_pickle_load(strio)
         return flow
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """Build panel with widgets to interact with the |Flow| either in a notebook or in panel app."""
         from abipy.panels.flows import FlowPanel
-        return FlowPanel(self).get_panel()
+        return FlowPanel(self).get_panel(**kwargs)
 
     def __len__(self):
         return len(self.works)

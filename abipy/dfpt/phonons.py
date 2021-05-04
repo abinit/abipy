@@ -1108,7 +1108,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         branch_range = range(self.num_branches) if branch_range is None else \
                        range(branch_range[0], branch_range[1], 1)
 
-        fig, go = get_fig_plotly(fig=fig)
+        fig, _ = get_fig_plotly(fig=fig)
 
         # Decorate the axis (e.g. add ticks and labels).
         rcd = PlotlyRowColDesc.from_object(rcd)
@@ -1124,9 +1124,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             # Scatter plot with Bose-Einstein occupation factors for T = temp
             factor = abu.phfactor_ev2units(units)
             if temp < 1: temp = 1
-            # this will be covered if the title is set by the user
-            fig.layout.title.text = "T = %.1f K" % temp
-            fig.layout.title.font.size = fontsize
+            fig.layout.annotations=[dict(text="T = %.1f K" % temp, font_size=fontsize, x=0.5, xref='paper',
+                                         xanchor='center', y=1, yref='paper', yanchor='bottom' ,showarrow=False)]
             xs = np.arange(self.num_qpoints)
             for nu in self.branches:
                 ws = self.phfreqs[:, nu]
@@ -1136,12 +1135,9 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 occ = 1.0 / (np.exp(wkt) - 1.0)
                 s = np.where(occ < 0.3, occ, 0.3) * 50
                 #print("rcd", rcd)
-                fig.add_trace(go.Scatter(x=xs, y=ws * factor, mode='markers',
-                                         marker=dict(color='blue', size=s, opacity=0.6, line_width=0),
-                                         showlegend=False), row=rcd.ply_row, col=rcd.ply_col)
-                # fig.add_trace(go.Scatter(x=xs, y=ws * factor, mode='markers',
-                #                          marker=dict(color=occ, colorscale='jet', size=s, opacity=0.6, line_width=0),
-                #                          showlegend=False), row=rcd.ply_row, col=rcd.ply_col)
+                fig.add_scatter(x=xs, y=ws * factor, mode='markers', row=rcd.ply_row, col=rcd.ply_col, showlegend=False,
+                                marker=dict(color='blue', size=s, opacity=0.6, line_width=0), name='')
+                #               marker=dict(color=occ, colorscale='jet', size=s, opacity=0.6, line_width=0),
         return fig
 
     def plot_ax(self, ax, branch, units='eV', match_bands=False, **kwargs):
@@ -1181,9 +1177,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         Plots the frequencies for the given branches indices as a function of the q-index on figure ``fig`` .
         If ``fig`` has subplots, ``rcd`` is used to add traces on these subplots.
         If ``branch`` is None, all phonon branches are plotted.
-        kwargs: Passed to go.Scatter
+        kwargs: Passed to fig.add_scatter method.
         """
-        import plotly.graph_objects as go
         linecolor = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", 2.0)
 
@@ -1207,9 +1202,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             pf = pf * factor
             xx = list(range(first_xx, first_xx + len(pf)))
             for branch in branch_range:
-                fig.add_trace(
-                        go.Scatter(x=xx, y=pf[:, branch], mode='lines', name=name, legendgroup=name, showlegend=False,
-                                   line=dict(color=linecolor, width=linewidth), **kwargs), row=ply_row, col=ply_col)
+                fig.add_scatter(x=xx, y=pf[:, branch], mode='lines', name=name, legendgroup=name, showlegend=False,
+                                   line=dict(color=linecolor, width=linewidth), **kwargs, row=ply_row, col=ply_col)
             first_xx = xx[-1]
 
         if showlegend:
@@ -2966,7 +2960,7 @@ class PhononDos(Function1D):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
             rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
-            kwargs: Options passed to plotly.graph_objects Scatter method.
+            kwargs: Passed to fig.add_scatter method.
         """
         opts = [c.lower() for c in what]
 
@@ -3193,7 +3187,7 @@ class PhononDos(Function1D):
             ax.set_ylabel(_THERMO_YLABELS[qname][units], fontsize=fontsize)
             #ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-            if irow != nrows:
+            if irow != nrows-1:
                 set_visible(ax, False, "xlabel")
 
         return fig
@@ -3228,7 +3222,7 @@ class PhononDos(Function1D):
             ncols = 2
             nrows = num_plots // ncols + num_plots % ncols
 
-        fig, go = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=quantities, sharex=True, sharey=False)
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=quantities, sharex=True, sharey=False)
 
         for iq, qname in enumerate(quantities):
             irow, icol = divmod(iq, ncols)
@@ -3237,11 +3231,13 @@ class PhononDos(Function1D):
             ys = f1d.values
             if formula_units is not None: ys /= formula_units
             if units == "Jmol": ys = ys * abu.e_Cb * abu.Avogadro
-            fig.add_trace(go.Scatter(x=f1d.mesh, y=ys, mode="lines", name=qname), row=irow + 1, col=icol + 1)
+            fig.add_scatter(x=f1d.mesh, y=ys, mode="lines", name=qname, row=irow + 1, col=icol + 1)
             fig.layout.annotations[iq].font.size = fontsize
             iax = iq + 1
             fig.layout['yaxis%u' % iax].title = {'text': _PLOTLY_THERMO_YLABELS[qname][units], 'font_size': fontsize}
-            fig.layout['xaxis%u' % iax].title = {'text': 'T (K)', 'font_size': fontsize}
+
+            if irow == nrows-1:
+                fig.layout['xaxis%u' % iax].title = {'text': 'T (K)', 'font_size': fontsize}
 
         return fig
 
@@ -3528,7 +3524,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         lw = kwargs.pop("lw", 2)
         factor = abu.phfactor_ev2units(units)
 
-        fig, go = get_fig_plotly(fig=fig)
+        fig, _ = get_fig_plotly(fig=fig)
 
         plotly_set_lims(fig, xlims, "x")
         plotly_set_lims(fig, ylims, "y")
@@ -3545,21 +3541,21 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             if exchange_xy: x, y = y, x
 
             if not stacked:
-                fig.add_trace(go.Scatter(x=x, y=y, mode='lines', name=symbol, line=dict(width=lw)))
+                fig.add_scatter(x=x, y=y, mode='lines', name=symbol, line=dict(width=lw))
             else:
                 if not exchange_xy:
-                    fig.add_trace(go.Scatter(x=x, y=cumulative + y, mode='lines', name=symbol,
-                                             line=dict(width=lw), fill='tonextx'))
+                    fig.add_scatter(x=x, y=cumulative + y, mode='lines', name=symbol,
+                                             line=dict(width=lw), fill='tonextx')
                     cumulative += y
                 else:
-                    fig.add_trace(go.Scatter(x=cumulative + x, y=y, mode='lines', name=symbol,
-                                             line=dict(width=lw), fill='tonexty'))
+                    fig.add_scatter(x=cumulative + x, y=y, mode='lines', name=symbol,
+                                             line=dict(width=lw), fill='tonexty')
                     cumulative += x
 
         # Total PHDOS
         x, y = self.phdos.mesh * factor, self.phdos.values / factor
         if exchange_xy: x, y = y, x
-        fig.add_trace(go.Scatter(x=x, y=y, mode='lines', line=dict(width=lw, color='black'), name="Total PHDOS"))
+        fig.add_scatter(x=x, y=y, mode='lines', line=dict(width=lw, color='black'), name="Total PHDOS")
         fig.layout.legend.font.size = fontsize
         fig.layout.title.font.size = fontsize
 
@@ -4128,18 +4124,7 @@ class PhononBandsPlotter(NotebookWriter):
             nrows, ncols = (1, 1)
             fig, _ = get_fig_plotly()
 
-        if ylims is not None:
-            try:
-                len_lims = len(ylims)
-            except TypeError:
-                # Assume Scalar
-                raise NotImplementedError()
-
-            if len_lims is not None:
-                if len(ylims) == 2:
-                    fig.layout.yaxis.range = ylims
-                elif len(ylims) == 1:
-                    raise NotImplementedError()
+        plotly_set_lims(fig, ylims, 'y')
 
         # Plot phonon bands.
         my_kwargs, opts_label = kwargs.copy(), {}

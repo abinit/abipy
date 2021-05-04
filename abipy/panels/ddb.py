@@ -24,6 +24,9 @@ class HasAnaddbParams(AbipyParameterized):
     lo_to_splitting = param.ObjectSelector(default="automatic", objects=["automatic", True, False])
     chneut = param.ObjectSelector(default=1, objects=[0, 1, 2], doc="Abinit variable")
     dipdip = param.ObjectSelector(default=1, objects=[0, 1, -1], doc="Abinit variable")
+    # TODO: Add this widget, need to update anaget API.
+    #dipquad = param.ObjectSelector(default=0, objects=[0, 1], doc="Abinit variable")
+    #quadquad = param.ObjectSelector(default=0, objects=[0, 1], doc="Abinit variable")
     asr = param.ObjectSelector(default=2, objects=[0, 1, 2], doc="Abinit variable")
     units = param.ObjectSelector(default="eV", objects=["eV", "meV", "Ha", "cm-1", "Thz"], doc="Energy units")
 
@@ -143,20 +146,40 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
             if w_max == 1.0: w_max = None # Will compute w_max in plot routine from ph freqs.
 
             def p(component, reim):
-                return gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
-                                reim=reim, units=self.units, **self.mpl_kwargs)
+                # Matplotlib
+                #fig = gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
+                #                reim=reim, units=self.units, **self.mpl_kwargs)
+                #return mpl(fig)
+                fig = gen.plotly(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
+                                  reim=reim, units=self.units, show=False)
+                return ply(fig, with_help=False)
+
+            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
             # Build grid
-            gspec = pn.GridSpec(sizing_mode='scale_width')
-            gspec[0, 0] = p("diag", "re")
-            gspec[0, 1] = p("diag", "im")
-            gspec[1, 0] = p("offdiag", "re")
-            gspec[1, 1] = p("offdiag", "im")
-            gspec[2, :] = gen.get_oscillator_dataframe(reim="all", tol=1e-6)
-            # Add HTML pane with input.
-            gspec[3, 0] = pn.pane.HTML(inp._repr_html_())
+            #box = pn.GridSpec(nrows=2, ncols=2 sizing_mode='scale_width')
+            ca("## epsilon(w):")
+            gspec = pn.GridSpec(sizing_mode='stretch_width')
+            row = p("diag", "re"), p("diag", "im")
+            ca(pn.Row(*row))
+            gspec[0, 0], gspec[0, 1]  = row[0], row[1]
+            row = p("offdiag", "re"), p("offdiag", "im")
+            #gspec[1, 0], gspec[1, 1]  = row[0], row[1]
+            ca(pn.Row(*row))
+            #ca(gspec)
 
-            return gspec
+            #gspec[2, :] = gen.get_oscillator_dataframe(reim="all", tol=1e-6)
+            # TODO: FIX
+            # TypeError: Object of type complex is not JSON serializable
+            #dfc(gen.get_oscillator_dataframe(reim="all", tol=1e-6))
+            ca("## Oscillator matrix elements:")
+            ca(gen.get_oscillator_dataframe(reim="all", tol=1e-6))
+            # Add HTML pane with input.
+            ca("## Anaddb input file:")
+            ca(pn.pane.HTML(inp._repr_html_()))
+
+            #return gspec
+            return col
 
     @param.depends('plot_phbands_btn.clicks')
     def plot_phbands_and_phdos(self, event=None):
@@ -177,6 +200,13 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
                 ca("## Phonon band structure and DOS:")
                 ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
                 #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))
+
+                ca("## Brillouin zone and q-path:")
+                qpath_pane = mpl(phbands.qpoints.plot(**self.mpl_kwargs), with_divider=False)
+                df_qpts = phbands.qpoints.get_highsym_datataframe()
+                ca(pn.Row(qpath_pane, df_qpts))
+                ca(pn.layout.Divider())
+
                 ca("## Type-projected phonon DOS:")
                 #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, **self.mpl_kwargs)))
                 ca(ply(phdos_file.plotly_pjdos_type(units=self.units, stacked=self.stacked_pjdos.value, show=False)))
@@ -209,8 +239,11 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
                                         ignore_neg_freqs=True, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                                         verbose=self.verbose, mpi_procs=self.mpi_procs)
 
+            ca("## Linear least-squares fit:")
+            #ca(mpl(sv.plot(**self.mpl_kwargs)))
+            ca(ply(sv.plotly(show=False)))
+            ca("## Speed of sound computed along different q-directions in reduced coords:")
             ca(dfc(sv.get_dataframe()))
-            ca(mpl(sv.plot(**self.mpl_kwargs)))
 
             return col
 

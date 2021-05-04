@@ -251,10 +251,21 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+        first_char = "" if self.has_panel() else "#"
 
         nb.cells.extend([
             nbv.new_code_cell("gsr = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(gsr)"),
+
+            # Add panel GUI but comment the python code if panel is not available.
+            nbv.new_markdown_cell("## Panel dashboard"),
+            nbv.new_code_cell(f"""\
+# Execute this cell to display the panel GUI (requires panel package).
+# To display the dashboard inside the browser use `abiopen.py FILE --panel`.
+
+{first_char}abilab.abipanel()
+{first_char}gsr.get_panel()
+"""),
             nbv.new_code_cell("gsr.ebands.plot();"),
             nbv.new_code_cell("gsr.ebands.kpoints.plot();"),
             nbv.new_code_cell("# gsr.ebands.plot_transitions(omega_ev=3.0, qpt=(0, 0, 0), atol_ev=0.1);"),

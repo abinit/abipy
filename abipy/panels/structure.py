@@ -5,14 +5,7 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import HasStructureParams, ButtonContext, dfc #gen_id,
-
-#pn.config.js_files.update({
-#    #'$': 'https://code.jquery.com/jquery-3.4.1.slim.min.js',
-#    "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
-#})
-
-#pn.config.js_files["ngl"] = "https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
+from abipy.panels.core import HasStructureParams, ButtonContext, dfc,
 
 
 class StructurePanel(HasStructureParams):

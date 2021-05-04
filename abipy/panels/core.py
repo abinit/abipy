@@ -2,6 +2,7 @@
 
 import io
 import pathlib
+import numpy as np
 import param
 import panel as pn
 import panel.widgets as pnw
@@ -10,6 +11,7 @@ import pandas as pd
 
 from monty.functools import lazy_property
 from monty.termcolor import cprint
+from abipy.core import abinit_units as abu
 from abipy.tools.plotting import push_to_chart_studio
 
 
@@ -20,6 +22,7 @@ def abipanel():
     """
     Activate panel extensions used by AbiPy. Return panel module.
     """
+
     try:
         import panel as pn
     except ImportError as exc:
@@ -39,6 +42,11 @@ def abipanel():
         # This for copy to clipboard.
         "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
     })
+
+    #pn.config.js_files.update({
+    #    'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js',
+    #})
+    #pn.extension(comms='ipywidgets')
 
     return pn
 
@@ -90,7 +98,7 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
         self.object = new_text
 
 
-def mpl(fig, sizing_mode='stretch_width', with_controls=False, **kwargs):
+def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True, **kwargs):
     """
     Helper function returning a panel Column with a matplotly pane followed by
     a divider and (optionally) controls to customize the figure.
@@ -98,16 +106,18 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, **kwargs):
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
     mpl_pane = pn.pane.Matplotlib(fig, **kwargs)
     ca(mpl_pane)
-    ca(pn.layout.Divider())
 
     if with_controls:
         ca(pn.Accordion(("matplotlib controls", mpl_pane.controls(jslink=True))))
         ca(pn.layout.Divider())
 
+    if with_divider:
+        ca(pn.layout.Divider())
+
     return col
 
 
-def ply(fig, sizing_mode='stretch_width', with_chart_studio=True, with_controls=False):
+def ply(fig, sizing_mode='stretch_width', with_chart_studio=True, with_help=True, with_divider=True, with_controls=False):
     """
     Helper function returning a panel Column with a plotly pane,  buttons to push the figure
     to plotly chart studio and, optionally, controls to customize the figure.
@@ -135,25 +145,31 @@ so that AbiPy can authenticate your user on the chart studio portal before pushi
 If everything is properly configured, a new window is automatically created in your browser.
 """)
 
-        acc = pn.Accordion(("What is this?", md))
-
-        button = pnw.Button(name="Upload to chart studio server")
+        btn = pnw.Button(name="Upload to chart studio server")
         def push_to_cs(event):
             push_to_chart_studio(fig)
-        button.on_click(push_to_cs)
+        btn.on_click(push_to_cs)
 
-        ca(pn.Row(button, acc))
+        if with_help:
+            acc = pn.Accordion(("What is this?", md))
+            ca(pn.Row(btn, acc))
+        else:
+            ca(pn.Row(btn))
 
     if with_controls:
         ca(pn.Accordion(("plotly controls", plotly_pane.controls(jslink=True))))
         ca(pn.layout.Divider())
 
-    ca(pn.layout.Divider())
+    if with_divider:
+        ca(pn.layout.Divider())
 
     return col
 
 
-def dfc(df, wdg_type="dataframe", with_export_buttons=True, with_controls=False, **kwargs):
+def dfc(df,
+        wdg_type="dataframe",
+        #wdg_type="tabulator",
+        with_export_btn=True, with_controls=False, **kwargs):
     """
     Helper function returning a panel Column with a DataFrame or Tabulator widget followed by
     a divider and (optionally) controls to customize the figure.
@@ -170,28 +186,20 @@ def dfc(df, wdg_type="dataframe", with_export_buttons=True, with_controls=False,
         # This seems to be buggy
         w = pnw.Tabulator(df, **kwargs)
     else:
-        raise ValueError(f"Don't know how to handle widget type: {wdg_type}")
+        raise ValueError(f"Don't know how to handle widget type: `{wdg_type}`")
 
     col = pn.Column(sizing_mode='stretch_width'); ca = col.append
     ca(w)
 
-    if with_export_buttons:
-#        md = pn.pane.Markdown(r"""
-#The button on the left allows you to write a text representation of the dataframe to the system clipboard.
-#This can be pasted into Excel, for example.
-#"""
-#)
+    if with_export_btn:
 
-        clip_button = pnw.Button(name="Copy to clipboard")
-        def to_clipboard(event):
-            df.to_clipboard()
-        clip_button.on_click(to_clipboard)
+        # Define callbacks with closure.
+        #clip_button = pnw.Button(name="Copy to clipboard")
+        #def to_clipboard(event):
+        #    df.to_clipboard()
+        #clip_button.on_click(to_clipboard)
 
-        #acc = pn.Accordion(("What is this?", md))
-        #ca(pn.Row(button, acc))
-        #ca(pn.Row(button, md))
-
-        def as_xlsx():
+        def to_xlsx():
             """
             Based on https://panel.holoviz.org/gallery/simple/file_download_examples.html
             NB: This requires xlsxwriter package else pandas raises ModuleNotFoundError.
@@ -203,26 +211,50 @@ def dfc(df, wdg_type="dataframe", with_export_buttons=True, with_controls=False,
             output.seek(0)
             return output
 
-        def as_latex():
+        def to_latex():
             """Convert DataFrame to latex string."""
             output = io.StringIO()
             df.to_latex(buf=output)
             output.seek(0)
             return output
 
-        def as_md():
-            """Convert DataFrame to latex string."""
+        def to_md():
+            """Convert DataFrame to markdown string."""
             output = io.StringIO()
             df.to_markdown(buf=output)
             output.seek(0)
             return output
 
-        # Add Row with buttons to export and download file.
-        xlsx_download = pn.widgets.FileDownload(filename="data.xlsx", callback=as_xlsx)
-        latex_download = pn.widgets.FileDownload(filename="data.tex", callback=as_latex)
-        md_download = pn.widgets.FileDownload(filename="data.md", callback=as_md)
-        row = pn.Row(clip_button, xlsx_download, latex_download, md_download, sizing_mode="stretch_width")
-        ca(row)
+        def to_json():
+            """Convert DataFrame to json string."""
+            output = io.StringIO()
+            df.to_json(path_or_buf=output)
+            output.seek(0)
+            return output
+
+        d = {
+            "xlsx": pnw.FileDownload(filename="data.xlsx", callback=to_xlsx),
+            "tex": pnw.FileDownload(filename="data.tex", callback=to_latex),
+            "md": pnw.FileDownload(filename="data.md", callback=to_md),
+            "json": pnw.FileDownload(filename="data.json", callback=to_json),
+        }
+
+        def download(event):
+            print(f'Clicked menu item: "{event.new}"')
+            file_download = d[event.new]
+            print(file_download)
+            #file_download._clicks = -1
+            print("Calling transfer")
+            file_download._transfer()
+            #return file_download.callback()
+
+        # FIXME: Menu button occpies less space but the upload does not work
+        #menu_btn = pnw.MenuButton(name='Export to:', items=list(d.keys()))
+        #menu_btn.on_click(download)
+        #ca(menu_btn)
+
+        # For the time being we use a Row with buttons.
+        ca(pn.Row(*d.values(), sizing_mode="scale_width"))
 
     if with_controls:
         # This seems to be buggy.
@@ -245,9 +277,9 @@ class MyMarkdown(pn.pane.Markdown):
         # Extensions used by the superclass.
         "extra", "smarty", "codehilite",
         # My extensions
-        'pymdownx.arithmatex',
-        'pymdownx.details',
-        "pymdownx.tabbed",
+        #'pymdownx.arithmatex',
+        #'pymdownx.details',
+        #"pymdownx.tabbed",
     ],
 
         doc="""Markdown extension to apply when transforming markup."""
@@ -428,7 +460,7 @@ class HasStructureParams(AbipyParameterized):
     """
     # Viewer widgets.
     struct_view_btn = pnw.Button(name="View structure", button_type='primary')
-    struct_viewer = pnw.Select(name="Viewer", value="vesta",
+    struct_viewer = pnw.Select(name="Select viewer", value="vesta",
                                options=["jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
                                         "matplotlib", "ase_atoms", "mayavi"])
 
@@ -436,15 +468,6 @@ class HasStructureParams(AbipyParameterized):
     def structure(self):
         """Structure object provided by the subclass."""
         raise NotImplementedError(f"Subclass {type(self)} should implement `structure` attribute.")
-
-    def get_struct_view_tab_entry(self):
-        """
-        Return tab entry to visualize the structure.
-         """
-        return ("View Structure", pn.Row(
-            pn.Column("# Visualize structure", *self.pws("struct_viewer", "struct_view_btn", self.helpc("view_structure"))),
-            self.view_structure)
-        )
 
     @param.depends("struct_view_btn.clicks")
     def view_structure(self):
@@ -455,25 +478,28 @@ class HasStructureParams(AbipyParameterized):
             v = self.struct_viewer.value
 
             if v == "jsmol":
-                pn.extension(comms='ipywidgets') #, js_files=js_files)
+                #pn.extension(comms='ipywidgets') #, js_files=js_files)
                 view = self.structure.get_jsmol_view()
-                from ipywidgets_bokeh import IPyWidget
-                view = IPyWidget(widget=view) #, width=800, height=300)
+                #from ipywidgets_bokeh import IPyWidget
+                #view = IPyWidget(widget=view) #, width=800, height=300)
                 #import ipywidgets as ipw
-                from IPython.display import display
+                #from IPython.display import display
                 #display(view)
-                return pn.panel(view)
                 #return pn.Row(display(view))
+                #view = pn.ipywidget(view)
+                #view = pn.panel(view)
+                #print(view)
+                return view
 
             if v == "crystalk":
                 view = self.structure.get_crystaltk_view()
                 return pn.panel(view)
 
             if v == "ngl":
-                js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
-                pn.extension(comms='ipywidgets', js_files=js_files)
+                #js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
+                #pn.extension(comms='ipywidgets', js_files=js_files)
                 view = self.structure.get_ngl_view()
-                return pn.panel(view)
+                #return pn.panel(view)
 
                 #pn.config.js_files["ngl"]="https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
                 #pn.extension()
@@ -556,6 +582,57 @@ class HasStructureParams(AbipyParameterized):
 
             return self.structure.visualize(appname=self.struct_viewer.value)
 
+    def get_struct_view_tab_entry(self):
+        """
+        Return tab entry to visualize the structure.
+         """
+        return ("Structure", pn.Row(
+            pn.Column("# Visualize structure",
+                      *self.pws("struct_viewer", "struct_view_btn", self.helpc("view_structure"))),
+                       pn.Column(self.get_structure_info(),
+                                 self.view_structure)
+        ))
+
+    def get_structure_info(self):
+        """
+        Column with lattice parameters, angles and atomic positions grouped by type.
+        """
+        return get_structure_info(self.structure)
+
+
+def get_structure_info(structure):
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append; cext = col.extend
+
+        d = structure.get_dict4pandas(with_spglib=True)
+
+        keys = index = ["formula", "natom", "volume", "abi_spg_number",
+                        "spglib_symb", "spglib_num",  "spglib_lattice_type"]
+        df_spg = pd.Series(data=d, index=index).to_frame()
+        cext(["# Space group:", dfc(df_spg, with_export_btn=False)])
+
+        # Build dataframe with lattice lenghts.
+        rows = []; keys = ("a", "b", "c")
+        rows.append({k: d[k] * abu.Ang_Bohr for k in keys})
+        rows.append({k: d[k] for k in keys})
+        df_len = pd.DataFrame(rows, index=["Å", "Bohr"]).transpose().rename_axis("Lattice lenghts")
+        cext(["# Lattice lengths:", dfc(df_len, with_export_btn=False)])
+
+        # Build dataframe with lattice angles.
+        rows = []; keys =  ("alpha", "beta", "gamma")
+        rows.append({k: d[k] for k in keys})
+        rows.append({k: np.radians(d[k]) for k in keys})
+        df_ang = pd.DataFrame(rows, index=["Degrees", "Radians"]).transpose().rename_axis("Lattice angles")
+        cext(["# Lattice angles:", dfc(df_ang, with_export_btn=False)])
+
+        # Build dataframe with atomic positions grouped by element symbol.
+        symb2df = structure.get_symb2coords_dataframe()
+        accordion = pn.Accordion(sizing_mode='stretch_width')
+        for symb, df in symb2df.items():
+            accordion.append((f"Coordinates of {symb} sites:", dfc(df, with_export_btn=False)))
+        ca(accordion)
+
+        return col
+
 
 class PanelWithNcFile(AbipyParameterized):
     """
@@ -571,12 +648,11 @@ class PanelWithNcFile(AbipyParameterized):
         raise NotImplementedError("subclass should implement the `ncfile` property.")
 
     def get_ncfile_panel(self):
-
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
         #nc_grpname = pnw.Select(name="nc group name", options=["/"])
 
-        # Get dataframe with dimesions.
+        # Get dataframe with dimensions.
         dims_df = self.ncfile.get_dims_dataframe(path="/")
         ca(dfc(dims_df))
 
@@ -642,17 +718,21 @@ class PanelWithElectronBands(AbipyParameterized):
             #fig1 = self.ebands.plot(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None,
             #                        fontsize=8, **self.mpl_kwargs)
 
+            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+            ca("## Electronic band structure:")
             fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None,
-                                    fontsize=8, show=False)
+                                     fontsize=8, show=False)
+            ca(ply(fig1))
 
-            fig2 = self.ebands.kpoints.plot(**self.mpl_kwargs)
+            ca("## Brillouin zone and k-path:")
+            kpath_pane = mpl(self.ebands.kpoints.plot(**self.mpl_kwargs), with_divider=False)
+            df_kpts = self.ebands.kpoints.get_highsym_datataframe()
+            ca(pn.Row(kpath_pane, df_kpts))
+            ca(pn.layout.Divider())
 
-            #col = pn.Column(mpl(fig1), mpl(fig2)) #, sizing_mode='scale_width')
-            col = pn.Column(ply(fig1), mpl(fig2)) #, sizing_mode='scale_width')
+            ca(bkw.PreText(text=self.ebands.to_string(verbose=self.verbose)))
 
-            text = bkw.PreText(text=self.ebands.to_string(verbose=self.verbose))
-
-            return pn.Column(col, text, sizing_mode='scale_width')
+            return col
 
     def get_plot_edos_widgets(self):
         """Widgets to compute e-DOS."""
