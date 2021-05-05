@@ -1,7 +1,7 @@
 # coding: utf-8
 """Work subclasses for the computation of luminescent properties."""
 
-from .works import Work, PhononWork
+from .works import Work
 
 
 class LumiWork(Work):
