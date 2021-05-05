@@ -46,7 +46,8 @@ def build_flow(options):
     # Band structure calculation to make sure everything is ok
     # Also allows to compare the results obtained with abitk to 
     # check the SKW interpolation works as needed
-    bs_input = scf_input.make_ebands_input(tolwfr=1e-12, ndivsm=10, nb_extra=4)
+    bs_input = scf_input.make_ebands_input(tolwfr=1e-12, ndivsm=10, nb_extra=5)
+    bs_input.set_vars(nstep=100,nbdbuf=1)
     work_init.register_nscf_task(bs_input, deps={work_init[0]: "DEN"})
 
     # NSCF input for the WFK needed to interpolate with kerange

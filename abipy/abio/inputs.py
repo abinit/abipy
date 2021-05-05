@@ -1860,8 +1860,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         # Modify the first nscf input to get a task that calculate the kpt in the sigma interval (Kerange.nc file)
         multi[0].set_vars(optdriver=8, wfk_task='"wfk_kpts_erange"', kptopt=1,
                           sigma_ngkpt=sigma_ngkpt, sigma_nshiftk=1, sigma_shiftk=[0,0,0],
-                          einterp=einterp, sigma_erange=sigma_erange)
-        multi[0].pop_vars(["iscf","prtwf","tolwfr","prtden"])
+                          einterp=einterp, sigma_erange=sigma_erange, prtwf=0)
+        multi[0].pop_vars(["iscf","tolwfr","prtden"])
 
         # Modify the third nscf input to get a task that add the kpt of Kerange.nc to the WFK file
         multi[1].set_vars(optdriver=0, iscf=-2, kptopt=0, ngkpt=sigma_ngkpt)
@@ -1904,6 +1904,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ibte_niter=ibte_niter,
             ibte_abs_tol=ibte_abs_tol,
             nband=nband,
+            paral_kgb=0,
         )
         new.pop_vars(["iscf","prtwf","tolwfr","prtden","nbdbuf","kptopt"])
         #new.add_phbbands_vars()
