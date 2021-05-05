@@ -27,6 +27,27 @@ class DeltaSCF():
                    AestarEnergy=energies[2],
                    AeEnergy=energies[3],)
 
+    @classmethod
+    def from_relax_file(cls,filepaths):
+        """ Create the object from the two relaxation files (relax_gs, relax_ex).
+            Give only acccess to structural relaxation induced by the transition
+            and to E_zpl
+        """
+        energies=[]
+        structures=[]
+        for path in filepaths:
+            with abiopen(path) as gsr_file:
+                energies.append(gsr_file.energy)
+                structures.append(gsr_file.structure)
+
+        return cls(structuregs=structures[0],
+                   structureex=structures[1],
+                   AgEnergy=energies[0],
+                   AgstarEnergy=None,
+                   AestarEnergy=energies[1],
+                   AeEnergy=None,)
+
+
     def __init__(self,structuregs,structureex,AgEnergy,AgstarEnergy,AestarEnergy,AeEnergy):
         """
         :param structuregs: relaxed ground state structure
