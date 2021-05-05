@@ -1904,7 +1904,6 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ibte_niter=ibte_niter,
             ibte_abs_tol=ibte_abs_tol,
             nband=nband,
-            paral_kgb=0,
         )
         new.pop_vars(["iscf","prtwf","tolwfr","prtden","nbdbuf","kptopt"])
         #new.add_phbbands_vars()
