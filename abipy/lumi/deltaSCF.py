@@ -1,4 +1,4 @@
-mport numpy as np
+import numpy as np
 import json
 from abipy.core.structure import Structure
 from abipy.abilab import abiopen
