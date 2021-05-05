@@ -60,8 +60,8 @@ class HistFilePanel(AbipyParameterized):
         with ButtonContext(self.view_relax_btn):
             return self.hist.visualize(appname=self.appname.value, to_unit_cell=self.to_unit_cell.value)
 
-    def get_panel(self):
-        """Return tabs with widgets to interact with the DDB file."""
+    def get_panel(self, **kwargs):
+        """Return tabs with widgets to interact with the HIST.nc file."""
         tabs = pn.Tabs(); app = tabs.append
 
         app(("Summary", pn.Row(bkw.PreText(text=self.hist.to_string(verbose=self.verbose),
@@ -73,4 +73,4 @@ class HistFilePanel(AbipyParameterized):
         app(("Visualize", pn.Row(pn.Column(self.appname, self.to_unit_cell, self.view_relax_btn),
                                  self.on_view_relax_btn)))
 
-        return tabs
+        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))

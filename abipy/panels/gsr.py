@@ -71,8 +71,14 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
         # TODO
         #app(("NcFile", self.get_ncfile_panel()))
 
-        template = kwargs.get("template", None)
-        return self.get_template_from_tabs(tabs, template)
+        #app(("Global", pn.Row(
+        #    pn.Column("# Global options",
+        #              *self.pws("units", "mpi_procs", "verbose"),
+        #              ),
+        #    self.get_software_stack())
+        #))
+
+        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
 
 class GsrRobotPanel(PanelWithEbandsRobot):
@@ -92,7 +98,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
         df = self.robot.get_dataframe(with_geo=True)
         return pn.Column(dfc(df), sizing_mode='stretch_width')
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the |GsrRobot|."""
         tabs = pn.Tabs(); app = tabs.append
 
@@ -106,4 +112,4 @@ class GsrRobotPanel(PanelWithEbandsRobot):
 
         app(("GSR-dataFrame", pn.Row(self.gsr_dataframe_btn, self.on_gsr_dataframe_btn)))
 
-        return tabs
+        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))

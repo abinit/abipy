@@ -28,7 +28,9 @@ class AbilabTest(AbipyTest):
         abilab.print_dataframe(df, title="foo")
 
         d = abilab.software_stack()
-        assert d
+        assert d and "pymatgen" in d
+        df = abilab.software_stack(as_dataframe=True)
+        assert df is not None
 
         filepath = self.get_tmpname(text=True, suffix=".json")
         data = {"foo": "bar"}

@@ -25,7 +25,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
         """|ElectronBands|."""
         return self._ncfile.ebands
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the FATBANDS.nc file."""
         tabs = pn.Tabs(); app = tabs.append
 
@@ -59,7 +59,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
         else:
             raise ValueError("Neither a IBZ nor k-path!")
 
-        return tabs
+        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
 
 #class FatbandsRobotPanel(PanelWithEbandsRobot):

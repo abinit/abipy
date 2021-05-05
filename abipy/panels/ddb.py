@@ -20,7 +20,7 @@ class HasAnaddbParams(AbipyParameterized):
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used in anaddb")
 
     nqsmall = param.Integer(10, bounds=(1, None), doc="Number of divisions for smallest vector to generate Q-mesh")
-    ndivsm = param.Integer(5, bounds=(None, None), doc="Number of divisions for smallest segment in q-path")
+    ndivsm = pnw.IntInput(name='ndivsm', value=5, step=1, start=1, end=None)
     lo_to_splitting = param.ObjectSelector(default="automatic", objects=["automatic", True, False])
     chneut = param.ObjectSelector(default=1, objects=[0, 1, 2], doc="Abinit variable")
     dipdip = param.ObjectSelector(default=1, objects=[0, 1, -1], doc="Abinit variable")
@@ -34,8 +34,7 @@ class HasAnaddbParams(AbipyParameterized):
     temp_range = pnw.RangeSlider(name="T-range", start=0.0, end=1000, value=(0.0, 300.0), step=20)
 
     gamma_ev = param.Number(1e-4, bounds=(1e-20, None), doc="Phonon linewidth in eV")
-    w_range = pnw.RangeSlider(name="Frequency range (eV)", start=0.0, end=1.0,
-                              value=(0.0, 0.1), step=0.001)
+    w_range = pnw.RangeSlider(name="Frequency range (eV)", start=0.0, end=1.0, value=(0.0, 0.1), step=0.001)
 
     nqsmall_list = pnw.LiteralInput(name='nsmalls (python list)', value=[10, 20, 30], type=list)
     #nqqpt = pnw.LiteralInput(name='nsmalls (list)', value=[10, 20, 30], type=list)
@@ -65,7 +64,7 @@ recompute the new results by clicking the button.
         Return the parameters require to invoke anaget_phbst_and_phdos_files
         Additional kwargs can be specified if needed.
         """
-        d = dict(nqsmall=self.nqsmall, qppa=None, ndivsm=self.ndivsm,
+        d = dict(nqsmall=self.nqsmall, qppa=None, ndivsm=self.ndivsm.value,
                  line_density=None, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                  dos_method=self.dos_method, lo_to_splitting=self.lo_to_splitting,
                  verbose=self.verbose, mpi_procs=self.mpi_procs)
@@ -259,12 +258,12 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         with ButtonContext(self.plot_check_asr_dipdip_btn):
             asr_plotter = self.ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1,
                                                   lo_to_splitting=self.lo_to_splitting,
-                                                  nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                                  nqsmall=self.nqsmall, ndivsm=self.ndivsm.value,
                                                   dos_method=self.dos_method, ngqpt=None,
                                                   verbose=self.verbose, mpi_procs=self.mpi_procs)
 
             dipdip_plotter = self.ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting=self.lo_to_splitting,
-                                                        nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                                        nqsmall=self.nqsmall, ndivsm=self.ndivsm.value,
                                                         dos_method=self.dos_method, ngqpt=None,
                                                         verbose=self.verbose, mpi_procs=self.mpi_procs)
 
@@ -322,7 +321,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         with ButtonContext(self.plot_dos_vs_qmesh_btn):
             plotter = self.ddb.anacompare_quad(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                                                lo_to_splitting=self.lo_to_splitting,
-                                               nqsmall=0, ndivsm=self.ndivsm, dos_method=self.dos_method, ngqpt=None,
+                                               nqsmall=0, ndivsm=self.ndivsm.value, dos_method=self.dos_method, ngqpt=None,
                                                verbose=self.verbose, mpi_procs=self.mpi_procs)
 
             # Fill column
@@ -410,13 +409,14 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
             self.plot_ifc)
         ))
         app(self.get_struct_view_tab_entry())
-        app(("Global options",
+        app(("Global", pn.Row(
             pn.Column("# Global options",
-                *self.pws("units", "mpi_procs", "verbose"),
-        )))
+                      *self.pws("units", "mpi_procs", "verbose"),
+                      ),
+            self.get_software_stack())
+        ))
 
-        template = kwargs.get("template", None)
-        return self.get_template_from_tabs(tabs, template)
+        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
 
 class DdbRobotPanel(HasAnaddbParams):
@@ -611,7 +611,7 @@ class DdbRobotPanel(HasAnaddbParams):
             for label, ddb in self.robot.items():
                 asr_p = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1,
                                            lo_to_splitting=self.lo_to_splitting,
-                                           nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                           nqsmall=self.nqsmall, ndivsm=self.ndivsm.value,
                                            dos_method=self.dos_method, ngqpt=None,
                                            verbose=self.verbose, mpi_procs=self.mpi_procs,
                                            pre_label=label)
@@ -619,7 +619,7 @@ class DdbRobotPanel(HasAnaddbParams):
                 asr_plotter.append_plotter(asr_p)
 
                 dipdip_p = ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting=self.lo_to_splitting,
-                                                 nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                                 nqsmall=self.nqsmall, ndivsm=self.ndivsm.value,
                                                  dos_method=self.dos_method, ngqpt=None,
                                                  verbose=self.verbose, mpi_procs=self.mpi_procs,
                                                  pre_label=label)
@@ -718,7 +718,7 @@ class DdbRobotPanel(HasAnaddbParams):
         #              ),
         #    self.plot_ifc)
         #))
-        app(("Global options",
+        app(("Global",
             pn.Column("# Global options",
                 *self.pws("units", "mpi_procs", "verbose"),
         )))

@@ -5,7 +5,7 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import HasStructureParams, ButtonContext, dfc,
+from abipy.panels.core import HasStructureParams, ButtonContext, dfc, mpl
 
 
 class StructurePanel(HasStructureParams):
@@ -70,9 +70,19 @@ class StructurePanel(HasStructureParams):
     @param.depends("kpath_format.value", "line_density.value")
     def get_kpath(self):
         """Generate high-symmetry k-path from input structure in ABINIT format.."""
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+
         s = self.structure.get_kpath_input_string(fmt=self.kpath_format.value,
                                                   line_density=self.line_density.value)
-        return self.html_with_clipboard_btn(f"<pre> {s} </pre>")
+        ca(self.html_with_clipboard_btn(f"<pre> {s} </pre>"))
+
+        # FIXME: This plots the mpl figure!
+        #kpath_pane = mpl(self.structure.plot_bz(**self.mpl_kwargs), with_divider=False)
+        #df_kpts = self.structure.hsym_kpoints.get_highsym_datataframe()
+        #ca(pn.Row(kpath_pane, df_kpts))
+        #ca(pn.layout.Divider())
+
+        return col
 
     @param.depends("gs_input_btn.clicks")
     def on_gs_input_btn(self):

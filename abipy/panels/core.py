@@ -422,10 +422,19 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
 
         raise ValueError(f"""
 Don't know how to return panel template from string: {name}
-Possible Templates are: {list(pn.template.__dict__.keys())}
+Possible templates are: {list(pn.template.__dict__.keys())}
 """)
 
+    def get_software_stack(self):
+        """Return column with version of python packages in tabular format."""
+        from abipy.abilab import software_stack
+        return pn.Column("## Software stack:", dfc(software_stack(as_dataframe=True), with_export_btn=True),
+                         sizing_mode="scale_width")
+
     def get_template_from_tabs(self, tabs, template):
+        """
+        This method receives a panel Tabs, include them in a template and return the panel template.
+        """
         if template is None:
             return tabs
 
@@ -488,7 +497,9 @@ class HasStructureParams(AbipyParameterized):
                 #return pn.Row(display(view))
                 #view = pn.ipywidget(view)
                 #view = pn.panel(view)
+                #view = pn.pane.IPyWidget(view)
                 #print(view)
+                #view = pn.Column(view, sizing_mode='stretch_width')
                 return view
 
             if v == "crystalk":
@@ -601,37 +612,37 @@ class HasStructureParams(AbipyParameterized):
 
 
 def get_structure_info(structure):
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append; cext = col.extend
+    col = pn.Column(sizing_mode='stretch_width'); ca = col.append; cext = col.extend
 
-        d = structure.get_dict4pandas(with_spglib=True)
+    d = structure.get_dict4pandas(with_spglib=True)
 
-        keys = index = ["formula", "natom", "volume", "abi_spg_number",
-                        "spglib_symb", "spglib_num",  "spglib_lattice_type"]
-        df_spg = pd.Series(data=d, index=index).to_frame()
-        cext(["# Space group:", dfc(df_spg, with_export_btn=False)])
+    keys = index = ["formula", "natom", "volume", "abi_spg_number",
+                    "spglib_symb", "spglib_num",  "spglib_lattice_type"]
+    df_spg = pd.Series(data=d, index=index).to_frame()
+    cext(["# Space group:", dfc(df_spg, with_export_btn=False)])
 
-        # Build dataframe with lattice lenghts.
-        rows = []; keys = ("a", "b", "c")
-        rows.append({k: d[k] * abu.Ang_Bohr for k in keys})
-        rows.append({k: d[k] for k in keys})
-        df_len = pd.DataFrame(rows, index=["Å", "Bohr"]).transpose().rename_axis("Lattice lenghts")
-        cext(["# Lattice lengths:", dfc(df_len, with_export_btn=False)])
+    # Build dataframe with lattice lenghts.
+    rows = []; keys = ("a", "b", "c")
+    rows.append({k: d[k] * abu.Ang_Bohr for k in keys})
+    rows.append({k: d[k] for k in keys})
+    df_len = pd.DataFrame(rows, index=["Å", "Bohr"]).transpose().rename_axis("Lattice lenghts")
+    cext(["# Lattice lengths:", dfc(df_len, with_export_btn=False)])
 
-        # Build dataframe with lattice angles.
-        rows = []; keys =  ("alpha", "beta", "gamma")
-        rows.append({k: d[k] for k in keys})
-        rows.append({k: np.radians(d[k]) for k in keys})
-        df_ang = pd.DataFrame(rows, index=["Degrees", "Radians"]).transpose().rename_axis("Lattice angles")
-        cext(["# Lattice angles:", dfc(df_ang, with_export_btn=False)])
+    # Build dataframe with lattice angles.
+    rows = []; keys =  ("alpha", "beta", "gamma")
+    rows.append({k: d[k] for k in keys})
+    rows.append({k: np.radians(d[k]) for k in keys})
+    df_ang = pd.DataFrame(rows, index=["Degrees", "Radians"]).transpose().rename_axis("Lattice angles")
+    cext(["# Lattice angles:", dfc(df_ang, with_export_btn=False)])
 
-        # Build dataframe with atomic positions grouped by element symbol.
-        symb2df = structure.get_symb2coords_dataframe()
-        accordion = pn.Accordion(sizing_mode='stretch_width')
-        for symb, df in symb2df.items():
-            accordion.append((f"Coordinates of {symb} sites:", dfc(df, with_export_btn=False)))
-        ca(accordion)
+    # Build dataframe with atomic positions grouped by element symbol.
+    symb2df = structure.get_symb2coords_dataframe()
+    accordion = pn.Accordion(sizing_mode='stretch_width')
+    for symb, df in symb2df.items():
+        accordion.append((f"Coordinates of {symb} sites:", dfc(df, with_export_btn=False)))
+    ca(accordion)
 
-        return col
+    return col
 
 
 class PanelWithNcFile(AbipyParameterized):
@@ -782,7 +793,7 @@ class PanelWithElectronBands(AbipyParameterized):
 
 
 class BaseRobotPanel(AbipyParameterized):
-    """pass"""
+    """Base class for panels with AbiPy robot."""
 
 
 class PanelWithEbandsRobot(BaseRobotPanel):

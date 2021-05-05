@@ -20,7 +20,7 @@ Variable(
     characteristics=['[[ENERGY]]'],
     added_in_version="before_v9",
     text=r"""
-Smearing width for the Eliashberg $\\alpha^2$F function (similar to a phonon DOS),
+Smearing width for the Eliashberg $\alpha^2$F function (similar to a phonon DOS),
 which is sampled on a finite q and k grid. The Dirac delta functions in energy
 are replaced by Gaussians of width **a2fsmear** (by default in Hartree).
 """,
@@ -1612,6 +1612,7 @@ Variable(
     text=r"""
 Only for electron-phonon calculations. This input variable is used to
 calculate the nesting function defined as:
+
 $$
 \chi_{nm}(q) = \sum_k\delta(\epsilon_{k,n}-\epsilon_F) \delta(\epsilon_{k+q,m}-\epsilon_F).
 $$
@@ -2375,6 +2376,23 @@ instead of the legacy mode based on the files file. Example:
     outdata_prefix = "t01_o"
 
     See also [[outdata_prefix@abinit]]
+""",
+),
+
+Variable(
+    abivarname="dos_maxmode@anaddb",
+    varset="anaddb",
+    vartype="integer",
+    topics=['PhononBands_useful'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="Phonon DOS MAX MODE included",
+    added_in_version="9.5",
+    text=r"""
+This variable specifies the maximum phonon mode index (up to 3*natom)
+included in the computation of the phonon DOS
+
+Default is 0 i.e. all modes are included in the DOS.
 """,
 ),
 
