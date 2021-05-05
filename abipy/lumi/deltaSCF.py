@@ -3,7 +3,8 @@ import json
 from abipy.core.structure import Structure
 from abipy.abilab import abiopen
 import pandas as pd
-
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 class DeltaSCF():
     """
@@ -75,41 +76,63 @@ class DeltaSCF():
         """Number of atoms in structure."""
         return len(self.structuregs)
 
-    def symbols(self):
-        symbols=[]
-        elements=self.structuregs.species_by_znucl
-        for element in elements:
-            symbols.append(element.name)
-        return symbols
-
     def diff_pos(self):
         """"
         Difference between gs and ex structures in Angström, (n_atoms,3) shape
         """
         return (self.structureex.cart_coords - self.structuregs.cart_coords)
 
-    def diff_pos_sq_per_atom(self,index):
-        return sum((self.diff_pos()[index])**2)
+    def defect_index(self,defect_symbol):
+        index=self.structuregs.get_symbol2indices()[defect_symbol][0]
+        return index
 
 
-    def diff_dq_sq_per_atom(self,index):
-        return self.amu_list()[index]*sum((self.diff_pos()[index])**2)
+    def get_dict_per_atom(self,index,defect_symbol):
+        stru=self.structuregs
+        def_index=self.defect_index(defect_symbol=defect_symbol)
+        d={}
+        d["symbol"]=stru.species[index].name
+        d["mass"]=self.amu_list()[index]
+        d[r"$\Delta R^2$"]=sum(self.diff_pos()[index]**2)
+        d[r"$\Delta Q^2$"]=self.amu_list()[index]*sum(self.diff_pos()[index]**2)
+        d["dist. from defect"]=stru[index].distance(other=stru[def_index])
 
-    def diff_pos_sq_per_element(self,symbol):
-        s2i = self.structuregs.get_symbol2indices()
-        indices=s2i[symbol]
-        total=0
-        for i in indices:
-            total += self.diff_pos_sq_per_atom(index=i)
-        return total
+        return d
 
-    def diff_dq_sq_per_element(self,symbol):
-        s2i = self.structuregs.get_symbol2indices()
-        indices=s2i[symbol]
-        total=0
-        for i in indices:
-            total += self.diff_dq_sq_per_atom(index=i)
-        return total
+
+    def get_dataframe_atoms(self,defect_symbol):
+        list_of_dict=[]
+        for index,atom in enumerate(self.structuregs):
+            d=self.get_dict_per_atom(index,defect_symbol)
+            list_of_dict.append(d)
+
+        return pd.DataFrame(list_of_dict)
+
+    def get_dict_per_element(self,element):
+        stru=self.structuregs
+        indices=stru.indices_from_symbol(element.name)
+        dr_el=[]
+        for index in indices:
+            dr_el.append(sum(self.diff_pos()[index]**2))
+        d={}
+        d["symbol"]=element.name
+        d["mass"]=element.atomic_mass
+        d[r"$\Delta R^2$"]=sum(dr_el)
+        d[r"$\Delta Q^2$"]=element.atomic_mass*sum(dr_el)
+
+        return d
+
+
+    def get_dataframe_element(self):
+        list_of_dict=[]
+        for index,element in enumerate(self.structuregs.types_of_species):
+            d=self.get_dict_per_element(element)
+            list_of_dict.append(d)
+
+        return pd.DataFrame(list_of_dict)
+
+
+
 
     def delta_r(self):
         d_r_squared=np.sum(self.diff_pos()**2)
@@ -171,7 +194,7 @@ class DeltaSCF():
         :return: effective frequency of the ground state in eV
         """
         hbar_eV = 6.582119570e-16  # in eV*s
-        omega_g=np.sqrt(self.E_FC_gs(unit='SI')/(self.delta_q(unit='SI'))**2)
+        omega_g=np.sqrt(2*self.E_FC_gs(unit='SI')/(self.delta_q(unit='SI'))**2)
         return(hbar_eV*omega_g)
 
     def eff_freq_ex(self):
@@ -179,7 +202,7 @@ class DeltaSCF():
         :return: effective frequency of the ground state in eV
         """
         hbar_eV = 6.582119570e-16  # in eV*s
-        omega_e=np.sqrt(self.E_FC_ex(unit='SI')/(self.delta_q(unit='SI'))**2)
+        omega_e=np.sqrt(2*self.E_FC_ex(unit='SI')/(self.delta_q(unit='SI'))**2)
         return(hbar_eV*omega_e)
 
     def S_em(self):
@@ -201,7 +224,7 @@ class DeltaSCF():
             return w_T
 
 
-    def get_dataframe(self):
+    def get_dataframe(self,label):
         """
         :return: pd dataframe with the main results of a lumi work : transition energies, delta Q, Huang Rhys factor,...
 
@@ -240,8 +263,38 @@ class DeltaSCF():
         ])
 
         rows.append(d)
-        index.append('test')
+        index.append(label)
 
         df=pd.DataFrame(rows,index=index)
 
         return df
+
+    def displacements_visu(self):
+        pos_gs=self.structuregs.cart_coords
+        pos_ex=self.structureex.cart_coords
+        # make the grid
+        x = pos_ex[:, 0]
+        y = pos_ex[:, 1]
+        z = pos_ex[:, 2]
+
+        # Make the direction data for the arrows
+        u =(pos_ex[:, 0]-pos_gs[:, 0])
+        v =(pos_ex[:, 1]-pos_gs[:, 1])
+        w =(pos_ex[:, 2]-pos_gs[:, 2])
+
+        M = self.amu_list()*(u**2+v**2+w**2)
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        a_g=10 ### vector size increase coef
+        ax.quiver(x, y, z,u*a_g,v*a_g,w*a_g, color='k',linewidths=1)
+        sc = ax.scatter(x, y, z, c=M, marker='o', s=60, cmap="jet")
+        #ax.scatter(self.pos_gs[0, 0], self.pos_gs[0, 1], self.pos_gs[0, 2], marker='o', s=200, color='fuchsia')
+
+        #set plot to scale
+       # a=0.37
+       # ax.get_proj = lambda: np.dot(Axes3D.get_proj(ax), np.diag([1*a,1*a,(90/15)*a,1]))
+        clb=plt.colorbar(sc)
+        clb.set_label(r'$\Delta Q^2$ per atom')
+
