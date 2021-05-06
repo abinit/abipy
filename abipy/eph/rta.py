@@ -697,9 +697,6 @@ class RtaRobot(Robot, RobotWithEbands):
 
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
-        if 'savefig' in kwargs:
-            plt.savefig(kwargs['savefig'])
-
         return fig
 
     @lazy_property
