@@ -466,6 +466,13 @@ class NodeContainer(metaclass=abc.ABCMeta):
             # FIXME: Hack to run task in sequential if calculation does not support MPI with nprocs > 1.
             kwargs.update({"manager": seq_manager})
 
+        if eph_inp.get("eph_task",0) == -4:
+            max_cores   = TaskManager.from_user_config().qadapter.max_cores
+            natom3      = 3 * len(eph_inp.structure)
+            nprocs      = max_cores - max_cores % natom3
+            new_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(nprocs, 1)
+            kwargs.update({"manager": new_manager})
+
         return self.register_task(*args, **kwargs)
 
     def register_kerange_task(self, *args, **kwargs):
