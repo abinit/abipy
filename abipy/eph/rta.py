@@ -688,6 +688,7 @@ class RtaRobot(Robot, RobotWithEbands):
         ax.set_xlabel(r'Homogeneous $N_k \times$ ' + text1 + r'$N_k \times$ ' + text2 + r'$N_k$ $\mathbf{k}$-point grid',
                       size=size)
 
+        ax.set_title(component+" component, T = {0} K".format(ncfile.tmesh[itemp]),size=size)
         if 'serta' in bte:
             ax.plot(res[:,0], res[:,1], '-ob', label='SERTA')
         if 'mrta' in bte:
@@ -787,7 +788,25 @@ class RtaRobot(Robot, RobotWithEbands):
         #if self.all_have_ibte:
         yield self.plot_ibte_mrta_serta_conv(show=False)
         yield self.plot_ibte_vs_rta_rho(show=False)
-        yield self.plot_mobility_kconv(eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs)
+       
+        # Determine the independent component. For the time being,
+        # only consider the cubic case separately
+        abifile = self.abifiles[0]
+        if 'cubic' in abifile.structure.spget_summary():
+            components = ['xx']
+        else:
+            components = ['xx','yy','zz']
+
+        # Determine the type of carriers for which the mobility is computed
+        eh_list = []
+        if abifile.sigma_erange[0] > 0:
+            eh_list.append(1)
+        if abifile.sigma_erange[1] > 0:
+            eh_list.append(0)
+
+        for eh in eh_list:
+            for comp in components:
+                yield self.plot_mobility_kconv(eh=eh, component=comp, itemp=0, spin=0, show=False)
 
     #def get_panel(self):
     #    """
