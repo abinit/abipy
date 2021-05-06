@@ -697,6 +697,9 @@ class RtaRobot(Robot, RobotWithEbands):
 
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
+        if 'savefig' in kwargs:
+            plt.savefig(kwargs['savefig'])
+
         return fig
 
     @lazy_property
@@ -785,10 +788,9 @@ class RtaRobot(Robot, RobotWithEbands):
         """
         #yield self.plot_lattice_convergence(show=False)
         #if self.all_have_ibte:
-        yield self.plot_mobility_kconv(show=False)
         yield self.plot_ibte_mrta_serta_conv(show=False)
         yield self.plot_ibte_vs_rta_rho(show=False)
-        #self.plot_mobility_kconv(eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+        yield self.plot_mobility_kconv(eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs)
 
     #def get_panel(self):
     #    """
