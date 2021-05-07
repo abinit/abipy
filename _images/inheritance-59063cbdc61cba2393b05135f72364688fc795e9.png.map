@@ -1,6 +1,6 @@
 <map id="inheritance7426748bd3" name="inheritance7426748bd3">
-<area shape="rect" id="node1" href="#abipy.electrons.scr.ScrReader" target="_top" title="This object reads the results stored in the SCR (Screening) file produced by ABINIT." alt="" coords="618,4,764,22"/>
-<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="449,4,584,22"/>
-<area shape="rect" id="node3" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="225,4,414,22"/>
-<area shape="rect" id="node4" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="4,4,190,22"/>
+<area shape="rect" id="node1" href="#abipy.electrons.scr.ScrReader" target="_top" title="This object reads the results stored in the SCR (Screening) file produced by ABINIT." alt="" coords="619,4,764,21"/>
+<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="450,4,584,21"/>
+<area shape="rect" id="node3" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="226,4,415,21"/>
+<area shape="rect" id="node4" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="4,4,191,21"/>
 </map>

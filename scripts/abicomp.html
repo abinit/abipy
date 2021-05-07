@@ -1,76 +1,162 @@
-<!DOCTYPE html>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>abicomp.py &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abicomp.py &mdash; abipy 0.9.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="abidoc.py" href="abidoc.html" />
-    <link rel="prev" title="abicheck.py" href="abicheck.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+    <link rel="next" title="abiview.py" href="abiview.html" />
+    <link rel="prev" title="abiopen.py" href="abiopen.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="abistruct.html"><code class="docutils literal notranslate"><span class="pre">abistruct.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abiopen.html"><code class="docutils literal notranslate"><span class="pre">abiopen.py</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">abicomp.py</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subcommands">subcommands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Sub-commands:">Sub-commands:</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#structure">structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spg">spg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mp_structure">mp_structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cod_structure">cod_structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#xrd">xrd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#data">data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ebands">ebands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#edos">edos</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#phbands">phbands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#phdos">phdos</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#getattr">getattr</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gsr">gsr</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hist">hist</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddb">ddb</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#anaddb">anaddb</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#phbst">phbst</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sigres">sigres</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mdf">mdf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#optic">optic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#a2f">a2f</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sigeph">sigeph</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rta">rta</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gkq">gkq</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#v1qavg">v1qavg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abiwan">abiwan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pseudos">pseudos</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#time">time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gs_scf">gs_scf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dfpt2_scf">dfpt2_scf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#text">text</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abiview.html"><code class="docutils literal notranslate"><span class="pre">abiview.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abinp.html"><code class="docutils literal notranslate"><span class="pre">abinp.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abidoc.html"><code class="docutils literal notranslate"><span class="pre">abidoc.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abicheck.html"><code class="docutils literal notranslate"><span class="pre">abicheck.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abirun.html"><code class="docutils literal notranslate"><span class="pre">abirun.py</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
@@ -86,223 +172,74 @@
 <li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">abicomp.py</span></code></a><ul>
-<li><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
-<li><a class="reference internal" href="#subcommands">subcommands</a></li>
-<li><a class="reference internal" href="#Sub-commands:">Sub-commands:</a><ul>
-<li><a class="reference internal" href="#structure">structure</a><ul>
-<li><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat1">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#spg">spg</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat1">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat2">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#mp_structure">mp_structure</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat2">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat3">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#cod_structure">cod_structure</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat3">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat4">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#xrd">xrd</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat5">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#data">data</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat6">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#ebands">ebands</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat7">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#edos">edos</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat7">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat8">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#phbands">phbands</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat8">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat9">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#phdos">phdos</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat9">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat10">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#getattr">getattr</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat10">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat11">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#gsr">gsr</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat11">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat12">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#hist">hist</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat12">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat13">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#ddb">ddb</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat13">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat14">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#anaddb">anaddb</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat14">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat15">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#phbst">phbst</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat15">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat16">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#sigres">sigres</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat16">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat17">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#mdf">mdf</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat17">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat18">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#optic">optic</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat18">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat19">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#a2f">a2f</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat19">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat20">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#sigeph">sigeph</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat20">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat21">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#rta">rta</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat21">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat22">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#gkq">gkq</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat22">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat23">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#v1qavg">v1qavg</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat23">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat24">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#abiwan">abiwan</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat24">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat25">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#pseudos">pseudos</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat25">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat26">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#time">time</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat26">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat27">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#gs_scf">gs_scf</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat27">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat28">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#dfpt2_scf">dfpt2_scf</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat28">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat29">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#text">text</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat29">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat30">Named Arguments</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</ul>
-</li>
-              
-            
-            
-              
-                
-  <li>
-    <a href="abicheck.html" title="Previous Chapter: abicheck.py"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; abicheck.py</span>
-    </a>
-  </li>
-  <li>
-    <a href="abidoc.html" title="Next Chapter: abidoc.py"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">abidoc.py &raquo;</span>
-    </a>
-  </li>
-              
-            
-            
-            
-            
-              <li class="hidden-sm">
-<div id="sourcelink">
-  <a href="../_sources/scripts/abicomp.rst.txt"
-     rel="nofollow">Source</a>
-</div></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Scripts</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">abicomp.py</span></code></li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/scripts/abicomp.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <div class="section" id="abicomp-py">
 <span id="id1"></span><h1><code class="docutils literal notranslate"><span class="pre">abicomp.py</span></code><a class="headerlink" href="#abicomp-py" title="Permalink to this headline">¶</a></h1>
 <p>This script compares output results stored in multiple <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> files.
@@ -846,7 +783,8 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <blockquote>
 <div><p>Compare results stored in multiple files with data in tabular format.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -876,7 +814,7 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <p>Default: “ERROR”</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -885,6 +823,14 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-i, --use-index</kbd></dt>
 <dd><p>Use the row index as x-value in the plot. By default the plotter uses the first column as x-values</p>
@@ -973,8 +919,8 @@ Use this option to connect remotely from localhost to the machine running the ke
 <div><p>Plot electron DOSes on a grid.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">edos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">classic</span><span class="o">-</span><span class="n">notebook</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
-                <span class="p">[</span><span class="o">-</span><span class="n">e0</span> <span class="p">{</span><span class="n">fermie</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">e0</span> <span class="p">{</span><span class="n">fermie</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1025,7 +971,7 @@ Use this option to connect remotely from localhost to the machine running the ke
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1034,6 +980,14 @@ Use this option to connect remotely from localhost to the machine running the ke
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-p, --plot-mode</kbd></dt>
 <dd><p>Possible choices: gridplot, combiplot, None</p>
@@ -1054,7 +1008,7 @@ Use this option to connect remotely from localhost to the machine running the ke
 <div><p>Plot phonon bands on a grid.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">classic</span><span class="o">-</span><span class="n">notebook</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span>
                    <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="n">boxplot</span><span class="p">,</span><span class="n">combiboxplot</span><span class="p">,</span><span class="n">animate</span><span class="p">,</span><span class="n">panel</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
                    <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
@@ -1106,7 +1060,7 @@ Use this option to connect remotely from localhost to the machine running the ke
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1115,6 +1069,14 @@ Use this option to connect remotely from localhost to the machine running the ke
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-p, --plot-mode</kbd></dt>
 <dd><p>Possible choices: gridplot, combiplot, boxplot, combiboxplot, animate, panel, None</p>
@@ -1130,7 +1092,8 @@ Use this option to connect remotely from localhost to the machine running the ke
 <div><p>Compare multiple PHDOS files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phdos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">classic</span><span class="o">-</span><span class="n">notebook</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1181,7 +1144,7 @@ Use this option to connect remotely from localhost to the machine running the ke
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1190,6 +1153,14 @@ Use this option to connect remotely from localhost to the machine running the ke
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-p, --plot-mode</kbd></dt>
 <dd><p>Possible choices: gridplot, combiplot, None</p>
@@ -1251,7 +1222,7 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <div><p>Compare multiple GSR files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gsr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1296,12 +1267,12 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1310,6 +1281,14 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -1323,8 +1302,8 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <blockquote>
 <div><p>Compare multiple HIST files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1369,12 +1348,12 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1383,6 +1362,14 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -1398,7 +1385,7 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 corresponding to homogeneous sampling i.e. files that have been merged with mrgddb.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1443,12 +1430,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1457,6 +1444,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -1471,7 +1466,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple anaddb.nc files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">anaddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1516,12 +1511,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1530,6 +1525,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -1544,7 +1547,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple PHBST.nc files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phbst</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1589,12 +1592,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1603,6 +1606,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -1617,7 +1628,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple SIGRES files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigres</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1662,12 +1673,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1676,6 +1687,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -1690,7 +1709,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare macroscopic dielectric functions stored in multiple MDF files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mdf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1735,12 +1754,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1749,6 +1768,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -1763,7 +1790,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare results stored in OPTIC.nc files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">optic</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1808,12 +1835,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1822,6 +1849,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -1836,7 +1871,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare results stored in A2f.nc files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">a2f</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1881,12 +1916,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1895,6 +1930,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -1909,7 +1952,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple SIGEPH files storing the e-ph self-energy.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigeph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1954,12 +1997,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -1968,6 +2011,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -1982,7 +2033,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple RTA files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">rta</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2027,12 +2078,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -2041,6 +2092,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -2055,7 +2114,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple GKQ files with EPH matrix elements for a given q-point.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gkq</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2100,12 +2159,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -2114,6 +2173,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -2132,7 +2199,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple V1QAVG files with the average of the DFPT V1 potentials as function of q-point.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">v1qavg</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2177,12 +2244,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -2191,6 +2258,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -2205,7 +2280,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple ABIWAN files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">abiwan</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2250,12 +2325,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--panel</kbd></dt>
+<dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
-<dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
+<dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-s, --slide-mode</kbd></dt>
@@ -2264,6 +2339,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-t, --slide-timeout</kbd></dt>
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
+</dd>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-cs, --chart-studio</kbd></dt>
+<dd><p>Push figure to plotly chart studio .Requires –plotly option and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-c, --clipboard</kbd></dt>
 <dd><p>Copy dataframe to the system clipboard. This can be pasted into Excel, for example</p>
@@ -2485,22 +2568,54 @@ Use this option to connect remotely from localhost to the machine running the ke
 </div>
 
 
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="abiview.html" class="btn btn-neutral float-right" title="abiview.py" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="abiopen.html" class="btn btn-neutral float-left" title="abiopen.py" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

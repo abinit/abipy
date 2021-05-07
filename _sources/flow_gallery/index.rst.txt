@@ -15,7 +15,7 @@ Run the scripts to generate the directory with the flow, then use the :ref:`abir
 Alternatively, one can use the ``-s`` option to generate the flow and run it immediately with the scheduler.
 Use ``--help`` for further information on the available options.
 
-Note that the figures can only show the initial configuration of the Flow.
+Note that the figures can only show the **initial configuration of the Flow**.
 Additional Works generated at runtime won't be displayed.
 To visualize the entire Flow, you need to run the script and then use::
 
@@ -27,220 +27,10 @@ where `FLOWDIR` is the directory of the Flow.
 
     The following examples show how to use python and the AbiPy API to generate and run
     Abinit calculations in a semi-automatic way.
-    These examples are not supposed to produce physically meaningful results
+    These examples **are not supposed to produce physically meaningful results**
     as input parameters are usually underconverged.
 
 
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example show how to build a flow to compute the band structure and the DOS of silicon. Inp...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_ebands_thumb.png
-     :alt: Band structure Flow with factory functions
-
-     :ref:`sphx_glr_flow_gallery_run_ht_si_ebands.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_ht_si_ebands
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute phonon frequencies with phonopy (supercells and finite-differ...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonopy_si_thumb.png
-     :alt: Phonopy + Abinit Flow
-
-     :ref:`sphx_glr_flow_gallery_run_phonopy_si.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_phonopy_si
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a very simple Flow for the structural relaxation of SiC. One co...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_sic_relax_thumb.png
-     :alt: Relaxation Flow
-
-     :ref:`sphx_glr_flow_gallery_run_sic_relax.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_sic_relax
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0.">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eos_thumb.png
-     :alt: Flow for Equation of State
-
-     :ref:`sphx_glr_flow_gallery_run_eos.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_eos
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="G0W0 corrections with the HT interface.">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_g0w0ppm_thumb.png
-     :alt: G0W0 Flow with factory functions
-
-     :ref:`sphx_glr_flow_gallery_run_ht_si_g0w0ppm.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_ht_si_g0w0ppm
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Calculation of the BSE spectrum with the High-throuhput interface (factory functions).">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_bsemdf_thumb.png
-     :alt: Bethe-Salpeter Flow with factory functions
-
-     :ref:`sphx_glr_flow_gallery_run_ht_si_bsemdf.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_ht_si_bsemdf
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit).">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_nonlinear_thumb.png
-     :alt: Flow for Non-linear optic with DFPT
-
-     :ref:`sphx_glr_flow_gallery_run_nonlinear.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_nonlinear
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This script compute the Grüneisen parameters (derivative of frequencies wrt Volume) using finit...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gruneisen_abinit_thumb.png
-     :alt: Gruneisen parameters with DFPT phonons and finite difference
-
-     :ref:`sphx_glr_flow_gallery_run_gruneisen_abinit.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_gruneisen_abinit
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlic...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_from_ddb_thumb.png
-     :alt: Estimate the ZPR of band edges with generalized Frohlich mode
-
-     :ref:`sphx_glr_flow_gallery_run_frohlich_zpr_from_ddb.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_frohlich_zpr_from_ddb
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlic...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_thumb.png
-     :alt: Estimate the ZPR at band edges with the generalized Frohlich model
-
-     :ref:`sphx_glr_flow_gallery_run_frohlich_zpr.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_frohlich_zpr
 
 .. raw:: html
 
@@ -265,14 +55,14 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the e-ph matrix elements in AlAs along a q-path with AbiPy fl...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example show how to build a flow to compute the band structure and the DOS of silicon. Inp...">
 
 .. only:: html
 
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gkq_thumb.png
-     :alt: Flow to compute e-ph matrix elements along a q-path
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_ebands_thumb.png
+     :alt: Band structure Flow with factory functions
 
-     :ref:`sphx_glr_flow_gallery_run_gkq.py`
+     :ref:`sphx_glr_flow_gallery_run_ht_si_ebands.py`
 
 .. raw:: html
 
@@ -282,7 +72,7 @@ where `FLOWDIR` is the directory of the Flow.
 .. toctree::
    :hidden:
 
-   /flow_gallery/run_gkq
+   /flow_gallery/run_ht_si_ebands
 
 .. raw:: html
 
@@ -307,153 +97,6 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_vs_kpts_thumb.png
-     :alt: Relaxation of GaN with different K-meshes
-
-     :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_relax_vs_kpts
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use WFQ files to compute phonons on a q-mesh that is not necessarily ...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_wkq_thumb.png
-     :alt: Phonons with WFQ files (q-mesh denser than k-mesh)
-
-     :ref:`sphx_glr_flow_gallery_run_phonons_wkq.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_phonons_wkq
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the band structure and the electron DOS of M...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_mgb2_edoses_thumb.png
-     :alt: Flow for convergence studies of e-DOS wrt ngkpt
-
-     :ref:`sphx_glr_flow_gallery_run_mgb2_edoses.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_mgb2_edoses
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a flow for Nscf calculations in which the dependency is given b...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_from_files_thumb.png
-     :alt: Starting a Flow from external files
-
-     :ref:`sphx_glr_flow_gallery_run_from_files.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_from_files
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the Born effective charges and the dielectric tensors (e0, ei...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png
-     :alt: Flow for Born effective charges and dielectric tensors with DFPT
-
-     :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_becs_and_epsilon_vs_kpts
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the phonon band structure of AlAs with AbiPy flows. Symmetrie...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_thumb.png
-     :alt: Flow for phonons with DFPT
-
-     :ref:`sphx_glr_flow_gallery_run_phonons.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_phonons
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phfrozen_ebands_thumb.png
-     :alt: Flow for e-Bands with frozen phonon
-
-     :ref:`sphx_glr_flow_gallery_run_phfrozen_ebands.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_phfrozen_ebands
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the band structure of GaAs with and without spin-orbit term. ...">
 
 .. only:: html
@@ -475,14 +118,14 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the phonon band structure in a metallic syst...">
+    <div class="sphx-glr-thumbcontainer" tooltip="Calculation of the BSE spectrum with the High-throuhput interface (factory functions).">
 
 .. only:: html
 
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_mgb2_phonons_nkpt_tsmear_thumb.png
-     :alt: Flow to analyze the convergence of phonons in metals wrt ngkpt and tsmear
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_bsemdf_thumb.png
+     :alt: Bethe-Salpeter Flow with factory functions
 
-     :ref:`sphx_glr_flow_gallery_run_mgb2_phonons_nkpt_tsmear.py`
+     :ref:`sphx_glr_flow_gallery_run_ht_si_bsemdf.py`
 
 .. raw:: html
 
@@ -492,49 +135,7 @@ where `FLOWDIR` is the directory of the Flow.
 .. toctree::
    :hidden:
 
-   /flow_gallery/run_mgb2_phonons_nkpt_tsmear
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation in two steps:">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_thumb.png
-     :alt: Relaxation Flow
-
-     :ref:`sphx_glr_flow_gallery_run_relax.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_relax
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with finite difference method. Derivatives are computed along ...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_effmass_finitediff_thumb.png
-     :alt: Effective masses with finite difference
-
-     :ref:`sphx_glr_flow_gallery_run_effmass_finitediff.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_effmass_finitediff
+   /flow_gallery/run_ht_si_bsemdf
 
 .. raw:: html
 
@@ -559,14 +160,14 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use AbiPy to calculate physical properties related to strain for an i...">
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with finite difference method. Derivatives are computed along ...">
 
 .. only:: html
 
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_elastic_thumb.png
-     :alt: Flow for elastic constants and piezoelectric tensor with DFPT
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_effmass_finitediff_thumb.png
+     :alt: Effective masses with finite difference
 
-     :ref:`sphx_glr_flow_gallery_run_elastic.py`
+     :ref:`sphx_glr_flow_gallery_run_effmass_finitediff.py`
 
 .. raw:: html
 
@@ -576,18 +177,18 @@ where `FLOWDIR` is the directory of the Flow.
 .. toctree::
    :hidden:
 
-   /flow_gallery/run_elastic
+   /flow_gallery/run_effmass_finitediff
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o...">
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with finite difference method. Derivatives are computed along ...">
 
 .. only:: html
 
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ldaus_thumb.png
-     :alt: Flow for LDA+U calculations
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_conducwork_thumb.png
+     :alt: Effective masses with finite difference
 
-     :ref:`sphx_glr_flow_gallery_run_ldaus.py`
+     :ref:`sphx_glr_flow_gallery_run_conducwork.py`
 
 .. raw:: html
 
@@ -597,7 +198,70 @@ where `FLOWDIR` is the directory of the Flow.
 .. toctree::
    :hidden:
 
-   /flow_gallery/run_ldaus
+   /flow_gallery/run_conducwork
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlic...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_thumb.png
+     :alt: Estimate the ZPR at band edges with the generalized Frohlich model
+
+     :ref:`sphx_glr_flow_gallery_run_frohlich_zpr.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_frohlich_zpr
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlic...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_from_ddb_thumb.png
+     :alt: Estimate the ZPR of band edges with generalized Frohlich mode
+
+     :ref:`sphx_glr_flow_gallery_run_frohlich_zpr_from_ddb.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_frohlich_zpr_from_ddb
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the Born effective charges and the dielectric tensors (e0, ei...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png
+     :alt: Flow for Born effective charges and dielectric tensors with DFPT
+
+     :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_becs_and_epsilon_vs_kpts
 
 .. raw:: html
 
@@ -622,14 +286,14 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute e-ph scattering potentials along a q-path, merge the POT file...">
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0.">
 
 .. only:: html
 
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eph_pot_thumb.png
-     :alt: Flow to compute e-ph scattering potentials
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eos_thumb.png
+     :alt: Flow for Equation of State
 
-     :ref:`sphx_glr_flow_gallery_run_eph_pot.py`
+     :ref:`sphx_glr_flow_gallery_run_eos.py`
 
 .. raw:: html
 
@@ -639,18 +303,18 @@ where `FLOWDIR` is the directory of the Flow.
 .. toctree::
    :hidden:
 
-   /flow_gallery/run_eph_pot
+   /flow_gallery/run_eos
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="G0W0 convergence study wrt ecuteps and the number of bands in W.">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o...">
 
 .. only:: html
 
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gwconv_ecuteps_thumb.png
-     :alt: G0W0 convergence study
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ldaus_thumb.png
+     :alt: Flow for LDA+U calculations
 
-     :ref:`sphx_glr_flow_gallery_run_gwconv_ecuteps.py`
+     :ref:`sphx_glr_flow_gallery_run_ldaus.py`
 
 .. raw:: html
 
@@ -660,18 +324,18 @@ where `FLOWDIR` is the directory of the Flow.
 .. toctree::
    :hidden:
 
-   /flow_gallery/run_gwconv_ecuteps
+   /flow_gallery/run_ldaus
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This script shows how to compute the G0W0 corrections in silicon. More specifically, we build a...">
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit).">
 
 .. only:: html
 
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_si_g0w0_thumb.png
-     :alt: G0W0 Flow with convergence study wrt nband
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_nonlinear_thumb.png
+     :alt: Flow for Non-linear optic with DFPT
 
-     :ref:`sphx_glr_flow_gallery_run_si_g0w0.py`
+     :ref:`sphx_glr_flow_gallery_run_nonlinear.py`
 
 .. raw:: html
 
@@ -681,70 +345,7 @@ where `FLOWDIR` is the directory of the Flow.
 .. toctree::
    :hidden:
 
-   /flow_gallery/run_si_g0w0
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to create a flow to compute optical spectra with Optic (independent part...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_optic_thumb.png
-     :alt: Optic Flow
-
-     :ref:`sphx_glr_flow_gallery_run_optic.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_optic
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_raman_bse_thumb.png
-     :alt: Raman Flow with BSE and frozen phonon
-
-     :ref:`sphx_glr_flow_gallery_run_raman_bse.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_raman_bse
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png
-     :alt: Relaxation of GaN with different K-meshes
-
-     :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts_tsmear.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_relax_vs_kpts_tsmear
+   /flow_gallery/run_nonlinear
 
 .. raw:: html
 
@@ -769,6 +370,321 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the band structure and the electron DOS of M...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_mgb2_edoses_thumb.png
+     :alt: Flow for convergence studies of e-DOS wrt ngkpt
+
+     :ref:`sphx_glr_flow_gallery_run_mgb2_edoses.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_mgb2_edoses
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phfrozen_ebands_thumb.png
+     :alt: Flow for e-Bands with frozen phonon
+
+     :ref:`sphx_glr_flow_gallery_run_phfrozen_ebands.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_phfrozen_ebands
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use AbiPy to calculate physical properties related to strain for an i...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_elastic_thumb.png
+     :alt: Flow for elastic constants and piezoelectric tensor with DFPT
+
+     :ref:`sphx_glr_flow_gallery_run_elastic.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_elastic
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the phonon band structure of AlAs with AbiPy flows. Symmetrie...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_thumb.png
+     :alt: Flow for phonons with DFPT
+
+     :ref:`sphx_glr_flow_gallery_run_phonons.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_phonons
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the phonon band structure in a metallic syst...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_mgb2_phonons_nkpt_tsmear_thumb.png
+     :alt: Flow to analyze the convergence of phonons in metals wrt ngkpt and tsmear
+
+     :ref:`sphx_glr_flow_gallery_run_mgb2_phonons_nkpt_tsmear.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_mgb2_phonons_nkpt_tsmear
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the e-ph matrix elements in AlAs along a q-path with AbiPy fl...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gkq_thumb.png
+     :alt: Flow to compute e-ph matrix elements along a q-path
+
+     :ref:`sphx_glr_flow_gallery_run_gkq.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_gkq
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute e-ph scattering potentials along a q-path, merge the POT file...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eph_pot_thumb.png
+     :alt: Flow to compute e-ph scattering potentials
+
+     :ref:`sphx_glr_flow_gallery_run_eph_pot.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_eph_pot
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This script shows how to compute the G0W0 corrections in silicon. More specifically, we build a...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_si_g0w0_thumb.png
+     :alt: G0W0 Flow with convergence study wrt nband
+
+     :ref:`sphx_glr_flow_gallery_run_si_g0w0.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_si_g0w0
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="G0W0 corrections with the HT interface.">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_g0w0ppm_thumb.png
+     :alt: G0W0 Flow with factory functions
+
+     :ref:`sphx_glr_flow_gallery_run_ht_si_g0w0ppm.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_ht_si_g0w0ppm
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="G0W0 convergence study wrt ecuteps and the number of bands in W.">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gwconv_ecuteps_thumb.png
+     :alt: G0W0 convergence study
+
+     :ref:`sphx_glr_flow_gallery_run_gwconv_ecuteps.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_gwconv_ecuteps
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This script compute the Grüneisen parameters (derivative of frequencies wrt Volume) using finit...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gruneisen_abinit_thumb.png
+     :alt: Gruneisen parameters with DFPT phonons and finite difference
+
+     :ref:`sphx_glr_flow_gallery_run_gruneisen_abinit.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_gruneisen_abinit
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to create a flow to compute optical spectra with Optic (independent part...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_optic_thumb.png
+     :alt: Optic Flow
+
+     :ref:`sphx_glr_flow_gallery_run_optic.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_optic
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use WFQ files to compute phonons on a q-mesh that is not necessarily ...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_wkq_thumb.png
+     :alt: Phonons with WFQ files (q-mesh denser than k-mesh)
+
+     :ref:`sphx_glr_flow_gallery_run_phonons_wkq.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_phonons_wkq
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute phonon frequencies with phonopy (supercells and finite-differ...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonopy_si_thumb.png
+     :alt: Phonopy + Abinit Flow
+
+     :ref:`sphx_glr_flow_gallery_run_phonopy_si.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_phonopy_si
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_raman_bse_thumb.png
+     :alt: Raman Flow with BSE and frozen phonon
+
+     :ref:`sphx_glr_flow_gallery_run_raman_bse.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_raman_bse
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B...">
 
 .. only:: html
@@ -790,14 +706,14 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with finite difference method. Derivatives are computed along ...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a very simple Flow for the structural relaxation of SiC. One co...">
 
 .. only:: html
 
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_conducwork_thumb.png
-     :alt: Effective masses with finite difference
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_sic_relax_thumb.png
+     :alt: Relaxation Flow
 
-     :ref:`sphx_glr_flow_gallery_run_conducwork.py`
+     :ref:`sphx_glr_flow_gallery_run_sic_relax.py`
 
 .. raw:: html
 
@@ -807,7 +723,91 @@ where `FLOWDIR` is the directory of the Flow.
 .. toctree::
    :hidden:
 
-   /flow_gallery/run_conducwork
+   /flow_gallery/run_sic_relax
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation in two steps:">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_thumb.png
+     :alt: Relaxation Flow
+
+     :ref:`sphx_glr_flow_gallery_run_relax.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_relax
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png
+     :alt: Relaxation of GaN with different K-meshes
+
+     :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts_tsmear.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_relax_vs_kpts_tsmear
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_vs_kpts_thumb.png
+     :alt: Relaxation of GaN with different K-meshes
+
+     :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_relax_vs_kpts
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a flow for Nscf calculations in which the dependency is given b...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_from_files_thumb.png
+     :alt: Starting a Flow from external files
+
+     :ref:`sphx_glr_flow_gallery_run_from_files.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_from_files
 .. raw:: html
 
     <div class="sphx-glr-clear"></div>

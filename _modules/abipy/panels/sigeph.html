@@ -1,0 +1,327 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.panels.sigeph &mdash; abipy 0.9.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>abipy.panels.sigeph</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.panels.sigeph</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Panels to interact with the SIGEPH file.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">param</span>
+<span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
+<span class="kn">import</span> <span class="nn">panel.widgets</span> <span class="k">as</span> <span class="nn">pnw</span>
+<span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
+
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">PanelWithElectronBands</span><span class="p">,</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span> <span class="c1">#, PanelWithEbandsRobot</span>
+
+
+<div class="viewcode-block" id="SigEPhFilePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.sigeph.SigEPhFilePanel">[docs]</a><span class="k">class</span> <span class="nc">SigEPhFilePanel</span><span class="p">(</span><span class="n">PanelWithElectronBands</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Panel with widgets to interact with a |SigEphFile|.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">plot_plot_qpsolution_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot Sigma_nk&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigeph</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span> <span class="o">=</span> <span class="n">sigeph</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_spin_select</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">widgets</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Spin index&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">sigeph</span><span class="o">.</span><span class="n">nsppol</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_kpoint_select</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">widgets</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Kpoint in Sigma_nk&quot;</span><span class="p">,</span>
+                <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;[</span><span class="si">%d</span><span class="s2">]: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ik</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">k</span><span class="p">)):</span> <span class="n">ik</span> <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sigeph</span><span class="o">.</span><span class="n">sigma_kpoints</span><span class="p">)})</span>
+
+        <span class="c1">#sigma_band_select  = param.ObjectSelector(default=0, objects=[0], doc=&quot;Band index in sigma_nk&quot;)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;|ElectronBands|.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">ebands</span>
+
+<div class="viewcode-block" id="SigEPhFilePanel.plot_lws"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.sigeph.SigEPhFilePanel.plot_lws">[docs]</a>    <span class="k">def</span> <span class="nf">plot_lws</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Insert results in grid.</span>
+        <span class="n">gspec</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">rta_type</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="s2">&quot;serta&quot;</span><span class="p">,</span> <span class="s2">&quot;mrta&quot;</span><span class="p">)):</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">plot_lws_vs_e0</span><span class="p">(</span><span class="n">rta_type</span><span class="o">=</span><span class="n">rta_type</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
+            <span class="n">gspec</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">fig</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">plot_tau_vtau</span><span class="p">(</span><span class="n">rta_type</span><span class="o">=</span><span class="n">rta_type</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
+            <span class="n">gspec</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">fig</span>
+
+        <span class="k">return</span> <span class="n">gspec</span></div>
+
+<div class="viewcode-block" id="SigEPhFilePanel.plot_qpgaps"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.sigeph.SigEPhFilePanel.plot_qpgaps">[docs]</a>    <span class="k">def</span> <span class="nf">plot_qpgaps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Insert results in grid.</span>
+        <span class="n">gspec</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qp_kpt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">sigma_kpoints</span><span class="p">):</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">plot_qpgaps_t</span><span class="p">(</span><span class="n">qp_kpoints</span><span class="o">=</span><span class="n">qp_kpt</span><span class="p">,</span> <span class="n">qp_type</span><span class="o">=</span><span class="s2">&quot;qpz0&quot;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
+            <span class="n">gspec</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">fig</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">plot_qpgaps_t</span><span class="p">(</span><span class="n">qp_kpoints</span><span class="o">=</span><span class="n">qp_kpt</span><span class="p">,</span> <span class="n">qp_type</span><span class="o">=</span><span class="s2">&quot;otms&quot;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
+            <span class="n">gspec</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">fig</span>
+
+        <span class="k">return</span> <span class="n">gspec</span></div>
+
+<div class="viewcode-block" id="SigEPhFilePanel.plot_qps_vs_e0"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.sigeph.SigEPhFilePanel.plot_qps_vs_e0">[docs]</a>    <span class="k">def</span> <span class="nf">plot_qps_vs_e0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">mpl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="SigEPhFilePanel.plot_qpsolution_sk"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.sigeph.SigEPhFilePanel.plot_qpsolution_sk">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;plot_plot_qpsolution_btn.clicks&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">plot_qpsolution_sk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_plot_qpsolution_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">plot_qpsolution_sk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_spin_select</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_kpoint_select</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                                             <span class="n">itemp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">with_int_aw</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                             <span class="n">ax_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mpl</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SigEPhFilePanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.sigeph.SigEPhFilePanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return tabs with widgets to interact with the SIGEPH file.&quot;&quot;&quot;</span>
+        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">();</span> <span class="n">app</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Summary&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span>
+                               <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">))))</span>
+        <span class="c1">#app((&quot;e-Bands&quot;, pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)))</span>
+
+        <span class="c1"># Build different tabs depending on the calculation type.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">imag_only</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">((</span><span class="s2">&quot;LWS&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_lws</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">((</span><span class="s2">&quot;QP-gaps&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpgaps</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">((</span><span class="s2">&quot;QP_vs_e0&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">((</span><span class="s2">&quot;QPSolution&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# Quasiparticle solution&quot;</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">sigma_spin_select</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">sigma_kpoint_select</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">plot_plot_qpsolution_btn</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpsolution_sk</span><span class="p">)</span>
+            <span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

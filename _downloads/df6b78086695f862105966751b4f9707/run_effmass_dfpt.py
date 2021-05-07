@@ -80,7 +80,11 @@ def build_flow(options):
     flow.register_work(work)
 
     # or use this Work to detect band edges automatically but increase ndivsm and decrease tolwfr!
-    work = EffMassAutoDFPTWork.from_scf_input(scf_input, ndivsm=5, tolwfr=1e-12)
+    # you may want to use a negative value of ndivsm (e.g. -20) to use the pymatgen density_line
+    # convention. This is useful to avoid problems with high-symmetry
+    # k-paths containing very small segments.
+    # In this case, indeed,  ndivsm > 0 (Abinit variable) can easily generate thousands of k-points.
+    work = EffMassAutoDFPTWork.from_scf_input(scf_input, ndivsm=-5, tolwfr=1e-12)
     flow.register_work(work)
 
     return flow

@@ -1,69 +1,108 @@
-<!DOCTYPE html>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>wannier90 Package &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>wannier90 Package &mdash; abipy 0.9.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Coding guide" href="../coding_guide.html" />
-    <link rel="prev" title="waves Package" href="waves_api.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+    <link rel="prev" title="waves Package" href="waves_api.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
@@ -82,76 +121,101 @@
 <li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="abilab_api.html">abilab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abio_api.html">abio Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core_api.html">core Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_api.html">data Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dfpt_api.html">dfpt Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="display_api.html">display Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics_api.html">dynamics Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="electrons_api.html">electrons Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="eph_api.html">eph Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flowtk_api.html">flowtk Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iotools_api.html">iotools Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="panels_api.html">panels Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools_api.html">tools Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="waves_api.html">waves Package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">wannier90 Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.wannier90"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wannier90</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.wannier90.abiwan"><code class="xref py py-mod docutils literal notranslate"><span class="pre">abiwan</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.wannier90.win"><code class="xref py py-mod docutils literal notranslate"><span class="pre">win</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.wannier90.wout"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wout</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">wannier90 Package</a><ul>
-<li><a class="reference internal" href="#module-abipy.wannier90"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wannier90</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.wannier90.abiwan"><code class="xref py py-mod docutils literal notranslate"><span class="pre">abiwan</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.wannier90.win"><code class="xref py py-mod docutils literal notranslate"><span class="pre">win</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.wannier90.wout"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wout</span></code> Module</a></li>
-</ul>
-</li>
-</ul>
-</ul>
-</li>
-              
-            
-            
-              
-                
-  <li>
-    <a href="waves_api.html" title="Previous Chapter: waves Package"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; waves Package</span>
-    </a>
-  </li>
-  <li>
-    <a href="../coding_guide.html" title="Next Chapter: Coding guide"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Coding guide &raquo;</span>
-    </a>
-  </li>
-              
-            
-            
-            
-            
-              <li class="hidden-sm">
-<div id="sourcelink">
-  <a href="../_sources/api/wannier90_api.rst.txt"
-     rel="nofollow">Source</a>
-</div></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">API documentation</a> &raquo;</li>
+        
+      <li>wannier90 Package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/wannier90_api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <div class="section" id="wannier90-package">
 <h1><a class="toc-backref" href="#contents">wannier90 Package</a><a class="headerlink" href="#wannier90-package" title="Permalink to this headline">¶</a></h1>
 <div class="contents topic" id="contents">
@@ -188,12 +252,12 @@ calling wannier90 in library mode.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-b6114a39b13b158597b5f660bd24016aca7126f5.png" alt="Inheritance diagram of AbiwanFile" usemap="#inheritanceb5e4c480bc" class="inheritance graphviz" /></div>
 <map id="inheritanceb5e4c480bc" name="inheritanceb5e4c480bc">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="257,203,457,228"/>
-<area shape="rect" id="node7" href="#abipy.wannier90.abiwan.AbiwanFile" target="_top" title="File produced by Abinit with the unitary matrices obtained by" alt="" coords="528,104,761,129"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="233,5,480,31"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="255,55,459,80"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="250,104,463,129"/>
-<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="246,153,467,179"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,197,454,221"/>
+<area shape="rect" id="node7" href="#abipy.wannier90.abiwan.AbiwanFile" target="_top" title="File produced by Abinit with the unitary matrices obtained by" alt="" coords="525,101,757,125"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="232,5,477,29"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="254,53,456,77"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="249,101,461,125"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,149,464,173"/>
 </map><dl class="py method">
 <dt id="abipy.wannier90.abiwan.AbiwanFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/wannier90/abiwan.html#AbiwanFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.wannier90.abiwan.AbiwanFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -384,14 +448,14 @@ Optionally compute gradients and Hessian matrices.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legends and titles</p></li>
 <li><p><strong>yscale</strong> – Define scale for y-axis. Passed to ax.set_yscale</p></li>
 <li><p><strong>kwargs</strong> – options passed to <code class="docutils literal notranslate"><span class="pre">ax.plot</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -447,8 +511,8 @@ It provides helper function to access the most important quantities.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-1b9fb32c179806750515756d9b1673080f10aa70.png" alt="Inheritance diagram of AbiwanReader" usemap="#inheritance2fdd3fd955" class="inheritance graphviz" /></div>
 <map id="inheritance2fdd3fd955" name="inheritance2fdd3fd955">
-<area shape="rect" id="node5" href="#abipy.wannier90.abiwan.AbiwanReader" target="_top" title="This object reads the results stored in the ABIWAN file produced by ABINIT after having" alt="" coords="633,16,765,29"/>
-<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="335,28,431,41"/>
+<area shape="rect" id="node5" href="#abipy.wannier90.abiwan.AbiwanReader" target="_top" title="This object reads the results stored in the ABIWAN file produced by ABINIT after having" alt="" coords="633,15,765,28"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="336,28,431,40"/>
 </map></dd></dl>
 
 <dl class="py class">
@@ -459,9 +523,9 @@ It provides helper function to access the most important quantities.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-c8a5ac94d5349c70b537a203aee3401ad16e09e8.png" alt="Inheritance diagram of AbiwanRobot" usemap="#inheritanced09d992b8d" class="inheritance graphviz" /></div>
 <map id="inheritanced09d992b8d" name="inheritanced09d992b8d">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="298,50,446,73"/>
-<area shape="rect" id="node4" href="#abipy.wannier90.abiwan.AbiwanRobot" target="_top" title="This robot analyzes the results contained in multiple ABIWAN.nc files." alt="" coords="538,28,763,51"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,50,206,73"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="298,49,445,71"/>
+<area shape="rect" id="node4" href="#abipy.wannier90.abiwan.AbiwanRobot" target="_top" title="This robot analyzes the results contained in multiple ABIWAN.nc files." alt="" coords="538,27,763,49"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,49,205,71"/>
 </map><dl class="py attribute">
 <dt id="abipy.wannier90.abiwan.AbiwanRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'ABIWAN'</span></em><a class="headerlink" href="#abipy.wannier90.abiwan.AbiwanRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -500,13 +564,13 @@ on the same Axes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>colormap</strong> – matplotlib color map.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legends and titles</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -608,9 +672,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-c2e1ba63b0862f9bdd767f7b58855358dee6792a.png" alt="Inheritance diagram of Wannier90Input" usemap="#inheritance82c2cc5b65" class="inheritance graphviz" /></div>
 <map id="inheritance82c2cc5b65" name="inheritance82c2cc5b65">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input classes." alt="" coords="497,30,607,43"/>
-<area shape="rect" id="node4" href="#abipy.wannier90.win.Wannier90Input" target="_top" title="This object stores the wannier90 input variables." alt="" coords="636,17,765,30"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="494,3,610,17"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input classes." alt="" coords="497,29,607,42"/>
+<area shape="rect" id="node4" href="#abipy.wannier90.win.Wannier90Input" target="_top" title="This object stores the wannier90 input variables." alt="" coords="636,16,765,29"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="495,3,610,16"/>
 </map><dl class="py method">
 <dt id="abipy.wannier90.win.Wannier90Input.from_abinit_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_abinit_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/wannier90/win.html#Wannier90Input.from_abinit_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.wannier90.win.Wannier90Input.from_abinit_file" title="Permalink to this definition">¶</a></dt>
@@ -692,9 +756,9 @@ If None, we use the default high-symmetry k-path defined in the pymatgen databas
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-6acffa5b5c2486b694c047904b4e8251dcd4089e.png" alt="Inheritance diagram of WoutFile" usemap="#inheritancefe6ca5ff52" class="inheritance graphviz" /></div>
 <map id="inheritancefe6ca5ff52" name="inheritancefe6ca5ff52">
-<area shape="rect" id="node4" href="#abipy.wannier90.wout.WoutFile" target="_top" title="Main output file produced by Wannier90" alt="" coords="275,55,481,80"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="9,55,223,80"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,104,227,129"/>
+<area shape="rect" id="node4" href="#abipy.wannier90.wout.WoutFile" target="_top" title="Main output file produced by Wannier90" alt="" coords="273,53,478,77"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="9,53,221,77"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,101,225,125"/>
 </map><dl class="py method">
 <dt id="abipy.wannier90.wout.WoutFile.close">
 <code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/wannier90/wout.html#WoutFile.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.wannier90.wout.WoutFile.close" title="Permalink to this definition">¶</a></dt>
@@ -722,7 +786,7 @@ If None, we use the default high-symmetry k-path defined in the pymatgen databas
 <dd class="field-odd"><p><strong>fontsize</strong> – legend and label fontsize.</p>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -776,7 +840,7 @@ as function of iteration number</p>
 <dd class="field-odd"><p><strong>fontsize</strong> – legend and label fontsize.</p>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -839,22 +903,54 @@ working directory is created. Return path to the notebook.</p>
 </div>
 
 
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../coding_guide.html" class="btn btn-neutral float-right" title="Coding guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="waves_api.html" class="btn btn-neutral float-left" title="waves Package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

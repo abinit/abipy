@@ -1,67 +1,106 @@
+
+
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.panels.structure &mdash; abipy 0.9.0 documentation</title>
+  
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>abipy.panels.structure &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../../../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../../../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
@@ -84,51 +123,70 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"></ul>
-</li>
-              
-            
-            
-              
-                
-              
-            
-            
-            
-            
-              <li class="hidden-sm"></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../../../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>abipy.panels.structure</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <h1>Source code for abipy.panels.structure</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;&quot;GUIs for structure.&quot;&quot;&quot;</span>
 
@@ -137,39 +195,13 @@
 <span class="kn">import</span> <span class="nn">panel.widgets</span> <span class="k">as</span> <span class="nn">pnw</span>
 <span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
 
-<span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">AbipyParameterized</span><span class="p">,</span> <span class="n">gen_id</span>
-
-<span class="n">pn</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">js_files</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s1">&#39;$&#39;</span><span class="p">:</span> <span class="s1">&#39;https://code.jquery.com/jquery-3.4.1.slim.min.js&#39;</span><span class="p">,</span>
-    <span class="s2">&quot;clipboard&quot;</span><span class="p">:</span> <span class="s2">&quot;https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js&quot;</span><span class="p">,</span>
-<span class="p">})</span>
-
-<span class="n">pn</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">js_files</span><span class="p">[</span><span class="s2">&quot;ngl&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js&quot;</span>
+<span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">HasStructureParams</span><span class="p">,</span> <span class="n">ButtonContext</span><span class="p">,</span> <span class="n">dfc</span><span class="p">,</span> <span class="n">mpl</span>
 
 
-<span class="n">_html_with_copy_to_clipboard_ncalls</span> <span class="o">=</span> <span class="mi">0</span>
-
-
-<div class="viewcode-block" id="html_with_copy_to_clipboard"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.html_with_copy_to_clipboard">[docs]</a><span class="k">def</span> <span class="nf">html_with_copy_to_clipboard</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">btn_cls</span><span class="o">=</span><span class="s2">&quot;btn-primary btn-sm&quot;</span><span class="p">):</span>
-    <span class="k">global</span> <span class="n">_html_with_copy_to_clipboard_ncalls</span>
-    <span class="n">_html_with_copy_to_clipboard_ncalls</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="n">myid</span> <span class="o">=</span> <span class="n">gen_id</span><span class="p">()</span>
-    <span class="n">html</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">&lt;button class=&quot;btn </span><span class="si">{</span><span class="n">btn_cls</span><span class="si">}</span><span class="s2">&quot; data-clipboard-target=&quot;#</span><span class="si">{</span><span class="n">myid</span><span class="si">}</span><span class="s2">&quot;&gt; Copy to clipboard &lt;/button&gt;</span>
-<span class="s2">&lt;div id=&quot;</span><span class="si">{</span><span class="n">myid</span><span class="si">}</span><span class="s2">&quot;&gt; </span><span class="si">{</span><span class="n">html</span><span class="si">}</span><span class="s2"> &lt;/div&gt;</span>
-<span class="s2">&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">_html_with_copy_to_clipboard_ncalls</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">html</span> <span class="o">+=</span> <span class="s2">&quot;&lt;script&gt;$(document).ready(function () {new ClipboardJS(&#39;.btn&#39;)})&lt;/script&gt;&quot;</span>
-
-    <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">html</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="StructurePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel">[docs]</a><span class="k">class</span> <span class="nc">StructurePanel</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
+<div class="viewcode-block" id="StructurePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel">[docs]</a><span class="k">class</span> <span class="nc">StructurePanel</span><span class="p">(</span><span class="n">HasStructureParams</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Panel with widgets to interact with an AbiPy Structure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">verbose</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Verbosity Level&quot;</span><span class="p">)</span>
-
     <span class="c1"># Convert widgets.</span>
     <span class="n">output_format</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;format&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;abinit&quot;</span><span class="p">,</span>
                                <span class="n">options</span><span class="o">=</span><span class="s2">&quot;abinit,cif,xsf,poscar,qe,siesta,wannier90,cssr,json&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))</span>
@@ -182,15 +214,10 @@
     <span class="n">kpath_format</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;format&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;abinit&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;abinit&quot;</span><span class="p">,</span> <span class="s2">&quot;siesta&quot;</span><span class="p">,</span> <span class="s2">&quot;wannier90&quot;</span><span class="p">])</span>
     <span class="n">line_density</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;line density&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-    <span class="c1"># Viewer widgets.</span>
-    <span class="n">viewer_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;View structure&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
-    <span class="n">viewer</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Viewer&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">,</span>
-                        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;vesta&quot;</span><span class="p">,</span> <span class="s2">&quot;xcrysden&quot;</span><span class="p">,</span> <span class="s2">&quot;vtk&quot;</span><span class="p">,</span> <span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;mayavi&quot;</span><span class="p">])</span>
-
-    <span class="c1"># Mp-match</span>
+    <span class="c1"># MP-match</span>
     <span class="n">mp_match_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Connect to Materials Project&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
 
-    <span class="c1"># Mp-search</span>
+    <span class="c1"># MP-search</span>
     <span class="c1">#mp_search_btn = pnw.Button(name=&quot;Connect to Materials Project&quot;, button_type=&#39;primary&#39;)</span>
     <span class="c1">#mp_api_key</span>
 
@@ -211,150 +238,81 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span>  <span class="o">**</span><span class="n">params</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
 
 <div class="viewcode-block" id="StructurePanel.convert"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.convert">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;output_format.value&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_format</span><span class="o">.</span><span class="n">value</span><span class="p">)),</span>
-                      <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">)</span></div>
+        <span class="sd">&quot;&quot;&quot;Convert the input structure to one of the format selected by the user.&quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_format</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">html_with_clipboard_btn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;pre&gt; </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2"> &lt;/pre&gt;&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StructurePanel.spglib_summary"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.spglib_summary">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;spglib_symprec.value&quot;</span><span class="p">,</span> <span class="s2">&quot;spglib_angtol.value&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">spglib_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Call spglib to find space group symmetries and Wyckoff positions.&quot;&quot;&quot;</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">spget_summary</span><span class="p">(</span><span class="n">symprec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spglib_symprec</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
                                          <span class="n">angle_tolerance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spglib_angtol</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="StructurePanel.get_kpath"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.get_kpath">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;kpath_format.value&quot;</span><span class="p">,</span> <span class="s2">&quot;line_density.value&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_kpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate high-symmetry k-path from input structure in ABINIT format..&quot;&quot;&quot;</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
+
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_kpath_input_string</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kpath_format</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
                                                   <span class="n">line_density</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">line_density</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">))</span></div>
+        <span class="n">ca</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_with_clipboard_btn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;pre&gt; </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2"> &lt;/pre&gt;&quot;</span><span class="p">))</span>
 
-<div class="viewcode-block" id="StructurePanel.view"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.view">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;viewer_btn.clicks&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewer_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="c1"># FIXME: This plots the mpl figure!</span>
+        <span class="c1">#kpath_pane = mpl(self.structure.plot_bz(**self.mpl_kwargs), with_divider=False)</span>
+        <span class="c1">#df_kpts = self.structure.hsym_kpoints.get_highsym_datataframe()</span>
+        <span class="c1">#ca(pn.Row(kpath_pane, df_kpts))</span>
+        <span class="c1">#ca(pn.layout.Divider())</span>
 
-        <span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
-
-        <span class="c1">#view = self.structure.get_jsmol_view()</span>
-        <span class="c1">#from ipywidgets_bokeh import IPyWidget</span>
-        <span class="c1">#view = IPyWidget(widget=view) #, width=800, height=300)</span>
-        <span class="c1">#from IPython.display import display</span>
-        <span class="c1">#display(view)</span>
-        <span class="c1">#return pn.Row(display(view))</span>
-        <span class="c1">#return pn.panel(view)</span>
-
-        <span class="n">js_files</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ngl&#39;</span><span class="p">:</span> <span class="s1">&#39;https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js&#39;</span><span class="p">}</span>
-        <span class="n">pn</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="n">comms</span><span class="o">=</span><span class="s1">&#39;ipywidgets&#39;</span><span class="p">,</span> <span class="n">js_files</span><span class="o">=</span><span class="n">js_files</span><span class="p">)</span>
-        <span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_ngl_view</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">panel</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
-
-        <span class="c1">#pn.config.js_files[&quot;ngl&quot;]=&quot;https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js&quot;</span>
-        <span class="c1">#pn.extension()</span>
-
-        <span class="n">html</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;&lt;div id=&quot;viewport&quot; style=&quot;width:100%; height:100%;&quot;&gt;&lt;/div&gt;</span>
-<span class="s2">        &lt;script&gt;</span>
-<span class="s2">        stage = new NGL.Stage(&quot;viewport&quot;);</span>
-<span class="s2">        stage.loadFile(&quot;rcsb://1NKT.mmtf&quot;, {defaultRepresentation: true});</span>
-<span class="s2">        &lt;/script&gt;&quot;&quot;&quot;</span>
-
-<span class="c1">#        html = &quot;&quot;&quot;</span>
-<span class="c1">#         &lt;script&gt;</span>
-<span class="c1">#    document.addeventlistener(&quot;domcontentloaded&quot;, function () {</span>
-<span class="c1">#      var stage = new ngl.stage(&quot;viewport&quot;);</span>
-<span class="c1">#      stage.loadfile(&quot;rcsb://1crn&quot;, {defaultrepresentation: true});</span>
-<span class="c1">#    });</span>
-<span class="c1">#  &lt;/script&gt;&quot;&quot;&quot;</span>
-
-<span class="c1">#        html = &quot;&quot;&quot;</span>
-<span class="c1">#&lt;script&gt;</span>
-<span class="c1">#document.addeventlistener(&quot;domcontentloaded&quot;, function () {</span>
-<span class="c1">#    // create a `stage` object</span>
-<span class="c1">#    var stage = new NGL.Stage(&quot;viewport&quot;);</span>
-<span class="c1">#    // load a PDB structure and consume the returned `Promise`</span>
-<span class="c1">#    stage.loadFile(&quot;rcsb://1CRN&quot;).then(function (component) {</span>
-<span class="c1">#    // add a &quot;cartoon&quot; representation to the structure component</span>
-<span class="c1">#    component.addRepresentation(&quot;cartoon&quot;);</span>
-<span class="c1">#    // provide a &quot;good&quot; view of the structure</span>
-<span class="c1">#    component.autoView();</span>
-<span class="c1">#  });</span>
-<span class="c1">#});</span>
-<span class="c1">#&lt;/script&gt;&quot;&quot;&quot;</span>
-
-        <span class="n">ngl_pane</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">ngl_pane</span><span class="p">)</span>
-
-        <span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_ngl_view</span><span class="p">()</span>
-        <span class="c1">#return self.structure.crystaltoolkitview()</span>
-        <span class="c1">#import nglview as nv</span>
-        <span class="c1">#view = nv.demo(gui=False)</span>
-
-        <span class="c1">#from bokeh.models import ColumnDataSource</span>
-        <span class="c1">#from bokeh.io import show, curdoc</span>
-        <span class="c1">#from bokeh.models.widgets import Button, TextInput</span>
-        <span class="c1">#from bokeh.layouts import layout, widgetbox</span>
-        <span class="c1">#from jsmol_bokeh_extension import JSMol</span>
-        <span class="c1">#script_source = ColumnDataSource()</span>
-
-        <span class="c1">#info = dict(</span>
-        <span class="c1">#    height=&quot;100%&quot;,</span>
-        <span class="c1">#    width=&quot;100%&quot;,</span>
-        <span class="c1">#    serverURL=&quot;https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php&quot;,</span>
-        <span class="c1">#    use=&quot;HTML5&quot;,</span>
-        <span class="c1">#    j2sPath=&quot;https://chemapps.stolaf.edu/jmol/jsmol/j2s&quot;,</span>
-        <span class="c1">#    script=</span>
-        <span class="c1">#    &quot;background black;load https://chemapps.stolaf.edu/jmol/jsmol-2013-09-18/data/caffeine.mol&quot;,</span>
-        <span class="c1">#)</span>
-
-        <span class="c1">#applet = JSMol(</span>
-        <span class="c1">#    width=600,</span>
-        <span class="c1">#    height=600,</span>
-        <span class="c1">#    script_source=script_source,</span>
-        <span class="c1">#    info=info,</span>
-        <span class="c1">#)</span>
-
-        <span class="c1">#button = Button(label=&#39;Execute&#39;)</span>
-        <span class="c1">#inp_script = TextInput(value=&#39;background white;&#39;)</span>
-
-        <span class="c1">#def run_script():</span>
-        <span class="c1">#    script_source.data[&#39;script&#39;] = [inp_script.value]</span>
-
-        <span class="c1">#button.on_click(run_script)</span>
-        <span class="c1">#ly = layout([applet, widgetbox(button, inp_script)])</span>
-        <span class="c1">#show(ly)</span>
-        <span class="c1">#curdoc().add_root(ly)</span>
-
-        <span class="c1">#return pn.Row(applet)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">viewer</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">col</span></div>
 
 <div class="viewcode-block" id="StructurePanel.on_gs_input_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.on_gs_input_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;gs_input_btn.clicks&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_gs_input_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate minimalistic input file from the input structure.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_input_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
-        <span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="kn">import</span> <span class="n">gs_input</span>
-        <span class="kn">from</span> <span class="nn">abipy.data.hgh_pseudos</span> <span class="kn">import</span> <span class="n">HGH_TABLE</span>
 
-        <span class="n">gs_inp</span> <span class="o">=</span> <span class="n">gs_input</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">HGH_TABLE</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kppra</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-            <span class="n">spin_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label2mode</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">spin_mode</span><span class="o">.</span><span class="n">value</span><span class="p">],</span>
-            <span class="n">smearing</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-        <span class="n">gs_inp</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">((</span><span class="s2">&quot;charge&quot;</span><span class="p">,</span> <span class="s2">&quot;chksymbreak&quot;</span><span class="p">))</span>
-        <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ecut</span><span class="o">=</span><span class="s2">&quot;?? # depends on pseudos&quot;</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="s2">&quot;?? # depends on pseudos&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">ButtonContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_input_btn</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="kn">import</span> <span class="n">gs_input</span>
+            <span class="kn">from</span> <span class="nn">abipy.data.hgh_pseudos</span> <span class="kn">import</span> <span class="n">HGH_TABLE</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_type</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;relax&quot;</span><span class="p">:</span>
-            <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">optcell</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ecutsm</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dilatmx</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
+            <span class="n">gs_inp</span> <span class="o">=</span> <span class="n">gs_input</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">HGH_TABLE</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kppra</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                <span class="n">spin_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label2mode</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">spin_mode</span><span class="o">.</span><span class="n">value</span><span class="p">],</span>
+                <span class="n">smearing</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-        <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_mnemonics</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">html_with_copy_to_clipboard</span><span class="p">(</span><span class="n">gs_inp</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">())</span></div>
+            <span class="n">gs_inp</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">((</span><span class="s2">&quot;charge&quot;</span><span class="p">,</span> <span class="s2">&quot;chksymbreak&quot;</span><span class="p">))</span>
+            <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ecut</span><span class="o">=</span><span class="s2">&quot;?? # depends on pseudos&quot;</span><span class="p">,</span>
+                            <span class="n">nband</span><span class="o">=</span><span class="s2">&quot;?? # depends on pseudos&quot;</span><span class="p">,</span>
+                            <span class="n">pseudos</span><span class="o">=</span><span class="s1">&#39;&quot;pseudo1, pseudo2, ...&quot;&#39;</span>
+                           <span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_type</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;relax&quot;</span><span class="p">:</span>
+                <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">optcell</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ecutsm</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dilatmx</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
+
+            <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_mnemonics</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">html_with_clipboard_btn</span><span class="p">(</span><span class="n">gs_inp</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="StructurePanel.on_mp_match_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.on_mp_match_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;mp_match_btn.clicks&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_mp_match_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Match input structure with the structures available on the materials project.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp_match_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
-        <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="n">mp_match_structure</span>
-        <span class="n">mp</span> <span class="o">=</span> <span class="n">mp_match_structure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">mp</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No structure found in MP database&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_df</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">lattice_dataframe</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">)</span></div>
+        <span class="k">with</span> <span class="n">ButtonContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp_match_btn</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="n">mp_match_structure</span>
+            <span class="n">mp</span> <span class="o">=</span> <span class="n">mp_match_structure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">mp</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No structure found in the MP database&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">lattice_dataframe</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">)</span></div>
 
     <span class="c1">#@param.depends(&quot;mp_search_btn.clicks&quot;)</span>
     <span class="c1">#def on_mp_search_btn(self):</span>
@@ -365,42 +323,87 @@
     <span class="c1">#    if not mp.structures:</span>
     <span class="c1">#        raise RuntimeError(&quot;No structure found in MP database&quot;)</span>
 
-    <span class="c1">#    return pn.Column(self._df(mp.lattice_dataframe), sizing_mode=&#39;stretch_width&#39;)</span>
+    <span class="c1">#    return pn.Column(dfc(mp.lattice_dataframe), sizing_mode=&#39;stretch_width&#39;)</span>
 
-<div class="viewcode-block" id="StructurePanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="StructurePanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Build panel with widgets to interact with the structure either in a notebook or in a bokeh app&quot;&quot;&quot;</span>
-        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">();</span> <span class="n">app</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">append</span>
-        <span class="n">row</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Summary&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
-        <span class="n">ws</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s1">&#39;# Spglib options&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spglib_symprec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spglib_angtol</span><span class="p">)</span>
-        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Spglib&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spglib_summary</span><span class="p">)))</span>
-        <span class="n">ws</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s1">&#39;# K-path options&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpath_format</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_density</span><span class="p">)</span>
-        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Kpath&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_kpath</span><span class="p">)))</span>
-        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Convert&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# Convert structure&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">)))</span>
-        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;View&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# Visualize structure&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewer_btn</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="p">)))</span>
-        <span class="n">ws</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s1">&#39;# Generate GS input&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kppra</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_input_btn</span><span class="p">)</span>
-        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;GS-input&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_gs_input_btn</span><span class="p">)))</span>
-        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;MP-match&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp_match_btn</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_mp_match_btn</span><span class="p">)))</span>
 
-        <span class="k">return</span> <span class="n">tabs</span></div></div>
+        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">();</span> <span class="n">app</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Summary&quot;</span><span class="p">,</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">))</span>
+        <span class="p">))</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Spglib&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s1">&#39;# Spglib options&#39;</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pws</span><span class="p">(</span><span class="s2">&quot;spglib_symprec&quot;</span><span class="p">,</span> <span class="s2">&quot;spglib_angtol&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;spglib_summary&quot;</span><span class="p">))),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spglib_summary</span><span class="p">)</span>
+        <span class="p">))</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Kpath&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s1">&#39;# K-path options&#39;</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pws</span><span class="p">(</span><span class="s2">&quot;kpath_format&quot;</span><span class="p">,</span> <span class="s2">&quot;line_density&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;get_kpath&quot;</span><span class="p">))),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_kpath</span><span class="p">)</span>
+        <span class="p">))</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Convert&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# Convert structure&quot;</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pws</span><span class="p">(</span><span class="s2">&quot;output_format&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;convert&quot;</span><span class="p">))),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">)</span>
+        <span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_struct_view_tab_entry</span><span class="p">())</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;GS-input&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s1">&#39;# Generate GS input&#39;</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pws</span><span class="p">(</span><span class="s2">&quot;gs_type&quot;</span><span class="p">,</span> <span class="s2">&quot;spin_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;kppra&quot;</span><span class="p">,</span> <span class="s2">&quot;gs_input_btn&quot;</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;on_gs_input_btn&quot;</span><span class="p">))),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_gs_input_btn</span><span class="p">)</span>
+        <span class="p">))</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;MP-match&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp_match_btn</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_mp_match_btn</span><span class="p">)</span>
+        <span class="p">))</span>
+
+        <span class="n">template</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="p">)</span></div></div>
 </pre></div>
 
-    </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

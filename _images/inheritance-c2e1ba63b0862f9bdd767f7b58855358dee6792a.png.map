@@ -1,5 +1,5 @@
 <map id="inheritance82c2cc5b65" name="inheritance82c2cc5b65">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input classes." alt="" coords="497,30,607,43"/>
-<area shape="rect" id="node4" href="#abipy.wannier90.win.Wannier90Input" target="_top" title="This object stores the wannier90 input variables." alt="" coords="636,17,765,30"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="494,3,610,17"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input classes." alt="" coords="497,29,607,42"/>
+<area shape="rect" id="node4" href="#abipy.wannier90.win.Wannier90Input" target="_top" title="This object stores the wannier90 input variables." alt="" coords="636,16,765,29"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="495,3,610,16"/>
 </map>

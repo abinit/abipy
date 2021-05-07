@@ -28,61 +28,7 @@ We use two GSR files:
     si_scf_GSR.n: energies on a homogeneous sampling of the BZ (can be used to compute DOS)
     si_nscf_GSR.nc: energies on a k-path in the BZ (used to plot the band dispersion)
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-39
-
-
-
-.. rst-class:: sphx-glr-horizontal
-
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_ebands_grid_001.png
-          :alt: Si$_{2}$: $E^{dir}_{gap}$ = 2.53, $E^{fund}_{gap}$ = 0.56 (eV), Si$_{2}$: $E^{dir}_{gap}$ = 2.53, $E^{fund}_{gap}$ = 0.52 (eV)
-          :class: sphx-glr-multi-img
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_ebands_grid_002.png
-          :alt: Si, Same data
-          :class: sphx-glr-multi-img
-
-
-.. rst-class:: sphx-glr-script-out
-
- Out:
-
- .. code-block:: none
-
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-                 nsppol  nspinor  ...                      dirgap_kstart                        dirgap_kend
-    BZ sampling       1        1  ...           [+0.000, +0.000, +0.000]           [+0.000, +0.000, +0.000]
-    k-path            1        1  ...  [+0.000, +0.000, +0.000] $\Gamma$  [+0.000, +0.000, +0.000] $\Gamma$
-
-    [2 rows x 31 columns]
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/git_repos/abipy/abipy/core/structure.py:637: FutureWarning: latexify is deprecated
-    These methods have been deprecated in favor of using the Stringify mix-in class, which provides to_latex_string, to_unicode_string, etc. They will be removed in v2022.
-      return latexify(self.formula)
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/git_repos/abipy/abipy/core/structure.py:637: FutureWarning: latexify is deprecated
-    These methods have been deprecated in favor of using the Stringify mix-in class, which provides to_latex_string, to_unicode_string, etc. They will be removed in v2022.
-      return latexify(self.formula)
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-
-    <Figure size 640x480 with 4 Axes>
-
-
-
-
-
-|
+.. GENERATED FROM PYTHON SOURCE LINES 13-25
 
 .. code-block:: default
 
@@ -98,25 +44,98 @@ We use two GSR files:
     frame = plotter.get_ebands_frame()
     print(frame)
 
-    plotter.gridplot(with_gaps=True)
-    #plotter.animate()
 
-    # To plot a grid with band structures + DOS, use the optional argument `edos_objects`
-    # The first subplot gets the band dispersion from eb_objects[0] and the DOS from edos_objects[0]
-    # edos_kwargs is an optional dictionary passed to `get_dos` to compute the DOS.
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+                 nsppol  nspinor  ...                      dirgap_kstart                        dirgap_kend
+    BZ sampling       1        1  ...           [+0.000, +0.000, +0.000]           [+0.000, +0.000, +0.000]
+    k-path            1        1  ...  [+0.000, +0.000, +0.000] $\Gamma$  [+0.000, +0.000, +0.000] $\Gamma$
+
+    [2 rows x 31 columns]
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 26-27
+
+To create a grid plot use:
+
+.. GENERATED FROM PYTHON SOURCE LINES 27-30
+
+.. code-block:: default
+
+
+    plotter.gridplot(with_gaps=True)
+
+
+
+
+.. image:: /gallery/images/sphx_glr_plot_ebands_grid_001.png
+    :alt: Si$_{2}$: $E^{dir}_{gap}$ = 2.53, $E^{fund}_{gap}$ = 0.56 (eV), Si$_{2}$: $E^{dir}_{gap}$ = 2.53, $E^{fund}_{gap}$ = 0.52 (eV)
+    :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+
+    <Figure size 640x480 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 31-35
+
+To plot a grid with band structures + DOS, use the optional argument `edos_objects`
+The first subplot gets the band dispersion from eb_objects[0] and the DOS from edos_objects[0]
+edos_kwargs is an optional dictionary passed to `get_dos` to compute the DOS.
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 35-44
+
+.. code-block:: default
+
+
     eb_objects = 2 * [ref_file("si_nscf_GSR.nc")]
     edos_objects = 2 * [ref_file("si_scf_GSR.nc")]
 
-    # sphinx_gallery_thumbnail_number = 2
     plotter = ElectronBandsPlotter()
     plotter.add_ebands("Si", ref_file("si_nscf_GSR.nc"), edos=ref_file("si_scf_GSR.nc"))
     plotter.add_ebands("Same data", ref_file("si_nscf_GSR.nc"), edos=ref_file("si_scf_GSR.nc"))
+    # sphinx_gallery_thumbnail_number = 2
     plotter.gridplot()
+
+
+
+.. image:: /gallery/images/sphx_glr_plot_ebands_grid_002.png
+    :alt: Si, Same data
+    :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+
+    <Figure size 640x480 with 4 Axes>
+
+
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  6.550 seconds)
+   **Total running time of the script:** ( 0 minutes  2.467 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_ebands_grid.py:

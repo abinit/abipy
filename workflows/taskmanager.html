@@ -1,69 +1,108 @@
-<!DOCTYPE html>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TaskManager &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>TaskManager &mdash; abipy 0.9.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Manager Examples" href="manager_examples.html" />
-    <link rel="prev" title="Post-processing How-To" href="../postprocessing_howto.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+    <link rel="prev" title="Post-processing How-To" href="../postprocessing_howto.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
@@ -76,7 +115,17 @@
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">TaskManager</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">TaskManager</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-configure-the-taskmanager">How to configure the TaskManager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#taskmanager-for-a-personal-computer">TaskManager for a personal computer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-configure-the-scheduler">How to configure the scheduler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuring-abipy-on-a-cluster">Configuring AbiPy on a cluster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inspecting-the-flow">Inspecting the Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#event-handlers">Event handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#taskpolicy">TaskPolicy</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
@@ -86,76 +135,72 @@
 <li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">TaskManager</a><ul>
-<li><a class="reference internal" href="#how-to-configure-the-taskmanager">How to configure the TaskManager</a></li>
-<li><a class="reference internal" href="#taskmanager-for-a-personal-computer">TaskManager for a personal computer</a></li>
-<li><a class="reference internal" href="#how-to-configure-the-scheduler">How to configure the scheduler</a></li>
-<li><a class="reference internal" href="#configuring-abipy-on-a-cluster">Configuring AbiPy on a cluster</a></li>
-<li><a class="reference internal" href="#inspecting-the-flow">Inspecting the Flow</a></li>
-<li><a class="reference internal" href="#event-handlers">Event handlers</a></li>
-<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
-<li><a class="reference internal" href="#taskpolicy">TaskPolicy</a></li>
-</ul>
-</li>
-</ul>
-</ul>
-</li>
-              
-            
-            
-              
-                
-  <li>
-    <a href="../postprocessing_howto.html" title="Previous Chapter: Post-processing How-To"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Post-processi...</span>
-    </a>
-  </li>
-  <li>
-    <a href="manager_examples.html" title="Next Chapter: Manager Examples"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Manager Examples &raquo;</span>
-    </a>
-  </li>
-              
-            
-            
-            
-            
-              <li class="hidden-sm">
-<div id="sourcelink">
-  <a href="../_sources/workflows/taskmanager.rst.txt"
-     rel="nofollow">Source</a>
-</div></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>TaskManager</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/workflows/taskmanager.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <div class="contents topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
@@ -214,7 +259,7 @@ If no file is found, the code aborts immediately.</p>
 <p>An important piece of information for the <code class="docutils literal notranslate"><span class="pre">TaskManager</span></code> is the type of queueing system available on the cluster,
 the list of queues and their specifications.
 In AbiPy queueing systems or resource managers are supported via <code class="docutils literal notranslate"><span class="pre">quadapters</span></code>.
-At the time of writing (Mar 13, 2021), AbiPy provides <code class="docutils literal notranslate"><span class="pre">qadapters</span></code> for the following resource managers:</p>
+At the time of writing (May 07, 2021), AbiPy provides <code class="docutils literal notranslate"><span class="pre">qadapters</span></code> for the following resource managers:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">shell</span></code></p></li>
 <li><p><a class="reference external" href="http://pbspro.org/">pbspro</a></p></li>
@@ -297,11 +342,11 @@ Note this approach also allows you to safely use multiple versions.</p>
 <p>Copy this example and change the entries in the <code class="docutils literal notranslate"><span class="pre">hardware</span></code> and the <code class="docutils literal notranslate"><span class="pre">limits</span></code> section according to
 your machine, in particular make sure that <code class="docutils literal notranslate"><span class="pre">max_cores</span></code> is not greater than the number of physical cores
 available on your personal computer.
-Save the file in the current working directory and run the <a class="reference internal" href="../scripts/abicheck.html#abicheck-py"><span class="std std-ref">abicheck.py</span></a> script provided by AbiPy.
+Save the file in the current working directory and run the <span class="xref std std-ref">abicheck.py</span> script provided by AbiPy.
 If everything is configured properly, you should see something like this in the terminal.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abicheck.py --no-colors
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/testing.py:43: UserWarning: It is recommended that you set the PMG_TEST_FILES_DIR environment variable explicity. Now using a fallback location based on relative path from this module.
-  &quot;It is recommended that you set the PMG_TEST_FILES_DIR environment variable explicity. &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/testing.py:42: UserWarning: It is recommended that you set the PMG_TEST_FILES_DIR environment variable explicity. Now using a fallback location based on relative path from this module.
+  warnings.warn(
 AbiPy Manager:
 [Qadapter 0]
 ShellAdapter:gmac
@@ -311,26 +356,33 @@ Qadapter selected: 0
 
 Abinitbuild:
 Abinit Build Information:
-    Abinit version: 9.3.4
+    Abinit version: 9.5.2
     MPI: True, MPI-IO: True, OpenMP: False
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 38242
-Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 2}
+PyFlowScheduler, Pid: 54439
+Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 8}
 
 Installed packages:
 Package         Version
 --------------  ---------
 system          Darwin
-python_version  3.7.1
-numpy           1.20.1
-scipy           1.5.1
-netCDF4         1.5.1.2
-apscheduler     2.1.0
+python_version  3.8.0
+numpy           1.20.2
+scipy           1.6.2
+netCDF4         1.5.6
+apscheduler     3.7.0
 pydispatch      2.0.5
-yaml            5.1
-pymatgen        2022.0.4
+yaml            5.4.1
+boken           2.3.1
+panel           0.11.3
+plotly          4.14.3
+ase             3.21.1
+phonopy         2.9.3
+monty           2021.3.3
+pymatgen        2022.0.7
+abipy           0.9.0
 
 
 Abipy requirements are properly configured
@@ -1280,22 +1332,54 @@ Other values of autoparal are not supported.</p>
 </div>
 
 
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="manager_examples.html" class="btn btn-neutral float-right" title="Manager Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../postprocessing_howto.html" class="btn btn-neutral float-left" title="Post-processing How-To" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

@@ -57,24 +57,6 @@ used to compute the phonon DOS.
 
  .. code-block:: none
 
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
 
     <Figure size 640x480 with 1 Axes>
 
@@ -119,7 +101,7 @@ used to compute the phonon DOS.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  23.534 seconds)
+   **Total running time of the script:** ( 0 minutes  20.033 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_qha_vs_qmesh.py:

@@ -1,70 +1,109 @@
-<!DOCTYPE html>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>eph Package &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>eph Package &mdash; abipy 0.9.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="flowtk Package" href="flowtk_api.html" />
-    <link rel="prev" title="electrons Package" href="electrons_api.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+    <link rel="prev" title="electrons Package" href="electrons_api.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
@@ -83,97 +122,122 @@
 <li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="abilab_api.html">abilab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abio_api.html">abio Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core_api.html">core Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_api.html">data Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dfpt_api.html">dfpt Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="display_api.html">display Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics_api.html">dynamics Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="electrons_api.html">electrons Package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">eph Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eph</span></code> Package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.eph.a2f"><code class="xref py py-mod docutils literal notranslate"><span class="pre">a2f</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.eph.common"><code class="xref py py-mod docutils literal notranslate"><span class="pre">common</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.eph.eph_plotter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eph_plotter</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.eph.rta"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rta</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.eph.sigeph"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sigeph</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.eph.transportfile"><code class="xref py py-mod docutils literal notranslate"><span class="pre">transportfile</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.eph.v1sym"><code class="xref py py-mod docutils literal notranslate"><span class="pre">v1sym</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.eph.wr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wr</span></code> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="flowtk_api.html">flowtk Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iotools_api.html">iotools Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="panels_api.html">panels Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools_api.html">tools Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="waves_api.html">waves Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wannier90_api.html">wannier90 Package</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">eph Package</a><ul>
-<li><a class="reference internal" href="#id1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eph</span></code> Package</a></li>
-<li><a class="reference internal" href="#module-abipy.eph.a2f"><code class="xref py py-mod docutils literal notranslate"><span class="pre">a2f</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.eph.common"><code class="xref py py-mod docutils literal notranslate"><span class="pre">common</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.eph.eph_plotter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eph_plotter</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.eph.rta"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rta</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.eph.sigeph"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sigeph</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.eph.transportfile"><code class="xref py py-mod docutils literal notranslate"><span class="pre">transportfile</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.eph.v1sym"><code class="xref py py-mod docutils literal notranslate"><span class="pre">v1sym</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.eph.wr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wr</span></code> Module</a></li>
-</ul>
-</li>
-</ul>
-</ul>
-</li>
-              
-            
-            
-              
-                
-  <li>
-    <a href="electrons_api.html" title="Previous Chapter: electrons Package"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; electrons Package</span>
-    </a>
-  </li>
-  <li>
-    <a href="flowtk_api.html" title="Next Chapter: flowtk Package"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">flowtk Package &raquo;</span>
-    </a>
-  </li>
-              
-            
-            
-            
-            
-              <li class="hidden-sm">
-<div id="sourcelink">
-  <a href="../_sources/api/eph_api.rst.txt"
-     rel="nofollow">Source</a>
-</div></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">API documentation</a> &raquo;</li>
+        
+      <li>eph Package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/eph_api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <div class="section" id="eph-package">
 <h1><a class="toc-backref" href="#contents">eph Package</a><a class="headerlink" href="#eph-package" title="Permalink to this headline">¶</a></h1>
 <div class="contents topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#eph-package" id="id5">eph Package</a></p>
+<li><p><a class="reference internal" href="#eph-package" id="id3">eph Package</a></p>
 <ul>
-<li><p><a class="reference internal" href="#id1" id="id6"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eph</span></code> Package</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.eph.a2f" id="id7"><code class="xref py py-mod docutils literal notranslate"><span class="pre">a2f</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.eph.common" id="id8"><code class="xref py py-mod docutils literal notranslate"><span class="pre">common</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.eph.eph_plotter" id="id9"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eph_plotter</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.eph.rta" id="id10"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rta</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.eph.sigeph" id="id11"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sigeph</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.eph.transportfile" id="id12"><code class="xref py py-mod docutils literal notranslate"><span class="pre">transportfile</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.eph.v1sym" id="id13"><code class="xref py py-mod docutils literal notranslate"><span class="pre">v1sym</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.eph.wr" id="id14"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wr</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#id1" id="id4"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eph</span></code> Package</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.eph.a2f" id="id5"><code class="xref py py-mod docutils literal notranslate"><span class="pre">a2f</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.eph.common" id="id6"><code class="xref py py-mod docutils literal notranslate"><span class="pre">common</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.eph.eph_plotter" id="id7"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eph_plotter</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.eph.rta" id="id8"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rta</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.eph.sigeph" id="id9"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sigeph</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.eph.transportfile" id="id10"><code class="xref py py-mod docutils literal notranslate"><span class="pre">transportfile</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.eph.v1sym" id="id11"><code class="xref py py-mod docutils literal notranslate"><span class="pre">v1sym</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.eph.wr" id="id12"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wr</span></code> Module</a></p></li>
 </ul>
 </li>
 </ul>
@@ -266,7 +330,7 @@ From Allen PRL 59 1460 (See also Grimvall, Eq 6.72 page 175)</p>
 <li><p><strong>what</strong> – a2f for a2F(w), lambda for lambda(w)</p></li>
 <li><p><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</p></li>
 <li><p><strong>exchange_xy</strong> – True to exchange x-y axes.</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If left (right) is None, default values are used</p></li>
 <li><p><strong>ylims</strong> – Limits for y-axis. See xlims for API.</p></li>
@@ -276,7 +340,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -328,14 +392,14 @@ Default: False</p></td>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>xlims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If left (right) is None, default values are used</p></li>
 <li><p><strong>fontsize</strong> – Legend and title fontsize</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -397,7 +461,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -453,7 +517,7 @@ Default: False</p></td>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -507,11 +571,11 @@ Default: False</p></td>
 <li><p><strong>start</strong> – The starting value of the sequence.</p></li>
 <li><p><strong>stop</strong> – The end value of the sequence</p></li>
 <li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – optional. Number of samples to generate. Default is 50. Must be non-negative.</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -593,11 +657,11 @@ Provides methods to analyze and plot results.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-62a8010942770d00887a02e29dcd6d9d64764396.png" alt="Inheritance diagram of A2fFile" usemap="#inheritanceae62ed8c21" class="inheritance graphviz" /></div>
 <map id="inheritanceae62ed8c21" name="inheritanceae62ed8c21">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="257,153,457,179"/>
-<area shape="rect" id="node6" href="#abipy.eph.a2f.A2fFile" target="_top" title="This file contains the phonon linewidths, EliashbergFunction, the |PhononBands|," alt="" coords="528,80,675,105"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="233,5,480,31"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="250,55,463,80"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="246,104,467,129"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,149,454,173"/>
+<area shape="rect" id="node6" href="#abipy.eph.a2f.A2fFile" target="_top" title="This file contains the phonon linewidths, EliashbergFunction, the |PhononBands|," alt="" coords="525,77,671,101"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="232,5,477,29"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="249,53,461,77"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,101,464,125"/>
 </map><dl class="py method">
 <dt id="abipy.eph.a2f.A2fFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/a2f.html#A2fFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.a2f.A2fFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -701,7 +765,7 @@ These values have been Fourier interpolated by Abinit.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>what_list</strong> – <code class="docutils literal notranslate"><span class="pre">phfreqs</span></code> for phonons, <cite>lambda`</cite> for the eph coupling strength,
 <code class="docutils literal notranslate"><span class="pre">gamma</span></code> for phonon linewidths.</p></li>
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> (same length as what_list)
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> (same length as what_list)
 or None if a new figure should be created.</p></li>
 <li><p><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If left (right) is None, default values are used</p></li>
@@ -710,7 +774,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -768,12 +832,12 @@ Case-insensitive.</p></li>
 <li><p><strong>alpha</strong> – The alpha blending value for the markers between 0 (transparent) and 1 (opaque)</p></li>
 <li><p><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If left (right) is None, default values are used</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>colormap</strong> – matplotlib color map.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -832,7 +896,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -892,7 +956,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -960,9 +1024,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-75a4018ec69cda85d998510f85118cb469de259a.png" alt="Inheritance diagram of A2fRobot" usemap="#inheritance100c4a733b" class="inheritance graphviz" /></div>
 <map id="inheritance100c4a733b" name="inheritance100c4a733b">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="329,104,491,129"/>
-<area shape="rect" id="node5" href="#abipy.eph.a2f.A2fRobot" target="_top" title="This robot analyzes the results contained in multiple A2F.nc files." alt="" coords="593,55,755,80"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,104,227,129"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="327,101,488,125"/>
+<area shape="rect" id="node5" href="#abipy.eph.a2f.A2fRobot" target="_top" title="This robot analyzes the results contained in multiple A2F.nc files." alt="" coords="589,53,749,77"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,101,225,125"/>
 </map><dl class="py attribute">
 <dt id="abipy.eph.a2f.A2fRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'A2F'</span></em><a class="headerlink" href="#abipy.eph.a2f.A2fRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -1026,7 +1090,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1094,7 +1158,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1160,7 +1224,7 @@ If callable, the output of hue(abifile) is used.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1285,9 +1349,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-7351123b0ff8ae961bfbb3e581df285771c30082.png" alt="Inheritance diagram of A2fReader" usemap="#inheritancee4f3900f8b" class="inheritance graphviz" /></div>
 <map id="inheritancee4f3900f8b" name="inheritancee4f3900f8b">
-<area shape="rect" id="node5" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="559,14,667,26"/>
-<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="296,25,380,36"/>
-<area shape="rect" id="node4" href="#abipy.eph.a2f.A2fReader" target="_top" title="Reads data from the EPH.nc file and constructs objects." alt="" coords="688,14,766,26"/>
+<area shape="rect" id="node5" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="559,13,667,24"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="297,24,381,35"/>
+<area shape="rect" id="node4" href="#abipy.eph.a2f.A2fReader" target="_top" title="Reads data from the EPH.nc file and constructs objects." alt="" coords="689,13,766,24"/>
 </map><dl class="py method">
 <dt id="abipy.eph.a2f.A2fReader.read_edos">
 <code class="sig-name descname"><span class="pre">read_edos</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/a2f.html#A2fReader.read_edos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.a2f.A2fReader.read_edos" title="Permalink to this definition">¶</a></dt>
@@ -1420,7 +1484,7 @@ the user to generate matplotlib plots related to e-ph interaction.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-da729a057d4327380a11002442f873b010680124.png" alt="Inheritance diagram of EphPlotter" usemap="#inheritancea014ad6cf9" class="inheritance graphviz" /></div>
 <map id="inheritancea014ad6cf9" name="inheritancea014ad6cf9">
-<area shape="rect" id="node1" href="#abipy.eph.eph_plotter.EphPlotter" target="_top" title="This object provides methods to plot electron and phonons for a single system." alt="" coords="5,5,221,31"/>
+<area shape="rect" id="node1" href="#abipy.eph.eph_plotter.EphPlotter" target="_top" title="This object provides methods to plot electron and phonons for a single system." alt="" coords="5,5,219,29"/>
 </map><dl class="py method">
 <dt id="abipy.eph.eph_plotter.EphPlotter.from_ddb">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_ddb</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ddb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ebands_kpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ebands_kmesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph_plotter.html#EphPlotter.from_ddb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.eph_plotter.EphPlotter.from_ddb" title="Permalink to this definition">¶</a></dt>
@@ -1451,7 +1515,7 @@ Also plot phonon band structure and phonon PJDOS.</p>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If None, limits are selected automatically.</p>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1505,7 +1569,7 @@ of each phonon mode for different temperatures.</p>
 <dd class="field-odd"><p><strong>temps</strong> – List of temperatures in Kelvin.</p>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1694,12 +1758,12 @@ The default None uses the chemical potential at the temperature item as computed
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>fontsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – fontsize for titles and legend</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1754,13 +1818,13 @@ Default: False</p></td>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>colormap</strong> – </p></li>
 <li><p><strong>fontsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – fontsize for titles and legend</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1815,13 +1879,13 @@ Default: False</p></td>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>component</strong> – Cartesian component to plot: “xx”, “yy” “xy” …</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>colormap</strong> – matplotlib colormap.</p></li>
 <li><p><strong>fontsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – fontsize for titles and legend</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1873,13 +1937,13 @@ Default: False</p></td>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>component</strong> – Component to plot: “xx”, “yy” “xy” …</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>colormap</strong> – matplotlib colormap.</p></li>
 <li><p><strong>fontsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – fontsize for titles and legend</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1931,12 +1995,12 @@ of the chemical potential mu at the given temperature.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax_list</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax_list</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legends and titles</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -2056,9 +2120,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-bb59b6abc4f59ac5738061e06fcd679307ef3e04.png" alt="Inheritance diagram of RtaRobot" usemap="#inheritancebf0918b5f5" class="inheritance graphviz" /></div>
 <map id="inheritancebf0918b5f5" name="inheritancebf0918b5f5">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="329,55,491,80"/>
-<area shape="rect" id="node4" href="#abipy.eph.rta.RtaRobot" target="_top" title="This robot analyzes the results contained in multiple RTA.nc files." alt="" coords="593,31,752,56"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,55,227,80"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="327,53,488,77"/>
+<area shape="rect" id="node4" href="#abipy.eph.rta.RtaRobot" target="_top" title="This robot analyzes the results contained in multiple RTA.nc files." alt="" coords="589,29,747,53"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,53,225,77"/>
 </map><dl class="py attribute">
 <dt id="abipy.eph.rta.RtaRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'RTA'</span></em><a class="headerlink" href="#abipy.eph.rta.RtaRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -2076,11 +2140,11 @@ working directory is created. Return path to the notebook.</p>
 <li><p><strong>itemp</strong> – temperature index.</p></li>
 <li><p><strong>spin</strong> – Spin index.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legends and titles</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -2291,7 +2355,7 @@ See <a class="reference internal" href="#abipy.eph.sigeph.QpTempState" title="ab
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -2401,7 +2465,7 @@ See <code class="xref py py-class docutils literal notranslate"><span class="pre
 <li><p><strong>exclude_fields</strong> – Similar to <cite>with_field</cite> but excludes fields.</p></li>
 <li><p><strong>fermie</strong> – Value of the Fermi level used in plot. None for absolute e0s.</p></li>
 <li><p><strong>colormap</strong> – matplotlib color map.</p></li>
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</p></li>
 <li><p><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If left (right) is None, default values are used.</p></li>
 <li><p><strong>ylims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
@@ -2412,7 +2476,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -2486,7 +2550,7 @@ the different temperatures with a colormap.</p>
 <li><p><strong>itemps</strong> – List of temperature indices. “all” to plot’em all.</p></li>
 <li><p><strong>zero_energy</strong> – </p></li>
 <li><p><strong>colormap</strong> – matplotlib color map.</p></li>
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</p></li>
 <li><p><strong>what_list</strong> – List of strings selecting the quantity to plot.
 “re” for real part, “im” for imaginary part, “spfunc” for spectral function A(omega).</p></li>
 <li><p><strong>with_frohl</strong> – Visualize Frohlich contribution (if present).</p></li>
@@ -2497,7 +2561,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -2552,7 +2616,7 @@ the different temperatures with a colormap.</p>
 <li><p><strong>itemps</strong> – List of temperature indices. “all” to plot’em all.</p></li>
 <li><p><strong>zero_energy</strong> – </p></li>
 <li><p><strong>colormap</strong> – matplotlib color map.</p></li>
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</p></li>
 <li><p><strong>what_list</strong> – List of strings selecting the quantity to plot.
 “re” for real part, “im” for imaginary part, “spfunc” for spectral function A(omega).</p></li>
 <li><p><strong>with_frohl</strong> – Visualize Frohlich contribution (if present).</p></li>
@@ -2563,7 +2627,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -2623,7 +2687,7 @@ approximated solution obtained with the linearized equation and the on-the-mass-
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>itemp</strong> – Temperature index.</p></li>
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</p></li>
 <li><p><strong>with_int_aw</strong> – Plot cumulative integral of A(w).</p></li>
 <li><p><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If left (right) is None, default values are used.</p></li>
@@ -2632,7 +2696,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -2693,11 +2757,11 @@ Provides methods to analyze and plot results.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-752ed18452a2267012b7e4292ffb7229ac2782a0.png" alt="Inheritance diagram of SigEPhFile" usemap="#inheritancec955d9a210" class="inheritance graphviz" /></div>
 <map id="inheritancec955d9a210" name="inheritancec955d9a210">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="257,153,457,179"/>
-<area shape="rect" id="node6" href="#abipy.eph.sigeph.SigEPhFile" target="_top" title="This file contains the Fan&#45;Migdal Debye&#45;Waller self&#45;energy, the |ElectronBands| on the k&#45;mesh." alt="" coords="528,80,720,105"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="233,5,480,31"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="250,55,463,80"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="246,104,467,129"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,149,454,173"/>
+<area shape="rect" id="node6" href="#abipy.eph.sigeph.SigEPhFile" target="_top" title="This file contains the Fan&#45;Migdal Debye&#45;Waller self&#45;energy, the |ElectronBands| on the k&#45;mesh." alt="" coords="525,77,716,101"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="232,5,477,29"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="249,53,461,77"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,101,464,125"/>
 </map><dl class="py attribute">
 <dt id="abipy.eph.sigeph.SigEPhFile.marker_spin">
 <code class="sig-name descname"><span class="pre">marker_spin</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{0:</span> <span class="pre">'^',</span> <span class="pre">1:</span> <span class="pre">'v'}</span></em><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.marker_spin" title="Permalink to this definition">¶</a></dt>
@@ -2982,14 +3046,14 @@ Available only if ks_ebands_kpath and/or ks_ebands_kmesh are used.</p></li>
 or None to plot all k-points.</p></li>
 <li><p><strong>qp_type</strong> – “qpz0” for linearized QP equation with Z factor at KS e0,
 “otms” for on-the-mass-shell results.</p></li>
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>plot_qpmks</strong> – If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)</p></li>
 <li><p><strong>fontsize</strong> – legend and title fontsize.</p></li>
 <li><p><strong>kwargs</strong> – Passed to ax.plot method except for marker.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3047,7 +3111,7 @@ Default: False</p></td>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3115,7 +3179,7 @@ See <code class="xref py py-class docutils literal notranslate"><span class="pre
 - <cite>fermie</cite>: shift energies to have zero energy at the Fermi level.
 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
 -  None: Don’t shift energies, equivalent to e0=0</p></li>
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</p></li>
 <li><p><strong>colormap</strong> – matplotlib color map.</p></li>
 <li><p><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If left (right) is None, default values are used.</p></li>
@@ -3124,7 +3188,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3184,7 +3248,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3237,13 +3301,13 @@ Default: False</p></td>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>rta_type</strong> – “serta” for SERTA linewidths or “mrta” for MRTA linewidths.</p></li>
 <li><p><strong>itemp_list</strong> – List of temperature indices to interpolate. None for all.</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>colormap</strong> – matplotlib color map.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for titles and legend.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3297,14 +3361,14 @@ as a function of the KS energy for a given relaxation time approximation.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>rta_type</strong> – “serta” for SERTA linewidths or “mrta” for MRTA linewidths.</p></li>
 <li><p><strong>itemp_list</strong> – List of temperature indices to interpolate. None for all.</p></li>
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</p></li>
 <li><p><strong>colormap</strong> – matplotlib color map.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for titles and legend.</p></li>
 <li><p><strong>kwargs</strong> – Optional Keyword arguments.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3368,7 +3432,7 @@ approximated solution obtained with the linearized equation and the on-the-mass-
 <li><p><strong>band</strong> – band index. C convention so decremented by -1 wrt Fortran index.</p></li>
 <li><p><strong>itemp</strong> – Temperature index.</p></li>
 <li><p><strong>with_int_aw</strong> – Plot cumulative integral of A(w).</p></li>
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</p></li>
 <li><p><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If left (right) is None, default values are used.</p></li>
 <li><p><strong>fontsize</strong> – legend and label fontsize.</p></li>
@@ -3376,7 +3440,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3433,14 +3497,14 @@ for all computed bands at given spin and kpoint. See also plot_qpsolution_skb</p
 <li><p><strong>band</strong> – band index. C convention so decremented by -1 wrt Fortran index.</p></li>
 <li><p><strong>itemp</strong> – Temperature index.</p></li>
 <li><p><strong>with_int_aw</strong> – Plot cumulative integral of A(w).</p></li>
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</p></li>
 <li><p><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If left (right) is None, default values are used.</p></li>
 <li><p><strong>fontsize</strong> – legend and label fontsize.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3508,7 +3572,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3565,12 +3629,12 @@ for a given (spin, kpoint, band)</p>
 <li><p><strong>band</strong> – band index. C convention so decremented by -1 wrt Fortran index.</p></li>
 <li><p><strong>what</strong> – fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only</p></li>
 <li><p><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>fontsize</strong> – legend and title fontsize.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3630,12 +3694,12 @@ on the number of bands in the self-energy.</p>
 </div></blockquote>
 <dl class="simple">
 <dt>Args:</dt><dd><p>what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
-ax: <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.
+ax: <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.
 exchange_xy: True to exchange x-y axis.
 fontsize: legend and title fontsize.</p>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3696,7 +3760,7 @@ Case-insensitive.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3770,9 +3834,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-bd2f18fd9b377410969db9eeef579fd7fea06a64.png" alt="Inheritance diagram of SigEPhRobot" usemap="#inheritancecd76e18211" class="inheritance graphviz" /></div>
 <map id="inheritancecd76e18211" name="inheritancecd76e18211">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="313,52,469,76"/>
-<area shape="rect" id="node4" href="#abipy.eph.sigeph.SigEPhRobot" target="_top" title="This robot analyzes the results contained in multiple SIGEPH.nc files." alt="" coords="566,29,763,53"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,52,216,76"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="314,51,468,74"/>
+<area shape="rect" id="node4" href="#abipy.eph.sigeph.SigEPhRobot" target="_top" title="This robot analyzes the results contained in multiple SIGEPH.nc files." alt="" coords="566,28,763,51"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,51,216,74"/>
 </map><dl class="py attribute">
 <dt id="abipy.eph.sigeph.SigEPhRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'SIGEPH'</span></em><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -3854,7 +3918,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3923,7 +3987,7 @@ If callable, the output of hue(abifile) is used.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -3994,7 +4058,7 @@ If callable, the output of hue(abifile) is used.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4062,7 +4126,7 @@ If callable, the output of hue(abifile) is used.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4137,7 +4201,7 @@ If callable, the output of hue(abifile) is used.</p></li>
 <p class="admonition-title">Note</p>
 <p>For the meaning of the other arguments, see other robot methods.</p>
 </div>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4195,7 +4259,7 @@ Default: False</p></td>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4311,7 +4375,7 @@ is created and the two axes are automatically generated.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4363,7 +4427,7 @@ Default: False</p></td>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>itemp</strong> – Temperature index.</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>e0</strong> – Option used to define the zero of energy in the band structure plot.</p></li>
 <li><p><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left</span></code>. If left (right) is None, default values are used</p></li>
@@ -4371,7 +4435,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4430,7 +4494,7 @@ Default: False</p></td>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4482,7 +4546,7 @@ Default: False</p></td>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>itemp_list</strong> – List of temperature indices to interpolate. None for all.</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>e0</strong> – Option used to define the zero of energy in the band structure plot. Possible values:
 - <code class="docutils literal notranslate"><span class="pre">fermie</span></code>: shift all eigenvalues to have zero energy at the Fermi energy (<code class="docutils literal notranslate"><span class="pre">self.fermie</span></code>).
 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
@@ -4498,7 +4562,7 @@ or scalar e.g. <code class="docutils literal notranslate"><span class="pre">left
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4577,9 +4641,9 @@ Default: False</p></td>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-990e59d7e1fc240b73f2f0026adaadb96cd7cd7c.png" alt="Inheritance diagram of SigmaPhReader" usemap="#inheritancee22e7005ea" class="inheritance graphviz" /></div>
 <map id="inheritancee22e7005ea" name="inheritancee22e7005ea">
-<area shape="rect" id="node4" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="541,14,646,25"/>
-<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="287,24,368,35"/>
-<area shape="rect" id="node5" href="#abipy.eph.sigeph.SigmaPhReader" target="_top" title="Reads data from file and constructs objects." alt="" coords="667,14,766,25"/>
+<area shape="rect" id="node4" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="542,13,646,24"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="288,24,369,34"/>
+<area shape="rect" id="node5" href="#abipy.eph.sigeph.SigmaPhReader" target="_top" title="Reads data from file and constructs objects." alt="" coords="667,13,766,24"/>
 </map><dl class="py method">
 <dt id="abipy.eph.sigeph.SigmaPhReader.get_sigma_skb_kpoint">
 <code class="sig-name descname"><span class="pre">get_sigma_skb_kpoint</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.get_sigma_skb_kpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.get_sigma_skb_kpoint" title="Permalink to this definition">¶</a></dt>
@@ -4713,10 +4777,10 @@ Only real part is returned if <code class="docutils literal notranslate"><span c
 <dd><p>Plot the electronic density of states</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p>
+<dd class="field-odd"><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4768,13 +4832,13 @@ Default: False</p></td>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>component</strong> – Component to plot: “xx”, “yy” “xy” …</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>colormap</strong> – matplotlib colormap.</p></li>
 <li><p><strong>fontsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – fontsize for titles and legend</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4826,13 +4890,13 @@ Default: False</p></td>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>component</strong> – Component to plot: “xx”, “yy” “xy” …</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>colormap</strong> – matplotlib colormap.</p></li>
 <li><p><strong>fontsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – fontsize for titles and legend</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -4972,12 +5036,12 @@ working directory is created. Return path to the notebook.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>qpoint</strong> – </p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legends and titles</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -5028,12 +5092,12 @@ Default: False</p></td>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>qpoint</strong> – </p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legends and titles</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -5132,18 +5196,18 @@ working directory is created. Return path to the notebook.</p>
 <dl class="py method">
 <dt id="abipy.eph.wr.WrNcFile.plot_maxw">
 <code class="sig-name descname"><span class="pre">plot_maxw</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'semilogy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/wr.html#WrNcFile.plot_maxw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.wr.WrNcFile.plot_maxw" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the decay of max_{r,idir,ipert} <a href="#id3"><span class="problematic" id="id4">|W(R,r,idir,ipert)|</span></a>
+<dd><p>Plot the decay of max_{r,idir,ipert} <cite>|W(R,r,idir,ipert)|</cite>
 for the long-range and the short-range part.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>scale</strong> – “semilogy”, “loglog” or “plot”.</p></li>
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legends and titles</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.3.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -5206,22 +5270,54 @@ working directory is created. Return path to the notebook.</p>
 </div>
 
 
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="flowtk_api.html" class="btn btn-neutral float-right" title="flowtk Package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="electrons_api.html" class="btn btn-neutral float-left" title="electrons Package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

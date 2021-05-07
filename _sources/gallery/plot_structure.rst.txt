@@ -23,24 +23,85 @@ Unit cell
 
 This example shows how to display the unit cell with matplotlib.
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-21
+.. GENERATED FROM PYTHON SOURCE LINES 8-11
+
+.. code-block:: default
+
+    from abipy.abilab import abiopen
+    import abipy.data as abidata
 
 
 
-.. rst-class:: sphx-glr-horizontal
 
 
-    *
 
-      .. image:: /gallery/images/sphx_glr_plot_structure_001.png
-          :alt: Si3 O6
-          :class: sphx-glr-multi-img
 
-    *
 
-      .. image:: /gallery/images/sphx_glr_plot_structure_002.png
-          :alt: Si3 O6
-          :class: sphx-glr-multi-img
+.. GENERATED FROM PYTHON SOURCE LINES 12-13
+
+Extract structure from the netcdf file:
+
+.. GENERATED FROM PYTHON SOURCE LINES 13-17
+
+.. code-block:: default
+
+
+    with abiopen(abidata.ref_file("sio2_kpath_GSR.nc")) as gsr:
+        structure = gsr.structure
+
+
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 18-19
+
+To visualize the structure with matplotlib, use:
+
+.. GENERATED FROM PYTHON SOURCE LINES 19-21
+
+.. code-block:: default
+
+    structure.plot(color_scheme="Jmol")
+
+
+
+
+.. image:: /gallery/images/sphx_glr_plot_structure_001.png
+    :alt: Si3 O6
+    :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+
+    <Figure size 640x480 with 1 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 22-23
+
+To wrap sites into first unit cell, use:
+
+.. GENERATED FROM PYTHON SOURCE LINES 23-26
+
+.. code-block:: default
+
+
+    # sphinx_gallery_thumbnail_number = 2
+    structure.plot(to_unit_cell=True)
+
+
+
+.. image:: /gallery/images/sphx_glr_plot_structure_002.png
+    :alt: Si3 O6
+    :class: sphx-glr-single-img
 
 
 .. rst-class:: sphx-glr-script-out
@@ -55,29 +116,9 @@ This example shows how to display the unit cell with matplotlib.
 
 
 
-
-|
-
-.. code-block:: default
-
-    from abipy.abilab import abiopen
-    import abipy.data as abidata
-
-    # Extract structure from netcdf file.
-    with abiopen(abidata.ref_file("sio2_kpath_GSR.nc")) as gsr:
-        structure = gsr.structure
-
-    # Visualize sites structure.
-    structure.plot(color_scheme="Jmol")
-
-    # Wrap sites into first unit cell.
-    # sphinx_gallery_thumbnail_number = 2
-    structure.plot(to_unit_cell=True)
-
-
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.660 seconds)
+   **Total running time of the script:** ( 0 minutes  0.274 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_structure.py:

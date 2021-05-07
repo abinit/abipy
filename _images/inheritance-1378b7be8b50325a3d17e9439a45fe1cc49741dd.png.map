@@ -1,5 +1,5 @@
 <map id="inheritance85e3b67a6a" name="inheritance85e3b67a6a">
-<area shape="rect" id="node1" href="#abipy.core.kpoints.IrredZone" target="_top" title="An :class:`IrredZone` is a (immutable) sequence of points in the irreducible wedge of the BZ." alt="" coords="632,56,764,73"/>
-<area shape="rect" id="node2" href="#abipy.core.kpoints.KpointList" target="_top" title="Base class defining a sequence of |Kpoint| objects. Essentially consists" alt="" coords="465,56,598,73"/>
-<area shape="rect" id="node3" title="All the operations on a read&#45;only sequence." alt="" coords="311,56,432,73"/>
+<area shape="rect" id="node1" href="#abipy.core.kpoints.IrredZone" target="_top" title="An :class:`IrredZone` is a (immutable) sequence of points in the irreducible wedge of the BZ." alt="" coords="632,54,764,71"/>
+<area shape="rect" id="node2" href="#abipy.core.kpoints.KpointList" target="_top" title="Base class defining a sequence of |Kpoint| objects. Essentially consists" alt="" coords="466,54,599,71"/>
+<area shape="rect" id="node3" title="All the operations on a read&#45;only sequence." alt="" coords="312,54,432,71"/>
 </map>

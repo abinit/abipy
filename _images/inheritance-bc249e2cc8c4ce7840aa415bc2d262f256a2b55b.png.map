@@ -1,9 +1,9 @@
 <map id="inheritance1cec5e4573" name="inheritance1cec5e4573">
-<area shape="rect" id="node1" href="#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="556,14,655,25"/>
-<area shape="rect" id="node2" href="#abipy.core.structure.Structure" target="_top" title="Extends :class:`pymatgen.core.structure.Structure` with Abinit&#45;specific methods." alt="" coords="677,25,766,36"/>
-<area shape="rect" id="node3" title="Mutable version of structure." alt="" coords="556,36,656,47"/>
-<area shape="rect" id="node9" title="All the operations on a read&#45;only sequence." alt="" coords="200,36,278,47"/>
-<area shape="rect" id="node13" title="Basic SiteCollection. Essentially a sequence of Sites or PeriodicSites." alt="" coords="299,24,411,36"/>
-<area shape="rect" id="node11" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="320,2,390,14"/>
-<area shape="rect" id="node12" title="Basic immutable Structure object with periodicity. Essentially a sequence" alt="" coords="433,24,534,36"/>
+<area shape="rect" id="node1" href="#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="557,13,656,24"/>
+<area shape="rect" id="node2" href="#abipy.core.structure.Structure" target="_top" title="Extends :class:`pymatgen.core.structure.Structure` with Abinit&#45;specific methods." alt="" coords="678,24,766,35"/>
+<area shape="rect" id="node3" title="Mutable version of structure." alt="" coords="557,35,656,45"/>
+<area shape="rect" id="node9" title="All the operations on a read&#45;only sequence." alt="" coords="201,35,278,46"/>
+<area shape="rect" id="node13" title="Basic SiteCollection. Essentially a sequence of Sites or PeriodicSites." alt="" coords="299,24,412,35"/>
+<area shape="rect" id="node11" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="321,2,390,13"/>
+<area shape="rect" id="node12" title="Basic immutable Structure object with periodicity. Essentially a sequence" alt="" coords="433,24,535,35"/>
 </map>

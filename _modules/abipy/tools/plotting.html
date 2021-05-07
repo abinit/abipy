@@ -1,67 +1,106 @@
+
+
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.tools.plotting &mdash; abipy 0.9.0 documentation</title>
+  
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>abipy.tools.plotting &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../../../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../../../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
@@ -84,51 +123,70 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"></ul>
-</li>
-              
-            
-            
-              
-                
-              
-            
-            
-            
-            
-              <li class="hidden-sm"></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../../../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>abipy.tools.plotting</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <h1>Source code for abipy.tools.plotting</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -136,7 +194,7 @@
 
 <span class="sd">.. note::</span>
 
-<span class="sd">    Avoid importing matplotlib in the module namespace otherwise startup is very slow.</span>
+<span class="sd">    Avoid importing matplotlib or plotly in the module namespace otherwise startup is very slow.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -182,6 +240,10 @@
      <span class="p">(</span><span class="s1">&#39;densely_dashdotdotted&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))]</span>
 <span class="p">)</span>
 
+
+<span class="c1">###################</span>
+<span class="c1"># Matplotlib tools</span>
+<span class="c1">###################</span>
 
 <span class="k">def</span> <span class="nf">ax_append_title</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Add title to previous ax.title. Return new title.&quot;&quot;&quot;</span>
@@ -979,24 +1041,417 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div></div>
+
+
+<span class="c1">##########################</span>
+<span class="c1"># Plotly helper functions</span>
+<span class="c1">##########################</span>
+
+
+<span class="k">class</span> <span class="nc">PlotlyRowColDesc</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object specifies the position of a plotly subplot inside a grid.</span>
+
+<span class="sd">    rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build an instance for a generic object.</span>
+<span class="sd">        If oject is None, a simple descriptor corresponding to a (1,1) grid is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span> <span class="k">return</span> <span class="n">obj</span>
+
+        <span class="c1"># Assume list with 4 integers</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dont know how to convert `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2">` into `</span><span class="si">{</span><span class="bp">cls</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">py_row</span><span class="p">,</span> <span class="n">py_col</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            py_row, py_col: python index of the subplot in the grid (starts from 0)</span>
+<span class="sd">            nrows, ncols: Number of rows/cols in the grid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">py_row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">py_col</span> <span class="o">=</span> <span class="p">(</span><span class="n">py_row</span><span class="p">,</span> <span class="n">py_col</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncols</span> <span class="o">=</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iax</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">py_col</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">py_row</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncols</span>
+        <span class="c1"># Note that plotly col and row start from 1.</span>
+        <span class="k">if</span> <span class="n">nrows</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">ncols</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ply_row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ply_col</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ply_row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ply_col</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">py_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">py_col</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;py_rowcol: (</span><span class="si">%d</span><span class="s2">, </span><span class="si">%d</span><span class="s2">) in grid: (</span><span class="si">%d</span><span class="s2">, </span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">py_row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">py_col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncols</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;plotly_rowcol: (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ply_row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ply_col</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="c1">#@lazy_property</span>
+    <span class="c1">#def rowcol_dict(self):</span>
+    <span class="c1">#    if self.nrows == 1 and self.ncols == 1: return {}</span>
+    <span class="c1">#    return dict(row=self.ply_row, col=self.ply_col)</span>
+
+
+<span class="k">def</span> <span class="nf">get_figs_plotly</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">subplot_titles</span><span class="o">=</span><span class="p">(),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">fig_kw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function used in plot functions that build the `plotly` figure by calling plotly.subplots.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        figure: plotly graph_objects figure</span>
+<span class="sd">        go: plotly graph_objects module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">plotly.subplots</span> <span class="kn">import</span> <span class="n">make_subplots</span>
+    <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">make_subplots</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">subplot_titles</span><span class="o">=</span><span class="n">subplot_titles</span><span class="p">,</span> <span class="n">shared_xaxes</span><span class="o">=</span><span class="n">sharex</span><span class="p">,</span>
+                        <span class="n">shared_yaxes</span><span class="o">=</span><span class="n">sharey</span><span class="p">,</span> <span class="o">**</span><span class="n">fig_kw</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">go</span>
+
+
+<span class="k">def</span> <span class="nf">get_fig_plotly</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">fig_kw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function used in plot functions that build the `plotly` figure by calling</span>
+<span class="sd">    plotly.graph_objects.Figure if fig is None else return fig</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        figure: plotly graph_objects figure</span>
+<span class="sd">        go: plotly graph_objects module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
+
+    <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="o">**</span><span class="n">fig_kw</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">go</span>
+
+
+<span class="k">def</span> <span class="nf">plotly_set_lims</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">lims</span><span class="p">,</span> <span class="n">axname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set the data limits for the axis ax.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lims: tuple(2) for (left, right), if tuple(1) or scalar for left only, none is set.</span>
+<span class="sd">        axname: &quot;x&quot; for x-axis, &quot;y&quot; for y-axis.</span>
+
+<span class="sd">    Return: (left, right)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">lims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+
+    <span class="c1"># iax = kwargs.pop(&quot;iax&quot;, 1)</span>
+    <span class="c1"># xaxis = &#39;xaxis%u&#39; % iax</span>
+    <span class="c1">#fig.layout[xaxis].title.text = &quot;Wave Vector&quot;</span>
+
+    <span class="n">axis</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="p">)[</span><span class="n">axname</span><span class="p">]</span>
+
+    <span class="n">len_lims</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">len_lims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lims</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="c1"># Assume Scalar</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">lims</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">len_lims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">lims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">lims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">lims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">left</span> <span class="o">=</span> <span class="n">lims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">ax_range</span> <span class="o">=</span> <span class="n">axis</span><span class="o">.</span><span class="n">range</span>
+    <span class="k">if</span> <span class="n">ax_range</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">left</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">right</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="c1">#if left is not None: ax_range[0] = left</span>
+    <span class="c1">#if right is not None: ax_range[1] = right</span>
+
+    <span class="c1"># Example: fig.update_layout(yaxis_range=[-4,4])</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;xaxis&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;yaxis&quot;</span><span class="p">)[</span><span class="n">axname</span><span class="p">]</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="p">[</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span>
+
+
+<span class="n">_PLOTLY_DEFAULT_SHOW</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">set_plotly_default_show</span><span class="p">(</span><span class="n">true_or_false</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set the default value of show in the add_plotly_fig_kwargs decorator.</span>
+<span class="sd">    Usefule for instance when generating the sphinx gallery of plotly plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_PLOTLY_DEFAULT_SHOW</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">true_or_false</span>
+
+
+<span class="k">def</span> <span class="nf">add_plotly_fig_kwargs</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator that adds keyword arguments for functions returning plotly figures.</span>
+<span class="sd">    The function should return either a plotly figure or None to signal some</span>
+<span class="sd">    sort of error/unexpected event.</span>
+<span class="sd">    See doc string below for the list of supported options.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># pop the kwds used by the decorator.</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">show</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show&quot;</span><span class="p">,</span> <span class="n">_PLOTLY_DEFAULT_SHOW</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">hovermode</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;hovermode&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">savefig</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;savefig&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">write_json</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;write_json&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">renderer</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;renderer&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># Allow users to specify the renderer via shell env.</span>
+        <span class="k">if</span> <span class="n">renderer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PLOTLY_RENDERER&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">renderer</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Call func and return immediately if None is returned.</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fig</span>
+
+        <span class="c1"># Operate on plotly figure.</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">title_text</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">title_x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">savefig</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">savefig</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">write_json</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">plotly.io</span> <span class="k">as</span> <span class="nn">pio</span>
+            <span class="n">pio</span><span class="o">.</span><span class="n">write_json</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">write_json</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">hovermode</span> <span class="o">=</span> <span class="n">hovermode</span>
+
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="c1"># and _PLOTLY_DEFAULT_SHOW:</span>
+            <span class="k">if</span> <span class="n">renderer</span> <span class="o">==</span> <span class="s2">&quot;chart_studio&quot;</span><span class="p">:</span>
+                <span class="n">push_to_chart_studio</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">renderer</span><span class="o">=</span><span class="n">renderer</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span>
+
+    <span class="c1"># Add docstring to the decorated method.</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">                Keyword arguments controlling the display of the figure:</span>
+<span class="s2">                ================  ====================================================================</span>
+<span class="s2">                kwargs            Meaning</span>
+<span class="s2">                ================  ====================================================================</span>
+<span class="s2">                title             Title of the plot (Default: None).</span>
+<span class="s2">                show              True to show the figure (default: True).</span>
+<span class="s2">                hovormode         True to show the hover info (default: False)</span>
+<span class="s2">                savefig           &quot;abc.png&quot; , &quot;abc.jpeg&quot; or &quot;abc.webp&quot; to save the figure to a file.</span>
+<span class="s2">                write_json        Write plotly figure to `write_json` JSON file.</span>
+<span class="s2">                                  Inside jupyter-lab, one can right-click the `write_json` file from the file menu</span>
+<span class="s2">                                  and open with &quot;Plotly Editor&quot;.</span>
+<span class="s2">                                  Make some changes to the figure, then use the file menu to save the customized plotly plot.</span>
+<span class="s2">                                  Requires `jupyter labextension install jupyterlab-chart-editor`.</span>
+<span class="s2">                                  See https://github.com/plotly/jupyterlab-chart-editor</span>
+<span class="s2">                renderer          (str or None (default None)) –</span>
+<span class="s2">                                  A string containing the names of one or more registered renderers</span>
+<span class="s2">                                  (separated by ‘+’ characters) or None. If None, then the default</span>
+<span class="s2">                                  renderers specified in plotly.io.renderers.default are used.</span>
+<span class="s2">                                  See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</span>
+<span class="s2">                                  Note that if renderee is equal to `chart_studio`, the file is uploaded to the chart studio</span>
+<span class="s2">                                  cloud. This is an AbiPy extension on top of the plotly API.</span>
+<span class="s2">                config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.</span>
+<span class="s2">                ================  ====================================================================</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">wrapper</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Add s at the end of the docstring.</span>
+        <span class="n">wrapper</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">s</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Use s</span>
+        <span class="n">wrapper</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">s</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+
+<span class="k">def</span> <span class="nf">plotlyfigs_to_browser</span><span class="p">(</span><span class="n">figs</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save a list of plotly figures in an HTML file and open it the browser.</span>
+<span class="sd">    Useful to display multiple figures generated by different AbiPy methods</span>
+<span class="sd">    without having to construct a plotly subplot grid.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        figs: List of plotly figures.</span>
+<span class="sd">        filename: File name to save in. Use temporary filename if filename is None.</span>
+<span class="sd">        browser: Open webpage in ``browser``. Use $BROWSER if None.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        fig1 = plotter.combiplotly(renderer=&quot;browser&quot;, title=&quot;foo&quot;, show=False)</span>
+<span class="sd">        fig2 = plotter.combiplotly(renderer=&quot;browser&quot;, title=&quot;bar&quot;, show=False)</span>
+<span class="sd">        from abipy.tools.plotting import plotlyfigs_to_browser</span>
+<span class="sd">        plotlyfigs_to_browser([fig1, fig2])</span>
+
+<span class="sd">    Return: path to HTML file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">tempfile</span>
+        <span class="n">fd</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.html&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figs</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">figs</span> <span class="o">=</span> <span class="p">[</span><span class="n">figs</span><span class="p">]</span>
+
+    <span class="c1"># Based on https://stackoverflow.com/questions/46821554/multiple-plotly-plots-on-1-page-without-subplot</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fig</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">figs</span><span class="p">):</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">False</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">write_html</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">include_plotlyjs</span><span class="o">=</span><span class="n">first</span><span class="p">,</span> <span class="n">include_mathjax</span><span class="o">=</span><span class="s2">&quot;cdn&quot;</span> <span class="k">if</span> <span class="n">first</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="kn">import</span> <span class="nn">webbrowser</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Opening HTML file:&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="n">webbrowser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">browser</span><span class="p">)</span><span class="o">.</span><span class="n">open_new_tab</span><span class="p">(</span><span class="s2">&quot;file://&quot;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">filename</span>
+
+
+<span class="k">def</span> <span class="nf">plotly_klabels</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This helper function polish a list of k-points labels before calling plotly by:</span>
+
+<span class="sd">        - Checking if we have two equivalent consequtive labels (only the first one is shown and the second one is set to &quot;&quot;)</span>
+<span class="sd">        - Replacing particulat Latex tokens with unicode as plotly support for Latex is far from optimal.</span>
+
+<span class="sd">    Return: New list labels, same length as input labels.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Don&#39;t show label if previous k-point is the same.</span>
+    <span class="k">for</span> <span class="n">il</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_labels</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span><span class="p">]</span> <span class="o">==</span> <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span> <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">replace</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="sa">r</span><span class="s2">&quot;$\Gamma$&quot;</span><span class="p">:</span> <span class="s2">&quot;Γ&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">il</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_labels</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span><span class="p">]</span> <span class="ow">in</span> <span class="n">replace</span><span class="p">:</span>
+            <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span><span class="p">]</span> <span class="o">=</span> <span class="n">replace</span><span class="p">[</span><span class="n">new_labels</span><span class="p">[</span><span class="n">il</span><span class="p">]]</span>
+
+    <span class="k">return</span> <span class="n">new_labels</span>
+
+
+<span class="k">def</span> <span class="nf">plotly_set_xylabels</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">exchange_xy</span><span class="p">:</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">xlabel</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">xlabel</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">ylabel</span>
+
+
+<span class="n">_PLOTLY_AUTHEHTICATED</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">plotly_chartstudio_authenticate</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Authenticate the user on the chart studio portal by reading `PLOTLY_USERNAME` and `PLOTLY_API_KEY`</span>
+<span class="sd">    from the pymatgen configuration file located in $HOME/.pmgrc.yaml.</span>
+
+<span class="sd">        PLOTLY_USERNAME: johndoe</span>
+<span class="sd">        PLOTLY_API_KEY: XXXXXXXXXXXXXXXXXXXX</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_PLOTLY_AUTHEHTICATED</span>
+    <span class="k">if</span> <span class="n">_PLOTLY_AUTHEHTICATED</span><span class="p">:</span> <span class="k">return</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">SETTINGS</span>
+        <span class="c1">#from pymatgen.settings import SETTINGS</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">SETTINGS</span>
+
+    <span class="n">example</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Add it to $HOME/.pmgrc.yaml using the follow syntax:</span>
+
+<span class="s2">PLOTLY_USERNAME: john_doe</span>
+<span class="s2">PLOTLY_API_KEY: secret  # to get your api_key go to profile &gt; settings &gt; regenerate key</span>
+
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="n">username</span> <span class="o">=</span> <span class="n">SETTINGS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;PLOTLY_USERNAME&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">username</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot find PLOTLY_USERNAME in pymatgen settings.</span><span class="se">\n</span><span class="si">{</span><span class="n">example</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">api_key</span> <span class="o">=</span> <span class="n">SETTINGS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;PLOTLY_API_KEY&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">api_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot find PLOTLY_API_KEY in pymatgen settings.</span><span class="se">\n</span><span class="si">{</span><span class="n">example</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="kn">import</span> <span class="nn">chart_studio</span>
+    <span class="c1"># https://towardsdatascience.com/how-to-create-a-plotly-visualization-and-embed-it-on-websites-517c1a78568b</span>
+    <span class="n">chart_studio</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">set_credentials_file</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span>
+    <span class="n">_PLOTLY_AUTHEHTICATED</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="k">def</span> <span class="nf">push_to_chart_studio</span><span class="p">(</span><span class="n">figs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Push a plotly figure or a list of figures to the chart studio cloud.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">plotly_chartstudio_authenticate</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">chart_studio.plotly</span> <span class="k">as</span> <span class="nn">py</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figs</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">figs</span> <span class="o">=</span> <span class="p">[</span><span class="n">figs</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="p">:</span>
+        <span class="n">py</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">auto_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 
-    </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

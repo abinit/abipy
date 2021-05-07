@@ -1,67 +1,106 @@
+
+
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.flowtk.flows &mdash; abipy 0.9.0 documentation</title>
+  
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>abipy.flowtk.flows &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../../../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../../../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
@@ -84,51 +123,72 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"></ul>
-</li>
-              
-            
-            
-              
-                
-              
-            
-            
-            
-            
-              <li class="hidden-sm"></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../../../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../flowtk.html">abipy.flowtk</a> &raquo;</li>
+        
+      <li>abipy.flowtk.flows</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <h1>Source code for abipy.flowtk.flows</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -161,6 +221,7 @@
 <span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="kn">import</span> <span class="n">pmg_pickle_load</span><span class="p">,</span> <span class="n">pmg_pickle_dump</span><span class="p">,</span> <span class="n">pmg_serialize</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="kn">import</span> <span class="n">Memory</span>
 <span class="kn">from</span> <span class="nn">pymatgen.util.io_utils</span> <span class="kn">import</span> <span class="n">AtomicFile</span>
+<span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="kn">import</span> <span class="n">get_workdir</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.printing</span> <span class="kn">import</span> <span class="n">print_dataframe</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="kn">import</span> <span class="n">wrappers</span>
@@ -384,9 +445,10 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">pickle_load</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;workdir&quot;</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Flow.temporary_flow"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.flows.Flow.temporary_flow">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">temporary_flow</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">temporary_flow</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a Flow in a temporary directory. Useful for unit tests.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(),</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span></div>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">get_workdir</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Flow.set_workdir"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.flows.Flow.set_workdir">[docs]</a>    <span class="k">def</span> <span class="nf">set_workdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">chroot</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -477,10 +539,10 @@
         <span class="n">flow</span> <span class="o">=</span> <span class="n">pmg_pickle_load</span><span class="p">(</span><span class="n">strio</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">flow</span></div>
 
-<div class="viewcode-block" id="Flow.get_panel"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.flows.Flow.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Flow.get_panel"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.flows.Flow.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Build panel with widgets to interact with the |Flow| either in a notebook or in panel app.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.panels.flows</span> <span class="kn">import</span> <span class="n">FlowPanel</span>
-        <span class="k">return</span> <span class="n">FlowPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="n">FlowPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">works</span><span class="p">)</span>
@@ -1956,7 +2018,10 @@
                         <span class="k">break</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">count</span><span class="p">:</span>
-                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Houston, we could not find any error message that can explain the problem&quot;</span><span class="p">,</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Houston, we could not find any error message that can explain the problem.</span>
+<span class="s2">Use the `abirun.py FLOWDIR history` command to print the log files of the different nodes.</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span>
                         <span class="n">color</span><span class="o">=</span><span class="s2">&quot;magenta&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of tasks analyzed: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ntasks</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span></div>
@@ -2135,9 +2200,28 @@
 
         <span class="k">return</span> <span class="n">work</span></div>
 
+<div class="viewcode-block" id="Flow.new_work"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.flows.Flow.new_work">[docs]</a>    <span class="k">def</span> <span class="nf">new_work</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to add a new empty |Work| and add it to the internal list.</span>
+<span class="sd">        Client code is responsible for filling the new work.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            deps: List of :class:`Dependency` objects specifying the dependency of this node.</span>
+<span class="sd">                  An empy list of deps implies that this node has no dependencies.</span>
+<span class="sd">            manager: The |TaskManager| responsible for the submission of the task.</span>
+<span class="sd">                     If manager is None, we use the `TaskManager` specified during the creation of the work.</span>
+<span class="sd">            workdir: The name of the directory used for the |Work|.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The registered |Work|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">work</span> <span class="o">=</span> <span class="n">Work</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">deps</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Flow.register_work"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.flows.Flow.register_work">[docs]</a>    <span class="k">def</span> <span class="nf">register_work</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">work</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Register a new |Work| and add it to the internal list, taking into account possible dependencies.</span>
+<span class="sd">        Register a new |Work| and add it to the internal list, taking into account</span>
+<span class="sd">        possible dependencies.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            work: |Work| object.</span>
@@ -2519,7 +2603,7 @@
 
 <div class="viewcode-block" id="Flow.single_shot"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.flows.Flow.single_shot">[docs]</a>    <span class="k">def</span> <span class="nf">single_shot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">check_status</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Use :class:`PyLauncher` to submits one task.</span>
+<span class="sd">        Use :class:`PyLauncher` to submit one task.</span>
 <span class="sd">        kwargs contains the options passed to the launcher.</span>
 
 <span class="sd">        Return: Number of tasks submitted.</span>
@@ -3173,6 +3257,9 @@
     <span class="k">return</span> <span class="n">flow</span></div>
 
 
+<span class="c1"># TODO: Deprecate PhononFlow, Use PhononWork</span>
+
+
 <span class="k">class</span> <span class="nc">PhononFlow</span><span class="p">(</span><span class="n">Flow</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This Flow provides a high-level interface to compute phonons with DFPT</span>
@@ -3384,22 +3471,50 @@
     <span class="k">return</span> <span class="n">flow</span>
 </pre></div>
 
-    </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

@@ -1,67 +1,106 @@
+
+
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.flowtk.works &mdash; abipy 0.9.0 documentation</title>
+  
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>abipy.flowtk.works &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../../../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../../../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
@@ -84,51 +123,72 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"></ul>
-</li>
-              
-            
-            
-              
-                
-              
-            
-            
-            
-            
-              <li class="hidden-sm"></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../../../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../flowtk.html">abipy.flowtk</a> &raquo;</li>
+        
+      <li>abipy.flowtk.works</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <h1>Source code for abipy.flowtk.works</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -182,6 +242,7 @@
 
 
 <span class="k">class</span> <span class="nc">WorkResults</span><span class="p">(</span><span class="n">NodeResults</span><span class="p">):</span>
+
     <span class="n">JSON_SCHEMA</span> <span class="o">=</span> <span class="n">NodeResults</span><span class="o">.</span><span class="n">JSON_SCHEMA</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="nd">@classmethod</span>
@@ -592,9 +653,10 @@
         <span class="sd">&quot;&quot;&quot;Register an electron-phonon task.&quot;&quot;&quot;</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EphTask</span>
         <span class="n">eph_inp</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">seq_manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span><span class="o">.</span><span class="n">new_with_fixed_mpi_omp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">eph_inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;eph_frohlichm&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">eph_inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;eph_task&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="mi">15</span><span class="p">:</span>
-            <span class="c1"># FIXME: Hack to run task in sequential if calculation does not support MPI with nprocs &gt; 1.</span>
+            <span class="c1"># FIXME: Hack to run task in sequential since this  calculation does</span>
+            <span class="c1"># not support MPI with nprocs &gt; 1.</span>
+            <span class="n">seq_manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span><span class="o">.</span><span class="n">new_with_fixed_mpi_omp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;manager&quot;</span><span class="p">:</span> <span class="n">seq_manager</span><span class="p">})</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -636,6 +698,7 @@
 <span class="sd">    .. rubric:: Inheritance Diagram</span>
 <span class="sd">    .. inheritance-diagram:: Work</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -715,6 +778,19 @@
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="p">[</span><span class="nb">slice</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Work.postpone_on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work.postpone_on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">postpone_on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method should be called when additional tasks are added to the Work at runtime.</span>
+<span class="sd">        e.g inside an on_all_ok method. This call triggers the allocations of new tasks</span>
+<span class="sd">        so that the scheduler will continue execution since new tasks have been added</span>
+<span class="sd">        and the finalized flag is set to False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">build_and_pickle_dump</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finalized</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Work.chunks"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work.chunks">[docs]</a>    <span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Yield successive chunks of tasks of lenght chunk_size.&quot;&quot;&quot;</span>
@@ -1218,7 +1294,7 @@
 
 <div class="viewcode-block" id="G0W0Work"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.G0W0Work">[docs]</a><span class="k">class</span> <span class="nc">G0W0Work</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Work for general G0W0 calculations.</span>
+<span class="sd">    Work for generic G0W0 calculations.</span>
 <span class="sd">    All input can be either single inputs or lists of inputs</span>
 
 <span class="sd">    .. rubric:: Inheritance Diagram</span>
@@ -1587,8 +1663,8 @@
 <span class="sd">    This work consists of nirred Phonon tasks where nirred is</span>
 <span class="sd">    the number of irreducible atomic perturbations for a given set of q-points.</span>
 <span class="sd">    It provides the callback method (on_all_ok) that calls mrgddb (mrgdv) to merge</span>
-<span class="sd">    all the partial DDB (POT) files produced. The two files are available in the</span>
-<span class="sd">    output directory of the Work.</span>
+<span class="sd">    all the partial DDB (POT) files produced.</span>
+<span class="sd">    The two files are available in the output directory of the Work.</span>
 
 <span class="sd">    .. rubric:: Inheritance Diagram</span>
 <span class="sd">    .. inheritance-diagram:: PhononWork</span>
@@ -1596,7 +1672,7 @@
 
 <div class="viewcode-block" id="PhononWork.from_scf_task"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.PhononWork.from_scf_task">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_scf_task</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_task</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                      <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construct a `PhononWork` from a |ScfTask| object.</span>
 <span class="sd">        The input file for phonons is automatically generated from the input of the ScfTask.</span>
@@ -1612,6 +1688,11 @@
 <span class="sd">            with_becs: Activate calculation of Electric field and Born effective charges.</span>
 <span class="sd">            ddk_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the DDK run if with_becs.</span>
 <span class="sd">                None to use AbiPy default.</span>
+<span class="sd">            prtwf: Controls the output of the first-order WFK.</span>
+<span class="sd">                By default we set it to -1 when q != 0 so that AbiPy is still able</span>
+<span class="sd">                to restart the DFPT task if the calculation is not converged (worst case scenario)</span>
+<span class="sd">                but we avoid the output of the 1-st WFK if the calculation converged successfully.</span>
+<span class="sd">                Non-linear DFT applications should not be affected since they assume q == 0.</span>
 <span class="sd">            manager: |TaskManager| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ScfTask</span><span class="p">):</span>
@@ -1626,16 +1707,19 @@
             <span class="n">new</span><span class="o">.</span><span class="n">add_becs_from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">qpt</span> <span class="ow">in</span> <span class="n">qpoints</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">with_becs</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">qpt</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">is_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">qpt</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span>
+            <span class="k">if</span> <span class="n">with_becs</span> <span class="ow">and</span> <span class="n">is_gamma</span><span class="p">:</span> <span class="k">continue</span>
             <span class="n">multi</span> <span class="o">=</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">make_ph_inputs_qpoint</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">ph_inp</span> <span class="ow">in</span> <span class="n">multi</span><span class="p">:</span>
+                <span class="c1"># Here we set the value of prtwf for the DFPT tasks if q != Gamma.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_gamma</span><span class="p">:</span> <span class="n">ph_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">prtwf</span><span class="o">=</span><span class="n">prtwf</span><span class="p">)</span>
                 <span class="n">new</span><span class="o">.</span><span class="n">register_phonon_task</span><span class="p">(</span><span class="n">ph_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">scf_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
 
         <span class="k">return</span> <span class="n">new</span></div>
 
 <div class="viewcode-block" id="PhononWork.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.PhononWork.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                       <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                       <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Similar to `from_scf_task`, the difference is that this method requires</span>
 <span class="sd">        an input for SCF calculation. A new |ScfTask| is created and added to the Work.</span>
@@ -1654,9 +1738,12 @@
             <span class="n">new</span><span class="o">.</span><span class="n">add_becs_from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">qpt</span> <span class="ow">in</span> <span class="n">qpoints</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">with_becs</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">qpt</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">is_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">qpt</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span>
+            <span class="k">if</span> <span class="n">with_becs</span> <span class="ow">and</span> <span class="n">is_gamma</span><span class="p">:</span> <span class="k">continue</span>
             <span class="n">multi</span> <span class="o">=</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">make_ph_inputs_qpoint</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">ph_inp</span> <span class="ow">in</span> <span class="n">multi</span><span class="p">:</span>
+                <span class="c1"># Here we set the value of prtwf for the DFPT tasks if q != Gamma.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_gamma</span><span class="p">:</span> <span class="n">ph_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">prtwf</span><span class="o">=</span><span class="n">prtwf</span><span class="p">)</span>
                 <span class="n">new</span><span class="o">.</span><span class="n">register_phonon_task</span><span class="p">(</span><span class="n">ph_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">scf_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
 
         <span class="k">return</span> <span class="n">new</span></div>
@@ -1665,7 +1752,7 @@
 <div class="viewcode-block" id="PhononWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.PhononWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method is called when all the q-points have been computed.</span>
-<span class="sd">        Ir runs `mrgddb` in sequential on the local machine to produce</span>
+<span class="sd">        It runs `mrgddb` in sequential on the local machine to produce</span>
 <span class="sd">        the final DDB file in the outdir of the |Work|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Merge DDB files.</span>
@@ -2109,12 +2196,14 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Workflow for the computation of electrical conductivity.</span>
 
-<span class="sd">    Can be called from :</span>
+<span class="sd">    Can be called from:</span>
 <span class="sd">        1. MultiDataset and PhononWork</span>
 <span class="sd">        2. MultiDataset, DDB filepath and DVDB filepath.</span>
+
 <span class="sd">    Can use Kerange Capability using withKerange=True</span>
 
-<span class="sd">    This work consists of 3 tasks or 5 tasks with kerange :</span>
+<span class="sd">    This work consists of 3 tasks or 5 tasks with kerange:</span>
+
 <span class="sd">        1. SCF GS</span>
 <span class="sd">        2. NSCF</span>
 <span class="sd">        3. Kerange (Kerange only)</span>
@@ -2126,7 +2215,7 @@
     <span class="k">def</span> <span class="nf">from_phwork</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">phwork</span><span class="p">,</span> <span class="n">multi</span><span class="p">,</span> <span class="n">nbr_proc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_kerange</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                     <span class="n">omp_nbr_thread</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Construct a |ConducWork| from a |PhononWork| and |MultiDataset|.</span>
+<span class="sd">        Construct a ConducWork from a |PhononWork| and |MultiDataset|.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            phwork: a |PhononWork| object calculating the DDB and DVDB files.</span>
@@ -2141,6 +2230,7 @@
         <span class="c1"># Verify phwork</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phwork</span><span class="p">,</span> <span class="n">PhononWork</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Work `</span><span class="si">%s</span><span class="s2">` does not inherit from PhononWork&quot;</span> <span class="o">%</span> <span class="n">phwork</span><span class="p">)</span>
+
         <span class="c1"># Verify Multi</span>
         <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">with_kerange</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">multi</span><span class="o">.</span><span class="n">ndtset</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">):</span> <span class="c1">#Without kerange, multi should contain 3 datasets</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;The |MultiDataset| object does not contain the expected number of dataset.</span>
@@ -2183,7 +2273,7 @@
     <span class="k">def</span> <span class="nf">from_filepath</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ddb_path</span><span class="p">,</span> <span class="n">dvdb_path</span><span class="p">,</span> <span class="n">multi</span><span class="p">,</span> <span class="n">nbr_proc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                       <span class="n">with_kerange</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">omp_nbr_thread</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Construct a |ConducWork| from previously calculated DDB/DVDB file and |MultiDataset|.</span>
+<span class="sd">        Construct a ConducWork from previously calculated DDB/DVDB file and |MultiDataset|.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            multi: a |MultiDataset| object containing a list of 3 datasets or 5 with Kerange.</span>
@@ -2208,8 +2298,10 @@
         <span class="c1"># Make sure both file exists</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ddb_path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The DDB file doesn&#39;t exists : `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">ddb_path</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dvdb_path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The DVDB file doesn&#39;t exists : `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">dvdb_path</span><span class="p">)</span>
+
         <span class="c1"># Verify nbr_proc and flow are defined if with_kerange</span>
         <span class="k">if</span> <span class="n">with_kerange</span> <span class="ow">and</span> <span class="p">(</span><span class="n">flow</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nbr_proc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath</span>
@@ -2221,7 +2313,7 @@
         <span class="n">new</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">new</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">})</span>
         <span class="n">taskNumber</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># To keep track of the task in new and multi</span>
 
-        <span class="k">if</span><span class="p">(</span><span class="n">with_kerange</span><span class="p">):</span> <span class="c1"># Using Kerange</span>
+        <span class="k">if</span> <span class="n">with_kerange</span><span class="p">:</span> <span class="c1"># Using Kerange</span>
             <span class="n">new</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="n">multi</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">new</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
             <span class="n">new</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="n">multi</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">new</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">,</span> <span class="n">new</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">,</span> <span class="n">new</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="s2">&quot;KERANGE.nc&quot;</span><span class="p">})</span>
             <span class="n">taskNumber</span> <span class="o">=</span> <span class="mi">4</span> <span class="c1"># We have 2 more task</span>
@@ -2241,25 +2333,54 @@
             <span class="k">if</span> <span class="n">nbr_proc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">new</span><span class="p">[</span><span class="mi">2</span><span class="p">:]:</span>
                     <span class="n">task</span><span class="o">.</span><span class="n">with_fixed_mpi_omp</span><span class="p">(</span><span class="n">nbr_proc</span><span class="p">,</span> <span class="n">omp_nbr_thread</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">new</span></div></div>
 </pre></div>
 
-    </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

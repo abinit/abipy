@@ -24,30 +24,21 @@ Density
 This example shows how to analyze the electronic density
 stored in the DEN.nc file.
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-38
+.. GENERATED FROM PYTHON SOURCE LINES 9-18
+
+.. code-block:: default
+
+    from abipy.abilab import abiopen
+    import abipy.data as abidata
+
+    # Open the DEN.nc file
+    ncfile = abiopen(abidata.ref_file("si_DEN.nc"))
+
+    # The DEN file has a `Density`, a `Structure` and an `ElectronBands` object
+    print(ncfile.structure)
 
 
 
-.. rst-class:: sphx-glr-horizontal
-
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_den_001.png
-          :alt: plot den
-          :class: sphx-glr-multi-img
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_den_002.png
-          :alt: plot den
-          :class: sphx-glr-multi-img
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_den_003.png
-          :alt: Si, [0.25 0.25 0.25], dist=2.368 A, Si, [ 0.25  0.25 -0.75], dist=2.368 A, Si, [-0.75  0.25  0.25], dist=2.368 A, Si, [ 0.25 -0.75  0.25], dist=2.368 A
-          :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
@@ -67,33 +58,19 @@ stored in the DEN.nc file.
       1  Si    0.25  0.25  0.25
 
     Abinit Spacegroup: spgid: 227, num_spatial_symmetries: 48, has_timerev: True, symmorphic: True
-    Density: nspinor: 1, nsppol: 1, nspden: 1
-    Mesh3D: nx=18, ny=18, nz=18
-    /Users/gmatteo/git_repos/abipy/abipy/core/fields.py:413: FutureWarning: get_neighbors_old is deprecated; use get_neighbors in pymatgen.core.structure instead.
-    This is retained purely for checking purposes.
-      nn_list = self.structure.get_neighbors_old(site, radius, include_index=True)
-
-    <Figure size 640x480 with 4 Axes>
 
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 19-20
 
-|
+To plot the KS eigenvalues.
+
+.. GENERATED FROM PYTHON SOURCE LINES 20-28
 
 .. code-block:: default
 
-    from abipy.abilab import abiopen
-    import abipy.data as abidata
-
-    # Open the DEN.nc file
-    ncfile = abiopen(abidata.ref_file("si_DEN.nc"))
-
-    # The DEN file has a `Density`, a `Structure` and an `ElectronBands` object
-    print(ncfile.structure)
-
-    # To plot the KS eigenvalues.
-    #ncfile.ebands.plot()
+    ncfile.ebands.plot()
 
     density = ncfile.density
     print(density)
@@ -101,22 +78,119 @@ stored in the DEN.nc file.
     # To visualize the total charge wih vesta
     #visu = density.visualize("vesta"); visu()
 
-    # To plot the density along the line connecting
-    # the first and the second in the structure:
+
+
+
+.. image:: /gallery/images/sphx_glr_plot_den_001.png
+    :alt: plot den
+    :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+    Density: nspinor: 1, nsppol: 1, nspden: 1
+    Mesh3D: nx=18, ny=18, nz=18
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 29-31
+
+To plot the density along the line connecting
+the first and the second in the structure:
+
+.. GENERATED FROM PYTHON SOURCE LINES 31-33
+
+.. code-block:: default
+
     density.plot_line(point1=0, point2=1)
 
-    # alternatively, one can define the line in terms of two points
-    # in fractional coordinates:
+
+
+
+.. image:: /gallery/images/sphx_glr_plot_den_002.png
+    :alt: plot den
+    :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+
+    <Figure size 640x480 with 1 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 34-36
+
+alternatively, one can define the line in terms of two points
+in fractional coordinates:
+
+.. GENERATED FROM PYTHON SOURCE LINES 36-38
+
+.. code-block:: default
+
     density.plot_line(point1=[0, 0, 0], point2=[2.25, 2.25, 2.25], num=300)
 
-    # To plot the density along the lines connect the firt atom in the structure
-    # and all the neighbors within a sphere of radius 3 Angstrom:
+
+
+
+.. image:: /gallery/images/sphx_glr_plot_den_003.png
+    :alt: plot den
+    :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+
+    <Figure size 640x480 with 1 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 39-41
+
+To plot the density along the lines connect the firt atom in the structure
+and all the neighbors within a sphere of radius 3 Angstrom:
+
+.. GENERATED FROM PYTHON SOURCE LINES 41-42
+
+.. code-block:: default
+
     density.plot_line_neighbors(site_index=0, radius=3)
+
+
+
+.. image:: /gallery/images/sphx_glr_plot_den_004.png
+    :alt: Si, [0.25 0.25 0.25], dist=2.368 A, Si, [ 0.25  0.25 -0.75], dist=2.368 A, Si, [-0.75  0.25  0.25], dist=2.368 A, Si, [ 0.25 -0.75  0.25], dist=2.368 A
+    :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+
+    <Figure size 640x480 with 4 Axes>
+
+
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.566 seconds)
+   **Total running time of the script:** ( 0 minutes  0.740 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_den.py:

@@ -1,67 +1,106 @@
+
+
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.flowtk.tasks &mdash; abipy 0.9.0 documentation</title>
+  
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>abipy.flowtk.tasks &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../../../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../../../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
@@ -84,51 +123,72 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"></ul>
-</li>
-              
-            
-            
-              
-                
-              
-            
-            
-            
-            
-              <li class="hidden-sm"></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../../../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../flowtk.html">abipy.flowtk</a> &raquo;</li>
+        
+      <li>abipy.flowtk.tasks</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <h1>Source code for abipy.flowtk.tasks</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;This module provides functions and classes related to Task objects.&quot;&quot;&quot;</span>
@@ -153,6 +213,7 @@
 <span class="kn">from</span> <span class="nn">monty.fnmatch</span> <span class="kn">import</span> <span class="n">WildCard</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="kn">import</span> <span class="n">Memory</span>
 <span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="kn">import</span> <span class="n">json_pretty_dump</span><span class="p">,</span> <span class="n">pmg_serialize</span>
+<span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="kn">import</span> <span class="n">get_workdir</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">File</span><span class="p">,</span> <span class="n">Directory</span><span class="p">,</span> <span class="n">irdvars_for_ext</span><span class="p">,</span> <span class="n">abi_splitext</span><span class="p">,</span> <span class="n">FilepathFixer</span><span class="p">,</span> <span class="n">Condition</span><span class="p">,</span> <span class="n">SparseHistogram</span>
 <span class="kn">from</span> <span class="nn">.qadapters</span> <span class="kn">import</span> <span class="n">make_qadapter</span><span class="p">,</span> <span class="n">QueueAdapter</span><span class="p">,</span> <span class="n">QueueAdapterError</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">qutils</span> <span class="k">as</span> <span class="n">qu</span>
@@ -192,6 +253,16 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1"># Tools and helper functions.</span>
+
+
+<span class="k">def</span> <span class="nf">yaml_safe_load</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="c1">#return yaml.YAML(typ=&#39;safe&#39;, pure=True).load(s)</span>
+
+
+<span class="k">def</span> <span class="nf">yaml_unsafe_load</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="c1">#return yaml.YAML(typ=&#39;unsafe&#39;, pure=True).load(s)</span>
 
 
 <span class="k">def</span> <span class="nf">straceback</span><span class="p">():</span>
@@ -353,7 +424,7 @@
         <span class="k">with</span> <span class="n">abiinspect</span><span class="o">.</span><span class="n">YamlTokenizer</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
             <span class="n">doc</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">next_doc_with_tag</span><span class="p">(</span><span class="s2">&quot;!Autoparal&quot;</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">d</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">text_notag</span><span class="p">)</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">yaml_safe_load</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">text_notag</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">ParalHints</span><span class="p">(</span><span class="n">info</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">],</span> <span class="n">confs</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;configurations&quot;</span><span class="p">])</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">traceback</span>
@@ -690,6 +761,34 @@
         <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;qadapter: &quot;</span> <span class="o">+</span> <span class="n">QueueAdapter</span><span class="o">.</span><span class="n">autodoc</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="n">s</span></div>
 
+<div class="viewcode-block" id="TaskManager.get_simple_manager"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.TaskManager.get_simple_manager">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_simple_manager</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">qadapters:</span>
+<span class="s2">    # List of qadapters objects</span>
+<span class="s2">    - priority: 1</span>
+<span class="s2">      queue:</span>
+<span class="s2">            qtype: shell       # We are using the shell to &quot;submit&quot; jobs</span>
+<span class="s2">            qname: localhost</span>
+<span class="s2">      job:</span>
+<span class="s2">        mpi_runner: mpirun</span>
+<span class="s2">        pre_run:  </span>
+<span class="s2">            # List of shell commands executed before running abinit</span>
+<span class="s2">            # Change this part according to your Abinit installation and the location of the shared libs</span>
+<span class="s2">            - export OMP_NUM_THREADS=1</span>
+<span class="s2">            - export PATH=$HOME/git_repos/abinit/_build/src/98_main:$PATH</span>
+<span class="s2">            #- export LD_LIBRARY_PATH=$HOME/local/lib:$LD_LIBRARY_PATH</span>
+<span class="s2">      limits:</span>
+<span class="s2">            timelimit: 1:00:00</span>
+<span class="s2">            max_cores: 2</span>
+<span class="s2">      hardware:</span>
+<span class="s2">            num_nodes: 1</span>
+<span class="s2">            sockets_per_node: 1</span>
+<span class="s2">            cores_per_socket: 2</span>
+<span class="s2">            mem_per_node: 4 Gb</span>
+<span class="s2">&quot;&quot;&quot;</span></div>
+
 <div class="viewcode-block" id="TaskManager.from_user_config"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.TaskManager.from_user_config">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_user_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -709,15 +808,24 @@
             <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">USER_CONFIG_DIR</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">YAML_FILE</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">colored</span><span class="p">(</span>
-                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Cannot locate </span><span class="si">%s</span><span class="s2"> neither in current directory nor in </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="s2">&quot;PLEASE READ THIS: !!!</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="s2">&quot;To use AbiPy to run jobs this file must be present</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="s2">&quot;It provides a description of the cluster/computer you are running on</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="s2">&quot;Examples are provided in abipy/data/managers.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="s2">&quot;Use `abidoc.py manager` to access the documentation in the terminal.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="s2">&quot;See also: https://abinit.github.io/abipy/workflows/manager_examples.html</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="bp">cls</span><span class="o">.</span><span class="n">YAML_FILE</span><span class="p">,</span> <span class="n">path</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">colored</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+
+<span class="s2">Cannot locate `</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">YAML_FILE</span><span class="si">}</span><span class="s2">` neither in current directory nor in `</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">`</span>
+
+<span class="s2">!!! PLEASE READ THIS !!!</span>
+
+<span class="s2">    To run AbiPy flows you need a manager.yaml describing your computer/cluster </span>
+<span class="s2">    as well as the job submission engine being used (shell, Slurm, PBS, etc).</span>
+<span class="s2">    </span>
+<span class="s2">    Examples are provided in the `abipy/data/managers` directory.</span>
+<span class="s2">    Use `abidoc.py manager` to access the documentation from the terminal.</span>
+<span class="s2">    See also https://abinit.github.io/abipy/workflows/manager_examples.html for examples.</span>
+<span class="s2">    </span>
+<span class="s2">A minimalistic example of manager.yml for a laptop with the shell engine is reported below:</span>
+<span class="s2">    </span>
+<span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">get_simple_manager</span><span class="p">()</span><span class="si">}</span><span class="s2"></span>
+
+<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">))</span>
 
         <span class="n">_USER_CONFIG_TASKMANAGER</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_USER_CONFIG_TASKMANAGER</span></div>
@@ -727,7 +835,7 @@
         <span class="sd">&quot;&quot;&quot;Read the configuration parameters from the Yaml file filename.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fh</span><span class="p">))</span>
+                <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">yaml_safe_load</span><span class="p">(</span><span class="n">fh</span><span class="p">))</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error while reading TaskManager parameters from </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
             <span class="k">raise</span></div>
@@ -735,7 +843,7 @@
 <div class="viewcode-block" id="TaskManager.from_string"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.TaskManager.from_string">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create an instance from string s containing a YAML dictionary.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">yaml_safe_load</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="TaskManager.as_manager"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.TaskManager.as_manager">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">as_manager</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
@@ -770,7 +878,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            policy:None</span>
-<span class="sd">            qadapters:List of qadapters in YAML format</span>
+<span class="sd">            qadapters: List of qadapters in YAML format</span>
 <span class="sd">            db_connector:Dictionary with data used to connect to the database (optional)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Keep a copy of kwargs</span>
@@ -1196,18 +1304,22 @@
         <span class="n">manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">as_manager</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span><span class="o">.</span><span class="n">to_shell_manager</span><span class="p">(</span><span class="n">mpi_procs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># Build a simple manager to run the job in a shell subprocess</span>
-        <span class="kn">import</span> <span class="nn">tempfile</span>
-        <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">get_workdir</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
 
         <span class="c1"># Generate a shell script to execute `abinit -b`</span>
         <span class="n">stdout</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.abo&quot;</span><span class="p">)</span>
+
+        <span class="c1">#stdin = os.path.join(workdir, &quot;run.files&quot;)</span>
+        <span class="c1">#with open(stdin, &quot;wt&quot;) as fh:</span>
+        <span class="c1">#    fh.write(&quot;foo&quot;)</span>
+
         <span class="n">script</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">qadapter</span><span class="o">.</span><span class="n">get_script_str</span><span class="p">(</span>
             <span class="n">job_name</span><span class="o">=</span><span class="s2">&quot;abinit_b&quot;</span><span class="p">,</span>
             <span class="n">launch_dir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span>
             <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;abinit&quot;</span><span class="p">,</span>
             <span class="n">qout_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;queue.qout&quot;</span><span class="p">),</span>
             <span class="n">qerr_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;queue.qerr&quot;</span><span class="p">),</span>
-            <span class="c1">#stdin=os.path.join(workdir, &quot;run.files&quot;),</span>
+            <span class="c1">#stdin=stdin,</span>
             <span class="n">stdout</span><span class="o">=</span><span class="n">stdout</span><span class="p">,</span>
             <span class="n">stderr</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.err&quot;</span><span class="p">),</span>
             <span class="n">exec_args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;-b&quot;</span><span class="p">],</span>
@@ -2766,10 +2878,7 @@
 <span class="sd">            mpi_procs: Number of MPI processes to use.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Build a simple manager to run the job in a shell subprocess</span>
-        <span class="c1"># Allow users to specify the temporary directory via env variable.</span>
-        <span class="nb">dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ABIPY_TMPDIR&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-        <span class="kn">import</span> <span class="nn">tempfile</span>
-        <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">get_workdir</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span>
 
         <span class="c1"># Construct the task and run it</span>
@@ -2842,12 +2951,9 @@
 <span class="sd">        Return the subclass of ScfCycle associated to the task or</span>
 <span class="sd">        None if no SCF algorithm if associated to the task.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">RelaxTask</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">abiinspect</span><span class="o">.</span><span class="n">Relaxation</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">GsTask</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">abiinspect</span><span class="o">.</span><span class="n">GroundStateScfCycle</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dfpt_task</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">abiinspect</span><span class="o">.</span><span class="n">D2DEScfCycle</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">RelaxTask</span><span class="p">):</span> <span class="k">return</span> <span class="n">abiinspect</span><span class="o">.</span><span class="n">Relaxation</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">GsTask</span><span class="p">):</span> <span class="k">return</span> <span class="n">abiinspect</span><span class="o">.</span><span class="n">GroundStateScfCycle</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dfpt_task</span><span class="p">:</span> <span class="k">return</span> <span class="n">abiinspect</span><span class="o">.</span><span class="n">D2DEScfCycle</span>
 
         <span class="k">return</span> <span class="kc">None</span></div>
 
@@ -3449,7 +3555,28 @@
             <span class="c1"># Add files to GridFS</span>
             <span class="n">results</span><span class="o">.</span><span class="n">register_gridfs_files</span><span class="p">(</span><span class="n">GSR</span><span class="o">=</span><span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">results</span></div></div>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="ScfTask.add_ebands_task_to_work"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.ScfTask.add_ebands_task_to_work">[docs]</a>    <span class="k">def</span> <span class="nf">add_ebands_task_to_work</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">work</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">,</span> <span class="n">nscf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_extra</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate an NSCF task form band structure calculation from a GS SCF task and add it to the work.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            work:</span>
+<span class="sd">            ndivsm: if &gt; 0, it&#39;s the number of divisions for the smallest segment of the path (Abinit variable).</span>
+<span class="sd">                if &lt; 0, it&#39;s interpreted as the pymatgen `line_density` parameter in which the number of points</span>
+<span class="sd">                in the segment is proportional to its length. Typical value: -20.</span>
+<span class="sd">                This option is the recommended one if the k-path contains two high symmetry k-points that are very close</span>
+<span class="sd">                as ndivsm &gt; 0 may produce a very large number of wavevectors.</span>
+<span class="sd">            tolwfr: Tolerance on residuals for NSCF calculation.</span>
+<span class="sd">            nscf_nband: Number of bands for NSCF calculation. If None, use nband + nb_extra</span>
+
+<span class="sd">        return: NscfTask object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ebands_inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">make_ebands_input</span><span class="p">(</span><span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="n">tolwfr</span><span class="p">,</span>
+                                                  <span class="n">nscf_nband</span><span class="o">=</span><span class="n">nscf_nband</span><span class="p">,</span> <span class="n">nb_extra</span><span class="o">=</span><span class="n">nb_extra</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">work</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">ebands_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">})</span></div></div>
 
 
 <span class="k">class</span> <span class="nc">CollinearThenNonCollinearScfTask</span><span class="p">(</span><span class="n">ScfTask</span><span class="p">):</span>
@@ -3675,16 +3802,16 @@
 
 <div class="viewcode-block" id="RelaxTask.reduce_dilatmx"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.RelaxTask.reduce_dilatmx">[docs]</a>    <span class="k">def</span> <span class="nf">reduce_dilatmx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="mf">1.01</span><span class="p">):</span>
         <span class="n">actual_dilatmx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_inpvar</span><span class="p">(</span><span class="s1">&#39;dilatmx&#39;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
-        <span class="n">new_dilatmx</span> <span class="o">=</span> <span class="n">actual_dilatmx</span> <span class="o">-</span> <span class="nb">min</span><span class="p">((</span><span class="n">actual_dilatmx</span><span class="o">-</span><span class="n">target</span><span class="p">),</span> <span class="n">actual_dilatmx</span><span class="o">*</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="n">new_dilatmx</span> <span class="o">=</span> <span class="n">actual_dilatmx</span> <span class="o">-</span> <span class="nb">min</span><span class="p">((</span><span class="n">actual_dilatmx</span> <span class="o">-</span> <span class="n">target</span><span class="p">),</span> <span class="n">actual_dilatmx</span> <span class="o">*</span> <span class="mf">0.05</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">dilatmx</span><span class="o">=</span><span class="n">new_dilatmx</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="RelaxTask.fix_ofiles"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.RelaxTask.fix_ofiles">[docs]</a>    <span class="k">def</span> <span class="nf">fix_ofiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Note that ABINIT produces lots of out_TIM1_DEN files for each step.</span>
-<span class="sd">        Here we list all TIM*_DEN files, we select the last one and we rename it in out_DEN</span>
+<span class="sd">        Here we list all TIM*_DEN files, we select the last one and we rename it as out_DEN</span>
 
 <span class="sd">        This change is needed so that we can specify dependencies with the syntax {node: &quot;DEN&quot;}</span>
-<span class="sd">        without having to know the number of iterations needed to converge the run in node!</span>
+<span class="sd">        without having to know the number of iterations needed to converge.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">fix_ofiles</span><span class="p">()</span>
 
@@ -4695,8 +4822,7 @@
 <span class="sd">        See `AnaddbInit` for the meaning of the other arguments.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Build a simple manager to run the job in a shell subprocess</span>
-        <span class="kn">import</span> <span class="nn">tempfile</span>
-        <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">get_workdir</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span>
 
         <span class="c1"># Construct the task and run it</span>
@@ -4836,22 +4962,50 @@
 <span class="c1">#        return results</span>
 </pre></div>
 
-    </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

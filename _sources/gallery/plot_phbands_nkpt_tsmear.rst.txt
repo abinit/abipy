@@ -18,66 +18,30 @@
 .. _sphx_glr_gallery_plot_phbands_nkpt_tsmear.py:
 
 
-Multiple phonon bands
-=========================
+Multiple phonon bands with DDB robot
+====================================
 
 This example shows how to plot several phonon band structures on a grid.
 
-We use two files produced by anaddb:
+.. important::
 
-    trf2_5.out_PHBST.nc: phonon frequencies on a q-path in the BZ (used to plot the band dispersion)
-    trf2_5.out_PHDOS.nc: phonon DOS compute with anaddb.
+    Note that a **manager.yml** file and an abinit installation are required
+    to run this script as AbiPy needs to invoke anaddb to compute phonons from the DDB file.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-46
+.. GENERATED FROM PYTHON SOURCE LINES 15-17
 
+We start by defining a list of DDB files:
+obtained with the same structure but different k-mesh and tmear:
 
-
-.. rst-class:: sphx-glr-horizontal
-
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_phbands_nkpt_tsmear_001.png
-          :alt: tsmear = 0.01, tsmear = 0.04
-          :class: sphx-glr-multi-img
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_phbands_nkpt_tsmear_002.png
-          :alt: tsmear = 0.01, tsmear = 0.04
-          :class: sphx-glr-multi-img
-
-
-.. rst-class:: sphx-glr-script-out
-
- Out:
-
- .. code-block:: none
-
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
-
-
-
-
-
-
-|
+.. GENERATED FROM PYTHON SOURCE LINES 17-36
 
 .. code-block:: default
 
+
     from abipy import abilab
     import abipy.data as abidata
-
     import os
+
     paths = [
         #"mgb2_444k_0.01tsmear_DDB",
         #"mgb2_444k_0.02tsmear_DDB",
@@ -92,26 +56,148 @@ We use two files produced by anaddb:
 
     paths = [os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", f) for f in paths]
 
-    robot = abilab.DdbRobot()
-    for i, path in enumerate(paths):
-        robot.add_file(path, path)
+
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 37-38
+
+Now we initialize the DdbRobot from this list of paths:
+
+.. GENERATED FROM PYTHON SOURCE LINES 38-42
+
+.. code-block:: default
+
+
+    robot = abilab.DdbRobot.from_files(paths)
+    print(robot.keys())
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+    odict_keys(['../../data/refs/mgb2_phonons_nkpt_tsmear/mgb2_888k_0.01tsmear_DDB', '../../data/refs/mgb2_phonons_nkpt_tsmear/mgb2_888k_0.04tsmear_DDB', '../../data/refs/mgb2_phonons_nkpt_tsmear/mgb2_121212k_0.01tsmear_DDB', '../../data/refs/mgb2_phonons_nkpt_tsmear/mgb2_121212k_0.04tsmear_DDB'])
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 43-47
+
+Now we change the keys associated to the different files
+by defining a function that computes the new label from the
+info reported in the ddb object.
+These lables are then used to generate the legend in the matplotlib plot.
+
+.. GENERATED FROM PYTHON SOURCE LINES 47-51
+
+.. code-block:: default
+
 
     robot.remap_labels(lambda ddb: "nkpt: %s, tsmear: %.2f" % (ddb.header["nkpt"], ddb.header["tsmear"]))
+    print(robot.keys())
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+    odict_keys(['nkpt: 256, tsmear: 0.01', 'nkpt: 256, tsmear: 0.04', 'nkpt: 864, tsmear: 0.01', 'nkpt: 864, tsmear: 0.04'])
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 52-54
+
+Invoke anaddb to build a PhononBands plotter.
+We use a small q-mesh for the ph-DOS to speedup the computation:
+
+.. GENERATED FROM PYTHON SOURCE LINES 54-57
+
+.. code-block:: default
+
 
     r = robot.anaget_phonon_plotters(nqsmall=2)
 
+
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 58-59
+
+To group the results by tsmear use:
+
+.. GENERATED FROM PYTHON SOURCE LINES 59-62
+
+.. code-block:: default
+
+
     r.phbands_plotter.gridplot_with_hue("tsmear")
+
+
+
+
+.. image:: /gallery/images/sphx_glr_plot_phbands_nkpt_tsmear_001.png
+    :alt: tsmear = 0.01, tsmear = 0.04
+    :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+
+    <Figure size 640x480 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 63-64
+
+If Phonon DOSes are wanted, use:
+
+.. GENERATED FROM PYTHON SOURCE LINES 64-70
+
+.. code-block:: default
+
 
     r.phbands_plotter.gridplot_with_hue("tsmear", with_dos=True)
 
-    #r.phbands_plotter.gridplot_with_hue("nkpt")
+    #r.phbands_plotter.gridplot()
 
     robot.close()
 
 
+
+.. image:: /gallery/images/sphx_glr_plot_phbands_nkpt_tsmear_002.png
+    :alt: tsmear = 0.01, tsmear = 0.04
+    :class: sphx-glr-single-img
+
+
+
+
+
+
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  18.082 seconds)
+   **Total running time of the script:** ( 0 minutes  7.150 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_phbands_nkpt_tsmear.py:

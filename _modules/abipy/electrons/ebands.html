@@ -1,67 +1,106 @@
+
+
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.electrons.ebands &mdash; abipy 0.9.0 documentation</title>
+  
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>abipy.electrons.ebands &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../../../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../../../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
@@ -84,51 +123,70 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"></ul>
-</li>
-              
-            
-            
-              
-                
-              
-            
-            
-            
-            
-              <li class="hidden-sm"></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../../../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>abipy.electrons.ebands</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <h1>Source code for abipy.electrons.ebands</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;Classes to analyse electronic structures.&quot;&quot;&quot;</span>
@@ -162,7 +220,22 @@
 <span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="kn">import</span> <span class="n">duck</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="kn">import</span> <span class="n">gaussian</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="p">(</span><span class="n">set_axlims</span><span class="p">,</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span>
-    <span class="n">get_ax3d_fig_plt</span><span class="p">,</span> <span class="n">rotate_ticklabels</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">,</span> <span class="n">plot_unit_cell</span><span class="p">,</span> <span class="n">set_ax_xylabels</span><span class="p">)</span>
+    <span class="n">get_ax3d_fig_plt</span><span class="p">,</span> <span class="n">rotate_ticklabels</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">,</span> <span class="n">plot_unit_cell</span><span class="p">,</span> <span class="n">set_ax_xylabels</span><span class="p">,</span> <span class="n">get_figs_plotly</span><span class="p">,</span>
+    <span class="n">get_fig_plotly</span><span class="p">,</span> <span class="n">add_plotly_fig_kwargs</span><span class="p">,</span> <span class="n">PlotlyRowColDesc</span><span class="p">,</span> <span class="n">plotly_klabels</span><span class="p">,</span> <span class="n">plotly_set_lims</span><span class="p">)</span>
+
+
+<span class="n">SUBSCRIPT_UNICODE</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="s2">&quot;₀&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="s2">&quot;₁&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="s2">&quot;₂&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="s2">&quot;₃&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="s2">&quot;₄&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="s2">&quot;₅&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;6&quot;</span><span class="p">:</span> <span class="s2">&quot;₆&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;7&quot;</span><span class="p">:</span> <span class="s2">&quot;₇&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;8&quot;</span><span class="p">:</span> <span class="s2">&quot;₈&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;9&quot;</span><span class="p">:</span> <span class="s2">&quot;₉&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -1487,29 +1560,39 @@
 
         <span class="k">return</span> <span class="n">dirgaps</span>
 
-<div class="viewcode-block" id="ElectronBands.get_gaps_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_gaps_string">[docs]</a>    <span class="k">def</span> <span class="nf">get_gaps_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_latex</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronBands.get_gaps_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_gaps_string">[docs]</a>    <span class="k">def</span> <span class="nf">get_gaps_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_latex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">unicode</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return string with info about fundamental and direct gap (if not metallic scheme)</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            with_latex: True to get latex symbols for the gap names else text.</span>
+<span class="sd">            with_latex: True to get latex symbols for the gap names and formula else text.</span>
+<span class="sd">            unicode: True to get unicode symbols for the formula else text.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">enough_bands</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mband</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">dg_name</span><span class="p">,</span> <span class="n">fg_name</span> <span class="o">=</span> <span class="s2">&quot;direct gap&quot;</span><span class="p">,</span> <span class="s2">&quot;fundamental gap&quot;</span>
         <span class="k">if</span> <span class="n">with_latex</span><span class="p">:</span>
             <span class="n">dg_name</span><span class="p">,</span> <span class="n">fg_name</span> <span class="o">=</span> <span class="s2">&quot;$E^</span><span class="si">{dir}</span><span class="s2">_</span><span class="si">{gap}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="s2">&quot;$E^</span><span class="si">{fund}</span><span class="s2">_</span><span class="si">{gap}</span><span class="s2">$&quot;</span>
+            <span class="n">formula</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">latex_formula</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dg_name</span><span class="p">,</span> <span class="n">fg_name</span> <span class="o">=</span> <span class="s2">&quot;direct gap&quot;</span><span class="p">,</span> <span class="s2">&quot;fundamental gap&quot;</span>
+            <span class="n">formula</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">formula</span>
+
+        <span class="k">if</span> <span class="n">unicode</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">re</span>
+            <span class="n">numl</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d&#39;</span><span class="p">,</span> <span class="n">formula</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">numl</span><span class="p">:</span>
+                <span class="n">formula</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">SUBSCRIPT_UNICODE</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="n">enough_bands</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_metallic_scheme</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2"> = </span><span class="si">%.2f</span><span class="s2">, </span><span class="si">%s</span><span class="s2"> = </span><span class="si">%.2f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">latex_formula</span><span class="p">,</span>
+                    <span class="n">formula</span><span class="p">,</span>
                     <span class="n">dg_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">direct_gaps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
                     <span class="n">fg_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fundamental_gaps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">dgs</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">energy</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">direct_gaps</span><span class="p">]</span>
                 <span class="n">fgs</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">energy</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fundamental_gaps</span><span class="p">]</span>
                 <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2"> = </span><span class="si">%.2f</span><span class="s2"> (</span><span class="si">%.2f</span><span class="s2">), </span><span class="si">%s</span><span class="s2"> = </span><span class="si">%.2f</span><span class="s2"> (</span><span class="si">%.2f</span><span class="s2">) (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">latex_formula</span><span class="p">,</span>
+                    <span class="n">formula</span><span class="p">,</span>
                     <span class="n">dg_name</span><span class="p">,</span> <span class="n">dgs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dgs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                     <span class="n">fg_name</span><span class="p">,</span> <span class="n">fgs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fgs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1544,7 +1627,11 @@
                 <span class="n">k0_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
                 <span class="n">effmass_bands_f90</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 
+
+        <span class="c1"># Set small values to zero.</span>
         <span class="n">k0_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">k0_list</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">k0_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">k0_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-12</span><span class="p">,</span> <span class="n">k0_list</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
         <span class="n">effmass_bands_f90</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">effmass_bands_f90</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
         <span class="c1">#print(&quot;k0_list:\n&quot;, k0_list, &quot;\neffmass_bands_f90:\n&quot;, effmass_bands_f90)</span>
 
@@ -2000,7 +2087,7 @@
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">band_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">klabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">points</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_phfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the electronic band structure.</span>
+<span class="sd">        Plot the electronic band structure with matplotlib.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            spin: Spin index. None to plot both spins.</span>
@@ -2040,9 +2127,6 @@
         <span class="k">if</span> <span class="n">band_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">band_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mband</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># This does not work in py2.7 because range is not a class</span>
-            <span class="c1">#if not isinstance(band_range, range):</span>
-            <span class="c1">#    band_list = list(band_range)</span>
             <span class="n">band_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">band_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">band_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
 
         <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
@@ -2136,6 +2220,145 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
+<div class="viewcode-block" id="ElectronBands.plotly"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.plotly">[docs]</a>    <span class="nd">@add_plotly_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">band_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">klabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">points</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_phfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot the electronic band structure with plotly.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            spin: Spin index. None to plot both spins.</span>
+<span class="sd">            band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)</span>
+<span class="sd">            klabels: dictionary whose keys are tuple with the reduced</span>
+<span class="sd">                coordinates of the k-points. The values are the labels. e.g.</span>
+<span class="sd">                ``klabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0):&quot;L&quot;}``.</span>
+<span class="sd">            e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
+<span class="sd">                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).</span>
+<span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
+<span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
+<span class="sd">            fig: plotly figure or None if a new figure should be created.</span>
+<span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">            points: Marker object with the position and the size of the marker.</span>
+<span class="sd">                Used for plotting purpose e.g. QP energies, energy derivatives.</span>
+<span class="sd">            with_gaps: True to add markers and arrows showing the fundamental and the direct gap.</span>
+<span class="sd">                IMPORTANT: If the gaps are now showed correctly in a non-magnetic semiconductor,</span>
+<span class="sd">                call `ebands.set_fermie_to_vbm()` to align the Fermi level at the top of the valence</span>
+<span class="sd">                bands before executing `ebands.plot().</span>
+<span class="sd">                The Fermi energy stored in the object, indeed, comes from the GS calculation</span>
+<span class="sd">                that produced the DEN file. If the k-mesh used for the GS and the CBM is e.g. at Gamma,</span>
+<span class="sd">                the Fermi energy will be underestimated and a manual aligment is needed.</span>
+<span class="sd">            max_phfreq: Max phonon frequency in eV to activate scatterplot showing</span>
+<span class="sd">                possible phonon absorption/emission processes based on energy-conservation alone.</span>
+<span class="sd">                All final states whose energy is within +- max_phfreq of the initial state are included.</span>
+<span class="sd">                By default, the four electronic states defining the fundamental and the direct gaps</span>
+<span class="sd">                are considered as initial state (not available for metals).</span>
+<span class="sd">            fontsize: fontsize for legends and titles</span>
+<span class="sd">            kwargs: Passed to go.Scatter</span>
+
+<span class="sd">        Returns: |plotly.graph_objects.Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Select spins</span>
+        <span class="n">spin_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span> <span class="k">if</span> <span class="n">spin</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">spin</span><span class="p">]</span>
+
+        <span class="c1"># Select the band range.</span>
+        <span class="k">if</span> <span class="n">band_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">band_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mband</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">band_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">band_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">band_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">go</span> <span class="o">=</span> <span class="n">get_fig_plotly</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+
+        <span class="c1"># Decorate the axis (e.g add ticks and labels).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decorate_plotly</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">klabels</span><span class="o">=</span><span class="n">klabels</span><span class="p">)</span>
+        <span class="n">plotly_set_lims</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Plot the band energies.</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="n">spin_list</span><span class="p">:</span>
+            <span class="n">lw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+            <span class="n">line_opts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">lw</span><span class="p">}</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">lw</span><span class="p">}</span>
+
+            <span class="k">for</span> <span class="n">ib</span><span class="p">,</span> <span class="n">band</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">band_list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ib</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plotly_traces</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">e0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="n">band</span><span class="p">,</span> <span class="n">line_opts</span><span class="o">=</span><span class="n">line_opts</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">points</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">points</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="n">e0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                     <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">s</span><span class="p">),</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mi">0</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">with_gaps</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mband</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="c1"># Show fundamental and direct gaps for each spin.</span>
+            <span class="kn">from</span> <span class="nn">plotly.figure_factory</span> <span class="kn">import</span> <span class="n">create_quiver</span>
+            <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
+                <span class="n">f_gap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fundamental_gaps</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span>
+                <span class="n">d_gap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">direct_gaps</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span>
+                <span class="c1"># Need arrows only if fundamental and direct gaps for this spin are different.</span>
+                <span class="n">need_arrows</span> <span class="o">=</span> <span class="n">f_gap</span> <span class="o">!=</span> <span class="n">d_gap</span>
+
+                <span class="n">arrow_opts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;gray&quot;</span><span class="p">}</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;orange&quot;</span><span class="p">}</span>
+                <span class="n">scatter_opts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">}</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;green&quot;</span><span class="p">}</span>
+                <span class="n">scatter_opts</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+                <span class="c1"># Fundamental gap.</span>
+                <span class="n">mgap</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="k">for</span> <span class="n">ik1</span><span class="p">,</span> <span class="n">ik2</span> <span class="ow">in</span> <span class="n">f_gap</span><span class="o">.</span><span class="n">all_kinds</span><span class="p">:</span>
+                    <span class="n">posA</span> <span class="o">=</span> <span class="p">(</span><span class="n">ik1</span><span class="p">,</span> <span class="n">f_gap</span><span class="o">.</span><span class="n">in_state</span><span class="o">.</span><span class="n">eig</span> <span class="o">-</span> <span class="n">e0</span><span class="p">)</span>
+                    <span class="n">posB</span> <span class="o">=</span> <span class="p">(</span><span class="n">ik2</span><span class="p">,</span> <span class="n">f_gap</span><span class="o">.</span><span class="n">out_state</span><span class="o">.</span><span class="n">eig</span> <span class="o">-</span> <span class="n">e0</span><span class="p">)</span>
+                    <span class="n">mgap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">mgap</span><span class="p">,</span> <span class="n">posA</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">posB</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">posA</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">posB</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="n">posA</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">posB</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                                             <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">scatter_opts</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">need_arrows</span><span class="p">:</span>
+                        <span class="n">figcq</span> <span class="o">=</span> <span class="n">create_quiver</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">posA</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="n">posA</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">u</span><span class="o">=</span><span class="p">[</span><span class="n">posB</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">posA</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">v</span><span class="o">=</span><span class="p">[</span><span class="n">posB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">posA</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                                              <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">hoverinfo</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
+                                              <span class="n">marker</span><span class="o">=</span><span class="n">arrow_opts</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+                        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">figcq</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">d_gap</span> <span class="o">!=</span> <span class="n">f_gap</span><span class="p">:</span>
+                    <span class="c1"># Direct gap.</span>
+                    <span class="k">for</span> <span class="n">ik1</span><span class="p">,</span> <span class="n">ik2</span> <span class="ow">in</span> <span class="n">d_gap</span><span class="o">.</span><span class="n">all_kinds</span><span class="p">:</span>
+                        <span class="n">posA</span> <span class="o">=</span> <span class="p">(</span><span class="n">ik1</span><span class="p">,</span> <span class="n">d_gap</span><span class="o">.</span><span class="n">in_state</span><span class="o">.</span><span class="n">eig</span> <span class="o">-</span> <span class="n">e0</span><span class="p">)</span>
+                        <span class="n">posB</span> <span class="o">=</span> <span class="p">(</span><span class="n">ik2</span><span class="p">,</span> <span class="n">d_gap</span><span class="o">.</span><span class="n">out_state</span><span class="o">.</span><span class="n">eig</span> <span class="o">-</span> <span class="n">e0</span><span class="p">)</span>
+                        <span class="n">mgap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">mgap</span><span class="p">,</span> <span class="n">posA</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">posB</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">posA</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">posB</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="n">posA</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">posB</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                                                 <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">scatter_opts</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">need_arrows</span><span class="p">:</span>
+                            <span class="n">figcq</span> <span class="o">=</span> <span class="n">create_quiver</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">posA</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="n">posA</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">u</span><span class="o">=</span><span class="p">[</span><span class="n">posB</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">posA</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">v</span><span class="o">=</span><span class="p">[</span><span class="n">posB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">posA</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                                                  <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">hoverinfo</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
+                                                  <span class="n">marker</span><span class="o">=</span><span class="n">arrow_opts</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+                            <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">figcq</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="c1"># Try to set nice limits if not given by user.</span>
+            <span class="k">if</span> <span class="n">ylims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">plotly_set_lims</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="n">mgap</span> <span class="o">-</span> <span class="mi">5</span><span class="p">,</span> <span class="o">+</span><span class="n">mgap</span> <span class="o">+</span> <span class="mi">5</span><span class="p">),</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+
+            <span class="n">gaps_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gaps_string</span><span class="p">(</span><span class="n">with_latex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unicode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">gaps_string</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">gaps_string</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">fontsize</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">max_phfreq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mband</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="c1"># Add markers showing phonon absorption/emission processes.</span>
+            <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
+                <span class="c1">#scatter_opts = {&quot;color&quot;: &quot;steelblue&quot;} if spin == 0 else {&quot;color&quot;: &quot;teal&quot;}</span>
+                <span class="n">scatter_opts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+                <span class="n">items</span> <span class="o">=</span> <span class="p">([</span><span class="s2">&quot;fundamental_gaps&quot;</span><span class="p">,</span> <span class="s2">&quot;direct_gaps&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;in_state&quot;</span><span class="p">,</span> <span class="s2">&quot;out_state&quot;</span><span class="p">])</span>
+                <span class="n">items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)))</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">gap_name</span><span class="p">,</span> <span class="n">state_name</span><span class="p">)</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                    <span class="c1"># Use getattr to extract gaps, equivalent to:</span>
+                    <span class="c1">#   gap = self.fundamental_gaps[spin]</span>
+                    <span class="c1">#   e_start = gap.out_state.eig</span>
+                    <span class="n">gap</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gap_name</span><span class="p">)[</span><span class="n">spin</span><span class="p">]</span>
+                    <span class="n">e_start</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">gap</span><span class="p">,</span> <span class="n">state_name</span><span class="p">)</span><span class="o">.</span><span class="n">eig</span>
+                    <span class="n">scatter_opts</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+                    <span class="n">scatter_opts</span><span class="p">[</span><span class="s2">&quot;colorscale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;dense&quot;</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;Burgyl&quot;</span>
+
+                    <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mband</span><span class="p">):</span>
+                        <span class="n">eks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span>
+                        <span class="n">where</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">e_start</span> <span class="o">-</span> <span class="n">eks</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">max_phfreq</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">where</span><span class="p">):</span> <span class="k">continue</span>
+                        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">where</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">eks</span><span class="p">[</span><span class="n">where</span><span class="p">]</span> <span class="o">-</span> <span class="n">e0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span><span class="p">,</span>
+                                                 <span class="n">marker</span><span class="o">=</span><span class="n">scatter_opts</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
 <div class="viewcode-block" id="ElectronBands.plot_scatter3d"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.plot_scatter3d">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_scatter3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -2148,7 +2371,7 @@
 <span class="sd">            e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
 <span class="sd">                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).</span>
 <span class="sd">                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV</span>
-<span class="sd">                -  None: Don&#39;t shift energies, equivalent to ``e0 = 0``</span>
+<span class="sd">                -  None: Don&#39;t shift energies, equivalent to ``e0 = 0``.</span>
 <span class="sd">            colormap: Have a look at the colormaps here and decide which one you like:</span>
 <span class="sd">                &lt;http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html&gt;</span>
 <span class="sd">            ax: matplotlib :class:`Axes3D` or None if a new figure should be created.</span>
@@ -2205,6 +2428,31 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;klabel_size&quot;</span><span class="p">,</span> <span class="s2">&quot;large&quot;</span><span class="p">))</span>
             <span class="c1">#print(&quot;ticks&quot;, len(ticks), ticks)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">ticks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ElectronBands.decorate_plotly"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.decorate_plotly">[docs]</a>    <span class="k">def</span> <span class="nf">decorate_plotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add q-labels and unit name to figure ``fig``.</span>
+<span class="sd">        Use units=&quot;&quot; to add k-labels without unit name.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            klabels:</span>
+<span class="sd">            klabel_size:</span>
+<span class="sd">            iax: An int, use iax=n to decorate the nth axis when the fig has subplots.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">iax</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;iax&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">xaxis</span> <span class="o">=</span> <span class="s1">&#39;xaxis</span><span class="si">%u</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">iax</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;Wave Vector&quot;</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="s1">&#39;yaxis</span><span class="si">%u</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">iax</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;Energy (eV)&quot;</span>
+
+        <span class="c1"># Set ticks and labels.</span>
+        <span class="n">klabels</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;klabels&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">ticks</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_ticks_and_labels</span><span class="p">(</span><span class="n">klabels</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ticks</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">plotly_klabels</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis</span><span class="p">]</span><span class="o">.</span><span class="n">tickvals</span> <span class="o">=</span> <span class="n">ticks</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis</span><span class="p">]</span><span class="o">.</span><span class="n">ticktext</span> <span class="o">=</span> <span class="n">labels</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis</span><span class="p">]</span><span class="o">.</span><span class="n">tickfont</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;klabel_size&quot;</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis</span><span class="p">]</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="p">(</span><span class="n">ticks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="ElectronBands.get_e0"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_e0">[docs]</a>    <span class="k">def</span> <span class="nf">get_e0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2266,6 +2514,50 @@
                     <span class="c1">#, alpha=self.alpha, facecolor=self.l2color[l])</span>
 
         <span class="k">return</span> <span class="n">lines</span></div>
+
+<div class="viewcode-block" id="ElectronBands.plotly_traces"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.plotly_traces">[docs]</a>    <span class="k">def</span> <span class="nf">plotly_traces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">e0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">line_opts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to plot the energies for (spin, band) on figure ``fig``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fig: |plotly.graph_objects.Figure|.</span>
+<span class="sd">            e0: Option used to define the zero of energy in the band structure plot.</span>
+<span class="sd">            spin: Spin index. If None, all spins are plotted.</span>
+<span class="sd">            band: Band index, If None, all bands are plotted.</span>
+<span class="sd">            showlegend:  Determines whether or not an item corresponding to this trace is shown in the legend.</span>
+<span class="sd">            kwargs: Passed to go.Scatter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
+        <span class="n">spin_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">)</span> <span class="k">if</span> <span class="n">spin</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">spin</span><span class="p">]</span>
+        <span class="n">band_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mband</span><span class="p">)</span> <span class="k">if</span> <span class="n">band</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">band</span><span class="p">]</span>
+
+        <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="c1"># Handle linewidths</span>
+        <span class="n">with_linewidths</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;with_linewidths&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_linewidths</span>
+        <span class="k">if</span> <span class="n">with_linewidths</span><span class="p">:</span>
+            <span class="n">lw_opts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lw_opts&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mf">0.6</span><span class="p">))</span>
+            <span class="n">lw_fact</span> <span class="o">=</span> <span class="n">lw_opts</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;fact&quot;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+
+        <span class="n">xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">)</span>
+        <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="n">spin_range</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">band_range</span><span class="p">:</span>
+                <span class="n">yy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span> <span class="o">-</span> <span class="n">e0</span>
+
+                <span class="c1"># Set label only at the first iteration</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">xx</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yy</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="n">showlegend</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">line_opts</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span>
+
+                <span class="k">if</span> <span class="n">with_linewidths</span><span class="p">:</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linewidths</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span> <span class="o">*</span> <span class="n">lw_fact</span> <span class="o">/</span> <span class="mi">2</span>
+                    <span class="n">lw_color</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_color</span><span class="p">()</span>
+                    <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+                    <span class="c1"># solution 1: Use scater points to fill</span>
+                    <span class="c1"># solution 2: add two traces and fill the area between</span>
+                    <span class="c1"># color problem</span>
+                    <span class="c1">#!! ax.fill_between(xx, yy - w, yy + w, facecolor=lw_color, **lw_opts)</span>
+                    <span class="c1">#, alpha=self.alpha, facecolor=self.l2color[l])</span>
 
     <span class="k">def</span> <span class="nf">_make_ticks_and_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">klabels</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return ticks and labels from the mapping qlabels.&quot;&quot;&quot;</span>
@@ -2364,7 +2656,7 @@
     <span class="k">def</span> <span class="nf">plot_lws_vs_e0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                        <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot electronic linewidths vs KS energy.</span>
+<span class="sd">        Plot electronic linewidths vs KS energy with matplotlib.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
@@ -2891,7 +3183,6 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            e0: Option used to define the zero of energy in the band structure plot. Possible values::</span>
-
 <span class="sd">                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (ebands.fermie)</span>
 <span class="sd">                   Note that, by default, the Fermi energy is taken from the band structure object</span>
 <span class="sd">                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.</span>
@@ -2902,7 +3193,6 @@
 <span class="sd">                   Available only if plotter contains dos objects.</span>
 <span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
-
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 <span class="sd">            width_ratios: Defines the ratio between the band structure plot and the dos plot.</span>
@@ -2977,11 +3267,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="ElectronBandsPlotter.plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;An alias for combiplot.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;align&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;xlim&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;ylim&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;align|xlim|ylim options are not supported anymore.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="c1"># An alias for combiplot.</span>
+    <span class="n">plot</span> <span class="o">=</span> <span class="n">combiplot</span>
 
 <div class="viewcode-block" id="ElectronBandsPlotter.gridplot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.gridplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">gridplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">with_dos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_phfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -3643,7 +3930,7 @@
 
 <div class="viewcode-block" id="ElectronDos.plot_ax"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDos.plot_ax">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">e0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;dos&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Helper function to plot the DOS data on the axis ``ax``.</span>
+<span class="sd">        Helper function to plot the DOS data on the matplotlib axis ``ax``.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            ax: |matplotlib-Axes|.</span>
@@ -3674,7 +3961,7 @@
 <div class="viewcode-block" id="ElectronDos.plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDos.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot electronic DOS</span>
+<span class="sd">        Plot electronic DOS with matplotlib.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
@@ -3714,7 +4001,7 @@
 <div class="viewcode-block" id="ElectronDos.plot_dos_idos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDos.plot_dos_idos">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_dos_idos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">ax_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot electronic DOS and Integrated DOS on two different subplots.</span>
+<span class="sd">        Plot electronic DOS and Integrated DOS on two different subplots with matplotlib.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
@@ -3763,7 +4050,7 @@
 <div class="viewcode-block" id="ElectronDos.plot_up_minus_down"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDos.plot_up_minus_down">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_up_minus_down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot Dos_up - Dow_down</span>
+<span class="sd">        Plot Dos_up - Dow_down with matplotlib.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
@@ -4376,7 +4663,7 @@
     <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_contour</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Contour plot with matplotlib_.</span>
+<span class="sd">        Contour plot with matplotlib.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            band: Band index</span>
@@ -4838,22 +5125,50 @@
     <span class="c1">#    for fig in self.get_ebands_plotter().yield_figs(): yield fig</span>
 </pre></div>
 
-    </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

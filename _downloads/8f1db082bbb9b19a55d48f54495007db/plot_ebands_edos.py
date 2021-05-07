@@ -19,10 +19,12 @@ with abiopen(abidata.ref_file("si_nscf_GSR.nc")) as nscf_file:
 with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gs_file:
     gs_ebands = gs_file.ebands
 
+#%%
 # Compute the DOS with the Gaussian method (use default values for
 # the broadening and the step of the linear mesh.
 edos = gs_ebands.get_edos()
 
+#%%
 # Plot bands and DOS.
 nscf_ebands.plot_with_edos(edos, e0=None, with_gaps=True)
 

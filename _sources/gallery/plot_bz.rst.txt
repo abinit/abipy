@@ -24,7 +24,36 @@ Brillouin zone
 This example shows how to display the Brillouin zone
 with pymatgen and matplotlib.
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-23
+.. GENERATED FROM PYTHON SOURCE LINES 9-18
+
+.. code-block:: default
+
+    from abipy.abilab import abiopen
+    import abipy.data as abidata
+
+    # Open the WKF file.
+    wfk_file = abiopen(abidata.ref_file("si_scf_WFK.nc"))
+
+    # Extract the crystalline structure.
+    structure = wfk_file.structure
+
+
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 19-20
+
+To visualize the BZ with matplotlib, use:
+
+.. GENERATED FROM PYTHON SOURCE LINES 20-22
+
+.. code-block:: default
+
+    structure.plot_bz()
+
 
 
 
@@ -39,37 +68,31 @@ with pymatgen and matplotlib.
 
  .. code-block:: none
 
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
+
+    <Figure size 640x480 with 1 Axes>
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 23-24
 
+Remember to close the wfk file with:
 
-
-|
+.. GENERATED FROM PYTHON SOURCE LINES 24-25
 
 .. code-block:: default
 
-    from abipy.abilab import abiopen
-    import abipy.data as abidata
-
-    # Open the WKF file.
-    wfk_file = abiopen(abidata.ref_file("si_scf_WFK.nc"))
-
-    # Extract the crystalline structure.
-    structure = wfk_file.structure
-
-    # Visualize the BZ.
-    structure.plot_bz()
-
-    # Close the wfk file
     wfk_file.close()
+
+
+
+
+
+
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.518 seconds)
+   **Total running time of the script:** ( 0 minutes  0.322 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_bz.py:

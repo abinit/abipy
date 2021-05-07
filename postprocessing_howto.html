@@ -1,69 +1,108 @@
-<!DOCTYPE html>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Post-processing How-To &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Post-processing How-To &mdash; abipy 0.9.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="TaskManager" href="workflows/taskmanager.html" />
-    <link rel="prev" title="GW corrections" href="gallery/plot_qpbands_with_interpolation.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
+    <link rel="prev" title="spin-polarized fatbands" href="gallery/plot_efatbands_spin.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
@@ -73,7 +112,32 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Post-processing How-To</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Post-processing How-To</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#preliminary-considerations">Preliminary considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#get-information-about-a-generic-file">Get information about a generic <code class="docutils literal notranslate"><span class="pre">FILE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#get-all-file-extensions-supported-by-abiopen-py">Get all file extensions supported by <code class="docutils literal notranslate"><span class="pre">abiopen.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#convert-the-structure-stored-in-file-to-a-different-format">Convert the structure stored in <code class="docutils literal notranslate"><span class="pre">FILE</span></code> to a different format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#check-if-my-abinit-input-file-is-ok">Check if my Abinit input file is OK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#print-the-warnings-in-the-log-file">Print the warnings in the log file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#get-a-quick-look-to-a-file">Get a quick look to a file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualize-a-structure">Visualize a structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#get-a-high-symmetry-kpath-for-a-given-structure">Get a high-symmetry kpath for a given structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#re-symmetrize-a-structure-when-abinit-reports-less-symmetries-than-expected">Re-symmetrize a structure when Abinit reports less symmetries than expected</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#get-neighbors-for-each-atom-in-the-unit-cell-out-to-a-distance-radius">Get neighbors for each atom in the unit cell out to a distance radius</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#search-on-the-materials-project-database-for-structures">Search on the Materials Project database for structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compare-my-structure-with-the-materials-project-database">Compare my structure with the Materials Project database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualize-the-iterations-of-the-scf-cycle">Visualize the iterations of the SCF cycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#export-bands-to-xmgrace-format">Export bands to xmgrace format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualize-the-fermi-surface">Visualize the Fermi surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualize-phonon-displacements">Visualize phonon displacements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualize-the-results-of-a-structural-relaxation">Visualize the results of a structural relaxation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plot-results-stored-in-a-text-file-in-tabular-format">Plot results stored in a text file in tabular format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compare-multiple-files">Compare multiple files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#profile-the-scripts">Profile the scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#get-the-description-of-a-variable">Get the description of a variable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#avoid-transfering-files-from-the-cluster-to-localhost-just-to-use-matplotlib">Avoid transfering files from the cluster to localhost just to use matplotlib</a></li>
+</ul>
+</li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
@@ -86,139 +150,123 @@
 <li class="toctree-l1"><a class="reference internal" href="coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">Post-processing How-To</a><ul>
-<li><a class="reference internal" href="#get-information-about-a-generic-file">Get information about a generic <code class="docutils literal notranslate"><span class="pre">FILE</span></code></a></li>
-<li><a class="reference internal" href="#get-all-file-extensions-supported-by-abiopen-py">Get all file extensions supported by <code class="docutils literal notranslate"><span class="pre">abiopen.py</span></code></a></li>
-<li><a class="reference internal" href="#convert-the-structure-stored-in-file-to-a-different-format">Convert the structure stored in <code class="docutils literal notranslate"><span class="pre">FILE</span></code> to a different format</a></li>
-<li><a class="reference internal" href="#check-if-my-abinit-input-file-is-ok">Check if my Abinit input file is OK</a></li>
-<li><a class="reference internal" href="#print-the-warnings-in-the-log-file">Print the warnings in the log file</a></li>
-<li><a class="reference internal" href="#get-a-quick-look-to-a-file">Get a quick look to a file</a></li>
-<li><a class="reference internal" href="#visualize-a-structure">Visualize a structure</a></li>
-<li><a class="reference internal" href="#get-a-high-symmetry-kpath-for-a-given-structure">Get a high-symmetry kpath for a given structure</a></li>
-<li><a class="reference internal" href="#re-symmetrize-a-structure-when-abinit-reports-less-symmetries-than-expected">Re-symmetrize a structure when Abinit reports less symmetries than expected</a></li>
-<li><a class="reference internal" href="#get-neighbors-for-each-atom-in-the-unit-cell-out-to-a-distance-radius">Get neighbors for each atom in the unit cell out to a distance radius</a></li>
-<li><a class="reference internal" href="#search-on-the-materials-project-database-for-structures">Search on the Materials Project database for structures</a></li>
-<li><a class="reference internal" href="#compare-my-structure-with-the-materials-project-database">Compare my structure with the Materials Project database</a></li>
-<li><a class="reference internal" href="#visualize-the-iterations-of-the-scf-cycle">Visualize the iterations of the SCF cycle</a></li>
-<li><a class="reference internal" href="#export-bands-to-xmgrace-format">Export bands to xmgrace format</a></li>
-<li><a class="reference internal" href="#visualize-the-fermi-surface">Visualize the Fermi surface</a></li>
-<li><a class="reference internal" href="#visualize-phonon-displacements">Visualize phonon displacements</a></li>
-<li><a class="reference internal" href="#visualize-the-results-of-a-structural-relaxation">Visualize the results of a structural relaxation</a></li>
-<li><a class="reference internal" href="#plot-results-stored-in-a-text-file-in-tabular-format">Plot results stored in a text file in tabular format</a></li>
-<li><a class="reference internal" href="#compare-multiple-files">Compare multiple files</a></li>
-<li><a class="reference internal" href="#profile-the-scripts">Profile the scripts</a></li>
-<li><a class="reference internal" href="#get-the-description-of-a-variable">Get the description of a variable</a></li>
-<li><a class="reference internal" href="#avoid-transfering-files-from-the-cluster-to-localhost-just-to-use-matplotlib">Avoid transfering files from the cluster to localhost just to use matplotlib</a></li>
-</ul>
-</li>
-</ul>
-</ul>
-</li>
-              
-            
-            
-              
-                
-  <li>
-    <a href="gallery/plot_qpbands_with_interpolation.html" title="Previous Chapter: GW corrections"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; GW corrections</span>
-    </a>
-  </li>
-  <li>
-    <a href="workflows/taskmanager.html" title="Next Chapter: TaskManager"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">TaskManager &raquo;</span>
-    </a>
-  </li>
-              
-            
-            
-            
-            
-              <li class="hidden-sm">
-<div id="sourcelink">
-  <a href="_sources/postprocessing_howto.rst.txt"
-     rel="nofollow">Source</a>
-</div></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Post-processing How-To</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/postprocessing_howto.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <div class="section" id="post-processing-how-to">
 <span id="post-processing-howto"></span><h1><a class="toc-backref" href="#contents">Post-processing How-To</a><a class="headerlink" href="#post-processing-how-to" title="Permalink to this headline">¶</a></h1>
-<p>This is a list of Frequently Asked Questions about the usage of the AbiPy scripts.
+<p>This is a list of FAQs about the usage of the AbiPy scripts.
 Feel free to suggest new entries!</p>
 <div class="contents topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#post-processing-how-to" id="id1">Post-processing How-To</a></p>
 <ul>
-<li><p><a class="reference internal" href="#get-information-about-a-generic-file" id="id2">Get information about a generic <code class="docutils literal notranslate"><span class="pre">FILE</span></code></a></p></li>
-<li><p><a class="reference internal" href="#get-all-file-extensions-supported-by-abiopen-py" id="id3">Get all file extensions supported by <code class="docutils literal notranslate"><span class="pre">abiopen.py</span></code></a></p></li>
-<li><p><a class="reference internal" href="#convert-the-structure-stored-in-file-to-a-different-format" id="id4">Convert the structure stored in <code class="docutils literal notranslate"><span class="pre">FILE</span></code> to a different format</a></p></li>
-<li><p><a class="reference internal" href="#check-if-my-abinit-input-file-is-ok" id="id5">Check if my Abinit input file is OK</a></p></li>
-<li><p><a class="reference internal" href="#print-the-warnings-in-the-log-file" id="id6">Print the warnings in the log file</a></p></li>
-<li><p><a class="reference internal" href="#get-a-quick-look-to-a-file" id="id7">Get a quick look to a file</a></p></li>
-<li><p><a class="reference internal" href="#visualize-a-structure" id="id8">Visualize a structure</a></p></li>
-<li><p><a class="reference internal" href="#get-a-high-symmetry-kpath-for-a-given-structure" id="id9">Get a high-symmetry kpath for a given structure</a></p></li>
-<li><p><a class="reference internal" href="#re-symmetrize-a-structure-when-abinit-reports-less-symmetries-than-expected" id="id10">Re-symmetrize a structure when Abinit reports less symmetries than expected</a></p></li>
-<li><p><a class="reference internal" href="#get-neighbors-for-each-atom-in-the-unit-cell-out-to-a-distance-radius" id="id11">Get neighbors for each atom in the unit cell out to a distance radius</a></p></li>
-<li><p><a class="reference internal" href="#search-on-the-materials-project-database-for-structures" id="id12">Search on the Materials Project database for structures</a></p></li>
-<li><p><a class="reference internal" href="#compare-my-structure-with-the-materials-project-database" id="id13">Compare my structure with the Materials Project database</a></p></li>
-<li><p><a class="reference internal" href="#visualize-the-iterations-of-the-scf-cycle" id="id14">Visualize the iterations of the SCF cycle</a></p></li>
-<li><p><a class="reference internal" href="#export-bands-to-xmgrace-format" id="id15">Export bands to xmgrace format</a></p></li>
-<li><p><a class="reference internal" href="#visualize-the-fermi-surface" id="id16">Visualize the Fermi surface</a></p></li>
-<li><p><a class="reference internal" href="#visualize-phonon-displacements" id="id17">Visualize phonon displacements</a></p></li>
-<li><p><a class="reference internal" href="#visualize-the-results-of-a-structural-relaxation" id="id18">Visualize the results of a structural relaxation</a></p></li>
-<li><p><a class="reference internal" href="#plot-results-stored-in-a-text-file-in-tabular-format" id="id19">Plot results stored in a text file in tabular format</a></p></li>
-<li><p><a class="reference internal" href="#compare-multiple-files" id="id20">Compare multiple files</a></p></li>
-<li><p><a class="reference internal" href="#profile-the-scripts" id="id21">Profile the scripts</a></p></li>
-<li><p><a class="reference internal" href="#get-the-description-of-a-variable" id="id22">Get the description of a variable</a></p></li>
-<li><p><a class="reference internal" href="#avoid-transfering-files-from-the-cluster-to-localhost-just-to-use-matplotlib" id="id23">Avoid transfering files from the cluster to localhost just to use matplotlib</a></p></li>
+<li><p><a class="reference internal" href="#preliminary-considerations" id="id2">Preliminary considerations</a></p></li>
+<li><p><a class="reference internal" href="#get-information-about-a-generic-file" id="id3">Get information about a generic <code class="docutils literal notranslate"><span class="pre">FILE</span></code></a></p></li>
+<li><p><a class="reference internal" href="#get-all-file-extensions-supported-by-abiopen-py" id="id4">Get all file extensions supported by <code class="docutils literal notranslate"><span class="pre">abiopen.py</span></code></a></p></li>
+<li><p><a class="reference internal" href="#convert-the-structure-stored-in-file-to-a-different-format" id="id5">Convert the structure stored in <code class="docutils literal notranslate"><span class="pre">FILE</span></code> to a different format</a></p></li>
+<li><p><a class="reference internal" href="#check-if-my-abinit-input-file-is-ok" id="id6">Check if my Abinit input file is OK</a></p></li>
+<li><p><a class="reference internal" href="#print-the-warnings-in-the-log-file" id="id7">Print the warnings in the log file</a></p></li>
+<li><p><a class="reference internal" href="#get-a-quick-look-to-a-file" id="id8">Get a quick look to a file</a></p></li>
+<li><p><a class="reference internal" href="#visualize-a-structure" id="id9">Visualize a structure</a></p></li>
+<li><p><a class="reference internal" href="#get-a-high-symmetry-kpath-for-a-given-structure" id="id10">Get a high-symmetry kpath for a given structure</a></p></li>
+<li><p><a class="reference internal" href="#re-symmetrize-a-structure-when-abinit-reports-less-symmetries-than-expected" id="id11">Re-symmetrize a structure when Abinit reports less symmetries than expected</a></p></li>
+<li><p><a class="reference internal" href="#get-neighbors-for-each-atom-in-the-unit-cell-out-to-a-distance-radius" id="id12">Get neighbors for each atom in the unit cell out to a distance radius</a></p></li>
+<li><p><a class="reference internal" href="#search-on-the-materials-project-database-for-structures" id="id13">Search on the Materials Project database for structures</a></p></li>
+<li><p><a class="reference internal" href="#compare-my-structure-with-the-materials-project-database" id="id14">Compare my structure with the Materials Project database</a></p></li>
+<li><p><a class="reference internal" href="#visualize-the-iterations-of-the-scf-cycle" id="id15">Visualize the iterations of the SCF cycle</a></p></li>
+<li><p><a class="reference internal" href="#export-bands-to-xmgrace-format" id="id16">Export bands to xmgrace format</a></p></li>
+<li><p><a class="reference internal" href="#visualize-the-fermi-surface" id="id17">Visualize the Fermi surface</a></p></li>
+<li><p><a class="reference internal" href="#visualize-phonon-displacements" id="id18">Visualize phonon displacements</a></p></li>
+<li><p><a class="reference internal" href="#visualize-the-results-of-a-structural-relaxation" id="id19">Visualize the results of a structural relaxation</a></p></li>
+<li><p><a class="reference internal" href="#plot-results-stored-in-a-text-file-in-tabular-format" id="id20">Plot results stored in a text file in tabular format</a></p></li>
+<li><p><a class="reference internal" href="#compare-multiple-files" id="id21">Compare multiple files</a></p></li>
+<li><p><a class="reference internal" href="#profile-the-scripts" id="id22">Profile the scripts</a></p></li>
+<li><p><a class="reference internal" href="#get-the-description-of-a-variable" id="id23">Get the description of a variable</a></p></li>
+<li><p><a class="reference internal" href="#avoid-transfering-files-from-the-cluster-to-localhost-just-to-use-matplotlib" id="id24">Avoid transfering files from the cluster to localhost just to use matplotlib</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>The AbiPy scripts detect the file type by looking at the file extension to so don’t change it.</p>
-<p>Also, remember that it is possible to get the documentation
-by just adding <code class="docutils literal notranslate"><span class="pre">--help</span></code> after the scripts name.</p>
-<p>For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
+<div class="section" id="preliminary-considerations">
+<h2><a class="toc-backref" href="#contents">Preliminary considerations</a><a class="headerlink" href="#preliminary-considerations" title="Permalink to this headline">¶</a></h2>
+<p>The AbiPy scripts detect the file type by looking at the file extension
+so <strong>don’t change the file extension</strong>.
+Also, remember that it is possible to get the documentation  by just adding
+the <code class="docutils literal notranslate"><span class="pre">--help</span></code> option to the command line.
+For example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>abistruct.py --help
 </pre></div>
 </div>
-<p>gives the documentation and usage examples for the <code class="docutils literal notranslate"><span class="pre">abistruct.py</span></code> script while:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">COMMAND</span> <span class="o">--</span><span class="n">help</span>
+<p>gives the documentation and usage examples for the <a href="#id25"><span class="problematic" id="id26">abistruct.py_</span></a> script while:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>abistruct.py COMMAND --help
 </pre></div>
 </div>
-<p>prints the documentation for <code class="docutils literal notranslate"><span class="pre">COMMAND</span></code> and the options supported by <code class="docutils literal notranslate"><span class="pre">COMMAND</span></code>.</p>
+<p>prints the documentation and the options supported by <code class="docutils literal notranslate"><span class="pre">COMMAND</span></code></p>
 </div>
 <div class="section" id="get-information-about-a-generic-file">
 <h2><a class="toc-backref" href="#contents">Get information about a generic <code class="docutils literal notranslate"><span class="pre">FILE</span></code></a><a class="headerlink" href="#get-information-about-a-generic-file" title="Permalink to this headline">¶</a></h2>
@@ -243,8 +291,8 @@ The option can be can be supplied multiple times e.g. <code class="docutils lite
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abiopen.py --help
 usage: abiopen.py [-h] [--loglevel LOGLEVEL] [-V] [-v] [-nb]
                   [--classic-notebook] [--no-browser] [--foreground] [-p]
-                  [--panel] [-e] [-s] [-t SLIDE_TIMEOUT] [-sns [SEABORN]]
-                  [-mpl MPL_BACKEND]
+                  [-pn] [-pnt PANEL_TEMPLATE] [-e] [-s] [-t SLIDE_TIMEOUT]
+                  [-sns [SEABORN]] [-mpl MPL_BACKEND] [-ply] [-cs]
                   filepath
 
 positional arguments:
@@ -266,7 +314,11 @@ optional arguments:
                         machine running the kernel
   --foreground          Run jupyter notebook in the foreground.
   -p, --print           Print python object and return.
-  --panel               Open GUI in web browser, requires panel package.
+  -pn, --panel          Open Dashboard in web browser, requires panel package.
+  -pnt PANEL_TEMPLATE, --panel-template PANEL_TEMPLATE
+                        Specify template for panel dasboard.Possible values
+                        are: FastList, FastGrid, Golden, Bootstrap, Material,
+                        React, Vanilla.Default: FastList
   -e, --expose          Open file and generate matplotlib figures
                         automatically by calling expose method.
   -s, --slide-mode      Iterate over figures. Expose all figures at once if
@@ -284,6 +336,11 @@ optional arguments:
                         TkAgg, Qt4Agg, Qt5Agg, macosx.See also:
                         https://matplotlib.org/faq/usage_faq.html#what-is-a-
                         backend.
+  -ply, --plotly        Generate plotly plots in browser instead of
+                        matplotlib. WARNING: Not all the features are
+                        supported.
+  -cs, --chart-studio   Push figure to plotly chart studio. Requires --plotly
+                        and user account at https://chart-studio.plotly.com.
 
 Usage example:
 
@@ -292,7 +349,9 @@ Usage example:
     abiopen.py FILE -p       =&gt; Print info on object to terminal.
     abiopen.py FILE -e       =&gt; Generate matplotlib figures automatically.
                                 Use -sns to activate seaborn settings.
-    abiopen.py FILE --panel  =&gt; Generate GUI in web browser to interact with FILE
+    abiopen.py FILE -e --plotly  =&gt; Generate plotly figures automatically. Show them in the BROWSER.
+                                Note that not all FILEs support plotly.
+    abiopen.py FILE --panel  =&gt; Generate GUI in web BROWSER to interact with FILE
                                 Requires panel package (WARNING: still under development!)
 
 where `FILE` is any file supported by abipy/pymatgen e.g. Netcdf files, Abinit input, POSCAR, xsf.
@@ -313,6 +372,8 @@ Extension          Class
 .out               &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
 .log               &lt;class &#39;abipy.abio.outputs.AbinitLogFile&#39;&gt;
 .cif               &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+.abivars           &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+.ucell             &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
 POSCAR             &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
 .cssr              &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
 .cube              &lt;class &#39;abipy.core.mixins.CubeFile&#39;&gt;
@@ -438,7 +499,7 @@ See <code class="docutils literal notranslate"><span class="pre">abinp.py</span>
 </div>
 <div class="section" id="get-a-quick-look-to-a-file">
 <h2><a class="toc-backref" href="#contents">Get a quick look to a file</a><a class="headerlink" href="#get-a-quick-look-to-a-file" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="scripts/abiview.html#abiview-py"><span class="std std-ref">abiview.py</span></a> script is especially designed for this task.
+<p>The <span class="xref std std-ref">abiview.py</span> script is especially designed for this task.
 The syntax is <code class="docutils literal notranslate"><span class="pre">abiview.py</span> <span class="pre">COMMAND</span> <span class="pre">FILE</span></code> where <code class="docutils literal notranslate"><span class="pre">COMMAND</span></code> is either
 the Abinit file extension (without <code class="docutils literal notranslate"><span class="pre">.nc</span></code>, if any) or the AbiPy object we want to visualize.</p>
 <p>To get a quick look at the DDB file, use:</p>
@@ -451,7 +512,7 @@ the Abinit file extension (without <code class="docutils literal notranslate"><s
 </pre></div>
 </div>
 <p>to plot the KS eigenvalues (the same command works for other files such as <code class="docutils literal notranslate"><span class="pre">WFK.nc</span></code>, <code class="docutils literal notranslate"><span class="pre">DEN.nc</span></code> etc.</p>
-<p>Note that <a class="reference internal" href="scripts/abiview.html#abiview-py"><span class="std std-ref">abiview.py</span></a> uses a predefined logic to visualize the data.
+<p>Note that <span class="xref std std-ref">abiview.py</span> uses a predefined logic to visualize the data.
 There are options to tune some parameters and/or export data in different formats
 but exposing the AbiPy API from the command line is not easy.</p>
 <p>For a more flexible interface, we suggest to use:</p>
@@ -600,7 +661,7 @@ See <code class="docutils literal notranslate"><span class="pre">abistruct.py</s
 <h2><a class="toc-backref" href="#contents">Compare my structure with the Materials Project database</a><a class="headerlink" href="#compare-my-structure-with-the-materials-project-database" title="Permalink to this headline">¶</a></h2>
 <p>Let’s assume we have performed a structural relaxation and we want
 to compare our results with the Materials Project data.
-One can use the <a class="reference internal" href="scripts/abicomp.html#abicomp-py"><span class="std std-ref">abicomp.py</span></a> structure to extract the structure from the <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/hist.ipynb">HIST.nc</a>
+One can use the <span class="xref std std-ref">abicomp.py</span> structure to extract the structure from the <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/hist.ipynb">HIST.nc</a>
 file and compare the data with the database:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_structure</span> <span class="o">../</span><span class="n">abipy</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">refs</span><span class="o">/</span><span class="n">sic_relax_HIST</span><span class="o">.</span><span class="n">nc</span>
 </pre></div>
@@ -647,7 +708,7 @@ One should take into account these different settings when comparing structural 
 <div class="section" id="export-bands-to-xmgrace-format">
 <h2><a class="toc-backref" href="#contents">Export bands to xmgrace format</a><a class="headerlink" href="#export-bands-to-xmgrace-format" title="Permalink to this headline">¶</a></h2>
 <p>Both <a class="reference internal" href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> and <a class="reference internal" href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a> provide a <code class="docutils literal notranslate"><span class="pre">to_xmgrace</span></code> method to produce <a class="reference external" href="http://plasma-gate.weizmann.ac.il/Grace/">xmgrace</a> files.
-To export the data to xmgrace, use <a class="reference internal" href="scripts/abiview.html#abiview-py"><span class="std std-ref">abiview.py</span></a> with the <code class="docutils literal notranslate"><span class="pre">--xmgrace</span></code> option.
+To export the data to xmgrace, use <span class="xref std std-ref">abiview.py</span> with the <code class="docutils literal notranslate"><span class="pre">--xmgrace</span></code> option.
 For electrons, use:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="n">out_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">--</span><span class="n">xmgrace</span>
 </pre></div>
@@ -684,7 +745,7 @@ Then use:</p>
 <p>AbiPy is interfaced with the <a class="reference external" href="http://henriquemiranda.github.io/phononwebsite/">phononwebsite</a> project
 If you have already installed the python package from <a class="reference external" href="https://github.com/henriquemiranda/phononwebsite">github</a>
 it’s possbile to export the <code class="docutils literal notranslate"><span class="pre">PHBST.nc</span></code> to JSON and then load the file via the web-interface.
-Alternatively, it’s possible to automate the entire procedure with the <a class="reference internal" href="scripts/abiview.html#abiview-py"><span class="std std-ref">abiview.py</span></a> script.</p>
+Alternatively, it’s possible to automate the entire procedure with the <span class="xref std std-ref">abiview.py</span> script.</p>
 <p>Use:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="n">out_PHBST</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">web</span>
 </pre></div>
@@ -742,7 +803,7 @@ the AbiPy scripts are quite handy for a quick analysis of the results.</p>
 </div>
 <div class="section" id="compare-multiple-files">
 <h2><a class="toc-backref" href="#contents">Compare multiple files</a><a class="headerlink" href="#compare-multiple-files" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="scripts/abicomp.html#abicomp-py"><span class="std std-ref">abicomp.py</span></a> script is explicitly designed for this kind of task.
+<p>The <span class="xref std std-ref">abicomp.py</span> script is explicitly designed for this kind of task.
 It operates on multiple files (usually files with the same extension) and
 either produces <a class="reference external" href="http://matplotlib.org">matplotlib</a> plots or creates AbiPy robots providing methods
 to analyze the results, perform convergence studies and build pandas <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html">DataFrames</a>.</p>
@@ -769,7 +830,7 @@ For example:</p>
 </pre></div>
 </div>
 <p>finds all <code class="docutils literal notranslate"><span class="pre">GSR.nc</span></code> files contained withing the current working directory.
-The output of <code class="docutils literal notranslate"><span class="pre">find</span></code> is then passed to the <a class="reference internal" href="scripts/abicomp.html#abicomp-py"><span class="std std-ref">abicomp.py</span></a> script.</p>
+The output of <code class="docutils literal notranslate"><span class="pre">find</span></code> is then passed to the <span class="xref std std-ref">abicomp.py</span> script.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Note the <a class="reference external" href="https://unix.stackexchange.com/questions/27428/what-does-backquote-backtick-mean-in-commands">backticks syntax</a>
@@ -815,22 +876,54 @@ to open/visualize the files stored on the cluster.</p>
 </div>
 
 
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="workflows/taskmanager.html" class="btn btn-neutral float-right" title="TaskManager" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="gallery/plot_efatbands_spin.html" class="btn btn-neutral float-left" title="spin-polarized fatbands" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

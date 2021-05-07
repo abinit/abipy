@@ -4,28 +4,33 @@
 Post-processing How-To
 ***********************
 
-This is a list of Frequently Asked Questions about the usage of the AbiPy scripts. 
+This is a list of FAQs about the usage of the AbiPy scripts. 
 Feel free to suggest new entries!
 
 .. contents::
    :backlinks: top
 
-.. important::
 
-    The AbiPy scripts detect the file type by looking at the file extension to so don't change it.
+Preliminary considerations 
+---------------------------
 
-    Also, remember that it is possible to get the documentation 
-    by just adding ``--help`` after the scripts name.
+The AbiPy scripts detect the file type by looking at the file extension 
+so **don't change the file extension**.
+Also, remember that it is possible to get the documentation  by just adding 
+the ``--help`` option to the command line.
+For example:
 
-    For example::
+.. code-block:: shell
 
-        abistruct.py --help
-        
-    gives the documentation and usage examples for the ``abistruct.py`` script while::
-
-        abistruct.py COMMAND --help
+    abistruct.py --help
     
-    prints the documentation for ``COMMAND`` and the options supported by ``COMMAND``.
+gives the documentation and usage examples for the abistruct.py_ script while:
+
+.. code-block:: shell
+
+    abistruct.py COMMAND --help
+
+prints the documentation and the options supported by ``COMMAND``
 
 
 Get information about a generic ``FILE``

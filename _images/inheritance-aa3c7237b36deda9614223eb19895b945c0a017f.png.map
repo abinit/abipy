@@ -1,6 +1,6 @@
 <map id="inheritanced0ee4d5629" name="inheritanced0ee4d5629">
-<area shape="rect" id="node1" href="#abipy.dfpt.gruneisen.GrunsReader" target="_top" title="This object reads the results stored in the GRUNS.nc file produced by ABINIT." alt="" coords="604,4,764,22"/>
-<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="438,4,570,22"/>
-<area shape="rect" id="node3" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="220,4,404,22"/>
-<area shape="rect" id="node4" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="4,4,186,22"/>
+<area shape="rect" id="node1" href="#abipy.dfpt.gruneisen.GrunsReader" target="_top" title="This object reads the results stored in the GRUNS.nc file produced by ABINIT." alt="" coords="604,4,764,21"/>
+<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="439,4,570,21"/>
+<area shape="rect" id="node3" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="220,4,405,21"/>
+<area shape="rect" id="node4" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="4,4,186,21"/>
 </map>

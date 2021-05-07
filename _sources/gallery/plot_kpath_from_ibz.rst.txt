@@ -54,8 +54,6 @@ from a calculation done with a (relatively dense) IBZ sampling.
          9) [-0.375, +0.125, +0.000],  weight=0.047
         10) [-0.250, +0.125, +0.000],  weight=0.047
         ... (More than 10 k-points)
-    /Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-      warn(
     ================================= Structure =================================
     Full Formula (Si2)
     Reduced Formula: Si
@@ -120,7 +118,7 @@ from a calculation done with a (relatively dense) IBZ sampling.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.544 seconds)
+   **Total running time of the script:** ( 0 minutes  1.245 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_kpath_from_ibz.py:

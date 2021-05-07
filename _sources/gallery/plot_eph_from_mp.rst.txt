@@ -53,12 +53,6 @@ obtained with Abinit
     Invoking anaddb to compute phonon bands...
     Downloading DDB for mpid mp-66 (C2) ...
     Invoking anaddb to compute phonon bands...
-    /Users/gmatteo/git_repos/abipy/abipy/core/structure.py:637: FutureWarning: latexify is deprecated
-    These methods have been deprecated in favor of using the Stringify mix-in class, which provides to_latex_string, to_unicode_string, etc. They will be removed in v2022.
-      return latexify(self.formula)
-    /Users/gmatteo/git_repos/abipy/abipy/core/structure.py:637: FutureWarning: latexify is deprecated
-    These methods have been deprecated in favor of using the Stringify mix-in class, which provides to_latex_string, to_unicode_string, etc. They will be removed in v2022.
-      return latexify(self.formula)
 
 
 
@@ -114,7 +108,7 @@ obtained with Abinit
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  27.626 seconds)
+   **Total running time of the script:** ( 0 minutes  25.627 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_eph_from_mp.py:

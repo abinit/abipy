@@ -1,5 +1,5 @@
 <map id="inheritance66b938a85c" name="inheritance66b938a85c">
-<area shape="rect" id="node1" href="#abipy.core.kpoints.KpointList" target="_top" title="Base class defining a sequence of |Kpoint| objects. Essentially consists" alt="" coords="463,55,596,73"/>
-<area shape="rect" id="node3" href="#abipy.core.kpoints.KpointStar" target="_top" title="Star of the kpoint. Note that the first k&#45;point is assumed to be the base" alt="" coords="629,55,764,73"/>
-<area shape="rect" id="node2" title="All the operations on a read&#45;only sequence." alt="" coords="310,55,430,73"/>
+<area shape="rect" id="node1" href="#abipy.core.kpoints.KpointList" target="_top" title="Base class defining a sequence of |Kpoint| objects. Essentially consists" alt="" coords="464,54,596,70"/>
+<area shape="rect" id="node3" href="#abipy.core.kpoints.KpointStar" target="_top" title="Star of the kpoint. Note that the first k&#45;point is assumed to be the base" alt="" coords="630,54,764,70"/>
+<area shape="rect" id="node2" title="All the operations on a read&#45;only sequence." alt="" coords="311,54,431,70"/>
 </map>

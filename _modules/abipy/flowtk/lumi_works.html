@@ -1,0 +1,402 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.flowtk.lumi_works &mdash; abipy 0.9.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../flowtk.html">abipy.flowtk</a> &raquo;</li>
+        
+      <li>abipy.flowtk.lumi_works</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.flowtk.lumi_works</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Work subclasses for the computation of luminiscent properties.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.works</span> <span class="kn">import</span> <span class="n">Work</span><span class="p">,</span> <span class="n">PhononWork</span>
+
+
+<div class="viewcode-block" id="LumiWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.lumi_works.LumiWork">[docs]</a><span class="k">class</span> <span class="nc">LumiWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This Work implements Fig 1 of https://arxiv.org/abs/2010.00423.</span>
+
+<span class="sd">    Client code is responsible for the preparation of the supercell and</span>
+<span class="sd">    of the GS SCF input files with the fixed electronic occupations associated to the two configurations.</span>
+<span class="sd">    By default, the work computes four total energies corresponding to the Ag, Ag*, Ae*, Ae configurations.</span>
+<span class="sd">    Optionally, one can activate the computation of four electronic band structures</span>
+<span class="sd">    and phonons for Ag and Ae. See docstring of from_scf_inputs for further info.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LumiWork.from_scf_inputs"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.lumi_works.LumiWork.from_scf_inputs">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_inputs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gs_scf_inp</span><span class="p">,</span> <span class="n">exc_scf_inp</span><span class="p">,</span> <span class="n">relax_kwargs</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nb_extra</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                        <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            gs_scf_inp: |AbinitInput| representing a GS SCF run for the ground-state.</span>
+<span class="sd">            exc_scf_inp: |AbinitInput| representing a GS SCF run for the excited-state.</span>
+<span class="sd">            relax_kwargs: Dictonary with input variables to be added to gs_scf_inp and exc_scf_inp.</span>
+<span class="sd">                when generating input files for structural relaxations.</span>
+<span class="sd">            ndivsm: Activates the computation of band structure if different from zero.</span>
+<span class="sd">                if &gt; 0, it&#39;s the number of divisions for the smallest segment of the path (Abinit variable).</span>
+<span class="sd">                if &lt; 0, it&#39;s interpreted as the pymatgen `line_density` parameter in which the number of points</span>
+<span class="sd">                in the segment is proportional to its length. Typical value: -20.</span>
+<span class="sd">                This option is the recommended one if the k-path contains two high symmetry k-points that are very close</span>
+<span class="sd">                as ndivsm &gt; 0 may produce a very large number of wavevectors.</span>
+<span class="sd">            nb_extra: Number of extra bands added to the input nband when computing band structures (ndivsm != 0).</span>
+<span class="sd">            tolwfr: Tolerance on the residuals used for the NSCF band structure calculations.</span>
+<span class="sd">            ngqpt: If not None, activates computation of phonons with DFPT using this q-mesh.</span>
+<span class="sd">                Usually Gamma-only that is ngqpt = [1, 1, 1].</span>
+<span class="sd">            manager: |TaskManager| of the work. If None, the manager is initialized from the config file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="c1"># Templates for GS SCF calculations.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">gs_scf_inp</span> <span class="o">=</span> <span class="n">gs_scf_inp</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">exc_scf_inp</span> <span class="o">=</span> <span class="n">exc_scf_inp</span>
+
+        <span class="c1"># Save paramenters for the generation of input files at runtime.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">relax_kwargs</span> <span class="o">=</span> <span class="n">relax_kwargs</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">ndivsm</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ndivsm</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">tolwfr</span> <span class="o">=</span> <span class="n">tolwfr</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">nb_extra</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nb_extra</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">ngqpt</span> <span class="o">=</span> <span class="n">ngqpt</span>
+
+        <span class="c1"># Relaxation for the Ag configuration.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">gs_relax_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_relax_task</span><span class="p">(</span><span class="n">gs_scf_inp</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span><span class="n">relax_kwargs</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">new</span><span class="o">.</span><span class="n">ngqpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Make sure we have the WFK file if we are gonna compute phonons.</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">gs_relax_task</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s2">&quot;prtwf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># Internal counter used in on_all_ok to drive the differ steps of the calculations.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">iteration_step</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># JSON-compatible dictionary storing the most important results of the Work.</span>
+        <span class="c1"># Results will be stored in the `lumi.json` file in the outdata directory of the Work</span>
+        <span class="c1"># so that one can easily implement additional post-processing tools.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">json_data</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="LumiWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.lumi_works.LumiWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called when all the tasks in the work have reached S_OK.</span>
+
+<span class="sd">        This is the section in which we implement most of the workflow logic at runtime.</span>
+<span class="sd">        since we need to generate input files with relaxed structures.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;in iteration step 0&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iteration_step</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Get Ag relaxed structure and energy.</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_relax_task</span><span class="o">.</span><span class="n">open_gsr</span><span class="p">()</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
+                <span class="n">ag_relaxed_structure</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">structure</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;Ag_energy_ev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;Ag_gsr_filepath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span>
+
+            <span class="c1"># Build GS SCF input for the Ag* configuration:</span>
+            <span class="c1"># use same structure as Ag but with excited occupation factors.</span>
+            <span class="n">exc_scf_inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exc_scf_inp</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">ag_relaxed_structure</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agstar_scf_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">exc_scf_inp</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndivsm</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Compute band structure for Ag* configuration.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">agstar_scf_task</span><span class="o">.</span><span class="n">add_ebands_task_to_work</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ndivsm</span><span class="p">,</span>
+                                                             <span class="n">tolwfr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tolwfr</span><span class="p">,</span> <span class="n">nb_extra</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_extra</span><span class="p">)</span>
+
+            <span class="c1">#if self.ngqpt is not None:</span>
+            <span class="c1">#    Create new work to compute phonons for Ag configuration.</span>
+            <span class="c1">#    TODO: Make sure we can connect DFPT with RelaxTask.</span>
+            <span class="c1">#    self.ae_scf_task[&quot;prtwf&quot;] = 1</span>
+            <span class="c1">#    ph_work = PhononWork.from_scf_task(scf_task, self.ngqpt, is_ngqpt=True, tolerance=None, with_becs=True,</span>
+            <span class="c1">#                                       ddk_tolerance=None, manager=None)</span>
+            <span class="c1">#    self.flow.register_work(ph_work)</span>
+            <span class="c1">#    Save location of final DDB file in json_data.</span>
+            <span class="c1">#    self.json_data[&quot;Ag_ddb_filepath&quot;] = ph_work.outdir.path_in(&quot;out_DDB&quot;)</span>
+
+            <span class="c1"># Relax geometry with excited configuration starting from Ag*.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agstar_relax_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_relax_task</span><span class="p">(</span><span class="n">exc_scf_inp</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relax_kwargs</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">postpone_on_all_ok</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration_step</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;in iteration step 1&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iteration_step</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Get Ag* total energy.</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">agstar_scf_task</span><span class="o">.</span><span class="n">open_gsr</span><span class="p">()</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;Agstar_energy_ev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;Agstar_gsr_filepath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span>
+
+            <span class="c1"># Get Ae* relaxed structure and total energy.</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">agstar_relax_task</span><span class="o">.</span><span class="n">open_gsr</span><span class="p">()</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
+                <span class="n">aestar_relaxed_structure</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">structure</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;Aestar_energy_ev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;Aestar_gsr_filepath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span>
+
+            <span class="c1"># Build GS SCF input for the Ae configuration:</span>
+            <span class="c1"># same structure as Ae* but with gs occupation factors.</span>
+            <span class="n">ae_scf_inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_scf_inp</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">aestar_relaxed_structure</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ae_scf_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">ae_scf_inp</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndivsm</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Compute band structure for Ae configuration.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ae_scf_task</span><span class="o">.</span><span class="n">add_ebands_task_to_work</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ndivsm</span><span class="p">,</span>
+                                                         <span class="n">tolwfr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tolwfr</span><span class="p">,</span> <span class="n">nb_extra</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_extra</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngqpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Create new work to compute phonons for the Ae configuration. Make sure prtwf == 1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ae_scf_task</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s2">&quot;prtwf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">ph_work</span> <span class="o">=</span> <span class="n">PhononWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ae_scf_task</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                   <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">ph_work</span><span class="p">)</span>
+                <span class="c1"># Save location of final DDB file in json_data.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;Ae_ddb_filepath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ph_work</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;out_DDB&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">postpone_on_all_ok</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration_step</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;in iteration step 2&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iteration_step</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Get Ag* total energy.</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ae_scf_task</span><span class="o">.</span><span class="n">open_gsr</span><span class="p">()</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
+                <span class="n">ae_structure</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">structure</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;Ae_energy_ev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;Ae_gsr_filepath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span>
+
+            <span class="c1"># Write json file in the outdire of the work</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_json_in_outdir</span><span class="p">(</span><span class="s2">&quot;lumi.json&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_data</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,67 +1,106 @@
+
+
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.abilab &mdash; abipy 0.9.0 documentation</title>
+  
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>abipy.abilab &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../_static/bootstrap-sphinx.js "></script>
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
@@ -84,57 +123,80 @@
 <li class="toctree-l1"><a class="reference internal" href="../../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"></ul>
-</li>
-              
-            
-            
-              
-                
-              
-            
-            
-            
-            
-              <li class="hidden-sm"></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>abipy.abilab</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <h1>Source code for abipy.abilab</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module gathers the most important classes and helper functions used for scripting.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
 
 <span class="c1">####################</span>
 <span class="c1">### Monty import ###</span>
@@ -222,6 +284,8 @@
     <span class="p">(</span><span class="s2">&quot;.out&quot;</span><span class="p">,</span> <span class="n">AbinitOutputFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;.log&quot;</span><span class="p">,</span> <span class="n">AbinitLogFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;.cif&quot;</span><span class="p">,</span> <span class="n">Structure</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;.abivars&quot;</span><span class="p">,</span> <span class="n">Structure</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;.ucell&quot;</span><span class="p">,</span> <span class="n">Structure</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;POSCAR&quot;</span><span class="p">,</span> <span class="n">Structure</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;.cssr&quot;</span><span class="p">,</span> <span class="n">Structure</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;.cube&quot;</span><span class="p">,</span> <span class="n">CubeFile</span><span class="p">),</span>
@@ -282,14 +346,35 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Print the association table between file extensions and File classes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
-    <span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
     <span class="n">table</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">ext</span><span class="p">,</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">(</span><span class="n">ext2file</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">abiext2ncfile</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ext</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">cls</span><span class="p">)))</span>
 
     <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Extension&quot;</span><span class="p">,</span> <span class="s2">&quot;Class&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="extcls_supporting_panel"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.extcls_supporting_panel">[docs]</a><span class="k">def</span> <span class="nf">extcls_supporting_panel</span><span class="p">(</span><span class="n">as_table</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">tabulate_kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return list of (ext, cls) tuples where ext is the file extension supporting the `get_panel` method</span>
+<span class="sd">    i.e files that can be integrated with the panel dashboard and `cls` the python class associated to it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">ext</span><span class="p">,</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">(</span><span class="n">ext2file</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">abiext2ncfile</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;get_panel&quot;</span><span class="p">):</span> <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ext</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">cls</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">as_table</span><span class="p">:</span> <span class="k">return</span> <span class="n">items</span>
+
+    <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Extension&quot;</span><span class="p">,</span> <span class="s2">&quot;Class&quot;</span><span class="p">],</span> <span class="o">**</span><span class="n">tabulate_kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="abipanel"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.abipanel">[docs]</a><span class="k">def</span> <span class="nf">abipanel</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Activate panel extensions used by AbiPy. Return panel module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">abipanel</span>
+    <span class="k">return</span> <span class="n">abipanel</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="abifile_subclass_from_filename"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.abifile_subclass_from_filename">[docs]</a><span class="k">def</span> <span class="nf">abifile_subclass_from_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
@@ -445,14 +530,24 @@
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">fh</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyEncoder</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="software_stack"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.software_stack">[docs]</a><span class="k">def</span> <span class="nf">software_stack</span><span class="p">():</span>
+<div class="viewcode-block" id="software_stack"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.software_stack">[docs]</a><span class="k">def</span> <span class="nf">software_stack</span><span class="p">(</span><span class="n">as_dataframe</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Import all the hard dependencies. Returns ordered dict: package --&gt; string with version info.</span>
+<span class="sd">    Import all the hard dependencies and some optional packages.</span>
+<span class="sd">    Returns ordered dict: package --&gt; string with version info or pandas dataframe if as_dataframe.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">platform</span>
     <span class="n">system</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">machine</span><span class="p">,</span> <span class="n">processor</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">uname</span><span class="p">()</span>
     <span class="c1"># These packages are required</span>
-    <span class="kn">import</span> <span class="nn">numpy</span><span class="o">,</span> <span class="nn">scipy</span><span class="o">,</span> <span class="nn">netCDF4</span><span class="o">,</span> <span class="nn">pymatgen</span><span class="o">,</span> <span class="nn">apscheduler</span><span class="o">,</span> <span class="nn">pydispatch</span><span class="o">,</span> <span class="nn">yaml</span>
+    <span class="kn">import</span> <span class="nn">numpy</span><span class="o">,</span> <span class="nn">scipy</span><span class="o">,</span> <span class="nn">netCDF4</span><span class="o">,</span> <span class="nn">pymatgen</span><span class="o">,</span> <span class="nn">apscheduler</span><span class="o">,</span> <span class="nn">pydispatch</span><span class="o">,</span> <span class="nn">yaml</span><span class="o">,</span> <span class="nn">plotly</span>
+
+    <span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">import_module</span>
+    <span class="k">def</span> <span class="nf">get_version</span><span class="p">(</span><span class="n">pkg_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return version of package from string.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mod</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="n">pkg_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">mod</span><span class="o">.</span><span class="n">__version__</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">pmg_version</span>
@@ -469,17 +564,19 @@
         <span class="p">(</span><span class="s2">&quot;apscheduler&quot;</span><span class="p">,</span> <span class="n">apscheduler</span><span class="o">.</span><span class="n">version</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;pydispatch&quot;</span><span class="p">,</span> <span class="n">pydispatch</span><span class="o">.</span><span class="n">__version__</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;yaml&quot;</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">__version__</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;boken&quot;</span><span class="p">,</span> <span class="n">get_version</span><span class="p">(</span><span class="s2">&quot;bokeh&quot;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s2">&quot;panel&quot;</span><span class="p">,</span> <span class="n">get_version</span><span class="p">(</span><span class="s2">&quot;panel&quot;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s2">&quot;plotly&quot;</span><span class="p">,</span> <span class="n">get_version</span><span class="p">(</span><span class="s2">&quot;plotly&quot;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s2">&quot;ase&quot;</span><span class="p">,</span> <span class="n">get_version</span><span class="p">(</span><span class="s2">&quot;ase&quot;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s2">&quot;phonopy&quot;</span><span class="p">,</span> <span class="n">get_version</span><span class="p">(</span><span class="s2">&quot;phonopy&quot;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s2">&quot;monty&quot;</span><span class="p">,</span> <span class="n">get_version</span><span class="p">(</span><span class="s2">&quot;monty&quot;</span><span class="p">)),</span>
         <span class="p">(</span><span class="s2">&quot;pymatgen&quot;</span><span class="p">,</span> <span class="n">pmg_version</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;abipy&quot;</span><span class="p">,</span> <span class="n">__version__</span><span class="p">),</span>
     <span class="p">])</span>
 
-    <span class="c1"># Optional but strongly suggested.</span>
-    <span class="c1">#try:</span>
-    <span class="c1">#    import matplotlib</span>
-    <span class="c1">#    d[&quot;matplotlib&quot;] = &quot;%s (backend: %s)&quot; % (matplotlib.__version__, matplotlib.get_backend())</span>
-    <span class="c1">#except ImportError:</span>
-    <span class="c1">#    pass</span>
-
-    <span class="k">return</span> <span class="n">d</span></div>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">as_dataframe</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">d</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;version&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span><span class="o">.</span><span class="n">rename_axis</span><span class="p">(</span><span class="s2">&quot;Package&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="abicheck"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.abicheck">[docs]</a><span class="k">def</span> <span class="nf">abicheck</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -519,7 +616,6 @@
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
         <span class="n">app</span><span class="p">(</span><span class="n">_straceback</span><span class="p">())</span>
 
-    <span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">software_stack</span><span class="p">()</span>
         <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Installed packages:&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
@@ -691,22 +787,50 @@
 <span class="s2">&quot;&quot;&quot;</span></div>
 </pre></div>
 
-    </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

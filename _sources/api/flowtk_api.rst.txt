@@ -109,6 +109,14 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`lumi_works` Module
+------------------------
+
+.. automodule:: abipy.flowtk.lumi_works
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`mocks` Module
 -------------------
 

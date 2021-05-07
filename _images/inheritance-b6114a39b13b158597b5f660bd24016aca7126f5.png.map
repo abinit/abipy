@@ -1,9 +1,9 @@
 <map id="inheritanceb5e4c480bc" name="inheritanceb5e4c480bc">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="257,203,457,228"/>
-<area shape="rect" id="node7" href="#abipy.wannier90.abiwan.AbiwanFile" target="_top" title="File produced by Abinit with the unitary matrices obtained by" alt="" coords="528,104,761,129"/>
-<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,203,185,228"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="233,5,480,31"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="255,55,459,80"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="250,104,463,129"/>
-<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="246,153,467,179"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,197,454,221"/>
+<area shape="rect" id="node7" href="#abipy.wannier90.abiwan.AbiwanFile" target="_top" title="File produced by Abinit with the unitary matrices obtained by" alt="" coords="525,101,757,125"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,197,184,221"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="232,5,477,29"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="254,53,456,77"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="249,101,461,125"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,149,464,173"/>
 </map>

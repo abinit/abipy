@@ -1,69 +1,108 @@
-<!DOCTYPE html>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>self-consistent GW &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>self-consistent GW &mdash; abipy 0.9.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="SIGRES file (GW)" href="plot_qps.html" />
-    <link rel="prev" title="Speed of Sound" href="plot_speed_of_sound.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+    <link rel="next" title="spin-polarized fatbands" href="plot_efatbands_spin.html" />
+    <link rel="prev" title="e-bands scatter3d" href="plot_ebands_scatter3d.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
@@ -72,7 +111,68 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="plot_phonons.html">AlAs Phonon bands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_wannier90_abiwan.html">Band structure interpolation with Wannier functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands.html">Band structure plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands_edos.html">Bands + DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_mdf.html">Bethe-Salpeter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_bz.html">Brillouin zone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_dfpt_cycle.html">DFPT SCF cycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phonons_msqd.html">Debye-Waller and generalized phonon DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_den.html">Density</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_scr.html">Dielectric function with LFE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_edos.html">Electron DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands_grid.html">ElectronBandsPlotter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_eph_from_mp.html">Electrons and Phonons from the materials project website</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_a2f.html">Eliashberg function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_funcs.html">Function1D object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_gw_spectral_functions.html">G0W0 spectral function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qpconvergence.html">GW Convergence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qpbands_with_interpolation.html">GW corrections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qpbands_with_scissor.html">GW with scissors operator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_gscycle.html">Ground-state SCF cycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_gruneisen.html">Gruneisen parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phonons_infrared.html">Infrared spectrum of AlAs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ejdos.html">Joint Density of States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_kpath_from_ibz.html">K-path from IBZ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_efatbands_lm.html">LM-fatbands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_lobster_files.html">Lobster COHP/COP/DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_lobster_cohp.html">Lobster COHPCAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_fermisurface.html">MgB2 Fermi surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_efatbands.html">MgB2 fatbands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_multiple_mdf.html">Multiple Bethe-Salpeter calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_multiple_hist.html">Multiple Structural relaxations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_edos_vs_broad.html">Multiple e-DOSes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phbands_grid.html">Multiple phonon bands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phbands_nkpt_tsmear.html">Multiple phonon bands with DDB robot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_optic.html">Optic results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotly_phbands_and_dos.html">Phonon Band structures (Plotly version)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phbands_and_dos.html">Phonon band structures with LO-TO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phonons_lo_to.html">Phonon bands with LO-TO from PHBST.nc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ddb_asr.html">Phonon bands with/without the ASR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phonon_fatbands.html">Phonon fatbands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_potentials.html">Potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phonon_pjdos.html">Projected phonon DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qha.html">Quasi-harmonic approximation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qha_vs_qmesh.html">Quasi-harmonic approximation (convergence wrt Q-mesh)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_scr_matrix.html">SCR matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qps.html">SIGRES file (GW)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands_boxplot.html">Seaborn boxplot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_speed_of_sound.html">Speed of Sound</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands_spin.html">Spin-polarized e-bands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hist.html">Structural relaxation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phthermo.html">Thermodinamic properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_fold2bloch.html">Unfolding with fold2bloch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_structure.html">Unit cell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_wannier90_wout.html">Wannier90 wout file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_wfk.html">Wavefunction file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_xrd.html">X-ray diffraction pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands_scatter3d.html">e-bands scatter3d</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">self-consistent GW</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_efatbands_spin.html">spin-polarized fatbands</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
@@ -86,66 +186,74 @@
 <li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">self-consistent GW</a></li>
-</ul>
-</ul>
-</li>
-              
-            
-            
-              
-                
-  <li>
-    <a href="plot_speed_of_sound.html" title="Previous Chapter: Speed of Sound"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Speed of Sound</span>
-    </a>
-  </li>
-  <li>
-    <a href="plot_qps.html" title="Next Chapter: SIGRES file (GW)"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">SIGRES file (GW) &raquo;</span>
-    </a>
-  </li>
-              
-            
-            
-            
-            
-              <li class="hidden-sm">
-<div id="sourcelink">
-  <a href="../_sources/gallery/plot_scqpgw.rst.txt"
-     rel="nofollow">Source</a>
-</div></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">AbiPy Gallery</a> &raquo;</li>
+        
+      <li>self-consistent GW</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/gallery/plot_scqpgw.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
 <p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-scqpgw-py"><span class="std std-ref">here</span></a>
@@ -185,7 +293,7 @@ to download the full example code</p>
 <span class="n">sigres</span><span class="o">.</span><span class="n">plot_eigvec_qp</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.150 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.060 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-scqpgw-py">
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/26aaeeedda256bb3777ac936a53b9735/plot_scqpgw.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_scqpgw.py</span></code></a></p>
@@ -198,22 +306,54 @@ to download the full example code</p>
 </div>
 
 
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="plot_efatbands_spin.html" class="btn btn-neutral float-right" title="spin-polarized fatbands" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="plot_ebands_scatter3d.html" class="btn btn-neutral float-left" title="e-bands scatter3d" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

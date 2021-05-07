@@ -1,69 +1,108 @@
-<!DOCTYPE html>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Band structure plot &#8212; abipy 0.9.0 documentation</title>
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/thebelab-helper.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Band structure plot &mdash; abipy 0.9.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Bands + DOS" href="plot_ebands_edos.html" />
-    <link rel="prev" title="Joint Density of States" href="plot_ejdos.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+    <link rel="prev" title="Band structure interpolation with Wannier functions" href="plot_wannier90_abiwan.html" /> 
+</head>
 
-  </head><body>
+<body class="wy-body-for-nav">
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="../index.html">
-          abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.9.0</b></span>
-      </div>
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
+          
+            <a href="../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
             
             
-              <li class="dropdown globaltoc-container">
-  <a role="button"
-     id="dLabelGlobalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="../index.html">Site <b class="caret"></b></a>
-  <ul class="dropdown-menu globaltoc"
-      role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+              <div class="version">
+                0.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
@@ -72,7 +111,68 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="plot_phonons.html">AlAs Phonon bands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_wannier90_abiwan.html">Band structure interpolation with Wannier functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Band structure plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands_edos.html">Bands + DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_mdf.html">Bethe-Salpeter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_bz.html">Brillouin zone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_dfpt_cycle.html">DFPT SCF cycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phonons_msqd.html">Debye-Waller and generalized phonon DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_den.html">Density</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_scr.html">Dielectric function with LFE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_edos.html">Electron DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands_grid.html">ElectronBandsPlotter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_eph_from_mp.html">Electrons and Phonons from the materials project website</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_a2f.html">Eliashberg function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_funcs.html">Function1D object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_gw_spectral_functions.html">G0W0 spectral function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qpconvergence.html">GW Convergence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qpbands_with_interpolation.html">GW corrections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qpbands_with_scissor.html">GW with scissors operator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_gscycle.html">Ground-state SCF cycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_gruneisen.html">Gruneisen parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phonons_infrared.html">Infrared spectrum of AlAs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ejdos.html">Joint Density of States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_kpath_from_ibz.html">K-path from IBZ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_efatbands_lm.html">LM-fatbands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_lobster_files.html">Lobster COHP/COP/DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_lobster_cohp.html">Lobster COHPCAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_fermisurface.html">MgB2 Fermi surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_efatbands.html">MgB2 fatbands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_multiple_mdf.html">Multiple Bethe-Salpeter calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_multiple_hist.html">Multiple Structural relaxations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_edos_vs_broad.html">Multiple e-DOSes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phbands_grid.html">Multiple phonon bands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phbands_nkpt_tsmear.html">Multiple phonon bands with DDB robot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_optic.html">Optic results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotly_phbands_and_dos.html">Phonon Band structures (Plotly version)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phbands_and_dos.html">Phonon band structures with LO-TO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phonons_lo_to.html">Phonon bands with LO-TO from PHBST.nc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ddb_asr.html">Phonon bands with/without the ASR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phonon_fatbands.html">Phonon fatbands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_potentials.html">Potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phonon_pjdos.html">Projected phonon DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qha.html">Quasi-harmonic approximation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qha_vs_qmesh.html">Quasi-harmonic approximation (convergence wrt Q-mesh)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_scr_matrix.html">SCR matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_qps.html">SIGRES file (GW)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands_boxplot.html">Seaborn boxplot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_speed_of_sound.html">Speed of Sound</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands_spin.html">Spin-polarized e-bands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hist.html">Structural relaxation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_phthermo.html">Thermodinamic properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_fold2bloch.html">Unfolding with fold2bloch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_structure.html">Unit cell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_wannier90_wout.html">Wannier90 wout file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_wfk.html">Wavefunction file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_xrd.html">X-ray diffraction pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ebands_scatter3d.html">e-bands scatter3d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_scqpgw.html">self-consistent GW</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_efatbands_spin.html">spin-polarized fatbands</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
@@ -86,66 +186,74 @@
 <li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
-</ul>
-</li>
-              
-                <li class="dropdown">
-  <a role="button"
-     id="dLabelLocalToc"
-     data-toggle="dropdown"
-     data-target="#"
-     href="#">Page <b class="caret"></b></a>
-  <ul class="dropdown-menu localtoc"
-      role="menu"
-      aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">Band structure plot</a></li>
-</ul>
-</ul>
-</li>
-              
-            
-            
-              
-                
-  <li>
-    <a href="plot_ejdos.html" title="Previous Chapter: Joint Density of States"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Joint Density...</span>
-    </a>
-  </li>
-  <li>
-    <a href="plot_ebands_edos.html" title="Next Chapter: Bands + DOS"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Bands + DOS &raquo;</span>
-    </a>
-  </li>
-              
-            
-            
-            
-            
-              <li class="hidden-sm">
-<div id="sourcelink">
-  <a href="../_sources/gallery/plot_ebands.rst.txt"
-     rel="nofollow">Source</a>
-</div></li>
-            
-          </ul>
 
-          
             
-<form class="navbar-form navbar-right" action="../search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
           
         </div>
-    </div>
-  </div>
+        
+      </div>
+    </nav>
 
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">AbiPy Gallery</a> &raquo;</li>
+        
+      <li>Band structure plot</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/gallery/plot_ebands.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
 <p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-ebands-py"><span class="std std-ref">here</span></a>
@@ -156,49 +264,56 @@ to download the full example code</p>
 <p>This example shows how to plot a band structure
 using the eigenvalues stored in the GSR file
 produced at the end of the GS run.</p>
-<ul class="sphx-glr-horizontal">
-<li><img alt="Silicon band structure, Si$_{2}$: $E^{dir}_{gap}$ = 2.53, $E^{fund}_{gap}$ = 0.52 (eV)" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_ebands_001.png" />
-</li>
-<li><img alt="plot ebands" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_ebands_002.png" />
-</li>
-</ul>
-<p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/miniconda3/envs/env3.9/lib/python3.9/site-packages/pymatgen/symmetry/kpath.py:179: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
-  warn(
-/Users/gmatteo/git_repos/abipy/abipy/core/structure.py:637: FutureWarning: latexify is deprecated
-These methods have been deprecated in favor of using the Stringify mix-in class, which provides to_latex_string, to_unicode_string, etc. They will be removed in v2022.
-  return latexify(self.formula)
-
-&lt;Figure size 640x480 with 1 Axes&gt;
-</pre></div>
-</div>
-<div class="line-block">
-<div class="line"><br /></div>
-</div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
-
-<span class="c1"># Here we use one of the GSR files shipped with abipy.</span>
-<span class="c1"># Replace filename with the path to your GSR file or your WFK file.</span>
-<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">filename</span></a> <span class="o">=</span> <a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">)</span>
-
-<span class="c1"># Open the GSR file and extract the band structure.</span>
-<span class="c1"># (alternatively one can use the shell and `abiopen.py OUT_GSR.nc -nb`</span>
-<span class="c1"># to open the file in a jupyter notebook.</span>
-<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">filename</span></a><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
-    <span class="n">ebands</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span></a>
-
-<span class="c1"># Plot the band energies. Note that the labels for the k-points</span>
-<span class="c1"># are found automatically in an internal database.</span>
-<span class="c1"># Show fundamental and direct gaps.</span>
-<span class="c1">#ebands.plot(with_gaps=&quot;fd&quot;, title=&quot;Silicon band structure&quot;)</span>
-<span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">with_gaps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Silicon band structure&quot;</span><span class="p">)</span>
-
-<span class="c1"># Plot the BZ and the k-point path.</span>
-<span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.614 seconds)</p>
+<p>Here we use one of the GSR files shipped with abipy.
+Replace filename with the path to your GSR file or your WFK file.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">filename</span></a> <span class="o">=</span> <a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Open the GSR file and extract the band structure.
+(alternatively one can use the shell and <cite>abiopen.py OUT_GSR.nc -nb</cite>
+to open the file in a jupyter notebook.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">filename</span></a><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
+    <span class="n">ebands</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span></a>
+</pre></div>
+</div>
+<p>Plot the band energies with matplotlib.
+Note that the labels for the k-points are found automatically in an internal database.
+Use <cite>with_gaps</cite> to show fundamental and direct gaps.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">with_gaps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Silicon band structure&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="Silicon band structure, Si$_{2}$: $E^{dir}_{gap}$ = 2.53, $E^{fund}_{gap}$ = 0.52 (eV)" class="sphx-glr-single-img" src="../_images/sphx_glr_plot_ebands_001.png" />
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 640x480 with 1 Axes&gt;
+</pre></div>
+</div>
+<p>For the plotly version, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ebands</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">with_gaps</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># .. warning:</span>
+<span class="c1">#</span>
+<span class="c1"># Note that, for the time being, ``with_gaps`` is incompatible with the ``title`` argument.</span>
+</pre></div>
+</div>
+<div class="output_subarea output_html rendered_html output_result">
+<div>            <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_SVG"></script><script type="text/javascript">if (window.MathJax) {MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>                <div id="ea49b2e0-09a3-45f3-93d3-6dce71df593c" class="plotly-graph-div" style="height:525px; width:100%;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("ea49b2e0-09a3-45f3-93d3-6dce71df593c")) {                    Plotly.newPlot(                        "ea49b2e0-09a3-45f3-93d3-6dce71df593c",                        [{"line": {"color": "black", "width": 2.0}, "mode": "lines", "name": "", "showlegend": false, "type": "scatter", "x": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "y": [-9.535786584476371, -9.876086072577124, -10.50248616041993, -11.072135054815655, -11.49997087419812, -11.762095707628028, -11.855854002139353, -11.762377983295668, -11.50477647913229, -11.070113139712472, -10.472375477678483, -9.711907857213474, -8.80627918610692, -7.770717499465216]}, {"line": {"color": "black", "width": 2.0}, "mode": "lines", "name": "", "showlegend": false, "type": "scatter", "x": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "y": [-6.932268857216583, -6.43466268058439, -5.32246565612085, -3.928375477089248, -2.3943640811461293, -0.8732321955292113, -1.8810997204354862e-10, -0.5570011558894024, -1.6672108194971527, -2.8989034584222813, -4.182931950763718, -5.430649177987346, -6.638177513397373, -7.770717499206782]}, {"line": {"color": "black", "width": 2.0}, "mode": "lines", "name": "", "showlegend": false, "type": "scatter", "x": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "y": [-1.205076152062217, -1.1553086614693786, -1.0090768426644035, -0.7663867705309526, -0.4526779027859842, -0.14266808604246428, -6.019984510885479e-11, -0.3276142442992862, -0.972216601358169, -1.6064227733017695, -2.136764772819509, -2.5278823531194936, -2.7654307093388297, -2.844891372378396]}, {"line": {"color": "black", "width": 2.0}, "mode": "lines", "name": "", "showlegend": false, "type": "scatter", "x": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "y": [-1.2050761518987496, -1.155308661315078, -1.009076842522739, -0.7663867703985989, -0.4526779026646457, -0.14266808591143487, 0.0, -0.3276142442072123, -0.9722166012294071, -1.606422773175796, -2.136764772694111, -2.5278823529902867, -2.7654307092079202, -2.84489137224668]}, {"line": {"color": "black", "width": 2.0}, "mode": "lines", "name": "", "showlegend": false, "type": "scatter", "x": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "y": [1.3454389436664638, 1.396036327425712, 1.5542838024392251, 1.8235759126039426, 2.1779644141648093, 2.49791994104946, 2.5318280023996245, 2.3196096023242694, 1.832801345948508, 1.3142687705394227, 0.8827985310190627, 0.6006801032754359, 0.5243396805984153, 0.6741757513882654]}, {"line": {"color": "black", "width": 2.0}, "mode": "lines", "name": "", "showlegend": false, "type": "scatter", "x": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "y": [3.3661486562320615, 3.4124944120844916, 3.505955981163801, 3.4860954395102723, 3.1805995622616567, 2.7431167271405847, 2.5318280024990933, 2.9732007681489527, 3.924313282358483, 3.566247236456473, 2.5627516495996954, 1.6902771019859726, 1.0556641680571177, 0.6741757521259233]}, {"line": {"color": "black", "width": 2.0}, "mode": "lines", "name": "", "showlegend": false, "type": "scatter", "x": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "y": [3.3661486562843894, 3.4124944121447474, 3.505955981234978, 3.4860954395923525, 3.1805995623550043, 2.7431167272535752, 2.531828002567412, 2.9732007682898125, 3.9243132824601865, 5.078702746089359, 6.285304926098657, 7.570282110475537, 8.869605080905535, 9.764149253744405]}, {"line": {"color": "black", "width": 2.0}, "mode": "lines", "name": "", "showlegend": false, "type": "scatter", "x": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "y": [7.486496748336757, 7.556828944477271, 7.557970384259399, 6.522346635844359, 5.080395136037723, 3.64439068026601, 2.895410090535165, 3.420376450984275, 4.097951464863831, 5.078702748883293, 6.2853060058610595, 7.57028255163697, 8.86960516576719, 9.764201394368893]}, {"marker": {"color": "blue", "line": {"width": 2}, "opacity": 0.9, "size": 12}, "mode": "markers", "name": "", "showlegend": false, "type": "scatter", "x": [6, 12], "y": [0.0, 0.5243396805984153]}, {"hoverinfo": "none", "line": {"width": 2}, "marker": {"color": "gray"}, "mode": "lines", "name": "", "showlegend": false, "type": "scatter", "x": [6, 12, null, 10.908235801598831, 12, 10.83650190851499, null], "y": [0.0, 0.5243396805984153, null, 0.015371882878898568, 0.5243396805984153, 0.8362202268605036, null]}, {"marker": {"color": "blue", "line": {"width": 2}, "opacity": 0.9, "size": 12}, "mode": "markers", "name": "", "showlegend": false, "type": "scatter", "x": [6, 6], "y": [0.0, 2.5318280023996245]}, {"hoverinfo": "none", "line": {"width": 2}, "marker": {"color": "gray"}, "mode": "lines", "name": "", "showlegend": false, "type": "scatter", "x": [6, 6, null, 6.173187235251333, 6, 5.826812764748667, null], "y": [0.0, 2.5318280023996245, null, 2.0559999842088135, 2.5318280023996245, 2.0559999842088135, null]}],                        {"hovermode": false, "template": {"data": {"bar": [{"error_x": {"color": "#2a3f5f"}, "error_y": {"color": "#2a3f5f"}, "marker": {"line": {"color": "#E5ECF6", "width": 0.5}}, "type": "bar"}], "barpolar": [{"marker": {"line": {"color": "#E5ECF6", "width": 0.5}}, "type": "barpolar"}], "carpet": [{"aaxis": {"endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f"}, "baxis": {"endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f"}, "type": "carpet"}], "choropleth": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "choropleth"}], "contour": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "contour"}], "contourcarpet": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "contourcarpet"}], "heatmap": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "heatmap"}], "heatmapgl": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "heatmapgl"}], "histogram": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "histogram"}], "histogram2d": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "histogram2d"}], "histogram2dcontour": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "histogram2dcontour"}], "mesh3d": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "mesh3d"}], "parcoords": [{"line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "parcoords"}], "pie": [{"automargin": true, "type": "pie"}], "scatter": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatter"}], "scatter3d": [{"line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatter3d"}], "scattercarpet": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattercarpet"}], "scattergeo": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattergeo"}], "scattergl": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattergl"}], "scattermapbox": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattermapbox"}], "scatterpolar": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterpolar"}], "scatterpolargl": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterpolargl"}], "scatterternary": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterternary"}], "surface": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "surface"}], "table": [{"cells": {"fill": {"color": "#EBF0F8"}, "line": {"color": "white"}}, "header": {"fill": {"color": "#C8D4E3"}, "line": {"color": "white"}}, "type": "table"}]}, "layout": {"annotationdefaults": {"arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1}, "autotypenumbers": "strict", "coloraxis": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "colorscale": {"diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]], "sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}, "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": {"color": "#2a3f5f"}, "geo": {"bgcolor": "white", "lakecolor": "white", "landcolor": "#E5ECF6", "showlakes": true, "showland": true, "subunitcolor": "white"}, "hoverlabel": {"align": "left"}, "hovermode": "closest", "mapbox": {"style": "light"}, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": {"angularaxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}, "bgcolor": "#E5ECF6", "radialaxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}}, "scene": {"xaxis": {"backgroundcolor": "#E5ECF6", "gridcolor": "white", "gridwidth": 2, "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white"}, "yaxis": {"backgroundcolor": "#E5ECF6", "gridcolor": "white", "gridwidth": 2, "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white"}, "zaxis": {"backgroundcolor": "#E5ECF6", "gridcolor": "white", "gridwidth": 2, "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white"}}, "shapedefaults": {"line": {"color": "#2a3f5f"}}, "ternary": {"aaxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}, "baxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}, "bgcolor": "#E5ECF6", "caxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}}, "title": {"x": 0.05}, "xaxis": {"automargin": true, "gridcolor": "white", "linecolor": "white", "ticks": "", "title": {"standoff": 15}, "zerolinecolor": "white", "zerolinewidth": 2}, "yaxis": {"automargin": true, "gridcolor": "white", "linecolor": "white", "ticks": "", "title": {"standoff": 15}, "zerolinecolor": "white", "zerolinewidth": 2}}}, "title": {"font": {"size": 12}, "text": "Si\u2082: direct gap = 2.53, fundamental gap = 0.52 (eV)"}, "xaxis": {"range": [0, 13], "tickfont": {"size": 16}, "ticktext": ["L", "\u0393", "X"], "tickvals": [0, 6, 13], "title": {"text": "Wave Vector"}}, "yaxis": {"range": [-7.5318280023996245, 7.5318280023996245], "title": {"text": "Energy (eV)"}}},                        {"responsive": true}                    )                };                            </script>        </div>
+</div>
+<br />
+<br /><p>Plot the BZ and the k-point path with matplotlib</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="plot ebands" class="sphx-glr-single-img" src="../_images/sphx_glr_plot_ebands_002.png" />
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 640x480 with 1 Axes&gt;
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.191 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-ebands-py">
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/15f1007a91d5c8fa212e3f39e439c6c4/plot_ebands.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_ebands.py</span></code></a></p>
@@ -211,22 +326,54 @@ These methods have been deprecated in favor of using the Stringify mix-in class,
 </div>
 
 
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="plot_ebands_edos.html" class="btn btn-neutral float-right" title="Bands + DOS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="plot_wannier90_abiwan.html" class="btn btn-neutral float-left" title="Band structure interpolation with Wannier functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
+
+  <hr/>
+
+  <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 13, 2021.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on May 07, 2021.
+      </span>
+
     </p>
   </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
 </footer>
-  </body>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>
