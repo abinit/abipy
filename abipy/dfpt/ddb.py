@@ -1861,6 +1861,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def remove_block(self, dord, qpt=None, qpt3=None):
         """
         Removes one block from the list of blocks in the ddb
+
         Args:
             dord: the order of the perturbation (from 0 to 3).
             qpt: the fractional coordinates of the q point of the block to be
@@ -2401,7 +2402,7 @@ class DielectricTensorGenerator(Has_Structure):
                 Accept scalar or [nfreq] array.
             num: number of values of the frequencies between w_min and w_max.
             component: determine which components of the tensor will be displayed. Can be a list/tuple of two
-                elements, indicating the indices [i, j] of the desired component or a string among:
+                elements, indicating the indices [i, j] of the desired component or a string among::
 
                 * 'diag_av' to plot the average of the components on the diagonal
                 * 'diag' to plot the elements on diagonal

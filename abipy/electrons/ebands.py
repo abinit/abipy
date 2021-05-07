@@ -2049,14 +2049,14 @@ class ElectronBands(Has_Structure):
             fig: plotly figure or None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
             points: Marker object with the position and the size of the marker.
-                Used for plotting purpose e.g. QP energies, energy derivatives...
+                Used for plotting purpose e.g. QP energies, energy derivatives.
             with_gaps: True to add markers and arrows showing the fundamental and the direct gap.
                 IMPORTANT: If the gaps are now showed correctly in a non-magnetic semiconductor,
-                    call `ebands.set_fermie_to_vbm()` to align the Fermi level at the top of the valence
-                    bands before executing `ebands.plot().
-                    The Fermi energy stored in the object, indeed, comes from the GS calculation
-                    that produced the DEN file. If the k-mesh used for the GS and the CBM is e.g. at Gamma,
-                    the Fermi energy will be underestimated and a manual aligment is needed.
+                call `ebands.set_fermie_to_vbm()` to align the Fermi level at the top of the valence
+                bands before executing `ebands.plot().
+                The Fermi energy stored in the object, indeed, comes from the GS calculation
+                that produced the DEN file. If the k-mesh used for the GS and the CBM is e.g. at Gamma,
+                the Fermi energy will be underestimated and a manual aligment is needed.
             max_phfreq: Max phonon frequency in eV to activate scatterplot showing
                 possible phonon absorption/emission processes based on energy-conservation alone.
                 All final states whose energy is within +- max_phfreq of the initial state are included.
@@ -2181,7 +2181,7 @@ class ElectronBands(Has_Structure):
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to ``e0 = 0``
+                -  None: Don't shift energies, equivalent to ``e0 = 0``.
             colormap: Have a look at the colormaps here and decide which one you like:
                 <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>
             ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
@@ -2993,7 +2993,6 @@ class ElectronBandsPlotter(NotebookWriter):
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
-
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (ebands.fermie)
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
@@ -3004,7 +3003,6 @@ class ElectronBandsPlotter(NotebookWriter):
                    Available only if plotter contains dos objects.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
-
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
@@ -3079,11 +3077,8 @@ class ElectronBandsPlotter(NotebookWriter):
 
         return fig
 
-    def plot(self, *args, **kwargs):
-        """An alias for combiplot."""
-        if "align" in kwargs or "xlim" in kwargs or "ylim" in kwargs:
-            raise ValueError("align|xlim|ylim options are not supported anymore.")
-        return self.combiplot(*args, **kwargs)
+    # An alias for combiplot.
+    plot = combiplot
 
     @add_fig_kwargs
     def gridplot(self, e0="fermie", with_dos=True, with_gaps=False, max_phfreq=None,

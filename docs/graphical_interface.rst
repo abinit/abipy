@@ -14,16 +14,16 @@ generate dashboards/GUIs either with the command line interface (CLI) or inside 
 
 .. important::
 
-    Please note that you need a **running python backend** 
+    Please note that one needs a **running python backend**
     to execute the callbacks triggerered by the GUI widgets.
-    This part, indeed, is implemented with HTML/CSS/JS code running 
-    on the frontend (i.e. **your browser**) that sends the signal 
-    to the python server (**backend**).
-    The python server is supposed to process the data 
+    This part, indeed, is implemented in HTML/CSS/JS code executed
+    by the frontend (i.e. **your browser**) that sends the signal
+    to the python server (the **backend**).
+    The python server is supposed to process the data
     and send the results back to the frontend for visualization purposes
-    So don't be surprised if you start to click buttons and nothing happens!
 
-    The examples provided in this page are only meant to show how to build GUI 
+    Don't be surprised if you start to click buttons and **nothing happens**!
+    The examples provided in this page are only meant to show how to build GUI
     or dashboards with AbiPy.
 
 
@@ -42,7 +42,7 @@ or with conda (**recommended**) using:
 
     conda install panel -c conda-forge
 
-If you plan to use panel within JupyterLab, you will also need to install 
+If you plan to use panel within JupyterLab, you will also need to install
 the PyViz JupyterLab extension and activate it with:
 
 .. code-block:: bash
@@ -55,10 +55,8 @@ Basic Usage
 -----------
 
 Several AbiPy objects provide a ``get_panel`` method returning
-an object that can be displayed inside the jupyter notebook or inside 
-a Bokeh server.
-
-When running inside a jupyter notebook, you have to enable the integration 
+an object that can be displayed inside the jupyter notebook or inside a Bokeh server.
+When running inside a jupyter notebook, remember enable the integration
 with the ``panel`` infrastructure by executing:
 
 .. jupyter-execute::
@@ -70,19 +68,19 @@ with the ``panel`` infrastructure by executing:
 
 .. note::
 
-    The ``abipanel`` function is needed to load extensions and javascript packages 
+    The ``abipanel`` function is needed to load extensions and javascript packages
     required by AbiPy.
     This function is just a small wrapper around the official panel API:
-    
+
     .. code-block:: bash
-    
+
         import panel as pn
         pn.extension()
 
 
 At this point, we can start to construct AbiPy objects.
 For our first example, we use the ``abiopen`` function to open a ``GSR`` file,
-then we call ``get_panel`` to build a set of widgets that allows us to interact 
+then we call ``get_panel`` to build a set of widgets that allows us to interact
 with the `GsrFile`:
 
 .. jupyter-execute::
@@ -95,21 +93,21 @@ with the `GsrFile`:
 
     gsr.get_panel()
 
-The **summary** tab provides a string representation of the file 
+The **summary** tab provides a string representation of the file
 but there is not widget to interact with it.
-If you select the **e-Bands** tab, you will see several widgets and a button 
+If you select the **e-Bands** tab, you will see several widgets and a button
 that activates the visualization of the KS band energies.
-Again, in this HTML page there is no python server running in background so 
+Again, in this HTML page there is no python server running in background so
 if you click the **Plot e-bands** button nothing happens (this is not a bug!).
 
 The advantage of this notebook-based approach is that it is possible to mix
-the panel GUIs with python code that can be used to perform 
-more advanced tasks that are not supported by the GUI.
+the panel GUIs with python code that can be used to perform
+more advanced tasks not supported by the GUI.
 
 Obviously it is possible to have multiple panels running in the same notebook.
-Calling ``get_structure`` with an AbiPy structure, for instance, creates a set of widgets 
-to facilitate common operations such as exporting to a different format or
-generating a basic Abinit input file for GS calculations:
+Calling ``get_structure`` with an AbiPy structure, for instance, creates a set of widgets
+to facilitate common operations such as exporting the structure to a different format or
+generating a basic Abinit input file for e.g. GS calculations:
 
 .. jupyter-execute::
 
@@ -117,27 +115,27 @@ generating a basic Abinit input file for GS calculations:
 
 .. note::
 
-    At present, not all the AbiPy objects support the ``get_panel`` protocol 
-    but we plan to gradually support more objects, especially the most important netcdf files
-    produced by Abinit
+    At present, not all the AbiPy objects support the ``get_panel`` protocol
+    but we plan to gradually support more objects, especially the most important
+    netcdf files produced by Abinit
 
 To generate a notebook from the command line, use the abiopen.py_ script:
 
 .. code-block:: bash
 
-    abiopen.py si_nscf_GSR.nc -nb  # short for --notebook 
+    abiopen.py si_nscf_GSR.nc -nb  # short for --notebook
 
 that will automatically open the notebook inside jupyterlab.
-If you prefer classic jupyter notebooks, use the ``-nb --classic`` options
+If you prefer classic jupyter notebooks, use the ``-nb --classic-notebook`` options
 
-If you do not access the 
+If you do not need to execute python code, you may want to generate a panel dashboard with:
 
 .. code-block:: bash
 
     abiopen.py si_nscf_GSR.nc -pn  # short for --panel
 
 The same approach can be used with a ``DDB`` file.
-In this case, we get more tabs and options because one can use the GUI 
+In this case, we get more tabs and options because one can use the GUI
 to set the input parameters, invoke ``anaddb`` and visualize the results:
 
 .. jupyter-execute::
@@ -152,40 +150,35 @@ The same result can be obtained from the CLI with
 
     abiopen.py mp-1009129-9x9x10q_ebecs_DDB -nb
 
-There are, however, cases in which you don't need the interactive environment provided 
+There are, however, cases in which you don't need the interactive environment provided
 by jupyter notebooks as you are mainly interested in the visualization of the results.
-In this case, it is possible to use the command line interface to automatically generate 
+In this case, it is possible to use the command line interface to automatically generate
 a dashboard with widgets without having to start a jupyter-lab application.
 
-To build a dashboard for a ``Structure`` object extracted from ``FILE``, use:
-
-.. code-block:: shell
+To build a dashboard for a ``Structure`` object extracted from ``FILE``, use::
 
     abistruct.py panel FILE
 
-where ``FILE`` is **any** file providing a ``Structure`` object 
+where ``FILE`` is **any** file providing a ``Structure`` object
 e.g. netcdf files, cif files, abi, abo files etc.
 
-To build a dashboard associated to one of the AbiPy file, use the syntax:
+To build a dashboard associated to one of the AbiPy file, use the syntax::
 
-.. code-block:: shell
 
     abiopen.py FILE --panel
 
-
 where ``FILE`` is one of the Abinit files supported by ``abiopen.py``.
-For instance, one can create a dashboard to interact with a ``DDB`` file with:
-
-.. code-block:: shell
+For instance, one can create a dashboard to interact with a ``DDB`` file with::
 
     abiopen.py out_DDB --panel
+
 
 .. important::
 
     To build a dashboard for an AbiPy Flow use::
 
-    abirun.py FLOWDIR panel
+        abirun.py FLOWDIR panel
 
     or alternatively::
 
-    abiopen.py FLOWDIR/__AbinitFlow__.pickle --panel
+        abiopen.py FLOWDIR/__AbinitFlow__.pickle --panel

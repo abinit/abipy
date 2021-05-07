@@ -462,7 +462,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
         kwargs["task_class"] = EphTask
         eph_inp = args[0]
         if eph_inp.get("eph_frohlichm", 0) != 0 or abs(eph_inp.get("eph_task", 0)) == 15:
-            # FIXME: Hack to run task in sequential since this  calculation does 
+            # FIXME: Hack to run task in sequential since this  calculation does
             # not support MPI with nprocs > 1.
             seq_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)
             kwargs.update({"manager": seq_manager})
@@ -1471,7 +1471,7 @@ class PhononWork(Work, MergeDdb):
     This work consists of nirred Phonon tasks where nirred is
     the number of irreducible atomic perturbations for a given set of q-points.
     It provides the callback method (on_all_ok) that calls mrgddb (mrgdv) to merge
-    all the partial DDB (POT) files produced. 
+    all the partial DDB (POT) files produced.
     The two files are available in the output directory of the Work.
 
     .. rubric:: Inheritance Diagram
@@ -1496,10 +1496,10 @@ class PhononWork(Work, MergeDdb):
             with_becs: Activate calculation of Electric field and Born effective charges.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if with_becs.
                 None to use AbiPy default.
-            prtwf: Controls the output of the first-order WFK. 
-                By default we set it to -1 when q != 0 so that AbiPy is still able 
-                to restart the DFPT task if the calculation is not converged (worst case scenario) 
-                but we avoid the output of the 1-st WFK if the calculation converged successfully. 
+            prtwf: Controls the output of the first-order WFK.
+                By default we set it to -1 when q != 0 so that AbiPy is still able
+                to restart the DFPT task if the calculation is not converged (worst case scenario)
+                but we avoid the output of the 1-st WFK if the calculation converged successfully.
                 Non-linear DFT applications should not be affected since they assume q == 0.
             manager: |TaskManager| object.
         """
@@ -2004,12 +2004,14 @@ class ConducWork(Work):
     """
     Workflow for the computation of electrical conductivity.
 
-    Can be called from :
+    Can be called from:
         1. MultiDataset and PhononWork
         2. MultiDataset, DDB filepath and DVDB filepath.
+
     Can use Kerange Capability using withKerange=True
 
-    This work consists of 3 tasks or 5 tasks with kerange :
+    This work consists of 3 tasks or 5 tasks with kerange:
+
         1. SCF GS
         2. NSCF
         3. Kerange (Kerange only)
@@ -2021,7 +2023,7 @@ class ConducWork(Work):
     def from_phwork(cls, phwork, multi, nbr_proc=None, flow=None, with_kerange=False,
                     omp_nbr_thread=1, manager=None):
         """
-        Construct a |ConducWork| from a |PhononWork| and |MultiDataset|.
+        Construct a ConducWork from a |PhononWork| and |MultiDataset|.
 
         Args:
             phwork: a |PhononWork| object calculating the DDB and DVDB files.
@@ -2079,7 +2081,7 @@ class ConducWork(Work):
     def from_filepath(cls, ddb_path, dvdb_path, multi, nbr_proc=None, flow=None,
                       with_kerange=False, omp_nbr_thread=1, manager=None):
         """
-        Construct a |ConducWork| from previously calculated DDB/DVDB file and |MultiDataset|.
+        Construct a ConducWork from previously calculated DDB/DVDB file and |MultiDataset|.
 
         Args:
             multi: a |MultiDataset| object containing a list of 3 datasets or 5 with Kerange.
