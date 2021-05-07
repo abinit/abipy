@@ -7,7 +7,7 @@
 # Notebooks w/ extensions that auto-run code must be "trusted" to work the first time
 #jupyter trust index.ipynb
 
-# Install abipy scripts and configuration files.
+# Install AbiPy scripts and configuration files.
 python setup.py install
 mkdir -p ${HOME}/.abinit/abipy 
 cp abipy/data/managers/travis_scheduler.yml ${HOME}/.abinit/abipy/scheduler.yml
