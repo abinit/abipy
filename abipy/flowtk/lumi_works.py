@@ -85,7 +85,7 @@ class LumiWork(Work):
             # Relax geometry with excited configuration starting from Ag*.
             relax_ex_inp=self.ex_scf_inp.new_with_vars(self.relax_kwargs_ex)
             relax_ex_inp_2 = relax_ex_inp.new_with_structure(ag_relaxed_structure)
-            self.ex_relax_task = self.register_relax_task(relax_ex_inp_2)
+            self.ex_relax_task = self.register_relax_task(relax_ex_inp_2,deps={self.gs_relax_task: "DEN"})
 
             # if only the two relaxation, go to results writing step directly
             if self.four_points==False:
@@ -102,12 +102,12 @@ class LumiWork(Work):
             # Build GS SCF input for the Ag configuration:
             # use same structure as Ag with ground occupation factors.
             ag_scf_inp = self.gs_scf_inp.new_with_structure(ag_relaxed_structure)
-            self.ag_scf_task = self.register_scf_task(ag_scf_inp)
+            self.ag_scf_task = self.register_scf_task(ag_scf_inp,deps={self.gs_relax_task: "DEN"})
 
             # Build GS SCF input for the Ag* configuration:
             # use same structure as Ag but with excited occupation factors.
             agstar_scf_inp = self.ex_scf_inp.new_with_structure(ag_relaxed_structure)
-            self.agstar_scf_task = self.register_scf_task(agstar_scf_inp)
+            self.agstar_scf_task = self.register_scf_task(agstar_scf_inp,deps={self.gs_relax_task: "DEN"})
 
             # Get Aestar relaxed structure.
             with self.ex_relax_task.open_gsr() as gsr:
@@ -116,12 +116,12 @@ class LumiWork(Work):
             # Build ex SCF input for the Aestar configuration:
             # use same structure as Aestar with excited occupation factors.
             aestar_scf_inp = self.ex_scf_inp.new_with_structure(aestar_relaxed_structure)
-            self.aestar_scf_task = self.register_scf_task(aestar_scf_inp)
+            self.aestar_scf_task = self.register_scf_task(aestar_scf_inp,deps={self.ex_relax_task: "DEN"})
 
             # Build GS SCF task for the Ae configuration:
             # use same structure as Aestar but with ground occupation factors.
             ae_scf_inp = self.gs_scf_inp.new_with_structure(aestar_relaxed_structure)
-            self.ae_scf_task = self.register_scf_task(ae_scf_inp)
+            self.ae_scf_task = self.register_scf_task(ae_scf_inp,deps={self.ex_relax_task: "DEN"})
 
 
             if self.ndivsm != 0:
