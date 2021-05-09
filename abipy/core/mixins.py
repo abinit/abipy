@@ -813,7 +813,6 @@ abilab.enable_notebook(with_seaborn=True)
         Relies on yield_plotly_figs implemented by the subclass to generate the figures.
         """
         print("in plotly expose")
-        #self.plotly_expose_ebands(**kwargs)
 
         import panel as pn
         pn.config.sizing_mode = 'stretch_width'

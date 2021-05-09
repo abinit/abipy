@@ -201,7 +201,8 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
                 #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))
 
                 ca("## Brillouin zone and q-path:")
-                qpath_pane = mpl(phbands.qpoints.plot(**self.mpl_kwargs), with_divider=False)
+                #qpath_pane = mpl(phbands.qpoints.plot(**self.mpl_kwargs), with_divider=False)
+                qpath_pane = ply(phbands.qpoints.plotly(show=False), with_divider=False)
                 df_qpts = phbands.qpoints.get_highsym_datataframe()
                 ca(pn.Row(qpath_pane, df_qpts))
                 ca(pn.layout.Divider())

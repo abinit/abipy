@@ -249,8 +249,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         This function *generates* a predefined list of plotly figures with minimal input from the user.
         """
+        yield self.structure.plotly_bz(show=False)
         for fig in self.yield_ebands_plotly_figs(**kwargs): yield fig
-        for fig in self.yield_structure_figs(**kwargs): yield fig
+        #for fig in self.yield_structure_figs(**kwargs): yield fig
+        #yield self.structure.plotly(show=False)
 
     def write_notebook(self, nbpath=None):
         """

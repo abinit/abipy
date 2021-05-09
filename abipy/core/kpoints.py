@@ -13,8 +13,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import marquee
 from pymatgen.core.lattice import Lattice
-from pymatgen.util.serialization import pmg_serialize
-from pymatgen.util.serialization import SlotPickleMixin
+from pymatgen.util.serialization import pmg_serialize, SlotPickleMixin
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.numtools import add_periodic_replicas, is_diagonal
@@ -1132,6 +1131,19 @@ class KpointList(collections.abc.Sequence):
             #print(self.frac_coords)
             return plot_brillouin_zone(self.reciprocal_lattice, kpoints=self.frac_coords,
                                        ax=ax, fold=fold, **kwargs)
+
+    def plotly(self, fig=None, **kwargs):
+        """Plot k-points with plotly."""
+        from abipy.tools.plotting import plotly_wigner_seitz, plotly_brillouin_zone
+        fold = False
+        if self.is_path:
+            labels = {k.name: k.frac_coords for k in self if k.name}
+            frac_coords_lines = [self.frac_coords[line] for line in self.lines]
+            return plotly_brillouin_zone(self.reciprocal_lattice, lines=frac_coords_lines, labels=labels,
+                                         fig=fig, fold=fold, **kwargs)
+        else:
+            return plotly_brillouin_zone(self.reciprocal_lattice, kpoints=self.frac_coords,
+                                         fig=fig, fold=fold, **kwargs)
 
     def get_k2kqg_map(self, qpt, atol_kdiff=None):
         """

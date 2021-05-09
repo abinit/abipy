@@ -781,7 +781,8 @@ class PanelWithElectronBands(AbipyParameterized):
             ca(ply(fig1))
 
             ca("## Brillouin zone and k-path:")
-            kpath_pane = mpl(self.ebands.kpoints.plot(**self.mpl_kwargs), with_divider=False)
+            #kpath_pane = mpl(self.ebands.kpoints.plot(**self.mpl_kwargs), with_divider=False)
+            kpath_pane = ply(self.ebands.kpoints.plotly(show=False), with_divider=False)
             df_kpts = self.ebands.kpoints.get_highsym_datataframe()
             ca(pn.Row(kpath_pane, df_kpts))
             ca(pn.layout.Divider())

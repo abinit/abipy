@@ -20,7 +20,7 @@ from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, add_plotly_fig_kwargs
 from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -1345,6 +1345,15 @@ class Structure(pmg_Structure, NotebookWriter):
         from abipy.tools.plotting import plot_structure
         return plot_structure(self, **kwargs)
 
+    @add_plotly_fig_kwargs
+    def plotly(self, **kwargs):
+        """
+        Plot structure in 3D with plotly. Return plotly Figure
+        See plot_structure for kwargs
+        """
+        from abipy.tools.plotting import plotly_structure
+        return plotly_structure(self, **kwargs)
+
     @add_fig_kwargs
     def plot_bz(self, ax=None, pmg_path=True, with_labels=True, **kwargs):
         """
@@ -1363,6 +1372,26 @@ class Structure(pmg_Structure, NotebookWriter):
             return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
         else:
             return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
+
+
+    @add_plotly_fig_kwargs
+    def plotly_bz(self, fig=None, pmg_path=True, with_labels=True, **kwargs):
+        """
+        Use matplotlib to plot the symmetry line path in the Brillouin Zone.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            pmg_path (bool): True if the default path used in pymatgen should be show.
+            with_labels (bool): True to plot k-point labels.
+
+        Returns: |matplotlib-Figure|.
+        """
+        from abipy.tools.plotting import plotly_brillouin_zone_from_kpath, plotly_brillouin_zone
+        labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
+        if pmg_path:
+            return plotly_brillouin_zone_from_kpath(self.hsym_kpath, fig=fig, show=False, **kwargs)
+        else:
+            return plotly_brillouin_zone(self.reciprocal_lattice, fig=fig, labels=labels, show=False, **kwargs)
 
     @add_fig_kwargs
     def plot_xrd(self, wavelength="CuKa", symprec=0, debye_waller_factors=None,
