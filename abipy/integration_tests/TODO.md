@@ -65,6 +65,8 @@ TODO list:
 
   and kill the scheduler else the code gets stuck here (issue reported on lemaitre3)
 
+* Remove/check the usage of line_density. Use ndivsm < 0 to activate line_density a la pymatgen.
+
 
 ## Medium priority
 

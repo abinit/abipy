@@ -106,9 +106,6 @@ def update_vars(ctx, abinit_repo_path):
         os.system(cmd)
 
 
-
-
-
 #@task
 #def move_to_master(ctx):
 #    ctx.run("git tag -a v%s -m \"v%s release\"" % (NEW_VER, NEW_VER))

@@ -1317,19 +1317,24 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         from collections import defaultdict
         if with_cart_coords:
-            group = {symb: {"idx": [], "frac_coords": [], "cart_coords": []} for symb in self.symbol_set}
+            group = {symb: {"site_idx": [], "frac_coords": [], "cart_coords": []} for symb in self.symbol_set}
         else:
-            group = {symb: {"idx": [], "frac_coords": []} for symb in self.symbol_set}
+            group = {symb: {"site_idx": [], "frac_coords": []} for symb in self.symbol_set}
 
         for idx, site in enumerate(self):
             symb = site.specie.symbol
-            group[symb]["idx"].append(idx)
+            group[symb]["site_idx"].append(idx)
             group[symb]["frac_coords"].append(site.frac_coords)
             if with_cart_coords:
                 group[symb]["cart_coords"].append(site.coords)
 
         import pandas as pd
-        return {symb: pd.DataFrame.from_dict(d) for symb, d in group.items()}
+        out = {symb: pd.DataFrame.from_dict(d) for symb, d in group.items()}
+        # Use site_idx and new index.
+        for df in out.values():
+            df.set_index("site_idx", inplace=True)
+
+        return out
 
     @add_fig_kwargs
     def plot(self, **kwargs):

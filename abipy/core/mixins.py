@@ -379,6 +379,17 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
             yield self.ebands.plot_with_edos(edos, with_gaps=with_gaps, show=False)
             yield edos.plot(show=False)
 
+    def yield_ebands_plotly_figs(self, **kwargs):
+        """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
+        with_gaps = not self.ebands.has_metallic_scheme
+        if self.ebands.kpoints.is_path:
+            yield self.ebands.plotly(with_gaps=with_gaps, show=False)
+            yield self.ebands.kpoints.plot(show=False)
+        else:
+            edos = self.ebands.get_edos()
+            yield self.ebands.plot_with_edos(edos, with_gaps=with_gaps, show=False)
+            yield edos.plot(show=False)
+
     def expose_ebands(self, slide_mode=False, slide_timeout=None, **kwargs):
         """
         Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.
@@ -386,6 +397,19 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         from abipy.tools.plotting import MplExpose
         with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
             e(self.yield_ebands_figs(**kwargs))
+
+    #def plotly_expose_ebands(self, **kwargs):
+    #    """
+    #    This function *generates* a predefined list of plotly figures with minimal input from the user.
+    #    """
+    #    chart_studio = kwargs.pop("chart_studio", None)
+    #    verbose = kwargs.pop("verbose", 0)
+    #    kwargs.update(dict(
+    #        renderer="chart_studio" if chart_studio else None,
+    #        title=f"Band structure of {self.ebands.structure.formula}",
+    #        with_gaps = not self.ebands.has_metallic_scheme,
+    #    ))
+    #    self.ebands.plotly(**kwargs)
 
 
 class Has_PhononBands(metaclass=abc.ABCMeta):
@@ -420,6 +444,16 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         units = kwargs.get("units", "mev")
         yield self.phbands.qpoints.plot(show=False)
         yield self.phbands.plot(units=units, show=False)
+        yield self.phbands.plot_colored_matched(units=units, show=False)
+
+    def yield_phbands_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        units = kwargs.get("units", "mev")
+        yield self.phbands.qpoints.plot(show=False)
+        yield self.phbands.plotly(units=units, show=False)
         yield self.phbands.plot_colored_matched(units=units, show=False)
 
     def expose_phbands(self, slide_mode=False, slide_timeout=None, **kwargs):
@@ -728,13 +762,92 @@ abilab.enable_notebook(with_seaborn=True)
         Used in abiview.py to get a quick look at the results.
         """
 
-    def expose(self, slide_mode=False, slide_timeout=None, **kwargs):
+    #@abc.abstractmethod
+    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+    #    """
+    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+    #    Used in abiview.py to get a quick look at the results.
+    #    """
+
+    def expose(self, slide_mode=False, slide_timeout=None, web=True, **kwargs):
         """
         Shows a predefined list of matplotlib figures with minimal input from the user.
+        Relies on the ``yield_fig``s methods implemented by the subclass to generate matplotlib figures.
         """
-        from abipy.tools.plotting import MplExpose
-        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
-            e(self.yield_figs(**kwargs))
+        if not web:
+            # Produce all matplotlib versions and show them with the X-server.
+            from abipy.tools.plotting import MplExpose
+            with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+                e(self.yield_figs(**kwargs))
+
+        else:
+            # Create panel template with matplotlib figures and show them in the browser.
+            import panel as pn
+            pn.config.sizing_mode = 'stretch_width'
+            from abipy.panels.core import mpl, get_template_cls_from_name
+            cls = get_template_cls_from_name("FastGridTemplate")
+
+            title = self.__class__.__name__
+            if hasattr(self, "structure"): title = f"{title} <small>({self.structure.formula})</small>"
+            template = cls(
+                title=title,
+                header_background="#ff8c00 ", # Dark orange
+            )
+
+            for i, fig in enumerate(self.yield_figs()):
+                row, col = divmod(i, 2)
+                p = mpl(fig, with_divider=False)
+                if hasattr(template.main, "append"):
+                    template.main.append(p)
+                else:
+                    # Assume .main area acts like a GridSpec
+                    row_slice = slice(3 * row, 3 * (row + 1))
+                    if col == 0: template.main[row_slice, :6] = p
+                    if col == 1: template.main[row_slice, 6:] = p
+
+            return template.show()
+
+    def plotly_expose(self, **kwargs): # chart_studio=False, verbose=0,
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        Relies on yield_plotly_figs implemented by the subclass to generate the figures.
+        """
+        print("in plotly expose")
+        #self.plotly_expose_ebands(**kwargs)
+
+        import panel as pn
+        pn.config.sizing_mode = 'stretch_width'
+        from abipy.panels.core import mpl, ply, get_template_cls_from_name
+        from abipy.tools.plotting import is_mpl_figure, is_plotly_figure
+        cls = get_template_cls_from_name("FastGridTemplate")
+
+        title = self.__class__.__name__
+        if hasattr(self, "structure"): title = f"{title} <small>({self.structure.formula})</small>"
+        template = cls(
+            title=title,
+            header_background="#ff8c00 ", # Dark orange
+        )
+
+        # Insert figure in template.main.
+        for i, fig in enumerate(self.yield_plotly_figs()):
+            row, col = divmod(i, 2)
+            # Handle both matplotlib and plotly figures since we dont' support plotly everywhere.
+            if is_plotly_figure(fig):
+                p = ply(fig, with_divider=False)
+            elif is_mpl_figure(fig):
+                p = mpl(fig, with_divider=False)
+            else:
+                raise TypeError(f"Don't know how to handle type: `{type(fig)}`")
+
+            if hasattr(template.main, "append"):
+                template.main.append(p)
+            else:
+                # Assume .main area acts like a panel GridSpec
+                row_slice = slice(3 * row, 3 * (row + 1))
+                if col == 0: template.main[row_slice, :6] = p
+                if col == 1: template.main[row_slice, 6:] = p
+
+        return template.show()
 
 
 class Has_Header(object):

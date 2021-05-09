@@ -332,7 +332,7 @@ def abiview_ddb_quad(options):
 
         title = ddb.structure.formula
         renderer = "browser" if not options.chart_studio else "chart_studio"
-        plotter.combiplotly(renderer=renderee, title=title) if options.plotly else plotter.plot(title=title)
+        plotter.combiplotly(renderer=renderer, title=title) if options.plotly else plotter.plot(title=title)
 
     return 0
 

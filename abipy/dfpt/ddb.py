@@ -3143,10 +3143,10 @@ class DdbRobot(Robot):
 
         push_to_chart_studio(figs) if chart_studio else plotlyfigs_to_browser(figs)
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """Return a panel object that allows the user to compare the results with a web-based interface."""
         from abipy.panels.ddb import DdbRobotPanel
-        return DdbRobotPanel(self).get_panel()
+        return DdbRobotPanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """

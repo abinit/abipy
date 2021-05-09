@@ -1,7 +1,8 @@
 """"Basic tools and mixin classes for AbiPy panels."""
 
 import io
-import pathlib
+#import pathlib
+import tempfile
 import numpy as np
 import param
 import panel as pn
@@ -68,6 +69,25 @@ def gen_id(n=1, pre="uuid-"):
         raise ValueError("n must be > 0 but got %s" % str(n))
 
 
+def get_template_cls_from_name(name):
+    """
+    Return panel template from string.
+    Support name in the form `FastList` as well as `FastListTemplate`.
+    """
+    # Example: pn.template.FastGridTemplate or pn.template.GoldenTemplate
+    if hasattr(pn.template, name):
+        return getattr(pn.template, name)
+
+    try_name =  name + "Template"
+    if hasattr(pn.template, try_name):
+        return getattr(pn.template, try_name)
+
+    raise ValueError(f"""
+Don't know how to return panel template from string: {name}
+Possible templates are: {list(pn.template.__dict__.keys())}
+""")
+
+
 class HTMLwithClipboardBtn(pn.pane.HTML):
     """
     Receives an HTML string and returns an HTML pane with a button that allows the user
@@ -103,6 +123,12 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
     Helper function returning a panel Column with a matplotly pane followed by
     a divider and (optionally) controls to customize the figure.
     """
+    #try:
+    #    from ipympl.backend_nbagg import FigureManager, Canvas, is_interactive
+    #    interactive = True
+    #except:
+    #    interactive = False
+
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
     mpl_pane = pn.pane.Matplotlib(fig, **kwargs)
     ca(mpl_pane)
@@ -117,7 +143,8 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
     return col
 
 
-def ply(fig, sizing_mode='stretch_width', with_chart_studio=True, with_help=True, with_divider=True, with_controls=False):
+def ply(fig, sizing_mode='stretch_width', with_chart_studio=True, with_help=True,
+        with_divider=True, with_controls=False):
     """
     Helper function returning a panel Column with a plotly pane,  buttons to push the figure
     to plotly chart studio and, optionally, controls to customize the figure.
@@ -158,7 +185,6 @@ If everything is properly configured, a new window is automatically created in y
 
     if with_controls:
         ca(pn.Accordion(("plotly controls", plotly_pane.controls(jslink=True))))
-        ca(pn.layout.Divider())
 
     if with_divider:
         ca(pn.layout.Divider())
@@ -168,8 +194,8 @@ If everything is properly configured, a new window is automatically created in y
 
 def dfc(df,
         wdg_type="dataframe",
-        #wdg_type="tabulator",
-        with_export_btn=True, with_controls=False, **kwargs):
+        #wdg_type="tabulator",  # More recent version
+        with_export_btn=True, with_controls=False, transpose=False, **kwargs):
     """
     Helper function returning a panel Column with a DataFrame or Tabulator widget followed by
     a divider and (optionally) controls to customize the figure.
@@ -178,13 +204,16 @@ def dfc(df,
     """
     if "disabled" not in kwargs: kwargs["disabled"] = True
     if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "stretch_width"
+    #if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "scale_width"
+    if transpose:
+        df = df.transpose()
 
     if wdg_type == "dataframe":
         if "auto_edit" not in kwargs: kwargs["auto_edit"] = False
         w = pnw.DataFrame(df, **kwargs)
     elif wdg_type == "tabulator":
         # This seems to be buggy
-        w = pnw.Tabulator(df, **kwargs)
+        w = pnw.Tabulator(df, **kwargs) #theme="modern",
     else:
         raise ValueError(f"Don't know how to handle widget type: `{wdg_type}`")
 
@@ -232,12 +261,12 @@ def dfc(df,
             output.seek(0)
             return output
 
-        d = {
-            "xlsx": pnw.FileDownload(filename="data.xlsx", callback=to_xlsx),
-            "tex": pnw.FileDownload(filename="data.tex", callback=to_latex),
-            "md": pnw.FileDownload(filename="data.md", callback=to_md),
-            "json": pnw.FileDownload(filename="data.json", callback=to_json),
-        }
+        d = dict(
+            xlsx=pnw.FileDownload(filename="data.xlsx", callback=to_xlsx),
+            tex=pnw.FileDownload(filename="data.tex", callback=to_latex),
+            md=pnw.FileDownload(filename="data.md", callback=to_md),
+            json=pnw.FileDownload(filename="data.json", callback=to_json),
+            )
 
         def download(event):
             print(f'Clicked menu item: "{event.new}"')
@@ -257,7 +286,6 @@ def dfc(df,
         ca(pn.Row(*d.values(), sizing_mode="scale_width"))
 
     if with_controls:
-        # This seems to be buggy.
         ca(pn.Accordion(("dataframe controls", w.controls(jslink=True))))
 
     ca(pn.layout.Divider())
@@ -328,7 +356,7 @@ class ButtonContext(object):
             import time
             time.sleep(3)
 
-        # Back the original button state.
+        # Back to the original button state.
         self.btn.name, self.btn.button_type = self.prev_name, self.prev_type
 
         # Don't handle the exception
@@ -407,25 +435,7 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
         return HTMLwithClipboardBtn(html_str, **kwargs)
 
     @staticmethod
-    def get_template_cls_from_name(name):
-        """
-        Return panel template from string.
-        Support name in the form `FastList` as well as `FastListTemplate`.
-        """
-        # Example: pn.template.FastGridTemplate or pn.template.GoldenTemplate
-        if hasattr(pn.template, name):
-            return getattr(pn.template, name)
-
-        try_name =  name + "Template"
-        if hasattr(pn.template, try_name):
-            return getattr(pn.template, try_name)
-
-        raise ValueError(f"""
-Don't know how to return panel template from string: {name}
-Possible templates are: {list(pn.template.__dict__.keys())}
-""")
-
-    def get_software_stack(self):
+    def get_software_stack():
         """Return column with version of python packages in tabular format."""
         from abipy.abilab import software_stack
         return pn.Column("## Software stack:", dfc(software_stack(as_dataframe=True), with_export_btn=True),
@@ -438,13 +448,12 @@ Possible templates are: {list(pn.template.__dict__.keys())}
         if template is None:
             return tabs
 
-        cls = self.get_template_cls_from_name(template)
+        cls = get_template_cls_from_name(template)
 
         kwargs = dict(
-            title="%s <small>(%s)</small>" % (self.__class__.__name__, str(cls.__name__)),
-            # A title to show in the header. Also added to the document head meta settings #and as the browser tab title.
-            header_background="#ff8c00 ",
-            #header_background="orange",
+            # A title to show in the header. Also added to the document head meta settings and as the browser tab title.
+            title=self.__class__.__name__,
+            header_background="#ff8c00 ", # Dark orange
             #header_color="#ff8c00",
             #favicon (str): URI of favicon to add to the document head (if local file, favicon is base64 encoded as URI).
             #logo (str): URI of logo to add to the header (if local file, logo is base64 encoded as URI).
@@ -459,7 +468,6 @@ Possible templates are: {list(pn.template.__dict__.keys())}
             # Assume .main area acts like a GridSpec
             template.main[:,:] = tabs
 
-        #pn.config.sizing_mode = 'stretch_width'
         return template
 
 
@@ -478,7 +486,7 @@ class HasStructureParams(AbipyParameterized):
         """Structure object provided by the subclass."""
         raise NotImplementedError(f"Subclass {type(self)} should implement `structure` attribute.")
 
-    @param.depends("struct_view_btn.clicks")
+    @pn.depends("struct_view_btn.clicks")
     def view_structure(self):
         """Visualize input structure."""
         if self.struct_view_btn.clicks == 0: return
@@ -612,35 +620,39 @@ class HasStructureParams(AbipyParameterized):
 
 
 def get_structure_info(structure):
-    col = pn.Column(sizing_mode='stretch_width'); ca = col.append; cext = col.extend
+    col = pn.Column(sizing_mode='scale_width'); ca = col.append; cext = col.extend
 
     d = structure.get_dict4pandas(with_spglib=True)
 
-    keys = index = ["formula", "natom", "volume", "abi_spg_number",
+    keys = index = [#"formula", "natom", "volume",
+                    "abi_spg_number",
                     "spglib_symb", "spglib_num",  "spglib_lattice_type"]
     df_spg = pd.Series(data=d, index=index).to_frame()
-    cext(["# Space group:", dfc(df_spg, with_export_btn=False)])
+    cext(["# Spacegroup:", dfc(df_spg, with_export_btn=False)])
 
     # Build dataframe with lattice lenghts.
     rows = []; keys = ("a", "b", "c")
     rows.append({k: d[k] * abu.Ang_Bohr for k in keys})
     rows.append({k: d[k] for k in keys})
     df_len = pd.DataFrame(rows, index=["Å", "Bohr"]).transpose().rename_axis("Lattice lenghts")
-    cext(["# Lattice lengths:", dfc(df_len, with_export_btn=False)])
 
     # Build dataframe with lattice angles.
     rows = []; keys =  ("alpha", "beta", "gamma")
     rows.append({k: d[k] for k in keys})
     rows.append({k: np.radians(d[k]) for k in keys})
     df_ang = pd.DataFrame(rows, index=["Degrees", "Radians"]).transpose().rename_axis("Lattice angles")
+
+    cext(["# Lattice lengths:", dfc(df_len, with_export_btn=False)])
     cext(["# Lattice angles:", dfc(df_ang, with_export_btn=False)])
+    #row = pn.Row(dfc(df_len, with_export_btn=False), dfc(df_ang, with_export_btn=False), sizing_mode="scale_width")
+    #ca(row)
 
     # Build dataframe with atomic positions grouped by element symbol.
     symb2df = structure.get_symb2coords_dataframe()
-    accordion = pn.Accordion(sizing_mode='stretch_width')
+    accord = pn.Accordion(sizing_mode='stretch_width')
     for symb, df in symb2df.items():
-        accordion.append((f"Coordinates of {symb} sites:", dfc(df, with_export_btn=False)))
-    ca(accordion)
+        accord.append((f"Coordinates of {symb} sites:", dfc(df, with_export_btn=False)))
+    ca(accord)
 
     return col
 
@@ -683,7 +695,7 @@ class PanelWithElectronBands(AbipyParameterized):
     """
     Mixin class for panel object associated to AbiPy object providing an |ElectronBands| object.
 
-    Subclasses should implement `ebands` property
+    Subclasses should implement the `ebands` property.
     """
 
     # Bands plot
@@ -704,20 +716,53 @@ class PanelWithElectronBands(AbipyParameterized):
     edos_width = pnw.Spinner(name='e-DOS Gaussian broadening (eV)', value=0.2, step=0.05, start=1e-6, end=None)
     plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type='primary')
 
+    # SKW interpolation of KS band energies.
+    skw_lpratio = pnw.IntInput(name='lpratio', value=5, step=1, start=1, end=None)
+    skw_line_density = pnw.IntInput(name='skw_linedensity', value=20, step=1, start=1, end=None)
+    plot_skw_btn = pnw.Button(name="Plot SKW", button_type='primary')
+
+    # For the max size of file see: https://github.com/holoviz/panel/issues/1559
+    ebands_kpath = None
+    #ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
+    ebands_kpath_fileinput = param.FileSelector()
+    ebands_kmesh = None
+    #ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
+    ebands_kmesh_fileinput = param.FileSelector()
+
     # Fermi surface plotter.
-    fs_viewer = pnw.Select(name="FS viewer", options=["matplotlib", "xcrysden"])
-    plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
+    #fs_viewer = pnw.Select(name="FS viewer", options=["matplotlib", "xcrysden"])
+    #plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
 
     @property
     def ebands(self):
         """abc does not play well with parametrized so we rely on this to enforce the protocol."""
         raise NotImplementedError("subclass should implement `ebands` property.")
 
+    @pn.depends("ebands_kpath_fileinput", watch=True)
+    def get_ebands_kpath(self):
+        """
+        """
+        print(type(self.ebands_kpath_fileinput))
+        #print(self.ebands_kpath_fileinput)
+        #print(self.ebands_kpath_fileinput.path)
+        #if self.ebands_kpath_fileinput.value is None: return None
+        #filename = self.ebands_kpath_fileinput
+        bdata = self.ebands_kpath_fileinput
+
+        workdir = tempfile.mkdtemp()
+        fd, tmp_path = tempfile.mkstemp(suffix=".nc") #filename)
+        print(tmp_path)
+        with open(tmp_path, "wb") as fh:
+            fh.write(bdata)
+            from abipy.electrons import ElectronBands
+            self.ebands_kpath = ElectronBands.from_file(tmp_path)
+            return self.ebands_kpath
+
     def get_plot_ebands_widgets(self):
         """Column with the widgets used to plot ebands."""
         return pn.Column(self.with_gaps, self.set_fermie_to_vbm, self.plot_ebands_btn)
 
-    @param.depends('plot_ebands_btn.clicks')
+    @pn.depends('plot_ebands_btn.clicks')
     def on_plot_ebands_btn(self):
         """Button triggering ebands plot."""
         if self.plot_ebands_btn.clicks == 0: return
@@ -732,7 +777,7 @@ class PanelWithElectronBands(AbipyParameterized):
             col = pn.Column(sizing_mode='stretch_width'); ca = col.append
             ca("## Electronic band structure:")
             fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None,
-                                     fontsize=8, show=False)
+                                      show=False)
             ca(ply(fig1))
 
             ca("## Brillouin zone and k-path:")
@@ -741,15 +786,15 @@ class PanelWithElectronBands(AbipyParameterized):
             ca(pn.Row(kpath_pane, df_kpts))
             ca(pn.layout.Divider())
 
-            ca(bkw.PreText(text=self.ebands.to_string(verbose=self.verbose)))
+            #ca(bkw.PreText(text=self.ebands.to_string(verbose=self.verbose)))
 
             return col
 
     def get_plot_edos_widgets(self):
-        """Widgets to compute e-DOS."""
+        """Widgets to compute the e-DOS."""
         return pn.Column(self.edos_method, self.edos_step, self.edos_width, self.plot_edos_btn)
 
-    @param.depends('plot_edos_btn.clicks')
+    @pn.depends('plot_edos_btn.clicks')
     def on_plot_edos_btn(self):
         """Button triggering edos plot."""
         if self.plot_edos_btn.clicks == 0: return
@@ -757,43 +802,119 @@ class PanelWithElectronBands(AbipyParameterized):
         with ButtonContext(self.plot_edos_btn):
             edos = self.ebands.get_edos(method=self.edos_method.value,
                                         step=self.edos_step.value, width=self.edos_width.value)
-            fig = edos.plot(**self.mpl_kwargs)
-            return pn.Row(mpl(fig), sizing_mode='scale_width')
 
-    def get_plot_fermi_surface_widgets(self):
+            return pn.Row(mpl(edos.plot(**self.mpl_kwargs)), sizing_mode='scale_width')
+            #return pn.Row(ply(edos.plotly(show=False))), sizing_mode='scale_width')
+
+    @pn.depends('plot_skw_btn.clicks')
+    def on_skw_btn(self):
+        """
+        """
+        if self.plot_skw_btn.clicks == 0: return
+        print("ebands_kpath:", self.ebands_kpath)
+        #print("ebands_kpath.filename:", self.ebands_kpath_fileinput.filename)
+
+        with ButtonContext(self.plot_skw_btn):
+            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+
+            d = self.ebands.interpolate(lpratio=self.skw_lpratio.value, line_density=self.skw_line_density.value,
+                                        #vertices_names=None
+                                        kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None, verbose=0)
+
+            ca("## SKW interpolated bands")
+            ca(ply(d.ebands_kpath.plotly(with_gaps=self.with_gaps.value, show=False)))
+            if self.ebands_kpath is not None:
+                ca(ply(self.ebands_kpath.plotly(show=False)))
+
+            return col
+
+    def get_plot_skw_widgets(self):
         """Widgets to compute e-DOS."""
-        return pn.Column(self.fs_viewer, self.plot_fermi_surface_btn)
 
-    @param.depends('plot_fermi_surface_btn.clicks')
-    def on_plot_fermi_surface_btn(self):
-        if self.plot_fermi_surface_btn.clicks == 0: return
+        foo = self.ebands_kmesh_fileinput = pn.Param(
+            self.param['ebands_kpath_fileinput'],
+            widgets={'ebands_kpath_fileinput': pn.widgets.FileInput}
+        )
 
-        # Cache eb3d
-        if hasattr(self, "_eb3d"):
-            eb3d = self._eb3d
-        else:
-            # Build ebands in full BZ.
-            eb3d = self._eb3d = self.ebands.get_ebands3d()
+        return pn.Row(pn.Column(
+            self.skw_lpratio, self.skw_line_density, self.with_gaps, foo,
+            #self.ebands_kmesh_fileinput,
+            self.plot_skw_btn),
+            self.on_skw_btn)
 
-        if self.fs_viewer.value == "matplotlib":
-            # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
-            # Warning: requires skimage package, rendering could be slow.
-            fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.mpl_kwargs)
-            return pn.Row(mpl(fig), sizing_mode='scale_width')
+    #def get_plot_fermi_surface_widgets(self):
+    #    """Widgets to compute e-DOS."""
+    #    return pn.Column(self.fs_viewer, self.plot_fermi_surface_btn)
 
-        else:
-            raise ValueError("Invalid choice: %s" % self.fs_viewer.value)
+    #@pn.depends('plot_fermi_surface_btn.clicks')
+    #def on_plot_fermi_surface_btn(self):
+    #    if self.plot_fermi_surface_btn.clicks == 0: return
 
-        #elif self.fs_viewer.value == "xcrysden":
-            # Alternatively, it's possible to export the data in xcrysden format
-            # and then use `xcrysden --bxsf mgb2.bxsf`
-            #eb3d.to_bxsf("mgb2.bxsf")
-            # If you have mayavi installed, try:
-            #eb3d.mvplot_isosurfaces()
+    #    # Cache eb3d
+    #    if hasattr(self, "_eb3d"):
+    #        eb3d = self._eb3d
+    #    else:
+    #        # Build ebands in full BZ.
+    #        eb3d = self._eb3d = self.ebands.get_ebands3d()
+
+    #    if self.fs_viewer.value == "matplotlib":
+    #        # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
+    #        # Warning: requires skimage package, rendering could be slow.
+    #        fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.mpl_kwargs)
+    #        return pn.Row(mpl(fig), sizing_mode='scale_width')
+
+    #    else:
+    #        raise ValueError("Invalid choice: %s" % self.fs_viewer.value)
+
+    #    #elif self.fs_viewer.value == "xcrysden":
+    #        # Alternatively, it's possible to export the data in xcrysden format
+    #        # and then use `xcrysden --bxsf mgb2.bxsf`
+    #        #eb3d.to_bxsf("mgb2.bxsf")
+    #        # If you have mayavi installed, try:
+    #        #eb3d.mvplot_isosurfaces()
+
 
 
 class BaseRobotPanel(AbipyParameterized):
     """Base class for panels with AbiPy robot."""
+
+    compare_params_btn = pnw.Button(name="Compare structures", button_type='primary')
+    transpose_params = pnw.Checkbox(name='Transpose tables')
+
+    @pn.depends("compare_params_btn.clicks")
+    def on_compare_params_btn(self):
+        """
+        """
+        if self.compare_params_btn.clicks == 0: return
+
+        with ButtonContext(self.compare_params_btn):
+            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+            transpose = self.transpose_params.value
+
+            dfs = self.robot.get_structure_dataframes()
+            ca("# Lattice daframe")
+            ca(dfc(dfs.lattice, transpose=transpose))
+
+            ca("# Params daframe")
+            ca(dfc(self.robot.get_params_dataframe(), transpose=transpose))
+
+            accord = pn.Accordion(sizing_mode='stretch_width')
+            accord.append(("Atomic positions", dfc(dfs.coords, transpose=transpose)))
+            ca(accord)
+
+            return col
+
+    # TODO: widgets to change robot labels.
+
+    def get_compare_params_widgets(self):
+        """
+        """
+        row = pn.Row(pn.Column(
+            self.compare_params_btn, self.transpose_params),
+            self.on_compare_params_btn,
+            sizing_mode="scale_both")
+
+        return row
 
 
 class PanelWithEbandsRobot(BaseRobotPanel):
@@ -815,7 +936,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
     def get_ebands_plotter_widgets(self):
         return pn.Column(self.ebands_plotter_mode, self.ebands_df_checkbox, self.ebands_plotter_btn)
 
-    @param.depends("ebands_plotter_btn.clicks")
+    @pn.depends("ebands_plotter_btn.clicks")
     def on_ebands_plotter_btn(self):
         if self.ebands_plotter_btn.clicks == 0: return
 
@@ -838,7 +959,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
     def get_edos_plotter_widgets(self):
         return pn.Column(self.edos_plotter_mode, self.edos_plotter_btn)
 
-    @param.depends("edos_plotter_btn.clicks")
+    @pn.depends("edos_plotter_btn.clicks")
     def on_edos_plotter_btn(self):
         """Plot the electronic density of states."""
         if self.edos_plotter_btn.clicks == 0: return

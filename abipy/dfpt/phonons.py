@@ -1085,7 +1085,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @add_plotly_fig_kwargs
     def plotly(self, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
-               fig=None, rcd=None, fontsize=16, **kwargs):
+               fig=None, rcd=None, fontsize=12, **kwargs):
         r"""
         Plot the phonon band structure with plotly.
 
@@ -2799,12 +2799,18 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         """
         return self.yield_phbands_figs(**kwargs)
 
-    def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of plotly figures with minimal input from the user.
         """
-        renderer = "chart_studio" if chart_studio else None
-        self.phbands.plotly(renderer=renderer)
+        return self.yield_phbands_plotly_figs(**kwargs)
+
+    #def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):
+    #    """
+    #    This function *generates* a predefined list of plotly figures with minimal input from the user.
+    #    """
+    #    renderer = "chart_studio" if chart_studio else None
+    #    self.phbands.plotly(renderer=renderer)
 
     def write_notebook(self, nbpath=None):
         """
@@ -3718,10 +3724,27 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             yield msqd_dos.plot(units=units, show=False)
             yield msqd_dos.plot_tensor(show=False)
 
-    def plotly_expose(self, chart_studio=False, units="meV", verbose=0, **kwargs):
-        renderer = "chart_studio" if chart_studio else None
-        #self.phdos.plotly_dos_idos(units=units, renderer=renderer, show=False)
-        self.phdos.plotly(units=units, renderer=renderer, show=True)
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        units = kwargs.get("units", "mev")
+        yield self.phdos.plotly(units=units, show=False)
+        yield self.plotly_pjdos_type(units=units, show=False)
+        # Old formats do not have MSQDOS arrays.
+        #try:
+        #    msqd_dos = self.msqd_dos
+        #except Exception:
+        #    msqd_dos = None
+        #if msqd_dos is not None:
+        #    yield msqd_dos.plot(units=units, show=False)
+        #    yield msqd_dos.plot_tensor(show=False)
+
+    #def plotly_expose(self, chart_studio=False, units="meV", verbose=0, **kwargs):
+    #    renderer = "chart_studio" if chart_studio else None
+    #    #self.phdos.plotly_dos_idos(units=units, renderer=renderer, show=False)
+    #    self.phdos.plotly(units=units, renderer=renderer, show=True)
 
     def write_notebook(self, nbpath=None):
         """
@@ -4239,15 +4262,16 @@ class PhononBandsPlotter(NotebookWriter):
             raise NotImplementedError("")
             for i, (phbands, phdos) in enumerate(zip(phb_objects, phdos_objects)):
                 row, col = divmod(i, ncols)
-                #rcd_phdos = PlotlyRowColDesc(row, col, nrows, ncols)
-                #rcd_phbands = PlotlyRowColDesc(row, col, nrows, ncols)
-                phbands.plotly_with_phdos(phdos, fig=fig, rcd_phbands=None, rcd_phdos=None,
+                rcd_phdos = PlotlyRowColDesc(row, col, nrows, ncols)
+                rcd_phbands = PlotlyRowColDesc(row, col, nrows, ncols)
+                phbands.plotly_with_phdos(phdos, fig=fig, rcd_phbands=rcd_phbands, rcd_phdos=rcd_phdos,
+                                          units=units, fontsize=fontsize,
                                           width_ratios=(2, 1), show=False)
         else:
             for i, phbands in enumerate(phb_objects):
                 row, col = divmod(i, ncols)
                 rcd = PlotlyRowColDesc(row, col, nrows, ncols)
-                phbands.plotly(fig=fig, rcd=rcd, show=False)
+                phbands.plotly(fig=fig, rcd=rcd, units=units, fontsize=fontsize, show=False)
 
         return fig
 

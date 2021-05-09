@@ -55,6 +55,12 @@ linestyles = OrderedDict(
 # Matplotlib tools
 ###################
 
+def is_mpl_figure(obj):
+    """Return True if obj is a matplotlib Figure."""
+    from matplotlib import pyplot as plt
+    return isinstance(obj, plt.Figure)
+
+
 def ax_append_title(ax, title, loc="center", fontsize=None):
     """Add title to previous ax.title. Return new title."""
     prev_title = ax.get_title(loc=loc)
@@ -856,6 +862,11 @@ class GenericDataFilesPlotter(object):
 ##########################
 # Plotly helper functions
 ##########################
+
+def is_plotly_figure(obj):
+    """Return True if obj is a plotly Figure."""
+    import plotly.graph_objs as go
+    return isinstance(obj, go.Figure)
 
 
 class PlotlyRowColDesc(object):

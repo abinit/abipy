@@ -159,17 +159,28 @@ sphinx_gallery_conf = {
     # capture raw HTML or, if not present, __repr__ of last expression in
     # each code block
     'capture_repr': ('_repr_html_', '__repr__'),
-    # TODO
-    #https://sphinx-gallery.github.io/advanced_configuration.html#generate-binder-links-for-gallery-notebooks-experimental
-    #'binder': {
-    #    'org': 'abinit',
-    #    #'repo': 'abipy',
-    #    #'repo': 'https://github.com/abinit/abipy',
-    #    "repo": "http://abinit.github.io/abipy/",
-    #    'url': 'https://mybinder.org', # URL serving binders (e.g. mybinder.org)
-    #    'branch': 'develop',  # Can also be a tag or commit hash
-    #    'dependencies': '../binder/environment.yml' # list_of_paths_to_dependency_files>'
-    # },
+    #
+    # https://sphinx-gallery.github.io/stable/configuration.html#binder-links
+
+    'binder': {
+        # Required keys
+         'org': 'abinit',
+         'repo': 'abipy',
+         # Can be any branch, tag, or commit hash. Use a branch that hosts your docs.
+         'branch': 'gh-pages',
+         # Any URL of a binderhub deployment. Must be full URL (e.g. https://mybinder.org).
+         'binderhub_url': 'https://mybinder.org',
+         #  A list of paths (relative to conf.py) to dependency files that Binder uses to infer
+         # the environment needed to run your examples
+         'dependencies': ["../binder/environment.yml", "../binder/postBuild"],
+         # Optional keys
+         # A prefix to prepend to any filepaths in Binder links.
+         #'filepath_prefix': '<prefix>'
+         # Jupyter notebooks for Binder will be copied to this directory (relative to built documentation root).
+         #'notebooks_dir': '<notebooks-directory-name>'
+         # Whether Binder links should start Jupyter Lab instead of the Jupyter Notebook interface.
+         #'use_jupyter_lab': False,
+     },
 }
 
 # Generate the API documentation when building
@@ -245,76 +256,9 @@ import sphinx_rtd_theme
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
-"""
-# This for the old bootstrap theme
-import sphinx_bootstrap_theme
-html_theme = 'bootstrap'
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
 #html_logo = "my_logo.png"
-
-# Theme options are theme-specific and customize the look and feel of a
-# theme further.
-html_theme_options = {
-    # Navigation bar title. (Default: ``project`` value)
-    #'navbar_title': "Demo",
-
-    # Tab name for entire site. (Default: "Site")
-    'navbar_site_name': "Site",
-
-    # A list of tuples containing pages or urls to link to.
-    # Valid tuples should be in the following forms:
-    #    (name, page)                 # a link to a page
-    #    (name, "/aa/bb", 1)          # a link to an arbitrary relative url
-    #    (name, "http://example.com", True) # arbitrary absolute url
-    # Note the "1" or "True" value above as the third argument to indicate
-    # an arbitrary url.
-    #'navbar_links': [
-    #    ("Examples", "examples"),
-    #    ("Link", "http://example.com", True),
-    #],
-
-    # Render the next and previous page links in navbar. (Default: true)
-    'navbar_sidebarrel': True,
-
-    # Render the current pages TOC in the navbar. (Default: true)
-    'navbar_pagenav': True,
-
-    # Tab name for the current pages TOC. (Default: "Page")
-    'navbar_pagenav_name': "Page",
-
-    # Global TOC depth for "site" navbar tab. (Default: 1)
-    # Switching to -1 shows all levels.
-    'globaltoc_depth': 1,
-
-    # Include hidden TOCs in Site navbar?
-    #
-    # Note: If this is "false", you cannot have mixed ``:hidden:`` and
-    # non-hidden ``toctree`` directives in the same page, or else the build
-    # will break.
-    #
-    # Values: "true" (default) or "false"
-    'globaltoc_includehidden': "true",
-
-    # HTML navbar class (Default: "navbar") to attach to <div> element.
-    # For black navbar, do "navbar navbar-inverse"
-    #'navbar_class': "navbar navbar-inverse",
-
-    # Fix navigation bar to top of page?
-    # Values: "true" (default) or "false"
-    'navbar_fixed_top': "true",
-
-    # Location of link to source.
-    # Options are "nav" (default), "footer" or anything else to exclude.
-    'source_link_position': "nav",
-
-    # Choose Bootstrap version.
-    # Values: "3" (default) or "2" (in quotes)
-    'bootstrap_version': "3",
-}
-"""
 
 
 def setup(app):

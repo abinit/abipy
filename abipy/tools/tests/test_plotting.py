@@ -6,6 +6,7 @@ import numpy as np
 from abipy import abilab
 import abipy.data as abidata
 from abipy.tools.plotting import *
+from abipy.tools.plotting import is_mpl_figure, is_plotly_figure
 from abipy.core.testing import AbipyTest
 
 
@@ -18,6 +19,8 @@ class TestPlotting(AbipyTest):
             raise self.SkipTest("This test requires matplotlib")
 
         ax, fig, plt = get_ax_fig_plt(ax=None)
+        assert is_mpl_figure(fig)
+        assert not is_plotly_figure(fig)
 
         left, right = set_axlims(ax, None, "x")
         assert left is None and right is None

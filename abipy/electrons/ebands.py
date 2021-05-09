@@ -2755,8 +2755,7 @@ class ElectronBands(Has_Structure):
 
         # Build interpolator.
         from abipy.core.skw import SkwInterpolator
-        cell = (self.structure.lattice.matrix, self.structure.frac_coords,
-                self.structure.atomic_numbers)
+        cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
 
         skw = SkwInterpolator(lpratio, self.kpoints.frac_coords, self.eigens[:,:,bstart:bstop], self.fermie, self.nelect,
                               cell, fm_symrel, self.has_timrev,
@@ -2779,7 +2778,7 @@ class ElectronBands(Has_Structure):
                                       self.nelect, self.nspinor, self.nspden, smearing=self.smearing)
         ebands_kmesh = None
         if kmesh is not None:
-            # Get kpts and weights in IBZ.
+            # Get kpts and weights in the IBZ.
             kdos = Ktables(self.structure, kmesh, is_shift, self.has_timrev)
             eigens_kmesh = skw.interp_kpts(kdos.ibz).eigens
 

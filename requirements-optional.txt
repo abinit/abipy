@@ -11,6 +11,7 @@ ase
 param
 panel
 bokeh
+XlsxWriter  # For DataFrame.to_excel()
 # Unit tests
 python-coveralls
 pytest

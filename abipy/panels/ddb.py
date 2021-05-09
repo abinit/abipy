@@ -6,7 +6,7 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import AbipyParameterized, HasStructureParams, ButtonContext, mpl, ply, dfc
+from abipy.panels.core import AbipyParameterized, HasStructureParams, BaseRobotPanel, ButtonContext, mpl, ply, dfc
 from abipy.dfpt.ddb import PhononBandsPlotter
 
 
@@ -419,7 +419,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
 
-class DdbRobotPanel(HasAnaddbParams):
+class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
     """
     A panel to analyze multiple |DdbFile| via the low-level API provided by DdbRobot.
     Provides widgets to invoke anaddb and visualize the results.
@@ -459,21 +459,22 @@ class DdbRobotPanel(HasAnaddbParams):
             #r = self.robot.anaget_phonon_plotters()
 
             # Fill column
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+            col = pn.Column(sizing_mode='stretch_both'); ca = col.append
+
             if "combiplot" in self.combiplot_check_btn.value:
-                ca("## Phonon band structure and DOS:")
+                ca("## Combiplot:")
                 ca(ply(r.phbands_plotter.combiplotly(units=self.units, show=False)))
 
             if "gridplot" in self.combiplot_check_btn.value:
-                ca("## Phonon band structure and DOS:")
-                ca(ply(r.phbands_plotter.gridplotly(units=self.units, show=False)))
+                ca("## Gridplot:")
+                # FIXME implement with_dos = True
+                ca(ply(r.phbands_plotter.gridplotly(units=self.units, with_dos=False, show=False)))
 
             #if "temp_range" in self.combiplot_check_btn.value:
             #temps = self.temp_range.value
             #ca("## Thermodynamic properties in the harmonic approximation:")
             ##ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
             #ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
-
 
             return col
 
@@ -636,7 +637,7 @@ class DdbRobotPanel(HasAnaddbParams):
 
             return col
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the DDB file."""
 
         robot = self.robot
@@ -646,11 +647,7 @@ class DdbRobotPanel(HasAnaddbParams):
             bkw.PreText(text=robot.to_string(verbose=self.verbose), sizing_mode="scale_both"))
         ))
 
-        dfs = robot.get_structure_dataframes()
-        app(("Structures",
-            pn.Column("# Lattice daframe", dfc(dfs.lattice),
-                      "# Atomic positions", dfc(dfs.coords),)
-        ))
+        app(("Params", self.get_compare_params_widgets()))
 
         app(("Combiplot", pn.Row(
             pn.Column("# PH-bands options",
@@ -723,4 +720,4 @@ class DdbRobotPanel(HasAnaddbParams):
                 *self.pws("units", "mpi_procs", "verbose"),
         )))
 
-        return tabs
+        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
