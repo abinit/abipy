@@ -58,6 +58,8 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
             self.on_plot_edos_btn)
             ))
 
+            app(("SKW", self.get_plot_skw_widgets()))
+
             #if self.gsr.ebands.supports_fermi_surface:
             #    # Fermi surface requires Gamma-centered k-mesh
             #    app(("Fermi Surface", pn.Row(
@@ -71,8 +73,6 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
         app(self.get_struct_view_tab_entry())
         # TODO
         #app(("NcFile", self.get_ncfile_panel()))
-
-        app(("SKW", self.get_plot_skw_widgets()))
 
         #app(("Global", pn.Row(
         #    pn.Column("# Global options",

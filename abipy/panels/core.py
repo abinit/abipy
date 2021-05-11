@@ -15,7 +15,6 @@ from monty.termcolor import cprint
 from abipy.core import abinit_units as abu
 from abipy.tools.plotting import push_to_chart_studio
 
-
 #pathlib.Path(__file__) / "assets"
 
 
@@ -23,7 +22,6 @@ def abipanel():
     """
     Activate panel extensions used by AbiPy. Return panel module.
     """
-
     try:
         import panel as pn
     except ImportError as exc:
@@ -174,7 +172,8 @@ If everything is properly configured, a new window is automatically created in y
 
         btn = pnw.Button(name="Upload to chart studio server")
         def push_to_cs(event):
-            push_to_chart_studio(fig)
+            with ButtonContext(bnt):
+                push_to_chart_studio(fig)
         btn.on_click(push_to_cs)
 
         if with_help:
@@ -372,12 +371,17 @@ class AbipyParameterized(param.Parameterized):
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used for running Abinit")
 
     # mode = "webapp" This flag may be used to limit the user and/or decide the options that should
-    # be exposed. For instance struct_viewer == "Vesta" does not make sense in webapp mode
+    # be exposed. For instance structure_viewer == "Vesta" does not make sense in webapp mode
 
     warning = pn.pane.Markdown(
 """
 Please **refresh** the page using the refresh button of the browser if plotly figures are not shown.
 """)
+
+
+    #def __repr__(self):
+    #    # https://github.com/holoviz/param/issues/396
+    #    return f"AbiPyParametrized(name='{self.name}')"
 
     @lazy_property
     def mpl_kwargs(self):
@@ -474,24 +478,25 @@ class HasStructureParams(AbipyParameterized):
     """
     Mixin class for panel objects providing a |Structure| object.
     """
-    # Viewer widgets.
-    struct_view_btn = pnw.Button(name="View structure", button_type='primary')
-    struct_viewer = pnw.Select(name="Select viewer", value="vesta",
-                               options=["jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
-                                        "matplotlib", "plotly", "ase_atoms", "mayavi"])
+
+    structure_viewer = param.ObjectSelector(default=None,
+                                            objects=[None, "jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
+                                                     "matplotlib", "plotly", "ase_atoms", "mayavi"])
 
     @property
     def structure(self):
         """Structure object provided by the subclass."""
         raise NotImplementedError(f"Subclass {type(self)} should implement `structure` attribute.")
 
-    @pn.depends("struct_view_btn.clicks")
+    @pn.depends("structure_viewer")
     def view_structure(self):
         """Visualize input structure."""
-        if self.struct_view_btn.clicks == 0: return
+        if self.structure_viewer is None:
+            return pn.Column()
 
-        with ButtonContext(self.struct_view_btn):
-            v = self.struct_viewer.value
+        #with ButtonContext(self.struct_view_btn):
+        if True:
+            v = self.structure_viewer
 
             if v == "jsmol":
                 #pn.extension(comms='ipywidgets') #, js_files=js_files)
@@ -601,27 +606,29 @@ class HasStructureParams(AbipyParameterized):
             if v == "ase_atoms":
                 return mpl(self.structure.plot_atoms(rotations="default", **self.mpl_kwargs))
 
-            return self.structure.visualize(appname=self.struct_viewer.value)
+            return self.structure.visualize(appname=self.structure_viewer)
 
     def get_struct_view_tab_entry(self):
         """
         Return tab entry to visualize the structure.
-         """
+        """
         return ("Structure", pn.Row(
             pn.Column("# Visualize structure",
-                      *self.pws("struct_viewer", "struct_view_btn", self.helpc("view_structure"))),
-                       pn.Column(self.get_structure_info(),
-                                 self.view_structure)
+                      *self.pws("structure_viewer", self.helpc("view_structure"))),
+                       pn.Column(self.view_structure, self.get_structure_info())
         ))
 
     def get_structure_info(self):
         """
-        Column with lattice parameters, angles and atomic positions grouped by type.
+        Return Column with lattice parameters, angles and atomic positions grouped by type.
         """
         return get_structure_info(self.structure)
 
 
 def get_structure_info(structure):
+    """
+    Return Column with lattice parameters, angles and atomic positions grouped by type.
+    """
     col = pn.Column(sizing_mode='scale_width'); ca = col.append; cext = col.extend
 
     d = structure.get_dict4pandas(with_spglib=True)
@@ -732,8 +739,8 @@ class PanelWithElectronBands(AbipyParameterized):
     ebands_kmesh_fileinput = param.FileSelector()
 
     # Fermi surface plotter.
-    #fs_viewer = pnw.Select(name="FS viewer", options=["matplotlib", "xcrysden"])
-    #plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
+    fs_viewer = pnw.Select(name="FS viewer", options=["matplotlib", "xcrysden"])
+    plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
 
     @property
     def ebands(self):
@@ -743,22 +750,14 @@ class PanelWithElectronBands(AbipyParameterized):
     @pn.depends("ebands_kpath_fileinput", watch=True)
     def get_ebands_kpath(self):
         """
+        Receives the netcdf file select by the user as binary string.
         """
         print(type(self.ebands_kpath_fileinput))
-        #print(self.ebands_kpath_fileinput)
-        #print(self.ebands_kpath_fileinput.path)
-        #if self.ebands_kpath_fileinput.value is None: return None
-        #filename = self.ebands_kpath_fileinput
-        bdata = self.ebands_kpath_fileinput
+        bstring = self.ebands_kpath_fileinput
 
-        workdir = tempfile.mkdtemp()
-        fd, tmp_path = tempfile.mkstemp(suffix=".nc") #filename)
-        print(tmp_path)
-        with open(tmp_path, "wb") as fh:
-            fh.write(bdata)
-            from abipy.electrons import ElectronBands
-            self.ebands_kpath = ElectronBands.from_file(tmp_path)
-            return self.ebands_kpath
+        #with ButtonContext(self.ebands_kpath_fileinpu):
+        from abipy.electrons import ElectronBands
+        self.ebands_kpath = ElectronBands.from_binary_string(bstring)
 
     def get_plot_ebands_widgets(self):
         """Column with the widgets used to plot ebands."""
@@ -860,36 +859,36 @@ class PanelWithElectronBands(AbipyParameterized):
             self.plot_skw_btn),
             self.on_skw_btn)
 
-    #def get_plot_fermi_surface_widgets(self):
-    #    """Widgets to compute e-DOS."""
-    #    return pn.Column(self.fs_viewer, self.plot_fermi_surface_btn)
+    def get_plot_fermi_surface_widgets(self):
+        """Widgets to compute e-DOS."""
+        return pn.Column(self.fs_viewer, self.plot_fermi_surface_btn)
 
-    #@pn.depends('plot_fermi_surface_btn.clicks')
-    #def on_plot_fermi_surface_btn(self):
-    #    if self.plot_fermi_surface_btn.clicks == 0: return
+    @pn.depends('plot_fermi_surface_btn.clicks')
+    def on_plot_fermi_surface_btn(self):
+        if self.plot_fermi_surface_btn.clicks == 0: return
 
-    #    # Cache eb3d
-    #    if hasattr(self, "_eb3d"):
-    #        eb3d = self._eb3d
-    #    else:
-    #        # Build ebands in full BZ.
-    #        eb3d = self._eb3d = self.ebands.get_ebands3d()
+        # Cache eb3d
+        if hasattr(self, "_eb3d"):
+            eb3d = self._eb3d
+        else:
+            # Build ebands in full BZ.
+            eb3d = self._eb3d = self.ebands.get_ebands3d()
 
-    #    if self.fs_viewer.value == "matplotlib":
-    #        # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
-    #        # Warning: requires skimage package, rendering could be slow.
-    #        fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.mpl_kwargs)
-    #        return pn.Row(mpl(fig), sizing_mode='scale_width')
+        if self.fs_viewer.value == "matplotlib":
+            # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
+            # Warning: requires skimage package, rendering could be slow.
+            fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.mpl_kwargs)
+            return pn.Row(mpl(fig), sizing_mode='scale_width')
 
-    #    else:
-    #        raise ValueError("Invalid choice: %s" % self.fs_viewer.value)
+        else:
+            raise ValueError("Invalid choice: %s" % self.fs_viewer.value)
 
-    #    #elif self.fs_viewer.value == "xcrysden":
-    #        # Alternatively, it's possible to export the data in xcrysden format
-    #        # and then use `xcrysden --bxsf mgb2.bxsf`
-    #        #eb3d.to_bxsf("mgb2.bxsf")
-    #        # If you have mayavi installed, try:
-    #        #eb3d.mvplot_isosurfaces()
+        #elif self.fs_viewer.value == "xcrysden":
+            # Alternatively, it's possible to export the data in xcrysden format
+            # and then use `xcrysden --bxsf mgb2.bxsf`
+            #eb3d.to_bxsf("mgb2.bxsf")
+            # If you have mayavi installed, try:
+            #eb3d.mvplot_isosurfaces()
 
 
 class BaseRobotPanel(AbipyParameterized):

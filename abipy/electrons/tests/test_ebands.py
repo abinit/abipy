@@ -455,7 +455,6 @@ class ElectronBandsTest(AbipyTest):
         r = si_ebands_kmesh.interpolate(lpratio=5, vertices_names=vertices_names, line_density=0,
                                         verbose=1)
 
-
     def test_derivatives(self):
         """Testing computation of effective masses."""
         ebands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
@@ -598,6 +597,11 @@ class ElectronDosPlotterTest(AbipyTest):
         """Testing ElelectronDosPlotter API."""
         gsr_path = abidata.ref_file("si_scf_GSR.nc")
         gs_bands = ElectronBands.from_file(gsr_path)
+
+        with open(gsr_path, "rb") as fh:
+            same_gsr_bands = ElectronBands.from_binary_string(fh.read())
+            assert same_gsr_bands.structure == gs_bands.structure
+
         si_edos = gs_bands.get_edos()
 
         plotter = ElectronDosPlotter()
