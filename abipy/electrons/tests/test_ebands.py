@@ -451,6 +451,11 @@ class ElectronBandsTest(AbipyTest):
         # Export it in BXSF format.
         r.ebands_kmesh.to_bxsf(self.get_tmpname(text=True))
 
+        # This just to call interpolate with line_density 0
+        r = si_ebands_kmesh.interpolate(lpratio=5, vertices_names=vertices_names, line_density=0,
+                                        verbose=1)
+
+
     def test_derivatives(self):
         """Testing computation of effective masses."""
         ebands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))

@@ -1270,7 +1270,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                           use_becs=True, colormap="jet", fontsize=12, **kwargs):
         r"""
         Plot the phonon band structure with colored lines. The color of the lines indicates
-        the degree to which the mode is longitudinal:
+        the degree to which the mode is longitudinal.
         Red corresponds to longitudinal modes and black to purely transverse modes.
 
         Args:
@@ -3740,11 +3740,6 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         #if msqd_dos is not None:
         #    yield msqd_dos.plot(units=units, show=False)
         #    yield msqd_dos.plot_tensor(show=False)
-
-    #def plotly_expose(self, chart_studio=False, units="meV", verbose=0, **kwargs):
-    #    renderer = "chart_studio" if chart_studio else None
-    #    #self.phdos.plotly_dos_idos(units=units, renderer=renderer, show=False)
-    #    self.phdos.plotly(units=units, renderer=renderer, show=True)
 
     def write_notebook(self, nbpath=None):
         """

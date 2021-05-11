@@ -1068,11 +1068,15 @@ class KpointList(collections.abc.Sequence):
 
         Return: |pandas-DataFrame|
         """
+        replace = {
+            r"$\Gamma$": "Γ",
+        }
+
         import pandas as pd
         rows, index = [], []
         for ik, kpt in enumerate(self):
             if kpt.name is None: continue
-            d = dict(name=kpt.name, frac_coords=kpt.frac_coords)
+            d = dict(name=replace.get(kpt.name, kpt.name), frac_coords=kpt.frac_coords)
             if with_cart_coords: d["cart_coords"] = kpt.cart_coords
             rows.append(d)
             index.append(ik)
@@ -1226,15 +1230,21 @@ class Kpath(KpointList):
     @classmethod
     def from_vertices_and_names(cls, structure, vertices_names, line_density=20):
         """
-        Generate normalized K-path from a list of vertices and the corresponding labels.
+        Generate normalized k-path from a list of vertices and the corresponding labels.
 
         Args:
             structure: |Structure| object.
             vertices_names:  List of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
                 the k-point. Each point represents a vertex of the k-path.
-            line_density: Number of points used to sample the smallest segment of the path
+            line_density: Number of points used to sample the smallest segment of the path.
+                If 0, use list of k-points given in vertices_names
         """
+        if line_density == 0:
+            frac_coords = [vn[0] for vn in vertices_names]
+            knames = [vn[1] for vn in vertices_names]
+            return cls(structure.lattice.reciprocal_lattice, frac_coords=frac_coords, weights=None, names=knames)
+
         gmet = structure.lattice.reciprocal_lattice.metric_tensor
         vnames = [str(vn[1]) for vn in vertices_names]
         vertices = np.array([vn[0] for vn in vertices_names], dtype=float)
@@ -1266,8 +1276,7 @@ class Kpath(KpointList):
         knames.append(vnames[-1])
         frac_coords.append(vertices[-1])
 
-        return cls(structure.lattice.reciprocal_lattice, frac_coords=frac_coords,
-                   weights=None, names=knames)
+        return cls(structure.lattice.reciprocal_lattice, frac_coords=frac_coords, weights=None, names=knames)
 
     def __str__(self):
         return self.to_string()

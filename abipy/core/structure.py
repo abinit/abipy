@@ -1373,7 +1373,6 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
 
-
     @add_plotly_fig_kwargs
     def plotly_bz(self, fig=None, pmg_path=True, with_labels=True, **kwargs):
         """

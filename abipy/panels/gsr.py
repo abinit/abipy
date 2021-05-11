@@ -5,7 +5,8 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from .core import PanelWithElectronBands, HasStructureParams, PanelWithNcFile, PanelWithEbandsRobot, ply, mpl, dfc
+from .core import (PanelWithElectronBands, HasStructureParams, PanelWithNcFile,
+  PanelWithEbandsRobot, ButtonContext, ply, mpl, dfc)
 
 
 class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
@@ -87,8 +88,9 @@ class GsrRobotPanel(PanelWithEbandsRobot):
     """
     A Panel to interoperate with multiple GSR files.
     """
-
     gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
+
+    transpose_gsr_dataframe = pnw.Checkbox(name='Transpose GSR dataframe')
 
     def __init__(self, robot, **params):
         super().__init__(**params)
@@ -97,8 +99,11 @@ class GsrRobotPanel(PanelWithEbandsRobot):
     @param.depends("gsr_dataframe_btn.clicks")
     def on_gsr_dataframe_btn(self):
         if self.gsr_dataframe_btn.clicks == 0: return
-        df = self.robot.get_dataframe(with_geo=True)
-        return pn.Column(dfc(df), sizing_mode='stretch_width')
+
+        with ButtonContext(self.gsr_dataframe_btn):
+            df = self.robot.get_dataframe(with_geo=True)
+            transpose = self.transpose_gsr_dataframe.value
+            return pn.Column(dfc(df, transpose=transpose), sizing_mode='stretch_width')
 
     def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the |GsrRobot|."""
@@ -112,6 +117,8 @@ class GsrRobotPanel(PanelWithEbandsRobot):
         if all(abifile.ebands.kpoints.is_ibz for abifile in self.robot.abifiles):
             app(("e-DOS", pn.Row(self.get_edos_plotter_widgets(), self.on_edos_plotter_btn)))
 
-        app(("GSR-dataFrame", pn.Row(self.gsr_dataframe_btn, self.on_gsr_dataframe_btn)))
+        app(("GSR-dataframe", pn.Row(
+            pn.Column(self.transpose_gsr_dataframe, self.gsr_dataframe_btn),
+            self.on_gsr_dataframe_btn)))
 
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))

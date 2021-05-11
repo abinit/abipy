@@ -5,7 +5,7 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import HasStructureParams, ButtonContext, dfc, mpl
+from abipy.panels.core import HasStructureParams, ButtonContext, dfc, mpl, ply
 
 
 class StructurePanel(HasStructureParams):
@@ -23,6 +23,7 @@ class StructurePanel(HasStructureParams):
     # K-path widgets
     kpath_format = pnw.Select(name="format", value="abinit", options=["abinit", "siesta", "wannier90"])
     line_density = pnw.Spinner(name="line density", value=10, step=5, start=0, end=None)
+    plot_kpath = pnw.Checkbox(name='Plot k-path', value=False)
 
     # MP-match
     mp_match_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
@@ -76,11 +77,12 @@ class StructurePanel(HasStructureParams):
                                                   line_density=self.line_density.value)
         ca(self.html_with_clipboard_btn(f"<pre> {s} </pre>"))
 
-        # FIXME: This plots the mpl figure!
-        #kpath_pane = mpl(self.structure.plot_bz(**self.mpl_kwargs), with_divider=False)
-        #df_kpts = self.structure.hsym_kpoints.get_highsym_datataframe()
-        #ca(pn.Row(kpath_pane, df_kpts))
-        #ca(pn.layout.Divider())
+        if self.plot_kpath.value:
+            ca("## Brillouin zone and **k**-path:")
+            kpath_pane = ply(self.structure.plotly_bz(pmg_path=True, show=False), with_divider=False)
+            df_kpts = dfc(self.structure.hsym_kpoints.get_highsym_datataframe(), with_divider=False)
+            ca(pn.Row(kpath_pane, df_kpts))
+            ca(pn.layout.Divider())
 
         return col
 
@@ -148,7 +150,7 @@ class StructurePanel(HasStructureParams):
             self.spglib_summary)
         ))
         app(("Kpath", pn.Row(
-            pn.Column('# K-path options', *self.pws("kpath_format", "line_density", self.helpc("get_kpath"))),
+            pn.Column('# K-path options', *self.pws("kpath_format", "line_density", "plot_kpath", self.helpc("get_kpath"))),
             self.get_kpath)
         ))
         app(("Convert", pn.Row(

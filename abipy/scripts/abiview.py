@@ -11,7 +11,7 @@ from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExpose, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
+from abipy.tools.plotting import MplExpose, PanelExpose, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
 
 
 def handle_overwrite(path, options):
@@ -124,10 +124,12 @@ def abiview_ebands(options):
         elif options.bxsf:
             outpath = options.filepath + ".bxsf"
             abifile.ebands.to_bxsf(handle_overwrite(outpath, options))
+        #elif options.plotly:
+        #    print(abifile.to_string(verbose=options.verbose))
         else:
             print(abifile.to_string(verbose=options.verbose))
             abifile.expose_ebands(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                                  verbose=options.verbose)
+                                  expose_web=options.expose_web, verbose=options.verbose)
 
         return 0
 
@@ -195,6 +197,7 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
             outpath = options.filepath + ".agr"
             phbands.to_xmgrace(handle_overwrite(outpath, options))
             return 0
+
         #elif options.bxsf:
         #    outpath = options.filepath + ".bxsf"
         #    phbands.to_bxsf(handle_overwrite(outpath, options))
@@ -204,34 +207,34 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
             return phbands.view_phononwebsite(browser=options.browser, verbose=options.verbose)
 
         elif options.plotly:
-            # plotly output
+            # Plotly + Panel version.
             phdos = phdos_file.phdos
-            figs = []
-            e = figs.append
-            e(phbands.plotly_with_phdos(phdos, units=units, show=False))
-            e(phdos.plotly(units=units, show=False))
-            push_to_chart_studio(figs) if options.chart_studio else plotlyfigs_to_browser(figs)
+            with PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}") as e:
+                e(phbands.qpoints.plotly(show=False))
+                e(phbands.plotly_with_phdos(phdos, units=units, show=False))
+                e(phbands.plot_colored_matched(units=units, show=False))
+                e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
+                e(phdos.plotly(units=units, show=False))
+                e(phdos_file.plotly_pjdos_type(units=units, show=False))
+                #push_to_chart_studio(figs) if options.chart_studio else plotlyfigs_to_browser(figs)
 
         else:
-            # matplotlib output
             phdos = phdos_file.phdos
 
-            with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
-                #e(phbands.expose())
-                #e(phdos.expose())
+            if not options.expose_web:
+                # matplotlib figure and X-server.
+                e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+            else:
+                # panel version with matplotlib.
+                e = PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}")
+
+            with e:
                 e(phbands.qpoints.plot(show=False))
                 e(phbands.plot_with_phdos(phdos, units=units, show=False))
                 e(phbands.plot_colored_matched(units=units, show=False))
                 e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
                 e(phdos.plot(units=units, show=False))
                 e(phdos_file.plot_pjdos_type(units=units, show=False))
-                #try
-                #    msq_dos = phdos_file.msq_dos
-                #except RuntimeError:
-                #    msq_dos = None
-                #if msq_dos is not None:
-                #    e(msq_dos.plot_uiso(show=False))
-                #    e(msq_dos.plot_uiso(show=False))
 
         phbst_file.close()
         phdos_file.close()
@@ -257,7 +260,7 @@ num_points: {num_points}, asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
     df = sv.get_dataframe()
     abilab.print_dataframe(df, title="Speed of sound for different directions:")
     df_to_clipboard(options, df)
-    sv.plot()
+    sv.plotly if options.plotly else sv.plot()
 
     return 0
 
@@ -278,7 +281,10 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
 
         gamma_ev = 1e-4
         print("Plotting dielectric tensor with constant phonon damping: %s (eV)" % gamma_ev)
-        tgen.plot_all(gamma_ev=gamma_ev)
+        if options.plotly:
+            tgen.plotly_all(gamma_ev=gamma_ev)
+        else:
+            tgen.plot_all(gamma_ev=gamma_ev)
 
     return 0
 
@@ -376,7 +382,15 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
         # Execute anaddb to compute the interatomic force constants.
         ifc = ddb.anaget_ifc(asr=asr, chneut=chneut, dipdip=dipdip)
         #print(ifc)
-        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+
+        if not options.expose_web:
+            # matplotlib figure and X-server.
+            e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+        else:
+            # panel version
+            e = PanelExpose(title=f"Interatomic force constants of {phdos_file.structure.formula}")
+
+        with e:
             e(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", show=False))
             e(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", show=False))
             e(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", show=False))
@@ -537,6 +551,8 @@ def get_parser(with_epilog=False):
             help="Iterate over figures. Expose all figures at once if not given on the CLI.")
     slide_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
+    slide_parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
+            help='Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.')
 
     # Parent parser for commands that operating on pandas dataframes
     pandas_parser = argparse.ArgumentParser(add_help=False)

@@ -923,6 +923,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         yield self.qpoints.plot(show=False)
         yield self.structure.plot_bz(show=False)
 
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        """
+        yield self.structure.plotly(show=False)
+        yield self.qpoints.plotly(show=False)
+        yield self.structure.plotly_bz(show=False)
+
     def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                  manager=None, verbose=0, lo_to_splitting=False, spell_check=True,
                                  directions=None, anaddb_kwargs=None, return_input=False):
@@ -1436,11 +1444,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             label = "asr: %d, chneut: %d, dipdip: %d, dipquad: %d, quadquad: %d " % (
                     asr, dipdip, chneut, conf["dipquad"], conf["quadquad"])
+
             if phdos_file is not None:
                 phbands_plotter.add_phbands(label, phbst_file.phbands, phdos=phdos_file.phdos)
                 phdos_file.close()
             else:
                 phbands_plotter.add_phbands(label, phbst_file.phbands)
+
             phbst_file.close()
 
         return phbands_plotter
@@ -1558,6 +1568,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         from abipy.dfpt.converters import abinit_to_phonopy
         anaddbnc_path = task.outpath_from_ext("anaddb.nc")
         anaddbnc = AnaddbNcFile(anaddbnc_path)
+
         phon = abinit_to_phonopy(anaddbnc=anaddbnc, supercell_matrix=supercell_matrix,
                                  symmetrize_tensors=symmetrize_tensors, output_dir_path=output_dir_path,
                                  prefix_outfiles=prefix_outfiles, symprec=symprec, set_masses=set_masses)
@@ -3137,8 +3148,8 @@ class DdbRobot(Robot):
         if all(ddb.has_at_least_one_atomic_perturbation() for ddb in self.abifiles):
             print("Invoking anaddb through anaget_phonon_plotters...")
             r = self.anaget_phonon_plotters()
-            #for fig in r.phbands_plotter.yield_figs(): yield fig
-            #for fig in r.phdos_plotter.yield_figs(): yield fig
+            #for fig in r.phbands_plotter.yield_plotly_figs(): yield fig
+            #for fig in r.phdos_plotter.yield_plotly_figs(): yield fig
             f(r.phbands_plotter.combiplotly(show=False))
 
         push_to_chart_studio(figs) if chart_studio else plotlyfigs_to_browser(figs)
@@ -3181,20 +3192,20 @@ class DdbRobot(Robot):
 def get_2nd_ord_block_string(qpt, data):
     """
     Helper function providing the lines required in a DDB file for a given
-    q point and second order derivatives.
+    q-point and second order derivatives.
 
     Args:
         qpt: the fractional coordinates of the q point.
         data: a dictionary of the form {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}
             with the data that should be given in the string.
 
-    Returns:
-        list of str: the lines that can be added to the DDB file.
+    Returns: list of str: the lines that can be added to the DDB file.
     """
     lines = []
     lines.append(f" 2nd derivatives (non-stat.)  - # elements :{len(data):8}")
     lines.append(" qpt{:16.8E}{:16.8E}{:16.8E}   1.0".format(*qpt))
     l_format = "{:4d}" * 4 + "  {:22.14E}" * 2
+
     for p, v in data.items():
         lines.append(l_format.format(*p, v.real, v.imag))
 

@@ -195,7 +195,7 @@ If everything is properly configured, a new window is automatically created in y
 def dfc(df,
         wdg_type="dataframe",
         #wdg_type="tabulator",  # More recent version
-        with_export_btn=True, with_controls=False, transpose=False, **kwargs):
+        with_export_btn=True, with_controls=False, with_divider=True, transpose=False, **kwargs):
     """
     Helper function returning a panel Column with a DataFrame or Tabulator widget followed by
     a divider and (optionally) controls to customize the figure.
@@ -203,8 +203,8 @@ def dfc(df,
     Note that not all the options work as exected. See comments below.
     """
     if "disabled" not in kwargs: kwargs["disabled"] = True
-    if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "stretch_width"
-    #if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "scale_width"
+    #if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "stretch_both"
+    if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "scale_width"
     if transpose:
         df = df.transpose()
 
@@ -212,16 +212,14 @@ def dfc(df,
         if "auto_edit" not in kwargs: kwargs["auto_edit"] = False
         w = pnw.DataFrame(df, **kwargs)
     elif wdg_type == "tabulator":
-        # This seems to be buggy
-        w = pnw.Tabulator(df, **kwargs) #theme="modern",
+        w = pnw.Tabulator(df, **kwargs)
     else:
         raise ValueError(f"Don't know how to handle widget type: `{wdg_type}`")
 
-    col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+    col = pn.Column(sizing_mode='stretch_both'); ca = col.append
     ca(w)
 
     if with_export_btn:
-
         # Define callbacks with closure.
         #clip_button = pnw.Button(name="Copy to clipboard")
         #def to_clipboard(event):
@@ -277,7 +275,7 @@ def dfc(df,
             file_download._transfer()
             #return file_download.callback()
 
-        # FIXME: Menu button occpies less space but the upload does not work
+        # FIXME: Menu button occupies less space but the upload does not work
         #menu_btn = pnw.MenuButton(name='Export to:', items=list(d.keys()))
         #menu_btn.on_click(download)
         #ca(menu_btn)
@@ -288,7 +286,8 @@ def dfc(df,
     if with_controls:
         ca(pn.Accordion(("dataframe controls", w.controls(jslink=True))))
 
-    ca(pn.layout.Divider())
+    if with_divider:
+        ca(pn.layout.Divider())
 
     return col
 
@@ -479,7 +478,7 @@ class HasStructureParams(AbipyParameterized):
     struct_view_btn = pnw.Button(name="View structure", button_type='primary')
     struct_viewer = pnw.Select(name="Select viewer", value="vesta",
                                options=["jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
-                                        "matplotlib", "ase_atoms", "mayavi"])
+                                        "matplotlib", "plotly", "ase_atoms", "mayavi"])
 
     @property
     def structure(self):
@@ -513,6 +512,9 @@ class HasStructureParams(AbipyParameterized):
             if v == "crystalk":
                 view = self.structure.get_crystaltk_view()
                 return pn.panel(view)
+
+            if v == "plotly":
+                return ply(self.structure.plotly(show=False))
 
             if v == "ngl":
                 #js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
@@ -780,13 +782,12 @@ class PanelWithElectronBands(AbipyParameterized):
                                       show=False)
             ca(ply(fig1))
 
-            ca("## Brillouin zone and k-path:")
+            ca("## Brillouin zone and **k**-path:")
             #kpath_pane = mpl(self.ebands.kpoints.plot(**self.mpl_kwargs), with_divider=False)
             kpath_pane = ply(self.ebands.kpoints.plotly(show=False), with_divider=False)
-            df_kpts = self.ebands.kpoints.get_highsym_datataframe()
+            df_kpts = dfc(self.ebands.kpoints.get_highsym_datataframe(), with_divider=False)
             ca(pn.Row(kpath_pane, df_kpts))
             ca(pn.layout.Divider())
-
             #ca(bkw.PreText(text=self.ebands.to_string(verbose=self.verbose)))
 
             return col
@@ -818,14 +819,30 @@ class PanelWithElectronBands(AbipyParameterized):
         with ButtonContext(self.plot_skw_btn):
             col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-            d = self.ebands.interpolate(lpratio=self.skw_lpratio.value, line_density=self.skw_line_density.value,
-                                        #vertices_names=None
-                                        kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None, verbose=0)
+            intp = self.ebands.interpolate(lpratio=self.skw_lpratio.value, line_density=self.skw_line_density.value,
+                                        kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
+                                        verbose=self.verbose)
 
-            ca("## SKW interpolated bands")
-            ca(ply(d.ebands_kpath.plotly(with_gaps=self.with_gaps.value, show=False)))
+            ca("## SKW interpolated bands along an automatically selected high-symmetry **k**-path")
+            ca(ply(intp.ebands_kpath.plotly(with_gaps=self.with_gaps.value, show=False)))
+
             if self.ebands_kpath is not None:
-                ca(ply(self.ebands_kpath.plotly(show=False)))
+                ca("## Input bands taken from file uploaded by user:")
+                ca(ply(self.ebands_kpath.plotly(with_gaps=self.with_gaps.value, show=False)))
+
+                # Ue line_density 0 to interpolate on the same set of k-points given in self.ebands_kpath
+                vertices_names = []
+                for kpt in self.ebands_kpath.kpoints:
+                    vertices_names.append((kpt.frac_coords, kpt.name))
+
+                intp = self.ebands.interpolate(lpratio=self.skw_lpratio.value, vertices_names=vertices_names, line_density=0,
+                                                kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
+                                                verbose=self.verbose)
+
+                plotter = self.ebands_kpath.get_plotter_with("Input", "Interpolated", intp.ebands_kpath)
+                ca("## Input bands vs SKW interpolated bands:")
+                ca(mpl(plotter.combiplot(show=False)))
+                #ca(mpl(plotter.combiplotly(show=False)))
 
             return col
 
@@ -873,7 +890,6 @@ class PanelWithElectronBands(AbipyParameterized):
     #        #eb3d.to_bxsf("mgb2.bxsf")
     #        # If you have mayavi installed, try:
     #        #eb3d.mvplot_isosurfaces()
-
 
 
 class BaseRobotPanel(AbipyParameterized):

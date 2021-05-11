@@ -131,13 +131,26 @@ class AbinitNcFile(BaseFile):
     according to the ETSF-IO specifications (when available).
     An AbinitNcFile has a netcdf reader to read data from file and build objects.
     """
+
+    #@classmethod
+    #def from_binary_string(bstring):
+    #    """
+    #    Build object from a binary string with the netcdf data.
+    #    Useful for implementing GUIs in which widgets returns binary data.
+    #    """
+    #    workdir = tempfile.mkdtemp()
+    #    fd, tmp_path = tempfile.mkstemp(suffix=".nc")
+    #    with open(tmp_path, "wb") as fh:
+    #        fh.write(bstring)
+    #        return cls.from_file(tmp_path)
+
     def ncdump(self, *nc_args, **nc_kwargs):
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
 
     @lazy_property
     def abinit_version(self):
-        """String with abinit version: three digits separated by comma."""
+        """String with the abinit version: three digits separated by comma."""
         return self.reader.rootgrp.getncattr("abinit_version")
 
     @abc.abstractproperty
@@ -294,6 +307,10 @@ class Has_Structure(metaclass=abc.ABCMeta):
         """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
         yield self.structure.plot(show=False)
 
+    def yield_structure_plotly_figs(self, **kwargs):
+        """*Generates* a predefined list of plotly figures with minimal input from the user."""
+        yield self.structure.plotly(show=False)
+
 
 class Has_ElectronBands(metaclass=abc.ABCMeta):
     """Mixin class for |AbinitNcFile| containing electron data."""
@@ -380,22 +397,30 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
             yield edos.plot(show=False)
 
     def yield_ebands_plotly_figs(self, **kwargs):
-        """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
+        """*Generates* a predefined list of plotly figures with minimal input from the user."""
         with_gaps = not self.ebands.has_metallic_scheme
         if self.ebands.kpoints.is_path:
             yield self.ebands.plotly(with_gaps=with_gaps, show=False)
+            yield self.ebands.kpoints.plotly(show=False)
             yield self.ebands.kpoints.plot(show=False)
         else:
             edos = self.ebands.get_edos()
-            yield self.ebands.plot_with_edos(edos, with_gaps=with_gaps, show=False)
-            yield edos.plot(show=False)
+            # TODO
+            #yield self.ebands.plotly_with_edos(edos, with_gaps=with_gaps, show=False)
+            yield edos.plotly(show=False)
 
-    def expose_ebands(self, slide_mode=False, slide_timeout=None, **kwargs):
+    def expose_ebands(self, slide_mode=False, slide_timeout=None, expose_web=False, **kwargs):
         """
         Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.
         """
-        from abipy.tools.plotting import MplExpose
-        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+        from abipy.tools.plotting import MplExpose, PanelExpose
+
+        if expose_web:
+            e = PanelExpose(title=f"e-Bands of {self.structure.formula}")
+        else:
+            e = MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1)
+
+        with e:
             e(self.yield_ebands_figs(**kwargs))
 
     #def plotly_expose_ebands(self, **kwargs):
@@ -452,7 +477,7 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         Used in abiview.py to get a quick look at the results.
         """
         units = kwargs.get("units", "mev")
-        yield self.phbands.qpoints.plot(show=False)
+        yield self.phbands.qpoints.plotly(show=False)
         yield self.phbands.plotly(units=units, show=False)
         yield self.phbands.plot_colored_matched(units=units, show=False)
 
@@ -769,12 +794,32 @@ abilab.enable_notebook(with_seaborn=True)
     #    Used in abiview.py to get a quick look at the results.
     #    """
 
-    def expose(self, slide_mode=False, slide_timeout=None, web=True, **kwargs):
+    def _get_panel_and_template(self):
+        # Create panel template with matplotlib figures and show them in the browser.
+        import panel as pn
+        pn.config.sizing_mode = 'stretch_width'
+        from abipy.panels.core import get_template_cls_from_name
+        cls = get_template_cls_from_name("FastGridTemplate")
+
+        title = self.__class__.__name__
+        if hasattr(self, "structure"): title = f"{title} <small>({self.structure.formula})</small>"
+        template = cls(
+            title=title,
+            header_background="#ff8c00 ", # Dark orange
+        )
+
+        return pn, template
+
+    def expose(self, slide_mode=False, slide_timeout=None, use_web=False, **kwargs):
         """
         Shows a predefined list of matplotlib figures with minimal input from the user.
         Relies on the ``yield_fig``s methods implemented by the subclass to generate matplotlib figures.
+
+        Args:
+            use_web: True to show all figures inside a panel template executed in the local browser.
+               False to show figures in different GUIs
         """
-        if not web:
+        if not use_web:
             # Produce all matplotlib versions and show them with the X-server.
             from abipy.tools.plotting import MplExpose
             with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
@@ -782,18 +827,9 @@ abilab.enable_notebook(with_seaborn=True)
 
         else:
             # Create panel template with matplotlib figures and show them in the browser.
-            import panel as pn
+            pn, template = self._get_panel_and_template()
             pn.config.sizing_mode = 'stretch_width'
-            from abipy.panels.core import mpl, get_template_cls_from_name
-            cls = get_template_cls_from_name("FastGridTemplate")
-
-            title = self.__class__.__name__
-            if hasattr(self, "structure"): title = f"{title} <small>({self.structure.formula})</small>"
-            template = cls(
-                title=title,
-                header_background="#ff8c00 ", # Dark orange
-            )
-
+            from abipy.panels.core import mpl
             for i, fig in enumerate(self.yield_figs()):
                 row, col = divmod(i, 2)
                 p = mpl(fig, with_divider=False)
@@ -814,20 +850,12 @@ abilab.enable_notebook(with_seaborn=True)
         """
         print("in plotly expose")
 
-        import panel as pn
+        pn, template = self._get_panel_and_template()
         pn.config.sizing_mode = 'stretch_width'
-        from abipy.panels.core import mpl, ply, get_template_cls_from_name
-        from abipy.tools.plotting import is_mpl_figure, is_plotly_figure
-        cls = get_template_cls_from_name("FastGridTemplate")
-
-        title = self.__class__.__name__
-        if hasattr(self, "structure"): title = f"{title} <small>({self.structure.formula})</small>"
-        template = cls(
-            title=title,
-            header_background="#ff8c00 ", # Dark orange
-        )
+        from abipy.panels.core import mpl, ply
 
         # Insert figure in template.main.
+        from abipy.tools.plotting import is_mpl_figure, is_plotly_figure
         for i, fig in enumerate(self.yield_plotly_figs()):
             row, col = divmod(i, 2)
             # Handle both matplotlib and plotly figures since we dont' support plotly everywhere.

@@ -1,6 +1,7 @@
 
 Release 0.9.1: 
 
+   * Add  "-ew", "--expose-web",
    * abiopen, abiview and abicom now supports --plotly to produce plotly figures in the local browser 
      and --chart-studio to push the figure to the chart studio service.
      Note that, at present, only DDB files support plotly.

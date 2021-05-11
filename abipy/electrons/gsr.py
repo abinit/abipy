@@ -249,10 +249,8 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         This function *generates* a predefined list of plotly figures with minimal input from the user.
         """
-        yield self.structure.plotly_bz(show=False)
         for fig in self.yield_ebands_plotly_figs(**kwargs): yield fig
-        #for fig in self.yield_structure_figs(**kwargs): yield fig
-        #yield self.structure.plotly(show=False)
+        for fig in self.yield_structure_plotly_figs(**kwargs): yield fig
 
     def write_notebook(self, nbpath=None):
         """
@@ -604,7 +602,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
 
-        Example:
+        Example::
 
              robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
         """
@@ -631,7 +629,7 @@ class GsrRobot(Robot, RobotWithEbands):
         Build panel with widgets to interact with the |GsrRobot| either in a notebook or in panel app.
         """
         from abipy.panels.gsr import GsrRobotPanel
-        return GsrRobotPanel(self).get_panel()
+        return GsrRobotPanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """

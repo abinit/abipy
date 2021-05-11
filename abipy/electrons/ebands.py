@@ -344,6 +344,18 @@ class ElectronBands(Has_Structure):
         return new
 
     @classmethod
+    #def from_binary_string(bstring):
+    #    """
+    #    Build object from a binary string with the netcdf data.
+    #    Useful for implementing GUIs in which widgets returns binary data.
+    #    """
+    #    workdir = tempfile.mkdtemp()
+    #    fd, tmp_path = tempfile.mkstemp(suffix=".nc")
+    #    with open(tmp_path, "wb") as fh:
+    #        fh.write(bstring)
+    #        return cls.from_file(tmp_path)
+
+    @classmethod
     def from_dict(cls, d):
         """Reconstruct object from the dictionary in MSONable format produced by as_dict."""
         d = d.copy()
@@ -583,6 +595,16 @@ class ElectronBands(Has_Structure):
             return plotter
 
     __radd__ = __add__
+
+    def get_plotter_with(self, self_key, other_key, other_ebands):
+        """
+        Build and |ElectronBandsPlotter| from self and other, use self_key and other_key as keywords
+        """
+        plotter = ElectronBandsPlotter()
+        plotter.add_ebands(self_key, self)
+        plotter.add_ebands(other_key, other_ebands)
+
+        return plotter
 
     # Handy variables used to loop
     @property
@@ -2718,7 +2740,7 @@ class ElectronBands(Has_Structure):
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
                 The default should be OK in many systems, larger values may be required for accurate derivatives.
-            knames: List of strings with the k-point labels for the k-path. Has precedence over vertices_names.
+            knames: List of strings with the k-point labels for the k-path. Has precedence over ``vertices_names``.
             vertices_names: Used to specify the k-path for the interpolated band structure
                 It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
@@ -2726,6 +2748,7 @@ class ElectronBands(Has_Structure):
                 the density of the sampling. If None, the k-path is automatically generated according
                 to the point group of the system.
             line_density: Number of points in the smallest segment of the k-path.
+                If 0, use list of k-points given in vertices_names
             kmesh: Used to activate the interpolation on the homogeneous mesh for DOS (uses spglib_ API).
                 kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.
             is_shift: three integers (spglib_ API). When is_shift is not None, the kmesh is shifted along
@@ -2982,6 +3005,13 @@ class ElectronBandsPlotter(NotebookWriter):
         """
         for mname in ("gridplot", "boxplot"):
             yield getattr(self, mname)(show=False)
+
+    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+    #    """
+    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+    #    """
+    #    for mname in ("gridplot", "boxplot"):
+    #        yield getattr(self, mname)(show=False)
 
     @add_fig_kwargs
     def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=8,
