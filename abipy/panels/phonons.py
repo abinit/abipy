@@ -8,17 +8,18 @@ from abipy.panels.core import AbipyParameterized, ButtonContext, mpl, ply, dfc
 
 class PhononBandsPlotterPanel(AbipyParameterized):
 
-    phbands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
-                                      options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
-    phbands_plotter_units = pnw.Select(name="Units", value="eV",
-                                       options=["eV", "meV", "Ha", "cm-1", "Thz"])
-    phbands_plotter_btn = pnw.Button(name="Plot", button_type='primary')
-
     def __init__(self, plotter, **params):
-        super().__init__(**params)
-        self.plotter = plotter
 
-    @param.depends("phbands_plotter_btn.clicks")
+        self.phbands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
+                                          options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
+        self.phbands_plotter_units = pnw.Select(name="Units", value="eV",
+                                           options=["eV", "meV", "Ha", "cm-1", "Thz"])
+        self.phbands_plotter_btn = pnw.Button(name="Plot", button_type='primary')
+
+        self.plotter = plotter
+        super().__init__(**params)
+
+    @pn.depends("phbands_plotter_btn.clicks")
     def on_phbands_plot_btn(self):
         if self.phbands_plotter_btn.clicks == 0: return
 

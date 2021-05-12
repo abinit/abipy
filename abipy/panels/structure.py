@@ -12,63 +12,66 @@ class StructurePanel(HasStructureParams):
     """
     Panel with widgets to interact with an AbiPy Structure
     """
-    # Convert widgets.
-    output_format = pnw.Select(name="format", value="abinit",
-                               options="abinit,cif,xsf,poscar,qe,siesta,wannier90,cssr,json".split(","))
-
-    # Spglib widgets
-    spglib_symprec = pnw.Spinner(name="symprec", value=0.01, start=0.0, end=None, step=0.01)
-    spglib_angtol = pnw.Spinner(name="angtol", value=5, start=0.0, end=None, step=1)
-
-    # K-path widgets
-    kpath_format = pnw.Select(name="format", value="abinit", options=["abinit", "siesta", "wannier90"])
-    line_density = pnw.Spinner(name="line density", value=10, step=5, start=0, end=None)
-    plot_kpath = pnw.Checkbox(name='Plot k-path', value=False)
-
-    # MP-match
-    mp_match_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
-
-    # MP-search
-    #mp_search_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
-    #mp_api_key
-
-    # GS input generator widgets.
-    gs_input_btn = pnw.Button(name="Generate input", button_type='primary')
-    gs_type = pnw.Select(name="GS type", value="scf", options=["scf", "relax"])
-    kppra = pnw.Spinner(name="kppra", value=1000, step=1000, start=0, end=None)
-
-    label2mode = {
-        "unpolarized": 'unpolarized',
-        "polarized": 'polarized',
-        "anti-ferromagnetic": "afm",
-        "non-collinear with magnetism": "spinor",
-        "non-collinear, no magnetism": "spinor_nomag",
-    }
-
-    spin_mode = pnw.Select(name="SpinMode", value="unpolarized", options=list(label2mode.keys()))
 
     def __init__(self, structure,  **params):
-        super().__init__(**params)
+
         self._structure = structure
+
+        # Convert widgets.
+        self.output_format = pnw.Select(name="format", value="abinit",
+                                        options="abinit,cif,xsf,poscar,qe,siesta,wannier90,cssr,json".split(","))
+
+        # Spglib widgets
+        self.spglib_symprec = pnw.Spinner(name="symprec", value=0.01, start=0.0, end=None, step=0.01)
+        self.spglib_angtol = pnw.Spinner(name="angtol", value=5, start=0.0, end=None, step=1)
+
+        # K-path widgets
+        self.kpath_format = pnw.Select(name="format", value="abinit", options=["abinit", "siesta", "wannier90"])
+        self.line_density = pnw.Spinner(name="line density", value=10, step=5, start=0, end=None)
+        self.plot_kpath = pnw.Checkbox(name='Plot k-path', value=False)
+
+        # MP-match
+        self.mp_match_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
+
+        # MP-search
+        #mp_search_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
+        #mp_api_key
+
+        # GS input generator widgets.
+        self.gs_input_btn = pnw.Button(name="Generate input", button_type='primary')
+        self.gs_type = pnw.Select(name="GS type", value="scf", options=["scf", "relax"])
+        self.kppra = pnw.Spinner(name="kppra", value=1000, step=1000, start=0, end=None)
+
+        self.label2mode = {
+            "unpolarized": 'unpolarized',
+            "polarized": 'polarized',
+            "anti-ferromagnetic": "afm",
+            "non-collinear with magnetism": "spinor",
+            "non-collinear, no magnetism": "spinor_nomag",
+        }
+
+        self.spin_mode = pnw.Select(name="SpinMode", value="unpolarized", options=list(self.label2mode.keys()))
+
+        super().__init__(**params)
 
     @property
     def structure(self):
         return self._structure
 
-    @param.depends("output_format.value")
+    @pn.depends("output_format.value")
     def convert(self):
         """Convert the input structure to one of the format selected by the user."""
         s = self.structure.convert(fmt=self.output_format.value)
         return self.html_with_clipboard_btn(f"<pre> {s} </pre>")
 
-    @param.depends("spglib_symprec.value", "spglib_angtol.value")
+    @pn.depends("spglib_symprec.value", "spglib_angtol.value")
     def spglib_summary(self):
         """Call spglib to find space group symmetries and Wyckoff positions."""
         s = self.structure.spget_summary(symprec=self.spglib_symprec.value,
                                          angle_tolerance=self.spglib_angtol.value)
         return pn.Row(bkw.PreText(text=s, sizing_mode='stretch_width'))
 
-    @param.depends("kpath_format.value", "line_density.value")
+    @pn.depends("kpath_format.value", "line_density.value")
     def get_kpath(self):
         """Generate high-symmetry k-path from input structure in ABINIT format.."""
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
@@ -86,7 +89,7 @@ class StructurePanel(HasStructureParams):
 
         return col
 
-    @param.depends("gs_input_btn.clicks")
+    @pn.depends("gs_input_btn.clicks")
     def on_gs_input_btn(self):
         """Generate minimalistic input file from the input structure."""
         if self.gs_input_btn.clicks == 0: return
@@ -113,7 +116,7 @@ class StructurePanel(HasStructureParams):
 
             return self.html_with_clipboard_btn(gs_inp._repr_html_())
 
-    @param.depends("mp_match_btn.clicks")
+    @pn.depends("mp_match_btn.clicks")
     def on_mp_match_btn(self):
         """Match input structure with the structures available on the materials project."""
         if self.mp_match_btn.clicks == 0: return
@@ -159,7 +162,7 @@ class StructurePanel(HasStructureParams):
         )))
         app(self.get_struct_view_tab_entry())
         app(("GS-input", pn.Row(
-            self..pws_col(['### Generate GS input', "gs_type", "spin_mode", "kppra", "gs_input_btn",
+            self.pws_col(['### Generate GS input', "gs_type", "spin_mode", "kppra", "gs_input_btn",
                            self.helpc("on_gs_input_btn")]),
             self.on_gs_input_btn
         )))

@@ -373,11 +373,11 @@ class AbipyParameterized(param.Parameterized):
     # mode = "webapp" This flag may be used to limit the user and/or decide the options that should
     # be exposed. For instance structure_viewer == "Vesta" does not make sense in webapp mode
 
-#    warning = pn.pane.Markdown(
-#"""
-#Please **refresh** the page using the refresh button of the browser if plotly figures are not shown.
-#""")
-#
+    warning = pn.pane.Markdown(
+"""
+Please **refresh** the page using the refresh button of the browser if plotly figures are not shown.
+""")
+
 
     #def __repr__(self):
     #    # https://github.com/holoviz/param/issues/396
@@ -748,12 +748,12 @@ class PanelWithElectronBands(AbipyParameterized):
 
     def __init__(self, **params):
 
-        super().__init__(**params)
-
         # Create buttons
         self.plot_ebands_btn = pnw.Button(name="Plot e-bands", button_type='primary')
         self.plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type='primary')
         self.plot_skw_btn = pnw.Button(name="Plot SKW interpolant", button_type='primary')
+
+        super().__init__(**params)
 
     @property
     def ebands(self):
@@ -808,6 +808,7 @@ class PanelWithElectronBands(AbipyParameterized):
         """Column with widgets associated to the e-DOS computation."""
         return self.pws_col(["edos_method", "edos_step_ev", "edos_width_ev", "plot_edos_btn"])
 
+    #depends_on_btn_click('plot_edos_btn')
     @pn.depends('plot_edos_btn.clicks')
     def on_plot_edos_btn(self):
         """Button triggering edos plot."""
@@ -909,8 +910,11 @@ class PanelWithElectronBands(AbipyParameterized):
 class BaseRobotPanel(AbipyParameterized):
     """Base class for panels with AbiPy robot."""
 
-    compare_params_btn = pnw.Button(name="Compare structures", button_type='primary')
-    transpose_params = pnw.Checkbox(name='Transpose tables')
+    def __init__(self, **params):
+        self.compare_params_btn = pnw.Button(name="Compare structures", button_type='primary')
+        self.transpose_params = pnw.Checkbox(name='Transpose tables')
+
+        super().__init__(**params)
 
     @pn.depends("compare_params_btn.clicks")
     def on_compare_params_btn(self):
@@ -953,16 +957,20 @@ class PanelWithEbandsRobot(BaseRobotPanel):
     Mixin class for panels with a robot that owns a list of of |ElectronBands|
     """
 
-    # Widgets to plot ebands.
-    ebands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
-        options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
-    ebands_plotter_btn = pnw.Button(name="Plot", button_type='primary')
-    ebands_df_checkbox = pnw.Checkbox(name='With Ebands DataFrame', value=False)
+    def __init__(self, **params):
 
-    # Widgets to plot edos.
-    edos_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
-        options=["gridplot", "combiplot"])
-    edos_plotter_btn = pnw.Button(name="Plot", button_type='primary')
+        # Widgets to plot ebands.
+        self.ebands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
+            options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
+        self.ebands_plotter_btn = pnw.Button(name="Plot", button_type='primary')
+        self.ebands_df_checkbox = pnw.Checkbox(name='With Ebands DataFrame', value=False)
+
+        # Widgets to plot edos.
+        self.edos_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
+            options=["gridplot", "combiplot"])
+        self.edos_plotter_btn = pnw.Button(name="Plot", button_type='primary')
+
+        super().__init__(**params)
 
     def get_ebands_plotter_widgets(self):
         return pn.Column(self.ebands_plotter_mode, self.ebands_df_checkbox, self.ebands_plotter_btn)

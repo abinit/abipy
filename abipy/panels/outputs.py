@@ -37,7 +37,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
         return box
 
-    def get_panel(self):
+    def get_panel(selfm **kwargs):
         """Return tabs with widgets to interact with the Abinit output file."""
         tabs = pn.Tabs(); app = tabs.append
 
@@ -57,4 +57,4 @@ class AbinitOutputFilePanel(AbipyParameterized):
         #timer = self.get_timer()
         #timer.plot_all(**self.mpl_kwargs)
 
-        return tabs
+        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))

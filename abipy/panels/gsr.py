@@ -96,7 +96,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
         super().__init__(**params)
         self.robot = robot
 
-    @param.depends("gsr_dataframe_btn.clicks")
+    @pn.depends("gsr_dataframe_btn.clicks")
     def on_gsr_dataframe_btn(self):
         if self.gsr_dataframe_btn.clicks == 0: return
 

@@ -13,8 +13,8 @@ class FatBandsFilePanel(PanelWithElectronBands):
     Panel with widgets to interact with a |FatBandsFile|.
     """
     def __init__(self, ncfile, **params):
-        super().__init__(**params)
         self._ncfile = ncfile
+        super().__init__(**params)
 
     @property
     def ncfile(self):

@@ -1,6 +1,7 @@
 """"Panels for HIST files."""
 import param
 import panel as pn
+import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from abipy.panels.core import AbipyParameterized, ButtonContext, mpl, ply
@@ -13,24 +14,23 @@ class HistFilePanel(AbipyParameterized):
     """
     Panel with widgets to interact with a |HistFile|.
     """
-    what_list = pn.widgets.CheckBoxGroup(name="Select", value=_what_list, options=_what_list, inline=False)
-    plot_relax_btn = pn.widgets.Button(name="Show relaxation", button_type="primary")
-
-    sizing_mode = "stretch_width"
-
-    appname = pn.widgets.Select(name="Viewer", value="ovito", options=["ovito", "mayavi", "vtk"])
-    to_unit_cell = pn.widgets.Checkbox(name="To unit cell")
-    view_relax_btn = pn.widgets.Button(name="View relaxation", button_type="primary")
 
     def __init__(self, hist, **params):
-        super().__init__(**params)
         self.hist = hist
+        self.what_list = pnw.CheckBoxGroup(name="Select", value=_what_list, options=_what_list, inline=False)
+        self.plot_relax_btn = pnw.Button(name="Show relaxation", button_type="primary")
+
+        self.appname = pnw.Select(name="Viewer", value="ovito", options=["ovito", "mayavi", "vtk"])
+        self.to_unit_cell = pnw.Checkbox(name="To unit cell")
+        self.view_relax_btn = pnw.Button(name="View relaxation", button_type="primary")
+
+        super().__init__(**params)
 
     def get_plot_relax_widgets(self):
         """Widgets to visualize the structure relaxation."""
-        return pn.Column(self.what_list, self.sizing_mode, self.plot_relax_btn)
+        return pn.Column(self.what_list, self.plot_relax_btn, sizing_mode="stretch_width")
 
-    @param.depends('plot_relax_btn.clicks')
+    @pn.depends('plot_relax_btn.clicks')
     def on_plot_relax_btn(self):
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
@@ -53,7 +53,7 @@ class HistFilePanel(AbipyParameterized):
             return box
             #return pn.Column(box, box.controls(jslink=True))
 
-    @param.depends('view_relax_btn.clicks')
+    @pn.depends('view_relax_btn.clicks')
     def on_view_relax_btn(self):
         if self.view_relax_btn.clicks == 0: return
 
@@ -67,8 +67,7 @@ class HistFilePanel(AbipyParameterized):
         app(("Summary", pn.Row(bkw.PreText(text=self.hist.to_string(verbose=self.verbose),
                                sizing_mode="scale_both"))))
 
-        app(("Relaxation", pn.Row(self.get_plot_relax_widgets(),
-                                 self.on_plot_relax_btn)))
+        app(("Relaxation", pn.Row(self.get_plot_relax_widgets(), self.on_plot_relax_btn)))
 
         app(("Visualize", pn.Row(pn.Column(self.appname, self.to_unit_cell, self.view_relax_btn),
                                  self.on_view_relax_btn)))
