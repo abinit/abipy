@@ -172,7 +172,7 @@ If everything is properly configured, a new window is automatically created in y
 
         btn = pnw.Button(name="Upload to chart studio server")
         def push_to_cs(event):
-            with ButtonContext(bnt):
+            with ButtonContext(btn):
                 push_to_chart_studio(fig)
         btn.on_click(push_to_cs)
 
@@ -317,7 +317,7 @@ class ButtonContext(object):
     A context manager for buttons triggering computations on the server.
 
     This manager disables the button when we __enter__ and changes the name of the button to "running".
-    It reverts to the initial state of the button one __exit__ is invoked, showing the Exception type
+    It reverts to the initial state of the button ocne __exit__ is invoked, showing the Exception type
     in a "red" button if an exception is raised during the computation.
 
     This a very important tool because we need to disable the button when we start the computation
@@ -338,7 +338,7 @@ class ButtonContext(object):
 
     def __enter__(self):
         # Disable the button.
-        self.btn.name = "Running ..."
+        self.btn.name = "Executing ..."
         self.btn.button_type = "warning"
         self.btn.disabled = True
         return self.btn
@@ -348,11 +348,11 @@ class ButtonContext(object):
         self.btn.disabled = False
 
         if exc_type:
-            # Exception --> signal to the user that something went wrong for 4 seconds.
+            # Exception --> signal to the user that something went wrong for 2 seconds.
             self.btn.name = str(exc_type)
             self.btn.button_type = "danger"
             import time
-            time.sleep(3)
+            time.sleep(2)
 
         # Back to the original button state.
         self.btn.name, self.btn.button_type = self.prev_name, self.prev_type
@@ -368,16 +368,16 @@ class AbipyParameterized(param.Parameterized):
     """
 
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
-    mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used for running Abinit")
+    mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used for running Fortran code.")
 
     # mode = "webapp" This flag may be used to limit the user and/or decide the options that should
     # be exposed. For instance structure_viewer == "Vesta" does not make sense in webapp mode
 
-    warning = pn.pane.Markdown(
-"""
-Please **refresh** the page using the refresh button of the browser if plotly figures are not shown.
-""")
-
+#    warning = pn.pane.Markdown(
+#"""
+#Please **refresh** the page using the refresh button of the browser if plotly figures are not shown.
+#""")
+#
 
     #def __repr__(self):
     #    # https://github.com/holoviz/param/issues/396
@@ -388,7 +388,13 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
         """Default arguments passed to AbiPy matplotlib plot methods."""
         return dict(show=False, fig_close=True)
 
-    def pws(self, *keys):
+    def pws_col(self, keys):
+        return pn.Column(*self.pws(keys))
+
+    #def pws_row(self, keys):
+    #    return pn.Row(*self.pws(keys))
+
+    def pws(self, keys):
         """
         Helper function returning the list of parameters and widgets defined in self from a list of strings.
         Accepts also widget or parameter instances.
@@ -400,6 +406,9 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
                     items.append(self.param[k])
                 elif hasattr(self, k):
                     items.append(getattr(self, k))
+                elif k.startswith("#"):
+                    # Markdown string
+                    items.append(k)
                 else:
                     miss.append(k)
             else:
@@ -407,7 +416,7 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
                 items.append(k)
 
         if miss:
-            raise ValueError("Cannot find `%s` in param or in attribute space" % str(miss))
+            raise ValueError(f"Cannot find `{str(miss)}` in param or in attribute space")
 
         return items
 
@@ -613,9 +622,8 @@ class HasStructureParams(AbipyParameterized):
         Return tab entry to visualize the structure.
         """
         return ("Structure", pn.Row(
-            pn.Column("# Visualize structure",
-                      *self.pws("structure_viewer", self.helpc("view_structure"))),
-                       pn.Column(self.view_structure, self.get_structure_info())
+            self.pws_col(["### Visualize structure", "structure_viewer", self.helpc("view_structure")]),
+            pn.Column(self.view_structure, self.get_structure_info())
         ))
 
     def get_structure_info(self):
@@ -708,27 +716,23 @@ class PanelWithElectronBands(AbipyParameterized):
     """
 
     # Bands plot
-    with_gaps = pnw.Checkbox(name='show gaps')
+    with_gaps = param.Boolean(False)
     #ebands_ylims
     #ebands_e0
     # e0: Option used to define the zero of energy in the band structure plot. Possible values:
     #     - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
     #     -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
     #     -  None: Don't shift energies, equivalent to e0=0
-    set_fermie_to_vbm = pnw.Checkbox(name="Set Fermie to VBM")
-
-    plot_ebands_btn = pnw.Button(name="Plot e-bands", button_type='primary')
+    set_fermie_to_vbm = param.Boolean(False, doc="Set Fermie to VBM")
 
     # e-DOS plot.
-    edos_method = pnw.Select(name="e-DOS method", options=["gaussian", "tetra"])
-    edos_step = pnw.Spinner(name='e-DOS step (eV)', value=0.1, step=0.05, start=1e-6, end=None)
-    edos_width = pnw.Spinner(name='e-DOS Gaussian broadening (eV)', value=0.2, step=0.05, start=1e-6, end=None)
-    plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type='primary')
+    edos_method = param.ObjectSelector(default="gaussian", objects=["gaussian", "tetra"], doc="e-DOS method")
+    edos_step_ev = param.Number(0.1, bounds=(1e-6, None), step=0.1, doc='e-DOS step in eV')
+    edos_width_ev = param.Number(0.2, step=0.05, bounds=(1e-6, None), doc='e-DOS Gaussian broadening in eV' )
 
-    # SKW interpolation of KS band energies.
-    skw_lpratio = pnw.IntInput(name='lpratio', value=5, step=1, start=1, end=None)
-    skw_line_density = pnw.IntInput(name='skw_linedensity', value=20, step=1, start=1, end=None)
-    plot_skw_btn = pnw.Button(name="Plot SKW", button_type='primary')
+    # SKW interpolation of the KS band energies.
+    skw_lpratio = param.Integer(5, bounds=(1, None))
+    skw_line_density = param.Integer(20)
 
     # For the max size of file see: https://github.com/holoviz/panel/issues/1559
     ebands_kpath = None
@@ -739,8 +743,17 @@ class PanelWithElectronBands(AbipyParameterized):
     ebands_kmesh_fileinput = param.FileSelector()
 
     # Fermi surface plotter.
-    fs_viewer = pnw.Select(name="FS viewer", options=["matplotlib", "xcrysden"])
+    fs_viewer = param.ObjectSelector(default=None, objects=[None, "matplotlib", "xcrysden"])
     plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
+
+    def __init__(self, **params):
+
+        super().__init__(**params)
+
+        # Create buttons
+        self.plot_ebands_btn = pnw.Button(name="Plot e-bands", button_type='primary')
+        self.plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type='primary')
+        self.plot_skw_btn = pnw.Button(name="Plot SKW interpolant", button_type='primary')
 
     @property
     def ebands(self):
@@ -755,29 +768,29 @@ class PanelWithElectronBands(AbipyParameterized):
         print(type(self.ebands_kpath_fileinput))
         bstring = self.ebands_kpath_fileinput
 
-        #with ButtonContext(self.ebands_kpath_fileinpu):
+        #with ButtonContext(self.ebands_kpath_fileinput):
         from abipy.electrons import ElectronBands
         self.ebands_kpath = ElectronBands.from_binary_string(bstring)
 
     def get_plot_ebands_widgets(self):
         """Column with the widgets used to plot ebands."""
-        return pn.Column(self.with_gaps, self.set_fermie_to_vbm, self.plot_ebands_btn)
+        return self.pws_col(["with_gaps", "set_fermie_to_vbm", "plot_ebands_btn"])
 
     @pn.depends('plot_ebands_btn.clicks')
-    def on_plot_ebands_btn(self):
+    def on_plot_ebands_btn(self, *args):
         """Button triggering ebands plot."""
+        print("In on_plot_ebands_btn")
+        print("clicks:", self.plot_ebands_btn.clicks)
+        print("value:", self.plot_ebands_btn.value)
         if self.plot_ebands_btn.clicks == 0: return
 
         with ButtonContext(self.plot_ebands_btn):
-            if self.set_fermie_to_vbm.value:
+            if self.set_fermie_to_vbm:
                 self.ebands.set_fermie_to_vbm()
-
-            #fig1 = self.ebands.plot(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None,
-            #                        fontsize=8, **self.mpl_kwargs)
 
             col = pn.Column(sizing_mode='stretch_width'); ca = col.append
             ca("## Electronic band structure:")
-            fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None,
+            fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps, max_phfreq=None,
                                       show=False)
             ca(ply(fig1))
 
@@ -792,49 +805,47 @@ class PanelWithElectronBands(AbipyParameterized):
             return col
 
     def get_plot_edos_widgets(self):
-        """Widgets to compute the e-DOS."""
-        return pn.Column(self.edos_method, self.edos_step, self.edos_width, self.plot_edos_btn)
+        """Column with widgets associated to the e-DOS computation."""
+        return self.pws_col(["edos_method", "edos_step_ev", "edos_width_ev", "plot_edos_btn"])
 
     @pn.depends('plot_edos_btn.clicks')
     def on_plot_edos_btn(self):
         """Button triggering edos plot."""
         if self.plot_edos_btn.clicks == 0: return
-
         with ButtonContext(self.plot_edos_btn):
-            edos = self.ebands.get_edos(method=self.edos_method.value,
-                                        step=self.edos_step.value, width=self.edos_width.value)
+            edos = self.ebands.get_edos(method=self.edos_method,
+                                        step=self.edos_step_ev, width=self.edos_width_ev)
 
             return pn.Row(mpl(edos.plot(**self.mpl_kwargs)), sizing_mode='scale_width')
             #return pn.Row(ply(edos.plotly(show=False))), sizing_mode='scale_width')
 
     @pn.depends('plot_skw_btn.clicks')
-    def on_skw_btn(self):
+    def on_plot_skw_btn(self):
         """
         """
         if self.plot_skw_btn.clicks == 0: return
         print("ebands_kpath:", self.ebands_kpath)
         #print("ebands_kpath.filename:", self.ebands_kpath_fileinput.filename)
-
         with ButtonContext(self.plot_skw_btn):
             col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-            intp = self.ebands.interpolate(lpratio=self.skw_lpratio.value, line_density=self.skw_line_density.value,
-                                        kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
-                                        verbose=self.verbose)
+            intp = self.ebands.interpolate(lpratio=self.skw_lpratio, line_density=self.skw_line_density,
+                                           kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
+                                           verbose=self.verbose)
 
             ca("## SKW interpolated bands along an automatically selected high-symmetry **k**-path")
-            ca(ply(intp.ebands_kpath.plotly(with_gaps=self.with_gaps.value, show=False)))
+            ca(ply(intp.ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
 
             if self.ebands_kpath is not None:
                 ca("## Input bands taken from file uploaded by user:")
-                ca(ply(self.ebands_kpath.plotly(with_gaps=self.with_gaps.value, show=False)))
+                ca(ply(self.ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
 
-                # Ue line_density 0 to interpolate on the same set of k-points given in self.ebands_kpath
+                # Use line_density 0 to interpolate on the same set of k-points given in self.ebands_kpath
                 vertices_names = []
                 for kpt in self.ebands_kpath.kpoints:
                     vertices_names.append((kpt.frac_coords, kpt.name))
 
-                intp = self.ebands.interpolate(lpratio=self.skw_lpratio.value, vertices_names=vertices_names, line_density=0,
+                intp = self.ebands.interpolate(lpratio=self.skw_lpratio, vertices_names=vertices_names, line_density=0,
                                                 kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
                                                 verbose=self.verbose)
 
@@ -848,24 +859,28 @@ class PanelWithElectronBands(AbipyParameterized):
     def get_plot_skw_widgets(self):
         """Widgets to compute e-DOS."""
 
-        foo = self.ebands_kmesh_fileinput = pn.Param(
+        wdg = self.ebands_kmesh_fileinput = pn.Param(
             self.param['ebands_kpath_fileinput'],
             widgets={'ebands_kpath_fileinput': pn.widgets.FileInput}
         )
 
-        return pn.Row(pn.Column(
-            self.skw_lpratio, self.skw_line_density, self.with_gaps, foo,
-            #self.ebands_kmesh_fileinput,
-            self.plot_skw_btn),
-            self.on_skw_btn)
+        return pn.Row(
+            self.pws_col(["skw_lpratio", "skw_line_density", "with_gaps", wdg, "plot_skw_btn"]),
+            self.on_plot_skw_btn)
 
     def get_plot_fermi_surface_widgets(self):
-        """Widgets to compute e-DOS."""
-        return pn.Column(self.fs_viewer, self.plot_fermi_surface_btn)
+        """Widgets to compute the Fermi surface."""
+        #return pn.Column(self.fs_viewer, self.plot_fermi_surface_btn)
+        return pn.Row(
+            self.pws_col(["skw_fs_viewer", "plot_fermi_surface_btn"]),
+            self.on_plot_skw_btn)
 
     @pn.depends('plot_fermi_surface_btn.clicks')
     def on_plot_fermi_surface_btn(self):
         if self.plot_fermi_surface_btn.clicks == 0: return
+
+        #if self.fs_viewer is None: return pn.pane.HTML()
+        #with ButtonContext(self.plot_fermi_surface_btn):
 
         # Cache eb3d
         if hasattr(self, "_eb3d"):
@@ -874,16 +889,16 @@ class PanelWithElectronBands(AbipyParameterized):
             # Build ebands in full BZ.
             eb3d = self._eb3d = self.ebands.get_ebands3d()
 
-        if self.fs_viewer.value == "matplotlib":
+        if self.fs_viewer == "matplotlib":
             # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
             # Warning: requires skimage package, rendering could be slow.
             fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.mpl_kwargs)
             return pn.Row(mpl(fig), sizing_mode='scale_width')
 
         else:
-            raise ValueError("Invalid choice: %s" % self.fs_viewer.value)
+            raise ValueError("Invalid choice: %s" % self.fs_viewer)
 
-        #elif self.fs_viewer.value == "xcrysden":
+        #elif self.fs_viewer == "xcrysden":
             # Alternatively, it's possible to export the data in xcrysden format
             # and then use `xcrysden --bxsf mgb2.bxsf`
             #eb3d.to_bxsf("mgb2.bxsf")

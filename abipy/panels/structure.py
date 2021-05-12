@@ -146,23 +146,23 @@ class StructurePanel(HasStructureParams):
             pn.Row(bkw.PreText(text=self.structure.to_string(verbose=self.verbose), sizing_mode="scale_both"))
         ))
         app(("Spglib", pn.Row(
-            pn.Column('# Spglib options', *self.pws("spglib_symprec", "spglib_angtol", self.helpc("spglib_summary"))),
-            self.spglib_summary)
-        ))
+            self.pws_col(['### Spglib options', "spglib_symprec", "spglib_angtol", self.helpc("spglib_summary")]),
+            self.spglib_summary
+        )))
         app(("Kpath", pn.Row(
-            pn.Column('# K-path options', *self.pws("kpath_format", "line_density", "plot_kpath", self.helpc("get_kpath"))),
-            self.get_kpath)
-        ))
+            self.pws_col(['### K-path options', "kpath_format", "line_density", "plot_kpath", self.helpc("get_kpath")]),
+            self.get_kpath
+        )))
         app(("Convert", pn.Row(
-            pn.Column("# Convert structure", *self.pws("output_format", self.helpc("convert"))),
-            self.convert)
-        ))
+            self.pws_col(["### Convert structure", "output_format", self.helpc("convert")]),
+            self.convert
+        )))
         app(self.get_struct_view_tab_entry())
         app(("GS-input", pn.Row(
-            pn.Column('# Generate GS input', *self.pws("gs_type", "spin_mode", "kppra", "gs_input_btn",
-                      self.helpc("on_gs_input_btn"))),
-            self.on_gs_input_btn)
-        ))
+            self..pws_col(['### Generate GS input', "gs_type", "spin_mode", "kppra", "gs_input_btn",
+                           self.helpc("on_gs_input_btn")]),
+            self.on_gs_input_btn
+        )))
         app(("MP-match", pn.Row(
             pn.Column(self.mp_match_btn),
             self.on_mp_match_btn)

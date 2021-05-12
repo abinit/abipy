@@ -10,17 +10,15 @@ from abipy.panels.core import AbipyParameterized, HasStructureParams, BaseRobotP
 from abipy.dfpt.ddb import PhononBandsPlotter
 
 
-class HasAnaddbParams(AbipyParameterized):
+class HasAnaddbParams(param.Parameterized):
     """
-    Base class for panel classes requiring widgets to invoke Anaddb via AbiPy.
+    Mixin for panel classes requiring widgets to invoke Anaddb via AbiPy.
     Used, for instance, by DdbFilePanel and DdbRobotPanel so that we don't have to
-    repeat the same widget stuff over and over agains.
+    repeat the same parameters over and over agains.
     """
-    verbose = param.Integer(0, bounds=(0, None), doc="Verbosity level")
-    mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used in anaddb")
 
     nqsmall = param.Integer(10, bounds=(1, None), doc="Number of divisions for smallest vector to generate Q-mesh")
-    ndivsm = pnw.IntInput(name='ndivsm', value=5, step=1, start=1, end=None)
+    ndivsm = param.Integer(5, bounds=(None, None), doc="Number of divisions for smallest vector to generate Q-path")
     lo_to_splitting = param.ObjectSelector(default="automatic", objects=["automatic", True, False])
     chneut = param.ObjectSelector(default=1, objects=[0, 1, 2], doc="Abinit variable")
     dipdip = param.ObjectSelector(default=1, objects=[0, 1, -1], doc="Abinit variable")
@@ -31,17 +29,21 @@ class HasAnaddbParams(AbipyParameterized):
     units = param.ObjectSelector(default="eV", objects=["eV", "meV", "Ha", "cm-1", "Thz"], doc="Energy units")
 
     dos_method = param.ObjectSelector(default="tetra", objects=["tetra", "gaussian"], doc="Integration method for DOS")
-    temp_range = pnw.RangeSlider(name="T-range", start=0.0, end=1000, value=(0.0, 300.0), step=20)
+    temp_range = param.Range(default=(0.0, 300.0), bounds=(0, 1000), doc="Temperature range in K.")
 
     gamma_ev = param.Number(1e-4, bounds=(1e-20, None), doc="Phonon linewidth in eV")
-    w_range = pnw.RangeSlider(name="Frequency range (eV)", start=0.0, end=1.0, value=(0.0, 0.1), step=0.001)
+    w_range = param.Range(default=(0.0, 0.1), bounds=(0.0, 1.0), doc="Frequency range (eV)")
 
+    # FIXME
     nqsmall_list = pnw.LiteralInput(name='nsmalls (python list)', value=[10, 20, 30], type=list)
     #nqqpt = pnw.LiteralInput(name='nsmalls (list)', value=[10, 20, 30], type=list)
 
+    # Base buttons
+    plot_check_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP", button_type='primary')
+
     warning = pn.pane.Markdown(
 """
-Refresh the page if the plotly figure is not shown.
+Refresh the page if plotly figures are not shown.
 
 Note that widgets for input variables such as *asr*, *chneut*, *dipdip*, *dos_method*, *etc.*
 are **shared by the different tabs**.
@@ -55,16 +57,12 @@ the results/figures are stil computed with the **old input variables** and you w
 recompute the new results by clicking the button.
 """, name="warning")
 
-
-    # Base buttons
-    plot_check_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP", button_type='primary')
-
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs):
         """
         Return the parameters require to invoke anaget_phbst_and_phdos_files
         Additional kwargs can be specified if needed.
         """
-        d = dict(nqsmall=self.nqsmall, qppa=None, ndivsm=self.ndivsm.value,
+        d = dict(nqsmall=self.nqsmall, qppa=None, ndivsm=self.ndivsm,
                  line_density=None, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                  dos_method=self.dos_method, lo_to_splitting=self.lo_to_splitting,
                  verbose=self.verbose, mpi_procs=self.mpi_procs)
@@ -80,21 +78,20 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
     Provides widgets to invoke anaddb and visualize the results.
     """
 
-    # Buttons
-    get_epsinf_btn = pnw.Button(name="Compute", button_type='primary')
-    plot_phbands_btn = pnw.Button(name="Plot Bands and DOS", button_type='primary')
-    plot_eps0w_btn = pnw.Button(name="Plot eps0(omega)", button_type='primary')
-    plot_vsound_btn = pnw.Button(name="Calculate speed of sound", button_type='primary')
-
-    plot_ifc_btn = pnw.Button(name="Compute IFC(R)", button_type='primary')
-    plot_phbands_quad_btn = pnw.Button(name="Plot PHbands with/without quadrupoles", button_type='primary')
-    plot_dos_vs_qmesh_btn = pnw.Button(name="Plot PHDos vs Qmesh", button_type='primary')
-
-    stacked_pjdos = pn.widgets.Toggle(name="Stacked PJDOS", value=True)
-
     def __init__(self, ddb, **params):
         super().__init__(**params)
         self.ddb = ddb
+
+        # Add buttons
+        self.get_epsinf_btn = pnw.Button(name="Compute", button_type='primary')
+        self.plot_phbands_btn = pnw.Button(name="Plot Bands and DOS", button_type='primary')
+        self.plot_eps0w_btn = pnw.Button(name="Plot eps0(omega)", button_type='primary')
+        self.plot_vsound_btn = pnw.Button(name="Calculate speed of sound", button_type='primary')
+        self.plot_ifc_btn = pnw.Button(name="Compute IFC(R)", button_type='primary')
+        self.plot_phbands_quad_btn = pnw.Button(name="Plot PHbands with/without quadrupoles", button_type='primary')
+        self.plot_dos_vs_qmesh_btn = pnw.Button(name="Plot PHDos vs Qmesh", button_type='primary')
+
+        self.stacked_pjdos = pnw.Checkbox(name="Stacked PJDOS", value=True)
 
     @property
     def structure(self):
@@ -102,6 +99,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         return self.ddb.structure
 
     @param.depends('get_epsinf_btn.clicks')
+    #@depends_on_button('get_epsinf_btn')
     def get_epsinf(self):
         """Compute eps_infinity and Born effective charges from DDB."""
         if self.get_epsinf_btn.clicks == 0: return
@@ -140,7 +138,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
             gen, inp = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                                                                    mpi_procs=self.mpi_procs, verbose=self.verbose,
                                                                    return_input=True)
-            ws = self.w_range.value
+            ws = self.w_range
             w_max = ws[1]
             if w_max == 1.0: w_max = None # Will compute w_max in plot routine from ph freqs.
 
@@ -155,17 +153,12 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
 
             col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-            # Build grid
-            #box = pn.GridSpec(nrows=2, ncols=2 sizing_mode='scale_width')
+            # Add figures
             ca("## epsilon(w):")
-            gspec = pn.GridSpec(sizing_mode='stretch_width')
-            row = p("diag", "re"), p("diag", "im")
-            ca(pn.Row(*row))
-            gspec[0, 0], gspec[0, 1]  = row[0], row[1]
-            row = p("offdiag", "re"), p("offdiag", "im")
-            #gspec[1, 0], gspec[1, 1]  = row[0], row[1]
-            ca(pn.Row(*row))
-            #ca(gspec)
+            ca(p("diag", "re"))
+            ca(p("diag", "im"))
+            ca(p("offdiag", "re"))
+            ca(p("offdiag", "im"))
 
             #gspec[2, :] = gen.get_oscillator_dataframe(reim="all", tol=1e-6)
             # TODO: FIX
@@ -212,7 +205,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
                 ca(ply(phdos_file.plotly_pjdos_type(units=self.units, stacked=self.stacked_pjdos.value, show=False)))
                 #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
                 ca("## Thermodynamic properties in the harmonic approximation:")
-                temps = self.temp_range.value
+                temps = self.temp_range
                 #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
                 ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
                 #msqd_dos.plot_tensor(**self.mpl_kwargs)
@@ -259,12 +252,12 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         with ButtonContext(self.plot_check_asr_dipdip_btn):
             asr_plotter = self.ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1,
                                                   lo_to_splitting=self.lo_to_splitting,
-                                                  nqsmall=self.nqsmall, ndivsm=self.ndivsm.value,
+                                                  nqsmall=self.nqsmall, ndivsm=self.ndivsm,
                                                   dos_method=self.dos_method, ngqpt=None,
                                                   verbose=self.verbose, mpi_procs=self.mpi_procs)
 
             dipdip_plotter = self.ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting=self.lo_to_splitting,
-                                                        nqsmall=self.nqsmall, ndivsm=self.ndivsm.value,
+                                                        nqsmall=self.nqsmall, ndivsm=self.ndivsm,
                                                         dos_method=self.dos_method, ngqpt=None,
                                                         verbose=self.verbose, mpi_procs=self.mpi_procs)
 
@@ -304,7 +297,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
             ca(ply(r.plotter.combiplotly(show=False)))
 
             ca("## Convergence of termodynamic properties.")
-            temps = self.temp_range.value
+            temps = self.temp_range
             ca(mpl(r.plotter.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50,
                                                   units=self.units, **self.mpl_kwargs)))
 
@@ -322,7 +315,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         with ButtonContext(self.plot_dos_vs_qmesh_btn):
             plotter = self.ddb.anacompare_quad(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                                                lo_to_splitting=self.lo_to_splitting,
-                                               nqsmall=0, ndivsm=self.ndivsm.value, dos_method=self.dos_method, ngqpt=None,
+                                               nqsmall=0, ndivsm=self.ndivsm, dos_method=self.dos_method, ngqpt=None,
                                                verbose=self.verbose, mpi_procs=self.mpi_procs)
 
             # Fill column
@@ -353,69 +346,60 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         tabs = pn.Tabs(); app = tabs.append
 
         app(("Summary", pn.Row(
-            bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both"))
-        ))
+            bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both")
+        )))
+        #if self.ddb.has_phonons
         app(("PH-bands", pn.Row(
-            pn.Column("# PH-bands options",
-                      *self.pws("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
-                                "lo_to_splitting", "dos_method", "stacked_pjdos", "temp_range", "plot_phbands_btn",
-                                self.helpc("plot_phbands_and_phdos")),
-                      ),
-            self.plot_phbands_and_phdos)
-        ))
+            self.pws_col(["### PH-bands options", "nqsmall", "ndivsm", "asr", "chneut", "dipdip",
+                          "lo_to_splitting", "dos_method", "stacked_pjdos", "temp_range", "plot_phbands_btn",
+                          self.helpc("plot_phbands_and_phdos")]),
+            self.plot_phbands_and_phdos
+        )))
+        #if self.ddb.has_becs
         app(("BECs", pn.Row(
-            pn.Column("# Born effective charges options",
-                      *self.pws("asr", "chneut", "dipdip", "gamma_ev", "get_epsinf_btn", self.helpc("get_epsinf")),
-                     ),
-            self.get_epsinf)
-        ))
+            self.pws_col(["### Born effective charges options", "asr", "chneut", "dipdip", "gamma_ev",
+                          "get_epsinf_btn", self.helpc("get_epsinf")]),
+            self.get_epsinf
+        )))
+        #if self.ddb.has_e0
         app(("eps0", pn.Row(
-            pn.Column("# epsilon_0",
-                      *self.pws("asr", "chneut", "dipdip", "gamma_ev", "w_range", "plot_eps0w_btn",
-                                self.helpc("plot_eps0w")),
-                      ),
-            self.plot_eps0w)
-        ))
+            self.pws_col(["### epsilon_0", "asr", "chneut", "dipdip", "gamma_ev", "w_range", "plot_eps0w_btn",
+                          self.helpc("plot_eps0w")]),
+            self.plot_eps0w
+        )))
+        #if self.ddb.has_phonons
         app(("Speed of sound", pn.Row(
-            pn.Column("# Speed of sound options",
-                      *self.pws("asr", "chneut", "dipdip", "plot_vsound_btn", self.helpc("plot_vsound")),
-                      ),
-            self.plot_vsound)
-        ))
+            self.pws_col(["### Speed of sound options", "asr", "chneut", "dipdip", "plot_vsound_btn",
+                         self.helpc("plot_vsound")]),
+            self.plot_vsound
+        )))
+        #if self.ddb.has_phonons
         app(("ASR & DIPDIP", pn.Row(
-            pn.Column("# ASR & DIPDIP options",
-                      *self.pws("nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
-                                self.helpc("plot_without_asr_dipdip")),
-                      ),
-            self.plot_without_asr_dipdip)
-        ))
+            self.pws_col(["### ASR & DIPDIP options", "nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
+                         self.helpc("plot_without_asr_dipdip")]),
+            self.plot_without_asr_dipdip
+        )))
         app(("DOS vs q-mesh", pn.Row(
-            pn.Column("# DOS vs q-mesh options",
-                      *self.pws("asr", "chneut", "dipdip", "dos_method", "nqsmall_list",
-                                "temp_range", "plot_dos_vs_qmesh_btn", self.helpc("plot_dos_vs_qmesh")),
-                      ),
-            self.plot_dos_vs_qmesh)
-        ))
+            self.pws_col(["### DOS vs q-mesh options", "asr", "chneut", "dipdip", "dos_method", "nqsmall_list",
+                         "temp_range", "plot_dos_vs_qmesh_btn", self.helpc("plot_dos_vs_qmesh")]),
+            self.plot_dos_vs_qmesh
+        )))
+        #if self.ddb.has_dynamical_quadrupoles
         app(("Quadrupoles", pn.Row(
-            pn.Column("# Quadrupoles options",
-                      *self.pws("asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
-                                "plot_phbands_quad_btn", self.helpc("plot_phbands_quad")),
-                      ),
-            self.plot_phbands_quad)
-        ))
+            self.pws_col(["### Quadrupoles options", "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
+                          "plot_phbands_quad_btn", self.helpc("plot_phbands_quad")]),
+            self.plot_phbands_quad
+        )))
+        #if self.ddb.has_phonons
         app(("IFCs", pn.Row(
-            pn.Column("# IFCs options",
-                      *self.pws("asr", "dipdip", "chneut", "plot_ifc_btn", self.helpc("plot_ifc")),
-                      ),
+            self.pws_col(["### IFCs options", "asr", "dipdip", "chneut", "plot_ifc_btn", self.helpc("plot_ifc")]),
             self.plot_ifc)
         ))
         app(self.get_struct_view_tab_entry())
         app(("Global", pn.Row(
-            pn.Column("# Global options",
-                      *self.pws("units", "mpi_procs", "verbose"),
-                      ),
-            self.get_software_stack())
-        ))
+            self.pws_col(["### Global options", "units", "mpi_procs", "verbose"]),
+            self.get_software_stack()
+        )))
 
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
@@ -518,7 +502,7 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
     #        gen, inp = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
     #                                                               mpi_procs=self.mpi_procs, verbose=self.verbose,
     #                                                               return_input=True)
-    #        ws = self.w_range.value
+    #        ws = self.w_range
     #        w_max = ws[1]
     #        if w_max == 1.0: w_max = None # Will compute w_max in plot routine from ph freqs.
 
@@ -613,7 +597,7 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
             for label, ddb in self.robot.items():
                 asr_p = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1,
                                            lo_to_splitting=self.lo_to_splitting,
-                                           nqsmall=self.nqsmall, ndivsm=self.ndivsm.value,
+                                           nqsmall=self.nqsmall, ndivsm=self.ndivsm,
                                            dos_method=self.dos_method, ngqpt=None,
                                            verbose=self.verbose, mpi_procs=self.mpi_procs,
                                            pre_label=label)
@@ -621,7 +605,7 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
                 asr_plotter.append_plotter(asr_p)
 
                 dipdip_p = ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting=self.lo_to_splitting,
-                                                 nqsmall=self.nqsmall, ndivsm=self.ndivsm.value,
+                                                 nqsmall=self.nqsmall, ndivsm=self.ndivsm,
                                                  dos_method=self.dos_method, ngqpt=None,
                                                  verbose=self.verbose, mpi_procs=self.mpi_procs,
                                                  pre_label=label)
@@ -689,12 +673,10 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
         #    self.plot_vsound)
         #))
         app(("ASR & DIPDIP", pn.Row(
-            pn.Column("# ASR & DIPDIP options",
-                      *self.pws("nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
-                                self.helpc("plot_without_asr_dipdip")),
-                      ),
-            self.plot_without_asr_dipdip)
-        ))
+            self.pws_col(["### ASR & DIPDIP options", "nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
+                          self.helpc("plot_without_asr_dipdip")]),
+            self.plot_without_asr_dipdip
+            )))
         #app(("DOS vs q-mesh", pn.Row(
         #    pn.Column("# DOS vs q-mesh options",
         #              *self.pws("asr", "chneut", "dipdip", "dos_method", "nqsmall_list", "plot_dos_vs_qmesh_btn",
@@ -716,9 +698,6 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
         #              ),
         #    self.plot_ifc)
         #))
-        app(("Global",
-            pn.Column("# Global options",
-                *self.pws("units", "mpi_procs", "verbose"),
-        )))
+        app(("Global", pn.pws_col(["### Global options", "units", "mpi_procs", "verbose"])))
 
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
