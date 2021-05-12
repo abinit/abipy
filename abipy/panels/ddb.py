@@ -1,12 +1,12 @@
 """"Panels for DDB files."""
-
 import sys
 import param
 import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import AbipyParameterized, HasStructureParams, BaseRobotPanel, ButtonContext, mpl, ply, dfc
+from abipy.panels.core import (AbipyParameterized, HasStructureParams, BaseRobotPanel,
+        mpl, ply, dfc, depends_on_btn_click)
 from abipy.dfpt.ddb import PhononBandsPlotter
 
 
@@ -79,7 +79,6 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
     """
 
     def __init__(self, ddb, **params):
-        super().__init__(**params)
         self.ddb = ddb
 
         # Add buttons
@@ -93,242 +92,222 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
 
         self.stacked_pjdos = pnw.Checkbox(name="Stacked PJDOS", value=True)
 
+        super().__init__(**params)
+
     @property
     def structure(self):
         """Structure object provided by subclass."""
         return self.ddb.structure
 
-    @param.depends('get_epsinf_btn.clicks')
-    #@depends_on_button('get_epsinf_btn')
+    @depends_on_btn_click('get_epsinf_btn')
     def get_epsinf(self):
         """Compute eps_infinity and Born effective charges from DDB."""
-        if self.get_epsinf_btn.clicks == 0: return
 
-        with ButtonContext(self.get_epsinf_btn):
-            epsinf, becs = self.ddb.anaget_epsinf_and_becs(chneut=self.chneut,
-                                                           mpi_procs=self.mpi_procs, verbose=self.verbose)
+        epsinf, becs = self.ddb.anaget_epsinf_and_becs(chneut=self.chneut,
+                                                       mpi_procs=self.mpi_procs, verbose=self.verbose)
 
-            gen, inp = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
-                                                                   mpi_procs=self.mpi_procs, verbose=self.verbose,
-                                                                   return_input=True)
+        gen, inp = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
+                                                               mpi_procs=self.mpi_procs, verbose=self.verbose,
+                                                               return_input=True)
+
+        # Fill column
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        #df_kwargs = dict(auto_edit=False, autosize_mode="fit_viewport")
+        df_kwargs = {}
+
+        eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.gamma_ev)
+        ca(r"## $\epsilon^0$ in Cart. coords (computed with Gamma_eV):")
+        ca(dfc(eps0.get_dataframe(cmode="real"), **df_kwargs))
+        ca(r"## $\epsilon^\infty$ in Cart. coords:")
+        ca(dfc(epsinf.get_dataframe(), **df_kwargs))
+        ca("## Born effective charges in Cart. coords:")
+        ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
+        ca("## Anaddb input file.")
+        ca(pn.pane.HTML(inp._repr_html_()))
+
+        return col
+
+    @depends_on_btn_click('plot_eps0w_btn')
+    def plot_eps0w(self):
+        """Compute eps0(omega) from DDB and plot the results."""
+        gen, inp = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
+                                                               mpi_procs=self.mpi_procs, verbose=self.verbose,
+                                                               return_input=True)
+        ws = self.w_range
+        w_max = ws[1]
+        if w_max == 1.0: w_max = None # Will compute w_max in plot routine from ph freqs.
+
+        def p(component, reim):
+            # Matplotlib
+            #fig = gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
+            #                reim=reim, units=self.units, **self.mpl_kwargs)
+            #return mpl(fig)
+            fig = gen.plotly(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
+                              reim=reim, units=self.units, show=False)
+            return ply(fig, with_help=False)
+
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+
+        # Add figures
+        ca("## epsilon(w):")
+        ca(p("diag", "re"))
+        ca(p("diag", "im"))
+        ca(p("offdiag", "re"))
+        ca(p("offdiag", "im"))
+
+        #gspec[2, :] = gen.get_oscillator_dataframe(reim="all", tol=1e-6)
+        # TODO: FIX
+        # TypeError: Object of type complex is not JSON serializable
+        #dfc(gen.get_oscillator_dataframe(reim="all", tol=1e-6))
+        ca("## Oscillator matrix elements:")
+        ca(gen.get_oscillator_dataframe(reim="all", tol=1e-6))
+        # Add HTML pane with input.
+        ca("## Anaddb input file:")
+        ca(pn.pane.HTML(inp._repr_html_()))
+
+        #return gspec
+        return col
+
+    @depends_on_btn_click('plot_phbands_btn')
+    def plot_phbands_and_phdos(self):
+        """Compute phonon bands and DOSes from DDB and plot the results."""
+
+        # Computing phbands
+        kwargs = self.kwargs_for_anaget_phbst_and_phdos_files(return_input=True)
+
+        with self.ddb.anaget_phbst_and_phdos_files(**kwargs) as g:
+            phbst_file, phdos_file = g
+            phbands, phdos = phbst_file.phbands, phdos_file.phdos
 
             # Fill column
             col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-            #df_kwargs = dict(auto_edit=False, autosize_mode="fit_viewport")
-            df_kwargs = {}
 
-            eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.gamma_ev)
-            ca(r"## $\epsilon^0$ in Cart. coords (computed with Gamma_eV):")
-            ca(dfc(eps0.get_dataframe(cmode="real"), **df_kwargs))
-            ca(r"## $\epsilon^\infty$ in Cart. coords:")
-            ca(dfc(epsinf.get_dataframe(), **df_kwargs))
-            ca("## Born effective charges in Cart. coords:")
-            ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
-            ca("## Anaddb input file.")
-            ca(pn.pane.HTML(inp._repr_html_()))
+            ca("## Phonon band structure and DOS:")
+            ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
+            #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))
 
-            return col
+            ca("## Brillouin zone and q-path:")
+            #qpath_pane = mpl(phbands.qpoints.plot(**self.mpl_kwargs), with_divider=False)
+            qpath_pane = ply(phbands.qpoints.plotly(show=False), with_divider=False)
+            df_qpts = phbands.qpoints.get_highsym_datataframe()
+            ca(pn.Row(qpath_pane, df_qpts))
+            ca(pn.layout.Divider())
 
-    @param.depends('plot_eps0w_btn.clicks')
-    def plot_eps0w(self):
-        """Compute eps0(omega) from DDB and plot the results."""
-        if self.plot_eps0w_btn.clicks == 0: return
+            ca("## Type-projected phonon DOS:")
+            #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, **self.mpl_kwargs)))
+            ca(ply(phdos_file.plotly_pjdos_type(units=self.units, stacked=self.stacked_pjdos.value, show=False)))
+            #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
+            ca("## Thermodynamic properties in the harmonic approximation:")
+            temps = self.temp_range
+            #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
+            ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
+            #msqd_dos.plot_tensor(**self.mpl_kwargs)
 
-        with ButtonContext(self.plot_eps0w_btn):
-            gen, inp = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
-                                                                   mpi_procs=self.mpi_procs, verbose=self.verbose,
-                                                                   return_input=True)
-            ws = self.w_range
-            w_max = ws[1]
-            if w_max == 1.0: w_max = None # Will compute w_max in plot routine from ph freqs.
-
-            def p(component, reim):
-                # Matplotlib
-                #fig = gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
-                #                reim=reim, units=self.units, **self.mpl_kwargs)
-                #return mpl(fig)
-                fig = gen.plotly(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
-                                  reim=reim, units=self.units, show=False)
-                return ply(fig, with_help=False)
-
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-
-            # Add figures
-            ca("## epsilon(w):")
-            ca(p("diag", "re"))
-            ca(p("diag", "im"))
-            ca(p("offdiag", "re"))
-            ca(p("offdiag", "im"))
-
-            #gspec[2, :] = gen.get_oscillator_dataframe(reim="all", tol=1e-6)
-            # TODO: FIX
-            # TypeError: Object of type complex is not JSON serializable
-            #dfc(gen.get_oscillator_dataframe(reim="all", tol=1e-6))
-            ca("## Oscillator matrix elements:")
-            ca(gen.get_oscillator_dataframe(reim="all", tol=1e-6))
-            # Add HTML pane with input.
+            # Add Anaddb input file
             ca("## Anaddb input file:")
-            ca(pn.pane.HTML(inp._repr_html_()))
+            ca(self.html_with_clipboard_btn(g.input._repr_html_()))
 
-            #return gspec
             return col
 
-    @param.depends('plot_phbands_btn.clicks')
-    def plot_phbands_and_phdos(self, event=None):
-        """Compute phonon bands and DOSes from DDB and plot the results."""
-        if self.plot_phbands_btn.clicks == 0: return
-
-        with ButtonContext(self.plot_phbands_btn):
-            # Computing phbands
-            kwargs = self.kwargs_for_anaget_phbst_and_phdos_files(return_input=True)
-
-            with self.ddb.anaget_phbst_and_phdos_files(**kwargs) as g:
-                phbst_file, phdos_file = g
-                phbands, phdos = phbst_file.phbands, phdos_file.phdos
-
-                # Fill column
-                col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-
-                ca("## Phonon band structure and DOS:")
-                ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
-                #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))
-
-                ca("## Brillouin zone and q-path:")
-                #qpath_pane = mpl(phbands.qpoints.plot(**self.mpl_kwargs), with_divider=False)
-                qpath_pane = ply(phbands.qpoints.plotly(show=False), with_divider=False)
-                df_qpts = phbands.qpoints.get_highsym_datataframe()
-                ca(pn.Row(qpath_pane, df_qpts))
-                ca(pn.layout.Divider())
-
-                ca("## Type-projected phonon DOS:")
-                #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, **self.mpl_kwargs)))
-                ca(ply(phdos_file.plotly_pjdos_type(units=self.units, stacked=self.stacked_pjdos.value, show=False)))
-                #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
-                ca("## Thermodynamic properties in the harmonic approximation:")
-                temps = self.temp_range
-                #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
-                ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
-                #msqd_dos.plot_tensor(**self.mpl_kwargs)
-
-                # Add Anaddb input file
-                ca("## Anaddb input file:")
-                ca(self.html_with_clipboard_btn(g.input._repr_html_()))
-
-                return col
-
-    @param.depends('plot_vsound_btn.clicks')
+    @depends_on_btn_click('plot_vsound_btn')
     def plot_vsound(self):
         """
         Compute the speed of sound by fitting phonon frequencies
         along selected directions by linear least-squares fit.
         """
-        if self.plot_vsound_btn.clicks == 0: return
-
         col = pn.Column(sizing_mode="stretch_width"); ca = col.append
 
-        with ButtonContext(self.plot_vsound_btn):
-            from abipy.dfpt.vsound import SoundVelocity
-            sv = SoundVelocity.from_ddb(self.ddb.filepath, num_points=20, qpt_norm=0.1,
-                                        ignore_neg_freqs=True, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
-                                        verbose=self.verbose, mpi_procs=self.mpi_procs)
+        from abipy.dfpt.vsound import SoundVelocity
+        sv = SoundVelocity.from_ddb(self.ddb.filepath, num_points=20, qpt_norm=0.1,
+                                    ignore_neg_freqs=True, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
+                                    verbose=self.verbose, mpi_procs=self.mpi_procs)
 
-            ca("## Linear least-squares fit:")
-            #ca(mpl(sv.plot(**self.mpl_kwargs)))
-            ca(ply(sv.plotly(show=False)))
-            ca("## Speed of sound computed along different q-directions in reduced coords:")
-            ca(dfc(sv.get_dataframe()))
+        ca("## Linear least-squares fit:")
+        #ca(mpl(sv.plot(**self.mpl_kwargs)))
+        ca(ply(sv.plotly(show=False)))
+        ca("## Speed of sound computed along different q-directions in reduced coords:")
+        ca(dfc(sv.get_dataframe()))
 
-            return col
+        return col
 
-    @param.depends('plot_check_asr_dipdip_btn.clicks')
+    @depends_on_btn_click('plot_check_asr_dipdip_btn')
     def plot_without_asr_dipdip(self):
         """
         Compare phonon bands and DOSes computed with/without the acoustic sum rule
         and the treatment of the dipole-dipole interaction in the dynamical matrix.
         Requires DDB file with eps_inf, BECS.
         """
-        if self.plot_check_asr_dipdip_btn.clicks == 0: return
+        asr_plotter = self.ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1,
+                                              lo_to_splitting=self.lo_to_splitting,
+                                              nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                              dos_method=self.dos_method, ngqpt=None,
+                                              verbose=self.verbose, mpi_procs=self.mpi_procs)
 
-        with ButtonContext(self.plot_check_asr_dipdip_btn):
-            asr_plotter = self.ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1,
-                                                  lo_to_splitting=self.lo_to_splitting,
-                                                  nqsmall=self.nqsmall, ndivsm=self.ndivsm,
-                                                  dos_method=self.dos_method, ngqpt=None,
-                                                  verbose=self.verbose, mpi_procs=self.mpi_procs)
+        dipdip_plotter = self.ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting=self.lo_to_splitting,
+                                                    nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                                    dos_method=self.dos_method, ngqpt=None,
+                                                    verbose=self.verbose, mpi_procs=self.mpi_procs)
 
-            dipdip_plotter = self.ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting=self.lo_to_splitting,
-                                                        nqsmall=self.nqsmall, ndivsm=self.ndivsm,
-                                                        dos_method=self.dos_method, ngqpt=None,
-                                                        verbose=self.verbose, mpi_procs=self.mpi_procs)
+        # Fill column
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-            # Fill column
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        ca("## Phonon bands and DOS with/wo acoustic sum rule:")
+        #ca(mpl(asr_plotter.plot(**self.mpl_kwargs)))
+        ca(ply(asr_plotter.combiplotly(show=False)))
+        ca("## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
+        #ca(mpl(dipdip_plotter.plot(**self.mpl_kwargs)))
+        ca(ply(dipdip_plotter.combiplotly(show=False)))
 
-            ca("## Phonon bands and DOS with/wo acoustic sum rule:")
-            #ca(mpl(asr_plotter.plot(**self.mpl_kwargs)))
-            ca(ply(asr_plotter.combiplotly(show=False)))
-            ca("## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
-            #ca(mpl(dipdip_plotter.plot(**self.mpl_kwargs)))
-            ca(ply(dipdip_plotter.combiplotly(show=False)))
+        return col
 
-            return col
-
-    @param.depends('plot_dos_vs_qmesh_btn.clicks')
+    @depends_on_btn_click('plot_dos_vs_qmesh_btn')
     def plot_dos_vs_qmesh(self):
         """
         Compare phonon DOSes computed with/without the inclusion
         of the dipole-quadrupole and quadrupole-quadrupole terms in the dynamical matrix.
         Requires DDB file with eps_inf, BECS and dynamical quadrupoles.
         """
-        if self.plot_dos_vs_qmesh_btn.clicks == 0: return
+        num_cpus = 1
+        #print(self.nqsmall_list.value)
+        r = self.ddb.anacompare_phdos(self.nqsmall_list.value, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
+                                      dos_method=self.dos_method, ngqpt=None,
+                                      verbose=self.verbose, num_cpus=num_cpus, stream=sys.stdout)
 
-        with ButtonContext(self.plot_dos_vs_qmesh_btn):
-            num_cpus = 1
-            #print(self.nqsmall_list.value)
-            r = self.ddb.anacompare_phdos(self.nqsmall_list.value, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
-                                          dos_method=self.dos_method, ngqpt=None,
-                                          verbose=self.verbose, num_cpus=num_cpus, stream=sys.stdout)
+        #r.phdoses: List of |PhononDos| objects
 
-            #r.phdoses: List of |PhononDos| objects
+        # Fill column
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        ca("## Phonon DOSes obtained with different q-meshes:")
+        ca(ply(r.plotter.combiplotly(show=False)))
 
-            # Fill column
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-            ca("## Phonon DOSes obtained with different q-meshes:")
-            ca(ply(r.plotter.combiplotly(show=False)))
+        ca("## Convergence of termodynamic properties.")
+        temps = self.temp_range
+        ca(mpl(r.plotter.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50,
+                                              units=self.units, **self.mpl_kwargs)))
 
-            ca("## Convergence of termodynamic properties.")
-            temps = self.temp_range
-            ca(mpl(r.plotter.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50,
-                                                  units=self.units, **self.mpl_kwargs)))
+        return col
 
-            return col
-
-    @param.depends('plot_phbands_quad_btn.clicks')
+    @depends_on_btn_click('plot_phbands_quad_btn')
     def plot_phbands_quad(self):
         """
         Compare phonon bands and DOSes computed with/without the inclusion
         of the dipole-quadrupole and quadrupole-quadrupole terms in the dynamical matrix.
         Requires DDB file with eps_inf, BECS and dynamical quadrupoles.
         """
-        if self.plot_phbands_quad_btn.clicks == 0: return
+        plotter = self.ddb.anacompare_quad(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
+                                           lo_to_splitting=self.lo_to_splitting,
+                                           nqsmall=0, ndivsm=self.ndivsm, dos_method=self.dos_method, ngqpt=None,
+                                           verbose=self.verbose, mpi_procs=self.mpi_procs)
 
-        with ButtonContext(self.plot_dos_vs_qmesh_btn):
-            plotter = self.ddb.anacompare_quad(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
-                                               lo_to_splitting=self.lo_to_splitting,
-                                               nqsmall=0, ndivsm=self.ndivsm, dos_method=self.dos_method, ngqpt=None,
-                                               verbose=self.verbose, mpi_procs=self.mpi_procs)
+        # Fill column
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        ca("## Phonon Bands obtained with different q-meshes:")
+        ca(ply(plotter.combiplotly(show=False)))
 
-            # Fill column
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-            ca("## Phonon Bands obtained with different q-meshes:")
-            ca(ply(plotter.combiplotly(show=False)))
+        return col
 
-            return col
-
-    @param.depends('plot_ifc_btn.clicks')
+    @depends_on_btn_click('plot_ifc_btn')
     def plot_ifc(self):
-        if self.plot_ifc_btn.clicks == 0: return
-
         ifc = self.ddb.anaget_ifc(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip)
 
         # Fill column
@@ -409,7 +388,6 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
     A panel to analyze multiple |DdbFile| via the low-level API provided by DdbRobot.
     Provides widgets to invoke anaddb and visualize the results.
     """
-
     # Buttons
     plot_combiplot_btn = pnw.Button(name="Compute", button_type='primary')
     combiplot_check_btn = pnw.CheckButtonGroup(name='Check Button Group',
@@ -431,37 +409,34 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
 
         return kwargs
 
-    @param.depends('plot_combiplot_btn.clicks')
-    def plot_combiplot(self):
+    @depends_on_btn_click('plot_combiplot_btn')
+    def plot_combiplot(self, **kwargs):
         """Plot phonon band structures."""
-        if self.plot_combiplot_btn.clicks == 0: return
-
         kwargs = self.kwargs_for_anaget_phbst_and_phdos_files()
 
-        with ButtonContext(self.plot_combiplot_btn):
-            #TODO: Recheck lo-to automatic.
-            r = self.robot.anaget_phonon_plotters(**kwargs)
-            #r = self.robot.anaget_phonon_plotters()
+        #TODO: Recheck lo-to automatic.
+        r = self.robot.anaget_phonon_plotters(**kwargs)
+        #r = self.robot.anaget_phonon_plotters()
 
-            # Fill column
-            col = pn.Column(sizing_mode='stretch_both'); ca = col.append
+        # Fill column
+        col = pn.Column(sizing_mode='stretch_both'); ca = col.append
 
-            if "combiplot" in self.combiplot_check_btn.value:
-                ca("## Combiplot:")
-                ca(ply(r.phbands_plotter.combiplotly(units=self.units, show=False)))
+        if "combiplot" in self.combiplot_check_btn.value:
+            ca("## Combiplot:")
+            ca(ply(r.phbands_plotter.combiplotly(units=self.units, show=False)))
 
-            if "gridplot" in self.combiplot_check_btn.value:
-                ca("## Gridplot:")
-                # FIXME implement with_dos = True
-                ca(ply(r.phbands_plotter.gridplotly(units=self.units, with_dos=False, show=False)))
+        if "gridplot" in self.combiplot_check_btn.value:
+            ca("## Gridplot:")
+            # FIXME implement with_dos = True
+            ca(ply(r.phbands_plotter.gridplotly(units=self.units, with_dos=False, show=False)))
 
-            #if "temp_range" in self.combiplot_check_btn.value:
-            #temps = self.temp_range.value
-            #ca("## Thermodynamic properties in the harmonic approximation:")
-            ##ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
-            #ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
+        #if "temp_range" in self.combiplot_check_btn.value:
+        #temps = self.temp_range.value
+        #ca("## Thermodynamic properties in the harmonic approximation:")
+        ##ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
+        #ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
 
-            return col
+        return col
 
     #@param.depends('get_epsinf_btn.clicks')
     #def get_epsinf(self):
@@ -581,46 +556,43 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
     #        return gspec
 
     # THIS OK but I don't think it's very useful
-    @param.depends('plot_check_asr_dipdip_btn.clicks')
+    @depends_on_btn_click('plot_check_asr_dipdip_btn')
     def plot_without_asr_dipdip(self):
         """
         Compare phonon bands and DOSes computed with/without the acoustic sum rule
         and the treatment of the dipole-dipole interaction in the dynamical matrix.
         Requires DDB file with eps_inf, BECS.
         """
-        if self.plot_check_asr_dipdip_btn.clicks == 0: return
-
         asr_plotter = PhononBandsPlotter()
         dipdip_plotter = PhononBandsPlotter()
 
-        with ButtonContext(self.plot_check_asr_dipdip_btn):
-            for label, ddb in self.robot.items():
-                asr_p = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1,
-                                           lo_to_splitting=self.lo_to_splitting,
-                                           nqsmall=self.nqsmall, ndivsm=self.ndivsm,
-                                           dos_method=self.dos_method, ngqpt=None,
-                                           verbose=self.verbose, mpi_procs=self.mpi_procs,
-                                           pre_label=label)
+        for label, ddb in self.robot.items():
+            asr_p = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1,
+                                       lo_to_splitting=self.lo_to_splitting,
+                                       nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                       dos_method=self.dos_method, ngqpt=None,
+                                       verbose=self.verbose, mpi_procs=self.mpi_procs,
+                                       pre_label=label)
 
-                asr_plotter.append_plotter(asr_p)
+            asr_plotter.append_plotter(asr_p)
 
-                dipdip_p = ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting=self.lo_to_splitting,
-                                                 nqsmall=self.nqsmall, ndivsm=self.ndivsm,
-                                                 dos_method=self.dos_method, ngqpt=None,
-                                                 verbose=self.verbose, mpi_procs=self.mpi_procs,
-                                                 pre_label=label)
+            dipdip_p = ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting=self.lo_to_splitting,
+                                             nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                             dos_method=self.dos_method, ngqpt=None,
+                                             verbose=self.verbose, mpi_procs=self.mpi_procs,
+                                             pre_label=label)
 
-                dipdip_plotter.append_plotter(dipdip_p)
+            dipdip_plotter.append_plotter(dipdip_p)
 
-            # Fill column
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        # Fill column
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-            ca("## Phonon bands and DOS with/wo acoustic sum rule:")
-            ca(ply(asr_plotter.combiplotly(show=False)))
-            ca("## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
-            ca(ply(dipdip_plotter.combiplotly(show=False)))
+        ca("## Phonon bands and DOS with/wo acoustic sum rule:")
+        ca(ply(asr_plotter.combiplotly(show=False)))
+        ca("## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
+        ca(ply(dipdip_plotter.combiplotly(show=False)))
 
-            return col
+        return col
 
     def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the DDB file."""

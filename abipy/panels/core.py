@@ -86,6 +86,24 @@ Possible templates are: {list(pn.template.__dict__.keys())}
 """)
 
 
+
+def depends_on_btn_click(btn_name):
+
+    def decorator(func):
+        from functools import wraps
+        @wraps(func)
+        def decorated(*args, **kwargs):
+            self = args[0]
+            btn = getattr(self, btn_name)
+            if btn.clicks == 0: return
+            with ButtonContext(btn):
+                return func(*args,**kwargs)
+
+        return pn.depends(f"{btn_name}.clicks")(decorated)
+
+    return decorator
+
+
 class HTMLwithClipboardBtn(pn.pane.HTML):
     """
     Receives an HTML string and returns an HTML pane with a button that allows the user
@@ -465,7 +483,7 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
         kwargs = dict(
             # A title to show in the header. Also added to the document head meta settings and as the browser tab title.
             title=self.__class__.__name__,
-            header_background="#ff8c00 ", # Dark orange
+            header_background="#ff8c00", # Dark orange
             #header_color="#ff8c00",
             #favicon (str): URI of favicon to add to the document head (if local file, favicon is base64 encoded as URI).
             #logo (str): URI of logo to add to the header (if local file, logo is base64 encoded as URI).
@@ -776,86 +794,72 @@ class PanelWithElectronBands(AbipyParameterized):
         """Column with the widgets used to plot ebands."""
         return self.pws_col(["with_gaps", "set_fermie_to_vbm", "plot_ebands_btn"])
 
-    @pn.depends('plot_ebands_btn.clicks')
-    def on_plot_ebands_btn(self, *args):
+    @depends_on_btn_click('plot_ebands_btn')
+    def on_plot_ebands_btn(self):
         """Button triggering ebands plot."""
-        print("In on_plot_ebands_btn")
-        print("clicks:", self.plot_ebands_btn.clicks)
-        print("value:", self.plot_ebands_btn.value)
-        if self.plot_ebands_btn.clicks == 0: return
+        if self.set_fermie_to_vbm:
+            self.ebands.set_fermie_to_vbm()
 
-        with ButtonContext(self.plot_ebands_btn):
-            if self.set_fermie_to_vbm:
-                self.ebands.set_fermie_to_vbm()
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        ca("## Electronic band structure:")
+        fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps, max_phfreq=None,
+                                  show=False)
+        ca(ply(fig1))
 
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-            ca("## Electronic band structure:")
-            fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps, max_phfreq=None,
-                                      show=False)
-            ca(ply(fig1))
+        ca("## Brillouin zone and **k**-path:")
+        #kpath_pane = mpl(self.ebands.kpoints.plot(**self.mpl_kwargs), with_divider=False)
+        kpath_pane = ply(self.ebands.kpoints.plotly(show=False), with_divider=False)
+        df_kpts = dfc(self.ebands.kpoints.get_highsym_datataframe(), with_divider=False)
+        ca(pn.Row(kpath_pane, df_kpts))
+        ca(pn.layout.Divider())
+        #ca(bkw.PreText(text=self.ebands.to_string(verbose=self.verbose)))
 
-            ca("## Brillouin zone and **k**-path:")
-            #kpath_pane = mpl(self.ebands.kpoints.plot(**self.mpl_kwargs), with_divider=False)
-            kpath_pane = ply(self.ebands.kpoints.plotly(show=False), with_divider=False)
-            df_kpts = dfc(self.ebands.kpoints.get_highsym_datataframe(), with_divider=False)
-            ca(pn.Row(kpath_pane, df_kpts))
-            ca(pn.layout.Divider())
-            #ca(bkw.PreText(text=self.ebands.to_string(verbose=self.verbose)))
-
-            return col
+        return col
 
     def get_plot_edos_widgets(self):
         """Column with widgets associated to the e-DOS computation."""
         return self.pws_col(["edos_method", "edos_step_ev", "edos_width_ev", "plot_edos_btn"])
 
-    #depends_on_btn_click('plot_edos_btn')
-    @pn.depends('plot_edos_btn.clicks')
+    @depends_on_btn_click('plot_edos_btn')
     def on_plot_edos_btn(self):
         """Button triggering edos plot."""
-        if self.plot_edos_btn.clicks == 0: return
-        with ButtonContext(self.plot_edos_btn):
-            edos = self.ebands.get_edos(method=self.edos_method,
-                                        step=self.edos_step_ev, width=self.edos_width_ev)
+        edos = self.ebands.get_edos(method=self.edos_method, step=self.edos_step_ev, width=self.edos_width_ev)
 
-            return pn.Row(mpl(edos.plot(**self.mpl_kwargs)), sizing_mode='scale_width')
-            #return pn.Row(ply(edos.plotly(show=False))), sizing_mode='scale_width')
+        return pn.Row(mpl(edos.plot(**self.mpl_kwargs)), sizing_mode='scale_width')
+        #return pn.Row(ply(edos.plotly(show=False))), sizing_mode='scale_width')
 
-    @pn.depends('plot_skw_btn.clicks')
+    @depends_on_btn_click('plot_skw_btn')
     def on_plot_skw_btn(self):
         """
         """
-        if self.plot_skw_btn.clicks == 0: return
-        print("ebands_kpath:", self.ebands_kpath)
-        #print("ebands_kpath.filename:", self.ebands_kpath_fileinput.filename)
-        with ButtonContext(self.plot_skw_btn):
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-            intp = self.ebands.interpolate(lpratio=self.skw_lpratio, line_density=self.skw_line_density,
-                                           kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
-                                           verbose=self.verbose)
+        intp = self.ebands.interpolate(lpratio=self.skw_lpratio, line_density=self.skw_line_density,
+                                       kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
+                                       verbose=self.verbose)
 
-            ca("## SKW interpolated bands along an automatically selected high-symmetry **k**-path")
-            ca(ply(intp.ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
+        ca("## SKW interpolated bands along an automatically selected high-symmetry **k**-path")
+        ca(ply(intp.ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
 
-            if self.ebands_kpath is not None:
-                ca("## Input bands taken from file uploaded by user:")
-                ca(ply(self.ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
+        if self.ebands_kpath is not None:
+            ca("## Input bands taken from file uploaded by user:")
+            ca(ply(self.ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
 
-                # Use line_density 0 to interpolate on the same set of k-points given in self.ebands_kpath
-                vertices_names = []
-                for kpt in self.ebands_kpath.kpoints:
-                    vertices_names.append((kpt.frac_coords, kpt.name))
+            # Use line_density 0 to interpolate on the same set of k-points given in self.ebands_kpath
+            vertices_names = []
+            for kpt in self.ebands_kpath.kpoints:
+                vertices_names.append((kpt.frac_coords, kpt.name))
 
-                intp = self.ebands.interpolate(lpratio=self.skw_lpratio, vertices_names=vertices_names, line_density=0,
-                                                kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
-                                                verbose=self.verbose)
+            intp = self.ebands.interpolate(lpratio=self.skw_lpratio, vertices_names=vertices_names, line_density=0,
+                                            kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
+                                            verbose=self.verbose)
 
-                plotter = self.ebands_kpath.get_plotter_with("Input", "Interpolated", intp.ebands_kpath)
-                ca("## Input bands vs SKW interpolated bands:")
-                ca(mpl(plotter.combiplot(show=False)))
-                #ca(mpl(plotter.combiplotly(show=False)))
+            plotter = self.ebands_kpath.get_plotter_with("Input", "Interpolated", intp.ebands_kpath)
+            ca("## Input bands vs SKW interpolated bands:")
+            ca(mpl(plotter.combiplot(show=False)))
+            #ca(mpl(plotter.combiplotly(show=False)))
 
-            return col
+        return col
 
     def get_plot_skw_widgets(self):
         """Widgets to compute e-DOS."""
@@ -876,12 +880,9 @@ class PanelWithElectronBands(AbipyParameterized):
             self.pws_col(["skw_fs_viewer", "plot_fermi_surface_btn"]),
             self.on_plot_skw_btn)
 
-    @pn.depends('plot_fermi_surface_btn.clicks')
+    @depends_on_btn_click('plot_fermi_surface_btn')
     def on_plot_fermi_surface_btn(self):
-        if self.plot_fermi_surface_btn.clicks == 0: return
-
         #if self.fs_viewer is None: return pn.pane.HTML()
-        #with ButtonContext(self.plot_fermi_surface_btn):
 
         # Cache eb3d
         if hasattr(self, "_eb3d"):
@@ -916,28 +917,25 @@ class BaseRobotPanel(AbipyParameterized):
 
         super().__init__(**params)
 
-    @pn.depends("compare_params_btn.clicks")
+    @depends_on_btn_click("compare_params_btn")
     def on_compare_params_btn(self):
         """
         """
-        if self.compare_params_btn.clicks == 0: return
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        transpose = self.transpose_params.value
 
-        with ButtonContext(self.compare_params_btn):
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-            transpose = self.transpose_params.value
+        dfs = self.robot.get_structure_dataframes()
+        ca("# Lattice daframe")
+        ca(dfc(dfs.lattice, transpose=transpose))
 
-            dfs = self.robot.get_structure_dataframes()
-            ca("# Lattice daframe")
-            ca(dfc(dfs.lattice, transpose=transpose))
+        ca("# Params daframe")
+        ca(dfc(self.robot.get_params_dataframe(), transpose=transpose))
 
-            ca("# Params daframe")
-            ca(dfc(self.robot.get_params_dataframe(), transpose=transpose))
+        accord = pn.Accordion(sizing_mode='stretch_width')
+        accord.append(("Atomic positions", dfc(dfs.coords, transpose=transpose)))
+        ca(accord)
 
-            accord = pn.Accordion(sizing_mode='stretch_width')
-            accord.append(("Atomic positions", dfc(dfs.coords, transpose=transpose)))
-            ca(accord)
-
-            return col
+        return col
 
     # TODO: widgets to change robot labels.
 
@@ -975,41 +973,35 @@ class PanelWithEbandsRobot(BaseRobotPanel):
     def get_ebands_plotter_widgets(self):
         return pn.Column(self.ebands_plotter_mode, self.ebands_df_checkbox, self.ebands_plotter_btn)
 
-    @pn.depends("ebands_plotter_btn.clicks")
+    @depends_on_btn_click("ebands_plotter_btn")
     def on_ebands_plotter_btn(self):
-        if self.ebands_plotter_btn.clicks == 0: return
 
-        with ButtonContext(self.ebands_plotter_btn):
+        ebands_plotter = self.robot.get_ebands_plotter()
+        plot_mode = self.ebands_plotter_mode.value
+        plot_func = getattr(ebands_plotter, plot_mode, None)
+        if plot_func is None:
+            raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
-            ebands_plotter = self.robot.get_ebands_plotter()
-            plot_mode = self.ebands_plotter_mode.value
-            plot_func = getattr(ebands_plotter, plot_mode, None)
-            if plot_func is None:
-                raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+        fig = plot_func(**self.mpl_kwargs)
+        col = pn.Column(mpl(fig), sizing_mode='scale_width')
+        if self.ebands_df_checkbox.value:
+            df = ebands_plotter.get_ebands_frame(with_spglib=True)
+            col.append(dfc(df))
 
-            fig = plot_func(**self.mpl_kwargs)
-            col = pn.Column(mpl(fig), sizing_mode='scale_width')
-            if self.ebands_df_checkbox.value:
-                df = ebands_plotter.get_ebands_frame(with_spglib=True)
-                col.append(dfc(df))
-
-            return pn.Row(col, sizing_mode='scale_width')
+        return pn.Row(col, sizing_mode='scale_width')
 
     def get_edos_plotter_widgets(self):
         return pn.Column(self.edos_plotter_mode, self.edos_plotter_btn)
 
-    @pn.depends("edos_plotter_btn.clicks")
+    @depends_on_btn_click("edos_plotter_btn")
     def on_edos_plotter_btn(self):
         """Plot the electronic density of states."""
-        if self.edos_plotter_btn.clicks == 0: return
+        edos_plotter = self.robot.get_edos_plotter()
+        plot_mode = self.edos_plotter_mode.value
+        plot_func = getattr(edos_plotter, plot_mode, None)
+        if plot_func is None:
+            raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
-        with ButtonContext(self.edos_plotter_btn):
-            edos_plotter = self.robot.get_edos_plotter()
-            plot_mode = self.edos_plotter_mode.value
-            plot_func = getattr(edos_plotter, plot_mode, None)
-            if plot_func is None:
-                raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+        fig = plot_func(**self.mpl_kwargs)
 
-            fig = plot_func(**self.mpl_kwargs)
-
-            return pn.Row(pn.Column(mpl(fig)), sizing_mode='scale_width')
+        return pn.Row(pn.Column(mpl(fig)), sizing_mode='scale_width')
