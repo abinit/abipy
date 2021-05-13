@@ -473,7 +473,7 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
 
     def get_template_from_tabs(self, tabs, template):
         """
-        This method receives a panel Tabs, include them in a template and return the panel template.
+        This method receives panel Tabs, include them in a template and return the panel template.
         """
         if template is None:
             return tabs
@@ -484,7 +484,6 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
             # A title to show in the header. Also added to the document head meta settings and as the browser tab title.
             title=self.__class__.__name__,
             header_background="#ff8c00", # Dark orange
-            #header_color="#ff8c00",
             #favicon (str): URI of favicon to add to the document head (if local file, favicon is base64 encoded as URI).
             #logo (str): URI of logo to add to the header (if local file, logo is base64 encoded as URI).
             #sidebar_footer (str): Can be used to insert additional HTML. For example a menu, some additional info, links etc.
@@ -498,6 +497,12 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
             # Assume .main area acts like a GridSpec
             template.main[:,:] = tabs
 
+        # Get widgets associated to Ph-bands tab and insert them in the slidebar
+        #row = tabs[1]
+        #controllers_col, out = row[0], row[1]
+        #template.sidebar.append(controllers_col)
+        #template.main.append(out)
+
         return template
 
 
@@ -509,6 +514,11 @@ class HasStructureParams(AbipyParameterized):
     structure_viewer = param.ObjectSelector(default=None,
                                             objects=[None, "jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
                                                      "matplotlib", "plotly", "ase_atoms", "mayavi"])
+
+
+    #def __init__(self, **params):
+    #    self.struct_view_btn = pnw.Button(name="View structure", button_type='primary')
+    #    super(self).__init__(**params)
 
     @property
     def structure(self):
@@ -535,9 +545,9 @@ class HasStructureParams(AbipyParameterized):
                 #display(view)
                 #return pn.Row(display(view))
                 #view = pn.ipywidget(view)
-                #view = pn.panel(view)
+                view = pn.panel(view)
                 #view = pn.pane.IPyWidget(view)
-                #print(view)
+                print(view)
                 #view = pn.Column(view, sizing_mode='stretch_width')
                 return view
 
@@ -551,7 +561,7 @@ class HasStructureParams(AbipyParameterized):
             if v == "ngl":
                 #js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
                 #pn.extension(comms='ipywidgets', js_files=js_files)
-                view = self.structure.get_ngl_view()
+                #view = self.structure.get_ngl_view()
                 #return pn.panel(view)
 
                 #pn.config.js_files["ngl"]="https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
@@ -562,29 +572,6 @@ class HasStructureParams(AbipyParameterized):
                 stage = new NGL.Stage("viewport");
                 stage.loadFile("rcsb://1NKT.mmtf", {defaultRepresentation: true});
                 </script>"""
-
-                #        html = """
-                #         <script>
-                #    document.addeventlistener("domcontentloaded", function () {
-                #      var stage = new ngl.stage("viewport");
-                #      stage.loadfile("rcsb://1crn", {defaultrepresentation: true});
-                #    });
-                #  </script>"""
-
-                #        html = """
-                #<script>
-                #document.addeventlistener("domcontentloaded", function () {
-                #    // create a `stage` object
-                #    var stage = new NGL.Stage("viewport");
-                #    // load a PDB structure and consume the returned `Promise`
-                #    stage.loadFile("rcsb://1CRN").then(function (component) {
-                #    // add a "cartoon" representation to the structure component
-                #    component.addRepresentation("cartoon");
-                #    // provide a "good" view of the structure
-                #    component.autoView();
-                #  });
-                #});
-                #</script>"""
 
                 ngl_pane = pn.pane.HTML(html, height=500, width=500)
                 return pn.Row(ngl_pane)
@@ -754,10 +741,8 @@ class PanelWithElectronBands(AbipyParameterized):
 
     # For the max size of file see: https://github.com/holoviz/panel/issues/1559
     ebands_kpath = None
-    #ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
     ebands_kpath_fileinput = param.FileSelector()
     ebands_kmesh = None
-    #ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
     ebands_kmesh_fileinput = param.FileSelector()
 
     # Fermi surface plotter.
@@ -771,6 +756,9 @@ class PanelWithElectronBands(AbipyParameterized):
         self.plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type='primary')
         self.plot_skw_btn = pnw.Button(name="Plot SKW interpolant", button_type='primary')
 
+        #ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
+        #ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
+
         super().__init__(**params)
 
     @property
@@ -781,7 +769,7 @@ class PanelWithElectronBands(AbipyParameterized):
     @pn.depends("ebands_kpath_fileinput", watch=True)
     def get_ebands_kpath(self):
         """
-        Receives the netcdf file select by the user as binary string.
+        Receives the netcdf file selected by the user as binary string.
         """
         print(type(self.ebands_kpath_fileinput))
         bstring = self.ebands_kpath_fileinput

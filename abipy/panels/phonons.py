@@ -3,7 +3,7 @@ import param
 import panel as pn
 import panel.widgets as pnw
 
-from abipy.panels.core import AbipyParameterized, ButtonContext, mpl, ply, dfc
+from abipy.panels.core import AbipyParameterized, ButtonContext, mpl, ply, dfc, depends_on_btn_click
 
 
 class PhononBandsPlotterPanel(AbipyParameterized):
@@ -19,20 +19,16 @@ class PhononBandsPlotterPanel(AbipyParameterized):
         self.plotter = plotter
         super().__init__(**params)
 
-    @pn.depends("phbands_plotter_btn.clicks")
+    @depends_on_btn_click('phbands_blotter_btn')
     def on_phbands_plot_btn(self):
-        if self.phbands_plotter_btn.clicks == 0: return
+        plot_mode = self.phbands_plotter_mode.value
+        plotfunc = getattr(self.plotter, plot_mode, None)
+        if plotfunc is None:
+            raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
-        with ButtonContext(self.phbands_plotter_btn):
-
-            plot_mode = self.phbands_plotter_mode.value
-            plotfunc = getattr(self.plotter, plot_mode, None)
-            if plotfunc is None:
-                raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
-
-            fig = plotfunc(units=self.phbands_plotter_units.value, **self.mpl_kwargs)
-            df = self.plotter.get_phbands_frame(with_spglib=True)
-            return pn.Row(pn.Column(mpl(fig), dfc(df)), sizing_mode='scale_width')
+        fig = plotfunc(units=self.phbands_plotter_units.value, **self.mpl_kwargs)
+        df = self.plotter.get_phbands_frame(with_spglib=True)
+        return pn.Row(pn.Column(mpl(fig), dfc(df)), sizing_mode='scale_width')
 
     def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the |PhononBandsPlotter|."""

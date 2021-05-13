@@ -6,7 +6,7 @@ import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from .core import (PanelWithElectronBands, HasStructureParams, PanelWithNcFile,
-  PanelWithEbandsRobot, ButtonContext, ply, mpl, dfc)
+  PanelWithEbandsRobot, ButtonContext, ply, mpl, dfc, depends_on_btn_click)
 
 
 class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
@@ -14,8 +14,8 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
     Panel with widgets to interact with a |GsrFile|.
     """
     def __init__(self, gsr, **params):
-        super().__init__(**params)
         self.gsr = gsr
+        super().__init__(**params)
 
     @property
     def structure(self):
@@ -24,7 +24,7 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
 
     @property
     def ebands(self):
-        """|ElectronBands| object"""
+        """|ElectronBands| object."""
         return self.gsr.ebands
 
     @property
@@ -96,14 +96,11 @@ class GsrRobotPanel(PanelWithEbandsRobot):
         super().__init__(**params)
         self.robot = robot
 
-    @pn.depends("gsr_dataframe_btn.clicks")
+    @depends_on_btn_click('gsr_dataframe_btn_btn')
     def on_gsr_dataframe_btn(self):
-        if self.gsr_dataframe_btn.clicks == 0: return
-
-        with ButtonContext(self.gsr_dataframe_btn):
-            df = self.robot.get_dataframe(with_geo=True)
-            transpose = self.transpose_gsr_dataframe.value
-            return pn.Column(dfc(df, transpose=transpose), sizing_mode='stretch_width')
+        df = self.robot.get_dataframe(with_geo=True)
+        transpose = self.transpose_gsr_dataframe.value
+        return pn.Column(dfc(df, transpose=transpose), sizing_mode='stretch_width')
 
     def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the |GsrRobot|."""

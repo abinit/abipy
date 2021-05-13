@@ -14,7 +14,7 @@ class HasAnaddbParams(param.Parameterized):
     """
     Mixin for panel classes requiring widgets to invoke Anaddb via AbiPy.
     Used, for instance, by DdbFilePanel and DdbRobotPanel so that we don't have to
-    repeat the same parameters over and over agains.
+    repeat the same parameters over and over again.
     """
 
     nqsmall = param.Integer(10, bounds=(1, None), doc="Number of divisions for smallest vector to generate Q-mesh")
@@ -323,6 +323,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         Return tabs with widgets to interact with the DDB file.
         """
         tabs = pn.Tabs(); app = tabs.append
+        #d = {}
 
         app(("Summary", pn.Row(
             bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both")

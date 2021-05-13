@@ -5,7 +5,7 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import HasStructureParams, ButtonContext, dfc, mpl, ply
+from abipy.panels.core import HasStructureParams, ButtonContext, dfc, mpl, ply, depends_on_btn_click
 
 
 class StructurePanel(HasStructureParams):
@@ -14,7 +14,6 @@ class StructurePanel(HasStructureParams):
     """
 
     def __init__(self, structure,  **params):
-
         self._structure = structure
 
         # Convert widgets.
@@ -89,45 +88,39 @@ class StructurePanel(HasStructureParams):
 
         return col
 
-    @pn.depends("gs_input_btn.clicks")
+    @depends_on_btn_click('gs_input_btn')
     def on_gs_input_btn(self):
         """Generate minimalistic input file from the input structure."""
-        if self.gs_input_btn.clicks == 0: return
+        from abipy.abio.factories import gs_input
+        from abipy.data.hgh_pseudos import HGH_TABLE
 
-        with ButtonContext(self.gs_input_btn):
-            from abipy.abio.factories import gs_input
-            from abipy.data.hgh_pseudos import HGH_TABLE
+        gs_inp = gs_input(
+            self.structure, HGH_TABLE, kppa=self.kppra.value, ecut=8,
+            spin_mode=self.label2mode[self.spin_mode.value],
+            smearing=None)
 
-            gs_inp = gs_input(
-                self.structure, HGH_TABLE, kppa=self.kppra.value, ecut=8,
-                spin_mode=self.label2mode[self.spin_mode.value],
-                smearing=None)
+        gs_inp.pop_vars(("charge", "chksymbreak"))
+        gs_inp.set_vars(ecut="?? # depends on pseudos",
+                        nband="?? # depends on pseudos",
+                        pseudos='"pseudo1, pseudo2, ..."'
+                       )
 
-            gs_inp.pop_vars(("charge", "chksymbreak"))
-            gs_inp.set_vars(ecut="?? # depends on pseudos",
-                            nband="?? # depends on pseudos",
-                            pseudos='"pseudo1, pseudo2, ..."'
-                           )
+        if self.gs_type.value == "relax":
+            gs_inp.set_vars(optcell=2, ionmov=2, ecutsm=0.5, dilatmx=1.05)
 
-            if self.gs_type.value == "relax":
-                gs_inp.set_vars(optcell=2, ionmov=2, ecutsm=0.5, dilatmx=1.05)
+        gs_inp.set_mnemonics(False)
 
-            gs_inp.set_mnemonics(False)
+        return self.html_with_clipboard_btn(gs_inp._repr_html_())
 
-            return self.html_with_clipboard_btn(gs_inp._repr_html_())
-
-    @pn.depends("mp_match_btn.clicks")
+    @depends_on_btn_click('mp_match_btn')
     def on_mp_match_btn(self):
-        """Match input structure with the structures available on the materials project."""
-        if self.mp_match_btn.clicks == 0: return
-
         with ButtonContext(self.mp_match_btn):
-            from abipy.core.structure import mp_match_structure
-            mp = mp_match_structure(self.structure, api_key=None, endpoint=None, final=True)
-            if not mp.structures:
-                raise RuntimeError("No structure found in the MP database")
+        from abipy.core.structure import mp_match_structure
+        mp = mp_match_structure(self.structure, api_key=None, endpoint=None, final=True)
+        if not mp.structures:
+            raise RuntimeError("No structure found in the MP database")
 
-            return pn.Column(dfc(mp.lattice_dataframe), sizing_mode='stretch_width')
+        return pn.Column(dfc(mp.lattice_dataframe), sizing_mode='stretch_width')
 
     #@param.depends("mp_search_btn.clicks")
     #def on_mp_search_btn(self):
