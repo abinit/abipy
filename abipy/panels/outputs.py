@@ -37,24 +37,27 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
         return box
 
-    def get_panel(selfm **kwargs):
+    def get_panel(self, as_dict=True, **kwargs):
         """Return tabs with widgets to interact with the Abinit output file."""
-        tabs = pn.Tabs(); app = tabs.append
+        d = {}
 
-        app(("Summary", pn.Row(
-            bkw.PreText(text=self.outfile.to_string(verbose=self.verbose), sizing_mode="scale_both"))
-        ))
+        d["Summary"] = pn.Row(
+            bkw.PreText(text=self.outfile.to_string(verbose=self.verbose), sizing_mode="scale_both")
+        )
         df = self.outfile.get_dims_spginfo_dataframe().transpose()
         df.index.name = "Dataset"
-        app(("Dims", dfc(df)))
+        d["Dims"] = dfc(df)
 
         # Add tabs with plots for the GS/DFPT SCF cycles.
         for what in ("GS", "DFPT"):
             box = self._get_gridbox(what)
             if box is not None:
-                app(("%s cycles" % what, box))
+                d["%s cycles" % what] = box
 
         #timer = self.get_timer()
         #timer.plot_all(**self.mpl_kwargs)
 
+        if as_dict: return d
+
+        tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))

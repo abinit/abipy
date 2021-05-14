@@ -72,7 +72,7 @@ class StructurePanel(HasStructureParams):
 
     @pn.depends("kpath_format.value", "line_density.value")
     def get_kpath(self):
-        """Generate high-symmetry k-path from input structure in ABINIT format.."""
+        """Generate high-symmetry k-path from input structure in the ABINIT format."""
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
         s = self.structure.get_kpath_input_string(fmt=self.kpath_format.value,
@@ -114,7 +114,6 @@ class StructurePanel(HasStructureParams):
 
     @depends_on_btn_click('mp_match_btn')
     def on_mp_match_btn(self):
-        with ButtonContext(self.mp_match_btn):
         from abipy.core.structure import mp_match_structure
         mp = mp_match_structure(self.structure, api_key=None, endpoint=None, final=True)
         if not mp.structures:
@@ -122,9 +121,8 @@ class StructurePanel(HasStructureParams):
 
         return pn.Column(dfc(mp.lattice_dataframe), sizing_mode='stretch_width')
 
-    #@param.depends("mp_search_btn.clicks")
+    #@depends_on_btn_click('mp_search_btn')
     #def on_mp_search_btn(self):
-    #    if self.mp_search_btn.clicks == 0: return
     #    from abipy.core.structure import mp_search
     #    chemsys_formula_id = self.stucture.formula
     #    mp = mp_search(chemsys_formula_id, api_key=None, endpoint=None, final=True)
@@ -133,36 +131,33 @@ class StructurePanel(HasStructureParams):
 
     #    return pn.Column(dfc(mp.lattice_dataframe), sizing_mode='stretch_width')
 
-    def get_panel(self, **kwargs):
+    def get_panel(self, as_dict=False, **kwargs):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
+        d = {}
 
-        tabs = pn.Tabs(); app = tabs.append
-
-        app(("Summary",
-            pn.Row(bkw.PreText(text=self.structure.to_string(verbose=self.verbose), sizing_mode="scale_both"))
-        ))
-        app(("Spglib", pn.Row(
+        d["Summary"] = pn.Row(bkw.PreText(text=self.structure.to_string(verbose=self.verbose),
+                              sizing_mode="scale_both"))
+        d["Spglib"] = pn.Row(
             self.pws_col(['### Spglib options', "spglib_symprec", "spglib_angtol", self.helpc("spglib_summary")]),
             self.spglib_summary
-        )))
-        app(("Kpath", pn.Row(
+        )
+        d["Kpath"] = pn.Row(
             self.pws_col(['### K-path options', "kpath_format", "line_density", "plot_kpath", self.helpc("get_kpath")]),
             self.get_kpath
-        )))
-        app(("Convert", pn.Row(
+        )
+        d["Convert"] = pn.Row(
             self.pws_col(["### Convert structure", "output_format", self.helpc("convert")]),
             self.convert
-        )))
-        app(self.get_struct_view_tab_entry())
-        app(("GS-input", pn.Row(
+        )
+        d["Structure"] = self.get_struct_view_tab_entry()
+        d["GS-input"] = pn.Row(
             self.pws_col(['### Generate GS input', "gs_type", "spin_mode", "kppra", "gs_input_btn",
                            self.helpc("on_gs_input_btn")]),
             self.on_gs_input_btn
-        )))
-        app(("MP-match", pn.Row(
-            pn.Column(self.mp_match_btn),
-            self.on_mp_match_btn)
-        ))
+        )
+        d["MP-match"] = pn.Row(pn.Column(self.mp_match_btn), self.on_mp_match_btn)
 
-        template = kwargs.get("template", None)
-        return self.get_template_from_tabs(tabs, template)
+        if as_dict: return d
+
+        tabs = pn.Tabs(*d.items())
+        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))

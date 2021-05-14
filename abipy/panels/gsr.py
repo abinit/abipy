@@ -32,33 +32,26 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
         """This for for the PanelWithNcFile mixin"""
         return self.gsr
 
-    def get_panel(self, **kwargs):
+    def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the GSR file."""
+        d = {}
 
-        tabs = pn.Tabs(); app = tabs.append
-
-        app(("Summary", pn.Row(
-            bkw.PreText(text=self.gsr.to_string(verbose=self.verbose),  sizing_mode="scale_both"))
-        ))
-        app(("e-Bands", pn.Row(
-            pn.Column("# Options",
-                      self.get_plot_ebands_widgets(),
-                      self.helpc("on_plot_ebands_btn"),
-            ),
-            self.on_plot_ebands_btn)
-        ))
+        d["Summary"] = pn.Row(
+            bkw.PreText(text=self.gsr.to_string(verbose=self.verbose),  sizing_mode="scale_both")
+        )
+        d["e-Bands"] = pn.Row(
+            pn.Column("### e-Bands Options", self.get_plot_ebands_widgets(), self.helpc("on_plot_ebands_btn"),
+            self.on_plot_ebands_btn),
+        )
         # Add DOS tab but only if k-sampling.
         kpoints = self.gsr.ebands.kpoints
         if kpoints.is_ibz:
-            app(("e-DOS", pn.Row(
-                pn.Column("# Options",
-                    self.get_plot_edos_widgets(),
-                    self.helpc("on_plot_edos_btn"),
-            ),
-            self.on_plot_edos_btn)
-            ))
+            d["e-DOS"] = pn.Row(
+                pn.Column("### Options", self.get_plot_edos_widgets(), self.helpc("on_plot_edos_btn")),
+                self.on_plot_edos_btn
+            )
 
-            app(("SKW", self.get_plot_skw_widgets()))
+            d["SKW"] = self.get_plot_skw_widgets()
 
             #if self.gsr.ebands.supports_fermi_surface:
             #    # Fermi surface requires Gamma-centered k-mesh
@@ -70,7 +63,7 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
             #    self.on_plot_fermi_surface_btn)
             #    ))
 
-        app(self.get_struct_view_tab_entry())
+        d["Structure"] = self.get_struct_view_tab_entry()
         # TODO
         #app(("NcFile", self.get_ncfile_panel()))
 
@@ -81,6 +74,8 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
         #    self.get_software_stack())
         #))
 
+        if as_dict: return d
+        tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
 
@@ -104,18 +99,18 @@ class GsrRobotPanel(PanelWithEbandsRobot):
 
     def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the |GsrRobot|."""
-        tabs = pn.Tabs(); app = tabs.append
-
-        app(("Summary", pn.Row(bkw.PreText(text=self.robot.to_string(verbose=self.verbose),
-                               sizing_mode="scale_both"))))
-        app(("e-Bands", pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)))
+        d = {}
+        d["Summary"] = pn.Row(bkw.PreText(text=self.robot.to_string(verbose=self.verbose),
+                               sizing_mode="scale_both"))
+        d["e-Bands"] = pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)
 
         # Add e-DOS tab but only if all ebands have k-sampling.
         if all(abifile.ebands.kpoints.is_ibz for abifile in self.robot.abifiles):
-            app(("e-DOS", pn.Row(self.get_edos_plotter_widgets(), self.on_edos_plotter_btn)))
+            d["e-DOS"] = pn.Row(self.get_edos_plotter_widgets(), self.on_edos_plotter_btn)
 
-        app(("GSR-dataframe", pn.Row(
+        d["GSR-dataframe"] = pn.Row(
             pn.Column(self.transpose_gsr_dataframe, self.gsr_dataframe_btn),
-            self.on_gsr_dataframe_btn)))
+            self.on_gsr_dataframe_btn)
 
+        tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))

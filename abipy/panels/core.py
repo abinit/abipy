@@ -40,6 +40,10 @@ def abipanel():
     pn.config.js_files.update({
         # This for copy to clipboard.
         "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
+        #"jsmol": "http://jmol.sourceforge.net/jmol/JSmol.min.js",
+        #"jsmol": "https://raw.githubusercontent.com/fekad/jupyter-jsmol/master/jupyter_jsmol/nbextension/static/jsmol/JSmol.min.js",
+        #"jsmol": "http://www.proteopedia.org/wiki/extensions/jsmol/JSmol.min.js",
+        "jsmol": "http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
     })
 
     #pn.config.js_files.update({
@@ -532,104 +536,109 @@ class HasStructureParams(AbipyParameterized):
             return pn.Column()
 
         #with ButtonContext(self.struct_view_btn):
-        if True:
-            v = self.structure_viewer
+        #if True:
+        v = self.structure_viewer
 
-            if v == "jsmol":
-                #pn.extension(comms='ipywidgets') #, js_files=js_files)
-                view = self.structure.get_jsmol_view()
-                #from ipywidgets_bokeh import IPyWidget
-                #view = IPyWidget(widget=view) #, width=800, height=300)
-                #import ipywidgets as ipw
-                #from IPython.display import display
-                #display(view)
-                #return pn.Row(display(view))
-                #view = pn.ipywidget(view)
-                view = pn.panel(view)
-                #view = pn.pane.IPyWidget(view)
-                print(view)
-                #view = pn.Column(view, sizing_mode='stretch_width')
-                return view
+        if v == "jsmol":
+            return jsmol_html(self.structure)
+            #pn.extension(comms='ipywidgets') #, js_files=js_files)
+            #view = self.structure.get_jsmol_view()
+            #from ipywidgets_bokeh import IPyWidget
+            #view = IPyWidget(widget=view) #, width=800, height=300)
+            #import ipywidgets as ipw
+            #from IPython.display import display
+            #display(view)
+            #return pn.Row(display(view))
+            #view = pn.ipywidget(view)
+            view = pn.panel(view)
+            #view = pn.pane.IPyWidget(view)
+            print(view)
+            #view = pn.Column(view, sizing_mode='stretch_width')
+            return view
 
-            if v == "crystalk":
-                view = self.structure.get_crystaltk_view()
-                return pn.panel(view)
+        if v == "crystalk":
+            view = self.structure.get_crystaltk_view()
+            return pn.panel(view)
 
-            if v == "plotly":
-                return ply(self.structure.plotly(show=False))
+        if v == "plotly":
+            return ply(self.structure.plotly(show=False))
 
-            if v == "ngl":
-                #js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
-                #pn.extension(comms='ipywidgets', js_files=js_files)
-                #view = self.structure.get_ngl_view()
-                #return pn.panel(view)
+        if v == "ngl":
+            from pymatgen.io.babel import BabelMolAdaptor
+            from pymatgen.io.xyz import XYZ
+            # string_data = self.structure.to(fmt="xyz")
 
-                #pn.config.js_files["ngl"]="https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
-                #pn.extension()
+            #writer = BabelMolAdaptor(self)
+            #string_data = str(XYZ(self.structure))
+            #adapt = BabelMolAdaptor.from_string(string_data, file_format="xyz")
+            ##pdb_string =
+            #print(pdb_string)
 
-                html = """<div id="viewport" style="width:100%; height:100%;"></div>
-                <script>
-                stage = new NGL.Stage("viewport");
-                stage.loadFile("rcsb://1NKT.mmtf", {defaultRepresentation: true});
-                </script>"""
+            #from awesome_panel_extesions.pane.widgets.ngl_viewer import NGLViewer
+            #view = NGLViewer()
 
-                ngl_pane = pn.pane.HTML(html, height=500, width=500)
-                return pn.Row(ngl_pane)
-                view = self.structure.get_ngl_view()
+            view.pdb_string = pdb_string
+            return view
 
-            #return self.structure.crystaltoolkitview()
-            #import nglview as nv
-            #view = nv.demo(gui=False)
+            #js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
+            #pn.extension(comms='ipywidgets', js_files=js_files)
+            #view = self.structure.get_ngl_view()
+            #return pn.panel(view)
 
-            #from bokeh.models import ColumnDataSource
-            #from bokeh.io import show, curdoc
-            #from bokeh.models.widgets import Button, TextInput
-            #from bokeh.layouts import layout, widgetbox
-            #from jsmol_bokeh_extension import JSMol
-            #script_source = ColumnDataSource()
+            #pn.config.js_files["ngl"]="https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
+            #pn.extension()
 
-            #info = dict(
-            #    height="100%",
-            #    width="100%",
-            #    serverURL="https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
-            #    use="HTML5",
-            #    j2sPath="https://chemapps.stolaf.edu/jmol/jsmol/j2s",
-            #    script=
-            #    "background black;load https://chemapps.stolaf.edu/jmol/jsmol-2013-09-18/data/caffeine.mol",
-            #)
+            html = """<div id="viewport" style="width:100%; height:100%;"></div>
+            <script>
+            stage = new NGL.Stage("viewport");
+            stage.loadFile("rcsb://1NKT.mmtf", {defaultRepresentation: true});
+            </script>"""
 
-            #applet = JSMol(
-            #    width=600,
-            #    height=600,
-            #    script_source=script_source,
-            #    info=info,
-            #)
+            ngl_pane = pn.pane.HTML(html, height=500, width=500)
+            return pn.Row(ngl_pane)
+            view = self.structure.get_ngl_view()
 
-            #button = Button(label='Execute')
-            #inp_script = TextInput(value='background white;')
+        #return self.structure.crystaltoolkitview()
+        #import nglview as nv
+        #view = nv.demo(gui=False)
 
-            #def run_script():
-            #    script_source.data['script'] = [inp_script.value]
+        #from bokeh.models import ColumnDataSource
+        #from bokeh.io import show, curdoc
+        #from bokeh.models.widgets import Button, TextInput
+        #from bokeh.layouts import layout, widgetbox
+        #from jsmol_bokeh_extension import JSMol
+        #script_source = ColumnDataSource()
 
-            #button.on_click(run_script)
-            #ly = layout([applet, widgetbox(button, inp_script)])
-            #show(ly)
-            #curdoc().add_root(ly)
-            #return pn.Row(applet)
+        #info = dict(
+        #    height="100%",
+        #    width="100%",
+        #    serverURL="https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+        #    use="HTML5",
+        #    j2sPath="https://chemapps.stolaf.edu/jmol/jsmol/j2s",
+        #    script=
+        #    "background black;load https://chemapps.stolaf.edu/jmol/jsmol-2013-09-18/data/caffeine.mol",
+        #)
 
-            if v == "ase_atoms":
-                return mpl(self.structure.plot_atoms(rotations="default", **self.mpl_kwargs))
+        #applet = JSMol(
+        #    width=600,
+        #    height=600,
+        #    script_source=script_source,
+        #    info=info,
+        #)
 
-            return self.structure.visualize(appname=self.structure_viewer)
+        if v == "ase_atoms":
+            return mpl(self.structure.plot_atoms(rotations="default", **self.mpl_kwargs))
+
+        return self.structure.visualize(appname=self.structure_viewer)
 
     def get_struct_view_tab_entry(self):
         """
         Return tab entry to visualize the structure.
         """
-        return ("Structure", pn.Row(
+        return pn.Row(
             self.pws_col(["### Visualize structure", "structure_viewer", self.helpc("view_structure")]),
             pn.Column(self.view_structure, self.get_structure_info())
-        ))
+        )
 
     def get_structure_info(self):
         """
@@ -930,12 +939,10 @@ class BaseRobotPanel(AbipyParameterized):
     def get_compare_params_widgets(self):
         """
         """
-        row = pn.Row(pn.Column(
+        return pn.Row(pn.Column(
             self.compare_params_btn, self.transpose_params),
             self.on_compare_params_btn,
             sizing_mode="scale_both")
-
-        return row
 
 
 class PanelWithEbandsRobot(BaseRobotPanel):
@@ -993,3 +1000,96 @@ class PanelWithEbandsRobot(BaseRobotPanel):
         fig = plot_func(**self.mpl_kwargs)
 
         return pn.Row(pn.Column(mpl(fig)), sizing_mode='scale_width')
+
+
+
+def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
+
+    cif_str = structure.write_cif_with_spglib_symms(None, ret_string=True) #, symprec=symprec
+
+    # There's a bug in boken when we use strings with several '" quotation marks
+    # To bypass the problem I create a json list of strings.
+    # const elements = ['Fire', 'Air', 'Water'];
+    # var string = elements.join('\n');
+    import json
+    lines = cif_str.split("\n")
+    lines = json.dumps(lines, indent=4)
+    print("lines:", lines)
+
+    # Dictionary used in template string.
+    opts = dict(
+        jsmolapp_id=gen_id(),
+        width=width,
+        height=height,
+        color=color,
+        spin=spin,
+        #debug=debug,
+        #cmd='load inline "%s" {1 1 1};' % cif_str,
+        #cmd= 'load inline %s {1 1 1}' % cif_str,
+        #cmd=f'load {tmp_path}',
+        #cmd=f'load $caffeine',
+        lines=lines,
+    )
+    #print(opts["cmd"])
+
+#<script type="text/javascript" src="http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js"</script>
+
+        #"jsmol":
+
+#    html = """
+#$("#%(jsmolapp_id)s").ready(function() {
+#        //readyFunction: null,
+#        //bondWidth: 4,
+#        //pinchScaling: 2.0,
+#        //multipleBondSpacing: 4,
+#        //disableInitialConsole: true,
+#        //disableJ2SLoadMonitor: true,
+#        //script: "script http://myserver/jmol_script_file",
+#"""
+
+#    html = """
+#<div id="%(jsmolapp_id)s"> </div>
+#
+#<script type="text/javascript">
+#$(document).ready(function() {
+#
+#    Info = {
+#        addSelectionOptions: false,
+#        //script: "%(cmd)s",
+#        debug: true
+#    },
+#
+#  $("#%(jsmolapp_id)s").html(Jmol.getAppletHtml("%(jsmolapp_id)s", Info));
+#});
+#</script>
+#""" % opts
+
+    html = r"""
+<script type="text/javascript">
+    var myJmol = 'myJmol';
+    var Info = {
+        color: "%(color)s",
+        spin: %(spin)s,
+        antialiasDisplay: true,
+        width: %(width)d,
+        height: %(height)d,
+        j2sPath: "http://chemapps.stolaf.edu/jmol/jsmol/j2s",
+        serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+        //script: "load $caffeine",
+        use: 'html5',
+        debug: false
+    }
+
+    $(document).ready(function(){
+       $('#JmolDiv').html(Jmol.getAppletHtml(myJmol, Info));
+       const lines = %(lines)s;
+       var cmd = 'load inline " ' + lines.join('\n') + '" {1, 1, 1}';
+       console.log(cmd);
+       Jmol.script(myJmol, cmd);
+    });
+</script>
+<div id="JmolDiv"></div>
+""" % opts
+
+    print(html)
+    return pn.Column(pn.pane.HTML(html, sizing_mode="stretch_width"), sizing_mode="stretch_width")

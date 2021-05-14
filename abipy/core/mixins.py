@@ -542,11 +542,7 @@ def get_filestat(filepath):
     ])
 
 
-class NotebookWriter(metaclass=abc.ABCMeta):
-    """
-    Mixin class for objects that are able to generate jupyter_ notebooks.
-    Subclasses must provide a concrete implementation of `write_notebook`.
-    """
+class HasNotebookTools(object):
 
     def has_panel(self):
         """
@@ -717,6 +713,28 @@ abilab.enable_notebook(with_seaborn=True)
 
         return nbformat, nbv, nb
 
+    @staticmethod
+    def _write_nb_nbpath(nb, nbpath):
+        """
+        This method must be called at the end of ``write_notebook``.
+        nb is the jupyter notebook and nbpath the argument passed to ``write_notebook``.
+        """
+        import io, os, tempfile
+        if nbpath is None:
+            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
+
+        # Write notebook
+        import nbformat
+        with io.open(nbpath, 'wt', encoding="utf8") as fh:
+            nbformat.write(nb, fh)
+            return nbpath
+
+class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
+    """
+    Mixin class for objects that are able to generate jupyter_ notebooks.
+    Subclasses must provide a concrete implementation of `write_notebook`.
+    """
+
     @abc.abstractmethod
     def write_notebook(self, nbpath=None):
         """
@@ -739,22 +757,6 @@ abilab.enable_notebook(with_seaborn=True)
             # Call _write_nb_nbpath
             return self._write_nb_nbpath(nb, nbpath)
         """
-
-    @staticmethod
-    def _write_nb_nbpath(nb, nbpath):
-        """
-        This method must be called at the end of ``write_notebook``.
-        nb is the jupyter notebook and nbpath the argument passed to ``write_notebook``.
-        """
-        import io, os, tempfile
-        if nbpath is None:
-            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
-
-        # Write notebook
-        import nbformat
-        with io.open(nbpath, 'wt', encoding="utf8") as fh:
-            nbformat.write(nb, fh)
-            return nbpath
 
     @classmethod
     def pickle_load(cls, filepath):

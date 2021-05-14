@@ -318,69 +318,70 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
 
         return col
 
-    def get_panel(self, **kwargs):
+    def get_panel(self, as_dict=False, **kwargs):
         """
         Return tabs with widgets to interact with the DDB file.
         """
-        tabs = pn.Tabs(); app = tabs.append
-        #d = {}
-
-        app(("Summary", pn.Row(
+        d = {}
+        d["Summary"] = pn.Row(
             bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both")
-        )))
+        )
         #if self.ddb.has_phonons
-        app(("PH-bands", pn.Row(
+        d["PH-bands"] = pn.Row(
             self.pws_col(["### PH-bands options", "nqsmall", "ndivsm", "asr", "chneut", "dipdip",
                           "lo_to_splitting", "dos_method", "stacked_pjdos", "temp_range", "plot_phbands_btn",
                           self.helpc("plot_phbands_and_phdos")]),
             self.plot_phbands_and_phdos
-        )))
+        )
         #if self.ddb.has_becs
-        app(("BECs", pn.Row(
+        d["BECs"] = pn.Row(
             self.pws_col(["### Born effective charges options", "asr", "chneut", "dipdip", "gamma_ev",
                           "get_epsinf_btn", self.helpc("get_epsinf")]),
             self.get_epsinf
-        )))
+        )
         #if self.ddb.has_e0
-        app(("eps0", pn.Row(
+        d["eps0"] = pn.Row(
             self.pws_col(["### epsilon_0", "asr", "chneut", "dipdip", "gamma_ev", "w_range", "plot_eps0w_btn",
                           self.helpc("plot_eps0w")]),
             self.plot_eps0w
-        )))
+        )
         #if self.ddb.has_phonons
-        app(("Speed of sound", pn.Row(
+        d["Speed of sound"] = pn.Row(
             self.pws_col(["### Speed of sound options", "asr", "chneut", "dipdip", "plot_vsound_btn",
                          self.helpc("plot_vsound")]),
             self.plot_vsound
-        )))
+        )
         #if self.ddb.has_phonons
-        app(("ASR & DIPDIP", pn.Row(
+        d["ASR & DIPDIP"] = pn.Row(
             self.pws_col(["### ASR & DIPDIP options", "nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
                          self.helpc("plot_without_asr_dipdip")]),
             self.plot_without_asr_dipdip
-        )))
-        app(("DOS vs q-mesh", pn.Row(
+        )
+        d["DOS vs q-mesh"] = pn.Row(
             self.pws_col(["### DOS vs q-mesh options", "asr", "chneut", "dipdip", "dos_method", "nqsmall_list",
                          "temp_range", "plot_dos_vs_qmesh_btn", self.helpc("plot_dos_vs_qmesh")]),
             self.plot_dos_vs_qmesh
-        )))
+        )
         #if self.ddb.has_dynamical_quadrupoles
-        app(("Quadrupoles", pn.Row(
+        d["Quadrupoles"] = pn.Row(
             self.pws_col(["### Quadrupoles options", "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
                           "plot_phbands_quad_btn", self.helpc("plot_phbands_quad")]),
             self.plot_phbands_quad
-        )))
+        )
         #if self.ddb.has_phonons
-        app(("IFCs", pn.Row(
+        d["IFCs"] = pn.Row(
             self.pws_col(["### IFCs options", "asr", "dipdip", "chneut", "plot_ifc_btn", self.helpc("plot_ifc")]),
-            self.plot_ifc)
-        ))
-        app(self.get_struct_view_tab_entry())
-        app(("Global", pn.Row(
+            self.plot_ifc
+        )
+        d["Structure"] = self.get_struct_view_tab_entry()
+        d["Global"] = pn.Row(
             self.pws_col(["### Global options", "units", "mpi_procs", "verbose"]),
             self.get_software_stack()
-        )))
+        )
 
+        if as_dict: return d
+
+        tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
 
@@ -595,27 +596,25 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
 
         return col
 
-    def get_panel(self, **kwargs):
+    def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the DDB file."""
-
         robot = self.robot
-        tabs = pn.Tabs(); app = tabs.append
 
-        app(("Summary", pn.Row(
-            bkw.PreText(text=robot.to_string(verbose=self.verbose), sizing_mode="scale_both"))
-        ))
+        d["Summary"] = pn.Row(
+            bkw.PreText(text=robot.to_string(verbose=self.verbose), sizing_mode="scale_both")
+        )
 
-        app(("Params", self.get_compare_params_widgets()))
+        d["Params"] = self.get_compare_params_widgets()
 
-        app(("Combiplot", pn.Row(
+        d["Combiplot"] = pn.Row(
             pn.Column("# PH-bands options",
                       *self.pws("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
                                 "lo_to_splitting", "dos_method", "temp_range",
                                 "combiplot_check_btn", "plot_combiplot_btn",
                                 self.helpc("plot_combiplot")),
                       ),
-            self.plot_combiplot)
-        ))
+            self.plot_combiplot
+        )
         #app(("PH-bands", pn.Row(
         #    pn.Column("# PH-bands options",
         #              *self.pws("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
@@ -645,11 +644,11 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
         #              ),
         #    self.plot_vsound)
         #))
-        app(("ASR & DIPDIP", pn.Row(
+        d["ASR & DIPDIP"] = pn.Row(
             self.pws_col(["### ASR & DIPDIP options", "nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
                           self.helpc("plot_without_asr_dipdip")]),
             self.plot_without_asr_dipdip
-            )))
+        )
         #app(("DOS vs q-mesh", pn.Row(
         #    pn.Column("# DOS vs q-mesh options",
         #              *self.pws("asr", "chneut", "dipdip", "dos_method", "nqsmall_list", "plot_dos_vs_qmesh_btn",
@@ -671,6 +670,9 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
         #              ),
         #    self.plot_ifc)
         #))
-        app(("Global", pn.pws_col(["### Global options", "units", "mpi_procs", "verbose"])))
+        d["Global"] = pn.pws_col(["### Global options", "units", "mpi_procs", "verbose"])
 
+        if as_dict: return d
+
+        tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))

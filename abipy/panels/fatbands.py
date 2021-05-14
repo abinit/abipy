@@ -25,16 +25,16 @@ class FatBandsFilePanel(PanelWithElectronBands):
         """|ElectronBands|."""
         return self._ncfile.ebands
 
-    def get_panel(self, **kwargs):
+    def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the FATBANDS.nc file."""
-        tabs = pn.Tabs(); app = tabs.append
+        d = {}
 
-        app(("Summary", pn.Row(bkw.PreText(text=self.ncfile.to_string(verbose=self.verbose), sizing_mode="scale_both"))))
-        app(("e-Bands", pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)))
+        d["Summary"] = pn.Row(bkw.PreText(text=self.ncfile.to_string(verbose=self.verbose), sizing_mode="scale_both"))
+        d["e-Bands"] = pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)
 
         if self.ncfile.ebands.kpoints.is_ibz:
             # Add DOS tab but only if k-sampling.
-            app(("e-DOS", pn.Row(self.get_plot_edos_widgets(), self.on_plot_edos_btn)))
+            d["e-DOS"] = pn.Row(self.get_plot_edos_widgets(), self.on_plot_edos_btn)
 
             # Plot the L-PJDOS grouped by atomic type.
             #self.ncfile.plot_pjdos_typeview(lmax=lmax, **self.mpl_kwargs)
@@ -43,7 +43,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
 
             # Fermi surface requires a gamma-centered k-mesh
             if self.ncfile.ebands.supports_fermi_surface:
-                app(("Fermi Surface", pn.Row(self.get_plot_fermi_surface_widgets(), self.on_plot_fermi_surface_btn)))
+                d["Fermi Surface"] = pn.Row(self.get_plot_fermi_surface_widgets(), self.on_plot_fermi_surface_btn)
 
         elif self.ncfile.ebands.kpoints.is_path:
             # NC files have contributions up to L=4 (g channel)
@@ -59,6 +59,8 @@ class FatBandsFilePanel(PanelWithElectronBands):
         else:
             raise ValueError("Neither a IBZ nor k-path!")
 
+        if as_dict: return d
+        tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
 

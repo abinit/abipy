@@ -30,11 +30,14 @@ class PhononBandsPlotterPanel(AbipyParameterized):
         df = self.plotter.get_phbands_frame(with_spglib=True)
         return pn.Row(pn.Column(mpl(fig), dfc(df)), sizing_mode='scale_width')
 
-    def get_panel(self, **kwargs):
+    def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the |PhononBandsPlotter|."""
-        tabs = pn.Tabs()  #; app = tabs.append
+        d = {}
 
         ws = pn.Column(self.phbands_plotter_mode, self.phbands_plotter_units, self.phbands_plotter_btn)
-        tabs.append(("PhbandsPlotter", pn.Row(ws, self.on_phbands_plot_btn, sizing_mode='scale_width')))
+        d["PhbandsPlotter"] = pn.Row(ws, self.on_phbands_plot_btn, sizing_mode='scale_width')
 
+        if as_dict: return d
+
+        tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
