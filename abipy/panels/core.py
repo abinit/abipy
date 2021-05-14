@@ -40,10 +40,9 @@ def abipanel():
     pn.config.js_files.update({
         # This for copy to clipboard.
         "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
-        #"jsmol": "http://jmol.sourceforge.net/jmol/JSmol.min.js",
-        #"jsmol": "https://raw.githubusercontent.com/fekad/jupyter-jsmol/master/jupyter_jsmol/nbextension/static/jsmol/JSmol.min.js",
-        #"jsmol": "http://www.proteopedia.org/wiki/extensions/jsmol/JSmol.min.js",
         "jsmol": "http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
+        #"jsmol": "http://jmol.sourceforge.net/jmol/JSmol.min.js",
+        #"jsmol": "http://www.proteopedia.org/wiki/extensions/jsmol/JSmol.min.js",
     })
 
     #pn.config.js_files.update({
@@ -535,8 +534,6 @@ class HasStructureParams(AbipyParameterized):
         if self.structure_viewer is None:
             return pn.Column()
 
-        #with ButtonContext(self.struct_view_btn):
-        #if True:
         v = self.structure_viewer
 
         if v == "jsmol":
@@ -1008,7 +1005,8 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
     cif_str = structure.write_cif_with_spglib_symms(None, ret_string=True) #, symprec=symprec
 
     # There's a bug in boken when we use strings with several '" quotation marks
-    # To bypass the problem I create a json list of strings.
+    # To bypass the problem I create a json list of strings and then I use a js variable
+    # to recreate the cif file by joining the tokens.
     # const elements = ['Fire', 'Air', 'Water'];
     # var string = elements.join('\n');
     import json
@@ -1023,10 +1021,8 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
         height=height,
         color=color,
         spin=spin,
-        #debug=debug,
         #cmd='load inline "%s" {1 1 1};' % cif_str,
         #cmd= 'load inline %s {1 1 1}' % cif_str,
-        #cmd=f'load {tmp_path}',
         #cmd=f'load $caffeine',
         lines=lines,
     )
@@ -1034,16 +1030,8 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
 
 #<script type="text/javascript" src="http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js"</script>
 
-        #"jsmol":
-
 #    html = """
 #$("#%(jsmolapp_id)s").ready(function() {
-#        //readyFunction: null,
-#        //bondWidth: 4,
-#        //pinchScaling: 2.0,
-#        //multipleBondSpacing: 4,
-#        //disableInitialConsole: true,
-#        //disableJ2SLoadMonitor: true,
 #        //script: "script http://myserver/jmol_script_file",
 #"""
 
@@ -1063,6 +1051,8 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
 #});
 #</script>
 #""" % opts
+
+#<script type="text/javascript" src="http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js"</script>
 
     html = r"""
 <script type="text/javascript">
@@ -1088,6 +1078,7 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
        Jmol.script(myJmol, cmd);
     });
 </script>
+
 <div id="JmolDiv"></div>
 """ % opts
 

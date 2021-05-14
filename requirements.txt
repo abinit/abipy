@@ -11,11 +11,8 @@ numpy
 scipy
 sympy
 spglib
-#pymatgen>=2019.12.22
 pymatgen>=2022.0.4
 netCDF4
 matplotlib
 seaborn
 plotly
-chart-studio
-#panel

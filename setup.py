@@ -154,7 +154,7 @@ install_requires = [
     "matplotlib",
     "seaborn",
     "plotly",
-    "chart-studio",
+    #"chart-studio",
     #panel
 ]
 
