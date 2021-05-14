@@ -1014,9 +1014,12 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
     lines = json.dumps(lines, indent=4)
     print("lines:", lines)
 
+    jsmol_div_id = gen_id()
+    jsmol_app_name = "js1"
+
     # Dictionary used in template string.
     opts = dict(
-        jsmolapp_id=gen_id(),
+        jsmol_div_id=jsmol_div_id,
         width=width,
         height=height,
         color=color,
@@ -1028,59 +1031,106 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
     )
     #print(opts["cmd"])
 
-#<script type="text/javascript" src="http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js"</script>
-
-#    html = """
-#$("#%(jsmolapp_id)s").ready(function() {
-#        //script: "script http://myserver/jmol_script_file",
-#"""
-
-#    html = """
-#<div id="%(jsmolapp_id)s"> </div>
-#
+#   html = """
+#<div id="%(jsmol_div_id)s" class=jsmolapp_div></div>
+#<script type="text/javascript" src="nbjsmol/jsmol/JSmol.min.js"></script>
 #<script type="text/javascript">
-#$(document).ready(function() {
-#
+#$("#%(jsmol_div_id)s").ready(function() {
 #    Info = {
-#        addSelectionOptions: false,
-#        //script: "%(cmd)s",
-#        debug: true
+#        antialiasDisplay: true,
+#        //disableJ2SLoadMonitor: true,
+#        width: %(width)d,
+#        height: %(height)d,
+#        color: "%(color)s",
+#        //addSelectionOptions: true,
+#        serverURL: "nbjsmol/jsmol/php/jsmol.php",
+#        script: "load %(mypath)s;",
+#        //src: "%(mypath)s",
+#        use: "HTML5",
+#        j2sPath: "nbjsmol/jsmol/j2s",  // only used in the HTML5 modality
+#        //readyFunction: null,
+#        //bondWidth: 4,
+#        //pinchScaling: 2.0,
+#        //multipleBondSpacing: 4,
+#        spin: %(spin)s,
+#        disableInitialConsole: true,
+#        disableJ2SLoadMonitor: true,
+#        debug: %(debug)s
 #    },
-#
-#  $("#%(jsmolapp_id)s").html(Jmol.getAppletHtml("%(jsmolapp_id)s", Info));
+#  $("#%(jsmol_div_id)s").html(Jmol.getAppletHtml("%(jsmol_div_id)s", Info));
 #});
 #</script>
+#}
+#</style>
 #""" % opts
 
 #<script type="text/javascript" src="http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js"</script>
 
-    html = r"""
-<script type="text/javascript">
-    var myJmol = 'myJmol';
-    var Info = {
-        color: "%(color)s",
-        spin: %(spin)s,
-        antialiasDisplay: true,
-        width: %(width)d,
-        height: %(height)d,
-        j2sPath: "http://chemapps.stolaf.edu/jmol/jsmol/j2s",
-        serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
-        //script: "load $caffeine",
-        use: 'html5',
-        debug: false
-    }
+# GOOD
+#    html = r"""
+#<script type="text/javascript">
+#    $(document).ready(function(){
+#
+#       var myJmol = 'myJmol';
+#       const lines = %(lines)s;
+#       var script_str = 'load inline " ' + lines.join('\n') + '" {1, 1, 1}';
+#       console.log(script_str);
+#
+#       var Info = {
+#           color: "%(color)s",
+#           spin: %(spin)s,
+#           antialiasDisplay: true,
+#           width: %(width)d,
+#           height: %(height)d,
+#           j2sPath: "http://chemapps.stolaf.edu/jmol/jsmol/j2s",
+#           serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+#           script: script_str,
+#           use: 'html5',
+#           disableInitialConsole: true,
+#           disableJ2SLoadMonitor: true,
+#           debug: false
+#       };
+#
+#       $('#JmolDiv').html(Jmol.getAppletHtml(myJmol, Info));
+#       //Jmol.script(myJmol, script_scr);
+#    });
+#</script>
+#
+#<div id="JmolDiv" style="height: 100%; width: 100%; position: relative;"></div>
+#""" % opts
 
-    $(document).ready(function(){
-       $('#JmolDiv').html(Jmol.getAppletHtml(myJmol, Info));
-       const lines = %(lines)s;
-       var cmd = 'load inline " ' + lines.join('\n') + '" {1, 1, 1}';
-       console.log(cmd);
-       Jmol.script(myJmol, cmd);
-    });
+
+    html = f"""
+<script type="text/javascript">
+    $(document).ready(function() {{
+
+       //var myJmol = 'myJmol';
+       const lines = {lines};
+       var script_str = 'load inline " ' + lines.join('\\n') + '" {{1, 1, 1}}';
+       console.log(script_str);
+
+       var Info = {{
+           color: "{color}",
+           spin: {spin},
+           antialiasDisplay: true,
+           width: {width},
+           height: {height},
+           j2sPath: "http://chemapps.stolaf.edu/jmol/jsmol/j2s",
+           serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+           script: script_str,
+           use: 'html5',
+           disableInitialConsole: true,
+           disableJ2SLoadMonitor: true,
+           debug: false
+       }};
+
+       //$("#{jsmol_div_id}").html(Jmol.getAppletHtml(myJmol, Info));
+       $("#{jsmol_div_id}").html(Jmol.getAppletHtml("{jsmol_app_name}", Info));
+    }});
 </script>
 
-<div id="JmolDiv"></div>
-""" % opts
+<div id="{jsmol_div_id}" style="height: 100%; width: 100%; position: relative;"></div>
+"""
 
     print(html)
     return pn.Column(pn.pane.HTML(html, sizing_mode="stretch_width"), sizing_mode="stretch_width")
