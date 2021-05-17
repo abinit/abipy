@@ -1877,6 +1877,53 @@ class SigresRobot(Robot, RobotWithEbands):
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
+    def get_fit_gaps_vs_ecuteps(self, spin, kpoint):
+
+        # Make sure that nsppol, sigma_kpoints are consistent.
+        self._check_dims_and_params()
+
+        nc0 = self.abifiles[0]
+        nsppol, sigma_kpoints = nc0.nsppol, nc0.sigma_kpoints
+        ik = nc0.reader.gwkpt2seqindex(kpoint)
+        kpoint = nc0.sigma_kpoints[ik]
+
+        labels, ncfiles, params = self.sortby("ecuteps", unpack=True)
+        xdata = np.array(p["ecuteps"] for p in params)
+
+        #for ik, (kgw, ax) in enumerate(zip(sigma_kpoints, ax_list)):
+        #    for spin in range(nsppol):
+
+        qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
+            for ncfile in ncfiles]))
+        ydata = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
+        #def get_qpcorr(self, spin, kpoint, band, ignore_imag=False):
+
+        from scipy.optimize import curve_fit
+        def func(x, a, b, c):
+            return a * x**(-1.5) + b * x**(-2.5) + c
+
+        popt, pcov = curve_fit(func, xdata, ydata)
+
+        ax, fig, plt = get_ax_fig_plt(ax=None)
+        ax.plot(xdata, ydata, 'ro', label='ab-initio data')
+        min_ecuteps, max_ecuteps = xdata.min(), xdata.max() + 20
+        xs = np.linspace(min_ecuteps, max_ecuteps, num=50)
+        ax.plot(xs, func(xs, *popt), 'b-',
+                label=r'fit: $B_3$=%5.3f, $B_5$=%5.3f, $\Delta E_g$=%5.3f' % tuple(popt))
+
+        #ax.plot(xs, func(xs, *popt),, 'b-',
+        #        label='fit: $B_3$=%5.3f, $B_5$=%5.3f, $\Delta E_g (\infty)$=%5.3f' % tuple(popt))
+        ax.legend()
+        ax.grid(True)
+        ax.set_xlabel('ecuteps (Ha)')
+        ax.set_ylabel('$Delta_E$ (eV)')
+        #ax.set_ylabel('$\Delta E(E_c^{\chi})$ (eV)')
+        #ax.title(r'$\Delta E(E_c^{\chi}) = \Delta E_g (\infty) + B_3 * E_c^{\chi (-3/2)} + B_5* E_c^{\chi (-5/2)} $')
+
+        #if show:
+        plt.show()
+        #return dict2namedtuple()
+
     # An alias to have a common API for robots.
     get_dataframe = get_qpgaps_dataframe
 
