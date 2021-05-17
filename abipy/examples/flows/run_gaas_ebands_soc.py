@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Band structure with/without spin-orbit
-======================================
+Band structure with/without SOC
+================================
 
 This example shows how to compute the band structure of GaAs with and without spin-orbit term.
 We essentially build two BandStructureWork inside a loop over nspinor in [1, 2]

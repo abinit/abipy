@@ -1906,6 +1906,7 @@ class SigresRobot(Robot, RobotWithEbands):
 
         nc0 = self.abifiles[0]
         nsppol, sigma_kpoints = nc0.nsppol, nc0.sigma_kpoints
+
         # Build grid with (nkpt, 1) plots.
         ncols, nrows = 1, len(sigma_kpoints)
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,

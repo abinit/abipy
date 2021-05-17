@@ -1122,6 +1122,7 @@ def add_plotly_fig_kwargs(func):
         write_json = kwargs.pop("write_json", None)
         config = kwargs.pop("config", None)
         renderer = kwargs.pop("renderer", None)
+        chart_studio = kwargs.pop("chart_studio", False)
 
         # Allow users to specify the renderer via shell env.
         if renderer is not None and os.getenv("PLOTLY_RENDERER", default=None) is not None:
@@ -1146,10 +1147,10 @@ def add_plotly_fig_kwargs(func):
         fig.layout.hovermode = hovermode
 
         if show: # and _PLOTLY_DEFAULT_SHOW:
-            if renderer == "chart_studio":
-                push_to_chart_studio(fig)
-            else:
-                fig.show(renderer=renderer, config=config)
+            fig.show(renderer=renderer, config=config)
+
+        if chart_studio:
+            push_to_chart_studio(fig)
 
         return fig
 
@@ -1176,9 +1177,9 @@ def add_plotly_fig_kwargs(func):
                                   (separated by ‘+’ characters) or None. If None, then the default
                                   renderers specified in plotly.io.renderers.default are used.
                                   See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
-                                  Note that if renderee is equal to `chart_studio`, the file is uploaded to the chart studio
-                                  cloud. This is an AbiPy extension on top of the plotly API.
                 config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
+                chart_studio      True to push figure to chart_studio server. Requires authenticatios.
+                                  Default: False.
                 ================  ====================================================================
         """
     )
@@ -1848,7 +1849,7 @@ def plotly_brillouin_zone_from_kpath(kpath, fig=None, **kwargs):
     )
 
 
-#@add_fig_kwargs
+@add_plotly_fig_kwargs
 def plotly_brillouin_zone(
     bz_lattice,
     lines=None,

@@ -41,8 +41,6 @@ def abipanel():
         # This for copy to clipboard.
         "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
         "jsmol": "http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
-        #"jsmol": "http://jmol.sourceforge.net/jmol/JSmol.min.js",
-        #"jsmol": "http://www.proteopedia.org/wiki/extensions/jsmol/JSmol.min.js",
     })
 
     #pn.config.js_files.update({
@@ -599,30 +597,6 @@ class HasStructureParams(AbipyParameterized):
         #import nglview as nv
         #view = nv.demo(gui=False)
 
-        #from bokeh.models import ColumnDataSource
-        #from bokeh.io import show, curdoc
-        #from bokeh.models.widgets import Button, TextInput
-        #from bokeh.layouts import layout, widgetbox
-        #from jsmol_bokeh_extension import JSMol
-        #script_source = ColumnDataSource()
-
-        #info = dict(
-        #    height="100%",
-        #    width="100%",
-        #    serverURL="https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
-        #    use="HTML5",
-        #    j2sPath="https://chemapps.stolaf.edu/jmol/jsmol/j2s",
-        #    script=
-        #    "background black;load https://chemapps.stolaf.edu/jmol/jsmol-2013-09-18/data/caffeine.mol",
-        #)
-
-        #applet = JSMol(
-        #    width=600,
-        #    height=600,
-        #    script_source=script_source,
-        #    info=info,
-        #)
-
         if v == "ase_atoms":
             return mpl(self.structure.plot_atoms(rotations="default", **self.mpl_kwargs))
 
@@ -999,7 +973,6 @@ class PanelWithEbandsRobot(BaseRobotPanel):
         return pn.Row(pn.Column(mpl(fig)), sizing_mode='scale_width')
 
 
-
 def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
 
     cif_str = structure.write_cif_with_spglib_symms(None, ret_string=True) #, symprec=symprec
@@ -1012,102 +985,25 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
     import json
     lines = cif_str.split("\n")
     lines = json.dumps(lines, indent=4)
-    print("lines:", lines)
+    #print("lines:", lines)
 
     jsmol_div_id = gen_id()
     jsmol_app_name = "js1"
+    supercell = "{2, 2, 2}"
+    supercell = "{1, 1, 1}"
 
-    # Dictionary used in template string.
-    opts = dict(
-        jsmol_div_id=jsmol_div_id,
-        width=width,
-        height=height,
-        color=color,
-        spin=spin,
-        #cmd='load inline "%s" {1 1 1};' % cif_str,
-        #cmd= 'load inline %s {1 1 1}' % cif_str,
-        #cmd=f'load $caffeine',
-        lines=lines,
-    )
-    #print(opts["cmd"])
+    #script_str = 'load inline "%s" {1 1 1};' % cif_str
+    #script_str = "load $caffeine"
 
-#   html = """
-#<div id="%(jsmol_div_id)s" class=jsmolapp_div></div>
-#<script type="text/javascript" src="nbjsmol/jsmol/JSmol.min.js"></script>
-#<script type="text/javascript">
-#$("#%(jsmol_div_id)s").ready(function() {
-#    Info = {
-#        antialiasDisplay: true,
-#        //disableJ2SLoadMonitor: true,
-#        width: %(width)d,
-#        height: %(height)d,
-#        color: "%(color)s",
-#        //addSelectionOptions: true,
-#        serverURL: "nbjsmol/jsmol/php/jsmol.php",
-#        script: "load %(mypath)s;",
-#        //src: "%(mypath)s",
-#        use: "HTML5",
-#        j2sPath: "nbjsmol/jsmol/j2s",  // only used in the HTML5 modality
-#        //readyFunction: null,
-#        //bondWidth: 4,
-#        //pinchScaling: 2.0,
-#        //multipleBondSpacing: 4,
-#        spin: %(spin)s,
-#        disableInitialConsole: true,
-#        disableJ2SLoadMonitor: true,
-#        debug: %(debug)s
-#    },
-#  $("#%(jsmol_div_id)s").html(Jmol.getAppletHtml("%(jsmol_div_id)s", Info));
-#});
-#</script>
-#}
-#</style>
-#""" % opts
-
-#<script type="text/javascript" src="http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js"</script>
-
-# GOOD
-#    html = r"""
-#<script type="text/javascript">
-#    $(document).ready(function(){
-#
-#       var myJmol = 'myJmol';
-#       const lines = %(lines)s;
-#       var script_str = 'load inline " ' + lines.join('\n') + '" {1, 1, 1}';
-#       console.log(script_str);
-#
-#       var Info = {
-#           color: "%(color)s",
-#           spin: %(spin)s,
-#           antialiasDisplay: true,
-#           width: %(width)d,
-#           height: %(height)d,
-#           j2sPath: "http://chemapps.stolaf.edu/jmol/jsmol/j2s",
-#           serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
-#           script: script_str,
-#           use: 'html5',
-#           disableInitialConsole: true,
-#           disableJ2SLoadMonitor: true,
-#           debug: false
-#       };
-#
-#       $('#JmolDiv').html(Jmol.getAppletHtml(myJmol, Info));
-#       //Jmol.script(myJmol, script_scr);
-#    });
-#</script>
-#
-#<div id="JmolDiv" style="height: 100%; width: 100%; position: relative;"></div>
-#""" % opts
-
+    # http://wiki.jmol.org/index.php/Jmol_JavaScript_Object/Functions#getAppletHtml
 
     html = f"""
 <script type="text/javascript">
     $(document).ready(function() {{
 
-       //var myJmol = 'myJmol';
        const lines = {lines};
-       var script_str = 'load inline " ' + lines.join('\\n') + '" {{1, 1, 1}}';
-       console.log(script_str);
+       var script_str = 'load inline " ' + lines.join('\\n') + '" {supercell}';
+       //console.log(script_str);
 
        var Info = {{
            color: "{color}",
@@ -1124,7 +1020,6 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
            debug: false
        }};
 
-       //$("#{jsmol_div_id}").html(Jmol.getAppletHtml(myJmol, Info));
        $("#{jsmol_div_id}").html(Jmol.getAppletHtml("{jsmol_app_name}", Info));
     }});
 </script>
@@ -1132,5 +1027,5 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
 <div id="{jsmol_div_id}" style="height: 100%; width: 100%; position: relative;"></div>
 """
 
-    print(html)
+    #print(html)
     return pn.Column(pn.pane.HTML(html, sizing_mode="stretch_width"), sizing_mode="stretch_width")

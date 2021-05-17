@@ -1,20 +1,19 @@
 
-Release 0.9.1: 
+Release 0.9.1:
 
    * Add  "-ew", "--expose-web",
-   * abiopen, abiview and abicom now supports --plotly to produce plotly figures in the local browser 
+   * abiopen, abiview and abicomp now supports --plotly to produce plotly figures in the local browser
      and --chart-studio to push the figure to the chart studio service.
      Note that, at present, only DDB files support plotly.
-   * AbinitInput set_kpath and make_ebands_input now support negative values of ndivsm that 
+   * AbinitInput set_kpath and make_ebands_input now support negative values of ndivsm that
      are interpreted as line_density following pymatgen conventions.
-     This option is the recommended one if the k-path contains two consecutive high symmetry k-points 
+     This option is the recommended one if the k-path contains two consecutive high symmetry k-points
      that are very close as ndivsm > 0 may produce a very large number of wavevectors.
    * Preliminary support for plotly plots (phonons).
    * AbinitInputParser now can parse strings in the input file and read structure is the `structure:abivars`
      syntax in used.
 
-
-Release 0.9.0: 
+Release 0.9.0:
 
     * Require pymatgen >= 2019.12.22
     * Integration with abinit 9.4.0
@@ -30,8 +29,7 @@ Release 0.9.0:
       We will also take the opportunity to refactor the code base so backward incompatibe changes in the API
       are expected in the next major version.
 
-
-Release 0.8.0: 
+Release 0.8.0:
 
     * Add abicheck.py --create-config option to install predefined yaml configuration files
     * Add support for NSCF calculations with meta-GGA.
@@ -71,7 +69,7 @@ Release:0.3.0 2017-12-26
       and ``flow-gallery`` with AbiPy flows are now automatically generated.
     * Add Shankland-Koelling-Wood Fourier interpolation scheme.
 
-Release 0.2.0 <2017-03-10>
+Release 0.2.0 2017-03-10
 
     This is the first official release in which we have reached a relatively stable API
     and a well-defined interface with the netcdf files produced by Abinit.

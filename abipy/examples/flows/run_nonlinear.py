@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Flow for Non-linear optic with DFPT
+Flow for non-linear optic with DFPT
 ===================================
 
 Flow to compute non-linear optical properties with DFPT (static limit).
@@ -78,8 +78,6 @@ def main(options):
     flow_main is a decorator implementing the command line interface.
     Command line args are stored in `options`.
     """
-    # Temporarily disabled in v8.8.2
-    #return 0
     return build_flow(options)
 
 

@@ -1270,7 +1270,18 @@ def main():
         else:
             graph = node.get_graphviz(engine=options.engine)
 
+        if options.verbose:
+            # Print DOT string. Can be used with e.g. http://viz-js.com/
+            print(graph)
+
         graph.view(directory=directory, cleanup=False)
+
+        if options.verbose > 1:
+            # Write graph to file in png format.
+            graph.format = "png"
+            graph.attr(dpi=str(300))
+            path = graph.render("graph", view=False, cleanup=False)
+            print("Saving png file to:", path)
 
     elif options.command == "listext":
         if not options.listexts:
