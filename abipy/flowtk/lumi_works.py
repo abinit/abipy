@@ -16,7 +16,7 @@ class LumiWork(Work):
     """
 
     @classmethod
-    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, relax_kwargs_gs, relax_kwargs_ex, ndivsm=0, nb_extra=10, tolwfr=1e-12, four_points=True, manager=None):
+    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, relax_kwargs_gs, relax_kwargs_ex, ndivsm=0, nb_extra=10, tolwfr=1e-12, four_points=True, meta=None, manager=None):
         """
         Args:
             gs_scf_inp: |AbinitInput| representing a GS SCF run for the ground-state.
@@ -35,6 +35,7 @@ class LumiWork(Work):
             tolwfr: Tolerance of the residuals used for the NSCF band structure calculations.
             four_points : if True, compute the two relaxations and the four points energies.
                 If false, only the two relaxations.
+            meta : dict corresponding to the metadata of a lumiwork (supercell size, dopant type,...)
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         new = cls(manager=manager)
@@ -51,6 +52,7 @@ class LumiWork(Work):
         new.ndivsm = int(ndivsm)
         new.tolwfr = tolwfr
         new.nb_extra = int(nb_extra)
+        new.meta=meta
 
         # Relaxation for the Ag configuration.
         new.gs_relax_task = new.register_relax_task(gs_scf_inp.new_with_vars(relax_kwargs_gs))
@@ -60,10 +62,9 @@ class LumiWork(Work):
 
         # JSON-compatible dictionary storing the most important results of the Work. (relaxations and 4 pts results
         # are separated)
-        # Results will be stored in the `lumi_4pts.json` or 'lumi_relax.json file in the outdata directory of the Work
+        # Results will be stored in the `lumi_4pts.json` file in the outdata directory of the Work
         # so that one can easily implement additional post-processing tools.
-        new.json_data_4pts = {}
-        new.json_data_relax = {}
+        new.json_data = {}
 
         return new
 
@@ -149,39 +150,34 @@ class LumiWork(Work):
             self.iteration_step += 1
             ##### Writing the results in json files #####
 
+            self.json_data["meta"] = self.meta
+
             with self.gs_relax_task.open_gsr() as gsr:
-                self.json_data_relax["Ag_energy_ev"]=float(gsr.energy)
-                self.json_data_relax["gs_relax_filepath"]=gsr.filepath
+                self.json_data["gs_relax_filepath"]=gsr.filepath
 
             with self.ex_relax_task.open_gsr() as gsr:
-                self.json_data_relax["Aestar_energy_ev"]=float(gsr.energy)
-                self.json_data_relax["ex_relax_filepath"]=gsr.filepath
+                self.json_data["ex_relax_filepath"]=gsr.filepath
 
-            self.write_json_in_outdir("lumi_relax.json", self.json_data_relax)
 
             if self.four_points == True:
                 # Get Ag total energy.
                 with self.ag_scf_task.open_gsr() as gsr:
-                    self.json_data_4pts["Ag_energy_ev"] = float(gsr.energy)
-                    self.json_data_4pts["Ag_gsr_filepath"] = gsr.filepath
+                    self.json_data["Ag_gsr_filepath"] = gsr.filepath
 
                 # Get Agstar total energy.
                 with self.ex_relax_task.open_gsr() as gsr:
-                    self.json_data_4pts["Agstar_energy_ev"] = float(gsr.energy)
-                    self.json_data_4pts["Agstar_gsr_filepath"] = gsr.filepath
+                    self.json_data["Agstar_gsr_filepath"] = gsr.filepath
 
                 # Get Aestar total energy.
                 with self.aestar_scf_task.open_gsr() as gsr:
-                    self.json_data_4pts["Aestar_energy_ev"] = float(gsr.energy)
-                    self.json_data_4pts["Aestar_gsr_filepath"] = gsr.filepath
+                    self.json_data["Aestar_gsr_filepath"] = gsr.filepath
 
                 # Get Aestar total energy.
                 with self.ae_scf_task.open_gsr() as gsr:
-                    self.json_data_4pts["Ae_energy_ev"] = float(gsr.energy)
-                    self.json_data_4pts["Ae_gsr_filepath"] = gsr.filepath
+                    self.json_data["Ae_gsr_filepath"] = gsr.filepath
 
-                # Write json file in the outdire of the work
-                self.write_json_in_outdir("lumi_4pts.json", self.json_data_4pts)
+            # Write json file in the outdire of the work
+            self.write_json_in_outdir("lumi.json", self.json_data)
 
             return super().on_all_ok()
 
@@ -228,7 +224,7 @@ class LumiWorkFromRelax(Work):
         # are separated)
         # Results will be stored in the `lumi_4pts.json` or 'lumi_relax.json file in the outdata directory of the Work
         # so that one can easily implement additional post-processing tools.
-        new.json_data_4pts = {}
+        new.json_data = {}
 
         # Build GS SCF input for the Ag configuration:
         # use same structure as Ag but with ground occupation factors
@@ -272,26 +268,22 @@ class LumiWorkFromRelax(Work):
         """
         # Get Ag total energy.
         with self.ag_scf_task.open_gsr() as gsr:
-            self.json_data_4pts["Ag_energy_ev"] = float(gsr.energy)
-            self.json_data_4pts["Ag_gsr_filepath"] = gsr.filepath
+            self.json_data["Ag_gsr_filepath"] = gsr.filepath
 
         # Get Agstar total energy.
         with self.agstar_scf_task.open_gsr() as gsr:
-            self.json_data_4pts["Agstar_energy_ev"] = float(gsr.energy)
-            self.json_data_4pts["Agstar_gsr_filepath"] = gsr.filepath
+            self.json_data["Agstar_gsr_filepath"] = gsr.filepath
 
         # Get Aestar total energy.
         with self.aestar_scf_task.open_gsr() as gsr:
-            self.json_data_4pts["Aestar_energy_ev"] = float(gsr.energy)
-            self.json_data_4pts["Aestar_gsr_filepath"] = gsr.filepath
+            self.json_data["Aestar_gsr_filepath"] = gsr.filepath
 
         # Get Aestar total energy.
         with self.ae_scf_task.open_gsr() as gsr:
-            self.json_data_4pts["Ae_energy_ev"] = float(gsr.energy)
-            self.json_data_4pts["Ae_gsr_filepath"] = gsr.filepath
+            self.json_data["Ae_gsr_filepath"] = gsr.filepath
 
         # Write json file in the outdire of the work
-        self.write_json_in_outdir("lumi_4pts.json", self.json_data_4pts)
+        self.write_json_in_outdir("lumi_4pts.json", self.json_data)
 
         return super().on_all_ok()
 

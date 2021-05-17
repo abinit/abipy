@@ -12,6 +12,62 @@ class DeltaSCF():
     """
 
     @classmethod
+    def from_json_file(cls,json_path):
+        """ Create the object from a json file containing the path to netcdf files)"""
+
+        with open(json_path) as f:
+            data = json.load(f)
+
+        if 'meta' in data:
+            meta = data['meta']
+        else:
+            meta=None
+
+        gs_relax_path=data["gs_relax_filepath"]
+        ex_relax_path=data["ex_relax_filepath"]
+
+        with abiopen(gs_relax_path) as gsr_file:
+            structure_gs=gsr_file.structure
+        with abiopen(ex_relax_path) as gsr_file:
+            structure_ex=gsr_file.structure
+
+        include_four_points='Ag_gsr_filepath' in data # True if the json file contains the four points paths
+
+        if include_four_points:
+            Ag_path=data['Ag_gsr_filepath']
+            Agstar_path=data['Agstar_gsr_filepath']
+            Aestar_path=data['Aestar_gsr_filepath']
+            Ae_path = data['Ae_gsr_filepath']
+
+            with abiopen(Ag_path) as gsr_file:
+                Ag_energy = gsr_file.energy
+            with abiopen(Agstar_path) as gsr_file:
+                Agstar_energy = gsr_file.energy
+            with abiopen(Aestar_path) as gsr_file:
+                Aestar_energy = gsr_file.energy
+            with abiopen(Ae_path) as gsr_file:
+                Ae_energy = gsr_file.energy
+
+        else:
+            with abiopen(gs_relax_path) as gsr_file:
+                Ag_energy = gsr_file.energy
+            with abiopen(ex_relax_path) as gsr_file:
+                Agstar_energy = gsr_file.energy
+
+            Ae_energy=None
+            Agstar_energy=None
+
+
+        return cls(structuregs=structure_gs,
+                   structureex=structure_ex,
+                   AgEnergy=Ag_energy,
+                   AgstarEnergy=Agstar_energy,
+                   AestarEnergy=Aestar_energy,
+                   AeEnergy=Ae_energy,
+                   meta=meta)
+
+
+    @classmethod
     def from_four_points_file(cls,filepaths):
         """ Create the object from a list of netcdf files in the order (Ag,Agstar,Aestar,Ae)"""
         energies=[]
@@ -49,7 +105,7 @@ class DeltaSCF():
                    AeEnergy=None,)
 
 
-    def __init__(self,structuregs,structureex,AgEnergy,AgstarEnergy,AestarEnergy,AeEnergy):
+    def __init__(self,structuregs,structureex,AgEnergy,AgstarEnergy,AestarEnergy,AeEnergy,meta=None):
         """
         :param structuregs: relaxed ground state structure
         :param structureex: relaxed excited state structure
@@ -57,6 +113,7 @@ class DeltaSCF():
         :param AgstarEnergy
         :param AestarEnergy
         :param AeEnergy
+        :param meta : dict. of meta data of the lumiwork (can be the supercell size, ecut,...)
         """
 
         self.structuregs=structuregs
@@ -65,6 +122,11 @@ class DeltaSCF():
         self.AgstarEnergy=AgstarEnergy
         self.AestarEnergy=AestarEnergy
         self.AeEnergy=AeEnergy
+        self.meta=meta
+
+
+    def get_meta(self):
+        return self.meta
 
     def structure_gs(self):
         return self.structuregs
@@ -85,7 +147,6 @@ class DeltaSCF():
     def defect_index(self,defect_symbol):
         index=self.structuregs.get_symbol2indices()[defect_symbol][0]
         return index
-
 
     def get_dict_per_atom(self,index,defect_symbol):
         stru=self.structuregs
@@ -130,8 +191,6 @@ class DeltaSCF():
             list_of_dict.append(d)
 
         return pd.DataFrame(list_of_dict)
-
-
 
 
     def delta_r(self):
@@ -224,7 +283,7 @@ class DeltaSCF():
             return w_T
 
 
-    def get_dataframe(self,label):
+    def get_dataframe(self,label=None):
         """
         :return: pd dataframe with the main results of a lumi work : transition energies, delta Q, Huang Rhys factor,...
 
