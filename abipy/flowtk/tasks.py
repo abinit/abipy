@@ -1212,9 +1212,12 @@ class AbinitBuild(object):
                 # Temporary hack for abinit v9
                 return True
 
+        print("self.info", self.info)
+
         # Parse info.
         # flavor options were used in Abinit v8
         for line in self.info.splitlines():
+            print(line)
             if "Version" in line: self.version = line.split()[-1]
             if "TRIO flavor" in line:
                 self.has_netcdf = "netcdf" in line
@@ -1239,7 +1242,7 @@ class AbinitBuild(object):
         # Temporary hack for abinit v9
         #from abipy.core.testing import cmp_version
         #if cmp_version(self.version, "9.0.0", op=">="):
-        #    self.has_netcdf = True
+        self.has_netcdf = True
 
     def __str__(self):
         lines = []
