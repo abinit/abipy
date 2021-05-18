@@ -282,30 +282,7 @@ class DeltaSCF():
             w_T = w_0 * np.sqrt(coth(self.eff_freq_ex() / (2 * k_b * T)))
             return w_T
 
-
-    def get_dataframe(self,label=None):
-        """
-        :return: pd dataframe with the main results of a lumi work : transition energies, delta Q, Huang Rhys factor,...
-
-        """
-        rows=[]
-        index=[]
-
-        units=dict([
-            (r'$E_{em}$','eV'),
-            (r'E$_{abs}$','eV'),
-            (r'E$_{zpl}$','eV'),
-            (r'E$_{FC,g}$','eV'),
-            (r'E$_{FC,e}$','eV'),
-            (r'$\Delta S$','eV'),
-            (r'$\Delta R$','Ang'),
-            (r'$\Delta Q $','(amu^{1/2}.Ang)'),
-            (r'$\hbar\Omega_g$','eV'),
-            (r'$\hbar\Omega_e$','eV'),
-            (r'$S_{em}$','/'),
-            (r'$S_{abs}$','/'),
-        ])
-
+    def get_dict_results(self):
         d=dict([
             (r'$E_{em}$',self.E_em()),
             (r'$E_{abs}$' ,self.E_abs()),
@@ -320,6 +297,32 @@ class DeltaSCF():
             (r'$S_{em}$',self.S_em()),
             (r'$S_{abs}$',self.S_abs()),
         ])
+        return d
+
+
+    def get_dataframe(self,label=None):
+        """
+        :return: pd dataframe with the main results of a lumi work : transition energies, delta Q, Huang Rhys factor,...
+
+        """
+        rows=[]
+        index=[]
+        d=self.get_dict_results()
+
+ #       units=dict([
+ #           (r'$E_{em}$','eV'),
+ #           (r'E$_{abs}$','eV'),
+ #           (r'E$_{zpl}$','eV'),
+ #          (r'E$_{FC,g}$','eV'),
+ #           (r'E$_{FC,e}$','eV'),
+ #           (r'$\Delta S$','eV'),
+ #           (r'$\Delta R$','Ang'),
+ #           (r'$\Delta Q $','(amu^{1/2}.Ang)'),
+ #           (r'$\hbar\Omega_g$','eV'),
+ #           (r'$\hbar\Omega_e$','eV'),
+ #           (r'$S_{em}$','/'),
+ #           (r'$S_{abs}$','/'),
+ #       ])
 
         rows.append(d)
         index.append(label)

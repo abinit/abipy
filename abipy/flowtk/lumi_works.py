@@ -2,7 +2,7 @@
 """Work subclasses for the computation of luminescent properties."""
 
 from .works import Work
-
+from abipy.lumi.deltaSCF import DeltaSCF
 
 class LumiWork(Work):
     """
@@ -176,8 +176,17 @@ class LumiWork(Work):
                 with self.ae_scf_task.open_gsr() as gsr:
                     self.json_data["Ae_gsr_filepath"] = gsr.filepath
 
-            # Write json file in the outdire of the work
-            self.write_json_in_outdir("lumi.json", self.json_data)
+            # Write json file in the outdir of the work
+            #jsonpath=self.write_json_in_outdir("lumi.json", self.json_data)
+
+            # Build deltascf results from previous json file
+            #delta_scf = DeltaSCF.from_json_file(str(jsonpath))
+
+            # Create dict with all post-processed results
+            #d = delta_scf.get_dict_results()
+
+            # save d in json format.
+            #self.write_json_in_outdir("deltascf.json", d)
 
             return super().on_all_ok()
 
@@ -282,7 +291,7 @@ class LumiWorkFromRelax(Work):
         with self.ae_scf_task.open_gsr() as gsr:
             self.json_data["Ae_gsr_filepath"] = gsr.filepath
 
-        # Write json file in the outdire of the work
+        # Write json file in the outdir of the work
         self.write_json_in_outdir("lumi_4pts.json", self.json_data)
 
         return super().on_all_ok()
