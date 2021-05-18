@@ -177,7 +177,7 @@ class LumiWork(Work):
                     self.json_data["Ae_gsr_filepath"] = gsr.filepath
 
             # Write json file in the outdir of the work
-            #jsonpath=self.write_json_in_outdir("lumi.json", self.json_data)
+            self.write_json_in_outdir("lumi.json", self.json_data)
 
             # Build deltascf results from previous json file
             #delta_scf = DeltaSCF.from_json_file(str(jsonpath))
