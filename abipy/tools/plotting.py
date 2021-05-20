@@ -55,6 +55,12 @@ linestyles = OrderedDict(
 # Matplotlib tools
 ###################
 
+def is_mpl_figure(obj):
+    """Return True if obj is a matplotlib Figure."""
+    from matplotlib import pyplot as plt
+    return isinstance(obj, plt.Figure)
+
+
 def ax_append_title(ax, title, loc="center", fontsize=None):
     """Add title to previous ax.title. Return new title."""
     prev_title = ax.get_title(loc=loc)
@@ -456,6 +462,10 @@ class Marker(namedtuple("Marker", "x y s")):
 
 class MplExpose(object): # pragma: no cover
     """
+    Context manager used to produce several matplotlib figures and then show
+    all them at the end so that the user does not need to close the window to
+    visualize to the next one.
+
     Example:
 
         with MplExpose() as e:
@@ -465,8 +475,8 @@ class MplExpose(object): # pragma: no cover
     def __init__(self, slide_mode=False, slide_timeout=None, verbose=1):
         """
         Args:
-            slide_mode: If true, iterate over figures. Default: Expose all figures at once.
-            slide_timeout: Close figure after slide-timeout seconds Block if None.
+            slide_mode: If Rrue, iterate over figures. Default: Expose all figures at once.
+            slide_timeout: Close figure after slide-timeout seconds. Block if None.
             verbose: verbosity level
         """
         self.figures = []
@@ -487,8 +497,8 @@ class MplExpose(object): # pragma: no cover
 
     def __call__(self, obj):
         """
-        Add an object to MplExpose. Support mpl figure, list of figures or
-        generator yielding figures.
+        Add an object to MplExpose.
+        Support mpl figure, list of figures or generator yielding figures.
         """
         import types
         if isinstance(obj, (types.GeneratorType, list, tuple)):
@@ -521,6 +531,7 @@ class MplExpose(object): # pragma: no cover
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Activated at the end of the with statement. """
+        if exc_type is not None: return
         self.expose()
 
     def expose(self):
@@ -531,6 +542,91 @@ class MplExpose(object): # pragma: no cover
             plt.show()
             for fig in self.figures:
                 fig.clear()
+
+
+class PanelExpose(object): # pragma: no cover
+    """
+    Context manager used to produce several matplotlib/plotly figures and then show
+    all them inside the Browser using a panel template.
+
+    Example:
+
+        with PanelExpose() as e:
+            e(obj.plot1(show=False))
+            e(obj.plot2(show=False))
+    """
+    def __init__(self, title=None, verbose=1):
+        """
+        Args:
+            title: String to be show in the header.
+            verbose: verbosity level
+        """
+        self.title = title
+        self.figures = []
+        self.verbose = verbose
+
+        if self.verbose:
+           print("\nLoading all figures before showing them. It may take some time...")
+
+        self.start_time = time.time()
+
+    def __call__(self, obj):
+        """
+        Add an object to MplPanelExpose.
+        Support mpl figure, list of figures or generator yielding figures.
+        """
+        import types
+        if isinstance(obj, (types.GeneratorType, list, tuple)):
+            for fig in obj:
+                self.add_fig(fig)
+        else:
+            self.add_fig(obj)
+
+    def add_fig(self, fig):
+        """Add a matplotlib figure."""
+        if fig is None: return
+
+        self.figures.append(fig)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement. """
+        if exc_type is not None: return
+        self.expose()
+
+    def expose(self):
+        """Show all figures. Clear figures if needed."""
+        import panel as pn
+        pn.config.sizing_mode = 'stretch_width'
+        from abipy.panels.core import get_template_cls_from_name
+        cls = get_template_cls_from_name("FastGridTemplate")
+
+        template = cls(
+            title=self.title if self.title is not None else self.__class__.__name__,
+            header_background="#ff8c00 ", # Dark orange
+        )
+        #pn.config.sizing_mode = 'stretch_width'
+        from abipy.panels.core import mpl, ply
+        for i, fig in enumerate(self.figures):
+            row, col = divmod(i, 2)
+            if is_plotly_figure(fig):
+                p = ply(fig, with_divider=False)
+            elif is_mpl_figure(fig):
+                p = mpl(fig, with_divider=False)
+            else:
+                raise TypeError(f"Don't know how to handle type: `{type(fig)}`")
+
+            if hasattr(template.main, "append"):
+                template.main.append(p)
+            else:
+                # Assume .main area acts like a GridSpec
+                row_slice = slice(3 * row, 3 * (row + 1))
+                if col == 0: template.main[row_slice, :6] = p
+                if col == 1: template.main[row_slice, 6:] = p
+
+        return template.show()
 
 
 def plot_unit_cell(lattice, ax=None, **kwargs):
@@ -607,10 +703,10 @@ def ax_add_cartesian_frame(ax, start=(0, 0, 0)):
 def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
                    style="points+labels", color_scheme="VESTA", **kwargs):
     """
-    Plot structure with matplotlib (minimalistic version)
+    Plot structure with matplotlib (minimalistic version).
 
     Args:
-        structure: Structure object
+        structure: |Structure| object
         ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
         alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
         to_unit_cell: True if sites should be wrapped into the first unit cell.
@@ -857,6 +953,12 @@ class GenericDataFilesPlotter(object):
 # Plotly helper functions
 ##########################
 
+def is_plotly_figure(obj):
+    """Return True if obj is a plotly Figure."""
+    import plotly.graph_objs as go
+    return isinstance(obj, go.Figure)
+    #return isinstance(obj, (go.Figure, go.FigureWidget))
+
 
 class PlotlyRowColDesc(object):
     """
@@ -939,6 +1041,7 @@ def get_fig_plotly(fig=None, **fig_kw):
 
     if fig is None:
         fig = go.Figure(**fig_kw)
+        #fig = go.FigureWidget(**fig_kw)
 
     return fig, go
 
@@ -948,7 +1051,7 @@ def plotly_set_lims(fig, lims, axname):
     Set the data limits for the axis ax.
 
     Args:
-        lims: tuple(2) for (left, right), tuple(1) or scalar for left only.
+        lims: tuple(2) for (left, right), if tuple(1) or scalar for left only, none is set.
         axname: "x" for x-axis, "y" for y-axis.
 
     Return: (left, right)
@@ -983,10 +1086,21 @@ def plotly_set_lims(fig, lims, axname):
     #if right is not None: ax_range[1] = right
 
     # Example: fig.update_layout(yaxis_range=[-4,4])
-    k = dict(x="xaxis_range", y="yaxis_range")[axname]
-    fig.update_layout(k=[left, right])
+    k = dict(x="xaxis", y="yaxis")[axname]
+    fig.layout[k].range = [left, right]
 
     return left, right
+
+
+_PLOTLY_DEFAULT_SHOW = [True]
+
+
+def set_plotly_default_show(true_or_false):
+    """
+    Set the default value of show in the add_plotly_fig_kwargs decorator.
+    Usefule for instance when generating the sphinx gallery of plotly plots.
+    """
+    _PLOTLY_DEFAULT_SHOW[0] = true_or_false
 
 
 def add_plotly_fig_kwargs(func):
@@ -1002,12 +1116,13 @@ def add_plotly_fig_kwargs(func):
     def wrapper(*args, **kwargs):
         # pop the kwds used by the decorator.
         title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
+        show = kwargs.pop("show", _PLOTLY_DEFAULT_SHOW[0])
         hovermode = kwargs.pop("hovermode", False)
         savefig = kwargs.pop("savefig", None)
         write_json = kwargs.pop("write_json", None)
         config = kwargs.pop("config", None)
         renderer = kwargs.pop("renderer", None)
+        chart_studio = kwargs.pop("chart_studio", False)
 
         # Allow users to specify the renderer via shell env.
         if renderer is not None and os.getenv("PLOTLY_RENDERER", default=None) is not None:
@@ -1031,11 +1146,11 @@ def add_plotly_fig_kwargs(func):
 
         fig.layout.hovermode = hovermode
 
-        if show:
-            if renderer == "chart_studio":
-                push_to_chart_studio(fig)
-            else:
-                fig.show(renderer=renderer, config=config)
+        if show: # and _PLOTLY_DEFAULT_SHOW:
+            fig.show(renderer=renderer, config=config)
+
+        if chart_studio:
+            push_to_chart_studio(fig)
 
         return fig
 
@@ -1062,9 +1177,9 @@ def add_plotly_fig_kwargs(func):
                                   (separated by ‘+’ characters) or None. If None, then the default
                                   renderers specified in plotly.io.renderers.default are used.
                                   See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
-                                  Note that if renderee is equal to `chart_studio`, the file is uploaded to the chart studio
-                                  cloud. This is an AbiPy extension on top of the plotly API.
                 config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
+                chart_studio      True to push figure to chart_studio server. Requires authenticatios.
+                                  Default: False.
                 ================  ====================================================================
         """
     )
@@ -1118,20 +1233,21 @@ def plotlyfigs_to_browser(figs, filename=None, browser=None):
     return filename
 
 
-def plotly_klabels(labels):
+def plotly_klabels(labels, allow_dupes=False):
     """
     This helper function polish a list of k-points labels before calling plotly by:
 
-        - Checking if we have two equivalent consequtive labels (only the first one is shown and the second one is set to "")
-        - Replacing particulat Latex tokens with unicode as plotly support for Latex is far from optimal.
+        - Checking if we have two equivalent consecutive labels (only the first one is shown and the second one is set to "")
+        - Replacing particular Latex tokens with unicode as plotly support for Latex is far from optimal.
 
     Return: New list labels, same length as input labels.
     """
     new_labels = labels.copy()
 
-    # Don't show label if previous k-point is the same.
-    for il in range(1, len(new_labels)):
-        if new_labels[il] == new_labels[il - 1]: new_labels[il] = ""
+    if not allow_dupes:
+        # Don't show label if previous k-point is the same.
+        for il in range(1, len(new_labels)):
+            if new_labels[il] == new_labels[il - 1]: new_labels[il] = ""
 
     replace = {
         r"$\Gamma$": "Γ",
@@ -1144,6 +1260,15 @@ def plotly_klabels(labels):
     return new_labels
 
 
+def plotly_set_xylabels(fig, xlabel, ylabel, exchange_xy):
+    """
+    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy
+    """
+    if exchange_xy: xlabel, ylabel = ylabel, xlabel
+    fig.layout.xaxis.title.text = xlabel
+    fig.layout.yaxis.title.text = ylabel
+
+
 _PLOTLY_AUTHEHTICATED = False
 
 
@@ -1151,6 +1276,10 @@ def plotly_chartstudio_authenticate():
     """
     Authenticate the user on the chart studio portal by reading `PLOTLY_USERNAME` and `PLOTLY_API_KEY`
     from the pymatgen configuration file located in $HOME/.pmgrc.yaml.
+
+        PLOTLY_USERNAME: johndoe
+        PLOTLY_API_KEY: XXXXXXXXXXXXXXXXXXXX
+
     """
     global _PLOTLY_AUTHEHTICATED
     if _PLOTLY_AUTHEHTICATED: return
@@ -1165,7 +1294,7 @@ def plotly_chartstudio_authenticate():
 Add it to $HOME/.pmgrc.yaml using the follow syntax:
 
 PLOTLY_USERNAME: john_doe
-PMG_MAPI_KEY: secret  # to the your api_key go to profile > settings > regenerate key
+PLOTLY_API_KEY: secret  # to get your api_key go to profile > settings > regenerate key
 
 """
 
@@ -1192,3 +1321,595 @@ def push_to_chart_studio(figs):
     if not isinstance(figs, (list, tuple)): figs = [figs]
     for fig in figs:
         py.plot(fig, auto_open=True)
+
+
+####################################################
+# This code is shamelessy taken from Adam's package
+####################################################
+import plotly.graph_objects as go
+
+def go_points(points, size=4, color="black", labels=None, **kwargs):
+
+    #textposition = 'top right',
+    #textfont = dict(color='#E58606'),
+    mode = "markers" if labels is None else "markers+text"
+    #text = labels
+
+    if labels is not None:
+        labels = plotly_klabels(labels, allow_dupes=True)
+
+    return go.Scatter3d(
+        x=[v[0] for v in points],
+        y=[v[1] for v in points],
+        z=[v[2] for v in points],
+        marker=dict(size=size, color=color),
+        mode=mode,
+        text=labels,
+        **kwargs
+    )
+
+
+def _add_if_not_in(d, key, value):
+    if key not in d:
+        d[key] = value
+
+
+def go_line(v1, v2, color="black", width=2, mode="lines", **kwargs):
+
+    _add_if_not_in(kwargs, "line_color", "black")
+    _add_if_not_in(kwargs, "line_width", 2)
+
+    return go.Scatter3d(
+        mode=mode,
+        x=[v1[0], v2[0]],
+        y=[v1[1], v2[1]],
+        z=[v1[2], v2[2]],
+        #line=dict(color=color, width=width),
+        **kwargs
+    )
+
+
+def go_lines(V, name=None, color="black", width=2, **kwargs):
+    gen = ((v1, v2) for (v1, v2) in V)
+    v1, v2 = next(gen)
+    out = [
+        go_line(v1, v2, width=width, color=color, name=name, legendgroup=name, **kwargs)
+    ]
+    out.extend(
+        go_line(
+            v1,
+            v2,
+            width=width,
+            color=color,
+            showlegend=False,
+            legendgroup=name,
+            **kwargs
+        )
+        for (v1, v2) in gen
+    )
+    return out
+
+
+def vectors(lattice, name=None, color="black", width=4, **kwargs):
+    gen = zip(lattice, ["a", "b", "c"])
+    v, label = next(gen)
+
+    out = [
+        go_line(
+            [0, 0, 0],
+            v,
+            text=["", label],
+            width=width,
+            color=color,
+            name=name,
+            legendgroup=name,
+            mode="lines+text",
+            **kwargs
+        )
+    ]
+    out.extend(
+        go_line(
+            [0, 0, 0],
+            v,
+            text=["", label],
+            width=width,
+            color=color,
+            showlegend=False,
+            legendgroup=name,
+            mode="lines+text",
+            **kwargs
+        )
+        for (v, label) in gen
+    )
+    return out
+
+
+def get_vectors(lattice_mat, name=None, color="black", width=2, **kwargs):
+    return go_lines([[[0, 0, 0], v] for v in lattice_mat], **kwargs)
+
+
+def get_box(lattice_mat, **kwargs):
+    a, b, c = lattice_mat
+    segments = [
+        [[0, 0, 0], a],
+        [[0, 0, 0], b],
+        [[0, 0, 0], c],
+        [a, a + b],
+        [a, a + c],
+        [b, b + a],
+        [b, b + c],
+        [c, c + a],
+        [c, c + b],
+        [a + b, a + b + c],
+        [a + c, a + b + c],
+        [b + c, a + b + c],
+    ]
+    return go_lines(segments, **kwargs)
+
+
+def plot_fcc_conv():
+
+    fcc_conv = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    fcc_vectors = vectors(
+        fcc_conv, name="conv lattice vectors", color="darkblue", width=6
+    )
+    fcc_box = get_box(fcc_conv, name="conv lattice")
+
+    atoms = go_points(
+        [[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]],
+        size=10,
+        color="orange",
+        name="atoms",
+        legendgroup="atoms",
+    )
+
+    fig = go.Figure(data=[*fcc_box, *fcc_vectors, atoms])
+    return fig
+
+
+def plot_fcc_prim():
+    fcc_prim = np.array([[0.5, 0.5, 0], [0, 0.5, 0.5], [0.5, 0, 0.5]])
+
+    fcc_prim_vectors = vectors(
+        fcc_prim, name="prim lattice vectors", color="green", width=6
+    )
+    fcc_prim_box = get_box(fcc_prim, name="prim lattice", color="green")
+
+    atoms = go_points(
+        [[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]],
+        size=10,
+        color="orange",
+        name="atoms",
+        legendgroup="atoms",
+    )
+
+    fcc_conv = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    fcc_conv_box = get_box(fcc_conv, name="conv lattice")
+
+
+    fig = go.Figure(data=[*fcc_prim_box, *fcc_prim_vectors, *fcc_conv_box, atoms])
+
+    return fig
+
+
+def plot_fcc_100():
+
+    # fcc_100_cell = np.array([[0, 0.5, -0.5], [0, 0.5, 0.5], [1.0, 0.0, 0]])
+    fcc_100_cell = np.array([[0.5, -0.5, 0], [0.5, 0.5, 0], [0.0, 0, 1.0]])
+
+    fcc_100_vectors = vectors(
+        fcc_100_cell, name="100 lattice vectors", color="red", width=6
+    )
+    fcc_100_box = get_box(fcc_100_cell, name="100 lattice", color="red")
+
+    fig = plot_fcc_conv()
+    fig.add_traces([*fcc_100_box, *fcc_100_vectors])
+
+    return fig
+
+
+def plot_fcc_110():
+    fcc_110_cell = np.array([[0, 0.0, 1.0], [0.5, -0.5, 0], [0.5, 0.5, 0.0]])
+
+    fcc_110_vectors = vectors(
+        fcc_110_cell, name="reduced lattice vectors", color="red", width=6
+    )
+    fcc_110_box = get_box(fcc_110_cell, name="reduced lattice", color="red")
+
+    fig = plot_fcc_conv()
+    fig.add_traces([*fcc_110_box, *fcc_110_vectors])
+    return fig
+
+
+def plot_fcc_111():
+    fcc_111_cell = np.array([[0.5, 0, -0.5], [0, 0.5, -0.5], [1, 1, 1]])
+
+    fcc_111_vectors = vectors(
+        fcc_111_cell, name="reduced lattice vectors", color="red", width=6
+    )
+    fcc_111_box = get_box(fcc_111_cell, name="reduced lattice", color="red")
+
+    fig = plot_fcc_conv()
+    fig.add_traces([*fcc_111_box, *fcc_111_vectors])
+    return fig
+
+
+def plotly_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
+                     style="points+labels", color_scheme="VESTA", **kwargs):
+    """
+    Plot structure with plotly (minimalistic version).
+
+    Args:
+        structure: |Structure| object
+        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
+        alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+        to_unit_cell: True if sites should be wrapped into the first unit cell.
+        style: "points+labels" to show atoms sites with labels.
+        color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")
+
+    Returns: |matplotlib-Figure|
+    """
+    #fig, ax = plot_unit_cell(structure.lattice, ax=ax, linewidth=1)
+
+    box = get_box(structure.lattice.matrix) #, **kwargs):
+
+    from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
+    from pymatgen.vis.structure_vtk import EL_COLORS
+
+    #symb2data = {}
+    #for symbol in structure.symbol_set:
+    #    symb2data[symbol] = d = {}
+    #    d["color"] = color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])
+    #    d["radius"] = CovalentRadius.radius[symbol]
+    #    inds = structure.indices_from_symbol(symbol)
+    #    sites = [structure[i] for i in inds]
+    #    d["xyz"] = []
+    #    for site in sites:
+    #       if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell()
+    #       Use cartesian coordinates.
+    #       x, y, z = site.coords
+    #       d["xyz"].append((x, y ,z)
+
+    xyz, sizes, colors = np.empty((len(structure), 3)), [], []
+    for i, site in enumerate(structure):
+        symbol = site.specie.symbol
+        color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])
+        radius = CovalentRadius.radius[symbol]
+        if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell()
+        # Use cartesian coordinates.
+        x, y, z = site.coords
+        xyz[i] = (x, y, z) # , radius)
+        sizes.append(radius)
+        colors.append(color)
+        #if "labels" in style:
+        #    ax.text(x, y, z, symbol)
+
+    atoms = go_points(
+        #[[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]],
+        xyz,
+        size=10,
+        color="orange",
+        name="atoms",
+        legendgroup="atoms",
+    )
+
+    #marker = [dict(size=size, color=color) for (size, color) in zip(sizes, colors)]
+
+    #atoms = go.Scatter3d(
+    #    x=[v[0] for v in xyz],
+    #    y=[v[1] for v in xyz],
+    #    z=[v[2] for v in xyz],
+    #    #marker=dict(size=size, color=color),
+    #    marker=marker,
+    #    mode="markers",
+    #    #**kwargs
+    #)
+
+    # The definition of sizes is not optimal because matplotlib uses points
+    # wherease we would like something that depends on the radius (5000 seems to give reasonable plots)
+    # For possibile approaches, see
+    # https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352
+    # https://gist.github.com/syrte/592a062c562cd2a98a83
+    #if "points" in style:
+    #    x, y, z, s = xyzs.T.copy()
+    #    s = 5000 * s ** 2
+    #    ax.scatter(x, y, zs=z, s=s, c=colors, alpha=alpha)  #facecolors="white", #edgecolors="blue"
+
+    #ax.set_title(structure.composition.formula)
+    #ax.set_axis_off()
+
+    #fig = go.Figure(data=[*box, *vectors, atoms])
+    fig = go.Figure(data=[*box, atoms])
+    return fig
+
+
+# This is the matplotlib API to plot the BZ.
+
+def plotly_wigner_seitz(lattice, fig=None, **kwargs):
+    """
+    Adds the skeleton of the Wigner-Seitz cell of the lattice to a plotly figure.
+
+    Args:
+        lattice: Lattice object
+        fig: plotly figure or None if a new figure should be created.
+        kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to black
+            and linewidth to 1.
+
+    Returns: Plotly figure
+    """
+    #ax, fig, plt = get_ax3d_fig_plt(ax)
+    fig, go = get_fig_plotly(fig=fig) #, **fig_kw)
+
+    if "line_color" not in kwargs:
+        kwargs["line_color"] = "black"
+    if "line_width" not in kwargs:
+        kwargs["line_width"] = 1
+
+    bz = lattice.get_wigner_seitz_cell()
+    #ax, fig, plt = get_ax3d_fig_plt(ax)
+
+    for iface in range(len(bz)):  # pylint: disable=C0200
+        for line in itertools.combinations(bz[iface], 2):
+            for jface in range(len(bz)):
+                if (
+                    iface < jface
+                    and any(np.all(line[0] == x) for x in bz[jface])
+                    and any(np.all(line[1] == x) for x in bz[jface])
+                ):
+                    #ax.plot(*zip(line[0], line[1]), **kwargs)
+                    fig.add_trace(go_line(line[0], line[1], showlegend=False, **kwargs))
+
+    return fig
+
+
+def plotly_lattice_vectors(lattice, fig=None, **kwargs):
+    """
+    Adds the basis vectors of the lattice provided to a matplotlib Axes
+
+    Args:
+        lattice: Lattice object
+        fig: plotly figure or None if a new figure should be created.
+        kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to green
+            and linewidth to 3.
+
+    Returns:
+        matplotlib figure and matplotlib ax
+    """
+    #ax, fig, plt = get_ax3d_fig_plt(ax)
+    fig, go = get_fig_plotly(fig=fig) #, **fig_kw)
+
+    if "line_color" not in kwargs:
+        kwargs["line_color"] = "green"
+    if "line_width" not in kwargs:
+        kwargs["line_width"] = 3
+    if "showlegend" not in kwargs:
+        kwargs["showlegend"] = False
+
+    vertex1 = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
+    vertex2 = lattice.get_cartesian_coords([1.0, 0.0, 0.0])
+    #ax.plot(*zip(vertex1, vertex2), **kwargs)
+    fig.add_trace(go_line(vertex1, vertex2, name="a", **kwargs))
+    vertex2 = lattice.get_cartesian_coords([0.0, 1.0, 0.0])
+    #ax.plot(*zip(vertex1, vertex2), **kwargs)
+    fig.add_trace(go_line(vertex1, vertex2, name="b", **kwargs))
+    vertex2 = lattice.get_cartesian_coords([0.0, 0.0, 1.0])
+    #ax.plot(*zip(vertex1, vertex2), **kwargs)
+    fig.add_trace(go_line(vertex1, vertex2, name="c", **kwargs))
+
+    return fig
+
+
+def plotly_path(line, lattice=None, coords_are_cartesian=False, fig=None, **kwargs):
+    """
+    Adds a line passing through the coordinates listed in 'line' to a matplotlib Axes
+
+    Args:
+        line: list of coordinates.
+        lattice: Lattice object used to convert from reciprocal to cartesian coordinates
+        coords_are_cartesian: Set to True if you are providing
+            coordinates in cartesian coordinates. Defaults to False.
+            Requires lattice if False.
+        fig: plotly figure or None if a new figure should be created.
+        kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to red
+            and linewidth to 3.
+
+    Returns:
+        matplotlib figure and matplotlib ax
+    """
+
+    #ax, fig, plt = get_ax3d_fig_plt(ax)
+    fig, go = get_fig_plotly(fig=fig) #, **fig_kw)
+
+    if "line_color" not in kwargs:
+        kwargs["line_color"] = "red"
+    if "line_width" not in kwargs:
+        kwargs["line_width"] = 3
+
+    for k in range(1, len(line)):
+        vertex1 = line[k - 1]
+        vertex2 = line[k]
+        if not coords_are_cartesian:
+            if lattice is None:
+                raise ValueError("coords_are_cartesian False requires the lattice")
+            vertex1 = lattice.get_cartesian_coords(vertex1)
+            vertex2 = lattice.get_cartesian_coords(vertex2)
+        #ax.plot(*zip(vertex1, vertex2), **kwargs)
+        fig.add_trace(go_line(vertex1, vertex2, showlegend=False, **kwargs))
+
+    return fig
+
+
+def plotly_labels(labels, lattice=None, coords_are_cartesian=False, ax=None, **kwargs):
+    """
+    Adds labels to a matplotlib Axes
+
+    Args:
+        labels: dict containing the label as a key and the coordinates as value.
+        lattice: Lattice object used to convert from reciprocal to cartesian coordinates
+        coords_are_cartesian: Set to True if you are providing.
+            coordinates in cartesian coordinates. Defaults to False.
+            Requires lattice if False.
+        ax: matplotlib :class:`Axes` or None if a new figure should be created.
+        kwargs: kwargs passed to the matplotlib function 'text'. Color defaults to blue
+            and size to 25.
+
+    Returns:
+        matplotlib figure and matplotlib ax
+    """
+    ax, fig, plt = get_ax3d_fig_plt(ax)
+
+    if "color" not in kwargs:
+        kwargs["color"] = "b"
+    if "size" not in kwargs:
+        kwargs["size"] = 25
+
+    for k, coords in labels.items():
+        label = k
+        if k.startswith("\\") or k.find("_") != -1:
+            label = "$" + k + "$"
+        off = 0.01
+        if coords_are_cartesian:
+            coords = np.array(coords)
+        else:
+            if lattice is None:
+                raise ValueError("coords_are_cartesian False requires the lattice")
+            coords = lattice.get_cartesian_coords(coords)
+        ax.text(*(coords + off), s=label, **kwargs)
+
+    return fig, ax
+
+
+def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, labels=None, fig=None, **kwargs):
+    """
+    Adds points to a matplotlib Axes
+
+    Args:
+        points: list of coordinates
+        lattice: Lattice object used to convert from reciprocal to cartesian coordinates
+        coords_are_cartesian: Set to True if you are providing
+            coordinates in cartesian coordinates. Defaults to False.
+            Requires lattice if False.
+        fold: whether the points should be folded inside the first Brillouin Zone.
+            Defaults to False. Requires lattice if True.
+        fig: plotly figure or None if a new figure should be created.
+        kwargs: kwargs passed to the matplotlib function 'scatter'. Color defaults to blue
+
+    Returns:
+        matplotlib figure and matplotlib ax
+    """
+    #ax, fig, plt = get_ax3d_fig_plt(ax)
+    fig, go = get_fig_plotly(fig=fig) #, **fig_kw)
+
+    if "marker_color" not in kwargs:
+        kwargs["marker_color"] = "blue"
+
+    if (not coords_are_cartesian or fold) and lattice is None:
+        raise ValueError("coords_are_cartesian False or fold True require the lattice")
+
+    from pymatgen.electronic_structure.plotter import fold_point
+    vecs = []
+    for p in points:
+
+        if fold:
+            p = fold_point(p, lattice, coords_are_cartesian=coords_are_cartesian)
+
+        elif not coords_are_cartesian:
+            p = lattice.get_cartesian_coords(p)
+
+        vecs.append(p)
+        #ax.scatter(*p, **kwargs)
+
+    kws = dict(textposition="top right", showlegend=False) #, textfont=dict(color='#E58606'))
+    kws.update(kwargs)
+    fig.add_trace(go_points(vecs, labels=labels, **kws))
+
+    return fig
+
+
+@add_plotly_fig_kwargs
+def plotly_brillouin_zone_from_kpath(kpath, fig=None, **kwargs):
+    """
+    Gives the plot (as a matplotlib object) of the symmetry line path in
+        the Brillouin Zone.
+
+    Args:
+        kpath (HighSymmKpath): a HighSymmKPath object
+        ax: matplotlib :class:`Axes` or None if a new figure should be created.
+        **kwargs: provided by add_fig_kwargs decorator
+
+    Returns: plotly figure.
+    """
+    lines = [[kpath.kpath["kpoints"][k] for k in p] for p in kpath.kpath["path"]]
+    return plotly_brillouin_zone(
+        bz_lattice=kpath.prim_rec,
+        lines=lines,
+        fig=fig,
+        labels=kpath.kpath["kpoints"],
+        **kwargs,
+    )
+
+
+@add_plotly_fig_kwargs
+def plotly_brillouin_zone(
+    bz_lattice,
+    lines=None,
+    labels=None,
+    kpoints=None,
+    fold=False,
+    coords_are_cartesian=False,
+    fig=None,
+    **kwargs,
+):
+    """
+    Plots a 3D representation of the Brillouin zone of the structure.
+    Can add to the plot paths, labels and kpoints
+
+    Args:
+        bz_lattice: Lattice object of the Brillouin zone
+        lines: list of lists of coordinates. Each list represent a different path
+        labels: dict containing the label as a key and the coordinates as value.
+        kpoints: list of coordinates
+        fold: whether the points should be folded inside the first Brillouin Zone.
+            Defaults to False. Requires lattice if True.
+        coords_are_cartesian: Set to True if you are providing
+            coordinates in cartesian coordinates. Defaults to False.
+        ax: matplotlib :class:`Axes` or None if a new figure should be created.
+        kwargs: provided by add_fig_kwargs decorator
+
+    Returns: plotly figure
+    """
+
+    fig = plotly_lattice_vectors(bz_lattice, fig=fig)
+    plotly_wigner_seitz(bz_lattice, fig=fig)
+    if lines is not None:
+        for line in lines:
+            plotly_path(line, bz_lattice, coords_are_cartesian=coords_are_cartesian, fig=fig)
+
+    if labels is not None:
+        # TODO
+        #plotly_labels(labels, bz_lattice, coords_are_cartesian=coords_are_cartesian, ax=ax)
+        plotly_points(
+            labels.values(),
+            lattice=bz_lattice,
+            coords_are_cartesian=coords_are_cartesian,
+            fold=False,
+            labels=list(labels.keys()),
+            fig=fig,
+        )
+
+    if kpoints is not None:
+        plotly_points(
+            kpoints,
+            lattice=bz_lattice,
+            coords_are_cartesian=coords_are_cartesian,
+            fold=fold,
+            fig=fig,
+        )
+
+    #ax.set_xlim3d(-1, 1)
+    #ax.set_ylim3d(-1, 1)
+    #ax.set_zlim3d(-1, 1)
+    # ax.set_aspect('equal')
+    #ax.axis("off")
+
+    return fig

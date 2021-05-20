@@ -55,7 +55,7 @@ def main():
     root = os.path.join(os.path.dirname(__file__), "plot")
     scripts = []
     for fname in os.listdir(root):
-        if fname.endswith(".py") and fname.startswith("plot_"):
+        if fname.endswith(".py") and fname.startswith("plot"):
             scripts.append(os.path.join(root, fname))
 
     # Run scripts according to mode.

@@ -1,4 +1,4 @@
-"""Utilities for pandas dataframe"""
+"""Utilities for pandas dataframes"""
 
 import sys
 

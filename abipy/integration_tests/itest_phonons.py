@@ -133,7 +133,7 @@ def itest_phonon_flow(fwp, tvars):
         assert atask.status == atask.S_OK
 
         # These output files should be produced in the task workdir.
-        # Actually they should be in outdir but anaddb uses different conventions.
+        # Actually they should be in the outdir but anaddb uses different conventions.
         assert len(atask.wdir.list_filepaths(wildcard="*PHBST.nc")) == 1
         assert len(atask.wdir.list_filepaths(wildcard="*PHDOS.nc")) == 1
 
@@ -160,7 +160,8 @@ def itest_phonon_restart(fwp):
         tolvrs=1.0e-5,
     )
 
-    multi = abilab.MultiDataset(structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
+    multi = abilab.MultiDataset(structure=structure, 
+                                pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
                                 ndtset=1 + len(qpoints))
 
     multi.set_vars(global_vars)
@@ -179,7 +180,7 @@ def itest_phonon_restart(fwp):
         #kptopt   2      # Automatic generation of k points, taking
 
         # i == 0 --> restart from WFK
-        if i == 1: multi[i+1].set_vars(prtwf=-1, nstep=5)  # Restart with WFK and smart- io.
+        if i == 1: multi[i+1].set_vars(prtwf=-1, nstep=5)  # Restart with WFK and smart-io.
         if i == 2: multi[i+1].set_vars(prtwf=0, nstep=8)   # Restart from 1DEN. Too long --> disabled.
 
     all_inps = multi.split_datasets()

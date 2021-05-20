@@ -67,8 +67,15 @@ class GSRFileTestCase(AbipyTest):
 
     def test_gsr_silicon(self):
         """spin unpolarized GSR file"""
+        filepath = abidata.ref_file("si_scf_GSR.nc")
 
-        with GsrFile(abidata.ref_file("si_scf_GSR.nc")) as gsr:
+        # Init GSR from binary string.
+        with open(filepath, "rb") as fh:
+            same_gsr = GsrFile.from_binary_string(fh.read())
+            same_structure = same_gsr.structure
+            same_gsr.close()
+
+        with GsrFile(filepath) as gsr:
             assert gsr.basename == "si_scf_GSR.nc"
             assert gsr.relpath == os.path.relpath(abidata.ref_file("si_scf_GSR.nc"))
             assert gsr.filetype
@@ -85,6 +92,8 @@ class GSRFileTestCase(AbipyTest):
             assert "nelect" in gsr.hdr and gsr.nelect == gsr.hdr.nelect
             self.assert_almost_equal(gsr.energy.to("Ha"), -8.86527676798556)
             self.assert_almost_equal(gsr.energy_per_atom * len(gsr.structure), gsr.energy)
+
+            assert gsr.structure == same_structure
 
             assert gsr.params["nband"] == 8
             assert gsr.params["nkpt"] == 29

@@ -85,7 +85,7 @@ class EffMassDFPTWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, k0_list, effmass_bands_f90, den_node=None, manager=None):
+    def from_scf_input(cls, scf_input, k0_list, effmass_bands_f90, ngfft=None, den_node=None, manager=None):
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -94,12 +94,13 @@ class EffMassDFPTWork(Work):
             k0_list: List with the reduced coordinates of the k-points where effective masses are wanted.
             effmass_bands_f90: (nkpt, 2) array with band range for effmas computation.
                 WARNING: Assumes Fortran convention with indices starting from 1.
+            ngfft: FFT divisions (3 integers). Used to enforce the same FFT mesh in the NSCF run as the one used for GS.
             den_node: Path to the DEN file or Task object producing a DEN file.
                 Can be used to avoid the initial SCF calculation if a DEN file is already available.
                 If None, a GS calculation is performed.
             manager: |TaskManager| instance. Use default if None.
         """
-        multi = scf_input.make_dfpt_effmass_inputs(k0_list, effmass_bands_f90)
+        multi = scf_input.make_dfpt_effmass_inputs(k0_list, effmass_bands_f90, ngfft=ngfft)
         nscf_input, effmass_input = multi[0], multi[1]
 
         new = cls(manager=manager)
@@ -177,10 +178,12 @@ class EffMassAutoDFPTWork(Work):
             ebands.set_fermie_to_vbm()
             # Find k0_list and effmass_bands_f90
             k0_list, effmass_bands_f90 = ebands.get_kpoints_and_band_range_for_edges()
+            den_ngfft = gsr.reader.read_ngfft3()
 
         # Create the work for effective mass computation with DFPT and add it to the flow.
         # Keep a reference in generated_effmass_dfpt_work.
-        work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90, den_node=self.den_node)
+        work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90,
+                                              ngfft=den_ngfft, den_node=self.den_node)
 
         self.generated_effmass_dfpt_work = work
         self.flow.register_work(work)

@@ -968,12 +968,14 @@ class Node(metaclass=abc.ABCMeta):
     def write_json_in_outdir(self, filename, data):
         """
         Write data to json file of basename filename inside the outdir directory of the node.
-        Support MSONable objects.
+        Support MSONable objects. Return path of json file.
         """
         from monty.json import jsanitize
         data = jsanitize(data, strict=False)
         path = self.outdir.path_in(filename)
         json_pretty_dump(data, path)
+
+        return path
 
     ##########################
     ### Abstract protocol ####

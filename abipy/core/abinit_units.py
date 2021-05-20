@@ -109,7 +109,7 @@ def phunit_tag(units, unicode=False):
     return s
 
 
-def wlabel_from_units(units):
+def wlabel_from_units(units, unicode=False):
     """
     Return latex string for phonon frequencies in ``units``.
     """
@@ -119,9 +119,14 @@ def wlabel_from_units(units):
          'thz': r'Frequency (Thz)',
     }
     try:
-        return d[units.lower().strip()]
+        s = d[units.lower().strip()]
     except KeyError:
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+
+    if unicode:
+        s = s.replace('$^{-1}$', '⁻¹')
+
+    return s
 
 
 def phdos_label_from_units(units, unicode=False):

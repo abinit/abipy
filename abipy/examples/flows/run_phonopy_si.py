@@ -3,8 +3,10 @@ r"""
 Phonopy + Abinit Flow
 =====================
 
-This example shows how to compute phonon frequencies with phonopy (supercells and finite-difference method).
-This approach could be useful to obtain vibrational properties with XC functionals for which DFPT is not yet implemented.
+This example shows how to compute phonon frequencies with phonopy
+(supercells and finite-difference method).
+This approach could be useful to obtain vibrational properties with XC functionals
+for which DFPT is not yet implemented.
 
 .. warning:
 

@@ -1556,9 +1556,6 @@ class SigresReader(ETSF_Reader):
 
         # Self-consistent case
         self._en_qp_diago = self.read_value("en_qp_diago")
-        # <KS|QPState>
-        self._eigvec_qp = self.read_value("eigvec_qp", cmode="c")
-
         #self._mlda_to_qp
 
     #def is_selfconsistent(self, mode):
@@ -1717,10 +1714,13 @@ class SigresReader(ETSF_Reader):
         If band is None, <KS_b|QP_{b'}> is returned.
         """
         ik = self.kpt2fileindex(kpoint)
+        # <KS|QPState>
+        # TODO
+        eigvec_qp = self.read_value("eigvec_qp", cmode="c")
         if band is not None:
-            return self._eigvec_qp[spin, ik, :, band]
+            return eigvec_qp[spin, ik, :, band]
         else:
-            return self._eigvec_qp[spin, ik, :, :]
+            return eigvec_qp[spin, ik, :, :]
 
     def read_params(self):
         """
@@ -1877,6 +1877,79 @@ class SigresRobot(Robot, RobotWithEbands):
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
+    def get_fit_gaps_vs_ecuteps(self, spin, kpoint, plot_qpmks=True, slice_data=None, fontsize=12):
+        """
+        Fit QP direct gaps as a function of ecuteps using Eq. 16 of http://dx.doi.org/10.1063/1.4900447
+        to extrapolate results for ecutsp --> +oo.
+
+        Args:
+            spin: Spin index (0 or 1)
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
+            slice_data: Python slice object. Used to downsample data points.
+                None to use all files of the SigResRobot.
+            fontsize: legend and label fontsize.
+
+        Return: TODO
+        """
+        # Make sure that nsppol, sigma_kpoints are consistent.
+        self._check_dims_and_params()
+
+        # Get dimensions and index of the k-point in the sigma_nk array.
+        nc0 = self.abifiles[0]
+        nsppol, sigma_kpoints = nc0.nsppol, nc0.sigma_kpoints
+        ik = nc0.reader.gwkpt2seqindex(kpoint)
+        kgw = nc0.sigma_kpoints[ik]
+
+        # Order files by ecuteps
+        labels, ncfiles, params = self.sortby("ecuteps", unpack=True)
+        ecuteps_vals = np.array(params)
+
+        # Get QP and KS gaps ordered by ecuteps_vals.
+        qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
+            for ncfile in ncfiles]))
+        ydata = qp_gaps  if not plot_qpmks else qp_gaps - ks_gaps
+
+        # Fig results as a function of ecuteps
+        from scipy.optimize import curve_fit
+        def func(x, a, b, c):
+            return a * x**(-1.5) + b * x**(-2.5) + c
+
+        if slice_data is not None:
+            # Allow user to select a subset of data points via python slice 
+            ecuteps_vals = ecuteps_vals[slice_data]
+            ydata = ydata[slice_data]
+
+        popt, pcov = curve_fit(func, ecuteps_vals, ydata)
+
+        ax, fig, plt = get_ax_fig_plt(ax=None)
+        ax.plot(ecuteps_vals, ydata, 'ro', label='ab-initio data')
+        min_ecuteps, max_ecuteps = ecuteps_vals.min(), ecuteps_vals.max() + 20
+        xs = np.linspace(min_ecuteps, max_ecuteps, num=50)
+        # Change label depending on plot_qpmks
+        what = r"\Delta E_g" if plot_qpmks else r"E_g" 
+        ax.plot(xs, func(xs, *popt), 'b-',
+                label=f'fit: $B_3$=%5.3f, $B_5$=%5.3f, ${what} (\infty)$=%5.3f' % tuple(popt))
+        ax.hlines(popt[-1], min_ecuteps, max_ecuteps, color="k")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        ax.grid(True)
+        ax.set_xlabel('ecuteps (Ha)')
+        ax.set_ylabel(f'${what}$ (eV)')
+        #ax.set_ylabel('$\Delta E(E_c^{\chi})$ (eV)')
+        #ax.title(r'$\Delta E(E_c^{\chi}) = \Delta E_g (\infty) + B_3 * E_c^{\chi (-3/2)} + B_5* E_c^{\chi (-5/2)} $')
+
+        #if show:
+        plt.show()
+
+        return dict2namedtuple(
+                fig=fig,
+                func=func,
+                ecuteps_vals=ecuteps_vals,
+                ydata=ydata,
+                popt=popt,
+                pcov=pcov,
+        )
+
     # An alias to have a common API for robots.
     get_dataframe = get_qpgaps_dataframe
 
@@ -1906,6 +1979,7 @@ class SigresRobot(Robot, RobotWithEbands):
 
         nc0 = self.abifiles[0]
         nsppol, sigma_kpoints = nc0.nsppol, nc0.sigma_kpoints
+
         # Build grid with (nkpt, 1) plots.
         ncols, nrows = 1, len(sigma_kpoints)
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,

@@ -14,7 +14,7 @@ from abipy.abilab import abiopen, extcls_supporting_panel
 
 class UploadFile(param.Parameterized):
 
-    file_input = pn.widgets.FileInput()
+    file_input = pnw.FileInput()
 
     abipath = param.Filename()
     #ready = param.Boolean(default=False, precedence=-1)
@@ -112,7 +112,7 @@ def analyze_file_app(**kwargs):
 
 #class UploadFiles(param.Parameterized):
 #
-#    file_inputs = pn.widgets.FileInput(multiple=True)
+#    file_inputs = pnw.FileInput(multiple=True)
 #
 #    #abipath = param.Filename()
 #

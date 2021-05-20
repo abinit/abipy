@@ -58,6 +58,13 @@ class TestStructure(AbipyTest):
         self.assert_equal(kfrac_coords,
             ([[0. , 0. , 0. ], [0.5, 0. , 0.5], [0.5, 0.5, 0.5], [0. , 0. , 0. ]]))
 
+        d = si.get_symb2coords_dataframe(with_cart_coords=True)
+        assert "Si" in d
+        df =  d["Si"]
+        assert "frac_coords" in df and len(df.frac_coords) == 2
+        for i in range(2):
+            self.assert_equal(si.frac_coords[i], df.frac_coords.values[i])
+
         si_wfk = Structure.as_structure(abidata.ref_file("si_scf_WFK.nc"))
         assert si_wfk.formula == "Si2"
         si_wfk.print_neighbors(radius=2.5)

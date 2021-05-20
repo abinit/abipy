@@ -4,12 +4,12 @@
 import panel as pn
 #import panel.widgets as pnw
 import bokeh.models.widgets as bkw
-from abipy.panels.core import AbipyParameterized #, ButtonContext
+from abipy.panels.core import AbipyParameterized, mpl, ply, dfc #, ButtonContext
 
 
 class AbinitOutputFilePanel(AbipyParameterized):
     """
-    Panel with widgets to interact with an Abinit output file.
+    Panel with widgets to interact with the Abinit main output file.
     """
     def __init__(self, outfile, **params):
         super().__init__(**params)
@@ -33,28 +33,31 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
         box = pn.GridBox(nrows=nrows, ncols=ncols) #, sizing_mode='scale_both')
         for icycle, cycle in enumerate(cycles):
-            box.append(self._mp(cycle.plot(title="%s cycle #%d" % (what, icycle), **self.fig_kwargs)))
+            box.append(mpl(cycle.plot(title="%s cycle #%d" % (what, icycle), **self.mpl_kwargs)))
 
         return box
 
-    def get_panel(self):
+    def get_panel(self, as_dict=True, **kwargs):
         """Return tabs with widgets to interact with the Abinit output file."""
-        tabs = pn.Tabs(); app = tabs.append
+        d = {}
 
-        app(("Summary", pn.Row(
-            bkw.PreText(text=self.outfile.to_string(verbose=self.verbose), sizing_mode="scale_both"))
-        ))
+        d["Summary"] = pn.Row(
+            bkw.PreText(text=self.outfile.to_string(verbose=self.verbose), sizing_mode="scale_both")
+        )
         df = self.outfile.get_dims_spginfo_dataframe().transpose()
         df.index.name = "Dataset"
-        app(("Dims", self._df(df)))
+        d["Dims"] = dfc(df)
 
         # Add tabs with plots for the GS/DFPT SCF cycles.
         for what in ("GS", "DFPT"):
             box = self._get_gridbox(what)
             if box is not None:
-                app(("%s cycles" % what, box))
+                d["%s cycles" % what] = box
 
         #timer = self.get_timer()
-        #timer.plot_all(**self.fig_kwargs)
+        #timer.plot_all(**self.mpl_kwargs)
 
-        return tabs
+        if as_dict: return d
+
+        tabs = pn.Tabs(*d.items())
+        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))

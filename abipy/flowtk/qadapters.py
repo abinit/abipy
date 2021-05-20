@@ -1018,7 +1018,7 @@ limits:
             # stderr is redirected to mods.err file.
             # module load 2>> mods.err
             se.add_comment("Load Modules")
-            se.add_line("module purge")
+            se.add_line("module --force purge")
             se.load_modules(self.modules)
             se.add_emptyline()
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 r"""
-Effective masses with finite difference
-=======================================
+Conductivity in metals
+======================
 
-Flow to compute effective masses with finite difference method.
-Derivatives are computed along lines in k-space.
+Flow to compute conductivity in metals
 """
 
 import os

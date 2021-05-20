@@ -302,13 +302,17 @@ class FlowTest(FlowUnitTest):
         hello_flow = flowtk.Flow(workdir=self.mkdtemp())
         hello_flow.register_scf_task(scf_input, append=True)
         hello_flow.register_nscf_task(nscf_input, deps={hello_flow[0][0]: "DEN"}, append=True)
-
         #flow[0].get_graphviz_dirtree()
         #abilab.print_doc(flowtk.PhononWork)
 
         hello_flow = flowtk.Flow(workdir=self.mkdtemp())
         hello_flow.register_scf_task(scf_input, append=True)
+        assert len(hello_flow) == 1
         hello_flow.register_nscf_task(nscf_input, deps={hello_flow[0][0]: "DEN"}, append=False)
+        assert len(hello_flow) == 2
+        empty_work = hello_flow.new_work()
+        assert len(empty_work) == 0
+        assert len(hello_flow) == 3
 
 
 

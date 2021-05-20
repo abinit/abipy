@@ -11,6 +11,8 @@ ase
 param
 panel
 bokeh
+chart-studio
+XlsxWriter  # For DataFrame.to_excel()
 # Unit tests
 python-coveralls
 pytest

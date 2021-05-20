@@ -60,12 +60,19 @@
 .. _loadleveler: https://www.ibm.com/support/knowledgecenter/en/SSFJTW
 
 .. Links to important python objects.
-.. _POSCAR: http://cms.mpi.univie.ac.at/vasp/guide/node59.html
 .. _DataFrame: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html
 .. _DataFrames: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html
 
-.. Links to jupyter notebooks associated to AbiPy files available at
-   https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb?flush_cache=true
+.. Links to important pymatgen.
+.. _POSCAR: http://cms.mpi.univie.ac.at/vasp/guide/node59.html
+
+.. Links to abipy scripts.
+.. _abiopen.py: https://abinit.github.io/abipy/scripts/abiopen.html
+.. _abiview.py: https://abinit.github.io/abipy/scripts/abiview.html
+.. _abicomp.py: https://abinit.github.io/abipy/scripts/abicomp.html
+.. _abicheck.py: https://abinit.github.io/abipy/scripts/abicheck.html
+
+.. Links to jupyter notebooks associated to AbiPy files:
 .. _AbipyStructure: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb
 .. _AbinitInput: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/abinit_input.ipynb
 .. _GSR.nc: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/gsr.ipynb
@@ -125,6 +132,7 @@
 .. |PhononDos| replace:: :class:`abipy.dfpt.phonons.PhononDos`
 .. |PhononBandsPlotter| replace:: :class:`abipy.dfpt.phonons.PhononBandsPlotter`
 .. |PhononDosPlotter| replace:: :class:`abipy.dfpt.phonons.PhononDosPlotter`
+.. |PhononWork| replace:: :class:`abipy.flowtk.works.PhononWork`
 .. |MsqDos| replace:: :class:`abipy.dfpt.msqdos.MsqDos`
 .. |Pseudo| replace:: :class:`pymatgen.io.abinit.pseudos.Pseudo`
 .. |PseudoTable| replace:: :class:`pymatgen.io.abinit.pseudos.PseudoTable`

@@ -6,7 +6,8 @@ Effective masses with DFPT
 Flow to compute effective masses with DFPT.
 Two options are available:
 
-    - EffMassDFPTWork --> Run DFPT calculation directly assuming the location of the band edges is already known.
+    - EffMassDFPTWork --> Run DFPT calculation directly assuming the location
+                          of the band edges is already known.
     - EffMassAutoDFPTWork --> Run NSCF calculation to find band edges, then use DFPT.
 """
 
@@ -24,7 +25,7 @@ def make_scf_input(usepaw=0, nspinor=1):
     else:
         pseudos = abidata.pseudos("Si_r.psp8") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
-    # https://docs.abinit.org/tests/v7/Input/t82.in
+    # See https://docs.abinit.org/tests/v7/Input/t82.in
     structure = dict(
          ntypat=1,
          natom=2,
@@ -76,7 +77,8 @@ def build_flow(options):
     # effmass_bands_f90 defines the band range for each k in k0_list
     # Here we are interested in the effective masses at the Gamma point for the valence bands
     effmass_bands_f90 = [1, 4] if scf_input["nspinor"] == 1 else [1, 8]
-    work = EffMassDFPTWork.from_scf_input(scf_input, k0_list=(0, 0, 0), effmass_bands_f90=effmass_bands_f90)
+    work = EffMassDFPTWork.from_scf_input(scf_input, k0_list=(0, 0, 0),
+                                          effmass_bands_f90=effmass_bands_f90)
     flow.register_work(work)
 
     # or use this Work to detect band edges automatically but increase ndivsm and decrease tolwfr!

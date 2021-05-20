@@ -30,7 +30,22 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.numtools import gaussian
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels)
+    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
+    get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
+
+
+SUBSCRIPT_UNICODE = {
+                "0": "₀",
+                "1": "₁",
+                "2": "₂",
+                "3": "₃",
+                "4": "₄",
+                "5": "₅",
+                "6": "₆",
+                "7": "₇",
+                "8": "₈",
+                "9": "₉",
+            }
 
 
 __all__ = [
@@ -329,6 +344,18 @@ class ElectronBands(Has_Structure):
         return new
 
     @classmethod
+    def from_binary_string(cls, bstring):
+        """
+        Build object from a binary string with the netcdf data.
+        Useful for implementing GUIs in which widgets returns binary data.
+        """
+        workdir = tempfile.mkdtemp()
+        fd, tmp_path = tempfile.mkstemp(suffix=".nc")
+        with open(tmp_path, "wb") as fh:
+            fh.write(bstring)
+            return cls.from_file(tmp_path)
+
+    @classmethod
     def from_dict(cls, d):
         """Reconstruct object from the dictionary in MSONable format produced by as_dict."""
         d = d.copy()
@@ -568,6 +595,16 @@ class ElectronBands(Has_Structure):
             return plotter
 
     __radd__ = __add__
+
+    def get_plotter_with(self, self_key, other_key, other_ebands):
+        """
+        Build and |ElectronBandsPlotter| from self and other, use self_key and other_key as keywords
+        """
+        plotter = ElectronBandsPlotter()
+        plotter.add_ebands(self_key, self)
+        plotter.add_ebands(other_key, other_ebands)
+
+        return plotter
 
     # Handy variables used to loop
     @property
@@ -1355,29 +1392,39 @@ class ElectronBands(Has_Structure):
 
         return dirgaps
 
-    def get_gaps_string(self, with_latex=True):
+    def get_gaps_string(self, with_latex=True, unicode=False):
         """
         Return string with info about fundamental and direct gap (if not metallic scheme)
 
         Args:
-            with_latex: True to get latex symbols for the gap names else text.
+            with_latex: True to get latex symbols for the gap names and formula else text.
+            unicode: True to get unicode symbols for the formula else text.
         """
         enough_bands = (self.mband > self.nspinor * self.nelect // 2)
-        dg_name, fg_name = "direct gap", "fundamental gap"
         if with_latex:
             dg_name, fg_name = "$E^{dir}_{gap}$", "$E^{fund}_{gap}$"
+            formula = self.structure.latex_formula
+        else:
+            dg_name, fg_name = "direct gap", "fundamental gap"
+            formula = self.structure.formula
+
+        if unicode:
+            import re
+            numl=re.findall(r'\d', formula)
+            for s in numl:
+                formula = formula.replace(s,SUBSCRIPT_UNICODE[s])
 
         if enough_bands and not self.has_metallic_scheme:
             if self.nsppol == 1:
                 s = "%s: %s = %.2f, %s = %.2f (eV)" % (
-                    self.structure.latex_formula,
+                    formula,
                     dg_name, self.direct_gaps[0].energy,
                     fg_name, self.fundamental_gaps[0].energy)
             else:
                 dgs = [t.energy for t in self.direct_gaps]
                 fgs = [t.energy for t in self.fundamental_gaps]
                 s = "%s: %s = %.2f (%.2f), %s = %.2f (%.2f) (eV)" % (
-                    self.structure.latex_formula,
+                    formula,
                     dg_name, dgs[0], dgs[1],
                     fg_name, fgs[0], fgs[1])
         else:
@@ -1412,7 +1459,11 @@ class ElectronBands(Has_Structure):
                 k0_list.append(k)
                 effmass_bands_f90.append(v)
 
+
+        # Set small values to zero.
         k0_list = np.reshape(k0_list, (-1, 3))
+        k0_list = np.where(np.abs(k0_list) > 1e-12, k0_list, 0.0)
+
         effmass_bands_f90 = np.reshape(effmass_bands_f90, (-1, 2))
         #print("k0_list:\n", k0_list, "\neffmass_bands_f90:\n", effmass_bands_f90)
 
@@ -2001,6 +2052,145 @@ class ElectronBands(Has_Structure):
 
         return fig
 
+    @add_plotly_fig_kwargs
+    def plotly(self, spin=None, band_range=None, klabels=None, e0="fermie", fig=None, ylims=None,
+               points=None, with_gaps=False, max_phfreq=None, fontsize=12, **kwargs):
+        r"""
+        Plot the electronic band structure with plotly.
+
+        Args:
+            spin: Spin index. None to plot both spins.
+            band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
+            klabels: dictionary whose keys are tuple with the reduced
+                coordinates of the k-points. The values are the labels. e.g.
+                ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0):"L"}``.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            fig: plotly figure or None if a new figure should be created.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+            points: Marker object with the position and the size of the marker.
+                Used for plotting purpose e.g. QP energies, energy derivatives.
+            with_gaps: True to add markers and arrows showing the fundamental and the direct gap.
+                IMPORTANT: If the gaps are now showed correctly in a non-magnetic semiconductor,
+                call `ebands.set_fermie_to_vbm()` to align the Fermi level at the top of the valence
+                bands before executing `ebands.plot().
+                The Fermi energy stored in the object, indeed, comes from the GS calculation
+                that produced the DEN file. If the k-mesh used for the GS and the CBM is e.g. at Gamma,
+                the Fermi energy will be underestimated and a manual aligment is needed.
+            max_phfreq: Max phonon frequency in eV to activate scatterplot showing
+                possible phonon absorption/emission processes based on energy-conservation alone.
+                All final states whose energy is within +- max_phfreq of the initial state are included.
+                By default, the four electronic states defining the fundamental and the direct gaps
+                are considered as initial state (not available for metals).
+            fontsize: fontsize for legends and titles
+            kwargs: Passed to go.Scatter
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        # Select spins
+        spin_list = self.spins if spin is None else [spin]
+
+        # Select the band range.
+        if band_range is None:
+            band_list = list(range(self.mband))
+        else:
+            band_list = list(range(band_range[0], band_range[1], 1))
+
+        e0 = self.get_e0(e0)
+        fig, go = get_fig_plotly(fig=fig)
+
+        # Decorate the axis (e.g add ticks and labels).
+        self.decorate_plotly(fig, klabels=klabels)
+        plotly_set_lims(fig, ylims, "y")
+
+        # Plot the band energies.
+        for spin in spin_list:
+            lw = kwargs.pop("lw", 2.0)
+            line_opts = {"color": "black", "width": lw} if spin == 0 else {"color": "red", "width": lw}
+
+            for ib, band in enumerate(band_list):
+                if ib != 0: kwargs.pop("label", None)
+                self.plotly_traces(fig, e0, spin=spin, band=band, line_opts=line_opts, **kwargs)
+
+        if points is not None:
+            fig.add_trace(go.Scatter(x=points.x, y=np.array(points.y) - e0, mode='markers', showlegend=False,
+                                     marker=dict(color='blue', size=np.abs(points.s), opacity=0.6, line_width=0)))
+
+        if with_gaps and (self.mband > self.nspinor * self.nelect // 2):
+            # Show fundamental and direct gaps for each spin.
+            from plotly.figure_factory import create_quiver
+            for spin in self.spins:
+                f_gap = self.fundamental_gaps[spin]
+                d_gap = self.direct_gaps[spin]
+                # Need arrows only if fundamental and direct gaps for this spin are different.
+                need_arrows = f_gap != d_gap
+
+                arrow_opts = {"color": "gray"} if spin == 0 else {"color": "orange"}
+                scatter_opts = {"color": "blue"} if spin == 0 else {"color": "green"}
+                scatter_opts.update(opacity=0.9, size=12, line_width=2)
+
+                # Fundamental gap.
+                mgap = -1
+                for ik1, ik2 in f_gap.all_kinds:
+                    posA = (ik1, f_gap.in_state.eig - e0)
+                    posB = (ik2, f_gap.out_state.eig - e0)
+                    mgap = max(mgap, posA[1], posB[1])
+                    fig.add_trace(go.Scatter(x=[posA[0], posB[0]], y=[posA[1], posB[1]], mode='markers', name='',
+                                             showlegend=False, marker=scatter_opts))
+                    if need_arrows:
+                        figcq = create_quiver(x=[posA[0]], y=[posA[1]], u=[posB[0]-posA[0]], v=[posB[1]-posA[1]],
+                                              name='', scale=1, arrow_scale=0.2, showlegend=False, hoverinfo='none',
+                                              marker=arrow_opts, line=dict(width=2))
+                        fig.add_trace(figcq.data[-1])
+                if d_gap != f_gap:
+                    # Direct gap.
+                    for ik1, ik2 in d_gap.all_kinds:
+                        posA = (ik1, d_gap.in_state.eig - e0)
+                        posB = (ik2, d_gap.out_state.eig - e0)
+                        mgap = max(mgap, posA[1], posB[1])
+                        fig.add_trace(go.Scatter(x=[posA[0],posB[0]], y=[posA[1],posB[1]], mode='markers', name='',
+                                                 showlegend=False, marker=scatter_opts))
+                        if need_arrows:
+                            figcq = create_quiver(x=[posA[0]], y=[posA[1]], u=[posB[0]-posA[0]], v=[posB[1]-posA[1]],
+                                                  name='', scale=1, arrow_scale=0.2, showlegend=False, hoverinfo='none',
+                                                  marker=arrow_opts, line=dict(width=2))
+                            fig.add_trace(figcq.data[-1])
+
+            # Try to set nice limits if not given by user.
+            if ylims is None:
+                plotly_set_lims(fig, (-mgap - 5, +mgap + 5), "y")
+
+            gaps_string = self.get_gaps_string(with_latex=False, unicode=True)
+            if gaps_string:
+                fig.layout.title = dict(text=gaps_string, font=dict(size=fontsize))
+
+        if max_phfreq is not None and (self.mband > self.nspinor * self.nelect // 2):
+            # Add markers showing phonon absorption/emission processes.
+            for spin in self.spins:
+                #scatter_opts = {"color": "steelblue"} if spin == 0 else {"color": "teal"}
+                scatter_opts = dict(opacity=0.4, size=8)
+                items = (["fundamental_gaps", "direct_gaps"], ["in_state", "out_state"])
+                items = list(enumerate(itertools.product(*items)))
+                for i, (gap_name, state_name) in items:
+                    # Use getattr to extract gaps, equivalent to:
+                    #   gap = self.fundamental_gaps[spin]
+                    #   e_start = gap.out_state.eig
+                    gap = getattr(self, gap_name)[spin]
+                    e_start = getattr(gap, state_name).eig
+                    scatter_opts["color"] = i/len(items)
+                    scatter_opts["colorscale"] = "dense" if spin == 0 else "Burgyl"
+
+                    for band in range(self.mband):
+                        eks = self.eigens[spin, :, band]
+                        where = np.where(np.abs(e_start - eks) <= max_phfreq)[0]
+                        if not np.any(where): continue
+                        fig.add_trace(go.Scatter(x=where, y=eks[where] - e0, mode='markers',
+                                                 marker=scatter_opts, showlegend=False))
+
+        return fig
+
     @add_fig_kwargs
     def plot_scatter3d(self, band, spin=0, e0="fermie", colormap="jet", ax=None, **kwargs):
         r"""
@@ -2013,7 +2203,7 @@ class ElectronBands(Has_Structure):
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to ``e0 = 0``
+                -  None: Don't shift energies, equivalent to ``e0 = 0``.
             colormap: Have a look at the colormaps here and decide which one you like:
                 <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>
             ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
@@ -2070,6 +2260,31 @@ class ElectronBands(Has_Structure):
             ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
             #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
+
+    def decorate_plotly(self, fig, **kwargs):
+        """
+        Add q-labels and unit name to figure ``fig``.
+        Use units="" to add k-labels without unit name.
+        Args:
+            klabels:
+            klabel_size:
+            iax: An int, use iax=n to decorate the nth axis when the fig has subplots.
+        """
+        iax = kwargs.pop("iax", 1)
+        xaxis = 'xaxis%u' % iax
+
+        fig.layout[xaxis].title.text = "Wave Vector"
+        fig.layout['yaxis%u' % iax].title.text = "Energy (eV)"
+
+        # Set ticks and labels.
+        klabels = kwargs.pop("klabels", None)
+        ticks, labels = self._make_ticks_and_labels(klabels)
+        if ticks:
+            labels = plotly_klabels(labels)
+            fig.layout[xaxis].tickvals = ticks
+            fig.layout[xaxis].ticktext = labels
+            fig.layout[xaxis].tickfont.size = kwargs.pop("klabel_size", 16)
+            fig.layout[xaxis].range = (ticks[0], ticks[-1])
 
     def get_e0(self, e0):
         """
@@ -2131,6 +2346,50 @@ class ElectronBands(Has_Structure):
                     #, alpha=self.alpha, facecolor=self.l2color[l])
 
         return lines
+
+    def plotly_traces(self, fig, e0, spin=None, band=None, showlegend=False, line_opts=None, **kwargs):
+        """
+        Helper function to plot the energies for (spin, band) on figure ``fig``.
+
+        Args:
+            fig: |plotly.graph_objects.Figure|.
+            e0: Option used to define the zero of energy in the band structure plot.
+            spin: Spin index. If None, all spins are plotted.
+            band: Band index, If None, all bands are plotted.
+            showlegend:  Determines whether or not an item corresponding to this trace is shown in the legend.
+            kwargs: Passed to go.Scatter
+        """
+        import plotly.graph_objects as go
+        spin_range = range(self.nsppol) if spin is None else [spin]
+        band_range = range(self.mband) if band is None else [band]
+
+        label = kwargs.pop("label", '')
+        # Handle linewidths
+        with_linewidths = kwargs.pop("with_linewidths", True) and self.has_linewidths
+        if with_linewidths:
+            lw_opts = kwargs.pop("lw_opts", dict(opacity=0.6))
+            lw_fact = lw_opts.pop("fact", 2.0)
+
+        xx = np.arange(self.nkpt)
+        e0 = self.get_e0(e0)
+        for spin in spin_range:
+            for band in band_range:
+                yy = self.eigens[spin, :, band] - e0
+
+                # Set label only at the first iteration
+                fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", name=label, showlegend=showlegend, line=line_opts, **kwargs))
+                label = ''
+                showlegend=False
+
+                if with_linewidths:
+                    w = self.linewidths[spin, :, band] * lw_fact / 2
+                    lw_color = lines[-1].get_color()
+                    raise NotImplementedError
+                    # solution 1: Use scater points to fill
+                    # solution 2: add two traces and fill the area between
+                    # color problem
+                    #!! ax.fill_between(xx, yy - w, yy + w, facecolor=lw_color, **lw_opts)
+                    #, alpha=self.alpha, facecolor=self.l2color[l])
 
     def _make_ticks_and_labels(self, klabels):
         """Return ticks and labels from the mapping qlabels."""
@@ -2481,7 +2740,7 @@ class ElectronBands(Has_Structure):
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
                 The default should be OK in many systems, larger values may be required for accurate derivatives.
-            knames: List of strings with the k-point labels for the k-path. Has precedence over vertices_names.
+            knames: List of strings with the k-point labels for the k-path. Has precedence over ``vertices_names``.
             vertices_names: Used to specify the k-path for the interpolated band structure
                 It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
@@ -2489,6 +2748,7 @@ class ElectronBands(Has_Structure):
                 the density of the sampling. If None, the k-path is automatically generated according
                 to the point group of the system.
             line_density: Number of points in the smallest segment of the k-path.
+                If 0, use list of k-points given in vertices_names
             kmesh: Used to activate the interpolation on the homogeneous mesh for DOS (uses spglib_ API).
                 kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.
             is_shift: three integers (spglib_ API). When is_shift is not None, the kmesh is shifted along
@@ -2518,8 +2778,7 @@ class ElectronBands(Has_Structure):
 
         # Build interpolator.
         from abipy.core.skw import SkwInterpolator
-        cell = (self.structure.lattice.matrix, self.structure.frac_coords,
-                self.structure.atomic_numbers)
+        cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
 
         skw = SkwInterpolator(lpratio, self.kpoints.frac_coords, self.eigens[:,:,bstart:bstop], self.fermie, self.nelect,
                               cell, fm_symrel, self.has_timrev,
@@ -2542,7 +2801,7 @@ class ElectronBands(Has_Structure):
                                       self.nelect, self.nspinor, self.nspden, smearing=self.smearing)
         ebands_kmesh = None
         if kmesh is not None:
-            # Get kpts and weights in IBZ.
+            # Get kpts and weights in the IBZ.
             kdos = Ktables(self.structure, kmesh, is_shift, self.has_timrev)
             eigens_kmesh = skw.interp_kpts(kdos.ibz).eigens
 
@@ -2747,6 +3006,13 @@ class ElectronBandsPlotter(NotebookWriter):
         for mname in ("gridplot", "boxplot"):
             yield getattr(self, mname)(show=False)
 
+    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+    #    """
+    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+    #    """
+    #    for mname in ("gridplot", "boxplot"):
+    #        yield getattr(self, mname)(show=False)
+
     @add_fig_kwargs
     def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=8,
                   linestyle_dict=None, **kwargs):
@@ -2756,7 +3022,6 @@ class ElectronBandsPlotter(NotebookWriter):
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
-
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (ebands.fermie)
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
@@ -2767,7 +3032,6 @@ class ElectronBandsPlotter(NotebookWriter):
                    Available only if plotter contains dos objects.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
-
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
@@ -2842,11 +3106,8 @@ class ElectronBandsPlotter(NotebookWriter):
 
         return fig
 
-    def plot(self, *args, **kwargs):
-        """An alias for combiplot."""
-        if "align" in kwargs or "xlim" in kwargs or "ylim" in kwargs:
-            raise ValueError("align|xlim|ylim options are not supported anymore.")
-        return self.combiplot(*args, **kwargs)
+    # An alias for combiplot.
+    plot = combiplot
 
     @add_fig_kwargs
     def gridplot(self, e0="fermie", with_dos=True, with_gaps=False, max_phfreq=None,

@@ -231,19 +231,26 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             return ComputedEntry(self.structure.composition, self.energy,
                                  parameters=parameters, data=data)
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the |GsrFile| either in a notebook or in panel app.
         """
         from abipy.panels.gsr import GsrFilePanel
-        return GsrFilePanel(self).get_panel()
+        return GsrFilePanel(self).get_panel(**kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        for fig in self.yield_structure_figs(**kwargs): yield fig
         for fig in self.yield_ebands_figs(**kwargs): yield fig
+        for fig in self.yield_structure_figs(**kwargs): yield fig
+
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        """
+        for fig in self.yield_ebands_plotly_figs(**kwargs): yield fig
+        for fig in self.yield_structure_plotly_figs(**kwargs): yield fig
 
     def write_notebook(self, nbpath=None):
         """
@@ -251,10 +258,21 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+        first_char = "" if self.has_panel() else "#"
 
         nb.cells.extend([
             nbv.new_code_cell("gsr = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(gsr)"),
+
+            # Add panel GUI but comment the python code if panel is not available.
+            nbv.new_markdown_cell("## Panel dashboard"),
+            nbv.new_code_cell(f"""\
+# Execute this cell to display the panel GUI (requires panel package).
+# To display the dashboard inside the browser use `abiopen.py FILE --panel`.
+
+{first_char}abilab.abipanel()
+{first_char}gsr.get_panel()
+"""),
             nbv.new_code_cell("gsr.ebands.plot();"),
             nbv.new_code_cell("gsr.ebands.kpoints.plot();"),
             nbv.new_code_cell("# gsr.ebands.plot_transitions(omega_ev=3.0, qpt=(0, 0, 0), atol_ev=0.1);"),
@@ -505,7 +523,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
     def get_energyterms_dataframe(self, iref=None):
         """
-        Build and return with the different contributions to the total energy in eV
+        Build and return dataframe with the different contributions to the total energy in eV
 
         Args:
             iref: Index of the abifile used as reference: the energies of the
@@ -584,7 +602,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
 
-        Example:
+        Example::
 
              robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
         """
@@ -606,12 +624,12 @@ class GsrRobot(Robot, RobotWithEbands):
         yield self.plot_gsr_convergence(show=False)
         for fig in self.get_ebands_plotter().yield_figs(): yield fig
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the |GsrRobot| either in a notebook or in panel app.
         """
         from abipy.panels.gsr import GsrRobotPanel
-        return GsrRobotPanel(self).get_panel()
+        return GsrRobotPanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Flow for Equation of State
+Flow for equation of state
 ==========================
 
 Flow to compute the equation of state by fitting E(V) at T = 0.

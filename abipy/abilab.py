@@ -1,6 +1,7 @@
 """
 This module gathers the most important classes and helper functions used for scripting.
 """
+import sys
 import os
 import collections
 
@@ -178,6 +179,14 @@ def extcls_supporting_panel(as_table=True, **tabulate_kwargs):
     return tabulate(items, headers=["Extension", "Class"], **tabulate_kwargs)
 
 
+def abipanel(**kwargs):
+    """
+    Activate panel extensions used by AbiPy. Return panel module.
+    """
+    from abipy.panels.core import abipanel
+    return abipanel(**kwargs)
+
+
 def abifile_subclass_from_filename(filename):
     """
     Returns the appropriate class associated to the given filename.
@@ -331,14 +340,24 @@ def mjson_write(d, filepath, **kwargs):
         json.dump(d, fh, cls=MontyEncoder, **kwargs)
 
 
-def software_stack():
+def software_stack(as_dataframe=False):
     """
-    Import all the hard dependencies. Returns ordered dict: package --> string with version info.
+    Import all the hard dependencies and some optional packages.
+    Returns ordered dict: package --> string with version info or pandas dataframe if as_dataframe.
     """
     import platform
     system, node, release, version, machine, processor = platform.uname()
     # These packages are required
-    import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml
+    import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml, plotly
+
+    from importlib import import_module
+    def get_version(pkg_name):
+        """Return version of package from string."""
+        try:
+            mod = import_module(pkg_name)
+            return mod.__version__
+        except:
+            return None
 
     try:
         from pymatgen.core import __version__ as pmg_version
@@ -355,17 +374,19 @@ def software_stack():
         ("apscheduler", apscheduler.version),
         ("pydispatch", pydispatch.__version__),
         ("yaml", yaml.__version__),
+        ("boken", get_version("bokeh")),
+        ("panel", get_version("panel")),
+        ("plotly", get_version("plotly")),
+        ("ase", get_version("ase")),
+        ("phonopy", get_version("phonopy")),
+        ("monty", get_version("monty")),
         ("pymatgen", pmg_version),
+        ("abipy", __version__),
     ])
 
-    # Optional but strongly suggested.
-    #try:
-    #    import matplotlib
-    #    d["matplotlib"] = "%s (backend: %s)" % (matplotlib.__version__, matplotlib.get_backend())
-    #except ImportError:
-    #    pass
-
-    return d
+    if not as_dataframe: return d
+    import pandas as pd
+    return pd.Series(data=d, name="version").to_frame().rename_axis("Package")
 
 
 def abicheck(verbose=0):

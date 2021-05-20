@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 r"""
-Projected phonon DOS
-====================
+Debye-Waller and generalized phonon DOS
+=======================================
 
 This example shows how to plot the generalized phonon DOS with the mean square
 displacement tensor in cartesian coords and how to calculate Debye Waller factors
 as a function of temperature.
+
 See :cite:`Lee1995` for the further details about the internal implementation and
 :cite:`Trueblood1996` for the different conventions used by crystallographers.
 """

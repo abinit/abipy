@@ -75,17 +75,20 @@ from abipy import abilab
 
 def get_epilog():
     s = """\
+======================================================================================================
 Usage example:
 
     abiopen.py FILE          => Open file in ipython shell.
-    abiopen.py FILE -nb      => Generate jupyter notebook.
     abiopen.py FILE -p       => Print info on object to terminal.
     abiopen.py FILE -e       => Generate matplotlib figures automatically.
                                 Use -sns to activate seaborn settings.
-    abiopen.py FILE -e --plotly  => Generate plotly figures automatically. Show them in the BROWSER.
+    abiopen.py FILE -eweb    => Generate matplotlib figures, show them in the $BROWSER.
+    abiopen.py FILE -ply     => Generate plotly figures automatically. Show them in the $BROWSER.
                                 Note that not all FILEs support plotly.
-    abiopen.py FILE --panel  => Generate GUI in web BROWSER to interact with FILE
+    abiopen.py FILE -pn      => Generate GUI in web BROWSER to interact with FILE
                                 Requires panel package (WARNING: still under development!)
+    abiopen.py FILE -nb      => Generate jupyter-lab notebook.
+    abiopen.py FILE -cnb     => Generate classic jupyter notebook.
 
 where `FILE` is any file supported by abipy/pymatgen e.g. Netcdf files, Abinit input, POSCAR, xsf.
 File extensions supported (including zipped files with extension in ".bz2", ".gz", ".z"):
@@ -94,6 +97,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 JSON file are supported as well. In this case, abiopen.py tries to reconstruct python objects
 assuming JSON document in MSONable format and then invokes ipython with the `data` object.
 Use `-e` or `--notebook` or `--panel` to print the JSON dictionary without reconstructing python objects.
+======================================================================================================
 
 Table mapping file extension to AbiPy object:
 
@@ -116,8 +120,8 @@ def get_parser(with_epilog=False):
 
     # notebook options.
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
-    parser.add_argument('--classic-notebook', action='store_true', default=False,
-                        help="Use classic notebook instead of jupyterlab.")
+    parser.add_argument('--classic-notebook', "-cnb", action='store_true', default=False,
+                        help="Use classic jupyter notebook instead of jupyterlab.")
     parser.add_argument('--no-browser', action='store_true', default=False,
                         help=("Start the jupyter server to serve the notebook "
                               "but don't open the notebook in the browser.\n"
@@ -130,7 +134,13 @@ def get_parser(with_epilog=False):
 
     # panel option
     parser.add_argument("-pn", '--panel', action='store_true', default=False,
-                        help="Open GUI in web browser, requires panel package.")
+                        help="Open Dashboard in web browser, requires panel package.")
+
+    parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
+                        help="Specify template for panel dasboard." +
+                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                             "Default: FastList"
+                        )
 
     # Expose option.
     parser.add_argument('-e', '--expose', action='store_true', default=False,
@@ -145,11 +155,10 @@ def get_parser(with_epilog=False):
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
-    parser.add_argument("--plotly", default=False, action="store_true",
-            help='Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.')
-    parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
-            help="Push figure to plotly chart studio. " +
-                 "Requires --plotly and user account at https://chart-studio.plotly.com.")
+    parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
+            help='Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.')
+    parser.add_argument("-ply", "--plotly", default=False, action="store_true",
+            help='Generate plotly plots in $BROWSER instead of matplotlib. WARNING: Not all the features are supported.')
 
     return parser
 
@@ -179,8 +188,12 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    # Plotly automatically activate expose mode.
+    ##############################################################################################
+    # Handle meta options i.e. options that set other options.
+    # OK, it's not very clean but I haven't find any parse API to express this kind of dependency.
+    ##############################################################################################
     if options.plotly: options.expose = True
+    if options.expose_web: options.expose = True
     if options.classic_notebook: options.notebook = True
 
     if options.verbose > 2: print(options)
@@ -214,23 +227,24 @@ def main():
             return 0
 
         elif options.expose:
-            # Generate matplotlib plots automatically.
+            # Print info to terminal
             if hasattr(abifile, "to_string"):
                 print(abifile.to_string(verbose=options.verbose))
             else:
                 print(abifile)
 
+            # Generate plots automatically.
             if options.plotly:
                 # plotly version
                 if hasattr(abifile, "plotly_expose"):
-                    abifile.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+                    abifile.plotly_expose(verbose=options.verbose)
                 else:
                     cprint("`%s` does not implement plotly_expose method" % type(abifile), "red")
 
             elif hasattr(abifile, "expose"):
                 # matplotlib version
                 abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                               verbose=options.verbose)
+                               use_web=options.expose_web, verbose=options.verbose)
             else:
                 if not hasattr(abifile, "yield_figs"):
                     raise TypeError("Object of type `%s` does not implement (expose or yield_figs methods" % type(abifile))
@@ -242,25 +256,15 @@ def main():
             return 0
 
         elif options.panel:
-            try:
-                import panel as pn
-            except ImportError as exc:
-                cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
-                raise exc
+            import matplotlib
+            matplotlib.use("Agg")
+            abilab.abipanel()
 
             if not hasattr(abifile, "get_panel"):
                 raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
 
-            import matplotlib
-            matplotlib.use("Agg")
-
-            #pn.extension("katex")
-            try:
-                pn.extension("plotly")
-            except Exception:
-                cprint("Use `conda install plotly` or `pip install plotly` to install the plotly package.", "red")
-
-            abifile.get_panel().show() # threaded=True)
+            app = abifile.get_panel(template=options.panel_template)
+            app.show(debug=options.verbose > 0)
             return 0
 
         # Start ipython shell with namespace

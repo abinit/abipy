@@ -15,8 +15,10 @@ wfk_file = abiopen(abidata.ref_file("si_scf_WFK.nc"))
 # Extract the crystalline structure.
 structure = wfk_file.structure
 
-# Visualize the BZ.
+#%%
+# To visualize the BZ with matplotlib, use:
 structure.plot_bz()
 
-# Close the wfk file
+#%%
+# Remember to close the wfk file with:
 wfk_file.close()

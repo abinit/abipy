@@ -13,8 +13,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import marquee
 from pymatgen.core.lattice import Lattice
-from pymatgen.util.serialization import pmg_serialize
-from pymatgen.util.serialization import SlotPickleMixin
+from pymatgen.util.serialization import pmg_serialize, SlotPickleMixin
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.numtools import add_periodic_replicas, is_diagonal
@@ -1059,6 +1058,34 @@ class KpointList(collections.abc.Sequence):
             err_msg += "%s\n%s" % (self.__class__, self.to_string(verbose=0))
             raise ValueError(err_msg)
 
+    def get_highsym_datataframe(self, with_cart_coords=False):
+        """
+        Return pandas Dataframe with the names of the high-symmetry k-points
+        and the reduced coordinates.
+
+        Args:
+            with_cart_coords: True to add extra column with the Cartesian coordinates.
+
+        Return: |pandas-DataFrame|
+        """
+        replace = {
+            r"$\Gamma$": "Γ",
+        }
+
+        import pandas as pd
+        rows, index = [], []
+        for ik, kpt in enumerate(self):
+            if kpt.name is None: continue
+            d = dict(name=replace.get(kpt.name, kpt.name), frac_coords=kpt.frac_coords)
+            if with_cart_coords: d["cart_coords"] = kpt.cart_coords
+            rows.append(d)
+            index.append(ik)
+
+        df = pd.DataFrame(rows, index=index)
+        df.index.name = "Idx"
+
+        return df
+
     def remove_duplicated(self):
         """
         Remove duplicated k-points from self. Returns new :class:`KpointList` instance.
@@ -1108,6 +1135,19 @@ class KpointList(collections.abc.Sequence):
             #print(self.frac_coords)
             return plot_brillouin_zone(self.reciprocal_lattice, kpoints=self.frac_coords,
                                        ax=ax, fold=fold, **kwargs)
+
+    def plotly(self, fig=None, **kwargs):
+        """Plot k-points with plotly."""
+        from abipy.tools.plotting import plotly_wigner_seitz, plotly_brillouin_zone
+        fold = False
+        if self.is_path:
+            labels = {k.name: k.frac_coords for k in self if k.name}
+            frac_coords_lines = [self.frac_coords[line] for line in self.lines]
+            return plotly_brillouin_zone(self.reciprocal_lattice, lines=frac_coords_lines, labels=labels,
+                                         fig=fig, fold=fold, **kwargs)
+        else:
+            return plotly_brillouin_zone(self.reciprocal_lattice, kpoints=self.frac_coords,
+                                         fig=fig, fold=fold, **kwargs)
 
     def get_k2kqg_map(self, qpt, atol_kdiff=None):
         """
@@ -1190,15 +1230,21 @@ class Kpath(KpointList):
     @classmethod
     def from_vertices_and_names(cls, structure, vertices_names, line_density=20):
         """
-        Generate normalized K-path from a list of vertices and the corresponding labels.
+        Generate normalized k-path from a list of vertices and the corresponding labels.
 
         Args:
             structure: |Structure| object.
             vertices_names:  List of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
                 the k-point. Each point represents a vertex of the k-path.
-            line_density: Number of points used to sample the smallest segment of the path
+            line_density: Number of points used to sample the smallest segment of the path.
+                If 0, use list of k-points given in vertices_names
         """
+        if line_density == 0:
+            frac_coords = [vn[0] for vn in vertices_names]
+            knames = [vn[1] for vn in vertices_names]
+            return cls(structure.lattice.reciprocal_lattice, frac_coords=frac_coords, weights=None, names=knames)
+
         gmet = structure.lattice.reciprocal_lattice.metric_tensor
         vnames = [str(vn[1]) for vn in vertices_names]
         vertices = np.array([vn[0] for vn in vertices_names], dtype=float)
@@ -1230,8 +1276,7 @@ class Kpath(KpointList):
         knames.append(vnames[-1])
         frac_coords.append(vertices[-1])
 
-        return cls(structure.lattice.reciprocal_lattice, frac_coords=frac_coords,
-                   weights=None, names=knames)
+        return cls(structure.lattice.reciprocal_lattice, frac_coords=frac_coords, weights=None, names=knames)
 
     def __str__(self):
         return self.to_string()

@@ -131,13 +131,26 @@ class AbinitNcFile(BaseFile):
     according to the ETSF-IO specifications (when available).
     An AbinitNcFile has a netcdf reader to read data from file and build objects.
     """
+
+    @classmethod
+    def from_binary_string(cls, bstring):
+        """
+        Build object from a binary string with the netcdf data.
+        Useful for implementing GUIs in which widgets returns binary data.
+        """
+        workdir = tempfile.mkdtemp()
+        fd, tmp_path = tempfile.mkstemp(suffix=".nc")
+        with open(tmp_path, "wb") as fh:
+            fh.write(bstring)
+            return cls.from_file(tmp_path)
+
     def ncdump(self, *nc_args, **nc_kwargs):
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
 
     @lazy_property
     def abinit_version(self):
-        """String with abinit version: three digits separated by comma."""
+        """String with the abinit version: three digits separated by comma."""
         return self.reader.rootgrp.getncattr("abinit_version")
 
     @abc.abstractproperty
@@ -147,8 +160,21 @@ class AbinitNcFile(BaseFile):
         Used to construct |pandas-DataFrames|.
         """
 
-    #def get_abinit_input(self):
-    #    input_string = self.rootgrp.get_varname_set("input_string")
+    def get_dims_dataframe(self, path="/"):
+        """
+        Return: |pandas-Dataframe| with the dimensions defined in the `path` group.
+        """
+        grp = self.reader.rootgrp if path == "/" else self.path2group[path]
+        d = {k: len(v) for k, v in grp.dimensions.items()}
+        # Since this is a Series but we want a dataframe to faciliate interoperability.
+        # we have to call init with additional kwargs.
+        import pandas as pd
+        return pd.DataFrame.from_dict(d, orient='index', columns=['value'])
+
+    #def get_abinit_input_str(self, path="/"):
+    #    group = self.reader.rootgrp if path == "/" else self.path2group[path]
+    #    input_string = group.get_varname_set("input_string")
+    #    return input_string
     #    from abipy.abio.inputs import AbinitInput
     #    return AbinitInput(structure, pseudos, pseudo_dir=None, abi_kwargs=None)
 
@@ -281,6 +307,10 @@ class Has_Structure(metaclass=abc.ABCMeta):
         """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
         yield self.structure.plot(show=False)
 
+    def yield_structure_plotly_figs(self, **kwargs):
+        """*Generates* a predefined list of plotly figures with minimal input from the user."""
+        yield self.structure.plotly(show=False)
+
 
 class Has_ElectronBands(metaclass=abc.ABCMeta):
     """Mixin class for |AbinitNcFile| containing electron data."""
@@ -366,13 +396,45 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
             yield self.ebands.plot_with_edos(edos, with_gaps=with_gaps, show=False)
             yield edos.plot(show=False)
 
-    def expose_ebands(self, slide_mode=False, slide_timeout=None, **kwargs):
+    def yield_ebands_plotly_figs(self, **kwargs):
+        """*Generates* a predefined list of plotly figures with minimal input from the user."""
+        with_gaps = not self.ebands.has_metallic_scheme
+        if self.ebands.kpoints.is_path:
+            yield self.ebands.plotly(with_gaps=with_gaps, show=False)
+            yield self.ebands.kpoints.plotly(show=False)
+            yield self.ebands.kpoints.plot(show=False)
+        else:
+            edos = self.ebands.get_edos()
+            # TODO
+            #yield self.ebands.plotly_with_edos(edos, with_gaps=with_gaps, show=False)
+            yield edos.plotly(show=False)
+
+    def expose_ebands(self, slide_mode=False, slide_timeout=None, expose_web=False, **kwargs):
         """
         Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.
         """
-        from abipy.tools.plotting import MplExpose
-        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+        from abipy.tools.plotting import MplExpose, PanelExpose
+
+        if expose_web:
+            e = PanelExpose(title=f"e-Bands of {self.structure.formula}")
+        else:
+            e = MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1)
+
+        with e:
             e(self.yield_ebands_figs(**kwargs))
+
+    #def plotly_expose_ebands(self, **kwargs):
+    #    """
+    #    This function *generates* a predefined list of plotly figures with minimal input from the user.
+    #    """
+    #    chart_studio = kwargs.pop("chart_studio", None)
+    #    verbose = kwargs.pop("verbose", 0)
+    #    kwargs.update(dict(
+    #        renderer="chart_studio" if chart_studio else None,
+    #        title=f"Band structure of {self.ebands.structure.formula}",
+    #        with_gaps = not self.ebands.has_metallic_scheme,
+    #    ))
+    #    self.ebands.plotly(**kwargs)
 
 
 class Has_PhononBands(metaclass=abc.ABCMeta):
@@ -407,6 +469,16 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         units = kwargs.get("units", "mev")
         yield self.phbands.qpoints.plot(show=False)
         yield self.phbands.plot(units=units, show=False)
+        yield self.phbands.plot_colored_matched(units=units, show=False)
+
+    def yield_phbands_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        units = kwargs.get("units", "mev")
+        yield self.phbands.qpoints.plotly(show=False)
+        yield self.phbands.plotly(units=units, show=False)
         yield self.phbands.plot_colored_matched(units=units, show=False)
 
     def expose_phbands(self, slide_mode=False, slide_timeout=None, **kwargs):
@@ -470,11 +542,17 @@ def get_filestat(filepath):
     ])
 
 
-class NotebookWriter(metaclass=abc.ABCMeta):
-    """
-    Mixin class for objects that are able to generate jupyter_ notebooks.
-    Subclasses must provide a concrete implementation of `write_notebook`.
-    """
+class HasNotebookTools(object):
+
+    def has_panel(self):
+        """
+        Return panel module (that evaluates to True) if panel is installed else False.
+        """
+        try:
+            import panel as pn
+            return pn
+        except ImportError:
+            return False
 
     def make_and_open_notebook(self, nbpath=None, foreground=False,
                                classic_notebook=False, no_browser=False):  # pragma: no cover
@@ -635,6 +713,28 @@ abilab.enable_notebook(with_seaborn=True)
 
         return nbformat, nbv, nb
 
+    @staticmethod
+    def _write_nb_nbpath(nb, nbpath):
+        """
+        This method must be called at the end of ``write_notebook``.
+        nb is the jupyter notebook and nbpath the argument passed to ``write_notebook``.
+        """
+        import io, os, tempfile
+        if nbpath is None:
+            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
+
+        # Write notebook
+        import nbformat
+        with io.open(nbpath, 'wt', encoding="utf8") as fh:
+            nbformat.write(nb, fh)
+            return nbpath
+
+class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
+    """
+    Mixin class for objects that are able to generate jupyter_ notebooks.
+    Subclasses must provide a concrete implementation of `write_notebook`.
+    """
+
     @abc.abstractmethod
     def write_notebook(self, nbpath=None):
         """
@@ -657,22 +757,6 @@ abilab.enable_notebook(with_seaborn=True)
             # Call _write_nb_nbpath
             return self._write_nb_nbpath(nb, nbpath)
         """
-
-    @staticmethod
-    def _write_nb_nbpath(nb, nbpath):
-        """
-        This method must be called at the end of ``write_notebook``.
-        nb is the jupyter notebook and nbpath the argument passed to ``write_notebook``.
-        """
-        import io, os, tempfile
-        if nbpath is None:
-            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
-
-        # Write notebook
-        import nbformat
-        with io.open(nbpath, 'wt', encoding="utf8") as fh:
-            nbformat.write(nb, fh)
-            return nbpath
 
     @classmethod
     def pickle_load(cls, filepath):
@@ -705,13 +789,94 @@ abilab.enable_notebook(with_seaborn=True)
         Used in abiview.py to get a quick look at the results.
         """
 
-    def expose(self, slide_mode=False, slide_timeout=None, **kwargs):
+    #@abc.abstractmethod
+    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+    #    """
+    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+    #    Used in abiview.py to get a quick look at the results.
+    #    """
+
+    def _get_panel_and_template(self):
+        # Create panel template with matplotlib figures and show them in the browser.
+        import panel as pn
+        pn.config.sizing_mode = 'stretch_width'
+        from abipy.panels.core import get_template_cls_from_name
+        cls = get_template_cls_from_name("FastGridTemplate")
+
+        title = self.__class__.__name__
+        if hasattr(self, "structure"): title = f"{title} <small>({self.structure.formula})</small>"
+        template = cls(
+            title=title,
+            header_background="#ff8c00 ", # Dark orange
+        )
+
+        return pn, template
+
+    def expose(self, slide_mode=False, slide_timeout=None, use_web=False, **kwargs):
         """
         Shows a predefined list of matplotlib figures with minimal input from the user.
+        Relies on the ``yield_fig``s methods implemented by the subclass to generate matplotlib figures.
+
+        Args:
+            use_web: True to show all figures inside a panel template executed in the local browser.
+               False to show figures in different GUIs
         """
-        from abipy.tools.plotting import MplExpose
-        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
-            e(self.yield_figs(**kwargs))
+        if not use_web:
+            # Produce all matplotlib versions and show them with the X-server.
+            from abipy.tools.plotting import MplExpose
+            with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+                e(self.yield_figs(**kwargs))
+
+        else:
+            # Create panel template with matplotlib figures and show them in the browser.
+            pn, template = self._get_panel_and_template()
+            pn.config.sizing_mode = 'stretch_width'
+            from abipy.panels.core import mpl
+            for i, fig in enumerate(self.yield_figs()):
+                row, col = divmod(i, 2)
+                p = mpl(fig, with_divider=False)
+                if hasattr(template.main, "append"):
+                    template.main.append(p)
+                else:
+                    # Assume .main area acts like a GridSpec
+                    row_slice = slice(3 * row, 3 * (row + 1))
+                    if col == 0: template.main[row_slice, :6] = p
+                    if col == 1: template.main[row_slice, 6:] = p
+
+            return template.show()
+
+    def plotly_expose(self, **kwargs): # chart_studio=False, verbose=0,
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        Relies on yield_plotly_figs implemented by the subclass to generate the figures.
+        """
+        print("in plotly expose")
+
+        pn, template = self._get_panel_and_template()
+        pn.config.sizing_mode = 'stretch_width'
+        from abipy.panels.core import mpl, ply
+
+        # Insert figure in template.main.
+        from abipy.tools.plotting import is_mpl_figure, is_plotly_figure
+        for i, fig in enumerate(self.yield_plotly_figs()):
+            row, col = divmod(i, 2)
+            # Handle both matplotlib and plotly figures since we dont' support plotly everywhere.
+            if is_plotly_figure(fig):
+                p = ply(fig, with_divider=False)
+            elif is_mpl_figure(fig):
+                p = mpl(fig, with_divider=False)
+            else:
+                raise TypeError(f"Don't know how to handle type: `{type(fig)}`")
+
+            if hasattr(template.main, "append"):
+                template.main.append(p)
+            else:
+                # Assume .main area acts like a panel GridSpec
+                row_slice = slice(3 * row, 3 * (row + 1))
+                if col == 0: template.main[row_slice, :6] = p
+                if col == 1: template.main[row_slice, 6:] = p
+
+        return template.show()
 
 
 class Has_Header(object):

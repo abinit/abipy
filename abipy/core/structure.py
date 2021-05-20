@@ -20,7 +20,7 @@ from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, add_plotly_fig_kwargs
 from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -660,10 +660,10 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return("\n".join(lines))
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
         from abipy.panels.structure import StructurePanel
-        return StructurePanel(self).get_panel()
+        return StructurePanel(self).get_panel(**kwargs)
 
     def get_conventional_standard_structure(self, international_monoclinic=True,
                                            symprec=1e-3, angle_tolerance=5):
@@ -1307,6 +1307,35 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return od
 
+    def get_symb2coords_dataframe(self, with_cart_coords=False):
+        """
+        Return dictionary mapping element symbol to DataFrame with atomic positions
+        in cartesian coordinates.
+
+        Args:
+            with_cart_coords: True if Cartesian coordinates should be added as well.
+        """
+        from collections import defaultdict
+        if with_cart_coords:
+            group = {symb: {"site_idx": [], "frac_coords": [], "cart_coords": []} for symb in self.symbol_set}
+        else:
+            group = {symb: {"site_idx": [], "frac_coords": []} for symb in self.symbol_set}
+
+        for idx, site in enumerate(self):
+            symb = site.specie.symbol
+            group[symb]["site_idx"].append(idx)
+            group[symb]["frac_coords"].append(site.frac_coords)
+            if with_cart_coords:
+                group[symb]["cart_coords"].append(site.coords)
+
+        import pandas as pd
+        out = {symb: pd.DataFrame.from_dict(d) for symb, d in group.items()}
+        # Use site_idx and new index.
+        for df in out.values():
+            df.set_index("site_idx", inplace=True)
+
+        return out
+
     @add_fig_kwargs
     def plot(self, **kwargs):
         """
@@ -1315,6 +1344,15 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         from abipy.tools.plotting import plot_structure
         return plot_structure(self, **kwargs)
+
+    @add_plotly_fig_kwargs
+    def plotly(self, **kwargs):
+        """
+        Plot structure in 3D with plotly. Return plotly Figure
+        See plot_structure for kwargs
+        """
+        from abipy.tools.plotting import plotly_structure
+        return plotly_structure(self, **kwargs)
 
     @add_fig_kwargs
     def plot_bz(self, ax=None, pmg_path=True, with_labels=True, **kwargs):
@@ -1334,6 +1372,25 @@ class Structure(pmg_Structure, NotebookWriter):
             return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
         else:
             return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
+
+    @add_plotly_fig_kwargs
+    def plotly_bz(self, fig=None, pmg_path=True, with_labels=True, **kwargs):
+        """
+        Use matplotlib to plot the symmetry line path in the Brillouin Zone.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            pmg_path (bool): True if the default path used in pymatgen should be show.
+            with_labels (bool): True to plot k-point labels.
+
+        Returns: |matplotlib-Figure|.
+        """
+        from abipy.tools.plotting import plotly_brillouin_zone_from_kpath, plotly_brillouin_zone
+        labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
+        if pmg_path:
+            return plotly_brillouin_zone_from_kpath(self.hsym_kpath, fig=fig, show=False, **kwargs)
+        else:
+            return plotly_brillouin_zone(self.reciprocal_lattice, fig=fig, labels=labels, show=False, **kwargs)
 
     @add_fig_kwargs
     def plot_xrd(self, wavelength="CuKa", symprec=0, debye_waller_factors=None,
@@ -1534,17 +1591,17 @@ class Structure(pmg_Structure, NotebookWriter):
             raise ImportError("jupyter_jsmol is not installed. See https://github.com/fekad/jupyter-jsmol")
 
         cif_str = self.write_cif_with_spglib_symms(None, symprec=symprec, ret_string=True)
-        print("cif_str:\n", cif_str)
+        #print("cif_str:\n", cif_str)
         #return JsmolView.from_str(cif_str)
 
-        from IPython.display import display, HTML
+        #from IPython.display import display, HTML
         # FIXME TEMPORARY HACK TO LOAD JSMOL.js
         # See discussion at
         #   https://stackoverflow.com/questions/16852885/ipython-adding-javascript-scripts-to-ipython-notebook
-        display(HTML('<script type="text/javascript" src="/nbextensions/jupyter-jsmol/jsmol/JSmol.min.js"></script>'))
+        #display(HTML('<script type="text/javascript" src="/nbextensions/jupyter-jsmol/jsmol/JSmol.min.js"></script>'))
 
         jsmol = JsmolView(color='white')
-        display(jsmol)
+        #display(jsmol)
         cmd = 'load inline "%s" {1 1 1}' % cif_str
         if verbose: print("executing cmd:", cmd)
         jsmol.script(cmd)

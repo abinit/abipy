@@ -377,7 +377,8 @@ def abicomp_phbands(options):
 
         # Select the plot method to call.
         if options.plot_mode == "panel":
-            plotter.get_panel().show()
+            #template=options.panel_template)
+            plotter.get_panel().show(debug=options.verbose > 0)
 
         elif options.plot_mode != "None":
             plotfunc = getattr(plotter, options.plot_mode, None)
@@ -639,14 +640,11 @@ def _invoke_robot(options):
                                      no_browser=options.no_browser)
 
     elif options.panel:
-        try:
-            import panel  # noqa: F401
-        except ImportError as exc:
-            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
-            raise exc
+        abilab.abipanel()
 
         if hasattr(robot, "get_panel"):
-            robot.get_panel().show()
+            app = robot.get_panel(template=options.panel_template)
+            app.show(debug=options.verbose > 0)
             return 0
         else:
             cprint(f"`{type(robot)} does not provide get_panel method", color="red")
@@ -975,7 +973,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
             help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
     expose_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
-    expose_parser.add_argument("--plotly", default=False, action="store_true",
+    expose_parser.add_argument("-ply", "--plotly", default=False, action="store_true",
             help='Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.')
     expose_parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
             help="Push figure to plotly chart studio ." +
@@ -1089,6 +1087,11 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
     robot_parser.add_argument("-pn", '--panel', default=False, action="store_true",
                               help="Open GUI in web browser, requires panel package. WARNING: Experimental")
+    robot_parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
+                              help="Specify template for panel dasboard." +
+                                   "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                                   "Default: FastList"
+                              )
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)

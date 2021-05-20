@@ -29,7 +29,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
         with HistFile("foo_HIST") as hist:
             hist.plot()
 
-
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: HistFile
     """
@@ -196,6 +195,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         if filepath is not None and os.path.exists(filepath) and not overwrite:
             raise RuntimeError("Cannot overwrite pre-existing file `%s`" % filepath)
+
         if filepath is None:
             import tempfile
             fd, filepath = tempfile.mkstemp(text=True, suffix="_XDATCAR")
@@ -400,7 +400,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
-        assert len(ax_list) == len(what_list)
 
         # don't show the last ax if nplots is odd.
         if nplots % ncols != 0: ax_list[-1].axis("off")
@@ -442,6 +441,14 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         yield self.plot(show=False)
         yield self.plot_energies(show=False)
+
+    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+    #    """
+    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+    #    """
+    #    yield self.plotly(show=False)
+    #    yield self.plotly_energies(show=False)
+
 
     def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True,
                             with_forces=True, **kwargs):  # pragma: no cover
@@ -515,10 +522,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         anim()
 
-    def get_panel(self):
-        """Build panel with widgets to interact with the |HistFile| either in a notebook or in panel app."""
+    def get_panel(self, **kwargs):
+        """
+        Build panel with widgets to interact with the |HistFile| either in a notebook or in panel app.
+        """
         from abipy.panels.hist import HistFilePanel
-        return HistFilePanel(self).get_panel()
+        return HistFilePanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """
