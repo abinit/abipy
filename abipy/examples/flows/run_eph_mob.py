@@ -1,9 +1,17 @@
+#!/usr/bin/env python
+r"""
+Flow for E-PH calculations
+==========================
+
+This flow computes the phonon-limited mobility for different dense k/q meshes in AlAs.
+"""
 import sys
 import os
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 from abipy.abilab import abiopen
+import abipy.core.abinit_units as abu
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
@@ -15,8 +23,8 @@ def build_flow(options):
 
     # Initialize the tmesh, sigma_kerange, sigma_erange and dense meshes for the eph integrations
     tmesh = [300,300,1]
-    sigma_kerange = [0, "0.5 eV"]
-    sigma_erange = [0, "0.25 eV"]
+    sigma_kerange = [0, 0.5*abu.eV_Ha] # 0.5 eV range for the WFK of electrons 
+    sigma_erange = [0, 0.25*abu.eV_Ha] # 0.25 eV range for the EPH computation for electrons
     dense_meshes = [[30,30,30],
                     [40,40,40]]
 
@@ -73,7 +81,7 @@ def build_flow(options):
     # We loop over the dense meshes
     for i, sigma_ngkpt in enumerate(dense_meshes):
         # Use the kerange trick to generate a WFK file
-        kerange_input, wfk_input = nscf_input.make_wfk_kerange_input(sigma_erange=sigma_kerange, sigma_ngkpt=sigma_ngkpt).split_datasets()
+        kerange_input, wfk_input = nscf_input.make_wfk_kerange_input(sigma_kerange=sigma_kerange, sigma_ngkpt=sigma_ngkpt).split_datasets()
 
         work_eph = flowtk.Work()
         work_eph.register_kerange_task(kerange_input, deps={work_init[2]: "WFK"})

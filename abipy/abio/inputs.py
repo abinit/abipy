@@ -1842,7 +1842,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_wfk_kerange_input(self, sigma_erange, sigma_ngkpt, einterp=(1, 5, 0, 0)):
+    def make_wfk_kerange_input(self, sigma_kerange, sigma_ngkpt, einterp=(1, 5, 0, 0)):
         """
         Return |MultiDataset| inputs for a WFK calculation using the kerange trick.
         This method should be called with the input associated to the NSCF run that produces
@@ -1860,7 +1860,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         # Modify the first nscf input to get a task that calculate the kpt in the sigma interval (Kerange.nc file)
         multi[0].set_vars(optdriver=8, wfk_task='"wfk_kpts_erange"', kptopt=1,
                           sigma_ngkpt=sigma_ngkpt, sigma_nshiftk=1, sigma_shiftk=[0,0,0],
-                          einterp=einterp, sigma_erange=sigma_erange, prtwf=0)
+                          einterp=einterp, sigma_erange=sigma_kerange, prtwf=0)
         multi[0].pop_vars(["iscf","tolwfr","prtden"])
 
         # Modify the third nscf input to get a task that add the kpt of Kerange.nc to the WFK file

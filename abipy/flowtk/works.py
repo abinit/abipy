@@ -469,7 +469,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
         if eph_inp.get("eph_task",0) == -4:
             max_cores   = TaskManager.from_user_config().qadapter.max_cores
             natom3      = 3 * len(eph_inp.structure)
-            nprocs      = max_cores - max_cores % natom3
+            nprocs      = max(max_cores - max_cores % natom3, 1)
             new_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(nprocs, 1)
             kwargs.update({"manager": new_manager})
 
