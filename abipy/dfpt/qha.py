@@ -58,7 +58,6 @@ class AbstractQHA(metaclass=abc.ABCMeta):
                 min_en: numpy array with the minimum energies for the list of temperatures
                 min_vol: numpy array with the minimum volumes for the list of temperatures
                 temp: numpy array with the temperatures considered
-
         """
         tmesh = np.linspace(tstart, tstop, num)
 
@@ -86,8 +85,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 100.
 
-        Returns:
-            A numpy array of `num` values of the vibrational contribution to the free energy
+        Returns: A numpy array of `num` values of the vibrational contribution to the free energy
         """
 
     @abc.abstractmethod
@@ -289,8 +287,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         Args:
             t: temperature in K
 
-        Returns:
-            The volume
+        Returns: The volume in Ang^3.
         """
         f = self.fit_energies(t, t, 1)
 
@@ -402,8 +399,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
             t_max: maximum temperature. Passed to phonopy's QHA.
             energy_plot_factor: factor multiplying the energies. Passed to phonopy's QHA.
 
-        Returns:
-            An instance of phonopy.qha.QHA
+        Returns: An instance of phonopy.qha.QHA
         """
         try:
             from phonopy.qha import QHA as QHA_phonopy
@@ -507,8 +503,7 @@ class QHA(AbstractQHA):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 100.
 
-        Returns:
-            A numpy array of `num` values of the vibrational contribution to the free energy
+        Returns: A numpy array of `num` values of the vibrational contribution to the free energy
         """
         f = np.zeros((self.nvols, num))
 
@@ -715,8 +710,7 @@ class QHA3P(AbstractQHA):
             ind_doses: list of three values indicating, for each of the three doses, the index of the
                 corresponding gsr_file in "gsr_paths".
 
-        Returns:
-            A new instance of QHA
+        Returns: A new instance of QHA
         """
         energies = []
         structures = []
@@ -825,8 +819,7 @@ class QHA3P(AbstractQHA):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 100.
 
-        Returns:
-            A numpy array of `num` values of the vibrational contribution to the free energy
+        Returns: A numpy array of `num` values of the vibrational contribution to the free energy
         """
         w = self.fitted_frequencies
 

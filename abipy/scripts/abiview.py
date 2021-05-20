@@ -212,10 +212,12 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
             with PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}") as e:
                 e(phbands.qpoints.plotly(show=False))
                 e(phbands.plotly_with_phdos(phdos, units=units, show=False))
+                e(phdos_file.plotly_pjdos_type(units=units, show=False))
+                e(phdos.plotly_harmonic_thermo(tstart=5, tstop=300, num=50, units="eV", formula_units=1,
+                                               quantities="all", show=False))
+                e(phdos.plotly(units=units, show=False))
                 e(phbands.plot_colored_matched(units=units, show=False))
                 e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
-                e(phdos.plotly(units=units, show=False))
-                e(phdos_file.plotly_pjdos_type(units=units, show=False))
                 #push_to_chart_studio(figs) if options.chart_studio else plotlyfigs_to_browser(figs)
 
         else:
@@ -231,10 +233,12 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
             with e:
                 e(phbands.qpoints.plot(show=False))
                 e(phbands.plot_with_phdos(phdos, units=units, show=False))
-                e(phbands.plot_colored_matched(units=units, show=False))
-                e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
-                e(phdos.plot(units=units, show=False))
                 e(phdos_file.plot_pjdos_type(units=units, show=False))
+                e(phbands.plot_colored_matched(units=units, show=False))
+                e(phdos.plot_harmonic_thermo(tstart=5, tstop=300, num=50, units="eV", formula_units=1,
+                             quantities="all", show=False))
+                e(phdos.plot(units=units, show=False))
+                e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
 
         phbst_file.close()
         phdos_file.close()

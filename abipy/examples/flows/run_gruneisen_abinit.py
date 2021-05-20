@@ -49,14 +49,13 @@ def build_flow(options):
                 0.5, 0.0, 0.0,
                 0.5, 0.5, 0.5],
         diemac=12.0,
-        iomode=3,
+        #iomode=3,
         tolvrs=1.0e-18,
     )
 
+    # NB: k-mesh in gs_inp and ngqpt q-mesh must be commensurate.
     from abipy.flowtk.gruneisen import GruneisenWork
     voldelta = gs_inp.structure.volume * 0.02
-
-    # k-mesh and q-mesh must be commensurate.
     work = GruneisenWork.from_gs_input(gs_inp, voldelta, ngqpt=[2, 2, 2], with_becs=False)
     flow.register_work(work)
 

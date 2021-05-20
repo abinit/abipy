@@ -1716,11 +1716,13 @@ class SigresReader(ETSF_Reader):
         ik = self.kpt2fileindex(kpoint)
         # <KS|QPState>
         # TODO
-        eigvec_qp = self.read_value("eigvec_qp", cmode="c")
+        #eigvec_qp = self.read_value("eigvec_qp", cmode="c")
+        # eigvec_qp(nbnds,nbnds,nkibz,nsppol))
+        eigvec_qp = self.read_variable("eigvec_qp")
         if band is not None:
-            return eigvec_qp[spin, ik, :, band]
+            return eigvec_qp[spin, ik, :, band, 0] + 1j * eigvec_qp[spin, ik, :, band, 1]
         else:
-            return eigvec_qp[spin, ik, :, :]
+            return eigvec_qp[spin, ik, :, :, 0] + 1j * eigvec_qp[spin, ik, :, :, 1]
 
     def read_params(self):
         """
@@ -1880,12 +1882,12 @@ class SigresRobot(Robot, RobotWithEbands):
     def get_fit_gaps_vs_ecuteps(self, spin, kpoint, plot_qpmks=True, slice_data=None, fontsize=12):
         """
         Fit QP direct gaps as a function of ecuteps using Eq. 16 of http://dx.doi.org/10.1063/1.4900447
-        to extrapolate results for ecutsp --> +oo.
+        to extrapolate results for ecuteps --> +oo.
 
         Args:
             spin: Spin index (0 or 1)
-            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
-            plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or k-point index.
+            plot_qpmks: If False, plot QP_gap else (QP_gap - KS_gap) i.e. gap correction
             slice_data: Python slice object. Used to downsample data points.
                 None to use all files of the SigResRobot.
             fontsize: legend and label fontsize.
@@ -1908,17 +1910,17 @@ class SigresRobot(Robot, RobotWithEbands):
         # Get QP and KS gaps ordered by ecuteps_vals.
         qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
             for ncfile in ncfiles]))
-        ydata = qp_gaps  if not plot_qpmks else qp_gaps - ks_gaps
+        ydata = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
 
-        # Fig results as a function of ecuteps
+        if slice_data is not None:
+            # Allow user to select a subset of data points via python slice
+            ecuteps_vals = ecuteps_vals[slice_data]
+            ydata = ydata[slice_data]
+
+        # Fit results as a function of ecuteps
         from scipy.optimize import curve_fit
         def func(x, a, b, c):
             return a * x**(-1.5) + b * x**(-2.5) + c
-
-        if slice_data is not None:
-            # Allow user to select a subset of data points via python slice 
-            ecuteps_vals = ecuteps_vals[slice_data]
-            ydata = ydata[slice_data]
 
         popt, pcov = curve_fit(func, ecuteps_vals, ydata)
 
@@ -1927,7 +1929,7 @@ class SigresRobot(Robot, RobotWithEbands):
         min_ecuteps, max_ecuteps = ecuteps_vals.min(), ecuteps_vals.max() + 20
         xs = np.linspace(min_ecuteps, max_ecuteps, num=50)
         # Change label depending on plot_qpmks
-        what = r"\Delta E_g" if plot_qpmks else r"E_g" 
+        what = r"\Delta E_g" if plot_qpmks else r"E_g"
         ax.plot(xs, func(xs, *popt), 'b-',
                 label=f'fit: $B_3$=%5.3f, $B_5$=%5.3f, ${what} (\infty)$=%5.3f' % tuple(popt))
         ax.hlines(popt[-1], min_ecuteps, max_ecuteps, color="k")

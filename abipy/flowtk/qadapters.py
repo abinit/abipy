@@ -120,7 +120,7 @@ class MpiRunner(object):
                            "--exe `which " + executable + "` ", stdin, stdout, stderr])
         else:
             if qad.mpi_procs != 1:
-                raise ValueError("Cannot use mpi_procs > when mpi_runner basename=%s" % basename)
+                raise ValueError(f"Cannot use mpi_procs `{qad.mpi_procs}` when mpi_runner: `{basename}`")
             cmd = " ".join([executable, stdin, stdout, stderr])
 
         return cmd

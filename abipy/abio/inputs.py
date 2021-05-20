@@ -158,7 +158,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         for varname, varvalue in kwargs.items():
             self[varname] = varvalue
 
-        # Just to make life easier to the user, we update some dimensions 
+        # Just to make life easier to the user, we update some dimensions
         # if only the "array" part is specified in input.
         if "shiftk" in kwargs:
             self["nshiftk"] = len(np.reshape(self["shiftk"], (-1, 3)))
@@ -699,9 +699,14 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
+        def to_html(string):
+            string = string.replace("\n", "<br>")
+            # insert text inside div so that we can style it.
+            return f'<div class="abinit_input">\n{string}\n<div>'
+
         s = "\n".join(lines)
         if not with_pseudos:
-            return s if mode != "html" else s.replace("\n", "<br>")
+            return s if mode != "html" else to_html(s)
 
         # Add JSON section with pseudo potentials.
         ppinfo = ["\n\n\n#<JSON>"]
@@ -710,7 +715,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         ppinfo.append("</JSON>")
 
         s += escape("\n#".join(ppinfo))
-        if mode == "html": s = s.replace("\n", "<br>")
+        if mode == "html": s = to_html(s)
 
         return s
 

@@ -67,6 +67,9 @@ TODO list:
 
 * Remove/check the usage of line_density. Use ndivsm < 0 to activate line_density a la pymatgen.
 
+* Check whether it's possible to reduce the memory of the SIGRES file wihouth brealing backward compatibility.
+  eigvec_qp = self.read_variable("eigvec_qp") scales quite badly with nands
+
 
 ## Medium priority
 

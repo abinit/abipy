@@ -525,8 +525,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Used in abiview.py to get a quick look at the results.
         """
         yield self.plot_phbands_with_gruns(show=False)
-        yield self.plot_doses(show=False)
         yield self.plot_gruns_scatter(show=False)
+        yield self.plot_doses(show=False)
         yield self.plot_gruns_bs(show=False)
 
     def write_notebook(self, nbpath=None):

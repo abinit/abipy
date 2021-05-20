@@ -701,7 +701,7 @@ Default: o
     p_graphviz.add_argument("-e", "--engine", type=str, default="automatic",
         help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
             "Default: automatic i.e. the engine is automatically selected. See http://www.graphviz.org/pdf/dot.1.pdf "
-            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package"))
+            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package."))
     p_graphviz.add_argument("-d", '--dirtree', default=False, action="store_true",
         help='Visualize files and directories in workdir instead of tasks/works.')
 
