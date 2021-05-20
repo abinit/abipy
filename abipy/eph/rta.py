@@ -696,6 +696,7 @@ class RtaRobot(Robot, RobotWithEbands):
         if 'ibte' in bte:
             ax.plot(res[:,0], res[:,3], '-og', label='IBTE')
 
+        ax.set_xticks(res[:,0].astype(float))
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
