@@ -2053,7 +2053,7 @@ class ElectronBands(Has_Structure):
         return fig
 
     @add_plotly_fig_kwargs
-    def plotly(self, spin=None, band_range=None, klabels=None, e0="fermie", fig=None, ylims=None,
+    def plotly(self, spin=None, band_range=None, klabels=None, e0="fermie", fig=None, rcd=None, ylims=None,
                points=None, with_gaps=False, max_phfreq=None, fontsize=12, **kwargs):
         r"""
         Plot the electronic band structure with plotly.
@@ -2069,6 +2069,7 @@ class ElectronBands(Has_Structure):
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fig: plotly figure or None if a new figure should be created.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives.
@@ -2085,7 +2086,7 @@ class ElectronBands(Has_Structure):
                 By default, the four electronic states defining the fundamental and the direct gaps
                 are considered as initial state (not available for metals).
             fontsize: fontsize for legends and titles
-            kwargs: Passed to go.Scatter
+            kwargs: Passed to fig.add_scatter method.
 
         Returns: |plotly.graph_objects.Figure|
         """
@@ -2099,10 +2100,12 @@ class ElectronBands(Has_Structure):
             band_list = list(range(band_range[0], band_range[1], 1))
 
         e0 = self.get_e0(e0)
-        fig, go = get_fig_plotly(fig=fig)
+        fig, _ = get_fig_plotly(fig=fig)
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        ply_row, ply_col = rcd.ply_row, rcd.ply_col
 
         # Decorate the axis (e.g add ticks and labels).
-        self.decorate_plotly(fig, klabels=klabels)
+        self.decorate_plotly(fig, klabels=klabels, iax = rcd.iax)
         plotly_set_lims(fig, ylims, "y")
 
         # Plot the band energies.
@@ -2112,11 +2115,11 @@ class ElectronBands(Has_Structure):
 
             for ib, band in enumerate(band_list):
                 if ib != 0: kwargs.pop("label", None)
-                self.plotly_traces(fig, e0, spin=spin, band=band, line_opts=line_opts, **kwargs)
+                self.plotly_traces(fig, e0, rcd=rcd, spin=spin, band=band, line_opts=line_opts, **kwargs)
 
         if points is not None:
-            fig.add_trace(go.Scatter(x=points.x, y=np.array(points.y) - e0, mode='markers', showlegend=False,
-                                     marker=dict(color='blue', size=np.abs(points.s), opacity=0.6, line_width=0)))
+            fig.add_scatter(x=points.x, y=np.array(points.y) - e0, mode='markers', showlegend=False, row=ply_row,
+                            col=ply_col, marker=dict(color='blue', size=np.abs(points.s), opacity=0.6, line_width=0))
 
         if with_gaps and (self.mband > self.nspinor * self.nelect // 2):
             # Show fundamental and direct gaps for each spin.
@@ -2137,26 +2140,26 @@ class ElectronBands(Has_Structure):
                     posA = (ik1, f_gap.in_state.eig - e0)
                     posB = (ik2, f_gap.out_state.eig - e0)
                     mgap = max(mgap, posA[1], posB[1])
-                    fig.add_trace(go.Scatter(x=[posA[0], posB[0]], y=[posA[1], posB[1]], mode='markers', name='',
-                                             showlegend=False, marker=scatter_opts))
+                    fig.add_scatter(x=[posA[0], posB[0]], y=[posA[1], posB[1]], mode='markers', name='',
+                                    showlegend=False, marker=scatter_opts, row=ply_row, col=ply_col)
                     if need_arrows:
                         figcq = create_quiver(x=[posA[0]], y=[posA[1]], u=[posB[0]-posA[0]], v=[posB[1]-posA[1]],
                                               name='', scale=1, arrow_scale=0.2, showlegend=False, hoverinfo='none',
                                               marker=arrow_opts, line=dict(width=2))
-                        fig.add_trace(figcq.data[-1])
+                        fig.add_trace(figcq.data[-1], row=ply_row, col=ply_col)
                 if d_gap != f_gap:
                     # Direct gap.
                     for ik1, ik2 in d_gap.all_kinds:
                         posA = (ik1, d_gap.in_state.eig - e0)
                         posB = (ik2, d_gap.out_state.eig - e0)
                         mgap = max(mgap, posA[1], posB[1])
-                        fig.add_trace(go.Scatter(x=[posA[0],posB[0]], y=[posA[1],posB[1]], mode='markers', name='',
-                                                 showlegend=False, marker=scatter_opts))
+                        fig.add_scatter(x=[posA[0],posB[0]], y=[posA[1],posB[1]], mode='markers', name='',
+                                                 showlegend=False, marker=scatter_opts, row=ply_row, col=ply_col)
                         if need_arrows:
                             figcq = create_quiver(x=[posA[0]], y=[posA[1]], u=[posB[0]-posA[0]], v=[posB[1]-posA[1]],
                                                   name='', scale=1, arrow_scale=0.2, showlegend=False, hoverinfo='none',
                                                   marker=arrow_opts, line=dict(width=2))
-                            fig.add_trace(figcq.data[-1])
+                            fig.add_trace(figcq.data[-1], row=ply_row, col=ply_col)
 
             # Try to set nice limits if not given by user.
             if ylims is None:
@@ -2164,7 +2167,8 @@ class ElectronBands(Has_Structure):
 
             gaps_string = self.get_gaps_string(with_latex=False, unicode=True)
             if gaps_string:
-                fig.layout.title = dict(text=gaps_string, font=dict(size=fontsize))
+                fig.layout.annotations = [dict(text=gaps_string, font_size=fontsize, x=0, xref='paper',
+                                               xanchor='left', y=1, yref='paper', yanchor='bottom', showarrow=False)]
 
         if max_phfreq is not None and (self.mband > self.nspinor * self.nelect // 2):
             # Add markers showing phonon absorption/emission processes.
@@ -2186,8 +2190,8 @@ class ElectronBands(Has_Structure):
                         eks = self.eigens[spin, :, band]
                         where = np.where(np.abs(e_start - eks) <= max_phfreq)[0]
                         if not np.any(where): continue
-                        fig.add_trace(go.Scatter(x=where, y=eks[where] - e0, mode='markers',
-                                                 marker=scatter_opts, showlegend=False))
+                        fig.add_scatter(x=where, y=eks[where] - e0, mode='markers',
+                                        marker=scatter_opts, showlegend=False, row=ply_row, col=ply_col)
 
         return fig
 
@@ -2308,7 +2312,7 @@ class ElectronBands(Has_Structure):
 
     def plot_ax(self, ax, e0, spin=None, band=None, **kwargs):
         """
-        Helper function to plot the energies for (spin, band) on the axis ax.
+        Helper function to plot the energies for (spin, band) on the axis ax with matplotlib..
 
         Args:
             ax: |matplotlib-Axes|.
@@ -2347,19 +2351,19 @@ class ElectronBands(Has_Structure):
 
         return lines
 
-    def plotly_traces(self, fig, e0, spin=None, band=None, showlegend=False, line_opts=None, **kwargs):
+    def plotly_traces(self, fig, e0, rcd=None, spin=None, band=None, showlegend=False, line_opts=None, **kwargs):
         """
         Helper function to plot the energies for (spin, band) on figure ``fig``.
 
         Args:
             fig: |plotly.graph_objects.Figure|.
             e0: Option used to define the zero of energy in the band structure plot.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
             spin: Spin index. If None, all spins are plotted.
             band: Band index, If None, all bands are plotted.
-            showlegend:  Determines whether or not an item corresponding to this trace is shown in the legend.
-            kwargs: Passed to go.Scatter
+            showlegend: Determines whether or not an item corresponding to this trace is shown in the legend.
+            kwargs: Passed to fig.add_scatter method.
         """
-        import plotly.graph_objects as go
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
 
@@ -2377,7 +2381,10 @@ class ElectronBands(Has_Structure):
                 yy = self.eigens[spin, :, band] - e0
 
                 # Set label only at the first iteration
-                fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", name=label, showlegend=showlegend, line=line_opts, **kwargs))
+                rcd = PlotlyRowColDesc.from_object(rcd)
+                ply_row, ply_col = rcd.ply_row, rcd.ply_col
+                fig.add_scatter(x=xx, y=yy, mode="lines", name=label, showlegend=showlegend, line=line_opts, **kwargs,
+                                row=ply_row, col=ply_col)
                 label = ''
                 showlegend=False
 
@@ -2411,7 +2418,7 @@ class ElectronBands(Has_Structure):
     def plot_with_edos(self, edos, klabels=None, ax_list=None, e0="fermie", points=None,
                        with_gaps=False, max_phfreq=None, ylims=None, width_ratios=(2, 1), **kwargs):
         r"""
-        Plot the band structure and the DOS.
+        Plot the band structure and the DOS with matplotlib.
 
         Args:
             edos: An instance of |ElectronDos|.
@@ -2481,6 +2488,72 @@ class ElectronBands(Has_Structure):
         ax1.yaxis.set_ticks_position("right")
         ax1.yaxis.set_label_position("right")
         set_axlims(ax1, ylims, "y")
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly_with_edos(self, edos, klabels=None, fig=None, e0="fermie", points=None,
+                       with_gaps=False, max_phfreq=None, ylims=None, width_ratios=(2, 1), **kwargs):
+        r"""
+        Plot the band structure and the DOS with plotly.
+
+        Args:
+            edos: An instance of |ElectronDos|.
+            klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
+                The values are the labels. e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            fig: The |plotly.graph_objects.Figure| with two distinct plots for the bandstructure plot and the DOS plot.
+                If fig is None, a new figure is created.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+            e0: Option used to define the zero of energy in the band structure plot. Possible values::
+
+                * ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+                   Note that, by default, the Fermi energy is taken from the band structure object
+                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+                   This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
+                   can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
+                   the one used to compute the density. See ``edos_fermie``.
+                * ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                *  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                *  None: Don't shift energies, equivalent to ``e0 = 0``
+
+            points: Marker object with the position and the size of the marker.
+                Used for plotting purpose e.g. QP energies, energy derivatives...
+            with_gaps: True to add markers and arrows showing the fundamental and the direct gap.
+            max_phfreq: Max phonon frequency in eV to activate scatterplot showing
+                possible phonon absorption/emission processes based on energy-conservation alone.
+                All final states whose energy is within +- max_phfreq of the initial state are included.
+                By default, the four electronic states defining the fundamental and the direct gaps
+                are considered as initial state (not available for metals).
+            width_ratios: Defines the ratio between the band structure plot and the dos plot.
+
+        Return: |plotly.graph_objects.Figure|
+        """
+        if fig is None:
+            # Build fig.
+            fig, _ = get_figs_plotly(nrows=1, ncols=2, sharex=False, sharey=True,
+                                     horizontal_spacing=0.05, column_widths=width_ratios)
+
+        # Define the zero of energy.
+        e0 = self.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
+        #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
+
+        # Plot the band structure
+        rcd = PlotlyRowColDesc(0, 0, 1, 2)
+        self.plotly(e0=e0, fig=fig, rcd=rcd, ylims=ylims, klabels=klabels, points=points,
+                  with_gaps=with_gaps, max_phfreq=max_phfreq, show=False)
+
+        # Plot the DOS
+        rcd = PlotlyRowColDesc(0, 1, 1, 2)
+        if self.nsppol == 1:
+            opts = {"color": "black", "width": 2.0}
+            edos.plotly_traces(fig, e0, exchange_xy=True, rcd=rcd, line_opts=opts)
+        else:
+            for spin in self.spins:
+                opts = {"color": "black", "width": 2.0} if spin == 0 else \
+                       {"color": "red", "width": 2.0}
+                edos.plotly_traces(fig, e0, spin=spin, exchange_xy=True, rcd=rcd, line_opts=opts)
+
+        plotly_set_lims(fig, ylims, "y")
 
         return fig
 
@@ -3797,6 +3870,39 @@ class ElectronDos(object):
 
         return lines
 
+    def plotly_traces(self, fig, e0, spin=None, what="dos", fact=1.0, exchange_xy=False, rcd=None, trace_name='',
+                      showlegend=False, line_opts=None, **kwargs):
+        """
+        Helper function to plot the DOS data on the ``fig`` with plotly.
+
+        Args:
+            fig: |plotly.graph_objects.Figure|.
+            e0: Option used to define the zero of energy in the band structure plot.
+            spin: selects the spin component, None for total DOS, IDOS.
+            what: string selecting what will be plotted. "dos" for DOS, "idos" for IDOS
+            fact: Multiplication factor for DOS/IDOS. Usually +-1 for spin DOS
+            exchange_xy: True to exchange x-y axis.
+            rcd: PlotlyRowColDesc object used to specify the (row, col) of the subplot in the grid.
+            trace_name: Name of the trace.
+            showlegend: Determines whether or not an item corresponding to this trace is shown in the legend.
+            line_opts: Dict of options passed to |plotly.graph_objects.scatter.Line|
+            kwargs: Options passed to fig.add_scatter method.
+        """
+        dosf, idosf = self.dos_idos(spin=spin)
+        e0 = self.get_e0(e0)
+
+        w2f = {"dos": dosf, "idos": idosf}
+        if what not in w2f:
+            raise ValueError("Unknown value for what: `%s`" % str(what))
+        f = w2f[what]
+
+        xx, yy = f.mesh - e0, f.values * fact
+        if exchange_xy: xx, yy = yy, xx
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        ply_row, ply_col = rcd.ply_row, rcd.ply_col
+        fig.add_scatter(x=xx, y=yy, mode='lines', name=trace_name, showlegend=showlegend,
+                        line=line_opts, **kwargs, row=ply_row, col=ply_col)
+
     @add_fig_kwargs
     def plot(self, e0="fermie", spin=None, ax=None, exchange_xy=False, xlims=None, ylims=None, **kwargs):
         """
@@ -3834,6 +3940,49 @@ class ElectronDos(object):
         set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly(self, e0="fermie", spin=None, fig=None, exchange_xy=False, xlims=None, ylims=None,
+               trace_name='', showlegend=False, **kwargs):
+        """
+        Plot electronic DOS with plotly.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                - Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                - None: Don't shift energies, equivalent to ``e0 = 0``.
+            spin: Selects the spin component, None if total DOS is wanted.
+            fig: |plotly.graph_objects.Figure|.
+            exchange_xy: True to exchange x-y axis.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``.
+            trace_name: Name of the trace.
+            showlegend: Determines whether or not an item corresponding to this trace is shown in the legend.
+            kwargs: Options passed to fig.add_scatter method.
+
+        Return: |plotly.graph_objects.Figure|
+        """
+        fig, _ = get_fig_plotly(fig=fig)
+        e0 = self.get_e0(e0)
+
+        for spin in range(self.nsppol):
+            opts = {"color": "black", "width": 1.0} if spin == 0 else \
+                   {"color": "red", "width": 1.0}
+            # opts.update(kwargs)
+            spin_sign = +1 if spin == 0 else -1
+            x, y = self.spin_dos[spin].mesh - e0, spin_sign * self.spin_dos[spin].values
+            if exchange_xy: x, y = y, x
+            fig.add_scatter(x=x, y=y, mode='lines', name=trace_name, showlegend=showlegend, line=opts, **kwargs)
+
+        xlabel, ylabel = 'Energy (eV)', 'DOS (states/eV)'
+        if exchange_xy: xlabel, ylabel =  ylabel, xlabel
+        fig.layout.xaxis.title = xlabel
+        fig.layout.yaxis.title = ylabel
+        plotly_set_lims(fig, xlims, "x")
+        plotly_set_lims(fig, ylims, "y")
 
         return fig
 
@@ -3879,10 +4028,49 @@ class ElectronDos(object):
         for spin in range(self.nsppol):
             opts = {"color": "black", "linewidth": 1.0} if spin == 0 else \
                    {"color": "red", "linewidth": 1.0}
+            opts.update(kwargs)
             # Plot Total dos if unpolarized.
             if self.nsppol == 1: spin = None
             self.plot_ax(ax_list[0], e0, spin=spin, what="idos", **opts)
             self.plot_ax(ax_list[1], e0, spin=spin, what="dos", **opts)
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly_dos_idos(self, e0="fermie", fig=None, xlims=None, height_ratios=(1, 2), **kwargs):
+        """
+        Plot electronic DOS and Integrated DOS on two different subplots with plotly.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``.
+            fig: The |plotly.graph_objects.Figure| with two distinct plots for the DOS and IDOS plot.
+                If fig is None, a new figure is created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``.
+            height_ratios:
+            kwargs: Options passed to plotly_traces method.
+
+        Return: |plotly.graph_objects.Figure|
+        """
+        if fig is None:
+            fig, _ = get_figs_plotly(nrows=2, ncols=1, sharex=True, sharey=False,
+                                    vertical_spacing=0.05, row_heights=height_ratios)
+            plotly_set_lims(fig, xlims, "x")
+            fig.layout['yaxis1'].title = {'text': "TOT IDOS"}
+            fig.layout['yaxis2'].title = {'text': "TOT DOS"}
+            fig.layout['xaxis2'].title = {'text': 'Energy (eV)'}
+
+        for spin in range(self.nsppol):
+            opts = {"color": "black", "width": 1.0} if spin == 0 else \
+                   {"color": "red", "width": 1.0}
+            # Plot Total dos if unpolarized.
+            if self.nsppol == 1: spin = None
+            rcd = PlotlyRowColDesc(0, 0, 2, 1)
+            self.plotly_traces(fig, e0, spin=spin, what="idos", rcd=rcd, line_opts=opts, **kwargs)
+            rcd = PlotlyRowColDesc(1, 0, 2, 1)
+            self.plotly_traces(fig, e0, spin=spin, what="dos", rcd=rcd,  line_opts=opts, **kwargs)
 
         return fig
 
@@ -3918,6 +4106,41 @@ class ElectronDos(object):
         set_axlims(ax, xlims, "x")
         ax.set_ylabel('Dos_up - Dos_down (states/eV)')
         ax.set_xlabel('Energy (eV)')
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly_up_minus_down(self, e0="fermie", fig=None, xlims=None, **kwargs):
+        """
+        Plot Dos_up - Dow_down with plotly.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
+            fig: |plotly.graph_objects.Figure| or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``.
+            kwargs: Options passed to fig.add_scatter method.
+
+        Return: |plotly.graph_objects.Figure|
+        """
+        dos_diff = self.up_minus_down
+        idos_diff = dos_diff.integral()
+
+        e0 = self.get_e0(e0)
+        if not kwargs:
+            line_opts = {"color": "black", "width": 1.0}
+
+        fig, _ = get_fig_plotly(fig=fig)
+        fig.add_scatter(x=dos_diff.mesh - e0, y=dos_diff.values, mode='lines', name='DOS',showlegend=False,
+                        line=line_opts, **kwargs)
+        fig.add_scatter(x=idos_diff.mesh - e0, y=idos_diff.values, mode='lines', name='IDOS',showlegend=False,
+                        line=line_opts, **kwargs)
+
+        plotly_set_lims(fig, xlims, "x")
+        fig.layout.xaxis.title = 'Energy (eV)'
+        fig.layout.yaxis.title = 'Dos_up - Dos_down (states/eV)'
 
         return fig
 
