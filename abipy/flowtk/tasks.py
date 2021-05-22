@@ -52,6 +52,7 @@ __all__ = [
     "ElasticTask",
     "SigmaTask",
     "EphTask",
+    "KerangeTask",
     "OpticTask",
     "AnaddbTask",
     "set_user_config_taskmanager",
@@ -3939,6 +3940,12 @@ class EphTask(AbinitTask):
     """
     color_rgb = np.array((255, 128, 0)) / 255
 
+
+class KerangeTask(AbinitTask):
+    """
+    Class for kerange calculations.
+    """
+    color_rgb = np.array((255, 128, 0)) / 255
 
 class ManyBodyTask(AbinitTask):
     """

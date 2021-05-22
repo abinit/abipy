@@ -20,7 +20,7 @@ from . import wrappers
 from .nodes import Dependency, Node, NodeError, NodeResults, FileNode #, check_spectator
 from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask, EffMassTask,
                     BseTask, RelaxTask, DdeTask, BecTask, ScrTask, SigmaTask, TaskManager,
-                    DteTask, EphTask, CollinearThenNonCollinearScfTask)
+                    DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 
 from .utils import Directory
 from .netcdf import ETSF_Reader, NetcdfReader
@@ -467,6 +467,20 @@ class NodeContainer(metaclass=abc.ABCMeta):
             seq_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)
             kwargs.update({"manager": seq_manager})
 
+        if eph_inp.get("eph_task",0) == -4:
+            max_cores   = TaskManager.from_user_config().qadapter.max_cores
+            natom3      = 3 * len(eph_inp.structure)
+            nprocs      = max(max_cores - max_cores % natom3, 1)
+            new_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(nprocs, 1)
+            kwargs.update({"manager": new_manager})
+
+        return self.register_task(*args, **kwargs)
+
+    def register_kerange_task(self, *args, **kwargs):
+        """ Register a kerange task."""
+        kwargs["task_class"] = KerangeTask
+        seq_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)
+        kwargs.update({"manager": seq_manager})
         return self.register_task(*args, **kwargs)
 
     def walknset_vars(self, task_class=None, *args, **kwargs):

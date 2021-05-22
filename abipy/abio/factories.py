@@ -12,6 +12,7 @@ from monty.json import jsanitize, MontyDecoder, MSONable
 from pymatgen.util.serialization import pmg_serialize
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
+import abipy.core.abinit_units as abu
 
 
 __all__ = [
@@ -1459,7 +1460,8 @@ def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, 
 
 
 def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine,
-                               sigma_ngkpt, sigma_erange, einterp=(1, 5, 0, 0), boxcutmin=1.1, mixprec=1):
+                               sigma_ngkpt, sigma_erange, sigma_kerange=None, epad=0.25*abu.eV_Ha,
+                               einterp=(1, 5, 0, 0), boxcutmin=1.1, mixprec=1):
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine the conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
@@ -1473,6 +1475,9 @@ def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqp
         eph_ngqpt_fine: the fine qpoints grid that will be interpolated.
         sigma_ngkpt: The fine grid of kpt inside the sigma interval
         sigma_erange: The energy range for Sigma_nk
+        sigma_kerange: The energy window for the WFK generation (should be larger than sigma_erange). Can be specified directly
+        or determined from epad, if sigma_kerange is None.
+        epad: Additional energy range to sigma_erange to determine sigma_kerange automatically.
         einterp: The interpolation used. By default it is a star-function interpolation.
         boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.
         mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.
@@ -1484,9 +1489,24 @@ def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqp
     extension = MultiDataset.replicate_input(nscf_input, 4)
     multi.extend(extension)
 
+    # If sigma_kerange is None, we determine it automatically based on epad
+    # We have to consider semiconductors and metals, electrons and holes
+    if sigma_kerange is None:
+        h_range = sigma_erange[0]
+        e_range = sigma_erange[1]
+        sigma_kerange = [h_range, e_range]
+        if h_range < 0:
+            sigma_kerange[0] -= epad
+        if e_range < 0:
+            sigma_kerange[1] -= epad
+        if h_range > 0:
+            sigma_kerange[0] += epad
+        if e_range > 0:
+            sigma_kerange[1] += epad
+    
     # Modify the second nscf input to get a task that calculate the kpt in the sigma interval (Kerange.nc file)
     multi[2].set_vars(optdriver=8, wfk_task='"wfk_kpts_erange"', kptopt=1,
-                      sigma_ngkpt=sigma_ngkpt, einterp=einterp, sigma_erange=sigma_erange)
+                      sigma_ngkpt=sigma_ngkpt, einterp=einterp, sigma_erange=sigma_kerange)
 
     # Modify the third nscf input to get a task that add the kpt of Kerange.nc to the WFK file
     multi[3].set_vars(optdriver=0, iscf=-2, kptopt=0, ddb_ngqpt=ddb_ngqpt)
