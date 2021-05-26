@@ -3,7 +3,7 @@ import param
 import panel as pn
 import panel.widgets as pnw
 
-from abipy.panels.core import AbipyParameterized, ButtonContext, mpl, ply, dfc, depends_on_btn_click
+from abipy.panels.core import AbipyParameterized, mpl, ply, dfc, depends_on_btn_click
 
 
 class PhononBandsPlotterPanel(AbipyParameterized):

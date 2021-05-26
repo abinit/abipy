@@ -77,7 +77,7 @@ def get_template_cls_from_name(name):
     if hasattr(pn.template, name):
         return getattr(pn.template, name)
 
-    try_name =  name + "Template"
+    try_name = name + "Template"
     if hasattr(pn.template, try_name):
         return getattr(pn.template, try_name)
 
@@ -85,7 +85,6 @@ def get_template_cls_from_name(name):
 Don't know how to return panel template from string: {name}
 Possible templates are: {list(pn.template.__dict__.keys())}
 """)
-
 
 
 def depends_on_btn_click(btn_name):
@@ -190,9 +189,11 @@ If everything is properly configured, a new window is automatically created in y
 """)
 
         btn = pnw.Button(name="Upload to chart studio server")
+
         def push_to_cs(event):
             with ButtonContext(btn):
                 push_to_chart_studio(fig)
+
         btn.on_click(push_to_cs)
 
         if with_help:
@@ -397,7 +398,6 @@ class AbipyParameterized(param.Parameterized):
 Please **refresh** the page using the refresh button of the browser if plotly figures are not shown.
 """)
 
-
     #def __repr__(self):
     #    # https://github.com/holoviz/param/issues/396
     #    return f"AbiPyParametrized(name='{self.name}')"
@@ -515,7 +515,6 @@ class HasStructureParams(AbipyParameterized):
     structure_viewer = param.ObjectSelector(default=None,
                                             objects=[None, "jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
                                                      "matplotlib", "plotly", "ase_atoms", "mayavi"])
-
 
     #def __init__(self, **params):
     #    self.struct_view_btn = pnw.Button(name="View structure", button_type='primary')
@@ -639,7 +638,7 @@ def get_structure_info(structure):
     df_len = pd.DataFrame(rows, index=["Å", "Bohr"]).transpose().rename_axis("Lattice lenghts")
 
     # Build dataframe with lattice angles.
-    rows = []; keys =  ("alpha", "beta", "gamma")
+    rows = []; keys = ("alpha", "beta", "gamma")
     rows.append({k: d[k] for k in keys})
     rows.append({k: np.radians(d[k]) for k in keys})
     df_ang = pd.DataFrame(rows, index=["Degrees", "Radians"]).transpose().rename_axis("Lattice angles")
@@ -713,7 +712,7 @@ class PanelWithElectronBands(AbipyParameterized):
     # e-DOS plot.
     edos_method = param.ObjectSelector(default="gaussian", objects=["gaussian", "tetra"], doc="e-DOS method")
     edos_step_ev = param.Number(0.1, bounds=(1e-6, None), step=0.1, doc='e-DOS step in eV')
-    edos_width_ev = param.Number(0.2, step=0.05, bounds=(1e-6, None), doc='e-DOS Gaussian broadening in eV' )
+    edos_width_ev = param.Number(0.2, step=0.05, bounds=(1e-6, None), doc='e-DOS Gaussian broadening in eV')
 
     # SKW interpolation of the KS band energies.
     skw_lpratio = param.Integer(5, bounds=(1, None))

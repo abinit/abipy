@@ -1315,7 +1315,6 @@ class Structure(pmg_Structure, NotebookWriter):
         Args:
             with_cart_coords: True if Cartesian coordinates should be added as well.
         """
-        from collections import defaultdict
         if with_cart_coords:
             group = {symb: {"site_idx": [], "frac_coords": [], "cart_coords": []} for symb in self.symbol_set}
         else:
@@ -1339,8 +1338,8 @@ class Structure(pmg_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot(self, **kwargs):
         """
-        Plot structure in 3D with matplotlib. Return matplotlib Figure
-        See plot_structure for kwargs
+        Plot structure in 3D with matplotlib. Return matplotlib Figure.
+        See plot_structure for kwargs.
         """
         from abipy.tools.plotting import plot_structure
         return plot_structure(self, **kwargs)
@@ -1348,7 +1347,7 @@ class Structure(pmg_Structure, NotebookWriter):
     @add_plotly_fig_kwargs
     def plotly(self, **kwargs):
         """
-        Plot structure in 3D with plotly. Return plotly Figure
+        Plot structure in 3D with plotly. Return plotly Figure.
         See plot_structure for kwargs
         """
         from abipy.tools.plotting import plotly_structure

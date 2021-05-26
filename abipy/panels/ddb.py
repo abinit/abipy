@@ -600,6 +600,7 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
         """Return tabs with widgets to interact with the DDB file."""
         robot = self.robot
 
+        d = {}
         d["Summary"] = pn.Row(
             bkw.PreText(text=robot.to_string(verbose=self.verbose), sizing_mode="scale_both")
         )

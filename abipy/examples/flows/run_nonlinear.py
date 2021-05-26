@@ -14,6 +14,7 @@ from abipy import abilab
 
 # NB: This flow requires abinit >= "8.5.2"
 
+
 def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
     """
     This function constructs an `AbinitInput` for performing a

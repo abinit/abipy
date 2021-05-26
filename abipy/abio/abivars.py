@@ -749,7 +749,7 @@ def structure_from_abistruct_fmt(string):
         v = xred[iatom]
         lines.append("%.16f %.16f %.16f" % (v[0], v[1], v[2]))
 
-    s =  "\n".join(head) + "\n" + "\n".join(lines) #; print(s)
+    s = "\n".join(head) + "\n" + "\n".join(lines) #; print(s)
 
     return AbinitInputFile.from_string(s).structure
 

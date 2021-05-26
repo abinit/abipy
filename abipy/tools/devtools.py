@@ -123,6 +123,8 @@ def display_top(snapshot, key_type='lineno', limit=3):
         snapshot = tracemalloc.take_snapshot()
         display_top(snapshot)
     """
+    import tracemalloc
+    import linecache
     snapshot = snapshot.filter_traces((
         tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
         tracemalloc.Filter(False, "<unknown>"),

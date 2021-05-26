@@ -449,7 +449,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
     #    yield self.plotly(show=False)
     #    yield self.plotly_energies(show=False)
 
-
     def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True,
                             with_forces=True, **kwargs):  # pragma: no cover
         """

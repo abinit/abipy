@@ -1503,7 +1503,7 @@ def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqp
             sigma_kerange[0] += epad
         if e_range > 0:
             sigma_kerange[1] += epad
-    
+
     # Modify the second nscf input to get a task that calculate the kpt in the sigma interval (Kerange.nc file)
     multi[2].set_vars(optdriver=8, wfk_task='"wfk_kpts_erange"', kptopt=1,
                       sigma_ngkpt=sigma_ngkpt, einterp=einterp, sigma_erange=sigma_kerange)

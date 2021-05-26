@@ -566,7 +566,7 @@ class PanelExpose(object): # pragma: no cover
         self.verbose = verbose
 
         if self.verbose:
-           print("\nLoading all figures before showing them. It may take some time...")
+            print("\nLoading all figures before showing them. It may take some time...")
 
         self.start_time = time.time()
 
@@ -979,7 +979,7 @@ class PlotlyRowColDesc(object):
         # Assume list with 4 integers
         try:
             return cls(*obj)
-        except exc:
+        except Exception as exc:
             raise TypeError(f"Dont know how to convert `{type(obj)}` into `{cls}`")
 
     def __init__(self, py_row, py_col, nrows, ncols):
@@ -1328,6 +1328,7 @@ def push_to_chart_studio(figs):
 ####################################################
 import plotly.graph_objects as go
 
+
 def go_points(points, size=4, color="black", labels=None, **kwargs):
 
     #textposition = 'top right',
@@ -1485,7 +1486,6 @@ def plot_fcc_prim():
 
     fcc_conv = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     fcc_conv_box = get_box(fcc_conv, name="conv lattice")
-
 
     fig = go.Figure(data=[*fcc_prim_box, *fcc_prim_vectors, *fcc_conv_box, atoms])
 

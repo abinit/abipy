@@ -13,8 +13,6 @@ import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 import abipy.core.abinit_units as abu
 
-from abipy.abilab import abiopen
-
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")

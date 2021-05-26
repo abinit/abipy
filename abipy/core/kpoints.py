@@ -1138,7 +1138,7 @@ class KpointList(collections.abc.Sequence):
 
     def plotly(self, fig=None, **kwargs):
         """Plot k-points with plotly."""
-        from abipy.tools.plotting import plotly_wigner_seitz, plotly_brillouin_zone
+        from abipy.tools.plotting import plotly_brillouin_zone
         fold = False
         if self.is_path:
             labels = {k.name: k.frac_coords for k in self if k.name}

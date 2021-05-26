@@ -676,9 +676,9 @@ def _invoke_robot(options):
             if options.plotly:
                # plotly version.
                if hasattr(robot, "plotly_expose"):
-                   robot.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+                    robot.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
                else:
-                   cprint("<%s> does not implement plotly_expose method" % type(robot), color="red")
+                    cprint("<%s> does not implement plotly_expose method" % type(robot), color="red")
 
             elif hasattr(robot, "expose"):
                 # matplotlib version.

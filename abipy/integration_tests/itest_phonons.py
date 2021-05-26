@@ -160,7 +160,7 @@ def itest_phonon_restart(fwp):
         tolvrs=1.0e-5,
     )
 
-    multi = abilab.MultiDataset(structure=structure, 
+    multi = abilab.MultiDataset(structure=structure,
                                 pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
                                 ndtset=1 + len(qpoints))
 

@@ -1410,7 +1410,7 @@ class ElectronBands(Has_Structure):
 
         if unicode:
             import re
-            numl=re.findall(r'\d', formula)
+            numl = re.findall(r'\d', formula)
             for s in numl:
                 formula = formula.replace(s,SUBSCRIPT_UNICODE[s])
 
@@ -1458,7 +1458,6 @@ class ElectronBands(Has_Structure):
             for k, v in d.items():
                 k0_list.append(k)
                 effmass_bands_f90.append(v)
-
 
         # Set small values to zero.
         k0_list = np.reshape(k0_list, (-1, 3))
@@ -2105,7 +2104,7 @@ class ElectronBands(Has_Structure):
         ply_row, ply_col = rcd.ply_row, rcd.ply_col
 
         # Decorate the axis (e.g add ticks and labels).
-        self.decorate_plotly(fig, klabels=klabels, iax = rcd.iax)
+        self.decorate_plotly(fig, klabels=klabels, iax=rcd.iax)
         plotly_set_lims(fig, ylims, "y")
 
         # Plot the band energies.
@@ -2386,12 +2385,12 @@ class ElectronBands(Has_Structure):
                 fig.add_scatter(x=xx, y=yy, mode="lines", name=label, showlegend=showlegend, line=line_opts, **kwargs,
                                 row=ply_row, col=ply_col)
                 label = ''
-                showlegend=False
+                showlegend = False
 
                 if with_linewidths:
                     w = self.linewidths[spin, :, band] * lw_fact / 2
-                    lw_color = lines[-1].get_color()
                     raise NotImplementedError
+                    #lw_color = lines[-1].get_color()
                     # solution 1: Use scater points to fill
                     # solution 2: add two traces and fill the area between
                     # color problem
@@ -3978,7 +3977,7 @@ class ElectronDos(object):
             fig.add_scatter(x=x, y=y, mode='lines', name=trace_name, showlegend=showlegend, line=opts, **kwargs)
 
         xlabel, ylabel = 'Energy (eV)', 'DOS (states/eV)'
-        if exchange_xy: xlabel, ylabel =  ylabel, xlabel
+        if exchange_xy: xlabel, ylabel = ylabel, xlabel
         fig.layout.xaxis.title = xlabel
         fig.layout.yaxis.title = ylabel
         plotly_set_lims(fig, xlims, "x")

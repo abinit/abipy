@@ -356,7 +356,7 @@ def software_stack(as_dataframe=False):
         try:
             mod = import_module(pkg_name)
             return mod.__version__
-        except:
+        except Exception:
             return None
 
     try:

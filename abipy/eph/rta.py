@@ -625,7 +625,8 @@ class RtaRobot(Robot, RobotWithEbands):
     #def get_mobility_mu_dataframe(self, eh=0, component='xx', itemp=0, spin=0, **kwargs):
 
     @add_fig_kwargs
-    def plot_mobility_kconv(self, eh=0, bte=['serta','mrta','ibte'], component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+    def plot_mobility_kconv(self, eh=0, bte=('serta', 'mrta', 'ibte'), component='xx', itemp=0, spin=0,
+                            fontsize=14, ax=None, **kwargs):
         """
         Plot the convergence of the mobility as a function of the number of k-points,
         for different transport formalisms included in the computation.
@@ -662,9 +663,9 @@ class RtaRobot(Robot, RobotWithEbands):
             if 'serta' in bte:
                 mob_serta = ncfile.reader.read_variable("mobility_mu")[0, spin, itemp, eh, j, i]
             if 'mrta' in bte:
-                mob_mrta  = ncfile.reader.read_variable("mobility_mu")[1, spin, itemp, eh, j, i]
+                mob_mrta = ncfile.reader.read_variable("mobility_mu")[1, spin, itemp, eh, j, i]
             if 'ibte' in bte:
-                mob_ibte  = ncfile.reader.read_variable("ibte_mob")[spin, itemp, eh, j, i]
+                mob_ibte = ncfile.reader.read_variable("ibte_mob")[spin, itemp, eh, j, i]
 
             res.append([kptrlattx, mob_serta, mob_mrta, mob_ibte])
             temps.append(ncfile.tmesh[itemp])
@@ -789,7 +790,7 @@ class RtaRobot(Robot, RobotWithEbands):
         #if self.all_have_ibte:
         yield self.plot_ibte_mrta_serta_conv(show=False)
         yield self.plot_ibte_vs_rta_rho(show=False)
-       
+
         # Determine the independent component. For the time being,
         # only consider the cubic case separately
         abifile = self.abifiles[0]

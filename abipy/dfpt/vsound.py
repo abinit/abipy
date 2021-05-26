@@ -10,7 +10,7 @@ from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvectors
 from abipy.abio.inputs import AnaddbInput
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible, get_fig_plotly, get_figs_plotly, \
-    add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc
+    add_plotly_fig_kwargs, plotlyfigs_to_browser, PlotlyRowColDesc
 from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
 
 
@@ -353,10 +353,10 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         if fig is None:
             fig, _ = get_fig_plotly()
-            fig.layout=dict(annotations=[dict(text=title, font_size=fontsize, x=0.5, xref='paper', xanchor='center',
-                                         y=1, yref='paper', yanchor='bottom' ,showarrow=False)],
-                            yaxis_title_text=abu.wlabel_from_units(units, unicode=True),
-                            xaxis_title_text= "Wave Vector")
+            fig.layout = dict(annotations=[dict(text=title, font_size=fontsize, x=0.5, xref='paper', xanchor='center',
+                              y=1, yref='paper', yanchor='bottom' ,showarrow=False)],
+                              yaxis_title_text=abu.wlabel_from_units(units, unicode=True),
+                              xaxis_title_text="Wave Vector")
         else:
             fig.layout.annotations[idir].text = title
             fig.layout.annotations[idir].font.size = fontsize
@@ -429,7 +429,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                                  horizontal_spacing=0.05)
 
         for i in range(self.n_directions):
-            rcd = PlotlyRowColDesc(i//2, i%2, nrows, ncols)
+            rcd = PlotlyRowColDesc(i // 2, i % 2, nrows, ncols)
             self.plotly_fit_freqs_dir(i, fig, rcd, units=units, fontsize=fontsize, show=False)
 
         return fig

@@ -582,7 +582,7 @@ qadapters:
             qname: localhost
       job:
         mpi_runner: mpirun
-        pre_run:  
+        pre_run:
             # List of shell commands executed before running abinit
             # Change this part according to your Abinit installation and the location of the shared libs
             - export OMP_NUM_THREADS=1
@@ -623,15 +623,15 @@ Cannot locate `{cls.YAML_FILE}` neither in current directory nor in `{path}`
 
 !!! PLEASE READ THIS !!!
 
-    To run AbiPy flows you need a manager.yaml describing your computer/cluster 
+    To run AbiPy flows you need a manager.yaml describing your computer/cluster
     as well as the job submission engine being used (shell, Slurm, PBS, etc).
-    
+
     Examples are provided in the `abipy/data/managers` directory.
     Use `abidoc.py manager` to access the documentation from the terminal.
     See also https://abinit.github.io/abipy/workflows/manager_examples.html for examples.
-    
+
 A minimalistic example of manager.yml for a laptop with the shell engine is reported below:
-    
+
 {cls.get_simple_manager()}
 
 """, color="red"))
@@ -3945,7 +3945,8 @@ class KerangeTask(AbinitTask):
     """
     Class for kerange calculations.
     """
-    color_rgb = np.array((255, 128, 0)) / 255
+    color_rgb = np.array((255, 128, 128)) / 255
+
 
 class ManyBodyTask(AbinitTask):
     """

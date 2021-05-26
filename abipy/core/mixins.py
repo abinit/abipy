@@ -729,6 +729,7 @@ abilab.enable_notebook(with_seaborn=True)
             nbformat.write(nb, fh)
             return nbpath
 
+
 class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
     """
     Mixin class for objects that are able to generate jupyter_ notebooks.
@@ -850,7 +851,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
         This function *generates* a predefined list of plotly figures with minimal input from the user.
         Relies on yield_plotly_figs implemented by the subclass to generate the figures.
         """
-        print("in plotly expose")
+        #print("in plotly expose")
 
         pn, template = self._get_panel_and_template()
         pn.config.sizing_mode = 'stretch_width'

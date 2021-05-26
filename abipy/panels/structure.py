@@ -5,7 +5,7 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import HasStructureParams, ButtonContext, dfc, mpl, ply, depends_on_btn_click
+from abipy.panels.core import HasStructureParams, dfc, mpl, ply, depends_on_btn_click
 
 
 class StructurePanel(HasStructureParams):

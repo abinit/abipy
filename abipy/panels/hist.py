@@ -4,7 +4,7 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import AbipyParameterized, ButtonContext, mpl, ply, depends_on_btn_click
+from abipy.panels.core import AbipyParameterized, mpl, ply, depends_on_btn_click
 
 
 _what_list = ["pressure", "forces", "energy", "abc", "angles", "volume"]
