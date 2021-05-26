@@ -91,7 +91,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
         super().__init__(**params)
         self.robot = robot
 
-    @depends_on_btn_click('gsr_dataframe_btn_btn')
+    @depends_on_btn_click('gsr_dataframe_btn')
     def on_gsr_dataframe_btn(self):
         df = self.robot.get_dataframe(with_geo=True)
         transpose = self.transpose_gsr_dataframe.value

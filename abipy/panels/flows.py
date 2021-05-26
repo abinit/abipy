@@ -87,7 +87,6 @@ class FlowPanel(AbipyParameterized):
 
     @depends_on_btn_click("events_btn")
     def on_events_btn(self):
-        if self.events_btn.clicks == 0: return
         stream = StringIO()
         self.flow.show_events(stream=stream)
         #flow.show_events(status=options.task_status, nids=selected_nids(flow, options))
@@ -100,7 +99,7 @@ class FlowPanel(AbipyParameterized):
         #flow.show_corrections(status=options.task_status, nids=selected_nids(flow, options))
         return pn.Row(bkw.PreText(text=stream.getvalue()))
 
-    @depends_on_btn_click("handlers_btn_clicks")
+    @depends_on_btn_click("handlers_btn")
     def on_handlers_btn(self):
         stream = StringIO()
         #if options.doc:

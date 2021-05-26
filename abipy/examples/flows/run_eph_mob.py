@@ -91,8 +91,8 @@ def build_flow(options):
         work_eph.register_nscf_task(wfk_input, deps={work0[0]: "DEN", work_eph[0]: "KERANGE.nc"})
 
         # Generate the input file for the transport calculation
-        eph_input = wfk_input.make_eph_transport_inputs(ddb_ngqpt=ddb_ngqpt, sigma_erange=sigma_erange,
-                                                        tmesh=tmesh, eph_ngqpt_fine=sigma_ngkpt, ibte_prep=1)
+        eph_input = wfk_input.make_eph_transport_input(ddb_ngqpt=ddb_ngqpt, sigma_erange=sigma_erange,
+                                                       tmesh=tmesh, eph_ngqpt_fine=sigma_ngkpt, ibte_prep=1)
 
         # We compute the phonon dispersion to be able to check they are ok
         if i == 0:

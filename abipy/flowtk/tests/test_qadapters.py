@@ -287,7 +287,7 @@ echo ${SLURM_JOB_NODELIST}
 ulimit -s unlimited
 
 # Load Modules
-module purge
+module --force purge
 module load intel/compilerpro/13.0.1.117 2>> mods.err
 module load fftw3/intel/3.3 2>> mods.err
 

@@ -37,7 +37,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
         return box
 
-    def get_panel(self, as_dict=True, **kwargs):
+    def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the Abinit output file."""
         d = {}
 

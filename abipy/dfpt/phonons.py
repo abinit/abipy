@@ -3144,7 +3144,7 @@ class PhononDos(Function1D):
 
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
-                             quantities=None, fontsize=8, **kwargs):
+                             quantities="all", fontsize=8, **kwargs):
         """
         Plot thermodynamic properties from the phonon DOSes within the harmonic approximation.
 
@@ -3154,7 +3154,6 @@ class PhononDos(Function1D):
             num: int, optional Number of samples to generate. Default is 50.
             quantities: List of strings specifying the thermodynamic quantities to plot.
                 Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
-                None means all.
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
@@ -3162,7 +3161,7 @@ class PhononDos(Function1D):
 
         Returns: |matplotlib-Figure|
         """
-        quantities = list_strings(quantities) if quantities is not None else \
+        quantities = list_strings(quantities) if quantities != "all" else \
             ["internal_energy", "free_energy", "entropy", "cv"]
 
         # Build grid of plots.

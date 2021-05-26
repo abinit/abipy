@@ -93,7 +93,7 @@ class GSRFileTestCase(AbipyTest):
             self.assert_almost_equal(gsr.energy.to("Ha"), -8.86527676798556)
             self.assert_almost_equal(gsr.energy_per_atom * len(gsr.structure), gsr.energy)
 
-            assert gsr.structure == same_structure
+            assert gsr.structure.formula == same_structure.formula
 
             assert gsr.params["nband"] == 8
             assert gsr.params["nkpt"] == 29
