@@ -1270,9 +1270,9 @@ def main():
         else:
             graph = node.get_graphviz(engine=options.engine)
 
-        if options.verbose:
-            # Print DOT string. Can be used with e.g. http://viz-js.com/
-            print(graph)
+        # Add this liine to print the DOT string
+        # Can be used with e.g. http://viz-js.com/
+        if options.verbose: print(graph)
 
         graph.view(directory=directory, cleanup=False)
 
