@@ -1,7 +1,7 @@
 <map id="inheritanced405d366f0" name="inheritanced405d366f0">
-<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.FrohlichZPRFlow" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="476,53,763,77"/>
-<area shape="rect" id="node2" href="#abipy.flowtk.flows.Flow" target="_top" title="This object is a container of work. Its main task is managing the" alt="" coords="274,53,428,77"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="33,5,198,29"/>
-<area shape="rect" id="node4" title="Mixin classes for `Work` and `Flow` objects providing helper functions" alt="" coords="5,53,226,77"/>
-<area shape="rect" id="node5" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="39,101,192,125"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.FrohlichZPRFlow" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="477,54,763,79"/>
+<area shape="rect" id="node2" href="#abipy.flowtk.flows.Flow" target="_top" title="This object is a container of work. Its main task is managing the" alt="" coords="272,54,430,79"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="33,5,197,30"/>
+<area shape="rect" id="node4" title="Mixin classes for `Work` and `Flow` objects providing helper functions" alt="" coords="5,54,225,79"/>
+<area shape="rect" id="node5" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="39,103,191,128"/>
 </map>

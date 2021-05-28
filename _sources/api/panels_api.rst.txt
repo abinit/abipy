@@ -78,7 +78,7 @@ panels Package
    :show-inheritance:
 
 :mod:`pipelines` Module
-----------------------
+-----------------------
 
 .. automodule:: abipy.panels.pipelines
    :members:

@@ -11,7 +11,7 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_flow_gallery_run_si_ebands.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
@@ -157,7 +157,7 @@ to analyze (and plot) the electronic bands produced by the Flow.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.877 seconds)
+   **Total running time of the script:** ( 0 minutes  1.736 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_si_ebands.py:
@@ -168,6 +168,13 @@ to analyze (and plot) the electronic bands produced by the Flow.
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_si_ebands.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -121,22 +120,22 @@
 <li class="toctree-l2"><a class="reference internal" href="run_si_ebands.html">Band structure Flow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_ht_si_ebands.html">Band structure Flow with factory functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_fe_ebands.html">Band structure w/wo magnetization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="run_gaas_ebands_soc.html">Band structure with/without spin-orbit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_gaas_ebands_soc.html">Band structure with/without SOC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_ht_si_bsemdf.html">Bethe-Salpeter Flow with factory functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_conducwork.html">Conductivity in metals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_effmass_dfpt.html">Effective masses with DFPT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_effmass_finitediff.html">Effective masses with finite difference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="run_conducwork.html">Effective masses with finite difference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="run_frohlich_zpr.html">Estimate the ZPR at band edges with the generalized Frohlich model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="run_frohlich_zpr_from_ddb.html">Estimate the ZPR of band edges with generalized Frohlich mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_frohlich_zpr.html">Estimate the ZPR at the band edges with the generalized Frohlich model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_frohlich_zpr_from_ddb.html">Estimate the ZPR of band edges with generalized Frohlich model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_becs_and_epsilon_vs_kpts.html">Flow for Born effective charges and dielectric tensors with DFPT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_eph_al.html">Flow for E-PH calculations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="run_eos.html">Flow for Equation of State</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_ldaus.html">Flow for LDA+U calculations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="run_nonlinear.html">Flow for Non-linear optic with DFPT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_relax_and_ebands.html">Flow for Relaxation + Bands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_mgb2_edoses.html">Flow for convergence studies of e-DOS wrt ngkpt</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_phfrozen_ebands.html">Flow for e-Bands with frozen phonon</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_elastic.html">Flow for elastic constants and piezoelectric tensor with DFPT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_eos.html">Flow for equation of state</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_eph_mob.html">Flow for phonon-limited mobilities in semiconductors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_phonons.html">Flow for phonons with DFPT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_mgb2_phonons_nkpt_tsmear.html">Flow to analyze the convergence of phonons in metals wrt ngkpt and tsmear</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_gkq.html">Flow to compute e-ph matrix elements along a q-path</a></li>
@@ -145,9 +144,10 @@
 <li class="toctree-l2"><a class="reference internal" href="run_ht_si_g0w0ppm.html">G0W0 Flow with factory functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_gwconv_ecuteps.html">G0W0 convergence study</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_gruneisen_abinit.html">Gruneisen parameters with DFPT phonons and finite difference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_nonlinear.html">Nnon-linear optical properties with DFPT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_optic.html">Optic Flow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_phonons_wkq.html">Phonons with WFQ files (q-mesh denser than k-mesh)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="run_phonopy_si.html">Phonopy + Abinit Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_phonopy_si.html">Phonopy with AbiPy Flow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_raman_bse.html">Raman Flow with BSE and frozen phonon</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_raman_optic.html">Raman Flow with independent-particle approximation (optic)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_sic_relax.html">Relaxation Flow</a></li>
@@ -269,8 +269,8 @@ as input parameters are usually underconverged.</p>
 </div><div class="toctree-wrapper compound">
 </div>
 <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the band structure of GaAs with and without spin-orbit term. ..."><div class="figure align-default" id="id5">
-<img alt="Band structure with/without spin-orbit" src="../_images/sphx_glr_run_gaas_ebands_soc_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_gaas_ebands_soc.html#sphx-glr-flow-gallery-run-gaas-ebands-soc-py"><span class="std std-ref">Band structure with/without spin-orbit</span></a></span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+<img alt="Band structure with/without SOC" src="../_images/sphx_glr_run_gaas_ebands_soc_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_gaas_ebands_soc.html#sphx-glr-flow-gallery-run-gaas-ebands-soc-py"><span class="std std-ref">Band structure with/without SOC</span></a></span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
@@ -280,33 +280,33 @@ as input parameters are usually underconverged.</p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with DFPT. Two options are available:"><div class="figure align-default" id="id7">
-<img alt="Effective masses with DFPT" src="../_images/sphx_glr_run_effmass_dfpt_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_effmass_dfpt.html#sphx-glr-flow-gallery-run-effmass-dfpt-py"><span class="std std-ref">Effective masses with DFPT</span></a></span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
+<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute conductivity in metals"><div class="figure align-default" id="id7">
+<img alt="Conductivity in metals" src="../_images/sphx_glr_run_conducwork_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_conducwork.html#sphx-glr-flow-gallery-run-conducwork-py"><span class="std std-ref">Conductivity in metals</span></a></span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with finite difference method. Derivatives are computed along ..."><div class="figure align-default" id="id8">
-<img alt="Effective masses with finite difference" src="../_images/sphx_glr_run_effmass_finitediff_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_effmass_finitediff.html#sphx-glr-flow-gallery-run-effmass-finitediff-py"><span class="std std-ref">Effective masses with finite difference</span></a></span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
+<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with DFPT. Two options are available:"><div class="figure align-default" id="id8">
+<img alt="Effective masses with DFPT" src="../_images/sphx_glr_run_effmass_dfpt_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_effmass_dfpt.html#sphx-glr-flow-gallery-run-effmass-dfpt-py"><span class="std std-ref">Effective masses with DFPT</span></a></span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
 <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with finite difference method. Derivatives are computed along ..."><div class="figure align-default" id="id9">
-<img alt="Effective masses with finite difference" src="../_images/sphx_glr_run_conducwork_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_conducwork.html#sphx-glr-flow-gallery-run-conducwork-py"><span class="std std-ref">Effective masses with finite difference</span></a></span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
+<img alt="Effective masses with finite difference" src="../_images/sphx_glr_run_effmass_finitediff_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_effmass_finitediff.html#sphx-glr-flow-gallery-run-effmass-finitediff-py"><span class="std std-ref">Effective masses with finite difference</span></a></span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
 <div class="sphx-glr-thumbcontainer" tooltip="Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlic..."><div class="figure align-default" id="id10">
-<img alt="Estimate the ZPR at band edges with the generalized Frohlich model" src="../_images/sphx_glr_run_frohlich_zpr_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_frohlich_zpr.html#sphx-glr-flow-gallery-run-frohlich-zpr-py"><span class="std std-ref">Estimate the ZPR at band edges with the generalized Frohlich model</span></a></span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
+<img alt="Estimate the ZPR at the band edges with the generalized Frohlich model" src="../_images/sphx_glr_run_frohlich_zpr_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_frohlich_zpr.html#sphx-glr-flow-gallery-run-frohlich-zpr-py"><span class="std std-ref">Estimate the ZPR at the band edges with the generalized Frohlich model</span></a></span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
 <div class="sphx-glr-thumbcontainer" tooltip="Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlic..."><div class="figure align-default" id="id11">
-<img alt="Estimate the ZPR of band edges with generalized Frohlich mode" src="../_images/sphx_glr_run_frohlich_zpr_from_ddb_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_frohlich_zpr_from_ddb.html#sphx-glr-flow-gallery-run-frohlich-zpr-from-ddb-py"><span class="std std-ref">Estimate the ZPR of band edges with generalized Frohlich mode</span></a></span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
+<img alt="Estimate the ZPR of band edges with generalized Frohlich model" src="../_images/sphx_glr_run_frohlich_zpr_from_ddb_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_frohlich_zpr_from_ddb.html#sphx-glr-flow-gallery-run-frohlich-zpr-from-ddb-py"><span class="std std-ref">Estimate the ZPR of band edges with generalized Frohlich model</span></a></span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
@@ -322,45 +322,45 @@ as input parameters are usually underconverged.</p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0."><div class="figure align-default" id="id14">
-<img alt="Flow for Equation of State" src="../_images/sphx_glr_run_eos_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_eos.html#sphx-glr-flow-gallery-run-eos-py"><span class="std std-ref">Flow for Equation of State</span></a></span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
-</div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o..."><div class="figure align-default" id="id15">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o..."><div class="figure align-default" id="id14">
 <img alt="Flow for LDA+U calculations" src="../_images/sphx_glr_run_ldaus_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ldaus.html#sphx-glr-flow-gallery-run-ldaus-py"><span class="std std-ref">Flow for LDA+U calculations</span></a></span><a class="headerlink" href="#id15" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ldaus.html#sphx-glr-flow-gallery-run-ldaus-py"><span class="std std-ref">Flow for LDA+U calculations</span></a></span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit)."><div class="figure align-default" id="id16">
-<img alt="Flow for Non-linear optic with DFPT" src="../_images/sphx_glr_run_nonlinear_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_nonlinear.html#sphx-glr-flow-gallery-run-nonlinear-py"><span class="std std-ref">Flow for Non-linear optic with DFPT</span></a></span><a class="headerlink" href="#id16" title="Permalink to this image">¶</a></p>
-</div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation and a band structure calculation"><div class="figure align-default" id="id17">
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation and a band structure calculation"><div class="figure align-default" id="id15">
 <img alt="Flow for Relaxation + Bands" src="../_images/sphx_glr_run_relax_and_ebands_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_and_ebands.html#sphx-glr-flow-gallery-run-relax-and-ebands-py"><span class="std std-ref">Flow for Relaxation + Bands</span></a></span><a class="headerlink" href="#id17" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_and_ebands.html#sphx-glr-flow-gallery-run-relax-and-ebands-py"><span class="std std-ref">Flow for Relaxation + Bands</span></a></span><a class="headerlink" href="#id15" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the band structure and the electron DOS of M..."><div class="figure align-default" id="id18">
+<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the band structure and the electron DOS of M..."><div class="figure align-default" id="id16">
 <img alt="Flow for convergence studies of e-DOS wrt ngkpt" src="../_images/sphx_glr_run_mgb2_edoses_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_mgb2_edoses.html#sphx-glr-flow-gallery-run-mgb2-edoses-py"><span class="std std-ref">Flow for convergence studies of e-DOS wrt ngkpt</span></a></span><a class="headerlink" href="#id18" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_mgb2_edoses.html#sphx-glr-flow-gallery-run-mgb2-edoses-py"><span class="std std-ref">Flow for convergence studies of e-DOS wrt ngkpt</span></a></span><a class="headerlink" href="#id16" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)"><div class="figure align-default" id="id19">
+<div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)"><div class="figure align-default" id="id17">
 <img alt="Flow for e-Bands with frozen phonon" src="../_images/sphx_glr_run_phfrozen_ebands_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phfrozen_ebands.html#sphx-glr-flow-gallery-run-phfrozen-ebands-py"><span class="std std-ref">Flow for e-Bands with frozen phonon</span></a></span><a class="headerlink" href="#id19" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phfrozen_ebands.html#sphx-glr-flow-gallery-run-phfrozen-ebands-py"><span class="std std-ref">Flow for e-Bands with frozen phonon</span></a></span><a class="headerlink" href="#id17" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use AbiPy to calculate physical properties related to strain for an i..."><div class="figure align-default" id="id20">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use AbiPy to calculate physical properties related to strain for an i..."><div class="figure align-default" id="id18">
 <img alt="Flow for elastic constants and piezoelectric tensor with DFPT" src="../_images/sphx_glr_run_elastic_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_elastic.html#sphx-glr-flow-gallery-run-elastic-py"><span class="std std-ref">Flow for elastic constants and piezoelectric tensor with DFPT</span></a></span><a class="headerlink" href="#id20" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_elastic.html#sphx-glr-flow-gallery-run-elastic-py"><span class="std std-ref">Flow for elastic constants and piezoelectric tensor with DFPT</span></a></span><a class="headerlink" href="#id18" title="Permalink to this image">¶</a></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0."><div class="figure align-default" id="id19">
+<img alt="Flow for equation of state" src="../_images/sphx_glr_run_eos_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_eos.html#sphx-glr-flow-gallery-run-eos-py"><span class="std std-ref">Flow for equation of state</span></a></span><a class="headerlink" href="#id19" title="Permalink to this image">¶</a></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This flow computes the phonon-limited mobility in AlAs. using different dense k/q meshes"><div class="figure align-default" id="id20">
+<img alt="Flow for phonon-limited mobilities in semiconductors" src="../_images/sphx_glr_run_eph_mob_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_eph_mob.html#sphx-glr-flow-gallery-run-eph-mob-py"><span class="std std-ref">Flow for phonon-limited mobilities in semiconductors</span></a></span><a class="headerlink" href="#id20" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
@@ -412,63 +412,69 @@ as input parameters are usually underconverged.</p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to create a flow to compute optical spectra with Optic (independent part..."><div class="figure align-default" id="id29">
+<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit)."><div class="figure align-default" id="id29">
+<img alt="Nnon-linear optical properties with DFPT" src="../_images/sphx_glr_run_nonlinear_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_nonlinear.html#sphx-glr-flow-gallery-run-nonlinear-py"><span class="std std-ref">Nnon-linear optical properties with DFPT</span></a></span><a class="headerlink" href="#id29" title="Permalink to this image">¶</a></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to create a flow to compute optical spectra with Optic (independent part..."><div class="figure align-default" id="id30">
 <img alt="Optic Flow" src="../_images/sphx_glr_run_optic_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_optic.html#sphx-glr-flow-gallery-run-optic-py"><span class="std std-ref">Optic Flow</span></a></span><a class="headerlink" href="#id29" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_optic.html#sphx-glr-flow-gallery-run-optic-py"><span class="std std-ref">Optic Flow</span></a></span><a class="headerlink" href="#id30" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use WFQ files to compute phonons on a q-mesh that is not necessarily ..."><div class="figure align-default" id="id30">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use WFQ files to compute phonons on a q-mesh that is not necessarily ..."><div class="figure align-default" id="id31">
 <img alt="Phonons with WFQ files (q-mesh denser than k-mesh)" src="../_images/sphx_glr_run_phonons_wkq_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonons_wkq.html#sphx-glr-flow-gallery-run-phonons-wkq-py"><span class="std std-ref">Phonons with WFQ files (q-mesh denser than k-mesh)</span></a></span><a class="headerlink" href="#id30" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonons_wkq.html#sphx-glr-flow-gallery-run-phonons-wkq-py"><span class="std std-ref">Phonons with WFQ files (q-mesh denser than k-mesh)</span></a></span><a class="headerlink" href="#id31" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute phonon frequencies with phonopy (supercells and finite-differ..."><div class="figure align-default" id="id31">
-<img alt="Phonopy + Abinit Flow" src="../_images/sphx_glr_run_phonopy_si_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonopy_si.html#sphx-glr-flow-gallery-run-phonopy-si-py"><span class="std std-ref">Phonopy + Abinit Flow</span></a></span><a class="headerlink" href="#id31" title="Permalink to this image">¶</a></p>
-</div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure align-default" id="id32">
-<img alt="Raman Flow with BSE and frozen phonon" src="../_images/sphx_glr_run_raman_bse_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_bse.html#sphx-glr-flow-gallery-run-raman-bse-py"><span class="std std-ref">Raman Flow with BSE and frozen phonon</span></a></span><a class="headerlink" href="#id32" title="Permalink to this image">¶</a></p>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute phonon frequencies with phonopy (supercells and finite-differ..."><div class="figure align-default" id="id32">
+<img alt="Phonopy with AbiPy Flow" src="../_images/sphx_glr_run_phonopy_si_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonopy_si.html#sphx-glr-flow-gallery-run-phonopy-si-py"><span class="std std-ref">Phonopy with AbiPy Flow</span></a></span><a class="headerlink" href="#id32" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
 <div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure align-default" id="id33">
+<img alt="Raman Flow with BSE and frozen phonon" src="../_images/sphx_glr_run_raman_bse_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_bse.html#sphx-glr-flow-gallery-run-raman-bse-py"><span class="std std-ref">Raman Flow with BSE and frozen phonon</span></a></span><a class="headerlink" href="#id33" title="Permalink to this image">¶</a></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure align-default" id="id34">
 <img alt="Raman Flow with independent-particle approximation (optic)" src="../_images/sphx_glr_run_raman_optic_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_optic.html#sphx-glr-flow-gallery-run-raman-optic-py"><span class="std std-ref">Raman Flow with independent-particle approximation (optic)</span></a></span><a class="headerlink" href="#id33" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_optic.html#sphx-glr-flow-gallery-run-raman-optic-py"><span class="std std-ref">Raman Flow with independent-particle approximation (optic)</span></a></span><a class="headerlink" href="#id34" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a very simple Flow for the structural relaxation of SiC. One co..."><div class="figure align-default" id="id34">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a very simple Flow for the structural relaxation of SiC. One co..."><div class="figure align-default" id="id35">
 <img alt="Relaxation Flow" src="../_images/sphx_glr_run_sic_relax_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_sic_relax.html#sphx-glr-flow-gallery-run-sic-relax-py"><span class="std std-ref">Relaxation Flow</span></a></span><a class="headerlink" href="#id34" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_sic_relax.html#sphx-glr-flow-gallery-run-sic-relax-py"><span class="std std-ref">Relaxation Flow</span></a></span><a class="headerlink" href="#id35" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation in two steps:"><div class="figure align-default" id="id35">
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation in two steps:"><div class="figure align-default" id="id36">
 <img alt="Relaxation Flow" src="../_images/sphx_glr_run_relax_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax.html#sphx-glr-flow-gallery-run-relax-py"><span class="std std-ref">Relaxation Flow</span></a></span><a class="headerlink" href="#id35" title="Permalink to this image">¶</a></p>
-</div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc..."><div class="figure align-default" id="id36">
-<img alt="Relaxation of GaN with different K-meshes" src="../_images/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts_tsmear.html#sphx-glr-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span><a class="headerlink" href="#id36" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax.html#sphx-glr-flow-gallery-run-relax-py"><span class="std std-ref">Relaxation Flow</span></a></span><a class="headerlink" href="#id36" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
 <div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc..."><div class="figure align-default" id="id37">
-<img alt="Relaxation of GaN with different K-meshes" src="../_images/sphx_glr_run_relax_vs_kpts_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts.html#sphx-glr-flow-gallery-run-relax-vs-kpts-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span><a class="headerlink" href="#id37" title="Permalink to this image">¶</a></p>
+<img alt="Relaxation of GaN with different K-meshes" src="../_images/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts_tsmear.html#sphx-glr-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span><a class="headerlink" href="#id37" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a flow for Nscf calculations in which the dependency is given b..."><div class="figure align-default" id="id38">
+<div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc..."><div class="figure align-default" id="id38">
+<img alt="Relaxation of GaN with different K-meshes" src="../_images/sphx_glr_run_relax_vs_kpts_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts.html#sphx-glr-flow-gallery-run-relax-vs-kpts-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span><a class="headerlink" href="#id38" title="Permalink to this image">¶</a></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a flow for Nscf calculations in which the dependency is given b..."><div class="figure align-default" id="id39">
 <img alt="Starting a Flow from external files" src="../_images/sphx_glr_run_from_files_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_from_files.html#sphx-glr-flow-gallery-run-from-files-py"><span class="std std-ref">Starting a Flow from external files</span></a></span><a class="headerlink" href="#id38" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_from_files.html#sphx-glr-flow-gallery-run-from-files-py"><span class="std std-ref">Starting a Flow from external files</span></a></span><a class="headerlink" href="#id39" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
@@ -499,7 +505,7 @@ as input parameters are usually underconverged.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

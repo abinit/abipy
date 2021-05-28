@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -192,7 +191,7 @@
   <h1>Source code for abipy.flowtk.gruneisen</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Work for computing Grüneisen parameters with finite differences on DFPT phonons</span>
+<span class="sd">Work for computing the Grüneisen parameters with finite differences of DFPT phonons.</span>
 
 <span class="sd">WARNING: This code must be tested more carefully.</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -204,7 +203,7 @@
 
 <div class="viewcode-block" id="GruneisenWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gruneisen.GruneisenWork">[docs]</a><span class="k">class</span> <span class="nc">GruneisenWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This work computes the Grüneisen parameters (derivative of frequencies wrt Volume)</span>
+<span class="sd">    This work computes the Grüneisen parameters (derivative of frequencies wrt volume)</span>
 <span class="sd">    using finite differences and the phonons obtained with the DFPT part of Abinit.</span>
 <span class="sd">    The Anaddb input file needed to compute Grüneisen parameters will be generated</span>
 <span class="sd">    in the outdata directory of the flow.</span>
@@ -323,6 +322,9 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;anaddb_gruns.files&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
             <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">files_file</span><span class="p">))</span>
 
+        <span class="c1">#task = AbinitTask.temp_shell_task(anaddb_inp, workdir=work.outdir, manager=self.manager)</span>
+        <span class="c1">#task.start_and_wait(autoparal=False)</span>
+
         <span class="c1">#with_ebands = False</span>
         <span class="c1">#if with_ebands:</span>
         <span class="c1">#    bands_work = Work(manager=self.manager)</span>
@@ -352,7 +354,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

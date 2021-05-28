@@ -11,7 +11,7 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_flow_gallery_run_phfrozen_ebands.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
@@ -207,7 +207,7 @@ to analyze the input/output structures including the atomic positions:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.621 seconds)
+   **Total running time of the script:** ( 0 minutes  1.041 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_phfrozen_ebands.py:
@@ -218,6 +218,13 @@ to analyze the input/output structures including the atomic positions:
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_phfrozen_ebands.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -255,25 +254,29 @@
 
 <div class="viewcode-block" id="SigEPhFilePanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.sigeph.SigEPhFilePanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return tabs with widgets to interact with the SIGEPH file.&quot;&quot;&quot;</span>
-        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">();</span> <span class="n">app</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">append</span>
-        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Summary&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span>
-                               <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">))))</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Summary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span>
+                              <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">))</span>
         <span class="c1">#app((&quot;e-Bands&quot;, pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)))</span>
 
         <span class="c1"># Build different tabs depending on the calculation type.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigeph</span><span class="o">.</span><span class="n">imag_only</span><span class="p">:</span>
-            <span class="n">app</span><span class="p">((</span><span class="s2">&quot;LWS&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_lws</span><span class="p">))</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;LWS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_lws</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">app</span><span class="p">((</span><span class="s2">&quot;QP-gaps&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpgaps</span><span class="p">))</span>
-            <span class="n">app</span><span class="p">((</span><span class="s2">&quot;QP_vs_e0&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">))</span>
-            <span class="n">app</span><span class="p">((</span><span class="s2">&quot;QPSolution&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;QP-gaps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpgaps</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;QP_vs_e0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;QPSolution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
                 <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# Quasiparticle solution&quot;</span><span class="p">,</span>
                           <span class="bp">self</span><span class="o">.</span><span class="n">sigma_spin_select</span><span class="p">,</span>
                           <span class="bp">self</span><span class="o">.</span><span class="n">sigma_kpoint_select</span><span class="p">,</span>
                           <span class="bp">self</span><span class="o">.</span><span class="n">plot_plot_qpsolution_btn</span><span class="p">),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpsolution_sk</span><span class="p">)</span>
-            <span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpsolution_sk</span>
+            <span class="p">)</span>
+
+
+        <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
+        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
 </pre></div>
@@ -289,7 +292,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -299,6 +298,45 @@
                 <span class="k">return</span> <span class="n">retcode</span>
 
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_launch_browser</span><span class="p">(</span><span class="n">tmpname</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="display_top"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.devtools.display_top">[docs]</a><span class="k">def</span> <span class="nf">display_top</span><span class="p">(</span><span class="n">snapshot</span><span class="p">,</span> <span class="n">key_type</span><span class="o">=</span><span class="s1">&#39;lineno&#39;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Profile memory usage in Python.</span>
+<span class="sd">    Taken from https://stackoverflow.com/questions/552744/how-do-i-profile-memory-usage-in-python</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        tracemalloc.start()</span>
+<span class="sd">        main()</span>
+<span class="sd">        snapshot = tracemalloc.take_snapshot()</span>
+<span class="sd">        display_top(snapshot)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">tracemalloc</span>
+    <span class="kn">import</span> <span class="nn">linecache</span>
+    <span class="n">snapshot</span> <span class="o">=</span> <span class="n">snapshot</span><span class="o">.</span><span class="n">filter_traces</span><span class="p">((</span>
+        <span class="n">tracemalloc</span><span class="o">.</span><span class="n">Filter</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;&lt;frozen importlib._bootstrap&gt;&quot;</span><span class="p">),</span>
+        <span class="n">tracemalloc</span><span class="o">.</span><span class="n">Filter</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown&gt;&quot;</span><span class="p">),</span>
+    <span class="p">))</span>
+    <span class="n">top_stats</span> <span class="o">=</span> <span class="n">snapshot</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">key_type</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Top </span><span class="si">%s</span><span class="s2"> lines&quot;</span> <span class="o">%</span> <span class="n">limit</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">stat</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">top_stats</span><span class="p">[:</span><span class="n">limit</span><span class="p">],</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">traceback</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># replace &quot;/path/to/module/file.py&quot; with &quot;module/file.py&quot;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">:])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">: </span><span class="si">%.1f</span><span class="s2"> KiB&quot;</span>
+              <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">frame</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span> <span class="n">stat</span><span class="o">.</span><span class="n">size</span> <span class="o">/</span> <span class="mi">1024</span><span class="p">))</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">linecache</span><span class="o">.</span><span class="n">getline</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">frame</span><span class="o">.</span><span class="n">lineno</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">line</span><span class="p">)</span>
+
+    <span class="n">other</span> <span class="o">=</span> <span class="n">top_stats</span><span class="p">[</span><span class="n">limit</span><span class="p">:]</span>
+    <span class="k">if</span> <span class="n">other</span><span class="p">:</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">other</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> other: </span><span class="si">%.1f</span><span class="s2"> KiB&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="p">),</span> <span class="n">size</span> <span class="o">/</span> <span class="mi">1024</span><span class="p">))</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">top_stats</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total allocated size: </span><span class="si">%.1f</span><span class="s2"> KiB&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">total</span> <span class="o">/</span> <span class="mi">1024</span><span class="p">))</span></div>
 </pre></div>
 
            </div>
@@ -312,7 +350,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

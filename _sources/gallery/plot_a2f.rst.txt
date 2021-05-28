@@ -11,7 +11,7 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_gallery_plot_a2f.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
@@ -111,7 +111,7 @@ and the total e-ph coupling strenght in metals.
 
     phdos_path = abidata.ref_file("al_161616q_PHDOS.nc")
 
-    ncfile =  abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc"))
+    ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc"))
     print(ncfile)
 
     #ncfile.phbands.plot()
@@ -134,7 +134,7 @@ and the total e-ph coupling strenght in metals.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  4.814 seconds)
+   **Total running time of the script:** ( 0 minutes  14.093 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_a2f.py:
@@ -145,6 +145,13 @@ and the total e-ph coupling strenght in metals.
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_a2f.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -244,7 +243,7 @@ The list of supported file extensions is obtained with:</p>
 usage: abiopen.py [-h] [--loglevel LOGLEVEL] [-V] [-v] [-nb]
                   [--classic-notebook] [--no-browser] [--foreground] [-p]
                   [-pn] [-pnt PANEL_TEMPLATE] [-e] [-s] [-t SLIDE_TIMEOUT]
-                  [-sns [SEABORN]] [-mpl MPL_BACKEND] [-ply] [-cs]
+                  [-sns [SEABORN]] [-mpl MPL_BACKEND] [-ew] [-ply]
                   filepath
 
 positional arguments:
@@ -259,7 +258,8 @@ optional arguments:
   -v, --verbose         verbose, can be supplied multiple times to increase
                         verbosity
   -nb, --notebook       Open file in jupyter notebook
-  --classic-notebook    Use classic notebook instead of jupyterlab.
+  --classic-notebook, -cnb
+                        Use classic jupyter notebook instead of jupyterlab.
   --no-browser          Start the jupyter server to serve the notebook but
                         don&#39;t open the notebook in the browser. Use this
                         option to connect remotely from localhost to the
@@ -288,23 +288,26 @@ optional arguments:
                         TkAgg, Qt4Agg, Qt5Agg, macosx.See also:
                         https://matplotlib.org/faq/usage_faq.html#what-is-a-
                         backend.
-  -ply, --plotly        Generate plotly plots in browser instead of
+  -ew, --expose-web     Generate matplotlib plots in $BROWSER instead of
+                        X-server. WARNING: Not all the features are supported.
+  -ply, --plotly        Generate plotly plots in $BROWSER instead of
                         matplotlib. WARNING: Not all the features are
                         supported.
-  -cs, --chart-studio   Push figure to plotly chart studio. Requires --plotly
-                        and user account at https://chart-studio.plotly.com.
 
+======================================================================================================
 Usage example:
 
     abiopen.py FILE          =&gt; Open file in ipython shell.
-    abiopen.py FILE -nb      =&gt; Generate jupyter notebook.
     abiopen.py FILE -p       =&gt; Print info on object to terminal.
     abiopen.py FILE -e       =&gt; Generate matplotlib figures automatically.
                                 Use -sns to activate seaborn settings.
-    abiopen.py FILE -e --plotly  =&gt; Generate plotly figures automatically. Show them in the BROWSER.
+    abiopen.py FILE -eweb    =&gt; Generate matplotlib figures, show them in the $BROWSER.
+    abiopen.py FILE -ply     =&gt; Generate plotly figures automatically. Show them in the $BROWSER.
                                 Note that not all FILEs support plotly.
-    abiopen.py FILE --panel  =&gt; Generate GUI in web BROWSER to interact with FILE
+    abiopen.py FILE -pn      =&gt; Generate GUI in web BROWSER to interact with FILE
                                 Requires panel package (WARNING: still under development!)
+    abiopen.py FILE -nb      =&gt; Generate jupyter-lab notebook.
+    abiopen.py FILE -cnb     =&gt; Generate classic jupyter notebook.
 
 where `FILE` is any file supported by abipy/pymatgen e.g. Netcdf files, Abinit input, POSCAR, xsf.
 File extensions supported (including zipped files with extension in &quot;.bz2&quot;, &quot;.gz&quot;, &quot;.z&quot;):
@@ -313,6 +316,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 JSON file are supported as well. In this case, abiopen.py tries to reconstruct python objects
 assuming JSON document in MSONable format and then invokes ipython with the `data` object.
 Use `-e` or `--notebook` or `--panel` to print the JSON dictionary without reconstructing python objects.
+======================================================================================================
 
 Table mapping file extension to AbiPy object:
 
@@ -381,8 +385,8 @@ Please follow this convention to facilitate the integration with AbiPy.</p>
 </div>
 <p>Complete command line reference</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">classic</span><span class="o">-</span><span class="n">notebook</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ew</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span>
                   <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -412,8 +416,8 @@ Please follow this convention to facilitate the integration with AbiPy.</p>
 <dd><p>Open file in jupyter notebook</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>--classic-notebook</kbd></dt>
-<dd><p>Use classic notebook instead of jupyterlab.</p>
+<dt><kbd>--classic-notebook, -cnb</kbd></dt>
+<dd><p>Use classic jupyter notebook instead of jupyterlab.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>--no-browser</kbd></dt>
@@ -454,12 +458,12 @@ Use this option to connect remotely from localhost to the machine running the ke
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
 </dd>
-<dt><kbd>-ply, --plotly</kbd></dt>
-<dd><p>Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.</p>
+<dt><kbd>-ew, --expose-web</kbd></dt>
+<dd><p>Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>-cs, --chart-studio</kbd></dt>
-<dd><p>Push figure to plotly chart studio. Requires –plotly and user account at <a class="reference external" href="https://chart-studio.plotly.com">https://chart-studio.plotly.com</a>.</p>
+<dt><kbd>-ply, --plotly</kbd></dt>
+<dd><p>Generate plotly plots in $BROWSER instead of matplotlib. WARNING: Not all the features are supported.</p>
 <p>Default: False</p>
 </dd>
 </dl>
@@ -482,7 +486,7 @@ Use this option to connect remotely from localhost to the machine running the ke
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

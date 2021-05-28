@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -200,7 +199,7 @@
 <span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="kn">import</span> <span class="n">PhononBands</span><span class="p">,</span> <span class="n">get_dyn_mat_eigenvec</span><span class="p">,</span> <span class="n">match_eigenvectors</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="kn">import</span> <span class="n">AnaddbInput</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">,</span> <span class="n">get_fig_plotly</span><span class="p">,</span> <span class="n">get_figs_plotly</span><span class="p">,</span> \
-    <span class="n">add_plotly_fig_kwargs</span><span class="p">,</span> <span class="n">plotlyfigs_to_browser</span><span class="p">,</span> <span class="n">push_to_chart_studio</span><span class="p">,</span> <span class="n">PlotlyRowColDesc</span>
+    <span class="n">add_plotly_fig_kwargs</span><span class="p">,</span> <span class="n">plotlyfigs_to_browser</span><span class="p">,</span> <span class="n">PlotlyRowColDesc</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="kn">import</span> <span class="n">bohr_to_angstrom</span><span class="p">,</span> <span class="n">eV_to_Ha</span>
 
 
@@ -543,10 +542,10 @@
 
         <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">fig</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_fig_plotly</span><span class="p">()</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">annotations</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">xref</span><span class="o">=</span><span class="s1">&#39;paper&#39;</span><span class="p">,</span> <span class="n">xanchor</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
-                                         <span class="n">y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">yref</span><span class="o">=</span><span class="s1">&#39;paper&#39;</span><span class="p">,</span> <span class="n">yanchor</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span> <span class="p">,</span><span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">)],</span>
-                            <span class="n">yaxis_title_text</span><span class="o">=</span><span class="n">abu</span><span class="o">.</span><span class="n">wlabel_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">unicode</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                            <span class="n">xaxis_title_text</span><span class="o">=</span> <span class="s2">&quot;Wave Vector&quot;</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">annotations</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">xref</span><span class="o">=</span><span class="s1">&#39;paper&#39;</span><span class="p">,</span> <span class="n">xanchor</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+                              <span class="n">y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">yref</span><span class="o">=</span><span class="s1">&#39;paper&#39;</span><span class="p">,</span> <span class="n">yanchor</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span> <span class="p">,</span><span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">)],</span>
+                              <span class="n">yaxis_title_text</span><span class="o">=</span><span class="n">abu</span><span class="o">.</span><span class="n">wlabel_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">unicode</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                              <span class="n">xaxis_title_text</span><span class="o">=</span><span class="s2">&quot;Wave Vector&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">annotations</span><span class="p">[</span><span class="n">idir</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">title</span>
             <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">annotations</span><span class="p">[</span><span class="n">idir</span><span class="p">]</span><span class="o">.</span><span class="n">font</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">fontsize</span>
@@ -619,7 +618,7 @@
                                  <span class="n">horizontal_spacing</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_directions</span><span class="p">):</span>
-            <span class="n">rcd</span> <span class="o">=</span> <span class="n">PlotlyRowColDesc</span><span class="p">(</span><span class="n">i</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="o">%</span><span class="mi">2</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+            <span class="n">rcd</span> <span class="o">=</span> <span class="n">PlotlyRowColDesc</span><span class="p">(</span><span class="n">i</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">plotly_fit_freqs_dir</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">rcd</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
@@ -662,7 +661,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

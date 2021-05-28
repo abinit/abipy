@@ -11,24 +11,27 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_flow_gallery_run_phonopy_si.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_phonopy_si.py:
 
 
-Phonopy + Abinit Flow
-=====================
+Phonopy with AbiPy Flow
+=======================
 
-This example shows how to compute phonon frequencies with phonopy (supercells and finite-difference method).
-This approach could be useful to obtain vibrational properties with XC functionals for which DFPT is not yet implemented.
+This example shows how to compute phonon frequencies with phonopy
+(supercells and finite-difference method).
+
+This approach could be useful to obtain vibrational properties with XC functionals
+for which DFPT is not yet implemented.
 
 .. warning:
 
     This example requires the `phonopy package <http://atztogo.github.io/phonopy/examples.html>`_
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-75
+.. GENERATED FROM PYTHON SOURCE LINES 16-78
 
 .. code-block:: default
 
@@ -114,7 +117,7 @@ This approach could be useful to obtain vibrational properties with XC functiona
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 76-107
+.. GENERATED FROM PYTHON SOURCE LINES 79-110
 
 Run the script with:
 
@@ -151,7 +154,7 @@ will produce:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.466 seconds)
+   **Total running time of the script:** ( 0 minutes  0.811 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_phonopy_si.py:
@@ -162,6 +165,13 @@ will produce:
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_phonopy_si.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

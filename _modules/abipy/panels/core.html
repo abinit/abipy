@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -191,7 +190,8 @@
 <span></span><span class="sd">&quot;&quot;&quot;&quot;Basic tools and mixin classes for AbiPy panels.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">io</span>
-<span class="kn">import</span> <span class="nn">pathlib</span>
+<span class="c1">#import pathlib</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">param</span>
 <span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
@@ -204,7 +204,6 @@
 <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="kn">import</span> <span class="n">abinit_units</span> <span class="k">as</span> <span class="n">abu</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">push_to_chart_studio</span>
 
-
 <span class="c1">#pathlib.Path(__file__) / &quot;assets&quot;</span>
 
 
@@ -212,7 +211,6 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Activate panel extensions used by AbiPy. Return panel module.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
     <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
@@ -231,6 +229,7 @@
     <span class="n">pn</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">js_files</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
         <span class="c1"># This for copy to clipboard.</span>
         <span class="s2">&quot;clipboard&quot;</span><span class="p">:</span> <span class="s2">&quot;https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jsmol&quot;</span><span class="p">:</span> <span class="s2">&quot;http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js&quot;</span><span class="p">,</span>
     <span class="p">})</span>
 
     <span class="c1">#pn.config.js_files.update({</span>
@@ -256,6 +255,42 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">pre</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n must be &gt; 0 but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_template_cls_from_name"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.get_template_cls_from_name">[docs]</a><span class="k">def</span> <span class="nf">get_template_cls_from_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return panel template from string.</span>
+<span class="sd">    Support name in the form `FastList` as well as `FastListTemplate`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Example: pn.template.FastGridTemplate or pn.template.GoldenTemplate</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="n">try_name</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;Template&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">try_name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">try_name</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Don&#39;t know how to return panel template from string: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">Possible templates are: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="depends_on_btn_click"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.depends_on_btn_click">[docs]</a><span class="k">def</span> <span class="nf">depends_on_btn_click</span><span class="p">(</span><span class="n">btn_name</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">decorated</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">btn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">btn_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+            <span class="k">with</span> <span class="n">ButtonContext</span><span class="p">(</span><span class="n">btn</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">btn_name</span><span class="si">}</span><span class="s2">.clicks&quot;</span><span class="p">)(</span><span class="n">decorated</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">decorator</span></div>
 
 
 <div class="viewcode-block" id="HTMLwithClipboardBtn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.HTMLwithClipboardBtn">[docs]</a><span class="k">class</span> <span class="nc">HTMLwithClipboardBtn</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">HTML</span><span class="p">):</span>
@@ -293,6 +328,12 @@
 <span class="sd">    Helper function returning a panel Column with a matplotly pane followed by</span>
 <span class="sd">    a divider and (optionally) controls to customize the figure.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#try:</span>
+    <span class="c1">#    from ipympl.backend_nbagg import FigureManager, Canvas, is_interactive</span>
+    <span class="c1">#    interactive = True</span>
+    <span class="c1">#except:</span>
+    <span class="c1">#    interactive = False</span>
+
     <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="n">sizing_mode</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
     <span class="n">mpl_pane</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Matplotlib</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">ca</span><span class="p">(</span><span class="n">mpl_pane</span><span class="p">)</span>
@@ -307,7 +348,8 @@
     <span class="k">return</span> <span class="n">col</span></div>
 
 
-<div class="viewcode-block" id="ply"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.ply">[docs]</a><span class="k">def</span> <span class="nf">ply</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">,</span> <span class="n">with_chart_studio</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_help</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_divider</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_controls</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="ply"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.ply">[docs]</a><span class="k">def</span> <span class="nf">ply</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">,</span> <span class="n">with_chart_studio</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_help</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">with_divider</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_controls</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper function returning a panel Column with a plotly pane,  buttons to push the figure</span>
 <span class="sd">    to plotly chart studio and, optionally, controls to customize the figure.</span>
@@ -336,8 +378,11 @@
 <span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
 
         <span class="n">btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Upload to chart studio server&quot;</span><span class="p">)</span>
+
         <span class="k">def</span> <span class="nf">push_to_cs</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-            <span class="n">push_to_chart_studio</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">ButtonContext</span><span class="p">(</span><span class="n">btn</span><span class="p">):</span>
+                <span class="n">push_to_chart_studio</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
         <span class="n">btn</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">push_to_cs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">with_help</span><span class="p">:</span>
@@ -348,7 +393,6 @@
 
     <span class="k">if</span> <span class="n">with_controls</span><span class="p">:</span>
         <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Accordion</span><span class="p">((</span><span class="s2">&quot;plotly controls&quot;</span><span class="p">,</span> <span class="n">plotly_pane</span><span class="o">.</span><span class="n">controls</span><span class="p">(</span><span class="n">jslink</span><span class="o">=</span><span class="kc">True</span><span class="p">))))</span>
-        <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">())</span>
 
     <span class="k">if</span> <span class="n">with_divider</span><span class="p">:</span>
         <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">())</span>
@@ -358,8 +402,8 @@
 
 <div class="viewcode-block" id="dfc"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.dfc">[docs]</a><span class="k">def</span> <span class="nf">dfc</span><span class="p">(</span><span class="n">df</span><span class="p">,</span>
         <span class="n">wdg_type</span><span class="o">=</span><span class="s2">&quot;dataframe&quot;</span><span class="p">,</span>
-        <span class="c1">#wdg_type=&quot;tabulator&quot;,</span>
-        <span class="n">with_export_btn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_controls</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1">#wdg_type=&quot;tabulator&quot;,  # More recent version</span>
+        <span class="n">with_export_btn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_controls</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_divider</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transpose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper function returning a panel Column with a DataFrame or Tabulator widget followed by</span>
 <span class="sd">    a divider and (optionally) controls to customize the figure.</span>
@@ -367,22 +411,23 @@
 <span class="sd">    Note that not all the options work as exected. See comments below.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="s2">&quot;disabled&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;disabled&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">if</span> <span class="s2">&quot;sizing_mode&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sizing_mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;stretch_width&quot;</span>
+    <span class="c1">#if &quot;sizing_mode&quot; not in kwargs: kwargs[&quot;sizing_mode&quot;] = &quot;stretch_both&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;sizing_mode&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sizing_mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;scale_width&quot;</span>
+    <span class="k">if</span> <span class="n">transpose</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">wdg_type</span> <span class="o">==</span> <span class="s2">&quot;dataframe&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="s2">&quot;auto_edit&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;auto_edit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">w</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">wdg_type</span> <span class="o">==</span> <span class="s2">&quot;tabulator&quot;</span><span class="p">:</span>
-        <span class="c1"># This seems to be buggy</span>
         <span class="n">w</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Tabulator</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Don&#39;t know how to handle widget type: `</span><span class="si">{</span><span class="n">wdg_type</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
 
-    <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_both&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
     <span class="n">ca</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">with_export_btn</span><span class="p">:</span>
-
         <span class="c1"># Define callbacks with closure.</span>
         <span class="c1">#clip_button = pnw.Button(name=&quot;Copy to clipboard&quot;)</span>
         <span class="c1">#def to_clipboard(event):</span>
@@ -422,12 +467,12 @@
             <span class="n">output</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">output</span>
 
-        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;xlsx&quot;</span><span class="p">:</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileDownload</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;data.xlsx&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">to_xlsx</span><span class="p">),</span>
-            <span class="s2">&quot;tex&quot;</span><span class="p">:</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileDownload</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;data.tex&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">to_latex</span><span class="p">),</span>
-            <span class="s2">&quot;md&quot;</span><span class="p">:</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileDownload</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;data.md&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">to_md</span><span class="p">),</span>
-            <span class="s2">&quot;json&quot;</span><span class="p">:</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileDownload</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;data.json&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">to_json</span><span class="p">),</span>
-        <span class="p">}</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">xlsx</span><span class="o">=</span><span class="n">pnw</span><span class="o">.</span><span class="n">FileDownload</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;data.xlsx&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">to_xlsx</span><span class="p">),</span>
+            <span class="n">tex</span><span class="o">=</span><span class="n">pnw</span><span class="o">.</span><span class="n">FileDownload</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;data.tex&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">to_latex</span><span class="p">),</span>
+            <span class="n">md</span><span class="o">=</span><span class="n">pnw</span><span class="o">.</span><span class="n">FileDownload</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;data.md&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">to_md</span><span class="p">),</span>
+            <span class="n">json</span><span class="o">=</span><span class="n">pnw</span><span class="o">.</span><span class="n">FileDownload</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;data.json&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">to_json</span><span class="p">),</span>
+            <span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Clicked menu item: &quot;</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">new</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
@@ -438,7 +483,7 @@
             <span class="n">file_download</span><span class="o">.</span><span class="n">_transfer</span><span class="p">()</span>
             <span class="c1">#return file_download.callback()</span>
 
-        <span class="c1"># FIXME: Menu button occpies less space but the upload does not work</span>
+        <span class="c1"># FIXME: Menu button occupies less space but the upload does not work</span>
         <span class="c1">#menu_btn = pnw.MenuButton(name=&#39;Export to:&#39;, items=list(d.keys()))</span>
         <span class="c1">#menu_btn.on_click(download)</span>
         <span class="c1">#ca(menu_btn)</span>
@@ -447,10 +492,10 @@
         <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_width&quot;</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">with_controls</span><span class="p">:</span>
-        <span class="c1"># This seems to be buggy.</span>
         <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Accordion</span><span class="p">((</span><span class="s2">&quot;dataframe controls&quot;</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">controls</span><span class="p">(</span><span class="n">jslink</span><span class="o">=</span><span class="kc">True</span><span class="p">))))</span>
 
-    <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">with_divider</span><span class="p">:</span>
+        <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">())</span>
 
     <span class="k">return</span> <span class="n">col</span></div>
 
@@ -481,7 +526,7 @@
 <span class="sd">    A context manager for buttons triggering computations on the server.</span>
 
 <span class="sd">    This manager disables the button when we __enter__ and changes the name of the button to &quot;running&quot;.</span>
-<span class="sd">    It reverts to the initial state of the button one __exit__ is invoked, showing the Exception type</span>
+<span class="sd">    It reverts to the initial state of the button ocne __exit__ is invoked, showing the Exception type</span>
 <span class="sd">    in a &quot;red&quot; button if an exception is raised during the computation.</span>
 
 <span class="sd">    This a very important tool because we need to disable the button when we start the computation</span>
@@ -502,7 +547,7 @@
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Disable the button.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">btn</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Running ...&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Executing ...&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">btn</span><span class="o">.</span><span class="n">button_type</span> <span class="o">=</span> <span class="s2">&quot;warning&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">btn</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">btn</span>
@@ -512,13 +557,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">btn</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="n">exc_type</span><span class="p">:</span>
-            <span class="c1"># Exception --&gt; signal to the user that something went wrong for 4 seconds.</span>
+            <span class="c1"># Exception --&gt; signal to the user that something went wrong for 2 seconds.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">btn</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_type</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">btn</span><span class="o">.</span><span class="n">button_type</span> <span class="o">=</span> <span class="s2">&quot;danger&quot;</span>
             <span class="kn">import</span> <span class="nn">time</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
-        <span class="c1"># Back the original button state.</span>
+        <span class="c1"># Back to the original button state.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">btn</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">btn</span><span class="o">.</span><span class="n">button_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_type</span>
 
         <span class="c1"># Don&#39;t handle the exception</span>
@@ -532,22 +577,32 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">verbose</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Verbosity Level&quot;</span><span class="p">)</span>
-    <span class="n">mpi_procs</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of MPI processes used for running Abinit&quot;</span><span class="p">)</span>
+    <span class="n">mpi_procs</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of MPI processes used for running Fortran code.&quot;</span><span class="p">)</span>
 
     <span class="c1"># mode = &quot;webapp&quot; This flag may be used to limit the user and/or decide the options that should</span>
-    <span class="c1"># be exposed. For instance struct_viewer == &quot;Vesta&quot; does not make sense in webapp mode</span>
+    <span class="c1"># be exposed. For instance structure_viewer == &quot;Vesta&quot; does not make sense in webapp mode</span>
 
     <span class="n">warning</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Please **refresh** the page using the refresh button of the browser if plotly figures are not shown.</span>
 <span class="sd">&quot;&quot;&quot;</span><span class="p">)</span>
 
+    <span class="c1">#def __repr__(self):</span>
+    <span class="c1">#    # https://github.com/holoviz/param/issues/396</span>
+    <span class="c1">#    return f&quot;AbiPyParametrized(name=&#39;{self.name}&#39;)&quot;</span>
+
 <div class="viewcode-block" id="AbipyParameterized.mpl_kwargs"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.AbipyParameterized.mpl_kwargs">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">mpl_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Default arguments passed to AbiPy matplotlib plot methods.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fig_close</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AbipyParameterized.pws"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.AbipyParameterized.pws">[docs]</a>    <span class="k">def</span> <span class="nf">pws</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">keys</span><span class="p">):</span>
+<div class="viewcode-block" id="AbipyParameterized.pws_col"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.AbipyParameterized.pws_col">[docs]</a>    <span class="k">def</span> <span class="nf">pws_col</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pws</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span></div>
+
+    <span class="c1">#def pws_row(self, keys):</span>
+    <span class="c1">#    return pn.Row(*self.pws(keys))</span>
+
+<div class="viewcode-block" id="AbipyParameterized.pws"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.AbipyParameterized.pws">[docs]</a>    <span class="k">def</span> <span class="nf">pws</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper function returning the list of parameters and widgets defined in self from a list of strings.</span>
 <span class="sd">        Accepts also widget or parameter instances.</span>
@@ -559,6 +614,9 @@
                     <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
                 <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
                     <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+                    <span class="c1"># Markdown string</span>
+                    <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">miss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -566,7 +624,7 @@
                 <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">miss</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find `</span><span class="si">%s</span><span class="s2">` in param or in attribute space&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">miss</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot find `</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">miss</span><span class="p">)</span><span class="si">}</span><span class="s2">` in param or in attribute space&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">items</span></div>
 
@@ -596,26 +654,8 @@
     <span class="k">def</span> <span class="nf">html_with_clipboard_btn</span><span class="p">(</span><span class="n">html_str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">HTMLwithClipboardBtn</span><span class="p">(</span><span class="n">html_str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AbipyParameterized.get_template_cls_from_name"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.AbipyParameterized.get_template_cls_from_name">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_template_cls_from_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return panel template from string.</span>
-<span class="sd">        Support name in the form `FastList` as well as `FastListTemplate`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Example: pn.template.FastGridTemplate or pn.template.GoldenTemplate</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-
-        <span class="n">try_name</span> <span class="o">=</span>  <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;Template&quot;</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">try_name</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">try_name</span><span class="p">)</span>
-
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">Don&#39;t know how to return panel template from string: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">Possible templates are: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="AbipyParameterized.get_software_stack"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.AbipyParameterized.get_software_stack">[docs]</a>    <span class="k">def</span> <span class="nf">get_software_stack</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AbipyParameterized.get_software_stack"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.AbipyParameterized.get_software_stack">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_software_stack</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;Return column with version of python packages in tabular format.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">software_stack</span>
         <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;## Software stack:&quot;</span><span class="p">,</span> <span class="n">dfc</span><span class="p">(</span><span class="n">software_stack</span><span class="p">(</span><span class="n">as_dataframe</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">with_export_btn</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
@@ -623,19 +663,17 @@
 
 <div class="viewcode-block" id="AbipyParameterized.get_template_from_tabs"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.AbipyParameterized.get_template_from_tabs">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_from_tabs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This method receives a panel Tabs, include them in a template and return the panel template.</span>
+<span class="sd">        This method receives panel Tabs, include them in a template and return the panel template.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">template</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">tabs</span>
 
-        <span class="bp">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_cls_from_name</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="n">get_template_cls_from_name</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
 
         <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> &lt;small&gt;(</span><span class="si">%s</span><span class="s2">)&lt;/small&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)),</span>
-            <span class="c1"># A title to show in the header. Also added to the document head meta settings #and as the browser tab title.</span>
-            <span class="n">header_background</span><span class="o">=</span><span class="s2">&quot;#ff8c00 &quot;</span><span class="p">,</span>
-            <span class="c1">#header_background=&quot;orange&quot;,</span>
-            <span class="c1">#header_color=&quot;#ff8c00&quot;,</span>
+            <span class="c1"># A title to show in the header. Also added to the document head meta settings and as the browser tab title.</span>
+            <span class="n">title</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+            <span class="n">header_background</span><span class="o">=</span><span class="s2">&quot;#ff8c00&quot;</span><span class="p">,</span> <span class="c1"># Dark orange</span>
             <span class="c1">#favicon (str): URI of favicon to add to the document head (if local file, favicon is base64 encoded as URI).</span>
             <span class="c1">#logo (str): URI of logo to add to the header (if local file, logo is base64 encoded as URI).</span>
             <span class="c1">#sidebar_footer (str): Can be used to insert additional HTML. For example a menu, some additional info, links etc.</span>
@@ -649,7 +687,12 @@
             <span class="c1"># Assume .main area acts like a GridSpec</span>
             <span class="n">template</span><span class="o">.</span><span class="n">main</span><span class="p">[:,:]</span> <span class="o">=</span> <span class="n">tabs</span>
 
-        <span class="c1">#pn.config.sizing_mode = &#39;stretch_width&#39;</span>
+        <span class="c1"># Get widgets associated to Ph-bands tab and insert them in the slidebar</span>
+        <span class="c1">#row = tabs[1]</span>
+        <span class="c1">#controllers_col, out = row[0], row[1]</span>
+        <span class="c1">#template.sidebar.append(controllers_col)</span>
+        <span class="c1">#template.main.append(out)</span>
+
         <span class="k">return</span> <span class="n">template</span></div></div>
 
 
@@ -657,180 +700,149 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Mixin class for panel objects providing a |Structure| object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Viewer widgets.</span>
-    <span class="n">struct_view_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;View structure&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
-    <span class="n">struct_viewer</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Select viewer&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">,</span>
-                               <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;jsmol&quot;</span><span class="p">,</span> <span class="s2">&quot;vesta&quot;</span><span class="p">,</span> <span class="s2">&quot;xcrysden&quot;</span><span class="p">,</span> <span class="s2">&quot;vtk&quot;</span><span class="p">,</span> <span class="s2">&quot;crystalk&quot;</span><span class="p">,</span> <span class="s2">&quot;ngl&quot;</span><span class="p">,</span>
-                                        <span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;ase_atoms&quot;</span><span class="p">,</span> <span class="s2">&quot;mayavi&quot;</span><span class="p">])</span>
+
+    <span class="n">structure_viewer</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                            <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;jsmol&quot;</span><span class="p">,</span> <span class="s2">&quot;vesta&quot;</span><span class="p">,</span> <span class="s2">&quot;xcrysden&quot;</span><span class="p">,</span> <span class="s2">&quot;vtk&quot;</span><span class="p">,</span> <span class="s2">&quot;crystalk&quot;</span><span class="p">,</span> <span class="s2">&quot;ngl&quot;</span><span class="p">,</span>
+                                                     <span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;plotly&quot;</span><span class="p">,</span> <span class="s2">&quot;ase_atoms&quot;</span><span class="p">,</span> <span class="s2">&quot;mayavi&quot;</span><span class="p">])</span>
+
+    <span class="c1">#def __init__(self, **params):</span>
+    <span class="c1">#    self.struct_view_btn = pnw.Button(name=&quot;View structure&quot;, button_type=&#39;primary&#39;)</span>
+    <span class="c1">#    super(self).__init__(**params)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Structure object provided by the subclass.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subclass </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> should implement `structure` attribute.&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="HasStructureParams.view_structure"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.HasStructureParams.view_structure">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;struct_view_btn.clicks&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="HasStructureParams.view_structure"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.HasStructureParams.view_structure">[docs]</a>    <span class="nd">@pn</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;structure_viewer&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">view_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Visualize input structure.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">struct_view_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure_viewer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">()</span>
 
-        <span class="k">with</span> <span class="n">ButtonContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">struct_view_btn</span><span class="p">):</span>
-            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">struct_viewer</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure_viewer</span>
 
-            <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;jsmol&quot;</span><span class="p">:</span>
-                <span class="c1">#pn.extension(comms=&#39;ipywidgets&#39;) #, js_files=js_files)</span>
-                <span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_jsmol_view</span><span class="p">()</span>
-                <span class="c1">#from ipywidgets_bokeh import IPyWidget</span>
-                <span class="c1">#view = IPyWidget(widget=view) #, width=800, height=300)</span>
-                <span class="c1">#import ipywidgets as ipw</span>
-                <span class="c1">#from IPython.display import display</span>
-                <span class="c1">#display(view)</span>
-                <span class="c1">#return pn.Row(display(view))</span>
-                <span class="c1">#view = pn.ipywidget(view)</span>
-                <span class="c1">#view = pn.panel(view)</span>
-                <span class="c1">#view = pn.pane.IPyWidget(view)</span>
-                <span class="c1">#print(view)</span>
-                <span class="c1">#view = pn.Column(view, sizing_mode=&#39;stretch_width&#39;)</span>
-                <span class="k">return</span> <span class="n">view</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;jsmol&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jsmol_html</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+            <span class="c1">#pn.extension(comms=&#39;ipywidgets&#39;) #, js_files=js_files)</span>
+            <span class="c1">#view = self.structure.get_jsmol_view()</span>
+            <span class="c1">#from ipywidgets_bokeh import IPyWidget</span>
+            <span class="c1">#view = IPyWidget(widget=view) #, width=800, height=300)</span>
+            <span class="c1">#import ipywidgets as ipw</span>
+            <span class="c1">#from IPython.display import display</span>
+            <span class="c1">#display(view)</span>
+            <span class="c1">#return pn.Row(display(view))</span>
+            <span class="c1">#view = pn.ipywidget(view)</span>
+            <span class="n">view</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">panel</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+            <span class="c1">#view = pn.pane.IPyWidget(view)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+            <span class="c1">#view = pn.Column(view, sizing_mode=&#39;stretch_width&#39;)</span>
+            <span class="k">return</span> <span class="n">view</span>
 
-            <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;crystalk&quot;</span><span class="p">:</span>
-                <span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_crystaltk_view</span><span class="p">()</span>
-                <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">panel</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;crystalk&quot;</span><span class="p">:</span>
+            <span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_crystaltk_view</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">panel</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;ngl&quot;</span><span class="p">:</span>
-                <span class="c1">#js_files = {&#39;ngl&#39;: &#39;https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js&#39;}</span>
-                <span class="c1">#pn.extension(comms=&#39;ipywidgets&#39;, js_files=js_files)</span>
-                <span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_ngl_view</span><span class="p">()</span>
-                <span class="c1">#return pn.panel(view)</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;plotly&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 
-                <span class="c1">#pn.config.js_files[&quot;ngl&quot;]=&quot;https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js&quot;</span>
-                <span class="c1">#pn.extension()</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;ngl&quot;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">pymatgen.io.babel</span> <span class="kn">import</span> <span class="n">BabelMolAdaptor</span>
+            <span class="kn">from</span> <span class="nn">pymatgen.io.xyz</span> <span class="kn">import</span> <span class="n">XYZ</span>
+            <span class="c1"># string_data = self.structure.to(fmt=&quot;xyz&quot;)</span>
 
-                <span class="n">html</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;&lt;div id=&quot;viewport&quot; style=&quot;width:100%; height:100%;&quot;&gt;&lt;/div&gt;</span>
-<span class="s2">                &lt;script&gt;</span>
-<span class="s2">                stage = new NGL.Stage(&quot;viewport&quot;);</span>
-<span class="s2">                stage.loadFile(&quot;rcsb://1NKT.mmtf&quot;, {defaultRepresentation: true});</span>
-<span class="s2">                &lt;/script&gt;&quot;&quot;&quot;</span>
+            <span class="c1">#writer = BabelMolAdaptor(self)</span>
+            <span class="c1">#string_data = str(XYZ(self.structure))</span>
+            <span class="c1">#adapt = BabelMolAdaptor.from_string(string_data, file_format=&quot;xyz&quot;)</span>
+            <span class="c1">##pdb_string =</span>
+            <span class="c1">#print(pdb_string)</span>
 
-                <span class="c1">#        html = &quot;&quot;&quot;</span>
-                <span class="c1">#         &lt;script&gt;</span>
-                <span class="c1">#    document.addeventlistener(&quot;domcontentloaded&quot;, function () {</span>
-                <span class="c1">#      var stage = new ngl.stage(&quot;viewport&quot;);</span>
-                <span class="c1">#      stage.loadfile(&quot;rcsb://1crn&quot;, {defaultrepresentation: true});</span>
-                <span class="c1">#    });</span>
-                <span class="c1">#  &lt;/script&gt;&quot;&quot;&quot;</span>
+            <span class="c1">#from awesome_panel_extesions.pane.widgets.ngl_viewer import NGLViewer</span>
+            <span class="c1">#view = NGLViewer()</span>
 
-                <span class="c1">#        html = &quot;&quot;&quot;</span>
-                <span class="c1">#&lt;script&gt;</span>
-                <span class="c1">#document.addeventlistener(&quot;domcontentloaded&quot;, function () {</span>
-                <span class="c1">#    // create a `stage` object</span>
-                <span class="c1">#    var stage = new NGL.Stage(&quot;viewport&quot;);</span>
-                <span class="c1">#    // load a PDB structure and consume the returned `Promise`</span>
-                <span class="c1">#    stage.loadFile(&quot;rcsb://1CRN&quot;).then(function (component) {</span>
-                <span class="c1">#    // add a &quot;cartoon&quot; representation to the structure component</span>
-                <span class="c1">#    component.addRepresentation(&quot;cartoon&quot;);</span>
-                <span class="c1">#    // provide a &quot;good&quot; view of the structure</span>
-                <span class="c1">#    component.autoView();</span>
-                <span class="c1">#  });</span>
-                <span class="c1">#});</span>
-                <span class="c1">#&lt;/script&gt;&quot;&quot;&quot;</span>
+            <span class="n">view</span><span class="o">.</span><span class="n">pdb_string</span> <span class="o">=</span> <span class="n">pdb_string</span>
+            <span class="k">return</span> <span class="n">view</span>
 
-                <span class="n">ngl_pane</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">ngl_pane</span><span class="p">)</span>
-                <span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_ngl_view</span><span class="p">()</span>
+            <span class="c1">#js_files = {&#39;ngl&#39;: &#39;https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js&#39;}</span>
+            <span class="c1">#pn.extension(comms=&#39;ipywidgets&#39;, js_files=js_files)</span>
+            <span class="c1">#view = self.structure.get_ngl_view()</span>
+            <span class="c1">#return pn.panel(view)</span>
 
-            <span class="c1">#return self.structure.crystaltoolkitview()</span>
-            <span class="c1">#import nglview as nv</span>
-            <span class="c1">#view = nv.demo(gui=False)</span>
+            <span class="c1">#pn.config.js_files[&quot;ngl&quot;]=&quot;https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js&quot;</span>
+            <span class="c1">#pn.extension()</span>
 
-            <span class="c1">#from bokeh.models import ColumnDataSource</span>
-            <span class="c1">#from bokeh.io import show, curdoc</span>
-            <span class="c1">#from bokeh.models.widgets import Button, TextInput</span>
-            <span class="c1">#from bokeh.layouts import layout, widgetbox</span>
-            <span class="c1">#from jsmol_bokeh_extension import JSMol</span>
-            <span class="c1">#script_source = ColumnDataSource()</span>
+            <span class="n">html</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;&lt;div id=&quot;viewport&quot; style=&quot;width:100%; height:100%;&quot;&gt;&lt;/div&gt;</span>
+<span class="s2">            &lt;script&gt;</span>
+<span class="s2">            stage = new NGL.Stage(&quot;viewport&quot;);</span>
+<span class="s2">            stage.loadFile(&quot;rcsb://1NKT.mmtf&quot;, {defaultRepresentation: true});</span>
+<span class="s2">            &lt;/script&gt;&quot;&quot;&quot;</span>
 
-            <span class="c1">#info = dict(</span>
-            <span class="c1">#    height=&quot;100%&quot;,</span>
-            <span class="c1">#    width=&quot;100%&quot;,</span>
-            <span class="c1">#    serverURL=&quot;https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php&quot;,</span>
-            <span class="c1">#    use=&quot;HTML5&quot;,</span>
-            <span class="c1">#    j2sPath=&quot;https://chemapps.stolaf.edu/jmol/jsmol/j2s&quot;,</span>
-            <span class="c1">#    script=</span>
-            <span class="c1">#    &quot;background black;load https://chemapps.stolaf.edu/jmol/jsmol-2013-09-18/data/caffeine.mol&quot;,</span>
-            <span class="c1">#)</span>
+            <span class="n">ngl_pane</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">ngl_pane</span><span class="p">)</span>
+            <span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_ngl_view</span><span class="p">()</span>
 
-            <span class="c1">#applet = JSMol(</span>
-            <span class="c1">#    width=600,</span>
-            <span class="c1">#    height=600,</span>
-            <span class="c1">#    script_source=script_source,</span>
-            <span class="c1">#    info=info,</span>
-            <span class="c1">#)</span>
+        <span class="c1">#return self.structure.crystaltoolkitview()</span>
+        <span class="c1">#import nglview as nv</span>
+        <span class="c1">#view = nv.demo(gui=False)</span>
 
-            <span class="c1">#button = Button(label=&#39;Execute&#39;)</span>
-            <span class="c1">#inp_script = TextInput(value=&#39;background white;&#39;)</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;ase_atoms&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">mpl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">plot_atoms</span><span class="p">(</span><span class="n">rotations</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">))</span>
 
-            <span class="c1">#def run_script():</span>
-            <span class="c1">#    script_source.data[&#39;script&#39;] = [inp_script.value]</span>
-
-            <span class="c1">#button.on_click(run_script)</span>
-            <span class="c1">#ly = layout([applet, widgetbox(button, inp_script)])</span>
-            <span class="c1">#show(ly)</span>
-            <span class="c1">#curdoc().add_root(ly)</span>
-            <span class="c1">#return pn.Row(applet)</span>
-
-            <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;ase_atoms&quot;</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">mpl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">plot_atoms</span><span class="p">(</span><span class="n">rotations</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">))</span>
-
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">struct_viewer</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure_viewer</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HasStructureParams.get_struct_view_tab_entry"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.HasStructureParams.get_struct_view_tab_entry">[docs]</a>    <span class="k">def</span> <span class="nf">get_struct_view_tab_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return tab entry to visualize the structure.</span>
-<span class="sd">         &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;Structure&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# Visualize structure&quot;</span><span class="p">,</span>
-                      <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pws</span><span class="p">(</span><span class="s2">&quot;struct_viewer&quot;</span><span class="p">,</span> <span class="s2">&quot;struct_view_btn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;view_structure&quot;</span><span class="p">))),</span>
-                       <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_structure_info</span><span class="p">(),</span>
-                                 <span class="bp">self</span><span class="o">.</span><span class="n">view_structure</span><span class="p">)</span>
-        <span class="p">))</span></div>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Visualize structure&quot;</span><span class="p">,</span> <span class="s2">&quot;structure_viewer&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;view_structure&quot;</span><span class="p">)]),</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view_structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_structure_info</span><span class="p">())</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="HasStructureParams.get_structure_info"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.HasStructureParams.get_structure_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_structure_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Column with lattice parameters, angles and atomic positions grouped by type.</span>
+<span class="sd">        Return Column with lattice parameters, angles and atomic positions grouped by type.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">get_structure_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="get_structure_info"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.get_structure_info">[docs]</a><span class="k">def</span> <span class="nf">get_structure_info</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
-    <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span><span class="p">;</span> <span class="n">cext</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">extend</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return Column with lattice parameters, angles and atomic positions grouped by type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span><span class="p">;</span> <span class="n">cext</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">extend</span>
 
     <span class="n">d</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">get_dict4pandas</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="n">keys</span> <span class="o">=</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;formula&quot;</span><span class="p">,</span> <span class="s2">&quot;natom&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">,</span> <span class="s2">&quot;abi_spg_number&quot;</span><span class="p">,</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="c1">#&quot;formula&quot;, &quot;natom&quot;, &quot;volume&quot;,</span>
+                    <span class="s2">&quot;abi_spg_number&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;spglib_symb&quot;</span><span class="p">,</span> <span class="s2">&quot;spglib_num&quot;</span><span class="p">,</span>  <span class="s2">&quot;spglib_lattice_type&quot;</span><span class="p">]</span>
     <span class="n">df_spg</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">d</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
-    <span class="n">cext</span><span class="p">([</span><span class="s2">&quot;# Space group:&quot;</span><span class="p">,</span> <span class="n">dfc</span><span class="p">(</span><span class="n">df_spg</span><span class="p">,</span> <span class="n">with_export_btn</span><span class="o">=</span><span class="kc">False</span><span class="p">)])</span>
+    <span class="n">cext</span><span class="p">([</span><span class="s2">&quot;# Spacegroup:&quot;</span><span class="p">,</span> <span class="n">dfc</span><span class="p">(</span><span class="n">df_spg</span><span class="p">,</span> <span class="n">with_export_btn</span><span class="o">=</span><span class="kc">False</span><span class="p">)])</span>
 
     <span class="c1"># Build dataframe with lattice lenghts.</span>
     <span class="n">rows</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">keys</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">)</span>
     <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ang_Bohr</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">})</span>
     <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">})</span>
     <span class="n">df_len</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Å&quot;</span><span class="p">,</span> <span class="s2">&quot;Bohr&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">rename_axis</span><span class="p">(</span><span class="s2">&quot;Lattice lenghts&quot;</span><span class="p">)</span>
-    <span class="n">cext</span><span class="p">([</span><span class="s2">&quot;# Lattice lengths:&quot;</span><span class="p">,</span> <span class="n">dfc</span><span class="p">(</span><span class="n">df_len</span><span class="p">,</span> <span class="n">with_export_btn</span><span class="o">=</span><span class="kc">False</span><span class="p">)])</span>
 
     <span class="c1"># Build dataframe with lattice angles.</span>
-    <span class="n">rows</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">keys</span> <span class="o">=</span>  <span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">)</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">keys</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">)</span>
     <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">})</span>
     <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">})</span>
     <span class="n">df_ang</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Degrees&quot;</span><span class="p">,</span> <span class="s2">&quot;Radians&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">rename_axis</span><span class="p">(</span><span class="s2">&quot;Lattice angles&quot;</span><span class="p">)</span>
+
+    <span class="n">cext</span><span class="p">([</span><span class="s2">&quot;# Lattice lengths:&quot;</span><span class="p">,</span> <span class="n">dfc</span><span class="p">(</span><span class="n">df_len</span><span class="p">,</span> <span class="n">with_export_btn</span><span class="o">=</span><span class="kc">False</span><span class="p">)])</span>
     <span class="n">cext</span><span class="p">([</span><span class="s2">&quot;# Lattice angles:&quot;</span><span class="p">,</span> <span class="n">dfc</span><span class="p">(</span><span class="n">df_ang</span><span class="p">,</span> <span class="n">with_export_btn</span><span class="o">=</span><span class="kc">False</span><span class="p">)])</span>
+    <span class="c1">#row = pn.Row(dfc(df_len, with_export_btn=False), dfc(df_ang, with_export_btn=False), sizing_mode=&quot;scale_width&quot;)</span>
+    <span class="c1">#ca(row)</span>
 
     <span class="c1"># Build dataframe with atomic positions grouped by element symbol.</span>
     <span class="n">symb2df</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">get_symb2coords_dataframe</span><span class="p">()</span>
-    <span class="n">accordion</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Accordion</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">)</span>
+    <span class="n">accord</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Accordion</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">symb</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">symb2df</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">accordion</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">&quot;Coordinates of </span><span class="si">{</span><span class="n">symb</span><span class="si">}</span><span class="s2"> sites:&quot;</span><span class="p">,</span> <span class="n">dfc</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">with_export_btn</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
-    <span class="n">ca</span><span class="p">(</span><span class="n">accordion</span><span class="p">)</span>
+        <span class="n">accord</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">&quot;Coordinates of </span><span class="si">{</span><span class="n">symb</span><span class="si">}</span><span class="s2"> sites:&quot;</span><span class="p">,</span> <span class="n">dfc</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">with_export_btn</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
+    <span class="n">ca</span><span class="p">(</span><span class="n">accord</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">col</span></div>
 
@@ -873,90 +885,160 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Mixin class for panel object associated to AbiPy object providing an |ElectronBands| object.</span>
 
-<span class="sd">    Subclasses should implement `ebands` property</span>
+<span class="sd">    Subclasses should implement the `ebands` property.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Bands plot</span>
-    <span class="n">with_gaps</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;show gaps&#39;</span><span class="p">)</span>
+    <span class="n">with_gaps</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
     <span class="c1">#ebands_ylims</span>
     <span class="c1">#ebands_e0</span>
     <span class="c1"># e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
     <span class="c1">#     - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).</span>
     <span class="c1">#     -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
     <span class="c1">#     -  None: Don&#39;t shift energies, equivalent to e0=0</span>
-    <span class="n">set_fermie_to_vbm</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Set Fermie to VBM&quot;</span><span class="p">)</span>
-
-    <span class="n">plot_ebands_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot e-bands&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+    <span class="n">set_fermie_to_vbm</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Set Fermie to VBM&quot;</span><span class="p">)</span>
 
     <span class="c1"># e-DOS plot.</span>
-    <span class="n">edos_method</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;e-DOS method&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;tetra&quot;</span><span class="p">])</span>
-    <span class="n">edos_step</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;e-DOS step (eV)&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-    <span class="n">edos_width</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;e-DOS Gaussian broadening (eV)&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-    <span class="n">plot_edos_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot e-DOS&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+    <span class="n">edos_method</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;tetra&quot;</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;e-DOS method&quot;</span><span class="p">)</span>
+    <span class="n">edos_step_ev</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">&#39;e-DOS step in eV&#39;</span><span class="p">)</span>
+    <span class="n">edos_width_ev</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s1">&#39;e-DOS Gaussian broadening in eV&#39;</span><span class="p">)</span>
+
+    <span class="c1"># SKW interpolation of the KS band energies.</span>
+    <span class="n">skw_lpratio</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">skw_line_density</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+    <span class="c1"># For the max size of file see: https://github.com/holoviz/panel/issues/1559</span>
+    <span class="n">ebands_kpath</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">ebands_kpath_fileinput</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">FileSelector</span><span class="p">()</span>
+    <span class="n">ebands_kmesh</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">ebands_kmesh_fileinput</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">FileSelector</span><span class="p">()</span>
 
     <span class="c1"># Fermi surface plotter.</span>
-    <span class="n">fs_viewer</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;FS viewer&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;xcrysden&quot;</span><span class="p">])</span>
+    <span class="n">fs_viewer</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;xcrysden&quot;</span><span class="p">])</span>
     <span class="n">plot_fermi_surface_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot Fermi surface&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+
+        <span class="c1"># Create buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_ebands_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot e-bands&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_edos_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot e-DOS&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_skw_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot SKW interpolant&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+        <span class="c1">#ebands_kpath_fileinput = pnw.FileInput(accept=&quot;.nc&quot;)</span>
+        <span class="c1">#ebands_kmesh_fileinput = pnw.FileInput(accept=&quot;.nc&quot;)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;abc does not play well with parametrized so we rely on this to enforce the protocol.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;subclass should implement `ebands` property.&quot;</span><span class="p">)</span>
 
+<div class="viewcode-block" id="PanelWithElectronBands.get_ebands_kpath"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.get_ebands_kpath">[docs]</a>    <span class="nd">@pn</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;ebands_kpath_fileinput&quot;</span><span class="p">,</span> <span class="n">watch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_ebands_kpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Receives the netcdf file selected by the user as binary string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands_kpath_fileinput</span><span class="p">))</span>
+        <span class="n">bstring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_kpath_fileinput</span>
+
+        <span class="c1">#with ButtonContext(self.ebands_kpath_fileinput):</span>
+        <span class="kn">from</span> <span class="nn">abipy.electrons</span> <span class="kn">import</span> <span class="n">ElectronBands</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ebands_kpath</span> <span class="o">=</span> <span class="n">ElectronBands</span><span class="o">.</span><span class="n">from_binary_string</span><span class="p">(</span><span class="n">bstring</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="PanelWithElectronBands.get_plot_ebands_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.get_plot_ebands_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_plot_ebands_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Column with the widgets used to plot ebands.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">with_gaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_fermie_to_vbm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_ebands_btn</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;with_gaps&quot;</span><span class="p">,</span> <span class="s2">&quot;set_fermie_to_vbm&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_ebands_btn&quot;</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="PanelWithElectronBands.on_plot_ebands_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.on_plot_ebands_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;plot_ebands_btn.clicks&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="PanelWithElectronBands.on_plot_ebands_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.on_plot_ebands_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;plot_ebands_btn&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_plot_ebands_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Button triggering ebands plot.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_ebands_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_fermie_to_vbm</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">set_fermie_to_vbm</span><span class="p">()</span>
 
-        <span class="k">with</span> <span class="n">ButtonContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_ebands_btn</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_fermie_to_vbm</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">set_fermie_to_vbm</span><span class="p">()</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Electronic band structure:&quot;</span><span class="p">)</span>
+        <span class="n">fig1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">with_gaps</span><span class="p">,</span> <span class="n">max_phfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                  <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="n">fig1</span><span class="p">))</span>
 
-            <span class="c1">#fig1 = self.ebands.plot(e0=&quot;fermie&quot;, ylims=None, with_gaps=self.with_gaps.value, max_phfreq=None,</span>
-            <span class="c1">#                        fontsize=8, **self.mpl_kwargs)</span>
+        <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Brillouin zone and **k**-path:&quot;</span><span class="p">)</span>
+        <span class="c1">#kpath_pane = mpl(self.ebands.kpoints.plot(**self.mpl_kwargs), with_divider=False)</span>
+        <span class="n">kpath_pane</span> <span class="o">=</span> <span class="n">ply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">with_divider</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">df_kpts</span> <span class="o">=</span> <span class="n">dfc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">get_highsym_datataframe</span><span class="p">(),</span> <span class="n">with_divider</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">kpath_pane</span><span class="p">,</span> <span class="n">df_kpts</span><span class="p">))</span>
+        <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">())</span>
+        <span class="c1">#ca(bkw.PreText(text=self.ebands.to_string(verbose=self.verbose)))</span>
 
-            <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
-            <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Electronic band structure:&quot;</span><span class="p">)</span>
-            <span class="n">fig1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">with_gaps</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">max_phfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                     <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="n">fig1</span><span class="p">))</span>
-
-            <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Brillouin zone and k-path:&quot;</span><span class="p">)</span>
-            <span class="n">kpath_pane</span> <span class="o">=</span> <span class="n">mpl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">),</span> <span class="n">with_divider</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">df_kpts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">get_highsym_datataframe</span><span class="p">()</span>
-            <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">kpath_pane</span><span class="p">,</span> <span class="n">df_kpts</span><span class="p">))</span>
-            <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">())</span>
-
-            <span class="n">ca</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)))</span>
-
-            <span class="k">return</span> <span class="n">col</span></div>
+        <span class="k">return</span> <span class="n">col</span></div>
 
 <div class="viewcode-block" id="PanelWithElectronBands.get_plot_edos_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.get_plot_edos_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_plot_edos_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Widgets to compute e-DOS.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_method</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_edos_btn</span><span class="p">)</span></div>
+        <span class="sd">&quot;&quot;&quot;Column with widgets associated to the e-DOS computation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;edos_method&quot;</span><span class="p">,</span> <span class="s2">&quot;edos_step_ev&quot;</span><span class="p">,</span> <span class="s2">&quot;edos_width_ev&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_edos_btn&quot;</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="PanelWithElectronBands.on_plot_edos_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.on_plot_edos_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;plot_edos_btn.clicks&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="PanelWithElectronBands.on_plot_edos_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.on_plot_edos_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;plot_edos_btn&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_plot_edos_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Button triggering edos plot.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_edos_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">edos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_edos</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_method</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_step_ev</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_width_ev</span><span class="p">)</span>
 
-        <span class="k">with</span> <span class="n">ButtonContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_edos_btn</span><span class="p">):</span>
-            <span class="n">edos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_edos</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_method</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
-                                        <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_step</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_width</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">edos</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">mpl</span><span class="p">(</span><span class="n">fig</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">mpl</span><span class="p">(</span><span class="n">edos</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span></div>
+        <span class="c1">#return pn.Row(ply(edos.plotly(show=False))), sizing_mode=&#39;scale_width&#39;)</span>
+
+<div class="viewcode-block" id="PanelWithElectronBands.on_plot_skw_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.on_plot_skw_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;plot_skw_btn&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_plot_skw_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">intp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">lpratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">skw_lpratio</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">skw_line_density</span><span class="p">,</span>
+                                       <span class="n">kmesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_shift</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bstop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                       <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## SKW interpolated bands along an automatically selected high-symmetry **k**-path&quot;</span><span class="p">)</span>
+        <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="n">intp</span><span class="o">.</span><span class="n">ebands_kpath</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">with_gaps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">with_gaps</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_kpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Input bands taken from file uploaded by user:&quot;</span><span class="p">)</span>
+            <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands_kpath</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">with_gaps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">with_gaps</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
+
+            <span class="c1"># Use line_density 0 to interpolate on the same set of k-points given in self.ebands_kpath</span>
+            <span class="n">vertices_names</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">kpt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_kpath</span><span class="o">.</span><span class="n">kpoints</span><span class="p">:</span>
+                <span class="n">vertices_names</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">kpt</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">kpt</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+            <span class="n">intp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">lpratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">skw_lpratio</span><span class="p">,</span> <span class="n">vertices_names</span><span class="o">=</span><span class="n">vertices_names</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                            <span class="n">kmesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_shift</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bstop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                            <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+
+            <span class="n">plotter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_kpath</span><span class="o">.</span><span class="n">get_plotter_with</span><span class="p">(</span><span class="s2">&quot;Input&quot;</span><span class="p">,</span> <span class="s2">&quot;Interpolated&quot;</span><span class="p">,</span> <span class="n">intp</span><span class="o">.</span><span class="n">ebands_kpath</span><span class="p">)</span>
+            <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Input bands vs SKW interpolated bands:&quot;</span><span class="p">)</span>
+            <span class="n">ca</span><span class="p">(</span><span class="n">mpl</span><span class="p">(</span><span class="n">plotter</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
+            <span class="c1">#ca(mpl(plotter.combiplotly(show=False)))</span>
+
+        <span class="k">return</span> <span class="n">col</span></div>
+
+<div class="viewcode-block" id="PanelWithElectronBands.get_plot_skw_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.get_plot_skw_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_plot_skw_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Widgets to compute e-DOS.&quot;&quot;&quot;</span>
+
+        <span class="n">wdg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_kmesh_fileinput</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;ebands_kpath_fileinput&#39;</span><span class="p">],</span>
+            <span class="n">widgets</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ebands_kpath_fileinput&#39;</span><span class="p">:</span> <span class="n">pn</span><span class="o">.</span><span class="n">widgets</span><span class="o">.</span><span class="n">FileInput</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;skw_lpratio&quot;</span><span class="p">,</span> <span class="s2">&quot;skw_line_density&quot;</span><span class="p">,</span> <span class="s2">&quot;with_gaps&quot;</span><span class="p">,</span> <span class="n">wdg</span><span class="p">,</span> <span class="s2">&quot;plot_skw_btn&quot;</span><span class="p">]),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_plot_skw_btn</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PanelWithElectronBands.get_plot_fermi_surface_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.get_plot_fermi_surface_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_plot_fermi_surface_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Widgets to compute e-DOS.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fs_viewer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_fermi_surface_btn</span><span class="p">)</span></div>
+        <span class="sd">&quot;&quot;&quot;Widgets to compute the Fermi surface.&quot;&quot;&quot;</span>
+        <span class="c1">#return pn.Column(self.fs_viewer, self.plot_fermi_surface_btn)</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;skw_fs_viewer&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_fermi_surface_btn&quot;</span><span class="p">]),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_plot_skw_btn</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelWithElectronBands.on_plot_fermi_surface_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.on_plot_fermi_surface_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;plot_fermi_surface_btn.clicks&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="PanelWithElectronBands.on_plot_fermi_surface_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.on_plot_fermi_surface_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;plot_fermi_surface_btn&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_plot_fermi_surface_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_fermi_surface_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="c1">#if self.fs_viewer is None: return pn.pane.HTML()</span>
 
         <span class="c1"># Cache eb3d</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_eb3d&quot;</span><span class="p">):</span>
@@ -965,16 +1047,16 @@
             <span class="c1"># Build ebands in full BZ.</span>
             <span class="n">eb3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eb3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_ebands3d</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs_viewer</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;matplotlib&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs_viewer</span> <span class="o">==</span> <span class="s2">&quot;matplotlib&quot;</span><span class="p">:</span>
             <span class="c1"># Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)</span>
             <span class="c1"># Warning: requires skimage package, rendering could be slow.</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">eb3d</span><span class="o">.</span><span class="n">plot_isosurfaces</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">mpl</span><span class="p">(</span><span class="n">fig</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid choice: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs_viewer</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid choice: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs_viewer</span><span class="p">)</span></div></div>
 
-        <span class="c1">#elif self.fs_viewer.value == &quot;xcrysden&quot;:</span>
+        <span class="c1">#elif self.fs_viewer == &quot;xcrysden&quot;:</span>
             <span class="c1"># Alternatively, it&#39;s possible to export the data in xcrysden format</span>
             <span class="c1"># and then use `xcrysden --bxsf mgb2.bxsf`</span>
             <span class="c1">#eb3d.to_bxsf(&quot;mgb2.bxsf&quot;)</span>
@@ -983,7 +1065,43 @@
 
 
 <div class="viewcode-block" id="BaseRobotPanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.BaseRobotPanel">[docs]</a><span class="k">class</span> <span class="nc">BaseRobotPanel</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Base class for panels with AbiPy robot.&quot;&quot;&quot;</span></div>
+    <span class="sd">&quot;&quot;&quot;Base class for panels with AbiPy robot.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compare_params_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Compare structures&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transpose_params</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Transpose tables&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BaseRobotPanel.on_compare_params_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.BaseRobotPanel.on_compare_params_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;compare_params_btn&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_compare_params_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">transpose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose_params</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="n">dfs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_structure_dataframes</span><span class="p">()</span>
+        <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;# Lattice daframe&quot;</span><span class="p">)</span>
+        <span class="n">ca</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">transpose</span><span class="o">=</span><span class="n">transpose</span><span class="p">))</span>
+
+        <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;# Params daframe&quot;</span><span class="p">)</span>
+        <span class="n">ca</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_params_dataframe</span><span class="p">(),</span> <span class="n">transpose</span><span class="o">=</span><span class="n">transpose</span><span class="p">))</span>
+
+        <span class="n">accord</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Accordion</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">)</span>
+        <span class="n">accord</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Atomic positions&quot;</span><span class="p">,</span> <span class="n">dfc</span><span class="p">(</span><span class="n">dfs</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">transpose</span><span class="o">=</span><span class="n">transpose</span><span class="p">)))</span>
+        <span class="n">ca</span><span class="p">(</span><span class="n">accord</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">col</span></div>
+
+    <span class="c1"># TODO: widgets to change robot labels.</span>
+
+<div class="viewcode-block" id="BaseRobotPanel.get_compare_params_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.BaseRobotPanel.get_compare_params_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_compare_params_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compare_params_btn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose_params</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_compare_params_btn</span><span class="p">,</span>
+            <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="PanelWithEbandsRobot"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot">[docs]</a><span class="k">class</span> <span class="nc">PanelWithEbandsRobot</span><span class="p">(</span><span class="n">BaseRobotPanel</span><span class="p">):</span>
@@ -991,58 +1109,114 @@
 <span class="sd">    Mixin class for panels with a robot that owns a list of of |ElectronBands|</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># Widgets to plot ebands.</span>
-    <span class="n">ebands_plotter_mode</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot Mode&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span>
-        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiplot&quot;</span><span class="p">,</span> <span class="s2">&quot;boxplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiboxplot&quot;</span><span class="p">])</span> <span class="c1"># &quot;animate&quot;,</span>
-    <span class="n">ebands_plotter_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
-    <span class="n">ebands_df_checkbox</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;With Ebands DataFrame&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
 
-    <span class="c1"># Widgets to plot edos.</span>
-    <span class="n">edos_plotter_mode</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot Mode&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span>
-        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiplot&quot;</span><span class="p">])</span>
-    <span class="n">edos_plotter_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="c1"># Widgets to plot ebands.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_mode</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot Mode&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiplot&quot;</span><span class="p">,</span> <span class="s2">&quot;boxplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiboxplot&quot;</span><span class="p">])</span> <span class="c1"># &quot;animate&quot;,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ebands_df_checkbox</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;With Ebands DataFrame&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Widgets to plot edos.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_mode</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot Mode&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiplot&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PanelWithEbandsRobot.get_ebands_plotter_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot.get_ebands_plotter_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_ebands_plotter_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_df_checkbox</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_btn</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelWithEbandsRobot.on_ebands_plotter_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot.on_ebands_plotter_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;ebands_plotter_btn.clicks&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="PanelWithEbandsRobot.on_ebands_plotter_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot.on_ebands_plotter_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;ebands_plotter_btn&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_ebands_plotter_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
 
-        <span class="k">with</span> <span class="n">ButtonContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_btn</span><span class="p">):</span>
+        <span class="n">ebands_plotter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_ebands_plotter</span><span class="p">()</span>
+        <span class="n">plot_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_mode</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">plot_func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ebands_plotter</span><span class="p">,</span> <span class="n">plot_mode</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">plot_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle plot_mode: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plot_mode</span><span class="p">)</span>
 
-            <span class="n">ebands_plotter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_ebands_plotter</span><span class="p">()</span>
-            <span class="n">plot_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_mode</span><span class="o">.</span><span class="n">value</span>
-            <span class="n">plot_func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ebands_plotter</span><span class="p">,</span> <span class="n">plot_mode</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">plot_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle plot_mode: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plot_mode</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_func</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">mpl</span><span class="p">(</span><span class="n">fig</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_df_checkbox</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">ebands_plotter</span><span class="o">.</span><span class="n">get_ebands_frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">col</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
 
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_func</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
-            <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">mpl</span><span class="p">(</span><span class="n">fig</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_df_checkbox</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
-                <span class="n">df</span> <span class="o">=</span> <span class="n">ebands_plotter</span><span class="o">.</span><span class="n">get_ebands_frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">col</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
-
-            <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PanelWithEbandsRobot.get_edos_plotter_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot.get_edos_plotter_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_edos_plotter_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_btn</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelWithEbandsRobot.on_edos_plotter_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot.on_edos_plotter_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;edos_plotter_btn.clicks&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="PanelWithEbandsRobot.on_edos_plotter_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot.on_edos_plotter_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;edos_plotter_btn&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_edos_plotter_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot the electronic density of states.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">edos_plotter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_edos_plotter</span><span class="p">()</span>
+        <span class="n">plot_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_mode</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">plot_func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">edos_plotter</span><span class="p">,</span> <span class="n">plot_mode</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">plot_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle plot_mode: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plot_mode</span><span class="p">)</span>
 
-        <span class="k">with</span> <span class="n">ButtonContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_btn</span><span class="p">):</span>
-            <span class="n">edos_plotter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_edos_plotter</span><span class="p">()</span>
-            <span class="n">plot_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_mode</span><span class="o">.</span><span class="n">value</span>
-            <span class="n">plot_func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">edos_plotter</span><span class="p">,</span> <span class="n">plot_mode</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">plot_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle plot_mode: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plot_mode</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_func</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
 
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_func</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">mpl</span><span class="p">(</span><span class="n">fig</span><span class="p">)),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span></div></div>
 
-            <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">mpl</span><span class="p">(</span><span class="n">fig</span><span class="p">)),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="jsmol_html"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.jsmol_html">[docs]</a><span class="k">def</span> <span class="nf">jsmol_html</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="s2">&quot;false&quot;</span><span class="p">):</span>
+
+    <span class="n">cif_str</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">write_cif_with_spglib_symms</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ret_string</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1">#, symprec=symprec</span>
+
+    <span class="c1"># There&#39;s a bug in boken when we use strings with several &#39;&quot; quotation marks</span>
+    <span class="c1"># To bypass the problem I create a json list of strings and then I use a js variable</span>
+    <span class="c1"># to recreate the cif file by joining the tokens.</span>
+    <span class="c1"># const elements = [&#39;Fire&#39;, &#39;Air&#39;, &#39;Water&#39;];</span>
+    <span class="c1"># var string = elements.join(&#39;\n&#39;);</span>
+    <span class="kn">import</span> <span class="nn">json</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">cif_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="c1">#print(&quot;lines:&quot;, lines)</span>
+
+    <span class="n">jsmol_div_id</span> <span class="o">=</span> <span class="n">gen_id</span><span class="p">()</span>
+    <span class="n">jsmol_app_name</span> <span class="o">=</span> <span class="s2">&quot;js1&quot;</span>
+    <span class="n">supercell</span> <span class="o">=</span> <span class="s2">&quot;{2, 2, 2}&quot;</span>
+    <span class="n">supercell</span> <span class="o">=</span> <span class="s2">&quot;{1, 1, 1}&quot;</span>
+
+    <span class="c1">#script_str = &#39;load inline &quot;%s&quot; {1 1 1};&#39; % cif_str</span>
+    <span class="c1">#script_str = &quot;load $caffeine&quot;</span>
+
+    <span class="c1"># http://wiki.jmol.org/index.php/Jmol_JavaScript_Object/Functions#getAppletHtml</span>
+
+    <span class="n">html</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">&lt;script type=&quot;text/javascript&quot;&gt;</span>
+<span class="s2">    $(document).ready(function() </span><span class="se">{{</span><span class="s2"></span>
+
+<span class="s2">       const lines = </span><span class="si">{</span><span class="n">lines</span><span class="si">}</span><span class="s2">;</span>
+<span class="s2">       var script_str = &#39;load inline &quot; &#39; + lines.join(&#39;</span><span class="se">\\</span><span class="s2">n&#39;) + &#39;&quot; </span><span class="si">{</span><span class="n">supercell</span><span class="si">}</span><span class="s2">&#39;;</span>
+<span class="s2">       //console.log(script_str);</span>
+
+<span class="s2">       var Info = </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">           color: &quot;</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s2">&quot;,</span>
+<span class="s2">           spin: </span><span class="si">{</span><span class="n">spin</span><span class="si">}</span><span class="s2">,</span>
+<span class="s2">           antialiasDisplay: true,</span>
+<span class="s2">           width: </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2">,</span>
+<span class="s2">           height: </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2">,</span>
+<span class="s2">           j2sPath: &quot;http://chemapps.stolaf.edu/jmol/jsmol/j2s&quot;,</span>
+<span class="s2">           serverURL: &quot;http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php&quot;,</span>
+<span class="s2">           script: script_str,</span>
+<span class="s2">           use: &#39;html5&#39;,</span>
+<span class="s2">           disableInitialConsole: true,</span>
+<span class="s2">           disableJ2SLoadMonitor: true,</span>
+<span class="s2">           debug: false</span>
+<span class="s2">       </span><span class="se">}}</span><span class="s2">;</span>
+
+<span class="s2">       $(&quot;#</span><span class="si">{</span><span class="n">jsmol_div_id</span><span class="si">}</span><span class="s2">&quot;).html(Jmol.getAppletHtml(&quot;</span><span class="si">{</span><span class="n">jsmol_app_name</span><span class="si">}</span><span class="s2">&quot;, Info));</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2">);</span>
+<span class="s2">&lt;/script&gt;</span>
+
+<span class="s2">&lt;div id=&quot;</span><span class="si">{</span><span class="n">jsmol_div_id</span><span class="si">}</span><span class="s2">&quot; style=&quot;height: 100%; width: 100%; position: relative;&quot;&gt;&lt;/div&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="c1">#print(html)</span>
+    <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -1056,7 +1230,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

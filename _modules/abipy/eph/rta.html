@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -815,12 +814,15 @@
     <span class="c1">#def get_mobility_mu_dataframe(self, eh=0, component=&#39;xx&#39;, itemp=0, spin=0, **kwargs):</span>
 
 <div class="viewcode-block" id="RtaRobot.plot_mobility_kconv"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.rta.RtaRobot.plot_mobility_kconv">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_mobility_kconv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eh</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_mobility_kconv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eh</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bte</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;serta&#39;</span><span class="p">,</span> <span class="s1">&#39;mrta&#39;</span><span class="p">,</span> <span class="s1">&#39;ibte&#39;</span><span class="p">),</span> <span class="n">component</span><span class="o">=</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                            <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the convergence of the mobility as a function of the number of k-points.</span>
+<span class="sd">        Plot the convergence of the mobility as a function of the number of k-points,</span>
+<span class="sd">        for different transport formalisms included in the computation.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            eh: 0 for electrons, 1 for holes.</span>
+<span class="sd">            bte: list of transport formalism to plot (serta, mrta, ibte)</span>
 <span class="sd">            component: Cartesian component to plot (&#39;xx&#39;, &#39;xy&#39;, ...)</span>
 <span class="sd">            itemp: temperature index.</span>
 <span class="sd">            spin: Spin index.</span>
@@ -829,35 +831,41 @@
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s1">&#39;ibte&#39;</span> <span class="ow">in</span> <span class="n">bte</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_have_ibte</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;At least some IBTE results are missing ! Will remove ibte from the bte list&quot;</span><span class="p">)</span>
+            <span class="n">bte</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;ibte&#39;</span><span class="p">)</span>
+
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">s2itup</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
         <span class="n">irta</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="n">res</span><span class="p">,</span> <span class="n">temps</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">res</span><span class="p">,</span> <span class="n">temps</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">:</span>
-            <span class="c1">#kptrlattx, kptrlatty, kptrlattz = ncfile.ngkpt</span>
             <span class="n">kptrlatt</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;kptrlatt&quot;</span><span class="p">)</span>
             <span class="n">kptrlattx</span> <span class="o">=</span> <span class="n">kptrlatt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
             <span class="n">kptrlatty</span> <span class="o">=</span> <span class="n">kptrlatt</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
             <span class="n">kptrlattz</span> <span class="o">=</span> <span class="n">kptrlatt</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-            <span class="c1"># nctkarr_t(&#39;mobility_mu&#39;,&quot;dp&quot;, &quot;three, three, two, ntemp, nsppol, nrta&quot;)]</span>
-            <span class="n">mobility</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;mobility_mu&quot;</span><span class="p">)[</span><span class="n">irta</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">itemp</span><span class="p">,</span> <span class="n">eh</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
-            <span class="c1">#print(mobility)</span>
-            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">kptrlattx</span><span class="p">,</span> <span class="n">mobility</span><span class="p">])</span>
+
+            <span class="n">mob_serta</span><span class="p">,</span> <span class="n">mob_mrta</span><span class="p">,</span> <span class="n">mob_ibte</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="s1">&#39;serta&#39;</span> <span class="ow">in</span> <span class="n">bte</span><span class="p">:</span>
+                <span class="n">mob_serta</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;mobility_mu&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">itemp</span><span class="p">,</span> <span class="n">eh</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;mrta&#39;</span> <span class="ow">in</span> <span class="n">bte</span><span class="p">:</span>
+                <span class="n">mob_mrta</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;mobility_mu&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">itemp</span><span class="p">,</span> <span class="n">eh</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;ibte&#39;</span> <span class="ow">in</span> <span class="n">bte</span><span class="p">:</span>
+                <span class="n">mob_ibte</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;ibte_mob&quot;</span><span class="p">)[</span><span class="n">spin</span><span class="p">,</span> <span class="n">itemp</span><span class="p">,</span> <span class="n">eh</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">kptrlattx</span><span class="p">,</span> <span class="n">mob_serta</span><span class="p">,</span> <span class="n">mob_mrta</span><span class="p">,</span> <span class="n">mob_ibte</span><span class="p">])</span>
             <span class="n">temps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ncfile</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="n">itemp</span><span class="p">])</span>
 
         <span class="n">res</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
         <span class="c1">#print(res)</span>
 
         <span class="n">size</span> <span class="o">=</span> <span class="mi">14</span>
         <span class="n">ylabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> mobility (cm$^2$/(V$\cdot$s))&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Electron&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Hole&quot;</span><span class="p">}[</span><span class="n">eh</span><span class="p">]</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
-
-        <span class="c1">#if &quot;title&quot; not in kwargs:</span>
-        <span class="c1">#    title = r&quot;$\frac{1}{N_k} \sum_{nk} \delta(\epsilon - \epsilon_{nk})$&quot;</span>
-        <span class="c1">#    ax.set_title(title, fontsize=fontsize)</span>
 
         <span class="kn">from</span> <span class="nn">fractions</span> <span class="kn">import</span> <span class="n">Fraction</span>
         <span class="n">ratio1</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">kptrlatty</span><span class="p">,</span> <span class="n">kptrlattx</span><span class="p">)</span>
@@ -870,7 +878,15 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Homogeneous $N_k \times$ &#39;</span> <span class="o">+</span> <span class="n">text1</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;$N_k \times$ &#39;</span> <span class="o">+</span> <span class="n">text2</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;$N_k$ $\mathbf</span><span class="si">{k}</span><span class="s1">$-point grid&#39;</span><span class="p">,</span>
                       <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">res</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">res</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">component</span><span class="o">+</span><span class="s2">&quot; component, T = </span><span class="si">{0}</span><span class="s2"> K&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ncfile</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="n">itemp</span><span class="p">]),</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;serta&#39;</span> <span class="ow">in</span> <span class="n">bte</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">res</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">res</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;-ob&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;SERTA&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;mrta&#39;</span> <span class="ow">in</span> <span class="n">bte</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">res</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">res</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;-or&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;MRTA&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;ibte&#39;</span> <span class="ow">in</span> <span class="n">bte</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">res</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">res</span><span class="p">[:,</span><span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;-og&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;IBTE&#39;</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">res</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">))</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
@@ -962,8 +978,26 @@
         <span class="c1">#yield self.plot_lattice_convergence(show=False)</span>
         <span class="c1">#if self.all_have_ibte:</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_ibte_mrta_serta_conv</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_ibte_vs_rta_rho</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
-        <span class="c1">#self.plot_mobility_kconv(eh=0, component=&#39;xx&#39;, itemp=0, spin=0, fontsize=14, ax=None, **kwargs):</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_ibte_vs_rta_rho</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Determine the independent component. For the time being,</span>
+        <span class="c1"># only consider the cubic case separately</span>
+        <span class="n">abifile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;cubic&#39;</span> <span class="ow">in</span> <span class="n">abifile</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">spget_summary</span><span class="p">():</span>
+            <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span><span class="s1">&#39;yy&#39;</span><span class="p">,</span><span class="s1">&#39;zz&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Determine the type of carriers for which the mobility is computed</span>
+        <span class="n">eh_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">abifile</span><span class="o">.</span><span class="n">sigma_erange</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">eh_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">abifile</span><span class="o">.</span><span class="n">sigma_erange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">eh_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">eh</span> <span class="ow">in</span> <span class="n">eh_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_mobility_kconv</span><span class="p">(</span><span class="n">eh</span><span class="o">=</span><span class="n">eh</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">comp</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
     <span class="c1">#def get_panel(self):</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
@@ -1003,7 +1037,7 @@
     <span class="c1">#plt.tick_params(labelsize=14)</span>
     <span class="c1">#ax = plt.gca()</span>
 
-    <span class="n">robot</span><span class="o">.</span><span class="n">plot_mobility_kconv</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$&#39;</span><span class="p">)</span>
+    <span class="n">robot</span><span class="o">.</span><span class="n">plot_mobility_kconv</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
 
     <span class="c1">#fileslist = [&#39;conv_fine/k27x27x27/q27x27x27/Sio_DS1_TRANSPORT.nc&#39;,</span>
     <span class="c1">#             &#39;conv_fine/k30x30x30/q30x30x30/Sio_DS1_TRANSPORT.nc&#39;,</span>
@@ -1032,7 +1066,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

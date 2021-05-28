@@ -1,5 +1,0 @@
-<map id="inheritance8d6cbd6d0c" name="inheritance8d6cbd6d0c">
-<area shape="rect" id="node1" href="#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,5,221,29"/>
-<area shape="rect" id="node2" href="#abipy.core.restapi.DatabaseStructures" target="_top" title="Store the results of a query to the MP database." alt="" coords="268,5,511,29"/>
-<area shape="rect" id="node3" href="#abipy.core.restapi.MpStructures" target="_top" title="Store the results of a query to the Materials Project database." alt="" coords="558,5,763,29"/>
-</map>

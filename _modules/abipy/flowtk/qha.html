@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -213,7 +212,7 @@
 <div class="viewcode-block" id="RelaxAndPhononWork.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.RelaxAndPhononWork.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">volumes</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">with_becs</span><span class="p">,</span> <span class="n">optcell</span><span class="p">,</span> <span class="n">ionmov</span><span class="p">,</span> <span class="n">edos_ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build the work from an |AbinitInput| for GS-SCF calculation.</span>
+<span class="sd">        Build the work from an |AbinitInput| representing a GS-SCF calculation.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.</span>
@@ -232,7 +231,7 @@
         <span class="n">work</span><span class="o">.</span><span class="n">volumes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span>
         <span class="n">work</span><span class="o">.</span><span class="n">with_becs</span> <span class="o">=</span> <span class="n">with_becs</span>
 
-        <span class="c1"># Create input for relaxation and register the relaxation task.</span>
+        <span class="c1"># Create input for relaxation and register the relaxation tasks.</span>
         <span class="n">relax_template</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
         <span class="n">relax_template</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
         <span class="n">relax_template</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolvrs</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">toldff</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">,</span> <span class="n">optcell</span><span class="o">=</span><span class="n">optcell</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="n">ionmov</span><span class="p">)</span>
@@ -295,7 +294,7 @@
 <span class="sd">        Build a |Flow| for QHA calculations from an |AbinitInput| for GS-SCF calculations.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            workdir: Working directory.</span>
+<span class="sd">            workdir: Working directory of the flow.</span>
 <span class="sd">            scf_input: |AbinitInput| for GS-SCF run used as template to generate the other inputs.</span>
 <span class="sd">            volumes: List of volumes in Ang**3.</span>
 <span class="sd">            ngqpt: Three integers defining the q-mesh for phonon calculation.</span>
@@ -326,7 +325,7 @@
         <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">})</span>
 
-        <span class="c1">#QHA.from_files(cls, gsr_paths, phdos_paths)</span>
+        <span class="c1"># QHA.from_files(cls, gsr_paths, phdos_paths)</span>
         <span class="c1"># Build list of strings with path to the relevant output files ordered by V.</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;gsr_relax_paths&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">task</span><span class="o">.</span><span class="n">gsr_path</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">relax_and_phonon_work</span><span class="o">.</span><span class="n">relax_tasks_vol</span><span class="p">]</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ddb_paths&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ph_work</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="s2">&quot;DDB&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">ph_work</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">relax_and_phonon_work</span><span class="o">.</span><span class="n">ph_works_vol</span><span class="p">]</span>
@@ -380,7 +379,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

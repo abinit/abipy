@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -234,24 +233,24 @@
 <div class="contents topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#electrons-package" id="id8">electrons Package</a></p>
+<li><p><a class="reference internal" href="#electrons-package" id="id10">electrons Package</a></p>
 <ul>
-<li><p><a class="reference internal" href="#id1" id="id9"><code class="xref py py-mod docutils literal notranslate"><span class="pre">electrons</span></code> Package</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.eskw" id="id10"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eskw</span></code> Package</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.bse" id="id11"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bse</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.charges" id="id12"><code class="xref py py-mod docutils literal notranslate"><span class="pre">charges</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.denpot" id="id13"><code class="xref py py-mod docutils literal notranslate"><span class="pre">denpot</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.ebands" id="id14"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ebands</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.effmass_analyzer" id="id15"><code class="xref py py-mod docutils literal notranslate"><span class="pre">effmass_analyzer</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.fatbands" id="id16"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fatbands</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.fold2bloch" id="id17"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fold2bloch</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.gsr" id="id18"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gsr</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.gw" id="id19"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gw</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.lobster" id="id20"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lobster</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.optic" id="id21"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optic</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.psps" id="id22"><code class="xref py py-mod docutils literal notranslate"><span class="pre">psps</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.scissors" id="id23"><code class="xref py py-mod docutils literal notranslate"><span class="pre">scissors</span></code> Module</a></p></li>
-<li><p><a class="reference internal" href="#module-abipy.electrons.scr" id="id24"><code class="xref py py-mod docutils literal notranslate"><span class="pre">scr</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#id1" id="id11"><code class="xref py py-mod docutils literal notranslate"><span class="pre">electrons</span></code> Package</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.eskw" id="id12"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eskw</span></code> Package</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.bse" id="id13"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bse</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.charges" id="id14"><code class="xref py py-mod docutils literal notranslate"><span class="pre">charges</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.denpot" id="id15"><code class="xref py py-mod docutils literal notranslate"><span class="pre">denpot</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.ebands" id="id16"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ebands</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.effmass_analyzer" id="id17"><code class="xref py py-mod docutils literal notranslate"><span class="pre">effmass_analyzer</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.fatbands" id="id18"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fatbands</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.fold2bloch" id="id19"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fold2bloch</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.gsr" id="id20"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gsr</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.gw" id="id21"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gw</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.lobster" id="id22"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lobster</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.optic" id="id23"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optic</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.psps" id="id24"><code class="xref py py-mod docutils literal notranslate"><span class="pre">psps</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.scissors" id="id25"><code class="xref py py-mod docutils literal notranslate"><span class="pre">scissors</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.electrons.scr" id="id26"><code class="xref py py-mod docutils literal notranslate"><span class="pre">scr</span></code> Module</a></p></li>
 </ul>
 </li>
 </ul>
@@ -275,13 +274,13 @@ It’s similar to the GSR file but it does not contain the header and energies.<
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-1bdf6e81ac8bdfde719fa1de2b2a7958384b2852.png" alt="Inheritance diagram of EskwFile" usemap="#inheritancee81d2a71a7" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-2cc12f1fdcbbdcdfbc740dfd46d71b05153a77ae.png" alt="Inheritance diagram of EskwFile" usemap="#inheritancee81d2a71a7" class="inheritance graphviz" /></div>
 <map id="inheritancee81d2a71a7" name="inheritancee81d2a71a7">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,149,454,173"/>
-<area shape="rect" id="node6" href="#abipy.electrons.eskw.EskwFile" target="_top" title="This file contains the (star&#45;function) interpolated band structure produced by Abinit." alt="" coords="525,77,726,101"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="232,5,477,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="249,53,461,77"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,101,464,125"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="306,149,499,174"/>
+<area shape="rect" id="node7" href="#abipy.electrons.eskw.EskwFile" target="_top" title="This file contains the (star&#45;function) interpolated band structure produced by Abinit." alt="" coords="567,78,763,102"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="296,101,508,126"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="284,5,520,30"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="300,53,505,78"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.eskw.EskwFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/eskw.html#EskwFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.eskw.EskwFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -481,12 +480,12 @@ Possible choices are</p>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-f5cdc059f46e384234a665472292623c659fa92a.png" alt="Inheritance diagram of MdfFile" usemap="#inheritance6a7e4af0c2" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-41b2b970bff192df50b34a52e9713ce60f9acc38.png" alt="Inheritance diagram of MdfFile" usemap="#inheritance6a7e4af0c2" class="inheritance graphviz" /></div>
 <map id="inheritance6a7e4af0c2" name="inheritance6a7e4af0c2">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="243,101,441,125"/>
-<area shape="rect" id="node5" href="#abipy.electrons.bse.MdfFile" target="_top" title="Usage example:" alt="" coords="500,53,682,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="236,5,448,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,53,452,77"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="301,104,500,129"/>
+<area shape="rect" id="node6" href="#abipy.electrons.bse.MdfFile" target="_top" title="Usage example:" alt="" coords="557,55,739,80"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,55,509,80"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="295,5,506,31"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.bse.MdfFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#MdfFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.bse.MdfFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -621,8 +620,8 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-d2bc9c1a230ba0ead5a3089d5652aa7e3f104072.png" alt="Inheritance diagram of MdfReader" usemap="#inheritance83fb40235f" class="inheritance graphviz" /></div>
 <map id="inheritance83fb40235f" name="inheritance83fb40235f">
-<area shape="rect" id="node1" href="#abipy.electrons.bse.MdfReader" target="_top" title="This object reads data from the MDF.nc file produced by ABINIT." alt="" coords="615,4,764,21"/>
-<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="447,4,580,21"/>
+<area shape="rect" id="node1" href="#abipy.electrons.bse.MdfReader" target="_top" title="This object reads data from the MDF.nc file produced by ABINIT." alt="" coords="615,4,764,23"/>
+<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="447,4,580,23"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.bse.MdfReader.structure">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">structure</span></code><a class="headerlink" href="#abipy.electrons.bse.MdfReader.structure" title="Permalink to this definition">¶</a></dt>
@@ -952,8 +951,8 @@ An eccess of electron has a negative charge</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-5d013bd56a6d244821c6ac4c79844c58963b3112.png" alt="Inheritance diagram of HirshfeldCharges" usemap="#inheritancee626124432" class="inheritance graphviz" /></div>
 <map id="inheritancee626124432" name="inheritancee626124432">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="5,5,208,28"/>
-<area shape="rect" id="node3" href="#abipy.electrons.charges.HirshfeldCharges" target="_top" title="Class representing the charges obtained from the Hirshfeld analysis." alt="" coords="506,5,763,28"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="5,5,209,30"/>
+<area shape="rect" id="node3" href="#abipy.electrons.charges.HirshfeldCharges" target="_top" title="Class representing the charges obtained from the Hirshfeld analysis." alt="" coords="507,5,763,30"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.charges.HirshfeldCharges.from_cut3d_outfile">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_cut3d_outfile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/charges.html#HirshfeldCharges.from_cut3d_outfile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.charges.HirshfeldCharges.from_cut3d_outfile" title="Permalink to this definition">¶</a></dt>
@@ -972,8 +971,8 @@ An eccess of electron has a negative charge</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-5d59da4d123e8cb11b3c9e05b3c24ec54b5ca7cf.png" alt="Inheritance diagram of BaderCharges" usemap="#inheritance3e58e8140e" class="inheritance graphviz" /></div>
 <map id="inheritance3e58e8140e" name="inheritance3e58e8140e">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="5,5,213,29"/>
-<area shape="rect" id="node2" href="#abipy.electrons.charges.BaderCharges" target="_top" title="Class representing the charges obtained from the Bader analysis." alt="" coords="517,5,763,29"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="5,5,214,30"/>
+<area shape="rect" id="node2" href="#abipy.electrons.charges.BaderCharges" target="_top" title="Class representing the charges obtained from the Bader analysis." alt="" coords="519,5,763,30"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.charges.BaderCharges.from_files">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">density_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pseudopotential_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_core</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/charges.html#BaderCharges.from_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.charges.BaderCharges.from_files" title="Permalink to this definition">¶</a></dt>
@@ -1021,7 +1020,7 @@ Density.ae_core_density_on_mesh method. Requires pseudopotential_paths.</p></li>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-b9326c28dda9752032569149dc9387933ee34e0e.png" alt="Inheritance diagram of DensityNcFile" usemap="#inheritancecb81189ead" class="inheritance graphviz" /></div>
 <map id="inheritancecb81189ead" name="inheritancecb81189ead">
-<area shape="rect" id="node1" href="#abipy.electrons.denpot.DensityNcFile" target="_top" title="Netcdf File containing the electronic density." alt="" coords="5,5,246,29"/>
+<area shape="rect" id="node1" href="#abipy.electrons.denpot.DensityNcFile" target="_top" title="Netcdf File containing the electronic density." alt="" coords="5,5,244,31"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.denpot.DensityNcFile.field_name">
 <code class="sig-name descname"><span class="pre">field_name</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'density'</span></em><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.field_name" title="Permalink to this definition">¶</a></dt>
@@ -1066,7 +1065,7 @@ Density.ae_core_density_on_mesh method. Requires pseudopotential_paths.</p></li>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-b1f5e03542cdb15746f70a95870cdd6a4cf799af.png" alt="Inheritance diagram of VhartreeNcFile" usemap="#inheritance1dea356815" class="inheritance graphviz" /></div>
 <map id="inheritance1dea356815" name="inheritance1dea356815">
-<area shape="rect" id="node1" href="#abipy.electrons.denpot.VhartreeNcFile" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,252,29"/>
+<area shape="rect" id="node1" href="#abipy.electrons.denpot.VhartreeNcFile" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,248,31"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.denpot.VhartreeNcFile.field_name">
 <code class="sig-name descname"><span class="pre">field_name</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'vh'</span></em><a class="headerlink" href="#abipy.electrons.denpot.VhartreeNcFile.field_name" title="Permalink to this definition">¶</a></dt>
@@ -1087,7 +1086,7 @@ Density.ae_core_density_on_mesh method. Requires pseudopotential_paths.</p></li>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-764c86380cb217a8e680236ad12aa50fc6a577d2.png" alt="Inheritance diagram of VxcNcFile" usemap="#inheritancef4842e950b" class="inheritance graphviz" /></div>
 <map id="inheritancef4842e950b" name="inheritancef4842e950b">
-<area shape="rect" id="node1" href="#abipy.electrons.denpot.VxcNcFile" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,224,29"/>
+<area shape="rect" id="node1" href="#abipy.electrons.denpot.VxcNcFile" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,223,31"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.denpot.VxcNcFile.field_name">
 <code class="sig-name descname"><span class="pre">field_name</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'vxc'</span></em><a class="headerlink" href="#abipy.electrons.denpot.VxcNcFile.field_name" title="Permalink to this definition">¶</a></dt>
@@ -1108,7 +1107,7 @@ Density.ae_core_density_on_mesh method. Requires pseudopotential_paths.</p></li>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-59a235e5fb0df22fc4ff005e335c3d5cbaffe5a9.png" alt="Inheritance diagram of VhxcNcFile" usemap="#inheritance0226348494" class="inheritance graphviz" /></div>
 <map id="inheritance0226348494" name="inheritance0226348494">
-<area shape="rect" id="node1" href="#abipy.electrons.denpot.VhxcNcFile" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,231,29"/>
+<area shape="rect" id="node1" href="#abipy.electrons.denpot.VhxcNcFile" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,229,31"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.denpot.VhxcNcFile.field_name">
 <code class="sig-name descname"><span class="pre">field_name</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'vhxc'</span></em><a class="headerlink" href="#abipy.electrons.denpot.VhxcNcFile.field_name" title="Permalink to this definition">¶</a></dt>
@@ -1130,7 +1129,7 @@ Density.ae_core_density_on_mesh method. Requires pseudopotential_paths.</p></li>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-b8086f1448d2f38b1edb2ba394cfd980bcc3fb02.png" alt="Inheritance diagram of PotNcFile" usemap="#inheritance0c0dcb3aa1" class="inheritance graphviz" /></div>
 <map id="inheritance0c0dcb3aa1" name="inheritance0c0dcb3aa1">
-<area shape="rect" id="node1" href="#abipy.electrons.denpot.PotNcFile" target="_top" title="POT file produced by the GS part containing the total KS potential in real space." alt="" coords="5,5,221,29"/>
+<area shape="rect" id="node1" href="#abipy.electrons.denpot.PotNcFile" target="_top" title="POT file produced by the GS part containing the total KS potential in real space." alt="" coords="5,5,220,31"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.denpot.PotNcFile.field_name">
 <code class="sig-name descname"><span class="pre">field_name</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'vks'</span></em><a class="headerlink" href="#abipy.electrons.denpot.PotNcFile.field_name" title="Permalink to this definition">¶</a></dt>
@@ -1164,8 +1163,8 @@ in the SCF run that produced the density used for the band structure calculation
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-5f46303d656d3a4f5723fb9c242001af6d165923.png" alt="Inheritance diagram of ElectronBands" usemap="#inheritance5d51cbb43e" class="inheritance graphviz" /></div>
 <map id="inheritance5d51cbb43e" name="inheritance5d51cbb43e">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="5,5,218,29"/>
-<area shape="rect" id="node2" href="#abipy.electrons.ebands.ElectronBands" target="_top" title="Object storing the electron band structure." alt="" coords="266,5,514,29"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="5,5,216,31"/>
+<area shape="rect" id="node2" href="#abipy.electrons.ebands.ElectronBands" target="_top" title="Object storing the electron band structure." alt="" coords="264,5,508,31"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.Error">
 <code class="sig-name descname"><span class="pre">Error</span></code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.Error" title="Permalink to this definition">¶</a></dt>
@@ -1181,6 +1180,13 @@ in the SCF run that produced the density used for the band structure calculation
 <dt id="abipy.electrons.ebands.ElectronBands.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize an instance of <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> from the netCDF file <code class="docutils literal notranslate"><span class="pre">filepath</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.electrons.ebands.ElectronBands.from_binary_string">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_binary_string</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bstring</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.from_binary_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.from_binary_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build object from a binary string with the netcdf data.
+Useful for implementing GUIs in which widgets returns binary data.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1250,6 +1256,12 @@ can be changed to other urls implementing a similar interface.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt id="abipy.electrons.ebands.ElectronBands.get_plotter_with">
+<code class="sig-name descname"><span class="pre">get_plotter_with</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_ebands</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.get_plotter_with"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.get_plotter_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build and <a class="reference internal" href="#abipy.electrons.ebands.ElectronBandsPlotter" title="abipy.electrons.ebands.ElectronBandsPlotter"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.electrons.ebands.ElectronBandsPlotter</span></code></a> from self and other, use self_key and other_key as keywords</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="abipy.electrons.ebands.ElectronBands.spins">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">spins</span></code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.spins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Spin range</p>
@@ -1293,7 +1305,7 @@ can be changed to other urls implementing a similar interface.</p></li>
 <dl class="py method">
 <dt id="abipy.electrons.ebands.ElectronBands.reciprocal_lattice">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">reciprocal_lattice</span></code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.reciprocal_lattice" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2022.0.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> with the reciprocal lattice vectors in Angstrom.</p>
+<dd><p><a class="reference external" href="https://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> with the reciprocal lattice vectors in Angstrom.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2112,7 +2124,7 @@ Default: False</p></td>
 
 <dl class="py method">
 <dt id="abipy.electrons.ebands.ElectronBands.plotly">
-<code class="sig-name descname"><span class="pre">plotly</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">klabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fermie'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_phfreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plotly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plotly" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">plotly</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">klabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fermie'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_phfreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plotly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plotly" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the electronic band structure with plotly.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -2127,6 +2139,7 @@ coordinates of the k-points. The values are the labels. e.g.
 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
 -  None: Don’t shift energies, equivalent to e0=0</p></li>
 <li><p><strong>fig</strong> – plotly figure or None if a new figure should be created.</p></li>
+<li><p><strong>rcd</strong> – PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.</p></li>
 <li><p><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code></p></li>
 <li><p><strong>points</strong> – Marker object with the position and the size of the marker.
 Used for plotting purpose e.g. QP energies, energy derivatives.</p></li>
@@ -2143,7 +2156,7 @@ All final states whose energy is within +- max_phfreq of the initial state are i
 By default, the four electronic states defining the fundamental and the direct gaps
 are considered as initial state (not available for metals).</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legends and titles</p></li>
-<li><p><strong>kwargs</strong> – Passed to go.Scatter</p></li>
+<li><p><strong>kwargs</strong> – Passed to fig.add_scatter method.</p></li>
 </ul>
 </dd>
 </dl>
@@ -2169,13 +2182,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -2284,7 +2298,7 @@ Use units=”” to add k-labels without unit name.
 <dl class="py method">
 <dt id="abipy.electrons.ebands.ElectronBands.plot_ax">
 <code class="sig-name descname"><span class="pre">plot_ax</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_ax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_ax" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to plot the energies for (spin, band) on the axis ax.</p>
+<dd><p>Helper function to plot the energies for (spin, band) on the axis ax with matplotlib..</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -2301,17 +2315,18 @@ Use units=”” to add k-labels without unit name.
 
 <dl class="py method">
 <dt id="abipy.electrons.ebands.ElectronBands.plotly_traces">
-<code class="sig-name descname"><span class="pre">plotly_traces</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showlegend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plotly_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plotly_traces" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">plotly_traces</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showlegend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plotly_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plotly_traces" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function to plot the energies for (spin, band) on figure <code class="docutils literal notranslate"><span class="pre">fig</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fig</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code>.</p></li>
 <li><p><strong>e0</strong> – Option used to define the zero of energy in the band structure plot.</p></li>
+<li><p><strong>rcd</strong> – PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.</p></li>
 <li><p><strong>spin</strong> – Spin index. If None, all spins are plotted.</p></li>
 <li><p><strong>band</strong> – Band index, If None, all bands are plotted.</p></li>
 <li><p><strong>showlegend</strong> – Determines whether or not an item corresponding to this trace is shown in the legend.</p></li>
-<li><p><strong>kwargs</strong> – Passed to go.Scatter</p></li>
+<li><p><strong>kwargs</strong> – Passed to fig.add_scatter method.</p></li>
 </ul>
 </dd>
 </dl>
@@ -2320,7 +2335,7 @@ Use units=”” to add k-labels without unit name.
 <dl class="py method">
 <dt id="abipy.electrons.ebands.ElectronBands.plot_with_edos">
 <code class="sig-name descname"><span class="pre">plot_with_edos</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">klabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fermie'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_phfreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_with_edos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_with_edos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the band structure and the DOS.</p>
+<dd><p>Plot the band structure and the DOS with matplotlib.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -2398,6 +2413,77 @@ Default: False</p></td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.electrons.ebands.ElectronBands.plotly_with_edos">
+<code class="sig-name descname"><span class="pre">plotly_with_edos</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">klabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fermie'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_phfreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plotly_with_edos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plotly_with_edos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the band structure and the DOS with plotly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>edos</strong> – An instance of <a class="reference internal" href="#abipy.electrons.ebands.ElectronDos" title="abipy.electrons.ebands.ElectronDos"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.electrons.ebands.ElectronDos</span></code></a>.</p></li>
+<li><p><strong>klabels</strong> – dictionary whose keys are tuple with the reduced coordinates of the k-points.
+The values are the labels. e.g. <code class="docutils literal notranslate"><span class="pre">klabels</span> <span class="pre">=</span> <span class="pre">{(0.0,0.0,0.0):</span> <span class="pre">&quot;$\Gamma$&quot;,</span> <span class="pre">(0.5,0,0):</span> <span class="pre">&quot;L&quot;}</span></code>.</p></li>
+<li><p><strong>fig</strong> – The <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code> with two distinct plots for the bandstructure plot and the DOS plot.
+If fig is None, a new figure is created.</p></li>
+<li><p><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code></p></li>
+<li><p><strong>e0</strong> – <p>Option used to define the zero of energy in the band structure plot. Possible values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>* ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+   Note that, by default, the Fermi energy is taken from the band structure object
+   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+   This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
+   can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
+   the one used to compute the density. See ``edos_fermie``.
+* ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+*  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+*  None: Don&#39;t shift energies, equivalent to ``e0 = 0``
+</pre></div>
+</div>
+</p></li>
+<li><p><strong>points</strong> – Marker object with the position and the size of the marker.
+Used for plotting purpose e.g. QP energies, energy derivatives…</p></li>
+<li><p><strong>with_gaps</strong> – True to add markers and arrows showing the fundamental and the direct gap.</p></li>
+<li><p><strong>max_phfreq</strong> – Max phonon frequency in eV to activate scatterplot showing
+possible phonon absorption/emission processes based on energy-conservation alone.
+All final states whose energy is within +- max_phfreq of the initial state are included.
+By default, the four electronic states defining the fundamental and the direct gaps
+are considered as initial state (not available for metals).</p></li>
+<li><p><strong>width_ratios</strong> – Defines the ratio between the band structure plot and the dos plot.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Return: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code></p>
+<blockquote>
+<div><p>Keyword arguments controlling the display of the figure:
+================  ====================================================================
+kwargs            Meaning
+================  ====================================================================
+title             Title of the plot (Default: None).
+show              True to show the figure (default: True).
+hovormode         True to show the hover info (default: False)
+savefig           “abc.png” , “abc.jpeg” or “abc.webp” to save the figure to a file.
+write_json        Write plotly figure to <cite>write_json</cite> JSON file.</p>
+<blockquote>
+<div><p>Inside jupyter-lab, one can right-click the <cite>write_json</cite> file from the file menu
+and open with “Plotly Editor”.
+Make some changes to the figure, then use the file menu to save the customized plotly plot.
+Requires <cite>jupyter labextension install jupyterlab-chart-editor</cite>.
+See <a class="reference external" href="https://github.com/plotly/jupyterlab-chart-editor">https://github.com/plotly/jupyterlab-chart-editor</a></p>
+</div></blockquote>
+<dl class="simple">
+<dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
+(separated by ‘+’ characters) or None. If None, then the default
+renderers specified in plotly.io.renderers.default are used.
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
+</dd>
+</dl>
+<p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py method">
@@ -2546,14 +2632,15 @@ so it’s recommended to call this method with energies obtained in the IBZ.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>lpratio</strong> – Ratio between the number of star functions and the number of ab-initio k-points.
 The default should be OK in many systems, larger values may be required for accurate derivatives.</p></li>
-<li><p><strong>knames</strong> – List of strings with the k-point labels for the k-path. Has precedence over vertices_names.</p></li>
+<li><p><strong>knames</strong> – List of strings with the k-point labels for the k-path. Has precedence over <code class="docutils literal notranslate"><span class="pre">vertices_names</span></code>.</p></li>
 <li><p><strong>vertices_names</strong> – Used to specify the k-path for the interpolated band structure
 It’s a list of tuple, each tuple is of the form (kfrac_coords, kname) where
 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
 the k-point. Each point represents a vertex of the k-path. <code class="docutils literal notranslate"><span class="pre">line_density</span></code> defines
 the density of the sampling. If None, the k-path is automatically generated according
 to the point group of the system.</p></li>
-<li><p><strong>line_density</strong> – Number of points in the smallest segment of the k-path.</p></li>
+<li><p><strong>line_density</strong> – Number of points in the smallest segment of the k-path.
+If 0, use list of k-points given in vertices_names</p></li>
 <li><p><strong>kmesh</strong> – Used to activate the interpolation on the homogeneous mesh for DOS (uses <a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a> API).
 kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.</p></li>
 <li><p><strong>is_shift</strong> – three integers (<a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a> API). When is_shift is not None, the kmesh is shifted along
@@ -2680,6 +2767,29 @@ Supports:</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="abipy.electrons.ebands.ElectronDos.plotly_traces">
+<code class="sig-name descname"><span class="pre">plotly_traces</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">what</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dos'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exchange_xy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showlegend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronDos.plotly_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronDos.plotly_traces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to plot the DOS data on the <code class="docutils literal notranslate"><span class="pre">fig</span></code> with plotly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fig</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code>.</p></li>
+<li><p><strong>e0</strong> – Option used to define the zero of energy in the band structure plot.</p></li>
+<li><p><strong>spin</strong> – selects the spin component, None for total DOS, IDOS.</p></li>
+<li><p><strong>what</strong> – string selecting what will be plotted. “dos” for DOS, “idos” for IDOS</p></li>
+<li><p><strong>fact</strong> – Multiplication factor for DOS/IDOS. Usually +-1 for spin DOS</p></li>
+<li><p><strong>exchange_xy</strong> – True to exchange x-y axis.</p></li>
+<li><p><strong>rcd</strong> – PlotlyRowColDesc object used to specify the (row, col) of the subplot in the grid.</p></li>
+<li><p><strong>trace_name</strong> – Name of the trace.</p></li>
+<li><p><strong>showlegend</strong> – Determines whether or not an item corresponding to this trace is shown in the legend.</p></li>
+<li><p><strong>line_opts</strong> – Dict of options passed to <a href="#id8"><span class="problematic" id="id9">|plotly.graph_objects.scatter.Line|</span></a></p></li>
+<li><p><strong>kwargs</strong> – Options passed to fig.add_scatter method.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="abipy.electrons.ebands.ElectronDos.plot">
 <code class="sig-name descname"><span class="pre">plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fermie'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exchange_xy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronDos.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronDos.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot electronic DOS with matplotlib.</p>
@@ -2742,6 +2852,61 @@ Default: False</p></td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.electrons.ebands.ElectronDos.plotly">
+<code class="sig-name descname"><span class="pre">plotly</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fermie'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exchange_xy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showlegend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronDos.plotly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronDos.plotly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot electronic DOS with plotly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>e0</strong> – Option used to define the zero of energy in the band structure plot. Possible values:
+- <code class="docutils literal notranslate"><span class="pre">fermie</span></code>: shift all eigenvalues to have zero energy at the Fermi energy (<code class="docutils literal notranslate"><span class="pre">self.fermie</span></code>).
+- Number e.g <code class="docutils literal notranslate"><span class="pre">e0</span> <span class="pre">=</span> <span class="pre">0.5</span></code>: shift all eigenvalues to have zero energy at 0.5 eV
+- None: Don’t shift energies, equivalent to <code class="docutils literal notranslate"><span class="pre">e0</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p></li>
+<li><p><strong>spin</strong> – Selects the spin component, None if total DOS is wanted.</p></li>
+<li><p><strong>fig</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code>.</p></li>
+<li><p><strong>exchange_xy</strong> – True to exchange x-y axis.</p></li>
+<li><p><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>.</p></li>
+<li><p><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>.</p></li>
+<li><p><strong>trace_name</strong> – Name of the trace.</p></li>
+<li><p><strong>showlegend</strong> – Determines whether or not an item corresponding to this trace is shown in the legend.</p></li>
+<li><p><strong>kwargs</strong> – Options passed to fig.add_scatter method.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Return: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code></p>
+<blockquote>
+<div><p>Keyword arguments controlling the display of the figure:
+================  ====================================================================
+kwargs            Meaning
+================  ====================================================================
+title             Title of the plot (Default: None).
+show              True to show the figure (default: True).
+hovormode         True to show the hover info (default: False)
+savefig           “abc.png” , “abc.jpeg” or “abc.webp” to save the figure to a file.
+write_json        Write plotly figure to <cite>write_json</cite> JSON file.</p>
+<blockquote>
+<div><p>Inside jupyter-lab, one can right-click the <cite>write_json</cite> file from the file menu
+and open with “Plotly Editor”.
+Make some changes to the figure, then use the file menu to save the customized plotly plot.
+Requires <cite>jupyter labextension install jupyterlab-chart-editor</cite>.
+See <a class="reference external" href="https://github.com/plotly/jupyterlab-chart-editor">https://github.com/plotly/jupyterlab-chart-editor</a></p>
+</div></blockquote>
+<dl class="simple">
+<dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
+(separated by ‘+’ characters) or None. If None, then the default
+renderers specified in plotly.io.renderers.default are used.
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
+</dd>
+</dl>
+<p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py method">
@@ -2809,6 +2974,58 @@ Default: False</p></td>
 </dd></dl>
 
 <dl class="py method">
+<dt id="abipy.electrons.ebands.ElectronDos.plotly_dos_idos">
+<code class="sig-name descname"><span class="pre">plotly_dos_idos</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fermie'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronDos.plotly_dos_idos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronDos.plotly_dos_idos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot electronic DOS and Integrated DOS on two different subplots with plotly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>e0</strong> – Option used to define the zero of energy in the band structure plot. Possible values:
+- <code class="docutils literal notranslate"><span class="pre">fermie</span></code>: shift all eigenvalues to have zero energy at the Fermi energy (<code class="docutils literal notranslate"><span class="pre">self.fermie</span></code>).
+-  Number e.g <code class="docutils literal notranslate"><span class="pre">e0</span> <span class="pre">=</span> <span class="pre">0.5</span></code>: shift all eigenvalues to have zero energy at 0.5 eV
+-  None: Don’t shift energies, equivalent to <code class="docutils literal notranslate"><span class="pre">e0</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p></li>
+<li><p><strong>fig</strong> – The <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code> with two distinct plots for the DOS and IDOS plot.
+If fig is None, a new figure is created.</p></li>
+<li><p><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>.</p></li>
+<li><p><strong>height_ratios</strong> – </p></li>
+<li><p><strong>kwargs</strong> – Options passed to plotly_traces method.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Return: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code></p>
+<blockquote>
+<div><p>Keyword arguments controlling the display of the figure:
+================  ====================================================================
+kwargs            Meaning
+================  ====================================================================
+title             Title of the plot (Default: None).
+show              True to show the figure (default: True).
+hovormode         True to show the hover info (default: False)
+savefig           “abc.png” , “abc.jpeg” or “abc.webp” to save the figure to a file.
+write_json        Write plotly figure to <cite>write_json</cite> JSON file.</p>
+<blockquote>
+<div><p>Inside jupyter-lab, one can right-click the <cite>write_json</cite> file from the file menu
+and open with “Plotly Editor”.
+Make some changes to the figure, then use the file menu to save the customized plotly plot.
+Requires <cite>jupyter labextension install jupyterlab-chart-editor</cite>.
+See <a class="reference external" href="https://github.com/plotly/jupyterlab-chart-editor">https://github.com/plotly/jupyterlab-chart-editor</a></p>
+</div></blockquote>
+<dl class="simple">
+<dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
+(separated by ‘+’ characters) or None. If None, then the default
+renderers specified in plotly.io.renderers.default are used.
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
+</dd>
+</dl>
+<p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
 <dt id="abipy.electrons.ebands.ElectronDos.plot_up_minus_down">
 <code class="sig-name descname"><span class="pre">plot_up_minus_down</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fermie'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronDos.plot_up_minus_down"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronDos.plot_up_minus_down" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot Dos_up - Dow_down with matplotlib.</p>
@@ -2870,6 +3087,56 @@ Default: False</p></td>
 </table>
 </dd></dl>
 
+<dl class="py method">
+<dt id="abipy.electrons.ebands.ElectronDos.plotly_up_minus_down">
+<code class="sig-name descname"><span class="pre">plotly_up_minus_down</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fermie'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronDos.plotly_up_minus_down"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronDos.plotly_up_minus_down" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot Dos_up - Dow_down with plotly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>e0</strong> – Option used to define the zero of energy in the band structure plot. Possible values:
+- <code class="docutils literal notranslate"><span class="pre">fermie</span></code>: shift all eigenvalues to have zero energy at the Fermi energy (<code class="docutils literal notranslate"><span class="pre">self.fermie</span></code>).
+-  Number e.g <code class="docutils literal notranslate"><span class="pre">e0</span> <span class="pre">=</span> <span class="pre">0.5</span></code>: shift all eigenvalues to have zero energy at 0.5 eV
+-  None: Don’t shift energies, equivalent to <code class="docutils literal notranslate"><span class="pre">e0</span> <span class="pre">=</span> <span class="pre">0</span></code></p></li>
+<li><p><strong>fig</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code> or None if a new figure should be created.</p></li>
+<li><p><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">right)</span></code>.</p></li>
+<li><p><strong>kwargs</strong> – Options passed to fig.add_scatter method.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Return: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code></p>
+<blockquote>
+<div><p>Keyword arguments controlling the display of the figure:
+================  ====================================================================
+kwargs            Meaning
+================  ====================================================================
+title             Title of the plot (Default: None).
+show              True to show the figure (default: True).
+hovormode         True to show the hover info (default: False)
+savefig           “abc.png” , “abc.jpeg” or “abc.webp” to save the figure to a file.
+write_json        Write plotly figure to <cite>write_json</cite> JSON file.</p>
+<blockquote>
+<div><p>Inside jupyter-lab, one can right-click the <cite>write_json</cite> file from the file menu
+and open with “Plotly Editor”.
+Make some changes to the figure, then use the file menu to save the customized plotly plot.
+Requires <cite>jupyter labextension install jupyterlab-chart-editor</cite>.
+See <a class="reference external" href="https://github.com/plotly/jupyterlab-chart-editor">https://github.com/plotly/jupyterlab-chart-editor</a></p>
+</div></blockquote>
+<dl class="simple">
+<dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
+(separated by ‘+’ characters) or None. If None, then the default
+renderers specified in plotly.io.renderers.default are used.
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
+</dd>
+</dl>
+<p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
+</div></blockquote>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -2905,10 +3172,10 @@ Supports plots on the same graph or separated plots.</p>
 </div>
 <p>Dictionary with the mapping label –&gt; edos.</p>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-f7a6f2540f411551a579bb6c597938d93d41e5c3.png" alt="Inheritance diagram of ElectronBandsPlotter" usemap="#inheritanceab465bca1b" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-7e4027636f497a6c1c63b99fc43361de89422393.png" alt="Inheritance diagram of ElectronBandsPlotter" usemap="#inheritanceab465bca1b" class="inheritance graphviz" /></div>
 <map id="inheritanceab465bca1b" name="inheritanceab465bca1b">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,5,225,29"/>
-<area shape="rect" id="node2" href="#abipy.electrons.ebands.ElectronBandsPlotter" target="_top" title="Class for plotting electronic band structure and DOSes." alt="" coords="273,5,559,29"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="265,5,463,28"/>
+<area shape="rect" id="node3" href="#abipy.electrons.ebands.ElectronBandsPlotter" target="_top" title="Class for plotting electronic band structure and DOSes." alt="" coords="506,5,763,28"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.add_plotter">
 <code class="sig-name descname"><span class="pre">add_plotter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.add_plotter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.add_plotter" title="Permalink to this definition">¶</a></dt>
@@ -3748,9 +4015,9 @@ via finite differences starting from an <a class="reference internal" href="#abi
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-88c0ce5f847f121dc75d798b9ed913914be377a3.png" alt="Inheritance diagram of EffMassAnalyzer" usemap="#inheritance9618d0f620" class="inheritance graphviz" /></div>
 <map id="inheritance9618d0f620" name="inheritance9618d0f620">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="5,5,250,29"/>
-<area shape="rect" id="node3" href="#abipy.electrons.effmass_analyzer.EffMassAnalyzer" target="_top" title="This objects provides a high&#45;level API to compute electronic effective masses" alt="" coords="298,29,619,53"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="22,53,234,77"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="5,5,248,31"/>
+<area shape="rect" id="node3" href="#abipy.electrons.effmass_analyzer.EffMassAnalyzer" target="_top" title="This objects provides a high&#45;level API to compute electronic effective masses" alt="" coords="296,31,615,56"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="21,55,232,80"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.effmass_analyzer.EffMassAnalyzer.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/effmass_analyzer.html#EffMassAnalyzer.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.effmass_analyzer.EffMassAnalyzer.from_file" title="Permalink to this definition">¶</a></dt>
@@ -4047,14 +4314,14 @@ Default: False</p></td>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-b32aaefa1e663ff033a2507d6c83ba2fda108031.png" alt="Inheritance diagram of FatBandsFile" usemap="#inheritancedf15763410" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-631d7c91b956ceafbcaadbcf346c9a5428d5eeae.png" alt="Inheritance diagram of FatBandsFile" usemap="#inheritancedf15763410" class="inheritance graphviz" /></div>
 <map id="inheritancedf15763410" name="inheritancedf15763410">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="252,195,448,219"/>
-<area shape="rect" id="node7" href="#abipy.electrons.fatbands.FatBandsFile" target="_top" title="Provides methods to analyze the data stored in the FATBANDS.nc_ file." alt="" coords="519,100,763,124"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="229,5,471,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="251,53,450,76"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="245,100,455,124"/>
-<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="242,147,459,171"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="290,187,473,210"/>
+<area shape="rect" id="node8" href="#abipy.electrons.fatbands.FatBandsFile" target="_top" title="Provides methods to analyze the data stored in the FATBANDS.nc_ file." alt="" coords="538,96,763,119"/>
+<area shape="rect" id="node7" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="281,142,482,165"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="270,5,494,28"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="289,50,474,74"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="284,96,479,119"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.fatbands.FatBandsFile.l2color">
 <code class="sig-name descname"><span class="pre">l2color</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{0:</span> <span class="pre">'red',</span> <span class="pre">1:</span> <span class="pre">'blue',</span> <span class="pre">2:</span> <span class="pre">'green',</span> <span class="pre">3:</span> <span class="pre">'yellow',</span> <span class="pre">4:</span> <span class="pre">'orange'}</span></em><a class="headerlink" href="#abipy.electrons.fatbands.FatBandsFile.l2color" title="Permalink to this definition">¶</a></dt>
@@ -4836,14 +5103,14 @@ working directory is created. Return path to the notebook.</p>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-898202912489bae7202e8c2be2932a5f60a5cf9a.png" alt="Inheritance diagram of Fold2BlochNcfile" usemap="#inheritanceea0f982423" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-f610184c909190891f8d67cd724ee0a2b91fe181.png" alt="Inheritance diagram of Fold2BlochNcfile" usemap="#inheritanceea0f982423" class="inheritance graphviz" /></div>
 <map id="inheritanceea0f982423" name="inheritanceea0f982423">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="243,187,431,210"/>
-<area shape="rect" id="node7" href="#abipy.electrons.fold2bloch.Fold2BlochNcfile" target="_top" title="Netcdf file with output data produced by Fold2Bloch." alt="" coords="499,96,763,119"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="221,5,453,28"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="241,51,433,73"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="236,96,438,119"/>
-<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="233,142,441,165"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="280,180,456,203"/>
+<area shape="rect" id="node8" href="#abipy.electrons.fold2bloch.Fold2BlochNcfile" target="_top" title="Netcdf file with output data produced by Fold2Bloch." alt="" coords="519,93,763,115"/>
+<area shape="rect" id="node7" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="271,137,465,159"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="260,5,476,27"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="279,49,457,71"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="274,93,462,115"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.fold2bloch.Fold2BlochNcfile.from_wfkpath">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_wfkpath</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wfkpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpi_procs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/fold2bloch.html#Fold2BlochNcfile.from_wfkpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.fold2bloch.Fold2BlochNcfile.from_wfkpath" title="Permalink to this definition">¶</a></dt>
@@ -5017,14 +5284,14 @@ working directory is created. Return path to the notebook.</p>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-a30c927de0be9a1cfbb940d4369c503009bc2ad2.png" alt="Inheritance diagram of GsrFile" usemap="#inheritance7fe53e894a" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-5bed66bb0db107e83c8b0d00ff383add04eec396.png" alt="Inheritance diagram of GsrFile" usemap="#inheritance7fe53e894a" class="inheritance graphviz" /></div>
 <map id="inheritance7fe53e894a" name="inheritance7fe53e894a">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,197,454,221"/>
-<area shape="rect" id="node7" href="#abipy.electrons.gsr.GsrFile" target="_top" title="File containing the results of a ground&#45;state calculation." alt="" coords="525,101,703,125"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="232,5,477,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="254,53,456,77"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="249,101,461,125"/>
-<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,149,464,173"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="314,203,513,228"/>
+<area shape="rect" id="node8" href="#abipy.electrons.gsr.GsrFile" target="_top" title="File containing the results of a ground&#45;state calculation." alt="" coords="583,104,760,129"/>
+<area shape="rect" id="node7" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="305,153,522,179"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="292,5,535,31"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="313,55,513,80"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="308,104,519,129"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.gsr.GsrFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gsr.html#GsrFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.gsr.GsrFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -5182,6 +5449,12 @@ supported by the GSR object.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt id="abipy.electrons.gsr.GsrFile.yield_plotly_figs">
+<code class="sig-name descname"><span class="pre">yield_plotly_figs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gsr.html#GsrFile.yield_plotly_figs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.gsr.GsrFile.yield_plotly_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of plotly figures with minimal input from the user.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="abipy.electrons.gsr.GsrFile.write_notebook">
 <code class="sig-name descname"><span class="pre">write_notebook</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nbpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gsr.html#GsrFile.write_notebook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.gsr.GsrFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal notranslate"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
@@ -5282,13 +5555,13 @@ The string are extracted from the class doc string.</p>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-b345db693bfec6cd1f5aff09c203387fdae5632e.png" alt="Inheritance diagram of SigresFile" usemap="#inheritanceeae53b786c" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-c2afdbfe9dc7132be39a8e6152f38ae902b9604e.png" alt="Inheritance diagram of SigresFile" usemap="#inheritanceeae53b786c" class="inheritance graphviz" /></div>
 <map id="inheritanceeae53b786c" name="inheritanceeae53b786c">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,149,454,173"/>
-<area shape="rect" id="node6" href="#abipy.electrons.gw.SigresFile" target="_top" title="Container storing the GW results reported in the SIGRES.nc file." alt="" coords="525,77,718,101"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="232,5,477,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="249,53,461,77"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,101,464,125"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="310,151,506,176"/>
+<area shape="rect" id="node7" href="#abipy.electrons.gw.SigresFile" target="_top" title="Container storing the GW results reported in the SIGRES.nc file." alt="" coords="575,79,763,104"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="300,103,515,128"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="288,5,527,30"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="304,54,512,79"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.gw.SigresFile.marker_spin">
 <code class="sig-name descname"><span class="pre">marker_spin</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{0:</span> <span class="pre">'^',</span> <span class="pre">1:</span> <span class="pre">'v'}</span></em><a class="headerlink" href="#abipy.electrons.gw.SigresFile.marker_spin" title="Permalink to this definition">¶</a></dt>
@@ -5906,11 +6179,11 @@ working directory is created. Return path to the notebook.</p>
 <dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.robots.Robot</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.electrons.ebands.RobotWithEbands</span></code></p>
 <p>This robot analyzes the results contained in multiple SIGRES.nc files.</p>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-367830fede43dff33be22387549a03836251e277.png" alt="Inheritance diagram of SigresRobot" usemap="#inheritance898dbfdc13" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-8f9c75bc59c86b37cdab4793d6b4699e95b1180c.png" alt="Inheritance diagram of SigresRobot" usemap="#inheritance898dbfdc13" class="inheritance graphviz" /></div>
 <map id="inheritance898dbfdc13" name="inheritance898dbfdc13">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="313,51,467,74"/>
-<area shape="rect" id="node4" href="#abipy.electrons.gw.SigresRobot" target="_top" title="This robot analyzes the results contained in multiple SIGRES.nc files." alt="" coords="565,28,763,51"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,51,215,74"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="434,39,546,57"/>
+<area shape="rect" id="node5" href="#abipy.electrons.gw.SigresRobot" target="_top" title="This robot analyzes the results contained in multiple SIGRES.nc files." alt="" coords="618,22,764,40"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="207,39,362,57"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.gw.SigresRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'SIGRES'</span></em><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -5938,6 +6211,26 @@ where key is a string with the name of column and value is the value to be inser
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.electrons.gw.SigresRobot.get_fit_gaps_vs_ecuteps">
+<code class="sig-name descname"><span class="pre">get_fit_gaps_vs_ecuteps</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_qpmks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresRobot.get_fit_gaps_vs_ecuteps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.get_fit_gaps_vs_ecuteps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit QP direct gaps as a function of ecuteps using Eq. 16 of <a class="reference external" href="http://dx.doi.org/10.1063/1.4900447">http://dx.doi.org/10.1063/1.4900447</a>
+to extrapolate results for ecuteps –&gt; +oo.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spin</strong> – Spin index (0 or 1)</p></li>
+<li><p><strong>kpoint</strong> – K-point in self-energy. Accepts <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpoint" title="abipy.core.kpoints.Kpoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.kpoints.Kpoint</span></code></a>, vector or k-point index.</p></li>
+<li><p><strong>plot_qpmks</strong> – If False, plot QP_gap else (QP_gap - KS_gap) i.e. gap correction</p></li>
+<li><p><strong>slice_data</strong> – Python slice object. Used to downsample data points.
+None to use all files of the SigResRobot.</p></li>
+<li><p><strong>fontsize</strong> – legend and label fontsize.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Return: TODO</p>
 </dd></dl>
 
 <dl class="py method">
@@ -7176,14 +7469,14 @@ properties and susceptibilty tensors. Used by <a class="reference internal" href
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-4365846d1864a1fb794d8ff6636b7125a8381cf6.png" alt="Inheritance diagram of OpticNcFile" usemap="#inheritanced1888ea308" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-bef4cb4ebd494d36f0846eeadd8df0955d6aa057.png" alt="Inheritance diagram of OpticNcFile" usemap="#inheritanced1888ea308" class="inheritance graphviz" /></div>
 <map id="inheritanced1888ea308" name="inheritanced1888ea308">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,197,454,221"/>
-<area shape="rect" id="node7" href="#abipy.electrons.optic.OpticNcFile" target="_top" title="This file contains the results produced by optic. Provides methods to plot optical" alt="" coords="525,101,740,125"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="232,5,477,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="254,53,456,77"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="249,101,461,125"/>
-<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,149,464,173"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="300,194,491,218"/>
+<area shape="rect" id="node8" href="#abipy.electrons.optic.OpticNcFile" target="_top" title="This file contains the results produced by optic. Provides methods to plot optical" alt="" coords="558,100,763,124"/>
+<area shape="rect" id="node7" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,147,499,171"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="279,5,512,29"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="300,52,491,77"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="295,100,496,124"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.optic.OpticNcFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/optic.html#OpticNcFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.optic.OpticNcFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -7564,8 +7857,8 @@ It provides helper function to access the most important quantities.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-32b6b85529b308354c41c1c7ff651d4c8270979e.png" alt="Inheritance diagram of OpticReader" usemap="#inheritance8a04e82e04" class="inheritance graphviz" /></div>
 <map id="inheritance8a04e82e04" name="inheritance8a04e82e04">
-<area shape="rect" id="node4" href="#abipy.electrons.optic.OpticReader" target="_top" title="This object reads the results stored in the optic.nc file" alt="" coords="648,16,765,28"/>
-<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="344,28,441,41"/>
+<area shape="rect" id="node4" href="#abipy.electrons.optic.OpticReader" target="_top" title="This object reads the results stored in the optic.nc file" alt="" coords="648,16,765,30"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="344,29,442,43"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.optic.OpticReader.read_lineps">
 <code class="sig-name descname"><span class="pre">read_lineps</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itemp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/optic.html#OpticReader.read_lineps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.optic.OpticReader.read_lineps" title="Permalink to this definition">¶</a></dt>
@@ -7607,11 +7900,11 @@ Individual entries are listed in ALL_CHIS[key][“terms”]</p>
 <dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.robots.Robot</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.electrons.ebands.RobotWithEbands</span></code></p>
 <p>This robot analyzes the results contained in multiple optic.nc files.</p>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-7f5c621a92b90292657d0a921567aa20bff42c6f.png" alt="Inheritance diagram of OpticRobot" usemap="#inheritancee9986e91d2" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-aefabd1ab22473ebdd2e1c3adf8b6318ae14429f.png" alt="Inheritance diagram of OpticRobot" usemap="#inheritancee9986e91d2" class="inheritance graphviz" /></div>
 <map id="inheritancee9986e91d2" name="inheritancee9986e91d2">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="311,51,464,74"/>
-<area shape="rect" id="node4" href="#abipy.electrons.optic.OpticRobot" target="_top" title="This robot analyzes the results contained in multiple optic.nc files." alt="" coords="561,28,763,51"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,51,214,74"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="432,39,544,57"/>
+<area shape="rect" id="node5" href="#abipy.electrons.optic.OpticRobot" target="_top" title="This robot analyzes the results contained in multiple optic.nc files." alt="" coords="615,22,764,40"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="206,39,360,57"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.optic.OpticRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'OPTIC'</span></em><a class="headerlink" href="#abipy.electrons.optic.OpticRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -8629,13 +8922,13 @@ Used if dos_filepath is not None.</p></li>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-064eb255c70bd24b90032f6894a2bdddbe58c9ab.png" alt="Inheritance diagram of ScrFile" usemap="#inheritance7cf8f6d793" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-d7b3aa9f095ac199514dd5bb470987a209887a4a.png" alt="Inheritance diagram of ScrFile" usemap="#inheritance7cf8f6d793" class="inheritance graphviz" /></div>
 <map id="inheritance7cf8f6d793" name="inheritance7cf8f6d793">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="243,149,441,173"/>
-<area shape="rect" id="node6" href="#abipy.electrons.scr.ScrFile" target="_top" title="This object provides an interface to the ``SCR.nc`` file produced by the GW code." alt="" coords="500,77,676,101"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="241,5,443,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="236,53,448,77"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,101,452,125"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="301,153,500,179"/>
+<area shape="rect" id="node7" href="#abipy.electrons.scr.ScrFile" target="_top" title="This object provides an interface to the ``SCR.nc`` file produced by the GW code." alt="" coords="557,80,733,105"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,104,509,129"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="301,5,501,31"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="295,55,506,80"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.scr.ScrFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -8867,8 +9160,8 @@ number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_fu
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-59063cbdc61cba2393b05135f72364688fc795e9.png" alt="Inheritance diagram of ScrReader" usemap="#inheritance7426748bd3" class="inheritance graphviz" /></div>
 <map id="inheritance7426748bd3" name="inheritance7426748bd3">
-<area shape="rect" id="node1" href="#abipy.electrons.scr.ScrReader" target="_top" title="This object reads the results stored in the SCR (Screening) file produced by ABINIT." alt="" coords="619,4,764,21"/>
-<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="450,4,584,21"/>
+<area shape="rect" id="node1" href="#abipy.electrons.scr.ScrReader" target="_top" title="This object reads the results stored in the SCR (Screening) file produced by ABINIT." alt="" coords="619,4,764,23"/>
+<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="449,4,583,23"/>
 </map><dl class="py method">
 <dt id="abipy.electrons.scr.ScrReader.read_params">
 <code class="sig-name descname"><span class="pre">read_params</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.read_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.read_params" title="Permalink to this definition">¶</a></dt>
@@ -8941,7 +9234,7 @@ Accepts <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpo
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-94cdfcfae566e2a115767eb6b65cdcda25b7990e.png" alt="Inheritance diagram of Polarizability" usemap="#inheritancebef77cc23b" class="inheritance graphviz" /></div>
 <map id="inheritancebef77cc23b" name="inheritancebef77cc23b">
-<area shape="rect" id="node1" href="#abipy.electrons.scr.Polarizability" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,215,29"/>
+<area shape="rect" id="node1" href="#abipy.electrons.scr.Polarizability" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,215,31"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.scr.Polarizability.netcdf_name">
 <code class="sig-name descname"><span class="pre">netcdf_name</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'polarizability'</span></em><a class="headerlink" href="#abipy.electrons.scr.Polarizability.netcdf_name" title="Permalink to this definition">¶</a></dt>
@@ -8961,7 +9254,7 @@ Accepts <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpo
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-d9cee6f81dcc34cab7c678eb34ed4e43926de036.png" alt="Inheritance diagram of DielectricFunction" usemap="#inheritance6199a96776" class="inheritance graphviz" /></div>
 <map id="inheritance6199a96776" name="inheritance6199a96776">
-<area shape="rect" id="node1" href="#abipy.electrons.scr.DielectricFunction" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,246,29"/>
+<area shape="rect" id="node1" href="#abipy.electrons.scr.DielectricFunction" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,245,31"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.scr.DielectricFunction.netcdf_name">
 <code class="sig-name descname"><span class="pre">netcdf_name</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'dielectric_function'</span></em><a class="headerlink" href="#abipy.electrons.scr.DielectricFunction.netcdf_name" title="Permalink to this definition">¶</a></dt>
@@ -8981,7 +9274,7 @@ Accepts <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpo
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-f47cf1d4b1071b04aff8df80736bdc5d8c2981c0.png" alt="Inheritance diagram of InverseDielectricFunction" usemap="#inheritancee337708410" class="inheritance graphviz" /></div>
 <map id="inheritancee337708410" name="inheritancee337708410">
-<area shape="rect" id="node1" href="#abipy.electrons.scr.InverseDielectricFunction" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,290,29"/>
+<area shape="rect" id="node1" href="#abipy.electrons.scr.InverseDielectricFunction" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="5,5,288,31"/>
 </map><dl class="py attribute">
 <dt id="abipy.electrons.scr.InverseDielectricFunction.netcdf_name">
 <code class="sig-name descname"><span class="pre">netcdf_name</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'inverse_dielectric_function'</span></em><a class="headerlink" href="#abipy.electrons.scr.InverseDielectricFunction.netcdf_name" title="Permalink to this definition">¶</a></dt>
@@ -9013,7 +9306,7 @@ Accepts <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpo
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

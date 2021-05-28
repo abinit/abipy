@@ -11,7 +11,7 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_gallery_plot_phonon_fatbands.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
@@ -108,7 +108,7 @@ See tutorial/lesson_rf2.html
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.527 seconds)
+   **Total running time of the script:** ( 0 minutes  1.601 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_phonon_fatbands.py:
@@ -119,6 +119,13 @@ See tutorial/lesson_rf2.html
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_phonon_fatbands.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

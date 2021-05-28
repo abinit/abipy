@@ -11,20 +11,19 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_flow_gallery_run_conducwork.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_conducwork.py:
 
 
-Effective masses with finite difference
-=======================================
+Conductivity in metals
+======================
 
-Flow to compute effective masses with finite difference method.
-Derivatives are computed along lines in k-space.
+Flow to compute conductivity in metals
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-162
+.. GENERATED FROM PYTHON SOURCE LINES 8-161
 
 
 
@@ -195,7 +194,7 @@ Derivatives are computed along lines in k-space.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.229 seconds)
+   **Total running time of the script:** ( 0 minutes  2.069 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_conducwork.py:
@@ -206,6 +205,13 @@ Derivatives are computed along lines in k-space.
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_conducwork.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

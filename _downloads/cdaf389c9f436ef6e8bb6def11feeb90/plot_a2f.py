@@ -11,7 +11,7 @@ import abipy.data as abidata
 
 phdos_path = abidata.ref_file("al_161616q_PHDOS.nc")
 
-ncfile =  abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc"))
+ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc"))
 print(ncfile)
 
 #ncfile.phbands.plot()

@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -348,7 +347,7 @@
         <span class="k">for</span> <span class="n">varname</span><span class="p">,</span> <span class="n">varvalue</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="bp">self</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span> <span class="o">=</span> <span class="n">varvalue</span>
 
-        <span class="c1"># Just to make life easier to the user, we update some dimensions </span>
+        <span class="c1"># Just to make life easier to the user, we update some dimensions</span>
         <span class="c1"># if only the &quot;array&quot; part is specified in input.</span>
         <span class="k">if</span> <span class="s2">&quot;shiftk&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;nshiftk&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;shiftk&quot;</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
@@ -889,9 +888,14 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported value for sortmode </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">sortmode</span><span class="p">))</span>
 
+        <span class="k">def</span> <span class="nf">to_html</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
+            <span class="c1"># insert text inside div so that we can style it.</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;div class=&quot;abinit_input&quot;&gt;</span><span class="se">\n</span><span class="si">{</span><span class="n">string</span><span class="si">}</span><span class="se">\n</span><span class="s1">&lt;div&gt;&#39;</span>
+
         <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">with_pseudos</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">s</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">!=</span> <span class="s2">&quot;html&quot;</span> <span class="k">else</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">s</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">!=</span> <span class="s2">&quot;html&quot;</span> <span class="k">else</span> <span class="n">to_html</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 
         <span class="c1"># Add JSON section with pseudo potentials.</span>
         <span class="n">ppinfo</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="se">\n\n\n</span><span class="s2">#&lt;JSON&gt;&quot;</span><span class="p">]</span>
@@ -900,7 +904,7 @@
         <span class="n">ppinfo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&lt;/JSON&gt;&quot;</span><span class="p">)</span>
 
         <span class="n">s</span> <span class="o">+=</span> <span class="n">escape</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ppinfo</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">s</span> <span class="o">=</span> <span class="n">to_html</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">s</span></div>
 
@@ -2042,6 +2046,74 @@
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
+<div class="viewcode-block" id="AbinitInput.make_wfk_kerange_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_wfk_kerange_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_wfk_kerange_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigma_kerange</span><span class="p">,</span> <span class="n">sigma_ngkpt</span><span class="p">,</span> <span class="n">einterp</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a |MultiDataset| with two inputs for performing a WFK calculation with the kerange trick.</span>
+<span class="sd">        This method should be called with the input associated to the NSCF run that produces</span>
+<span class="sd">        the WFK file used for the interpolation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sigma_kerange: The energy window for the WFK generation.</span>
+<span class="sd">            sigma_ngkpt: The fine grid of kpt inside the sigma_kerange interval.</span>
+<span class="sd">            einterp: The interpolation used. By default it is a star-function interpolation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Create a MultiDataset from the nscf input</span>
+        <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">([</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="p">])</span>
+
+        <span class="c1"># Activate the options needed to calculates the kpts within the sigma interval (Kerange.nc file)</span>
+        <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">optdriver</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">wfk_task</span><span class="o">=</span><span class="s1">&#39;&quot;wfk_kpts_erange&quot;&#39;</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                          <span class="n">sigma_ngkpt</span><span class="o">=</span><span class="n">sigma_ngkpt</span><span class="p">,</span> <span class="n">sigma_nshiftk</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sigma_shiftk</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                          <span class="n">einterp</span><span class="o">=</span><span class="n">einterp</span><span class="p">,</span> <span class="n">sigma_erange</span><span class="o">=</span><span class="n">sigma_kerange</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">([</span><span class="s2">&quot;iscf&quot;</span><span class="p">,</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">,</span><span class="s2">&quot;prtden&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Modify the second nscf input to get a task that adds the kpt from Kerange.nc to the input file</span>
+        <span class="c1"># used to compute the WFK file.</span>
+        <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">optdriver</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="n">sigma_ngkpt</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">multi</span></div>
+
+<div class="viewcode-block" id="AbinitInput.make_eph_transport_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_eph_transport_input">[docs]</a>    <span class="k">def</span> <span class="nf">make_eph_transport_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ddb_ngqpt</span><span class="p">,</span> <span class="n">sigma_erange</span><span class="p">,</span> <span class="n">tmesh</span><span class="p">,</span> <span class="n">eph_ngqpt_fine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                 <span class="n">mixprec</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">boxcutmin</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">ibte_prep</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ibte_niter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">ibte_abs_tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return an |AbinitInput| to perform phonon-limited transport calculations.</span>
+<span class="sd">        This method is usually called with the input associated to the NSCF run that produces</span>
+<span class="sd">        the WFK file used to start the EPH run so that we can directly inherit the k-mesh</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ddb_ngqpt: the coarse qpt grid used to compute the DDB and DVDB files in the phonon_work.</span>
+<span class="sd">            eph_ngqpt_fine: the fine qpt grid used for the Fourier interpolation.</span>
+<span class="sd">            sigma_erange: Energy window for k-states (see Abinit variable)</span>
+<span class="sd">            tmesh: The mesh of temperatures (in Kelvin)</span>
+<span class="sd">            boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.</span>
+<span class="sd">            mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.</span>
+<span class="sd">            ibte_prep: Set it to 1 to activate the iterative Boltzmann equation. Default is RTA.</span>
+<span class="sd">            ibte_niter: Number of iterations to solve the Boltzmann equation.</span>
+<span class="sd">            ibte_abs_tol: Stopping criterion for the IBTE.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">eph_ngqpt_fine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">eph_ngqpt_fine</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">eph_ngqpt_fine</span>
+        <span class="n">nbdbuf</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nbdbuf&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nbdbuf&quot;</span><span class="p">)</span>
+        <span class="n">nband</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nband&quot;</span><span class="p">)</span> <span class="o">-</span> <span class="n">nbdbuf</span> <span class="c1"># If nbdbuf is used in the NSCF computation,</span>
+                                           <span class="c1"># it cannot be used in the EPH driver and should</span>
+                                           <span class="c1"># be removed</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span>
+            <span class="n">optdriver</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>                    <span class="c1"># Enter EPH driver.</span>
+            <span class="n">eph_task</span><span class="o">=-</span><span class="mi">4</span><span class="p">,</span>                    <span class="c1"># Compute imag part of sigma_eph.</span>
+            <span class="n">ddb_ngqpt</span><span class="o">=</span><span class="n">ddb_ngqpt</span><span class="p">,</span>            <span class="c1"># Ab-initio coarse q-mesh used to produce the DDB/DVDB files.</span>
+            <span class="n">eph_ngqpt_fine</span><span class="o">=</span><span class="n">eph_ngqpt_fine</span><span class="p">,</span>  <span class="c1"># Interpolate DFPT potentials on this denser q-mesh.</span>
+            <span class="n">sigma_erange</span><span class="o">=</span><span class="n">sigma_erange</span><span class="p">,</span>
+            <span class="n">tmesh</span><span class="o">=</span><span class="n">tmesh</span><span class="p">,</span>
+            <span class="n">mixprec</span><span class="o">=</span><span class="n">mixprec</span><span class="p">,</span>
+            <span class="n">boxcutmin</span><span class="o">=</span><span class="n">boxcutmin</span><span class="p">,</span>
+            <span class="n">ibte_prep</span><span class="o">=</span><span class="n">ibte_prep</span><span class="p">,</span>
+            <span class="n">ibte_niter</span><span class="o">=</span><span class="n">ibte_niter</span><span class="p">,</span>
+            <span class="n">ibte_abs_tol</span><span class="o">=</span><span class="n">ibte_abs_tol</span><span class="p">,</span>
+            <span class="n">nband</span><span class="o">=</span><span class="n">nband</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">([</span><span class="s2">&quot;iscf&quot;</span><span class="p">,</span><span class="s2">&quot;prtwf&quot;</span><span class="p">,</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">,</span><span class="s2">&quot;prtden&quot;</span><span class="p">,</span><span class="s2">&quot;nbdbuf&quot;</span><span class="p">,</span><span class="s2">&quot;kptopt&quot;</span><span class="p">])</span>
+        <span class="c1">#new.add_phbbands_vars()</span>
+        <span class="k">return</span> <span class="n">new</span></div>
+
     <span class="c1">#def make_eph_zpr_input(self, ddb_ngqpt, tmesh, eph_ngqpt_fine=None,,</span>
     <span class="c1">#                       mixprec=1, boxcutmin=1.1):</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
@@ -2069,37 +2141,6 @@
     <span class="c1">#    )</span>
     <span class="c1">#    #new.add_phbbands_vars()</span>
     <span class="c1">#    return ne</span>
-
-    <span class="c1">#def make_eph_transport_input(self, ddb_ngqpt, sigma_erange, tmesh, eph_ngqpt_fine=None,,</span>
-    <span class="c1">#                             mixprec=1, boxcutmin=1.1, ibte_prep=0):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Return an |AbinitInput| to perform phonon-limited transport calculations.</span>
-    <span class="c1">#    This method is usually called with with the input associated to the NSCF run that produces</span>
-    <span class="c1">#    the WFK file used to start the EPH run so that we can directly inherit the k-mesh</span>
-
-    <span class="c1">#    Args:</span>
-    <span class="c1">#        ddb_ngqpt: the coarse qpt grid used to compute the DDB and DVDB files in the phonon_work.</span>
-    <span class="c1">#        eph_ngqpt_fine: the fine qpt grid used for the Fourier interpolation.</span>
-    <span class="c1">#        sigma_erange: Energy window for k-states (see Abinit variable)</span>
-    <span class="c1">#        tmesh: The mesh of temperatures (in Kelvin)</span>
-    <span class="c1">#        boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.</span>
-    <span class="c1">#        mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.</span>
-    <span class="c1">#        ibte_prep: Set it to 1 to activate the iterative Boltzmann equation. Default is RTA.</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    eph_ngqpt_fine = self.get(&quot;ngkpt&quot;) if eph_ngqpt_fine is None else eph_ngqpt_fine</span>
-    <span class="c1">#    new = self.new_with_vars(</span>
-    <span class="c1">#        optdriver=7,                    # Enter EPH driver.</span>
-    <span class="c1">#        eph_task=-4,                    # Compute imag part of sigma_eph.</span>
-    <span class="c1">#        ddb_ngqpt=ddb_ngqpt,            # Ab-initio coarse q-mesh used to produce the DDB/DVDB files.</span>
-    <span class="c1">#        eph_ngqpt_fine=eph_ngqpt_fine,  # Interpolate DFPT potentials on this denser q-mesh.</span>
-    <span class="c1">#        sigma_erange=sigma_erange,</span>
-    <span class="c1">#        tmesh=tmesh,</span>
-    <span class="c1">#        mixprec=mixprec,</span>
-    <span class="c1">#        boxcutmin=boxcutmin,</span>
-    <span class="c1">#        ibte_prep=ibte_prep,</span>
-    <span class="c1">#    )</span>
-    <span class="c1">#    #new.add_phbbands_vars()</span>
-    <span class="c1">#    return new</span>
 
     <span class="c1">#def make_eph_isotc_input(self, ddb_ngqpt, eph_fsewin, eph_ngqpt_fine=None,,</span>
     <span class="c1">#                          mixprec=1, boxcutmin=1.1):</span>
@@ -4065,7 +4106,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

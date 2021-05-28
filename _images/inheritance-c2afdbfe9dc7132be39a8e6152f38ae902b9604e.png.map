@@ -1,0 +1,8 @@
+<map id="inheritanceeae53b786c" name="inheritanceeae53b786c">
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="310,151,506,176"/>
+<area shape="rect" id="node7" href="#abipy.electrons.gw.SigresFile" target="_top" title="Container storing the GW results reported in the SIGRES.nc file." alt="" coords="575,79,763,104"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="35,151,211,176"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="300,103,515,128"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="288,5,527,30"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="304,54,512,79"/>
+</map>

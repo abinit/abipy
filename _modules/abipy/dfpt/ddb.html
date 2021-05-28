@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -1113,6 +1112,14 @@
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">plot_bz</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="DdbFile.yield_plotly_figs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.yield_plotly_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_plotly_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of plotly figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">plotly_bz</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="DdbFile.anaget_phmodes_at_qpoint"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_phmodes_at_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">anaget_phmodes_at_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                                  <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                  <span class="n">directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_input</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -1626,11 +1633,13 @@
 
             <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;asr: </span><span class="si">%d</span><span class="s2">, chneut: </span><span class="si">%d</span><span class="s2">, dipdip: </span><span class="si">%d</span><span class="s2">, dipquad: </span><span class="si">%d</span><span class="s2">, quadquad: </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">asr</span><span class="p">,</span> <span class="n">dipdip</span><span class="p">,</span> <span class="n">chneut</span><span class="p">,</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;dipquad&quot;</span><span class="p">],</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;quadquad&quot;</span><span class="p">])</span>
+
             <span class="k">if</span> <span class="n">phdos_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">phbands_plotter</span><span class="o">.</span><span class="n">add_phbands</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">phbst_file</span><span class="o">.</span><span class="n">phbands</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=</span><span class="n">phdos_file</span><span class="o">.</span><span class="n">phdos</span><span class="p">)</span>
                 <span class="n">phdos_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">phbands_plotter</span><span class="o">.</span><span class="n">add_phbands</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">phbst_file</span><span class="o">.</span><span class="n">phbands</span><span class="p">)</span>
+
             <span class="n">phbst_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">phbands_plotter</span></div>
@@ -1748,6 +1757,7 @@
         <span class="kn">from</span> <span class="nn">abipy.dfpt.converters</span> <span class="kn">import</span> <span class="n">abinit_to_phonopy</span>
         <span class="n">anaddbnc_path</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">outpath_from_ext</span><span class="p">(</span><span class="s2">&quot;anaddb.nc&quot;</span><span class="p">)</span>
         <span class="n">anaddbnc</span> <span class="o">=</span> <span class="n">AnaddbNcFile</span><span class="p">(</span><span class="n">anaddbnc_path</span><span class="p">)</span>
+
         <span class="n">phon</span> <span class="o">=</span> <span class="n">abinit_to_phonopy</span><span class="p">(</span><span class="n">anaddbnc</span><span class="o">=</span><span class="n">anaddbnc</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="o">=</span><span class="n">supercell_matrix</span><span class="p">,</span>
                                  <span class="n">symmetrize_tensors</span><span class="o">=</span><span class="n">symmetrize_tensors</span><span class="p">,</span> <span class="n">output_dir_path</span><span class="o">=</span><span class="n">output_dir_path</span><span class="p">,</span>
                                  <span class="n">prefix_outfiles</span><span class="o">=</span><span class="n">prefix_outfiles</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">set_masses</span><span class="o">=</span><span class="n">set_masses</span><span class="p">)</span>
@@ -3327,16 +3337,16 @@
         <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">has_at_least_one_atomic_perturbation</span><span class="p">()</span> <span class="k">for</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invoking anaddb through anaget_phonon_plotters...&quot;</span><span class="p">)</span>
             <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anaget_phonon_plotters</span><span class="p">()</span>
-            <span class="c1">#for fig in r.phbands_plotter.yield_figs(): yield fig</span>
-            <span class="c1">#for fig in r.phdos_plotter.yield_figs(): yield fig</span>
+            <span class="c1">#for fig in r.phbands_plotter.yield_plotly_figs(): yield fig</span>
+            <span class="c1">#for fig in r.phdos_plotter.yield_plotly_figs(): yield fig</span>
             <span class="n">f</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">phbands_plotter</span><span class="o">.</span><span class="n">combiplotly</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 
         <span class="n">push_to_chart_studio</span><span class="p">(</span><span class="n">figs</span><span class="p">)</span> <span class="k">if</span> <span class="n">chart_studio</span> <span class="k">else</span> <span class="n">plotlyfigs_to_browser</span><span class="p">(</span><span class="n">figs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DdbRobot.get_panel"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DdbRobot.get_panel"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a panel object that allows the user to compare the results with a web-based interface.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.panels.ddb</span> <span class="kn">import</span> <span class="n">DdbRobotPanel</span>
-        <span class="k">return</span> <span class="n">DdbRobotPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="n">DdbRobotPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DdbRobot.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -3371,20 +3381,20 @@
 <div class="viewcode-block" id="get_2nd_ord_block_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.get_2nd_ord_block_string">[docs]</a><span class="k">def</span> <span class="nf">get_2nd_ord_block_string</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper function providing the lines required in a DDB file for a given</span>
-<span class="sd">    q point and second order derivatives.</span>
+<span class="sd">    q-point and second order derivatives.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        qpt: the fractional coordinates of the q point.</span>
 <span class="sd">        data: a dictionary of the form {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}</span>
 <span class="sd">            with the data that should be given in the string.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        list of str: the lines that can be added to the DDB file.</span>
+<span class="sd">    Returns: list of str: the lines that can be added to the DDB file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; 2nd derivatives (non-stat.)  - # elements :</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">:</span><span class="s2">8</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; qpt</span><span class="si">{:16.8E}{:16.8E}{:16.8E}</span><span class="s2">   1.0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">qpt</span><span class="p">))</span>
     <span class="n">l_format</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{:4d}</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">+</span> <span class="s2">&quot;  </span><span class="si">{:22.14E}</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="mi">2</span>
+
     <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l_format</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">imag</span><span class="p">))</span>
 
@@ -3402,7 +3412,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

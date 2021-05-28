@@ -11,7 +11,7 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_flow_gallery_run_gruneisen_abinit.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
@@ -31,7 +31,7 @@ One is calculated at the equilibrium volume and the remaining two are calculated
 at the slightly larger volume and smaller volume than the equilibrium volume.
 The unitcells at these volumes have to be fully relaxed under the constraint of each volume.
 
-.. GENERATED FROM PYTHON SOURCE LINES 16-87
+.. GENERATED FROM PYTHON SOURCE LINES 16-86
 
 
 
@@ -81,14 +81,13 @@ The unitcells at these volumes have to be fully relaxed under the constraint of 
                     0.5, 0.0, 0.0,
                     0.5, 0.5, 0.5],
             diemac=12.0,
-            iomode=3,
+            #iomode=3,
             tolvrs=1.0e-18,
         )
 
+        # NB: k-mesh in gs_inp and ngqpt q-mesh must be commensurate.
         from abipy.flowtk.gruneisen import GruneisenWork
         voldelta = gs_inp.structure.volume * 0.02
-
-        # k-mesh and q-mesh must be commensurate.
         work = GruneisenWork.from_gs_input(gs_inp, voldelta, ngqpt=[2, 2, 2], with_becs=False)
         flow.register_work(work)
 
@@ -120,7 +119,7 @@ The unitcells at these volumes have to be fully relaxed under the constraint of 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.074 seconds)
+   **Total running time of the script:** ( 0 minutes  0.078 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_gruneisen_abinit.py:
@@ -131,6 +130,13 @@ The unitcells at these volumes have to be fully relaxed under the constraint of 
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_gruneisen_abinit.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

@@ -11,7 +11,7 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_gallery_plot_gw_spectral_functions.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
@@ -66,7 +66,7 @@ See also lesson tgw2_4
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.453 seconds)
+   **Total running time of the script:** ( 0 minutes  1.499 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_gw_spectral_functions.py:
@@ -77,6 +77,13 @@ See also lesson tgw2_4
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_gw_spectral_functions.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

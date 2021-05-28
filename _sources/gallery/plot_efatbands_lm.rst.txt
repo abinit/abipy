@@ -11,7 +11,7 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_gallery_plot_efatbands_lm.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
@@ -121,7 +121,7 @@ The FATBANDS file must have benn produced with prtdos 3 and prtdosm 1.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  2.007 seconds)
+   **Total running time of the script:** ( 0 minutes  4.937 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_efatbands_lm.py:
@@ -132,6 +132,13 @@ The FATBANDS file must have benn produced with prtdos 3 and prtdosm 1.
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_efatbands_lm.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

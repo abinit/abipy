@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -257,7 +256,7 @@
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
 <p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-a2f-py"><span class="std std-ref">here</span></a>
-to download the full example code</p>
+to download the full example code or to run this example in your browser via Binder</p>
 </div>
 <div class="sphx-glr-example-title section" id="eliashberg-function">
 <span id="sphx-glr-gallery-plot-a2f-py"></span><h1>Eliashberg function<a class="headerlink" href="#eliashberg-function" title="Permalink to this headline">¶</a></h1>
@@ -323,7 +322,7 @@ Isotropic lambda: 0.24, omega_log: 0.030 (eV), 343.427 (K)
 
 <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">phdos_path</span></a> <span class="o">=</span> <a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;al_161616q_PHDOS.nc&quot;</span><span class="p">)</span>
 
-<a href="../api/eph_api.html#abipy.eph.a2f.A2fFile" title="abipy.eph.a2f.A2fFile" class="sphx-glr-backref-module-abipy-eph-a2f sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncfile</span></a> <span class="o">=</span>  <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;al_888k_161616q_A2F.nc&quot;</span><span class="p">))</span>
+<a href="../api/eph_api.html#abipy.eph.a2f.A2fFile" title="abipy.eph.a2f.A2fFile" class="sphx-glr-backref-module-abipy-eph-a2f sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncfile</span></a> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;al_888k_161616q_A2F.nc&quot;</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><a href="../api/eph_api.html#abipy.eph.a2f.A2fFile" title="abipy.eph.a2f.A2fFile" class="sphx-glr-backref-module-abipy-eph-a2f sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncfile</span></a><span class="p">)</span>
 
 <span class="c1">#ncfile.phbands.plot()</span>
@@ -344,8 +343,11 @@ Isotropic lambda: 0.24, omega_log: 0.030 (eV), 343.427 (K)
 <span class="c1">#ncfile.a2f_qintp.plot_a2(phdos_path)</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  4.814 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  14.093 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-a2f-py">
+<div class="binder-badge docutils container">
+<a class="reference external image-reference" href="https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_a2f.ipynb"><img alt="Launch binder" src="../_images/binder_badge_logo1.svg" width="150px" /></a>
+</div>
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/cdaf389c9f436ef6e8bb6def11feeb90/plot_a2f.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_a2f.py</span></code></a></p>
 </div>
@@ -372,7 +374,7 @@ Isotropic lambda: 0.24, omega_log: 0.030 (eV), 343.427 (K)
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

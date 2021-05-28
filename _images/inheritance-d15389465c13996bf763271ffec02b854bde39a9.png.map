@@ -1,0 +1,8 @@
+<map id="inheritancee7492c30a8" name="inheritancee7492c30a8">
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="309,152,506,177"/>
+<area shape="rect" id="node7" href="#abipy.dfpt.phonons.PhbstFile" target="_top" title="Object used to access data stored in the PHBST.nc file produced by ABINIT." alt="" coords="574,79,763,104"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="35,152,212,177"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="300,103,516,128"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_PhononBands" target="_top" title="Mixin class for |AbinitNcFile| containing phonon data." alt="" coords="289,5,526,30"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="303,54,512,79"/>
+</map>

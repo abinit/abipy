@@ -11,19 +11,19 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_flow_gallery_run_nonlinear.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_nonlinear.py:
 
 
-Flow for Non-linear optic with DFPT
-===================================
+Nnon-linear optical properties with DFPT
+========================================
 
 Flow to compute non-linear optical properties with DFPT (static limit).
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-88
+.. GENERATED FROM PYTHON SOURCE LINES 8-83
 
 
 
@@ -37,7 +37,6 @@ Flow to compute non-linear optical properties with DFPT (static limit).
 
 .. code-block:: default
 
-
     import sys
     import os
     import abipy.flowtk as flowtk
@@ -45,8 +44,7 @@ Flow to compute non-linear optical properties with DFPT (static limit).
 
     from abipy import abilab
 
-
-    minimum_abinit_version = "8.5.2"
+    # NB: This flow requires abinit >= "8.5.2"
 
 
     def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
@@ -81,7 +79,7 @@ Flow to compute non-linear optical properties with DFPT (static limit).
             kptopt=1,
         )
 
-        gs_inp.set_mnemonics(True)
+        #gs_inp.set_mnemonics(True)
         return gs_inp
 
 
@@ -98,7 +96,6 @@ Flow to compute non-linear optical properties with DFPT (static limit).
     if os.getenv("READTHEDOCS", False):
         __name__ = None
         import tempfile
-        # Temporarily disabled in v8.8.2
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
         build_flow(options).graphviz_imshow()
 
@@ -110,8 +107,6 @@ Flow to compute non-linear optical properties with DFPT (static limit).
         flow_main is a decorator implementing the command line interface.
         Command line args are stored in `options`.
         """
-        # Temporarily disabled in v8.8.2
-        #return 0
         return build_flow(options)
 
 
@@ -121,7 +116,7 @@ Flow to compute non-linear optical properties with DFPT (static limit).
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.765 seconds)
+   **Total running time of the script:** ( 0 minutes  1.586 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_nonlinear.py:
@@ -132,6 +127,13 @@ Flow to compute non-linear optical properties with DFPT (static limit).
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_nonlinear.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 r"""
-Flow for Non-linear optic with DFPT
-===================================
+Nnon-linear optical properties with DFPT
+========================================
 
 Flow to compute non-linear optical properties with DFPT (static limit).
 """
-
 import sys
 import os
 import abipy.flowtk as flowtk
@@ -13,8 +12,7 @@ import abipy.data as abidata
 
 from abipy import abilab
 
-
-minimum_abinit_version = "8.5.2"
+# NB: This flow requires abinit >= "8.5.2"
 
 
 def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
@@ -49,7 +47,7 @@ def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
         kptopt=1,
     )
 
-    gs_inp.set_mnemonics(True)
+    #gs_inp.set_mnemonics(True)
     return gs_inp
 
 
@@ -66,7 +64,6 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
-    # Temporarily disabled in v8.8.2
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 
@@ -78,8 +75,6 @@ def main(options):
     flow_main is a decorator implementing the command line interface.
     Command line args are stored in `options`.
     """
-    # Temporarily disabled in v8.8.2
-    #return 0
     return build_flow(options)
 
 

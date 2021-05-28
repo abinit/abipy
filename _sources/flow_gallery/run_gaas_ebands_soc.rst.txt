@@ -11,15 +11,15 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_flow_gallery_run_gaas_ebands_soc.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_gaas_ebands_soc.py:
 
 
-Band structure with/without spin-orbit
-======================================
+Band structure with/without SOC
+================================
 
 This example shows how to compute the band structure of GaAs with and without spin-orbit term.
 We essentially build two BandStructureWork inside a loop over nspinor in [1, 2]
@@ -167,7 +167,7 @@ and then plot the two band structure on the same figure with:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.546 seconds)
+   **Total running time of the script:** ( 0 minutes  0.919 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_gaas_ebands_soc.py:
@@ -178,6 +178,13 @@ and then plot the two band structure on the same figure with:
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_gaas_ebands_soc.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

@@ -102,7 +102,7 @@ where `FLOWDIR` is the directory of the Flow.
 .. only:: html
 
  .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gaas_ebands_soc_thumb.png
-     :alt: Band structure with/without spin-orbit
+     :alt: Band structure with/without SOC
 
      :ref:`sphx_glr_flow_gallery_run_gaas_ebands_soc.py`
 
@@ -136,6 +136,27 @@ where `FLOWDIR` is the directory of the Flow.
    :hidden:
 
    /flow_gallery/run_ht_si_bsemdf
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute conductivity in metals">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_conducwork_thumb.png
+     :alt: Conductivity in metals
+
+     :ref:`sphx_glr_flow_gallery_run_conducwork.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_conducwork
 
 .. raw:: html
 
@@ -181,33 +202,12 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with finite difference method. Derivatives are computed along ...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_conducwork_thumb.png
-     :alt: Effective masses with finite difference
-
-     :ref:`sphx_glr_flow_gallery_run_conducwork.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_conducwork
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlic...">
 
 .. only:: html
 
  .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_thumb.png
-     :alt: Estimate the ZPR at band edges with the generalized Frohlich model
+     :alt: Estimate the ZPR at the band edges with the generalized Frohlich model
 
      :ref:`sphx_glr_flow_gallery_run_frohlich_zpr.py`
 
@@ -228,7 +228,7 @@ where `FLOWDIR` is the directory of the Flow.
 .. only:: html
 
  .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_from_ddb_thumb.png
-     :alt: Estimate the ZPR of band edges with generalized Frohlich mode
+     :alt: Estimate the ZPR of band edges with generalized Frohlich model
 
      :ref:`sphx_glr_flow_gallery_run_frohlich_zpr_from_ddb.py`
 
@@ -286,27 +286,6 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0.">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eos_thumb.png
-     :alt: Flow for Equation of State
-
-     :ref:`sphx_glr_flow_gallery_run_eos.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_eos
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o...">
 
 .. only:: html
@@ -325,27 +304,6 @@ where `FLOWDIR` is the directory of the Flow.
    :hidden:
 
    /flow_gallery/run_ldaus
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit).">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_nonlinear_thumb.png
-     :alt: Flow for Non-linear optic with DFPT
-
-     :ref:`sphx_glr_flow_gallery_run_nonlinear.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_nonlinear
 
 .. raw:: html
 
@@ -430,6 +388,48 @@ where `FLOWDIR` is the directory of the Flow.
    :hidden:
 
    /flow_gallery/run_elastic
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0.">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eos_thumb.png
+     :alt: Flow for equation of state
+
+     :ref:`sphx_glr_flow_gallery_run_eos.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_eos
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This flow computes the phonon-limited mobility in AlAs. using different dense k/q meshes">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eph_mob_thumb.png
+     :alt: Flow for phonon-limited mobilities in semiconductors
+
+     :ref:`sphx_glr_flow_gallery_run_eph_mob.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_eph_mob
 
 .. raw:: html
 
@@ -601,6 +601,27 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit).">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_nonlinear_thumb.png
+     :alt: Nnon-linear optical properties with DFPT
+
+     :ref:`sphx_glr_flow_gallery_run_nonlinear.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_nonlinear
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to create a flow to compute optical spectra with Optic (independent part...">
 
 .. only:: html
@@ -648,7 +669,7 @@ where `FLOWDIR` is the directory of the Flow.
 .. only:: html
 
  .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonopy_si_thumb.png
-     :alt: Phonopy + Abinit Flow
+     :alt: Phonopy with AbiPy Flow
 
      :ref:`sphx_glr_flow_gallery_run_phonopy_si.py`
 

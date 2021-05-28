@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -1222,7 +1221,7 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <div><p>Compare multiple GSR files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gsr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1271,6 +1270,10 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -1303,7 +1306,7 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <div><p>Compare multiple HIST files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1352,6 +1355,10 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -1385,7 +1392,7 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 corresponding to homogeneous sampling i.e. files that have been merged with mrgddb.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1434,6 +1441,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -1466,7 +1477,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple anaddb.nc files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">anaddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1515,6 +1526,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -1547,7 +1562,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple PHBST.nc files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phbst</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1596,6 +1611,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -1628,7 +1647,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple SIGRES files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigres</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1677,6 +1696,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -1709,7 +1732,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare macroscopic dielectric functions stored in multiple MDF files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mdf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1758,6 +1781,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -1790,7 +1817,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare results stored in OPTIC.nc files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">optic</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1839,6 +1866,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -1871,7 +1902,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare results stored in A2f.nc files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">a2f</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1920,6 +1951,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -1952,7 +1987,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple SIGEPH files storing the e-ph self-energy.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigeph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2001,6 +2036,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -2033,7 +2072,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple RTA files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">rta</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2082,6 +2121,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -2114,7 +2157,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple GKQ files with EPH matrix elements for a given q-point.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gkq</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2163,6 +2206,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -2199,7 +2246,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple V1QAVG files with the average of the DFPT V1 potentials as function of q-point.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">v1qavg</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2248,6 +2295,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
 <p>Default: False</p>
@@ -2280,7 +2331,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div><p>Compare multiple ABIWAN files.</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">abiwan</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ply</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cs</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2328,6 +2379,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dt><kbd>-pn, --panel</kbd></dt>
 <dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
+</dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.</p>
@@ -2583,7 +2638,7 @@ Use this option to connect remotely from localhost to the machine running the ke
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

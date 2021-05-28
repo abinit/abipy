@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -569,7 +568,7 @@ qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge
 Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
-<p>At the time of writing (May 07, 2021), AbiPy supports the following resource managers:</p>
+<p>At the time of writing (May 28, 2021), AbiPy supports the following resource managers:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">shell</span></code></p></li>
 <li><p><a class="reference external" href="http://pbspro.org/">pbspro</a></p></li>
@@ -2561,7 +2560,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --engine</kbd></dt>
-<dd><p>graphviz engine: [‘dot’, ‘neato’, ‘twopi’, ‘circo’, ‘fdp’, ‘sfdp’, ‘patchwork’, ‘osage’]. Default: automatic i.e. the engine is automatically selected. See <a class="reference external" href="http://www.graphviz.org/pdf/dot.1.pdf">http://www.graphviz.org/pdf/dot.1.pdf</a> Use <cite>conda install python-graphviz</cite> or <cite>pip install graphviz</cite> to install the python package</p>
+<dd><p>graphviz engine: [‘dot’, ‘neato’, ‘twopi’, ‘circo’, ‘fdp’, ‘sfdp’, ‘patchwork’, ‘osage’]. Default: automatic i.e. the engine is automatically selected. See <a class="reference external" href="http://www.graphviz.org/pdf/dot.1.pdf">http://www.graphviz.org/pdf/dot.1.pdf</a> Use <cite>conda install python-graphviz</cite> or <cite>pip install graphviz</cite> to install the python package.</p>
 <p>Default: “automatic”</p>
 </dd>
 <dt><kbd>-d, --dirtree</kbd></dt>
@@ -2574,7 +2573,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="section" id="listext">
 <h3>listext<a class="headerlink" href="#listext" title="Permalink to this headline">¶</a></h3>
 <p>List all the output files with the given extension that have been produced by the nodes.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">listext</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="n">listexts</span> <span class="p">[</span><span class="n">listexts</span> <span class="o">...</span><span class="p">]]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">listext</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="n">listexts</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat9">
@@ -2631,7 +2630,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

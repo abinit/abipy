@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -1275,7 +1274,7 @@
 
 <div class="viewcode-block" id="PhononBands.plotly"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plotly">[docs]</a>    <span class="nd">@add_plotly_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">branch_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-               <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rcd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+               <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rcd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the phonon band structure with plotly.</span>
 
@@ -1314,8 +1313,8 @@
             <span class="c1"># Scatter plot with Bose-Einstein occupation factors for T = temp</span>
             <span class="n">factor</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">temp</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">annotations</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;T = </span><span class="si">%.1f</span><span class="s2"> K&quot;</span> <span class="o">%</span> <span class="n">temp</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">xref</span><span class="o">=</span><span class="s1">&#39;paper&#39;</span><span class="p">,</span>
-                                         <span class="n">xanchor</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">yref</span><span class="o">=</span><span class="s1">&#39;paper&#39;</span><span class="p">,</span> <span class="n">yanchor</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span> <span class="p">,</span><span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">annotations</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;T = </span><span class="si">%.1f</span><span class="s2"> K&quot;</span> <span class="o">%</span> <span class="n">temp</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">xref</span><span class="o">=</span><span class="s1">&#39;paper&#39;</span><span class="p">,</span>
+                                           <span class="n">xanchor</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">yref</span><span class="o">=</span><span class="s1">&#39;paper&#39;</span><span class="p">,</span> <span class="n">yanchor</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
             <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
                 <span class="n">ws</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[:,</span> <span class="n">nu</span><span class="p">]</span>
@@ -1460,7 +1459,7 @@
                           <span class="n">use_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the phonon band structure with colored lines. The color of the lines indicates</span>
-<span class="sd">        the degree to which the mode is longitudinal:</span>
+<span class="sd">        the degree to which the mode is longitudinal.</span>
 <span class="sd">        Red corresponds to longitudinal modes and black to purely transverse modes.</span>
 
 <span class="sd">        Args:</span>
@@ -2989,12 +2988,18 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">yield_phbands_figs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PhbstFile.plotly_expose"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.plotly_expose">[docs]</a>    <span class="k">def</span> <span class="nf">plotly_expose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chart_studio</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhbstFile.yield_plotly_figs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.yield_plotly_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_plotly_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function *generates* a predefined list of plotly figures with minimal input from the user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">renderer</span> <span class="o">=</span> <span class="s2">&quot;chart_studio&quot;</span> <span class="k">if</span> <span class="n">chart_studio</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">renderer</span><span class="o">=</span><span class="n">renderer</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">yield_phbands_plotly_figs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="c1">#def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    This function *generates* a predefined list of plotly figures with minimal input from the user.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    renderer = &quot;chart_studio&quot; if chart_studio else None</span>
+    <span class="c1">#    self.phbands.plotly(renderer=renderer)</span>
 
 <div class="viewcode-block" id="PhbstFile.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -3328,7 +3333,7 @@
 
 <div class="viewcode-block" id="PhononDos.plot_harmonic_thermo"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.plot_harmonic_thermo">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_harmonic_thermo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">formula_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">quantities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                             <span class="n">quantities</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot thermodynamic properties from the phonon DOSes within the harmonic approximation.</span>
 
@@ -3338,7 +3343,6 @@
 <span class="sd">            num: int, optional Number of samples to generate. Default is 50.</span>
 <span class="sd">            quantities: List of strings specifying the thermodynamic quantities to plot.</span>
 <span class="sd">                Possible values: [&quot;internal_energy&quot;, &quot;free_energy&quot;, &quot;entropy&quot;, &quot;c_v&quot;].</span>
-<span class="sd">                None means all.</span>
 <span class="sd">            units: eV for energies in ev/unit_cell, Jmol for results in J/mole.</span>
 <span class="sd">            formula_units: the number of formula units per unit cell. If unspecified, the</span>
 <span class="sd">                thermodynamic quantities will be given on a per-unit-cell basis.</span>
@@ -3346,7 +3350,7 @@
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">quantities</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">quantities</span><span class="p">)</span> <span class="k">if</span> <span class="n">quantities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> \
+        <span class="n">quantities</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">quantities</span><span class="p">)</span> <span class="k">if</span> <span class="n">quantities</span> <span class="o">!=</span> <span class="s2">&quot;all&quot;</span> <span class="k">else</span> \
             <span class="p">[</span><span class="s2">&quot;internal_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;free_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;entropy&quot;</span><span class="p">,</span> <span class="s2">&quot;cv&quot;</span><span class="p">]</span>
 
         <span class="c1"># Build grid of plots.</span>
@@ -3384,7 +3388,7 @@
 
 <div class="viewcode-block" id="PhononDos.plotly_harmonic_thermo"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.plotly_harmonic_thermo">[docs]</a>    <span class="nd">@add_plotly_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plotly_harmonic_thermo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">formula_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                               <span class="n">quantities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                               <span class="n">quantities</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot thermodynamic properties from the phonon DOS within the harmonic approximation.</span>
 
@@ -3394,7 +3398,6 @@
 <span class="sd">            num: int, optional Number of samples to generate. Default is 50.</span>
 <span class="sd">            quantities: List of strings specifying the thermodynamic quantities to plot.</span>
 <span class="sd">                Possible values: [&quot;internal_energy&quot;, &quot;free_energy&quot;, &quot;entropy&quot;, &quot;c_v&quot;].</span>
-<span class="sd">                None means all.</span>
 <span class="sd">            units: eV for energies in ev/unit_cell, Jmol for results in J/mole.</span>
 <span class="sd">            formula_units: the number of formula units per unit cell. If unspecified, the</span>
 <span class="sd">                thermodynamic quantities will be given on a per-unit-cell basis.</span>
@@ -3402,7 +3405,7 @@
 
 <span class="sd">        Returns |plotly.graph_objects.Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">quantities</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">quantities</span><span class="p">)</span> <span class="k">if</span> <span class="n">quantities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> \
+        <span class="n">quantities</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">quantities</span><span class="p">)</span> <span class="k">if</span> <span class="n">quantities</span> <span class="o">!=</span> <span class="s2">&quot;all&quot;</span> <span class="k">else</span> \
             <span class="p">[</span><span class="s2">&quot;internal_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;free_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;entropy&quot;</span><span class="p">,</span> <span class="s2">&quot;cv&quot;</span><span class="p">]</span>
 
         <span class="c1"># Build grid of plots.</span>
@@ -3908,10 +3911,22 @@
             <span class="k">yield</span> <span class="n">msqd_dos</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">yield</span> <span class="n">msqd_dos</span><span class="o">.</span><span class="n">plot_tensor</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PhdosFile.plotly_expose"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plotly_expose">[docs]</a>    <span class="k">def</span> <span class="nf">plotly_expose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chart_studio</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;meV&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">renderer</span> <span class="o">=</span> <span class="s2">&quot;chart_studio&quot;</span> <span class="k">if</span> <span class="n">chart_studio</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="c1">#self.phdos.plotly_dos_idos(units=units, renderer=renderer, show=False)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">phdos</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">renderer</span><span class="o">=</span><span class="n">renderer</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+<div class="viewcode-block" id="PhdosFile.yield_plotly_figs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.yield_plotly_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_plotly_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of plotly figures with minimal input from the user.</span>
+<span class="sd">        Used in abiview.py to get a quick look at the results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdos</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotly_pjdos_type</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+        <span class="c1"># Old formats do not have MSQDOS arrays.</span>
+        <span class="c1">#try:</span>
+        <span class="c1">#    msqd_dos = self.msqd_dos</span>
+        <span class="c1">#except Exception:</span>
+        <span class="c1">#    msqd_dos = None</span>
+        <span class="c1">#if msqd_dos is not None:</span>
+        <span class="c1">#    yield msqd_dos.plot(units=units, show=False)</span>
+        <span class="c1">#    yield msqd_dos.plot_tensor(show=False)</span>
 
 <div class="viewcode-block" id="PhdosFile.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -4429,15 +4444,16 @@
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">phbands</span><span class="p">,</span> <span class="n">phdos</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">phb_objects</span><span class="p">,</span> <span class="n">phdos_objects</span><span class="p">)):</span>
                 <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
-                <span class="c1">#rcd_phdos = PlotlyRowColDesc(row, col, nrows, ncols)</span>
-                <span class="c1">#rcd_phbands = PlotlyRowColDesc(row, col, nrows, ncols)</span>
-                <span class="n">phbands</span><span class="o">.</span><span class="n">plotly_with_phdos</span><span class="p">(</span><span class="n">phdos</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">rcd_phbands</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rcd_phdos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">rcd_phdos</span> <span class="o">=</span> <span class="n">PlotlyRowColDesc</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+                <span class="n">rcd_phbands</span> <span class="o">=</span> <span class="n">PlotlyRowColDesc</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+                <span class="n">phbands</span><span class="o">.</span><span class="n">plotly_with_phdos</span><span class="p">(</span><span class="n">phdos</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">rcd_phbands</span><span class="o">=</span><span class="n">rcd_phbands</span><span class="p">,</span> <span class="n">rcd_phdos</span><span class="o">=</span><span class="n">rcd_phdos</span><span class="p">,</span>
+                                          <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span>
                                           <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">phbands</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phb_objects</span><span class="p">):</span>
                 <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
                 <span class="n">rcd</span> <span class="o">=</span> <span class="n">PlotlyRowColDesc</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
-                <span class="n">phbands</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">rcd</span><span class="o">=</span><span class="n">rcd</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">phbands</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">rcd</span><span class="o">=</span><span class="n">rcd</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
@@ -5194,7 +5210,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

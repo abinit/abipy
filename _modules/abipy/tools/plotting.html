@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -244,6 +243,12 @@
 <span class="c1">###################</span>
 <span class="c1"># Matplotlib tools</span>
 <span class="c1">###################</span>
+
+<span class="k">def</span> <span class="nf">is_mpl_figure</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return True if obj is a matplotlib Figure.&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">)</span>
+
 
 <span class="k">def</span> <span class="nf">ax_append_title</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Add title to previous ax.title. Return new title.&quot;&quot;&quot;</span>
@@ -646,6 +651,10 @@
 
 <span class="k">class</span> <span class="nc">MplExpose</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Context manager used to produce several matplotlib figures and then show</span>
+<span class="sd">    all them at the end so that the user does not need to close the window to</span>
+<span class="sd">    visualize to the next one.</span>
+
 <span class="sd">    Example:</span>
 
 <span class="sd">        with MplExpose() as e:</span>
@@ -655,8 +664,8 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slide_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            slide_mode: If true, iterate over figures. Default: Expose all figures at once.</span>
-<span class="sd">            slide_timeout: Close figure after slide-timeout seconds Block if None.</span>
+<span class="sd">            slide_mode: If Rrue, iterate over figures. Default: Expose all figures at once.</span>
+<span class="sd">            slide_timeout: Close figure after slide-timeout seconds. Block if None.</span>
 <span class="sd">            verbose: verbosity level</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">figures</span> <span class="o">=</span> <span class="p">[]</span>
@@ -677,8 +686,8 @@
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add an object to MplExpose. Support mpl figure, list of figures or</span>
-<span class="sd">        generator yielding figures.</span>
+<span class="sd">        Add an object to MplExpose.</span>
+<span class="sd">        Support mpl figure, list of figures or generator yielding figures.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">types</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
@@ -711,6 +720,7 @@
 
     <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Activated at the end of the with statement. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">exc_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expose</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">expose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -721,6 +731,91 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">figures</span><span class="p">:</span>
                 <span class="n">fig</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">PanelExpose</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Context manager used to produce several matplotlib/plotly figures and then show</span>
+<span class="sd">    all them inside the Browser using a panel template.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        with PanelExpose() as e:</span>
+<span class="sd">            e(obj.plot1(show=False))</span>
+<span class="sd">            e(obj.plot2(show=False))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            title: String to be show in the header.</span>
+<span class="sd">            verbose: verbosity level</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">title</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">figures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Loading all figures before showing them. It may take some time...&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an object to MplPanelExpose.</span>
+<span class="sd">        Support mpl figure, list of figures or generator yielding figures.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">types</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_fig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_fig</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_fig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a matplotlib figure.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Activated at the end of the with statement. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">exc_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expose</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">expose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show all figures. Clear figures if needed.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
+        <span class="n">pn</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">sizing_mode</span> <span class="o">=</span> <span class="s1">&#39;stretch_width&#39;</span>
+        <span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">get_template_cls_from_name</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="n">get_template_cls_from_name</span><span class="p">(</span><span class="s2">&quot;FastGridTemplate&quot;</span><span class="p">)</span>
+
+        <span class="n">template</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">title</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+            <span class="n">header_background</span><span class="o">=</span><span class="s2">&quot;#ff8c00 &quot;</span><span class="p">,</span> <span class="c1"># Dark orange</span>
+        <span class="p">)</span>
+        <span class="c1">#pn.config.sizing_mode = &#39;stretch_width&#39;</span>
+        <span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fig</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figures</span><span class="p">):</span>
+            <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">is_plotly_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">):</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">ply</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">with_divider</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">is_mpl_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">):</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">mpl</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">with_divider</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Don&#39;t know how to handle type: `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">main</span><span class="p">,</span> <span class="s2">&quot;append&quot;</span><span class="p">):</span>
+                <span class="n">template</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Assume .main area acts like a GridSpec</span>
+                <span class="n">row_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">row</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">template</span><span class="o">.</span><span class="n">main</span><span class="p">[</span><span class="n">row_slice</span><span class="p">,</span> <span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+                <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">template</span><span class="o">.</span><span class="n">main</span><span class="p">[</span><span class="n">row_slice</span><span class="p">,</span> <span class="mi">6</span><span class="p">:]</span> <span class="o">=</span> <span class="n">p</span>
+
+        <span class="k">return</span> <span class="n">template</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="plot_unit_cell"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.plot_unit_cell">[docs]</a><span class="k">def</span> <span class="nf">plot_unit_cell</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -797,10 +892,10 @@
 <span class="k">def</span> <span class="nf">plot_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
                    <span class="n">style</span><span class="o">=</span><span class="s2">&quot;points+labels&quot;</span><span class="p">,</span> <span class="n">color_scheme</span><span class="o">=</span><span class="s2">&quot;VESTA&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Plot structure with matplotlib (minimalistic version)</span>
+<span class="sd">    Plot structure with matplotlib (minimalistic version).</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: Structure object</span>
+<span class="sd">        structure: |Structure| object</span>
 <span class="sd">        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.</span>
 <span class="sd">        alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)</span>
 <span class="sd">        to_unit_cell: True if sites should be wrapped into the first unit cell.</span>
@@ -1047,6 +1142,12 @@
 <span class="c1"># Plotly helper functions</span>
 <span class="c1">##########################</span>
 
+<span class="k">def</span> <span class="nf">is_plotly_figure</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return True if obj is a plotly Figure.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">)</span>
+    <span class="c1">#return isinstance(obj, (go.Figure, go.FigureWidget))</span>
+
 
 <span class="k">class</span> <span class="nc">PlotlyRowColDesc</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1067,7 +1168,7 @@
         <span class="c1"># Assume list with 4 integers</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">obj</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dont know how to convert `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2">` into `</span><span class="si">{</span><span class="bp">cls</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">py_row</span><span class="p">,</span> <span class="n">py_col</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">):</span>
@@ -1129,6 +1230,7 @@
 
     <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="o">**</span><span class="n">fig_kw</span><span class="p">)</span>
+        <span class="c1">#fig = go.FigureWidget(**fig_kw)</span>
 
     <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">go</span>
 
@@ -1209,6 +1311,7 @@
         <span class="n">write_json</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;write_json&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">renderer</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;renderer&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">chart_studio</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;chart_studio&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
         <span class="c1"># Allow users to specify the renderer via shell env.</span>
         <span class="k">if</span> <span class="n">renderer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PLOTLY_RENDERER&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1233,10 +1336,10 @@
         <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">hovermode</span> <span class="o">=</span> <span class="n">hovermode</span>
 
         <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="c1"># and _PLOTLY_DEFAULT_SHOW:</span>
-            <span class="k">if</span> <span class="n">renderer</span> <span class="o">==</span> <span class="s2">&quot;chart_studio&quot;</span><span class="p">:</span>
-                <span class="n">push_to_chart_studio</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">renderer</span><span class="o">=</span><span class="n">renderer</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">renderer</span><span class="o">=</span><span class="n">renderer</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">chart_studio</span><span class="p">:</span>
+            <span class="n">push_to_chart_studio</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span>
 
@@ -1263,9 +1366,9 @@
 <span class="s2">                                  (separated by ‘+’ characters) or None. If None, then the default</span>
 <span class="s2">                                  renderers specified in plotly.io.renderers.default are used.</span>
 <span class="s2">                                  See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</span>
-<span class="s2">                                  Note that if renderee is equal to `chart_studio`, the file is uploaded to the chart studio</span>
-<span class="s2">                                  cloud. This is an AbiPy extension on top of the plotly API.</span>
 <span class="s2">                config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.</span>
+<span class="s2">                chart_studio      True to push figure to chart_studio server. Requires authenticatios.</span>
+<span class="s2">                                  Default: False.</span>
 <span class="s2">                ================  ====================================================================</span>
 <span class="s2">        &quot;&quot;&quot;</span>
     <span class="p">)</span>
@@ -1319,20 +1422,21 @@
     <span class="k">return</span> <span class="n">filename</span>
 
 
-<span class="k">def</span> <span class="nf">plotly_klabels</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">plotly_klabels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">allow_dupes</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This helper function polish a list of k-points labels before calling plotly by:</span>
 
-<span class="sd">        - Checking if we have two equivalent consequtive labels (only the first one is shown and the second one is set to &quot;&quot;)</span>
-<span class="sd">        - Replacing particulat Latex tokens with unicode as plotly support for Latex is far from optimal.</span>
+<span class="sd">        - Checking if we have two equivalent consecutive labels (only the first one is shown and the second one is set to &quot;&quot;)</span>
+<span class="sd">        - Replacing particular Latex tokens with unicode as plotly support for Latex is far from optimal.</span>
 
 <span class="sd">    Return: New list labels, same length as input labels.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">new_labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-    <span class="c1"># Don&#39;t show label if previous k-point is the same.</span>
-    <span class="k">for</span> <span class="n">il</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_labels</span><span class="p">)):</span>
-        <span class="k">if</span> <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span><span class="p">]</span> <span class="o">==</span> <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span> <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_dupes</span><span class="p">:</span>
+        <span class="c1"># Don&#39;t show label if previous k-point is the same.</span>
+        <span class="k">for</span> <span class="n">il</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_labels</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span><span class="p">]</span> <span class="o">==</span> <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span> <span class="n">new_labels</span><span class="p">[</span><span class="n">il</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
     <span class="n">replace</span> <span class="o">=</span> <span class="p">{</span>
         <span class="sa">r</span><span class="s2">&quot;$\Gamma$&quot;</span><span class="p">:</span> <span class="s2">&quot;Γ&quot;</span><span class="p">,</span>
@@ -1406,6 +1510,598 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figs</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">figs</span> <span class="o">=</span> <span class="p">[</span><span class="n">figs</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="p">:</span>
         <span class="n">py</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">auto_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="c1">####################################################</span>
+<span class="c1"># This code is shamelessy taken from Adam&#39;s package</span>
+<span class="c1">####################################################</span>
+<span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
+
+
+<span class="k">def</span> <span class="nf">go_points</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="c1">#textposition = &#39;top right&#39;,</span>
+    <span class="c1">#textfont = dict(color=&#39;#E58606&#39;),</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;markers&quot;</span> <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;markers+text&quot;</span>
+    <span class="c1">#text = labels</span>
+
+    <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">plotly_klabels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">allow_dupes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">points</span><span class="p">],</span>
+        <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">points</span><span class="p">],</span>
+        <span class="n">z</span><span class="o">=</span><span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">points</span><span class="p">],</span>
+        <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">),</span>
+        <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_add_if_not_in</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+        <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+
+<span class="k">def</span> <span class="nf">go_line</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="n">_add_if_not_in</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;line_color&quot;</span><span class="p">,</span> <span class="s2">&quot;black&quot;</span><span class="p">)</span>
+    <span class="n">_add_if_not_in</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;line_width&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+        <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+        <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+        <span class="n">z</span><span class="o">=</span><span class="p">[</span><span class="n">v1</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">v2</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
+        <span class="c1">#line=dict(color=color, width=width),</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">go_lines</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">gen</span> <span class="o">=</span> <span class="p">((</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">V</span><span class="p">)</span>
+    <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">go_line</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">legendgroup</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+        <span class="n">go_line</span><span class="p">(</span>
+            <span class="n">v1</span><span class="p">,</span>
+            <span class="n">v2</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">legendgroup</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">gen</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span> <span class="nf">vectors</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">gen</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">go_line</span><span class="p">(</span>
+            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="n">v</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">label</span><span class="p">],</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">legendgroup</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;lines+text&quot;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+        <span class="n">go_line</span><span class="p">(</span>
+            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="n">v</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">label</span><span class="p">],</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">legendgroup</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;lines+text&quot;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span> <span class="ow">in</span> <span class="n">gen</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span> <span class="nf">get_vectors</span><span class="p">(</span><span class="n">lattice_mat</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">go_lines</span><span class="p">([[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lattice_mat</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">get_box</span><span class="p">(</span><span class="n">lattice_mat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">lattice_mat</span>
+    <span class="n">segments</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">a</span><span class="p">],</span>
+        <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">b</span><span class="p">],</span>
+        <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">a</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">a</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">c</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">b</span><span class="p">,</span> <span class="n">b</span> <span class="o">+</span> <span class="n">a</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">b</span><span class="p">,</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="n">c</span> <span class="o">+</span> <span class="n">a</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="n">c</span> <span class="o">+</span> <span class="n">b</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">a</span> <span class="o">+</span> <span class="n">c</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">],</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">go_lines</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">plot_fcc_conv</span><span class="p">():</span>
+
+    <span class="n">fcc_conv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="n">fcc_vectors</span> <span class="o">=</span> <span class="n">vectors</span><span class="p">(</span>
+        <span class="n">fcc_conv</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;conv lattice vectors&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;darkblue&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">6</span>
+    <span class="p">)</span>
+    <span class="n">fcc_box</span> <span class="o">=</span> <span class="n">get_box</span><span class="p">(</span><span class="n">fcc_conv</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;conv lattice&quot;</span><span class="p">)</span>
+
+    <span class="n">atoms</span> <span class="o">=</span> <span class="n">go_points</span><span class="p">(</span>
+        <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]],</span>
+        <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span>
+        <span class="n">legendgroup</span><span class="o">=</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">fcc_box</span><span class="p">,</span> <span class="o">*</span><span class="n">fcc_vectors</span><span class="p">,</span> <span class="n">atoms</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="k">def</span> <span class="nf">plot_fcc_prim</span><span class="p">():</span>
+    <span class="n">fcc_prim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]])</span>
+
+    <span class="n">fcc_prim_vectors</span> <span class="o">=</span> <span class="n">vectors</span><span class="p">(</span>
+        <span class="n">fcc_prim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;prim lattice vectors&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">6</span>
+    <span class="p">)</span>
+    <span class="n">fcc_prim_box</span> <span class="o">=</span> <span class="n">get_box</span><span class="p">(</span><span class="n">fcc_prim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;prim lattice&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
+
+    <span class="n">atoms</span> <span class="o">=</span> <span class="n">go_points</span><span class="p">(</span>
+        <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]],</span>
+        <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span>
+        <span class="n">legendgroup</span><span class="o">=</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">fcc_conv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="n">fcc_conv_box</span> <span class="o">=</span> <span class="n">get_box</span><span class="p">(</span><span class="n">fcc_conv</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;conv lattice&quot;</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">fcc_prim_box</span><span class="p">,</span> <span class="o">*</span><span class="n">fcc_prim_vectors</span><span class="p">,</span> <span class="o">*</span><span class="n">fcc_conv_box</span><span class="p">,</span> <span class="n">atoms</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="k">def</span> <span class="nf">plot_fcc_100</span><span class="p">():</span>
+
+    <span class="c1"># fcc_100_cell = np.array([[0, 0.5, -0.5], [0, 0.5, 0.5], [1.0, 0.0, 0]])</span>
+    <span class="n">fcc_100_cell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]])</span>
+
+    <span class="n">fcc_100_vectors</span> <span class="o">=</span> <span class="n">vectors</span><span class="p">(</span>
+        <span class="n">fcc_100_cell</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;100 lattice vectors&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">6</span>
+    <span class="p">)</span>
+    <span class="n">fcc_100_box</span> <span class="o">=</span> <span class="n">get_box</span><span class="p">(</span><span class="n">fcc_100_cell</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;100 lattice&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_fcc_conv</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_traces</span><span class="p">([</span><span class="o">*</span><span class="n">fcc_100_box</span><span class="p">,</span> <span class="o">*</span><span class="n">fcc_100_vectors</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="k">def</span> <span class="nf">plot_fcc_110</span><span class="p">():</span>
+    <span class="n">fcc_110_cell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]])</span>
+
+    <span class="n">fcc_110_vectors</span> <span class="o">=</span> <span class="n">vectors</span><span class="p">(</span>
+        <span class="n">fcc_110_cell</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;reduced lattice vectors&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">6</span>
+    <span class="p">)</span>
+    <span class="n">fcc_110_box</span> <span class="o">=</span> <span class="n">get_box</span><span class="p">(</span><span class="n">fcc_110_cell</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;reduced lattice&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_fcc_conv</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_traces</span><span class="p">([</span><span class="o">*</span><span class="n">fcc_110_box</span><span class="p">,</span> <span class="o">*</span><span class="n">fcc_110_vectors</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="k">def</span> <span class="nf">plot_fcc_111</span><span class="p">():</span>
+    <span class="n">fcc_111_cell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+
+    <span class="n">fcc_111_vectors</span> <span class="o">=</span> <span class="n">vectors</span><span class="p">(</span>
+        <span class="n">fcc_111_cell</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;reduced lattice vectors&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">6</span>
+    <span class="p">)</span>
+    <span class="n">fcc_111_box</span> <span class="o">=</span> <span class="n">get_box</span><span class="p">(</span><span class="n">fcc_111_cell</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;reduced lattice&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_fcc_conv</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_traces</span><span class="p">([</span><span class="o">*</span><span class="n">fcc_111_box</span><span class="p">,</span> <span class="o">*</span><span class="n">fcc_111_vectors</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="k">def</span> <span class="nf">plotly_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+                     <span class="n">style</span><span class="o">=</span><span class="s2">&quot;points+labels&quot;</span><span class="p">,</span> <span class="n">color_scheme</span><span class="o">=</span><span class="s2">&quot;VESTA&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot structure with plotly (minimalistic version).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        structure: |Structure| object</span>
+<span class="sd">        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.</span>
+<span class="sd">        alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)</span>
+<span class="sd">        to_unit_cell: True if sites should be wrapped into the first unit cell.</span>
+<span class="sd">        style: &quot;points+labels&quot; to show atoms sites with labels.</span>
+<span class="sd">        color_scheme: color scheme for atom types. Allowed values in (&quot;Jmol&quot;, &quot;VESTA&quot;)</span>
+
+<span class="sd">    Returns: |matplotlib-Figure|</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#fig, ax = plot_unit_cell(structure.lattice, ax=ax, linewidth=1)</span>
+
+    <span class="n">box</span> <span class="o">=</span> <span class="n">get_box</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">)</span> <span class="c1">#, **kwargs):</span>
+
+    <span class="kn">from</span> <span class="nn">pymatgen.analysis.molecule_structure_comparator</span> <span class="kn">import</span> <span class="n">CovalentRadius</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.vis.structure_vtk</span> <span class="kn">import</span> <span class="n">EL_COLORS</span>
+
+    <span class="c1">#symb2data = {}</span>
+    <span class="c1">#for symbol in structure.symbol_set:</span>
+    <span class="c1">#    symb2data[symbol] = d = {}</span>
+    <span class="c1">#    d[&quot;color&quot;] = color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])</span>
+    <span class="c1">#    d[&quot;radius&quot;] = CovalentRadius.radius[symbol]</span>
+    <span class="c1">#    inds = structure.indices_from_symbol(symbol)</span>
+    <span class="c1">#    sites = [structure[i] for i in inds]</span>
+    <span class="c1">#    d[&quot;xyz&quot;] = []</span>
+    <span class="c1">#    for site in sites:</span>
+    <span class="c1">#       if to_unit_cell and hasattr(site, &quot;to_unit_cell&quot;): site = site.to_unit_cell()</span>
+    <span class="c1">#       Use cartesian coordinates.</span>
+    <span class="c1">#       x, y, z = site.coords</span>
+    <span class="c1">#       d[&quot;xyz&quot;].append((x, y ,z)</span>
+
+    <span class="n">xyz</span><span class="p">,</span> <span class="n">sizes</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">),</span> <span class="mi">3</span><span class="p">)),</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
+        <span class="n">symbol</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">EL_COLORS</span><span class="p">[</span><span class="n">color_scheme</span><span class="p">][</span><span class="n">symbol</span><span class="p">])</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">CovalentRadius</span><span class="o">.</span><span class="n">radius</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">to_unit_cell</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="s2">&quot;to_unit_cell&quot;</span><span class="p">):</span> <span class="n">site</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">to_unit_cell</span><span class="p">()</span>
+        <span class="c1"># Use cartesian coordinates.</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">coords</span>
+        <span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="c1"># , radius)</span>
+        <span class="n">sizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
+        <span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="c1">#if &quot;labels&quot; in style:</span>
+        <span class="c1">#    ax.text(x, y, z, symbol)</span>
+
+    <span class="n">atoms</span> <span class="o">=</span> <span class="n">go_points</span><span class="p">(</span>
+        <span class="c1">#[[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]],</span>
+        <span class="n">xyz</span><span class="p">,</span>
+        <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span>
+        <span class="n">legendgroup</span><span class="o">=</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1">#marker = [dict(size=size, color=color) for (size, color) in zip(sizes, colors)]</span>
+
+    <span class="c1">#atoms = go.Scatter3d(</span>
+    <span class="c1">#    x=[v[0] for v in xyz],</span>
+    <span class="c1">#    y=[v[1] for v in xyz],</span>
+    <span class="c1">#    z=[v[2] for v in xyz],</span>
+    <span class="c1">#    #marker=dict(size=size, color=color),</span>
+    <span class="c1">#    marker=marker,</span>
+    <span class="c1">#    mode=&quot;markers&quot;,</span>
+    <span class="c1">#    #**kwargs</span>
+    <span class="c1">#)</span>
+
+    <span class="c1"># The definition of sizes is not optimal because matplotlib uses points</span>
+    <span class="c1"># wherease we would like something that depends on the radius (5000 seems to give reasonable plots)</span>
+    <span class="c1"># For possibile approaches, see</span>
+    <span class="c1"># https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352</span>
+    <span class="c1"># https://gist.github.com/syrte/592a062c562cd2a98a83</span>
+    <span class="c1">#if &quot;points&quot; in style:</span>
+    <span class="c1">#    x, y, z, s = xyzs.T.copy()</span>
+    <span class="c1">#    s = 5000 * s ** 2</span>
+    <span class="c1">#    ax.scatter(x, y, zs=z, s=s, c=colors, alpha=alpha)  #facecolors=&quot;white&quot;, #edgecolors=&quot;blue&quot;</span>
+
+    <span class="c1">#ax.set_title(structure.composition.formula)</span>
+    <span class="c1">#ax.set_axis_off()</span>
+
+    <span class="c1">#fig = go.Figure(data=[*box, *vectors, atoms])</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">box</span><span class="p">,</span> <span class="n">atoms</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="c1"># This is the matplotlib API to plot the BZ.</span>
+
+<span class="k">def</span> <span class="nf">plotly_wigner_seitz</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds the skeleton of the Wigner-Seitz cell of the lattice to a plotly figure.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lattice: Lattice object</span>
+<span class="sd">        fig: plotly figure or None if a new figure should be created.</span>
+<span class="sd">        kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to black</span>
+<span class="sd">            and linewidth to 1.</span>
+
+<span class="sd">    Returns: Plotly figure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#ax, fig, plt = get_ax3d_fig_plt(ax)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">go</span> <span class="o">=</span> <span class="n">get_fig_plotly</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span> <span class="c1">#, **fig_kw)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;line_color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;black&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;line_width&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">bz</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_wigner_seitz_cell</span><span class="p">()</span>
+    <span class="c1">#ax, fig, plt = get_ax3d_fig_plt(ax)</span>
+
+    <span class="k">for</span> <span class="n">iface</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bz</span><span class="p">)):</span>  <span class="c1"># pylint: disable=C0200</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">bz</span><span class="p">[</span><span class="n">iface</span><span class="p">],</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jface</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bz</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">iface</span> <span class="o">&lt;</span> <span class="n">jface</span>
+                    <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">bz</span><span class="p">[</span><span class="n">jface</span><span class="p">])</span>
+                    <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">bz</span><span class="p">[</span><span class="n">jface</span><span class="p">])</span>
+                <span class="p">):</span>
+                    <span class="c1">#ax.plot(*zip(line[0], line[1]), **kwargs)</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go_line</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="k">def</span> <span class="nf">plotly_lattice_vectors</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds the basis vectors of the lattice provided to a matplotlib Axes</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lattice: Lattice object</span>
+<span class="sd">        fig: plotly figure or None if a new figure should be created.</span>
+<span class="sd">        kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to green</span>
+<span class="sd">            and linewidth to 3.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        matplotlib figure and matplotlib ax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#ax, fig, plt = get_ax3d_fig_plt(ax)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">go</span> <span class="o">=</span> <span class="n">get_fig_plotly</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span> <span class="c1">#, **fig_kw)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;line_color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;green&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;line_width&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="k">if</span> <span class="s2">&quot;showlegend&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;showlegend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">vertex1</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">vertex2</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="c1">#ax.plot(*zip(vertex1, vertex2), **kwargs)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go_line</span><span class="p">(</span><span class="n">vertex1</span><span class="p">,</span> <span class="n">vertex2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+    <span class="n">vertex2</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="c1">#ax.plot(*zip(vertex1, vertex2), **kwargs)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go_line</span><span class="p">(</span><span class="n">vertex1</span><span class="p">,</span> <span class="n">vertex2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+    <span class="n">vertex2</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="c1">#ax.plot(*zip(vertex1, vertex2), **kwargs)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go_line</span><span class="p">(</span><span class="n">vertex1</span><span class="p">,</span> <span class="n">vertex2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="k">def</span> <span class="nf">plotly_path</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">lattice</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds a line passing through the coordinates listed in &#39;line&#39; to a matplotlib Axes</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        line: list of coordinates.</span>
+<span class="sd">        lattice: Lattice object used to convert from reciprocal to cartesian coordinates</span>
+<span class="sd">        coords_are_cartesian: Set to True if you are providing</span>
+<span class="sd">            coordinates in cartesian coordinates. Defaults to False.</span>
+<span class="sd">            Requires lattice if False.</span>
+<span class="sd">        fig: plotly figure or None if a new figure should be created.</span>
+<span class="sd">        kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to red</span>
+<span class="sd">            and linewidth to 3.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        matplotlib figure and matplotlib ax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#ax, fig, plt = get_ax3d_fig_plt(ax)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">go</span> <span class="o">=</span> <span class="n">get_fig_plotly</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span> <span class="c1">#, **fig_kw)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;line_color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;red&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;line_width&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)):</span>
+        <span class="n">vertex1</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">vertex2</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">coords_are_cartesian</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">lattice</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;coords_are_cartesian False requires the lattice&quot;</span><span class="p">)</span>
+            <span class="n">vertex1</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">vertex1</span><span class="p">)</span>
+            <span class="n">vertex2</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">vertex2</span><span class="p">)</span>
+        <span class="c1">#ax.plot(*zip(vertex1, vertex2), **kwargs)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go_line</span><span class="p">(</span><span class="n">vertex1</span><span class="p">,</span> <span class="n">vertex2</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="k">def</span> <span class="nf">plotly_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">lattice</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds labels to a matplotlib Axes</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        labels: dict containing the label as a key and the coordinates as value.</span>
+<span class="sd">        lattice: Lattice object used to convert from reciprocal to cartesian coordinates</span>
+<span class="sd">        coords_are_cartesian: Set to True if you are providing.</span>
+<span class="sd">            coordinates in cartesian coordinates. Defaults to False.</span>
+<span class="sd">            Requires lattice if False.</span>
+<span class="sd">        ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">        kwargs: kwargs passed to the matplotlib function &#39;text&#39;. Color defaults to blue</span>
+<span class="sd">            and size to 25.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        matplotlib figure and matplotlib ax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax3d_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;b&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;size&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">25</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">coords</span> <span class="ow">in</span> <span class="n">labels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">k</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot;$&quot;</span>
+        <span class="n">off</span> <span class="o">=</span> <span class="mf">0.01</span>
+        <span class="k">if</span> <span class="n">coords_are_cartesian</span><span class="p">:</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">lattice</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;coords_are_cartesian False requires the lattice&quot;</span><span class="p">)</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">coords</span> <span class="o">+</span> <span class="n">off</span><span class="p">),</span> <span class="n">s</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span>
+
+
+<span class="k">def</span> <span class="nf">plotly_points</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">lattice</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fold</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds points to a matplotlib Axes</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        points: list of coordinates</span>
+<span class="sd">        lattice: Lattice object used to convert from reciprocal to cartesian coordinates</span>
+<span class="sd">        coords_are_cartesian: Set to True if you are providing</span>
+<span class="sd">            coordinates in cartesian coordinates. Defaults to False.</span>
+<span class="sd">            Requires lattice if False.</span>
+<span class="sd">        fold: whether the points should be folded inside the first Brillouin Zone.</span>
+<span class="sd">            Defaults to False. Requires lattice if True.</span>
+<span class="sd">        fig: plotly figure or None if a new figure should be created.</span>
+<span class="sd">        kwargs: kwargs passed to the matplotlib function &#39;scatter&#39;. Color defaults to blue</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        matplotlib figure and matplotlib ax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#ax, fig, plt = get_ax3d_fig_plt(ax)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">go</span> <span class="o">=</span> <span class="n">get_fig_plotly</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span> <span class="c1">#, **fig_kw)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;marker_color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;marker_color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;blue&quot;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">coords_are_cartesian</span> <span class="ow">or</span> <span class="n">fold</span><span class="p">)</span> <span class="ow">and</span> <span class="n">lattice</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;coords_are_cartesian False or fold True require the lattice&quot;</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="kn">import</span> <span class="n">fold_point</span>
+    <span class="n">vecs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">fold</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">fold_point</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">lattice</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="n">coords_are_cartesian</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">coords_are_cartesian</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+        <span class="n">vecs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="c1">#ax.scatter(*p, **kwargs)</span>
+
+    <span class="n">kws</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">textposition</span><span class="o">=</span><span class="s2">&quot;top right&quot;</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1">#, textfont=dict(color=&#39;#E58606&#39;))</span>
+    <span class="n">kws</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go_points</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="o">**</span><span class="n">kws</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="nd">@add_plotly_fig_kwargs</span>
+<span class="k">def</span> <span class="nf">plotly_brillouin_zone_from_kpath</span><span class="p">(</span><span class="n">kpath</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gives the plot (as a matplotlib object) of the symmetry line path in</span>
+<span class="sd">        the Brillouin Zone.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        kpath (HighSymmKpath): a HighSymmKPath object</span>
+<span class="sd">        ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">        **kwargs: provided by add_fig_kwargs decorator</span>
+
+<span class="sd">    Returns: plotly figure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[[</span><span class="n">kpath</span><span class="o">.</span><span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">kpath</span><span class="o">.</span><span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">plotly_brillouin_zone</span><span class="p">(</span>
+        <span class="n">bz_lattice</span><span class="o">=</span><span class="n">kpath</span><span class="o">.</span><span class="n">prim_rec</span><span class="p">,</span>
+        <span class="n">lines</span><span class="o">=</span><span class="n">lines</span><span class="p">,</span>
+        <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+        <span class="n">labels</span><span class="o">=</span><span class="n">kpath</span><span class="o">.</span><span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="nd">@add_plotly_fig_kwargs</span>
+<span class="k">def</span> <span class="nf">plotly_brillouin_zone</span><span class="p">(</span>
+    <span class="n">bz_lattice</span><span class="p">,</span>
+    <span class="n">lines</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">kpoints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fold</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots a 3D representation of the Brillouin zone of the structure.</span>
+<span class="sd">    Can add to the plot paths, labels and kpoints</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        bz_lattice: Lattice object of the Brillouin zone</span>
+<span class="sd">        lines: list of lists of coordinates. Each list represent a different path</span>
+<span class="sd">        labels: dict containing the label as a key and the coordinates as value.</span>
+<span class="sd">        kpoints: list of coordinates</span>
+<span class="sd">        fold: whether the points should be folded inside the first Brillouin Zone.</span>
+<span class="sd">            Defaults to False. Requires lattice if True.</span>
+<span class="sd">        coords_are_cartesian: Set to True if you are providing</span>
+<span class="sd">            coordinates in cartesian coordinates. Defaults to False.</span>
+<span class="sd">        ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">        kwargs: provided by add_fig_kwargs decorator</span>
+
+<span class="sd">    Returns: plotly figure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plotly_lattice_vectors</span><span class="p">(</span><span class="n">bz_lattice</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">plotly_wigner_seitz</span><span class="p">(</span><span class="n">bz_lattice</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">lines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">plotly_path</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">bz_lattice</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="n">coords_are_cartesian</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># TODO</span>
+        <span class="c1">#plotly_labels(labels, bz_lattice, coords_are_cartesian=coords_are_cartesian, ax=ax)</span>
+        <span class="n">plotly_points</span><span class="p">(</span>
+            <span class="n">labels</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
+            <span class="n">lattice</span><span class="o">=</span><span class="n">bz_lattice</span><span class="p">,</span>
+            <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="n">coords_are_cartesian</span><span class="p">,</span>
+            <span class="n">fold</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">labels</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+            <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plotly_points</span><span class="p">(</span>
+            <span class="n">kpoints</span><span class="p">,</span>
+            <span class="n">lattice</span><span class="o">=</span><span class="n">bz_lattice</span><span class="p">,</span>
+            <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="n">coords_are_cartesian</span><span class="p">,</span>
+            <span class="n">fold</span><span class="o">=</span><span class="n">fold</span><span class="p">,</span>
+            <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1">#ax.set_xlim3d(-1, 1)</span>
+    <span class="c1">#ax.set_ylim3d(-1, 1)</span>
+    <span class="c1">#ax.set_zlim3d(-1, 1)</span>
+    <span class="c1"># ax.set_aspect(&#39;equal&#39;)</span>
+    <span class="c1">#ax.axis(&quot;off&quot;)</span>
+
+    <span class="k">return</span> <span class="n">fig</span>
 </pre></div>
 
            </div>
@@ -1419,7 +2115,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

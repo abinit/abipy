@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -1746,9 +1745,6 @@
 
         <span class="c1"># Self-consistent case</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_en_qp_diago</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;en_qp_diago&quot;</span><span class="p">)</span>
-        <span class="c1"># &lt;KS|QPState&gt;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_eigvec_qp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;eigvec_qp&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
-
         <span class="c1">#self._mlda_to_qp</span>
 
     <span class="c1">#def is_selfconsistent(self, mode):</span>
@@ -1907,10 +1903,15 @@
 <span class="sd">        If band is None, &lt;KS_b|QP_{b&#39;}&gt; is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ik</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpt2fileindex</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
+        <span class="c1"># &lt;KS|QPState&gt;</span>
+        <span class="c1"># TODO</span>
+        <span class="c1">#eigvec_qp = self.read_value(&quot;eigvec_qp&quot;, cmode=&quot;c&quot;)</span>
+        <span class="c1"># eigvec_qp(nbnds,nbnds,nkibz,nsppol))</span>
+        <span class="n">eigvec_qp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;eigvec_qp&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">band</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigvec_qp</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">eigvec_qp</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">eigvec_qp</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigvec_qp</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+            <span class="k">return</span> <span class="n">eigvec_qp</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">eigvec_qp</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">read_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2067,6 +2068,79 @@
         <span class="n">row_names</span> <span class="o">=</span> <span class="n">row_names</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">abspath</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_relpaths</span><span class="p">(</span><span class="n">row_names</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">row_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
 
+<div class="viewcode-block" id="SigresRobot.get_fit_gaps_vs_ecuteps"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresRobot.get_fit_gaps_vs_ecuteps">[docs]</a>    <span class="k">def</span> <span class="nf">get_fit_gaps_vs_ecuteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">plot_qpmks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slice_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fit QP direct gaps as a function of ecuteps using Eq. 16 of http://dx.doi.org/10.1063/1.4900447</span>
+<span class="sd">        to extrapolate results for ecuteps --&gt; +oo.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            spin: Spin index (0 or 1)</span>
+<span class="sd">            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or k-point index.</span>
+<span class="sd">            plot_qpmks: If False, plot QP_gap else (QP_gap - KS_gap) i.e. gap correction</span>
+<span class="sd">            slice_data: Python slice object. Used to downsample data points.</span>
+<span class="sd">                None to use all files of the SigResRobot.</span>
+<span class="sd">            fontsize: legend and label fontsize.</span>
+
+<span class="sd">        Return: TODO</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make sure that nsppol, sigma_kpoints are consistent.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_dims_and_params</span><span class="p">()</span>
+
+        <span class="c1"># Get dimensions and index of the k-point in the sigma_nk array.</span>
+        <span class="n">nc0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nsppol</span><span class="p">,</span> <span class="n">sigma_kpoints</span> <span class="o">=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nc0</span><span class="o">.</span><span class="n">sigma_kpoints</span>
+        <span class="n">ik</span> <span class="o">=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">gwkpt2seqindex</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
+        <span class="n">kgw</span> <span class="o">=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">sigma_kpoints</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span>
+
+        <span class="c1"># Order files by ecuteps</span>
+        <span class="n">labels</span><span class="p">,</span> <span class="n">ncfiles</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sortby</span><span class="p">(</span><span class="s2">&quot;ecuteps&quot;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ecuteps_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="c1"># Get QP and KS gaps ordered by ecuteps_vals.</span>
+        <span class="n">qp_gaps</span><span class="p">,</span> <span class="n">ks_gaps</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">ncfile</span><span class="o">.</span><span class="n">get_qpgap</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kgw</span><span class="p">,</span> <span class="n">with_ksgap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="n">ncfiles</span><span class="p">]))</span>
+        <span class="n">ydata</span> <span class="o">=</span> <span class="n">qp_gaps</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">plot_qpmks</span> <span class="k">else</span> <span class="n">qp_gaps</span> <span class="o">-</span> <span class="n">ks_gaps</span>
+
+        <span class="k">if</span> <span class="n">slice_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Allow user to select a subset of data points via python slice</span>
+            <span class="n">ecuteps_vals</span> <span class="o">=</span> <span class="n">ecuteps_vals</span><span class="p">[</span><span class="n">slice_data</span><span class="p">]</span>
+            <span class="n">ydata</span> <span class="o">=</span> <span class="n">ydata</span><span class="p">[</span><span class="n">slice_data</span><span class="p">]</span>
+
+        <span class="c1"># Fit results as a function of ecuteps</span>
+        <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
+        <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">x</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span> <span class="o">*</span> <span class="n">x</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">)</span> <span class="o">+</span> <span class="n">c</span>
+
+        <span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">ecuteps_vals</span><span class="p">,</span> <span class="n">ydata</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ecuteps_vals</span><span class="p">,</span> <span class="n">ydata</span><span class="p">,</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;ab-initio data&#39;</span><span class="p">)</span>
+        <span class="n">min_ecuteps</span><span class="p">,</span> <span class="n">max_ecuteps</span> <span class="o">=</span> <span class="n">ecuteps_vals</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">ecuteps_vals</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">20</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">min_ecuteps</span><span class="p">,</span> <span class="n">max_ecuteps</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+        <span class="c1"># Change label depending on plot_qpmks</span>
+        <span class="n">what</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;\Delta E_g&quot;</span> <span class="k">if</span> <span class="n">plot_qpmks</span> <span class="k">else</span> <span class="sa">r</span><span class="s2">&quot;E_g&quot;</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">func</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">popt</span><span class="p">),</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;fit: $B_3$=%5.3f, $B_5$=%5.3f, $</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s1"> (\infty)$=%5.3f&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">popt</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="n">popt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">min_ecuteps</span><span class="p">,</span> <span class="n">max_ecuteps</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;ecuteps (Ha)&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;$</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s1">$ (eV)&#39;</span><span class="p">)</span>
+        <span class="c1">#ax.set_ylabel(&#39;$\Delta E(E_c^{\chi})$ (eV)&#39;)</span>
+        <span class="c1">#ax.title(r&#39;$\Delta E(E_c^{\chi}) = \Delta E_g (\infty) + B_3 * E_c^{\chi (-3/2)} + B_5* E_c^{\chi (-5/2)} $&#39;)</span>
+
+        <span class="c1">#if show:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span>
+                <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+                <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span>
+                <span class="n">ecuteps_vals</span><span class="o">=</span><span class="n">ecuteps_vals</span><span class="p">,</span>
+                <span class="n">ydata</span><span class="o">=</span><span class="n">ydata</span><span class="p">,</span>
+                <span class="n">popt</span><span class="o">=</span><span class="n">popt</span><span class="p">,</span>
+                <span class="n">pcov</span><span class="o">=</span><span class="n">pcov</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
     <span class="c1"># An alias to have a common API for robots.</span>
     <span class="n">get_dataframe</span> <span class="o">=</span> <span class="n">get_qpgaps_dataframe</span>
 
@@ -2096,6 +2170,7 @@
 
         <span class="n">nc0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">nsppol</span><span class="p">,</span> <span class="n">sigma_kpoints</span> <span class="o">=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nc0</span><span class="o">.</span><span class="n">sigma_kpoints</span>
+
         <span class="c1"># Build grid with (nkpt, 1) plots.</span>
         <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sigma_kpoints</span><span class="p">)</span>
         <span class="n">ax_list</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
@@ -2396,7 +2471,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

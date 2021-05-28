@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -210,7 +209,7 @@
 <span class="kn">from</span> <span class="nn">pymatgen.core.sites</span> <span class="kn">import</span> <span class="n">PeriodicSite</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="kn">import</span> <span class="n">Lattice</span>
 <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="kn">import</span> <span class="n">SpacegroupAnalyzer</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">add_plotly_fig_kwargs</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="kn">import</span> <span class="n">PseudoTable</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.core.symmetries</span> <span class="kn">import</span> <span class="n">AbinitSpaceGroup</span>
@@ -1505,30 +1504,43 @@
 <span class="sd">        Args:</span>
 <span class="sd">            with_cart_coords: True if Cartesian coordinates should be added as well.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
         <span class="k">if</span> <span class="n">with_cart_coords</span><span class="p">:</span>
-            <span class="n">group</span> <span class="o">=</span> <span class="p">{</span><span class="n">symb</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;idx&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;frac_coords&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;cart_coords&quot;</span><span class="p">:</span> <span class="p">[]}</span> <span class="k">for</span> <span class="n">symb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">}</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="p">{</span><span class="n">symb</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;site_idx&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;frac_coords&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;cart_coords&quot;</span><span class="p">:</span> <span class="p">[]}</span> <span class="k">for</span> <span class="n">symb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">}</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">group</span> <span class="o">=</span> <span class="p">{</span><span class="n">symb</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;idx&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;frac_coords&quot;</span><span class="p">:</span> <span class="p">[]}</span> <span class="k">for</span> <span class="n">symb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">}</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="p">{</span><span class="n">symb</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;site_idx&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;frac_coords&quot;</span><span class="p">:</span> <span class="p">[]}</span> <span class="k">for</span> <span class="n">symb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">}</span>
 
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="n">symb</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span>
-            <span class="n">group</span><span class="p">[</span><span class="n">symb</span><span class="p">][</span><span class="s2">&quot;idx&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="n">group</span><span class="p">[</span><span class="n">symb</span><span class="p">][</span><span class="s2">&quot;site_idx&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
             <span class="n">group</span><span class="p">[</span><span class="n">symb</span><span class="p">][</span><span class="s2">&quot;frac_coords&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">with_cart_coords</span><span class="p">:</span>
                 <span class="n">group</span><span class="p">[</span><span class="n">symb</span><span class="p">][</span><span class="s2">&quot;cart_coords&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">symb</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">symb</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="n">symb</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">symb</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="c1"># Use site_idx and new index.</span>
+        <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;site_idx&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">out</span></div>
 
 <div class="viewcode-block" id="Structure.plot"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot structure in 3D with matplotlib. Return matplotlib Figure</span>
-<span class="sd">        See plot_structure for kwargs</span>
+<span class="sd">        Plot structure in 3D with matplotlib. Return matplotlib Figure.</span>
+<span class="sd">        See plot_structure for kwargs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">plot_structure</span>
         <span class="k">return</span> <span class="n">plot_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Structure.plotly"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.plotly">[docs]</a>    <span class="nd">@add_plotly_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot structure in 3D with plotly. Return plotly Figure.</span>
+<span class="sd">        See plot_structure for kwargs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">plotly_structure</span>
+        <span class="k">return</span> <span class="n">plotly_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.plot_bz"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.plot_bz">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_bz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pmg_path</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1548,6 +1560,25 @@
             <span class="k">return</span> <span class="n">plot_brillouin_zone_from_kpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">plot_brillouin_zone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Structure.plotly_bz"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.plotly_bz">[docs]</a>    <span class="nd">@add_plotly_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plotly_bz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pmg_path</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use matplotlib to plot the symmetry line path in the Brillouin Zone.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">            pmg_path (bool): True if the default path used in pymatgen should be show.</span>
+<span class="sd">            with_labels (bool): True to plot k-point labels.</span>
+
+<span class="sd">        Returns: |matplotlib-Figure|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">plotly_brillouin_zone_from_kpath</span><span class="p">,</span> <span class="n">plotly_brillouin_zone</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">with_labels</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="o">.</span><span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">pmg_path</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">plotly_brillouin_zone_from_kpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">plotly_brillouin_zone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.plot_xrd"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.plot_xrd">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_xrd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavelength</span><span class="o">=</span><span class="s2">&quot;CuKa&quot;</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">debye_waller_factors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -2675,7 +2706,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

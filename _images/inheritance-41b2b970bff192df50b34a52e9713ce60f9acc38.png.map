@@ -1,0 +1,7 @@
+<map id="inheritance6a7e4af0c2" name="inheritance6a7e4af0c2">
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="301,104,500,129"/>
+<area shape="rect" id="node6" href="#abipy.electrons.bse.MdfFile" target="_top" title="Usage example:" alt="" coords="557,55,739,80"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="35,104,214,129"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,55,509,80"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="295,5,506,31"/>
+</map>

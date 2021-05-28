@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -290,12 +289,12 @@ None, if the netcdf file does not contain the IFCs.</p>
 </dd></dl>
 
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-943ea0f40f550824b7450a835537e0d2d42ba93b.png" alt="Inheritance diagram of AnaddbNcFile" usemap="#inheritance8defe6c584" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-6363edd7ee2a491b4e82b4ae0126b4d7dcdedf18.png" alt="Inheritance diagram of AnaddbNcFile" usemap="#inheritance8defe6c584" class="inheritance graphviz" /></div>
 <map id="inheritance8defe6c584" name="inheritance8defe6c584">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="243,101,441,125"/>
-<area shape="rect" id="node5" href="#abipy.dfpt.anaddbnc.AnaddbNcFile" target="_top" title="AnaddbNcFile provides a high&#45;level interface to the data stored in the anaddb.nc file." alt="" coords="500,53,728,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="236,5,448,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,53,452,77"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="294,102,488,126"/>
+<area shape="rect" id="node6" href="#abipy.dfpt.anaddbnc.AnaddbNcFile" target="_top" title="AnaddbNcFile provides a high&#45;level interface to the data stored in the anaddb.nc file." alt="" coords="544,53,763,78"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="285,53,497,78"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="288,5,494,30"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -442,11 +441,11 @@ working directory is created. Return path to the notebook.</p>
 <dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.robots.Robot</span></code></a></p>
 <p>This robot analyzes the results contained in multiple anaddb.nc files.</p>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-72372653049479a083ad133e2925ef96c344d16f.png" alt="Inheritance diagram of AnaddbNcRobot" usemap="#inheritance78c7737bde" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-74a7afc2ec8198247a96e49741999cfaf5bbcf78.png" alt="Inheritance diagram of AnaddbNcRobot" usemap="#inheritance78c7737bde" class="inheritance graphviz" /></div>
 <map id="inheritance78c7737bde" name="inheritance78c7737bde">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="273,5,434,29"/>
-<area shape="rect" id="node3" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot" target="_top" title="This robot analyzes the results contained in multiple anaddb.nc files." alt="" coords="482,5,724,29"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,5,225,29"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="425,4,546,23"/>
+<area shape="rect" id="node4" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot" target="_top" title="This robot analyzes the results contained in multiple anaddb.nc files." alt="" coords="582,4,764,23"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="222,4,388,23"/>
 </map><dl class="py attribute">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'anaddb'</span></em><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -654,7 +653,7 @@ and sort the IFC in the correct order.</p></li>
 <li><p><strong>calculator</strong> – a string with the name of the calculator. Will be used to set the conversion
 factor for the force constants coming from phonopy.</p></li>
 <li><p><strong>manager</strong> – <a class="reference internal" href="flowtk_api.html#abipy.flowtk.tasks.TaskManager" title="abipy.flowtk.tasks.TaskManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object. It will be
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object. It will be
 used by abinit to generate the base DDB file. If None the abipy.data.hgh_pseudos.HGH_TABLE
 table will be used.</p></li>
 <li><p><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</p></li>
@@ -763,7 +762,7 @@ as in the abinit calculation.</p></li>
 <li><p><strong>tolsym</strong> – Gives the tolerance to identify symmetries in abinit. See abinit documentation for
 more details.</p></li>
 <li><p><strong>manager</strong> – <a class="reference internal" href="flowtk_api.html#abipy.flowtk.tasks.TaskManager" title="abipy.flowtk.tasks.TaskManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object. It will be
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object. It will be
 used by abinit to generate the base DDB file. If None the abipy.data.hgh_pseudos.HGH_TABLE
 table will be used.</p></li>
 <li><p><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</p></li>
@@ -901,11 +900,11 @@ as well as methods to compute phonon band structures, phonon DOS, thermodynamic 
 </li>
 </ul>
 <p class="rubric">Inheritance</p>
-<div class="graphviz"><img src="../_images/inheritance-9719baef58f1645a9db88e98a1c825f04ba3fb04.png" alt="Inheritance diagram of DdbFile" usemap="#inheritancecb0cf3a7e1" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-b3521b97c4455a6f77c5c9146ccd62762e86eaf3.png" alt="Inheritance diagram of DdbFile" usemap="#inheritancecb0cf3a7e1" class="inheritance graphviz" /></div>
 <map id="inheritancecb0cf3a7e1" name="inheritancecb0cf3a7e1">
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="236,53,448,77"/>
-<area shape="rect" id="node5" href="#abipy.dfpt.ddb.DdbFile" target="_top" title="This object provides an interface to the DDB_ file produced by ABINIT" alt="" coords="500,53,653,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,101,452,125"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,104,509,129"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="295,55,506,80"/>
+<area shape="rect" id="node6" href="#abipy.dfpt.ddb.DdbFile" target="_top" title="This object provides an interface to the DDB_ file produced by ABINIT" alt="" coords="557,55,709,80"/>
 </map><dl class="py attribute">
 <dt id="abipy.dfpt.ddb.DdbFile.Error">
 <code class="sig-name descname"><span class="pre">Error</span></code><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.Error" title="Permalink to this definition">¶</a></dt>
@@ -1202,6 +1201,12 @@ Produce JSON file that can be parsed from the <a class="reference external" href
 <dt id="abipy.dfpt.ddb.DdbFile.yield_figs">
 <code class="sig-name descname"><span class="pre">yield_figs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.yield_figs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.yield_figs" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.dfpt.ddb.DdbFile.yield_plotly_figs">
+<code class="sig-name descname"><span class="pre">yield_plotly_figs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.yield_plotly_figs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.yield_plotly_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of plotly figures with minimal input from the user.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2089,13 +2094,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -2395,11 +2401,11 @@ Default: False</p></td>
 Obviously, some <cite>compare</cite> methods make sense only if the DDB files have the same structures
 and have computed with different parameters e.g. qmesh, tsmear, ecut ….</p>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-7765977e89c20ce82ea1041a149a18ca79d0adbb.png" alt="Inheritance diagram of DdbRobot" usemap="#inheritance0460c10005" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-640bf4ed9b324c3b55c8d6b4608b03f1acac677a.png" alt="Inheritance diagram of DdbRobot" usemap="#inheritance0460c10005" class="inheritance graphviz" /></div>
 <map id="inheritance0460c10005" name="inheritance0460c10005">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="273,5,434,29"/>
-<area shape="rect" id="node3" href="#abipy.dfpt.ddb.DdbRobot" target="_top" title="This robot analyzes the results contained in multiple DDB files." alt="" coords="482,5,650,29"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,5,225,29"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="457,4,587,25"/>
+<area shape="rect" id="node4" href="#abipy.dfpt.ddb.DdbRobot" target="_top" title="This robot analyzes the results contained in multiple DDB files." alt="" coords="627,4,764,25"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="240,4,418,25"/>
 </map><dl class="py attribute">
 <dt id="abipy.dfpt.ddb.DdbRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'DDB'</span></em><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -2576,7 +2582,7 @@ whose value will be added to the Dataframe.</p></li>
 
 <dl class="py method">
 <dt id="abipy.dfpt.ddb.DdbRobot.get_panel">
-<code class="sig-name descname"><span class="pre">get_panel</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.get_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.get_panel" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_panel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.get_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.get_panel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a panel object that allows the user to compare the results with a web-based interface.</p>
 </dd></dl>
 
@@ -2593,7 +2599,7 @@ working directory is created. Return path to the notebook.</p>
 <dt id="abipy.dfpt.ddb.get_2nd_ord_block_string">
 <code class="sig-prename descclassname"><span class="pre">abipy.dfpt.ddb.</span></code><code class="sig-name descname"><span class="pre">get_2nd_ord_block_string</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#get_2nd_ord_block_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ddb.get_2nd_ord_block_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function providing the lines required in a DDB file for a given
-q point and second order derivatives.</p>
+q-point and second order derivatives.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -2602,13 +2608,8 @@ q point and second order derivatives.</p>
 with the data that should be given in the string.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the lines that can be added to the DDB file.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list of str</p>
-</dd>
 </dl>
+<p>Returns: list of str: the lines that can be added to the DDB file.</p>
 </dd></dl>
 
 </div>
@@ -2618,7 +2619,7 @@ with the data that should be given in the string.</p></li>
 <dl class="py class">
 <dt id="abipy.dfpt.elastic.MyElasticTensor">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.dfpt.elastic.</span></code><code class="sig-name descname"><span class="pre">MyElasticTensor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyElasticTensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyElasticTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.analysis.elasticity.elastic.html#pymatgen.analysis.elasticity.elastic.ElasticTensor" title="(in pymatgen v2022.0.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.elasticity.elastic.ElasticTensor</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.analysis.elasticity.elastic.html#pymatgen.analysis.elasticity.elastic.ElasticTensor" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.elasticity.elastic.ElasticTensor</span></code></a></p>
 <dl class="py method">
 <dt id="abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe">
 <code class="sig-name descname"><span class="pre">get_voigt_dataframe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyElasticTensor.get_voigt_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
@@ -2632,7 +2633,7 @@ Elements below tol are set to zero.</p>
 <dl class="py class">
 <dt id="abipy.dfpt.elastic.MyPiezoTensor">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.dfpt.elastic.</span></code><code class="sig-name descname"><span class="pre">MyPiezoTensor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyPiezoTensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyPiezoTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.analysis.piezo.html#pymatgen.analysis.piezo.PiezoTensor" title="(in pymatgen v2022.0.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.piezo.PiezoTensor</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.analysis.piezo.html#pymatgen.analysis.piezo.PiezoTensor" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.piezo.PiezoTensor</span></code></a></p>
 <dl class="py method">
 <dt id="abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe">
 <code class="sig-name descname"><span class="pre">get_voigt_dataframe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyPiezoTensor.get_voigt_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
@@ -3091,12 +3092,12 @@ This file contains Grunesein parameters computed via finite difference.</p>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-f83cee54bfe3a86a57b5bf11885a07ceae44064e.png" alt="Inheritance diagram of GrunsNcFile" usemap="#inheritance5d50b201b3" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-47c2a7df0391ecffc85fde03a02863f39e86cc55.png" alt="Inheritance diagram of GrunsNcFile" usemap="#inheritance5d50b201b3" class="inheritance graphviz" /></div>
 <map id="inheritance5d50b201b3" name="inheritance5d50b201b3">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="243,101,441,125"/>
-<area shape="rect" id="node5" href="#abipy.dfpt.gruneisen.GrunsNcFile" target="_top" title="This object provides an interface to the ``GRUNS.nc`` file produced by abinit." alt="" coords="500,53,718,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="236,5,448,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,53,452,77"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="298,103,494,128"/>
+<area shape="rect" id="node6" href="#abipy.dfpt.gruneisen.GrunsNcFile" target="_top" title="This object provides an interface to the ``GRUNS.nc`` file produced by abinit." alt="" coords="551,54,763,79"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="288,54,503,79"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="292,5,500,30"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -3658,8 +3659,8 @@ It provides helper functions to access the most important quantities.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-aa3c7237b36deda9614223eb19895b945c0a017f.png" alt="Inheritance diagram of GrunsReader" usemap="#inheritanced0ee4d5629" class="inheritance graphviz" /></div>
 <map id="inheritanced0ee4d5629" name="inheritanced0ee4d5629">
-<area shape="rect" id="node1" href="#abipy.dfpt.gruneisen.GrunsReader" target="_top" title="This object reads the results stored in the GRUNS.nc file produced by ABINIT." alt="" coords="604,4,764,21"/>
-<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="439,4,570,21"/>
+<area shape="rect" id="node1" href="#abipy.dfpt.gruneisen.GrunsReader" target="_top" title="This object reads the results stored in the GRUNS.nc file produced by ABINIT." alt="" coords="606,4,764,22"/>
+<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="440,4,571,22"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.gruneisen.GrunsReader.read_doses">
 <code class="sig-name descname"><span class="pre">read_doses</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsReader.read_doses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsReader.read_doses" title="Permalink to this definition">¶</a></dt>
@@ -4847,7 +4848,7 @@ Default: False</p></td>
 
 <dl class="py method">
 <dt id="abipy.dfpt.phonons.PhononBands.plotly">
-<code class="sig-name descname"><span class="pre">plotly</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qlabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plotly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plotly" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">plotly</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qlabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plotly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plotly" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the phonon band structure with plotly.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -4888,13 +4889,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -4985,7 +4987,7 @@ Default: False</p></td>
 <dt id="abipy.dfpt.phonons.PhononBands.plot_lt_character">
 <code class="sig-name descname"><span class="pre">plot_lt_character</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qlabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_becs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plot_lt_character"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plot_lt_character" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the phonon band structure with colored lines. The color of the lines indicates
-the degree to which the mode is longitudinal:
+the degree to which the mode is longitudinal.
 Red corresponds to longitudinal modes and black to purely transverse modes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -5252,13 +5254,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -6052,13 +6055,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -6174,13 +6178,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -6488,13 +6493,13 @@ working directory is created. Return path to the notebook.</p>
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_PhononBands" title="abipy.core.mixins.Has_PhononBands"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.mixins.Has_PhononBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>Object used to access data stored in the PHBST.nc file produced by ABINIT.</p>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-1b16099399cdf96b1cb1617b50814c4f0864f596.png" alt="Inheritance diagram of PhbstFile" usemap="#inheritancee7492c30a8" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-d15389465c13996bf763271ffec02b854bde39a9.png" alt="Inheritance diagram of PhbstFile" usemap="#inheritancee7492c30a8" class="inheritance graphviz" /></div>
 <map id="inheritancee7492c30a8" name="inheritancee7492c30a8">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="254,149,452,173"/>
-<area shape="rect" id="node6" href="#abipy.dfpt.phonons.PhbstFile" target="_top" title="Object used to access data stored in the PHBST.nc file produced by ABINIT." alt="" coords="522,77,715,101"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_PhononBands" target="_top" title="Mixin class for |AbinitNcFile| containing phonon data." alt="" coords="232,5,474,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="247,53,459,77"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="244,101,463,125"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="309,152,506,177"/>
+<area shape="rect" id="node7" href="#abipy.dfpt.phonons.PhbstFile" target="_top" title="Object used to access data stored in the PHBST.nc file produced by ABINIT." alt="" coords="574,79,763,104"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="300,103,516,128"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_PhononBands" target="_top" title="Mixin class for |AbinitNcFile| containing phonon data." alt="" coords="289,5,526,30"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="303,54,512,79"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.phonons.PhbstFile.to_string">
 <code class="sig-name descname"><span class="pre">to_string</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.to_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.to_string" title="Permalink to this definition">¶</a></dt>
@@ -6590,8 +6595,8 @@ or an integer giving the sequential index (C-convention).</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="abipy.dfpt.phonons.PhbstFile.plotly_expose">
-<code class="sig-name descname"><span class="pre">plotly_expose</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chart_studio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.plotly_expose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.plotly_expose" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.phonons.PhbstFile.yield_plotly_figs">
+<code class="sig-name descname"><span class="pre">yield_plotly_figs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.yield_plotly_figs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.yield_plotly_figs" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function <em>generates</em> a predefined list of plotly figures with minimal input from the user.</p>
 </dd></dl>
 
@@ -6789,13 +6794,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -6868,7 +6874,7 @@ for different temperatures</p>
 
 <dl class="py method">
 <dt id="abipy.dfpt.phonons.PhononDos.plot_harmonic_thermo">
-<code class="sig-name descname"><span class="pre">plot_harmonic_thermo</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tstart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tstop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDos.plot_harmonic_thermo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDos.plot_harmonic_thermo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">plot_harmonic_thermo</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tstart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tstop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDos.plot_harmonic_thermo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDos.plot_harmonic_thermo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot thermodynamic properties from the phonon DOSes within the harmonic approximation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -6877,8 +6883,7 @@ for different temperatures</p>
 <li><p><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</p></li>
 <li><p><strong>num</strong> – int, optional Number of samples to generate. Default is 50.</p></li>
 <li><p><strong>quantities</strong> – List of strings specifying the thermodynamic quantities to plot.
-Possible values: [“internal_energy”, “free_energy”, “entropy”, “c_v”].
-None means all.</p></li>
+Possible values: [“internal_energy”, “free_energy”, “entropy”, “c_v”].</p></li>
 <li><p><strong>units</strong> – eV for energies in ev/unit_cell, Jmol for results in J/mole.</p></li>
 <li><p><strong>formula_units</strong> – the number of formula units per unit cell. If unspecified, the
 thermodynamic quantities will be given on a per-unit-cell basis.</p></li>
@@ -6932,7 +6937,7 @@ Default: False</p></td>
 
 <dl class="py method">
 <dt id="abipy.dfpt.phonons.PhononDos.plotly_harmonic_thermo">
-<code class="sig-name descname"><span class="pre">plotly_harmonic_thermo</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tstart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tstop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDos.plotly_harmonic_thermo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDos.plotly_harmonic_thermo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">plotly_harmonic_thermo</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tstart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tstop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDos.plotly_harmonic_thermo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDos.plotly_harmonic_thermo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot thermodynamic properties from the phonon DOS within the harmonic approximation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -6941,8 +6946,7 @@ Default: False</p></td>
 <li><p><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</p></li>
 <li><p><strong>num</strong> – int, optional Number of samples to generate. Default is 50.</p></li>
 <li><p><strong>quantities</strong> – List of strings specifying the thermodynamic quantities to plot.
-Possible values: [“internal_energy”, “free_energy”, “entropy”, “c_v”].
-None means all.</p></li>
+Possible values: [“internal_energy”, “free_energy”, “entropy”, “c_v”].</p></li>
 <li><p><strong>units</strong> – eV for energies in ev/unit_cell, Jmol for results in J/mole.</p></li>
 <li><p><strong>formula_units</strong> – the number of formula units per unit cell. If unspecified, the
 thermodynamic quantities will be given on a per-unit-cell basis.</p></li>
@@ -6972,13 +6976,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -7395,12 +7400,12 @@ with chemical symbol <code class="docutils literal notranslate"><span class="pre
 PHDOS.nc file produced by anaddb.
 Provides helper function to visualize/extract data.</p>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-12e8cc72ad913fb805a0bd24690087f21d29ad8b.png" alt="Inheritance diagram of PhdosFile" usemap="#inheritance39e463df1c" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-aac73c757786b7af4e09bcdb2ad1f832a235d741.png" alt="Inheritance diagram of PhdosFile" usemap="#inheritance39e463df1c" class="inheritance graphviz" /></div>
 <map id="inheritance39e463df1c" name="inheritance39e463df1c">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="243,101,441,125"/>
-<area shape="rect" id="node5" href="#abipy.dfpt.phonons.PhdosFile" target="_top" title="Container object storing the different DOSes stored in the" alt="" coords="500,53,696,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="236,5,448,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,53,452,77"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="301,104,500,129"/>
+<area shape="rect" id="node6" href="#abipy.dfpt.phonons.PhdosFile" target="_top" title="Container object storing the different DOSes stored in the" alt="" coords="557,55,751,80"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,55,509,80"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="295,5,506,31"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.phonons.PhdosFile.close">
 <code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.close" title="Permalink to this definition">¶</a></dt>
@@ -7559,13 +7564,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -7712,9 +7718,11 @@ Used in abiview.py to get a quick look at the results.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="abipy.dfpt.phonons.PhdosFile.plotly_expose">
-<code class="sig-name descname"><span class="pre">plotly_expose</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chart_studio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'meV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.plotly_expose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.plotly_expose" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="abipy.dfpt.phonons.PhdosFile.yield_plotly_figs">
+<code class="sig-name descname"><span class="pre">yield_plotly_figs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.yield_plotly_figs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.yield_plotly_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of plotly figures with minimal input from the user.
+Used in abiview.py to get a quick look at the results.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="abipy.dfpt.phonons.PhdosFile.write_notebook">
@@ -7902,10 +7910,8 @@ Does not include electronic entropic contributions for metals.</p>
 <li><p><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A numpy array of <cite>num</cite> values of the vibrational contribution to the free energy</p>
-</dd>
 </dl>
+<p>Returns: A numpy array of <cite>num</cite> values of the vibrational contribution to the free energy</p>
 </dd></dl>
 
 <dl class="py method">
@@ -8217,10 +8223,8 @@ Default: False</p></td>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>t</strong> – temperature in K</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The volume</p>
-</dd>
 </dl>
+<p>Returns: The volume in Ang^3.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -8282,10 +8286,8 @@ in the list. Choose the values of tstart, tstop and num to satisfy this conditio
 <li><p><strong>energy_plot_factor</strong> – factor multiplying the energies. Passed to phonopy’s QHA.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>An instance of phonopy.qha.QHA</p>
-</dd>
 </dl>
+<p>Returns: An instance of phonopy.qha.QHA</p>
 </dd></dl>
 
 </dd></dl>
@@ -8302,8 +8304,8 @@ Does not include electronic entropic contributions for metals.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-fa8df8456faa2bcdee0d1f6e5e6989a71df1f05f.png" alt="Inheritance diagram of QHA" usemap="#inheritance3d5fb7ef7d" class="inheritance graphviz" /></div>
 <map id="inheritance3d5fb7ef7d" name="inheritance3d5fb7ef7d">
-<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,29"/>
-<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from electronic and phonon calculations" alt="" coords="239,5,376,29"/>
+<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,31"/>
+<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from electronic and phonon calculations" alt="" coords="239,5,375,31"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.qha.QHA.from_files">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gsr_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phdos_paths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.from_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.from_files" title="Permalink to this definition">¶</a></dt>
@@ -8332,10 +8334,8 @@ The list should have the same size and the volumes should match.</p>
 <li><p><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A numpy array of <cite>num</cite> values of the vibrational contribution to the free energy</p>
-</dd>
 </dl>
+<p>Returns: A numpy array of <cite>num</cite> values of the vibrational contribution to the free energy</p>
 </dd></dl>
 
 <dl class="py method">
@@ -8377,8 +8377,8 @@ Does not include electronic entropic contributions for metals.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-d32394034ff687d76d4522cf1ddb519c33b50f1c.png" alt="Inheritance diagram of QHA3PF" usemap="#inheritance22c36fa5e9" class="inheritance graphviz" /></div>
 <map id="inheritance22c36fa5e9" name="inheritance22c36fa5e9">
-<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,29"/>
-<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA3PF" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from several electronic energies at different" alt="" coords="239,5,400,29"/>
+<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,31"/>
+<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA3PF" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from several electronic energies at different" alt="" coords="239,5,399,31"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.qha.QHA3PF.from_files">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gsr_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phdos_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind_doses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3PF.from_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3PF.from_files" title="Permalink to this definition">¶</a></dt>
@@ -8455,8 +8455,8 @@ Does not include electronic entropic contributions for metals.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-59d809776006cdc9641e11aae3dfe9c3795d86bc.png" alt="Inheritance diagram of QHA3P" usemap="#inheritance2ce23cbfaa" class="inheritance graphviz" /></div>
 <map id="inheritance2ce23cbfaa" name="inheritance2ce23cbfaa">
-<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,29"/>
-<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA3P" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from several electronic energies at different" alt="" coords="239,5,392,29"/>
+<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,31"/>
+<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA3P" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from several electronic energies at different" alt="" coords="239,5,391,31"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.qha.QHA3P.from_files">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gsr_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grun_file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind_doses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3P.from_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3P.from_files" title="Permalink to this definition">¶</a></dt>
@@ -8471,10 +8471,8 @@ The list should have the same size and the volumes should match.</p>
 corresponding gsr_file in “gsr_paths”.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A new instance of QHA</p>
-</dd>
 </dl>
+<p>Returns: A new instance of QHA</p>
 </dd></dl>
 
 <dl class="py method">
@@ -8529,10 +8527,8 @@ or from a fit of the know values.</p>
 <li><p><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A numpy array of <cite>num</cite> values of the vibrational contribution to the free energy</p>
-</dd>
 </dl>
+<p>Returns: A numpy array of <cite>num</cite> values of the vibrational contribution to the free energy</p>
 </dd></dl>
 
 </dd></dl>
@@ -9241,13 +9237,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -9343,13 +9340,14 @@ See <a class="reference external" href="https://github.com/plotly/jupyterlab-cha
 <dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
 (separated by ‘+’ characters) or None. If None, then the default
 renderers specified in plotly.io.renderers.default are used.
-See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a>
-Note that if renderee is equal to <cite>chart_studio</cite>, the file is uploaded to the chart studio
-cloud. This is an AbiPy extension on top of the plotly API.</p>
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
 </dd>
 </dl>
 <p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-================  ====================================================================</p>
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
@@ -9387,7 +9385,7 @@ working directory is created. Return path to the notebook.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

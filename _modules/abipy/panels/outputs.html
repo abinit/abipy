@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -194,7 +193,7 @@
 <span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
 <span class="c1">#import panel.widgets as pnw</span>
 <span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
-<span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">AbipyParameterized</span><span class="p">,</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span><span class="p">,</span> <span class="n">dfc</span> <span class="c1">#, ButtonContext</span>
+<span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">AbipyParameterized</span><span class="p">,</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span><span class="p">,</span> <span class="n">dfc</span>
 
 
 <div class="viewcode-block" id="AbinitOutputFilePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.outputs.AbinitOutputFilePanel">[docs]</a><span class="k">class</span> <span class="nc">AbinitOutputFilePanel</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
@@ -227,27 +226,30 @@
 
         <span class="k">return</span> <span class="n">box</span>
 
-<div class="viewcode-block" id="AbinitOutputFilePanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.outputs.AbinitOutputFilePanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitOutputFilePanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.outputs.AbinitOutputFilePanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return tabs with widgets to interact with the Abinit output file.&quot;&quot;&quot;</span>
-        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">();</span> <span class="n">app</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Summary&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outfile</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">))</span>
-        <span class="p">))</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Summary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outfile</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outfile</span><span class="o">.</span><span class="n">get_dims_spginfo_dataframe</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
         <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Dataset&quot;</span>
-        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Dims&quot;</span><span class="p">,</span> <span class="n">dfc</span><span class="p">(</span><span class="n">df</span><span class="p">)))</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Dims&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dfc</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 
         <span class="c1"># Add tabs with plots for the GS/DFPT SCF cycles.</span>
         <span class="k">for</span> <span class="n">what</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;GS&quot;</span><span class="p">,</span> <span class="s2">&quot;DFPT&quot;</span><span class="p">):</span>
             <span class="n">box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_gridbox</span><span class="p">(</span><span class="n">what</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">box</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">app</span><span class="p">((</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> cycles&quot;</span> <span class="o">%</span> <span class="n">what</span><span class="p">,</span> <span class="n">box</span><span class="p">))</span>
+                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> cycles&quot;</span> <span class="o">%</span> <span class="n">what</span><span class="p">]</span> <span class="o">=</span> <span class="n">box</span>
 
         <span class="c1">#timer = self.get_timer()</span>
         <span class="c1">#timer.plot_all(**self.mpl_kwargs)</span>
 
-        <span class="k">return</span> <span class="n">tabs</span></div></div>
+        <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
+
+        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
 </pre></div>
 
            </div>
@@ -261,7 +263,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

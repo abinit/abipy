@@ -1,7 +1,7 @@
 <map id="inheritance7fd6c2ea68" name="inheritance7fd6c2ea68">
-<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.EffMassAutoDFPTWork" target="_top" title="Work for the automatic computation of effective masses with DFPT." alt="" coords="521,22,764,40"/>
-<area shape="rect" id="node2" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="364,22,485,40"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,127,22"/>
-<area shape="rect" id="node4" title=".. rubric:: Inheritance Diagram" alt="" coords="173,4,317,22"/>
-<area shape="rect" id="node5" title="Mixin classes for `Work` and `Flow` objects providing helper functions" alt="" coords="163,40,328,58"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.EffMassAutoDFPTWork" target="_top" title="Work for the automatic computation of effective masses with DFPT." alt="" coords="521,23,764,42"/>
+<area shape="rect" id="node2" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="363,23,485,42"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,127,23"/>
+<area shape="rect" id="node4" title=".. rubric:: Inheritance Diagram" alt="" coords="173,4,318,23"/>
+<area shape="rect" id="node5" title="Mixin classes for `Work` and `Flow` objects providing helper functions" alt="" coords="163,41,327,60"/>
 </map>

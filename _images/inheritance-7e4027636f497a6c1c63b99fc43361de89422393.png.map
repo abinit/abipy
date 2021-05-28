@@ -1,0 +1,4 @@
+<map id="inheritanceab465bca1b" name="inheritanceab465bca1b">
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="265,5,463,28"/>
+<area shape="rect" id="node3" href="#abipy.electrons.ebands.ElectronBandsPlotter" target="_top" title="Class for plotting electronic band structure and DOSes." alt="" coords="506,5,763,28"/>
+</map>

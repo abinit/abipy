@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
@@ -212,7 +211,7 @@
 <span class="kn">from</span> <span class="nn">.nodes</span> <span class="kn">import</span> <span class="n">Dependency</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeError</span><span class="p">,</span> <span class="n">NodeResults</span><span class="p">,</span> <span class="n">FileNode</span> <span class="c1">#, check_spectator</span>
 <span class="kn">from</span> <span class="nn">.tasks</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Task</span><span class="p">,</span> <span class="n">AbinitTask</span><span class="p">,</span> <span class="n">ScfTask</span><span class="p">,</span> <span class="n">NscfTask</span><span class="p">,</span> <span class="n">DfptTask</span><span class="p">,</span> <span class="n">PhononTask</span><span class="p">,</span> <span class="n">ElasticTask</span><span class="p">,</span> <span class="n">DdkTask</span><span class="p">,</span> <span class="n">EffMassTask</span><span class="p">,</span>
                     <span class="n">BseTask</span><span class="p">,</span> <span class="n">RelaxTask</span><span class="p">,</span> <span class="n">DdeTask</span><span class="p">,</span> <span class="n">BecTask</span><span class="p">,</span> <span class="n">ScrTask</span><span class="p">,</span> <span class="n">SigmaTask</span><span class="p">,</span> <span class="n">TaskManager</span><span class="p">,</span>
-                    <span class="n">DteTask</span><span class="p">,</span> <span class="n">EphTask</span><span class="p">,</span> <span class="n">CollinearThenNonCollinearScfTask</span><span class="p">)</span>
+                    <span class="n">DteTask</span><span class="p">,</span> <span class="n">EphTask</span><span class="p">,</span> <span class="n">KerangeTask</span><span class="p">,</span> <span class="n">CollinearThenNonCollinearScfTask</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">Directory</span>
 <span class="kn">from</span> <span class="nn">.netcdf</span> <span class="kn">import</span> <span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">NetcdfReader</span>
@@ -659,6 +658,20 @@
             <span class="n">seq_manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span><span class="o">.</span><span class="n">new_with_fixed_mpi_omp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;manager&quot;</span><span class="p">:</span> <span class="n">seq_manager</span><span class="p">})</span>
 
+        <span class="k">if</span> <span class="n">eph_inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;eph_task&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">4</span><span class="p">:</span>
+            <span class="n">max_cores</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span><span class="o">.</span><span class="n">qadapter</span><span class="o">.</span><span class="n">max_cores</span>
+            <span class="n">natom3</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">eph_inp</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+            <span class="n">nprocs</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_cores</span> <span class="o">-</span> <span class="n">max_cores</span> <span class="o">%</span> <span class="n">natom3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">new_manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span><span class="o">.</span><span class="n">new_with_fixed_mpi_omp</span><span class="p">(</span><span class="n">nprocs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;manager&quot;</span><span class="p">:</span> <span class="n">new_manager</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">register_kerange_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Register a kerange task.&quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">KerangeTask</span>
+        <span class="n">seq_manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span><span class="o">.</span><span class="n">new_with_fixed_mpi_omp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;manager&quot;</span><span class="p">:</span> <span class="n">seq_manager</span><span class="p">})</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">walknset_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -2348,7 +2361,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>

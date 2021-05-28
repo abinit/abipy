@@ -11,7 +11,7 @@
         :class: sphx-glr-download-link-note
 
         Click :ref:`here <sphx_glr_download_flow_gallery_run_eph_al.py>`
-        to download the full example code
+        to download the full example code or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
@@ -148,7 +148,7 @@ This flow computes the phonon linewidths and the Eliashberg function in Al.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.715 seconds)
+   **Total running time of the script:** ( 0 minutes  2.603 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_eph_al.py:
@@ -159,6 +159,13 @@ This flow computes the phonon linewidths and the Eliashberg function in Al.
  .. container:: sphx-glr-footer
     :class: sphx-glr-footer-example
 
+
+  .. container:: binder-badge
+
+    .. image:: images/binder_badge_logo.svg
+      :target: https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_eph_al.ipynb
+      :alt: Launch binder
+      :width: 150 px
 
 
   .. container:: sphx-glr-download sphx-glr-download-python

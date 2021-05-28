@@ -1,6 +1,6 @@
 <map id="inheritance9a55362006" name="inheritance9a55362006">
-<area shape="rect" id="node1" href="#abipy.dynamics.hist.HistReader" target="_top" title="This object reads data from the HIST file." alt="" coords="614,4,764,21"/>
-<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="446,4,579,21"/>
-<area shape="rect" id="node3" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="224,4,411,21"/>
-<area shape="rect" id="node4" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="4,4,189,21"/>
+<area shape="rect" id="node1" href="#abipy.dynamics.hist.HistReader" target="_top" title="This object reads data from the HIST file." alt="" coords="613,4,764,22"/>
+<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="445,4,578,22"/>
+<area shape="rect" id="node3" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="224,4,410,22"/>
+<area shape="rect" id="node4" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="4,4,189,22"/>
 </map>

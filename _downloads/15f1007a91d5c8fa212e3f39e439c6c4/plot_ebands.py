@@ -34,7 +34,7 @@ ebands.plot(with_gaps=True, title="Silicon band structure")
 #%%
 # For the plotly version, use:
 
-ebands.plotly(with_gaps=True)
+ebands.plotly(with_gaps=True, title="Silicon band structure")
 
 # .. warning:
 #

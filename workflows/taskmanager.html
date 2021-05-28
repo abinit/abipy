@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -259,7 +258,7 @@ If no file is found, the code aborts immediately.</p>
 <p>An important piece of information for the <code class="docutils literal notranslate"><span class="pre">TaskManager</span></code> is the type of queueing system available on the cluster,
 the list of queues and their specifications.
 In AbiPy queueing systems or resource managers are supported via <code class="docutils literal notranslate"><span class="pre">quadapters</span></code>.
-At the time of writing (May 07, 2021), AbiPy provides <code class="docutils literal notranslate"><span class="pre">qadapters</span></code> for the following resource managers:</p>
+At the time of writing (May 28, 2021), AbiPy provides <code class="docutils literal notranslate"><span class="pre">qadapters</span></code> for the following resource managers:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">shell</span></code></p></li>
 <li><p><a class="reference external" href="http://pbspro.org/">pbspro</a></p></li>
@@ -345,7 +344,7 @@ available on your personal computer.
 Save the file in the current working directory and run the <span class="xref std std-ref">abicheck.py</span> script provided by AbiPy.
 If everything is configured properly, you should see something like this in the terminal.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abicheck.py --no-colors
-/Users/gmatteo/git_repos/pymatgen/pymatgen/util/testing.py:42: UserWarning: It is recommended that you set the PMG_TEST_FILES_DIR environment variable explicity. Now using a fallback location based on relative path from this module.
+/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pymatgen/util/testing.py:42: UserWarning: It is recommended that you set the PMG_TEST_FILES_DIR environment variable explicity. Now using a fallback location based on relative path from this module.
   warnings.warn(
 AbiPy Manager:
 [Qadapter 0]
@@ -354,6 +353,247 @@ Hardware:
    num_nodes: 1, sockets_per_node: 1, cores_per_socket: 2, mem_per_node 4096,
 Qadapter selected: 0
 
+self.info  DATA TYPE INFORMATION: 
+ REAL:      Data type name: REAL(DP) 
+            Kind value:      8
+            Precision:      15
+            Smallest nonnegligible quantity relative to 1: 0.22204460E-015
+            Smallest positive number:                      0.22250739E-307
+            Largest representable number:                  0.17976931E+309
+ INTEGER:   Data type name: INTEGER(default) 
+            Kind value: 4
+            Bit size:   32
+            Largest representable number: 2147483647
+ LOGICAL:   Data type name: LOGICAL 
+            Kind value: 4
+ CHARACTER: Data type name: CHARACTER             Kind value: 1
+  ==== Using MPI-2 specifications ==== 
+  MPI-IO support is ON
+  xmpi_tag_ub ................    268435455
+  xmpi_bsize_ch ..............            1
+  xmpi_bsize_int .............            4
+  xmpi_bsize_sp ..............            4
+  xmpi_bsize_dp ..............            8
+  xmpi_bsize_spc .............            8
+  xmpi_bsize_dpc .............           16
+  xmpio_bsize_frm ............            4
+  xmpi_address_kind ..........            8
+  xmpi_offset_kind ...........            8
+  MPI_WTICK ..................    1.0000000000000002E-006
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ CPP options activated during the build:
+
+                    CC_GNU                   CXX_GNU                    FC_GNU
+ 
+ HAVE_FC_ALLOCATABLE_DT...             HAVE_FC_ASYNC         HAVE_FC_BACKTRACE
+ 
+  HAVE_FC_COMMAND_ARGUMENT      HAVE_FC_COMMAND_LINE        HAVE_FC_CONTIGUOUS
+ 
+           HAVE_FC_CPUTIME              HAVE_FC_EXIT             HAVE_FC_FLUSH
+ 
+             HAVE_FC_GAMMA            HAVE_FC_GETENV   HAVE_FC_IEEE_ARITHMETIC
+ 
+   HAVE_FC_IEEE_EXCEPTIONS          HAVE_FC_INT_QUAD             HAVE_FC_IOMSG
+ 
+     HAVE_FC_ISO_C_BINDING  HAVE_FC_ISO_FORTRAN_2008        HAVE_FC_LONG_LINES
+ 
+        HAVE_FC_MOVE_ALLOC  HAVE_FC_ON_THE_FLY_SHAPE           HAVE_FC_PRIVATE
+ 
+         HAVE_FC_PROTECTED           HAVE_FC_SHIFTLR         HAVE_FC_STREAM_IO
+ 
+            HAVE_FC_SYSTEM                HAVE_FFTW3          HAVE_FORTRAN2003
+ 
+               HAVE_GW_DPC                 HAVE_HDF5        HAVE_LIBPAW_ABINIT
+ 
+      HAVE_LIBTETRA_ABINIT                HAVE_LIBXC         HAVE_LINALG_AXPBY
+ 
+        HAVE_LINALG_GEMM3M     HAVE_LINALG_ZDOTC_B*G     HAVE_LINALG_ZDOTU_B*G
+ 
+                  HAVE_MPI                 HAVE_MPI2         HAVE_MPI2_INPLACE
+ 
+       HAVE_MPI_IALLGATHER       HAVE_MPI_IALLREDUCE        HAVE_MPI_IALLTOALL
+ 
+       HAVE_MPI_IALLTOALLV           HAVE_MPI_IBCAST         HAVE_MPI_IGATHERV
+ 
+        HAVE_MPI_INTEGER16               HAVE_MPI_IO HAVE_MPI_TYPE_CREATE_S...
+ 
+               HAVE_NETCDF       HAVE_NETCDF_FORTRAN         HAVE_TIMER_ABINIT
+ 
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ === Build Information === 
+  Version       : 9.5.2
+  Build target  : x86_64_darwin20.3.0_gnu8.2
+  Build date    : 20210505
+
+ === Compiler Suite === 
+  C compiler       : gnu8.2
+  C++ compiler     : gnu8.2
+  Fortran compiler : gnu8.2
+  CFLAGS           : -g -O2 -mtune=native -march=native
+  CXXFLAGS         : -g -O2 -mtune=native -march=native
+  FCFLAGS          : -g -O2 -fbacktrace -ffree-line-length-none   -I/Users/gmatteo/local ...
+  FC_LDFLAGS       : 
+
+ === Optimizations === 
+  Debug level        : basic
+  Optimization level : standard
+  Architecture       : unknown_unknown
+
+ === Multicore === 
+  Parallel build : /Users/gmatteo/local/build_gcc_820/
+  Parallel I/O   : yes
+  openMP support : no
+  GPU support    : 
+
+ === Connectors / Fallbacks === 
+  LINALG flavor  : openblas
+  FFT flavor     : fftw3
+  HDF5           : yes
+  NetCDF         : yes
+  NetCDF Fortran : yes
+  LibXC          : yes
+  Wannier90      : no
+
+ === Experimental features === 
+  Exports             : 
+  GW double-precision : yes
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Default optimizations:
+   --- None ---
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ DATA TYPE INFORMATION: 
+ REAL:      Data type name: REAL(DP) 
+            Kind value:      8
+            Precision:      15
+            Smallest nonnegligible quantity relative to 1: 0.22204460E-015
+            Smallest positive number:                      0.22250739E-307
+            Largest representable number:                  0.17976931E+309
+ INTEGER:   Data type name: INTEGER(default) 
+            Kind value: 4
+            Bit size:   32
+            Largest representable number: 2147483647
+ LOGICAL:   Data type name: LOGICAL 
+            Kind value: 4
+ CHARACTER: Data type name: CHARACTER             Kind value: 1
+  ==== Using MPI-2 specifications ==== 
+  MPI-IO support is ON
+  xmpi_tag_ub ................    268435455
+  xmpi_bsize_ch ..............            1
+  xmpi_bsize_int .............            4
+  xmpi_bsize_sp ..............            4
+  xmpi_bsize_dp ..............            8
+  xmpi_bsize_spc .............            8
+  xmpi_bsize_dpc .............           16
+  xmpio_bsize_frm ............            4
+  xmpi_address_kind ..........            8
+  xmpi_offset_kind ...........            8
+  MPI_WTICK ..................    1.0000000000000002E-006
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ CPP options activated during the build:
+
+                    CC_GNU                   CXX_GNU                    FC_GNU
+ 
+ HAVE_FC_ALLOCATABLE_DT...             HAVE_FC_ASYNC         HAVE_FC_BACKTRACE
+ 
+  HAVE_FC_COMMAND_ARGUMENT      HAVE_FC_COMMAND_LINE        HAVE_FC_CONTIGUOUS
+ 
+           HAVE_FC_CPUTIME              HAVE_FC_EXIT             HAVE_FC_FLUSH
+ 
+             HAVE_FC_GAMMA            HAVE_FC_GETENV   HAVE_FC_IEEE_ARITHMETIC
+ 
+   HAVE_FC_IEEE_EXCEPTIONS          HAVE_FC_INT_QUAD             HAVE_FC_IOMSG
+ 
+     HAVE_FC_ISO_C_BINDING  HAVE_FC_ISO_FORTRAN_2008        HAVE_FC_LONG_LINES
+ 
+        HAVE_FC_MOVE_ALLOC  HAVE_FC_ON_THE_FLY_SHAPE           HAVE_FC_PRIVATE
+ 
+         HAVE_FC_PROTECTED           HAVE_FC_SHIFTLR         HAVE_FC_STREAM_IO
+ 
+            HAVE_FC_SYSTEM                HAVE_FFTW3          HAVE_FORTRAN2003
+ 
+               HAVE_GW_DPC                 HAVE_HDF5        HAVE_LIBPAW_ABINIT
+ 
+      HAVE_LIBTETRA_ABINIT                HAVE_LIBXC         HAVE_LINALG_AXPBY
+ 
+        HAVE_LINALG_GEMM3M     HAVE_LINALG_ZDOTC_B*G     HAVE_LINALG_ZDOTU_B*G
+ 
+                  HAVE_MPI                 HAVE_MPI2         HAVE_MPI2_INPLACE
+ 
+       HAVE_MPI_IALLGATHER       HAVE_MPI_IALLREDUCE        HAVE_MPI_IALLTOALL
+ 
+       HAVE_MPI_IALLTOALLV           HAVE_MPI_IBCAST         HAVE_MPI_IGATHERV
+ 
+        HAVE_MPI_INTEGER16               HAVE_MPI_IO HAVE_MPI_TYPE_CREATE_S...
+ 
+               HAVE_NETCDF       HAVE_NETCDF_FORTRAN         HAVE_TIMER_ABINIT
+ 
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ === Build Information === 
+  Version       : 9.5.2
+  Build target  : x86_64_darwin20.3.0_gnu8.2
+  Build date    : 20210505
+
+ === Compiler Suite === 
+  C compiler       : gnu8.2
+  C++ compiler     : gnu8.2
+  Fortran compiler : gnu8.2
+  CFLAGS           : -g -O2 -mtune=native -march=native
+  CXXFLAGS         : -g -O2 -mtune=native -march=native
+  FCFLAGS          : -g -O2 -fbacktrace -ffree-line-length-none   -I/Users/gmatteo/local ...
+  FC_LDFLAGS       : 
+
+ === Optimizations === 
+  Debug level        : basic
+  Optimization level : standard
+  Architecture       : unknown_unknown
+
+ === Multicore === 
+  Parallel build : /Users/gmatteo/local/build_gcc_820/
+  Parallel I/O   : yes
+  openMP support : no
+  GPU support    : 
+
+ === Connectors / Fallbacks === 
+  LINALG flavor  : openblas
+  FFT flavor     : fftw3
+  HDF5           : yes
+  NetCDF         : yes
+  NetCDF Fortran : yes
+  LibXC          : yes
+  Wannier90      : no
+
+ === Experimental features === 
+  Exports             : 
+  GW double-precision : yes
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Default optimizations:
+   --- None ---
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 Abinitbuild:
 Abinit Build Information:
     Abinit version: 9.5.2
@@ -361,27 +601,27 @@ Abinit Build Information:
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 54439
+PyFlowScheduler, Pid: 477
 Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 8}
 
 Installed packages:
 Package         Version
 --------------  ---------
 system          Darwin
-python_version  3.8.0
+python_version  3.9.4
 numpy           1.20.2
-scipy           1.6.2
+scipy           1.6.3
 netCDF4         1.5.6
 apscheduler     3.7.0
 pydispatch      2.0.5
 yaml            5.4.1
-boken           2.3.1
+boken           2.3.2
 panel           0.11.3
 plotly          4.14.3
 ase             3.21.1
 phonopy         2.9.3
-monty           2021.3.3
-pymatgen        2022.0.7
+monty           2021.5.9
+pymatgen        2022.0.8
 abipy           0.9.0
 
 
@@ -855,7 +1095,7 @@ an <code class="docutils literal notranslate"><span class="pre">Abinit</span> <s
 To make things a little bit more difficult, however, we assume the we had to compile our own version of Abinit
 inside the build directory <code class="docutils literal notranslate"><span class="pre">${HOME}/git_repos/abinit/build_impi</span></code> using the following two modules
 already installed by the system administrator:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">compiler</span><span class="o">/</span><span class="n">intel</span><span class="o">/</span><span class="n">composerxe</span><span class="o">/</span><span class="mi">2013</span><span class="n">_sp1</span><span class="o">.</span><span class="mf">1.106</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">compiler</span><span class="o">/</span><span class="n">intel</span><span class="o">/</span><span class="n">composerxe</span><span class="o">/</span><span class="mi">2013</span><span class="n">_sp1</span><span class="mf">.1.106</span>
 <span class="n">intelmpi</span>
 </pre></div>
 </div>
@@ -1347,7 +1587,7 @@ Other values of autoparal are not supported.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 07, 2021.
+        Last updated on May 28, 2021.
       </span>
 
     </p>
