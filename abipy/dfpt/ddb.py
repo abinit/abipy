@@ -1039,7 +1039,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
                                      dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
-                                     anaddb_kwargs=None, verbose=0, spell_check=True,
+                                     anaddb_kwargs=None, with_phonopy_obj=False, verbose=0, spell_check=True,
                                      mpi_procs=1, workdir=None, manager=None, return_input=False):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS.
@@ -1076,6 +1076,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             qptbounds: Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
             anaddb_kwargs: additional kwargs for anaddb.
+            with_phonopy_obj: if True the IFC will be calculated and used to generate an instance of a Phonopy
+                object as an attribute of PhononBands.
             verbose: verbosity level. Set it to a value > 0 to get more information.
             mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
@@ -1098,7 +1100,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density,
             nqsmall=nqsmall, qppa=qppa, q1shft=(0, 0, 0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
-            anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
+            ifc=with_phonopy_obj, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
@@ -1111,9 +1113,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         exit_stack.enter_context(phbst_file)
 
         self._add_params(phbst_file.phbands)
+        anaddbnc_path = task.outpath_from_ext("anaddb.nc")
         if lo_to_splitting:
-            anaddbnc_path = task.outpath_from_ext("anaddb.nc")
             phbst_file.phbands.read_non_anal_from_file(anaddbnc_path)
+
+        if with_phonopy_obj:
+            scm = np.eye(3) * ngqpt
+            phbst_file.phbands.set_phonopy_obj_from_ananc(anaddbnc_path, supercell_matrix=scm)
 
         phdos_file = None
         if inp["prtdos"] != 0:

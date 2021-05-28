@@ -3002,7 +3002,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
                         qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
-                        anaddb_args=None, anaddb_kwargs=None, spell_check=False, comment=None):
+                        ifc=False, anaddb_args=None, anaddb_kwargs=None, spell_check=False, comment=None):
         """
         Build an |AnaddbInput| for the computation of phonon bands and phonon DOS.
 
@@ -3024,6 +3024,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             lo_to_splitting: if True calculation of the LO-TO splitting will be included
+            ifc: if True calculation of the interatomic force constants will be included.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
             spell_check: False to disable spell checking for input variables.
@@ -3098,6 +3099,15 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                     nph2l=len(directions),
                     qph2l=directions
                 )
+
+        if ifc:
+            new.set_vars(
+                ifcout=10000000,
+                natifc=len(structure),
+                atifc=list(range(1, len(structure) + 1)),
+                ifcana=1,
+                prt_ifc=1
+            )
 
         return new
 
