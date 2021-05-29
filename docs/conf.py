@@ -168,6 +168,7 @@ sphinx_gallery_conf = {
          'repo': 'abipy',
          # Can be any branch, tag, or commit hash. Use a branch that hosts your docs.
          'branch': 'gh-pages',
+         #'ref': 'gh-pages',
          # Any URL of a binderhub deployment. Must be full URL (e.g. https://mybinder.org).
          'binderhub_url': 'https://mybinder.org',
          #  A list of paths (relative to conf.py) to dependency files that Binder uses to infer

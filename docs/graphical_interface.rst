@@ -55,8 +55,8 @@ Basic Usage
 -----------
 
 Several AbiPy objects provide a ``get_panel`` method returning
-an object that can be displayed inside the jupyter notebook or inside a Bokeh server.
-When running inside a jupyter notebook, remember enable the integration
+an object that can be displayed inside the jupyter notebook or inside the browser.
+When running inside a jupyter notebook, remember enable the integration 
 with the ``panel`` infrastructure by executing:
 
 .. jupyter-execute::
@@ -94,7 +94,7 @@ with the `GsrFile`:
     gsr.get_panel()
 
 The **summary** tab provides a string representation of the file
-but there is not widget to interact with it.
+but there is no widget to interact with it.
 If you select the **e-Bands** tab, you will see several widgets and a button
 that activates the visualization of the KS band energies.
 Again, in this HTML page there is no python server running in background so
@@ -105,7 +105,7 @@ the panel GUIs with python code that can be used to perform
 more advanced tasks not supported by the GUI.
 
 Obviously it is possible to have multiple panels running in the same notebook.
-Calling ``get_structure`` with an AbiPy structure, for instance, creates a set of widgets
+Calling ``get_panel`` with an AbiPy structure, for instance, creates a set of widgets
 to facilitate common operations such as exporting the structure to a different format or
 generating a basic Abinit input file for e.g. GS calculations:
 
@@ -153,7 +153,7 @@ The same result can be obtained from the CLI with
 There are, however, cases in which you don't need the interactive environment provided
 by jupyter notebooks as you are mainly interested in the visualization of the results.
 In this case, it is possible to use the command line interface to automatically generate
-a dashboard with widgets without having to start a jupyter-lab application.
+a dashboard with widgets without having to start a notebook.
 
 To build a dashboard for a ``Structure`` object extracted from ``FILE``, use::
 
@@ -163,7 +163,6 @@ where ``FILE`` is **any** file providing a ``Structure`` object
 e.g. netcdf files, cif files, abi, abo files etc.
 
 To build a dashboard associated to one of the AbiPy file, use the syntax::
-
 
     abiopen.py FILE --panel
 
