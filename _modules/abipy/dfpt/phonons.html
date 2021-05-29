@@ -389,8 +389,38 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_ph</span> <span class="o">=</span> <span class="n">NonAnalyticalPh</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="PhononBands.set_phonopy_obj_from_ananc"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.set_phonopy_obj_from_ananc">[docs]</a>    <span class="k">def</span> <span class="nf">set_phonopy_obj_from_ananc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ananc</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="p">,</span> <span class="n">symmetrize_tensors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                   <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">set_masses</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the Phonopy object from an anaddb.nc file that contains the interatomic force constants.</span>
+<span class="sd">        Based on the converter implemented in abipy.dfpt.converters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ananc: a string with the path to the anaddb.nc file or an instance of AnaddbNcFile.</span>
+<span class="sd">            supercell_matrix: the supercell matrix used for phonopy. Any choice is acceptable, however</span>
+<span class="sd">                the best agreement between the abinit and phonopy results is obtained if this is set to</span>
+<span class="sd">                a diagonal matrix with on the diagonal the ngqpt used to generate the anaddb.nc.</span>
+<span class="sd">            symmetrize_tensors: if True the tensors will be symmetrized in the Phonopy object and</span>
+<span class="sd">                in the output files. This will apply to IFC, BEC and dielectric tensor.</span>
+<span class="sd">            symprec: distance tolerance in Cartesian coordinates to find crystal symmetry in phonopy.</span>
+<span class="sd">            set_masses: if True the atomic masses used by abinit will be added to the PhonopyAtoms</span>
+<span class="sd">                and will be present in the returned Phonopy object. This should improve compatibility</span>
+<span class="sd">                among abinit and phonopy results if frequencies needs to be calculated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.dfpt.anaddbnc</span> <span class="kn">import</span> <span class="n">AnaddbNcFile</span>
+        <span class="kn">from</span> <span class="nn">abipy.dfpt.converters</span> <span class="kn">import</span> <span class="n">abinit_to_phonopy</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ananc</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">AnaddbNcFile</span><span class="p">(</span><span class="n">ananc</span><span class="p">)</span> <span class="k">as</span> <span class="n">anc</span><span class="p">:</span>
+                <span class="n">ph</span> <span class="o">=</span> <span class="n">abinit_to_phonopy</span><span class="p">(</span><span class="n">anc</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="o">=</span><span class="n">supercell_matrix</span><span class="p">,</span> <span class="n">symmetrize_tensors</span><span class="o">=</span><span class="n">symmetrize_tensors</span><span class="p">,</span>
+                                       <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">set_masses</span><span class="o">=</span><span class="n">set_masses</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ph</span> <span class="o">=</span> <span class="n">abinit_to_phonopy</span><span class="p">(</span><span class="n">ananc</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="o">=</span><span class="n">supercell_matrix</span><span class="p">,</span> <span class="n">symmetrize_tensors</span><span class="o">=</span><span class="n">symmetrize_tensors</span><span class="p">,</span>
+                                   <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">set_masses</span><span class="o">=</span><span class="n">set_masses</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phonopy_obj</span> <span class="o">=</span> <span class="n">ph</span></div>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">,</span> <span class="n">phfreqs</span><span class="p">,</span> <span class="n">phdispl_cart</span><span class="p">,</span> <span class="n">non_anal_ph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">amu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">epsinf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zcart</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">epsinf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zcart</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phonopy_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            structure: |Structure| object.</span>
@@ -407,6 +437,8 @@
 <span class="sd">            zcart: [natom, 3, 3] matrix with Born effective charges in Cartesian coordinates.</span>
 <span class="sd">                None if not available.</span>
 <span class="sd">            linewidths: Array-like object with the linewidths (eV) stored as [q, num_modes]</span>
+<span class="sd">            phonopy_obj: an instance of a Phonopy object obtained from the same IFC used to generate the</span>
+<span class="sd">                band structure.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span>
 
@@ -442,6 +474,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">epsinf</span> <span class="o">=</span> <span class="n">epsinf</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">zcart</span> <span class="o">=</span> <span class="n">zcart</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phonopy_obj</span> <span class="o">=</span> <span class="n">phonopy_obj</span>
 
         <span class="c1"># Dictionary with metadata e.g. nkpt, tsmear ...</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -5210,7 +5243,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 28, 2021.
+        Last updated on May 29, 2021.
       </span>
 
     </p>

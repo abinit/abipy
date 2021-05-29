@@ -619,6 +619,13 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;dot&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">graphviz</span></div>
 
+<div class="viewcode-block" id="AbipyTest.has_phonopy"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_phonopy">[docs]</a>    <span class="k">def</span> <span class="nf">has_phonopy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        True if phonopy_ is installed.</span>
+<span class="sd">        If version is None, the result of phonopy.__version__ `op` version is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">has_phonopy</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="AbipyTest.get_abistructure_from_abiref"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_abistructure_from_abiref">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_abistructure_from_abiref</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return an Abipy |Structure| from the basename of one of the reference files.&quot;&quot;&quot;</span>
@@ -911,7 +918,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 28, 2021.
+        Last updated on May 29, 2021.
       </span>
 
     </p>

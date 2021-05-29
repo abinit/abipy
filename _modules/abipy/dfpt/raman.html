@@ -643,6 +643,8 @@
 
                 <span class="n">i</span> <span class="o">=</span> <span class="n">ri</span><span class="o">.</span><span class="n">tot</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The value should contain the ingoing and outgoing polarizations.&quot;</span><span class="p">)</span>
                 <span class="n">pol_in</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">pol_out</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_modes_intensities</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="o">=</span><span class="n">laser_freq</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="n">non_anal_dir</span><span class="p">,</span>
@@ -669,7 +671,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 28, 2021.
+        Last updated on May 29, 2021.
       </span>
 
     </p>

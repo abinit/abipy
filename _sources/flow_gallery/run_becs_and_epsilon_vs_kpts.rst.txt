@@ -161,7 +161,7 @@ the inside the ipython terminal use the anacompare methods to analyze the result
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.936 seconds)
+   **Total running time of the script:** ( 0 minutes  2.080 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_becs_and_epsilon_vs_kpts.py:

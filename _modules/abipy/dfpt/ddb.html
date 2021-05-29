@@ -1228,7 +1228,7 @@
 
 <div class="viewcode-block" id="DdbFile.anaget_phbst_and_phdos_files"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_phbst_and_phdos_files">[docs]</a>    <span class="k">def</span> <span class="nf">anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                                      <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="s2">&quot;automatic&quot;</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                     <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                     <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_phonopy_obj</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                      <span class="n">mpi_procs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_input</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute anaddb to compute the phonon band structure and the phonon DOS.</span>
@@ -1265,6 +1265,8 @@
 <span class="sd">            qptbounds: Boundaries of the path. If None, the path is generated from an internal database</span>
 <span class="sd">                depending on the input structure.</span>
 <span class="sd">            anaddb_kwargs: additional kwargs for anaddb.</span>
+<span class="sd">            with_phonopy_obj: if True the IFC will be calculated and used to generate an instance of a Phonopy</span>
+<span class="sd">                object as an attribute of PhononBands.</span>
 <span class="sd">            verbose: verbosity level. Set it to a value &gt; 0 to get more information.</span>
 <span class="sd">            mpi_procs: Number of MPI processes to use.</span>
 <span class="sd">            workdir: Working directory. If None, a temporary directory is created.</span>
@@ -1287,7 +1289,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="n">line_density</span><span class="p">,</span>
             <span class="n">nqsmall</span><span class="o">=</span><span class="n">nqsmall</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="n">qppa</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">qptbounds</span><span class="o">=</span><span class="n">qptbounds</span><span class="p">,</span>
             <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="n">dos_method</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="n">lo_to_splitting</span><span class="p">,</span>
-            <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="n">spell_check</span><span class="p">)</span>
+            <span class="n">with_ifc</span><span class="o">=</span><span class="n">with_phonopy_obj</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="n">spell_check</span><span class="p">)</span>
 
         <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_anaddb_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
 
@@ -1300,9 +1302,13 @@
         <span class="n">exit_stack</span><span class="o">.</span><span class="n">enter_context</span><span class="p">(</span><span class="n">phbst_file</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_add_params</span><span class="p">(</span><span class="n">phbst_file</span><span class="o">.</span><span class="n">phbands</span><span class="p">)</span>
+        <span class="n">anaddbnc_path</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">outpath_from_ext</span><span class="p">(</span><span class="s2">&quot;anaddb.nc&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">lo_to_splitting</span><span class="p">:</span>
-            <span class="n">anaddbnc_path</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">outpath_from_ext</span><span class="p">(</span><span class="s2">&quot;anaddb.nc&quot;</span><span class="p">)</span>
             <span class="n">phbst_file</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">read_non_anal_from_file</span><span class="p">(</span><span class="n">anaddbnc_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">with_phonopy_obj</span><span class="p">:</span>
+            <span class="n">scm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">ngqpt</span>
+            <span class="n">phbst_file</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">set_phonopy_obj_from_ananc</span><span class="p">(</span><span class="n">anaddbnc_path</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="o">=</span><span class="n">scm</span><span class="p">)</span>
 
         <span class="n">phdos_file</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;prtdos&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -3412,7 +3418,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 28, 2021.
+        Last updated on May 29, 2021.
       </span>
 
     </p>

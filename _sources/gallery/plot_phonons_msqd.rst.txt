@@ -60,7 +60,7 @@ See :cite:`Lee1995` for the further details about the internal implementation an
 
  .. code-block:: none
 
-    [33mCreating temporary file: /var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpjhl_sdlamp-7000_DDB[0m
+    [33mCreating temporary file: /var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpkir36bszmp-7000_DDB[0m
 
 
 
@@ -116,7 +116,7 @@ See :cite:`Lee1995` for the further details about the internal implementation an
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  16.940 seconds)
+   **Total running time of the script:** ( 0 minutes  10.542 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_phonons_msqd.py:

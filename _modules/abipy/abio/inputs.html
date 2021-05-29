@@ -3191,7 +3191,7 @@
 <div class="viewcode-block" id="AnaddbInput.phbands_and_dos"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.phbands_and_dos">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">phbands_and_dos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                         <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                        <span class="n">with_ifc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build an |AnaddbInput| for the computation of phonon bands and phonon DOS.</span>
 
@@ -3213,6 +3213,7 @@
 <span class="sd">            dos_method: Possible choices: &quot;tetra&quot;, &quot;gaussian&quot; or &quot;gaussian:0.001 eV&quot;.</span>
 <span class="sd">                In the later case, the value 0.001 eV is used as gaussian broadening</span>
 <span class="sd">            lo_to_splitting: if True calculation of the LO-TO splitting will be included</span>
+<span class="sd">            with_ifc: if True calculation of the interatomic force constants will be included.</span>
 <span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
 <span class="sd">            spell_check: False to disable spell checking for input variables.</span>
@@ -3287,6 +3288,15 @@
                     <span class="n">nph2l</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">directions</span><span class="p">),</span>
                     <span class="n">qph2l</span><span class="o">=</span><span class="n">directions</span>
                 <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">with_ifc</span><span class="p">:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+                <span class="n">ifcout</span><span class="o">=</span><span class="mi">10000000</span><span class="p">,</span>
+                <span class="n">natifc</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">),</span>
+                <span class="n">atifc</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)),</span>
+                <span class="n">ifcana</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">prt_ifc</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">new</span></div>
 
@@ -4106,7 +4116,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 28, 2021.
+        Last updated on May 29, 2021.
       </span>
 
     </p>
