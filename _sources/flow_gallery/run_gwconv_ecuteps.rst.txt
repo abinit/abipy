@@ -176,7 +176,7 @@ G0W0 convergence study wrt ecuteps and the number of bands in W.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.380 seconds)
+   **Total running time of the script:** ( 0 minutes  3.595 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_gwconv_ecuteps.py:
