@@ -430,6 +430,13 @@ class AbipyTest(PymatgenTest):
         if self.which("dot") is None: return False
         return graphviz
 
+    def has_phonopy(self, version=None, op=">="):
+        """
+        True if phonopy_ is installed.
+        If version is None, the result of phonopy.__version__ `op` version is returned.
+        """
+        return has_phonopy(version=version, op=op)
+
     @staticmethod
     def get_abistructure_from_abiref(basename):
         """Return an Abipy |Structure| from the basename of one of the reference files."""

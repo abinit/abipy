@@ -202,6 +202,11 @@ class DdbTest(AbipyTest):
         if self.has_panel():
             assert hasattr(ddb.get_panel(), "show")
 
+        if self.has_phonopy():
+            phbands_file_phonopy, _ = ddb.anaget_phbst_and_phdos_files(verbose=1, with_phonopy_obj=True)
+            phonopy_obj = phbands_file_phonopy.phbands.phonopy_obj
+            assert phonopy_obj is not None
+
         # Get epsinf and becs
         r = ddb.anaget_epsinf_and_becs(chneut=1, verbose=1)
         epsinf, becs = r.epsinf, r.becs

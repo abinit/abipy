@@ -200,8 +200,38 @@ class PhononBands(object):
         """
         self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
+    def set_phonopy_obj_from_ananc(self, ananc, supercell_matrix, symmetrize_tensors=False,
+                                   symprec=1e-5, set_masses=True):
+        """
+        Generates the Phonopy object from an anaddb.nc file that contains the interatomic force constants.
+        Based on the converter implemented in abipy.dfpt.converters.
+
+        Args:
+            ananc: a string with the path to the anaddb.nc file or an instance of AnaddbNcFile.
+            supercell_matrix: the supercell matrix used for phonopy. Any choice is acceptable, however
+                the best agreement between the abinit and phonopy results is obtained if this is set to
+                a diagonal matrix with on the diagonal the ngqpt used to generate the anaddb.nc.
+            symmetrize_tensors: if True the tensors will be symmetrized in the Phonopy object and
+                in the output files. This will apply to IFC, BEC and dielectric tensor.
+            symprec: distance tolerance in Cartesian coordinates to find crystal symmetry in phonopy.
+            set_masses: if True the atomic masses used by abinit will be added to the PhonopyAtoms
+                and will be present in the returned Phonopy object. This should improve compatibility
+                among abinit and phonopy results if frequencies needs to be calculated.
+        """
+        from abipy.dfpt.anaddbnc import AnaddbNcFile
+        from abipy.dfpt.converters import abinit_to_phonopy
+
+        if isinstance(ananc, str):
+            with AnaddbNcFile(ananc) as anc:
+                ph = abinit_to_phonopy(anc, supercell_matrix=supercell_matrix, symmetrize_tensors=symmetrize_tensors,
+                                       symprec=symprec, set_masses=set_masses)
+        else:
+            ph = abinit_to_phonopy(ananc, supercell_matrix=supercell_matrix, symmetrize_tensors=symmetrize_tensors,
+                                   symprec=symprec, set_masses=set_masses)
+        self.phonopy_obj = ph
+
     def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None,
-                 epsinf=None, zcart=None, linewidths=None):
+                 epsinf=None, zcart=None, linewidths=None, phonopy_obj=None):
         """
         Args:
             structure: |Structure| object.
@@ -218,6 +248,8 @@ class PhononBands(object):
             zcart: [natom, 3, 3] matrix with Born effective charges in Cartesian coordinates.
                 None if not available.
             linewidths: Array-like object with the linewidths (eV) stored as [q, num_modes]
+            phonopy_obj: an instance of a Phonopy object obtained from the same IFC used to generate the
+                band structure.
         """
         self.structure = structure
 
@@ -253,6 +285,7 @@ class PhononBands(object):
 
         self.epsinf = epsinf
         self.zcart = zcart
+        self.phonopy_obj = phonopy_obj
 
         # Dictionary with metadata e.g. nkpt, tsmear ...
         self.params = OrderedDict()

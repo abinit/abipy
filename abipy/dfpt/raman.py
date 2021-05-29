@@ -454,6 +454,8 @@ class Raman:
 
                 i = ri.tot
             else:
+                if len(value) != 2:
+                    raise ValueError("The value should contain the ingoing and outgoing polarizations.")
                 pol_in = value[0]
                 pol_out = value[1]
                 i = self.get_modes_intensities(temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir,
