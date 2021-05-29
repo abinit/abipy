@@ -222,10 +222,12 @@ class PhononBands(object):
         from abipy.dfpt.converters import abinit_to_phonopy
 
         if isinstance(ananc, str):
-            ananc = AnaddbNcFile.from_file(ananc)
-
-        ph = abinit_to_phonopy(ananc, supercell_matrix=supercell_matrix, symmetrize_tensors=symmetrize_tensors,
-                               symprec=symprec, set_masses=set_masses)
+            with AnaddbNcFile(ananc) as anc:
+                ph = abinit_to_phonopy(anc, supercell_matrix=supercell_matrix, symmetrize_tensors=symmetrize_tensors,
+                                       symprec=symprec, set_masses=set_masses)
+        else:
+            ph = abinit_to_phonopy(ananc, supercell_matrix=supercell_matrix, symmetrize_tensors=symmetrize_tensors,
+                                   symprec=symprec, set_masses=set_masses)
         self.phonopy_obj = ph
 
     def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None,

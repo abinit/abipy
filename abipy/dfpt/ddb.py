@@ -1100,7 +1100,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density,
             nqsmall=nqsmall, qppa=qppa, q1shft=(0, 0, 0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
-            ifc=with_phonopy_obj, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
+            with_ifc=with_phonopy_obj, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
