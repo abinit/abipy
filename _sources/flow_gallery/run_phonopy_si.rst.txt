@@ -154,7 +154,7 @@ will produce:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.111 seconds)
+   **Total running time of the script:** ( 0 minutes  0.827 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_phonopy_si.py:
