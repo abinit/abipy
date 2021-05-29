@@ -9,12 +9,15 @@
 
 # Install AbiPy scripts and configuration files.
 #python setup.py install
+python -c "import abipy"
+if [ $? -ne 0 ]; then
+    echo "Installing abipy with pip"
+    pip install abipy
+fi
 
 mkdir -p ${HOME}/.abinit/abipy 
 cd ${HOME}/.abinit/abipy 
 curl https://raw.githubusercontent.com/abinit/abipy/develop/abipy/data/managers/travis_scheduler.yml -o scheduler.yml 
 curl https://raw.githubusercontent.com/abinit/abipy/develop/abipy/data/managers/travis_manager.yml -o manager.yml
-#cp abipy/data/managers/travis_scheduler.yml ${HOME}/.abinit/abipy/scheduler.yml
-#cp abipy/data/managers/travis_manager.yml ${HOME}/.abinit/abipy/manager.yml
 
 #./dev_scripts/pyclean.py .
