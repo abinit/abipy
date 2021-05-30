@@ -1570,7 +1570,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                       alpha=0.6, max_stripe_width_mev=5.0, width_ratios=(2, 1),
                       qlabels=None, ylims=None, fontsize=12, **kwargs):
         r"""
-        Plot phonon fatbands and, optionally, atom-projected phonon DOSes.
+        Plot phonon fatbands and, optionally, atom-projected phonon DOSes with matplotlib.
         The width of the band is given by ||v_{type}||
         where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and
         v_{type} selects only the terms associated to the atomic type.
@@ -1706,6 +1706,153 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return fig
 
+    # TODO: fatbands along x, y, z
+    @add_plotly_fig_kwargs
+    def plotly_fatbands(self, use_eigvec=True, units="eV", colormap="G10", phdos_file=None,
+                      alpha=0.6, max_stripe_width_mev=5.0, width_ratios=(2, 1),
+                      qlabels=None, ylims=None, fontsize=16, **kwargs):
+        r"""
+        Plot phonon fatbands and, optionally, atom-projected phonon DOSes with plotly.
+        The width of the band is given by ||v_{type}||
+        where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and
+        v_{type} selects only the terms associated to the atomic type.
+
+        Args:
+            use_eigvec: True if the width of the phonon branch should be computed from the eigenvectors.
+                False to use phonon displacements. Note that the PHDOS is always decomposed in
+                terms of (orthonormal) eigenvectors.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            colormap: Have a look at the colormaps here and decide which one you like:
+                https://plotly.com/python/discrete-color/
+            phdos_file: Used to activate fatbands + PJDOS plot.
+                Accept string with path of PHDOS.nc file or |PhdosFile| object.
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to ``units``.
+            width_ratios: Ratio between the width of the fatbands plots and the DOS plots.
+                Used if `phdos_file` is not None
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            fontsize: Legend and title fontsize.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        lw = kwargs.pop("lw", 2)
+        factor = abu.phfactor_ev2units(units)
+        ntypat = self.structure.ntypesp
+
+        # Prepare PJDOS.
+        close_phdos_file = False
+        if phdos_file is not None:
+            if is_string(phdos_file):
+                phdos_file = PhdosFile(phdos_file)
+                close_phdos_file = True
+            else:
+                if not isinstance(phdos_file, PhdosFile):
+                    raise TypeError("Expecting string or PhdosFile, got %s" % type(phdos_file))
+
+        # Fig with [ntypat] plots if fatbands only or [ntypat, 2] if fatbands + PJDOS
+        nrows, ncols = (ntypat, 1) if phdos_file is None else (ntypat, 2)
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, sharex=True, sharey=True, vertical_spacing=0.05,
+                                 horizontal_spacing=0.02, column_widths=width_ratios if ncols == 2 else None)
+
+        import plotly.express as px
+        color_l=getattr(px.colors.qualitative, colormap)
+        if len(color_l) < len(self.structure.symbol_set):
+            raise ValueError("Colormap %s is not enough, please provide one has more than %n colors"
+                             % colormap, len(self.structure.symbol_set))
+        qq = list(range(self.num_qpoints))
+
+        # phonon_displacements are in cartesian coordinates and stored in an array with shape
+        # (nqpt, 3*natom, 3*natom) where the last dimension stores the cartesian components.
+        # PJDoses are in cartesian coordinates and are computed by anaddb using the the
+        # phonon eigenvectors that are orthonormal.
+
+        # Precompute normalization factor:
+        # Here I use d2[q, nu] = \sum_{i=0}^{3*Nat-1) |d^{q\nu}_i|**2
+        # it makes sense only for displacements
+        d2_qnu = np.ones((self.num_qpoints, self.num_branches))
+        if not use_eigvec:
+            for iq in range(self.num_qpoints):
+                for nu in self.branches:
+                    cvect = self.phdispl_cart[iq, nu, :]
+                    d2_qnu[iq, nu] = np.vdot(cvect, cvect).real
+
+        # Plot fatbands: one plot per atom type.
+        for row, symbol in enumerate(self.structure.symbol_set):
+            color = color_l[row]
+            rcd = PlotlyRowColDesc(row, 0, nrows, ncols)
+            iax=rcd.iax
+            self.decorate_plotly(fig, units=units, qlabels=qlabels, iax=iax)
+            if row != len(self.structure.symbol_set):
+                xaxis = 'xaxis%u' % iax
+                fig.layout[xaxis].title.text = ""
+
+            # dir_indices lists the coordinate indices for the atoms of the same type.
+            atom_indices = self.structure.indices_from_symbol(symbol)
+            dir_indices = []
+            for aindx in atom_indices:
+                start = 3 * aindx
+                dir_indices.extend([start, start + 1, start + 2])
+            dir_indices = np.array(dir_indices)
+
+            for nu in self.branches:
+                yy_qq = self.phfreqs[:, nu] * factor
+
+                # Exctract the sub-vector associated to this atom type (eigvec or diplacement).
+                if use_eigvec:
+                    v_type = self.dyn_mat_eigenvect[:, nu, dir_indices]
+                else:
+                    v_type = self.phdispl_cart[:, nu, dir_indices]
+
+                v2_type = np.empty(self.num_qpoints)
+                for iq in range(self.num_qpoints):
+                    v2_type[iq] = np.vdot(v_type[iq], v_type[iq]).real
+
+                # Normalize and scale by max_stripe_width_mev taking into account units.
+                # The stripe is centered on the phonon branch hence the factor 2
+                stype_qq = (factor * max_stripe_width_mev * 1.e-3 / 2) * np.sqrt(v2_type / d2_qnu[:, nu])
+
+                # Plot the phonon branch with the stripe.
+                ply_row, ply_col = rcd.ply_row, rcd.ply_col
+                if nu == 0:
+                    fig.add_scatter(x=qq, y=yy_qq, mode='lines', line=dict(width=lw, color=color), name=symbol,
+                                    legendgroup=row ,row=ply_row, col=ply_col)
+                else:
+                    fig.add_scatter(x=qq, y=yy_qq, mode='lines', line=dict(width=lw, color=color), name=symbol,
+                                    showlegend=False, legendgroup=row ,row=ply_row, col=ply_col)
+
+                fig.add_scatter(x=qq, y=yy_qq-stype_qq, mode='lines', line=dict(width=0, color=color), name='',
+                                showlegend=False, legendgroup=row ,row=ply_row, col=ply_col)
+                fig.add_scatter(x=qq, y=yy_qq+stype_qq, mode='lines', line=dict(width=0, color=color), name='',
+                                showlegend=False, legendgroup=row, fill='tonexty', row=ply_row, col=ply_col)
+
+            plotly_set_lims(fig, ylims, "y", iax=iax)
+
+        # Type projected DOSes (always computed from eigenvectors in anaddb).
+        if phdos_file is not None:
+            for row, symbol in enumerate(self.structure.symbol_set):
+                color = color_l[row]
+                rcd = PlotlyRowColDesc(row, 1, nrows, ncols)
+
+                # Get PJDOS: Dictionary symbol --> partial PhononDos
+                pjdos = phdos_file.pjdos_symbol[symbol]
+                x, y = pjdos.mesh * factor, pjdos.values / factor
+
+                ply_row, ply_col = rcd.ply_row, rcd.ply_col
+                fig.add_scatter(x=y, y=x, mode='lines', line=dict(width=lw, color=color), name='', showlegend=False,
+                                legendgroup=row ,row=ply_row, col=ply_col)
+                plotly_set_lims(fig, ylims, "y", iax=rcd.iax)
+
+            if close_phdos_file:
+                phdos_file.close()
+
+        fig.layout.legend.font.size = fontsize
+        fig.layout.title.font.size = fontsize+2
+
+        return fig
+
     @add_fig_kwargs
     def plot_with_phdos(self, phdos, units="eV", qlabels=None, ax_list=None, width_ratios=(2, 1), **kwargs):
         r"""
@@ -1788,7 +1935,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         if fig is None:
             # build fig and align bands and DOS.
             fig, _ = get_figs_plotly(nrows=1, ncols=2, subplot_titles=[], sharex=False, sharey=True,
-                                     horizontal_spacing=0.03, column_widths=width_ratios)
+                                     horizontal_spacing=0.02, column_widths=width_ratios)
 
         if not kwargs:
             kwargs = {"line_color": "black", "line_width": 2.0}
@@ -4168,7 +4315,7 @@ class PhononBandsPlotter(NotebookWriter):
         if self.phdoses_dict:
             nrows, ncols = (1, 2)
             fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=[], sharex=False, sharey=True,
-                                      horizontal_spacing=0.03, column_widths=width_ratios)
+                                      horizontal_spacing=0.02, column_widths=width_ratios)
         else:
             nrows, ncols = (1, 1)
             fig, _ = get_fig_plotly()

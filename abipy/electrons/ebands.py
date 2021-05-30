@@ -2389,13 +2389,12 @@ class ElectronBands(Has_Structure):
 
                 if with_linewidths:
                     w = self.linewidths[spin, :, band] * lw_fact / 2
-                    raise NotImplementedError
-                    #lw_color = lines[-1].get_color()
-                    # solution 1: Use scater points to fill
-                    # solution 2: add two traces and fill the area between
-                    # color problem
-                    #!! ax.fill_between(xx, yy - w, yy + w, facecolor=lw_color, **lw_opts)
-                    #, alpha=self.alpha, facecolor=self.l2color[l])
+                    lw_opts.update({'color': "black" if spin == 0 else "red"})
+                    fig.add_scatter(x=xx, y=yy - w, mode='lines', line=lw_opts, name='',
+                                    showlegend=False, row=ply_row, col=ply_col)
+                    fig.add_scatter(x=xx, y=yy + w, mode='lines', line=lw_opts, name='',
+                                    showlegend=False, fill='tonexty', row=ply_row, col=ply_col)
+
 
     def _make_ticks_and_labels(self, klabels):
         """Return ticks and labels from the mapping qlabels."""
@@ -2530,7 +2529,7 @@ class ElectronBands(Has_Structure):
         if fig is None:
             # Build fig.
             fig, _ = get_figs_plotly(nrows=1, ncols=2, sharex=False, sharey=True,
-                                     horizontal_spacing=0.05, column_widths=width_ratios)
+                                     horizontal_spacing=0.02, column_widths=width_ratios)
 
         # Define the zero of energy.
         e0 = self.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
