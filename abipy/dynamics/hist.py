@@ -10,7 +10,8 @@ from monty.collections import AttrDict
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
 from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, get_figs_plotly,\
+    get_fig_plotly, add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc, plotly_set_lims
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
@@ -280,7 +281,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def plot_ax(self, ax, what, fontsize=8, **kwargs):
         """
-        Helper function to plot quantity ``what`` on axis ``ax``.
+        Helper function to plot quantity ``what`` on axis ``ax`` with matplotlib.
 
         Args:
             fontsize: fontsize for legend.
@@ -373,11 +374,116 @@ class HistFile(AbinitNcFile, NotebookWriter):
         if label is not None:
             ax.legend(loc='best', fontsize=fontsize, shadow=True)
 
+    def plotly_traces(self, fig, what, rcd=None, fontsize=8, showlegend=False, **kwargs):
+        """
+        Helper function to plot quantity ``what`` on figure ``fig`` with plotly.
+
+        Args:
+            rcd: If ``fig`` has subplots, ``rcd`` is used to add traces on these subplots.
+            fontsize: fontsize for legend.
+            kwargs are passed to fig.add_scatter method.
+        """
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        ply_row, ply_col = rcd.ply_row, rcd.ply_col
+
+        label = None
+        if what == "energy":
+            # Total energy in eV.
+            marker = kwargs.pop("marker", 0)
+            label = kwargs.pop("label", "Energy")
+            fig.add_scatter(x=self.steps, y=self.etotals, mode='lines+markers', name=label, marker_symbol=marker,
+                            row=ply_row, col=ply_col, **kwargs)
+            fig.layout['yaxis%u' % rcd.iax].title.text = 'Energy (eV)'
+
+        elif what == "abc":
+            # Lattice parameters.
+            mark = kwargs.pop("marker", None)
+            markers = [0, 5, 6] if mark is None else 3 * [mark]
+            for i, label in enumerate(["a", "b", "c"]):
+                fig.add_scatter(x=self.steps, y=[s.lattice.abc[i] for s in self.structures], mode='lines+markers',
+                                name=label, marker_symbol=markers[i], row=ply_row, col=ply_col, **kwargs)
+            fig.layout['yaxis%u' % rcd.iax].title.text = "abc (A)"
+
+        elif what in ("a", "b", "c"):
+            i = ("a", "b", "c").index(what)
+            marker = kwargs.pop("marker", None)
+            if marker is None:
+                marker = {"a": 0, "b": 5, "c": 6}[what]
+            label = kwargs.pop("label", what)
+            fig.add_scatter(x=self.steps, y=[s.lattice.abc[i] for s in self.structures], mode='lines+markers',
+                            name=label, marker_symbol=marker, row=ply_row, col=ply_col, **kwargs)
+            fig.layout['yaxis%u' % rcd.iax].title.text = '%s (A)' % what
+
+        elif what == "angles":
+            # Lattice Angles
+            mark = kwargs.pop("marker", None)
+            markers = [0, 5, 6] if mark is None else 3 * [mark]
+            for i, label in enumerate(["alpha", "beta", "gamma"]):
+                fig.add_scatter(x=self.steps, y=[s.lattice.angles[i] for s in self.structures], mode='lines+markers',
+                                name=label, marker_symbol=markers[i], row=ply_row, col=ply_col, **kwargs)
+            fig.layout['yaxis%u' % rcd.iax].title.text = r"$\alpha\beta\gamma \text{ (degree)}$"+ "  "
+            fig.layout['yaxis%u' % rcd.iax].tickformat = ".3r"
+
+        elif what in ("alpha", "beta", "gamma"):
+            i = ("alpha", "beta", "gamma").index(what)
+            marker = kwargs.pop("marker", None)
+            if marker is None:
+                marker = {"alpha": 0, "beta": 5, "gamma": 6}[what]
+            label = kwargs.pop("label", what)
+            fig.add_scatter(x=self.steps, y=[s.lattice.angles[i] for s in self.structures], mode='lines+markers',
+                            name=label, marker_symbol=marker, row=ply_row, col=ply_col, **kwargs)
+            fig.layout['yaxis%u' % rcd.iax].title.text = r"$\%s \text{ (degree)} $" % what
+            fig.layout['yaxis%u' % rcd.iax].tickformat = ".3r"
+
+        elif what == "volume":
+            marker = kwargs.pop("marker", 0)
+            label = kwargs.pop("label", "Volume")
+            fig.add_scatter(x=self.steps, y=[s.lattice.volume for s in self.structures], mode='lines+markers',
+                            name=label, marker_symbol=marker, row=ply_row, col=ply_col, **kwargs)
+            fig.layout['yaxis%u' % rcd.iax].title.text = r'$V\, (A³)$'
+
+        elif what == "pressure":
+            stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
+            marker = kwargs.pop("marker", 0)
+            label = kwargs.pop("label", "P")
+            fig.add_scatter(x=self.steps, y=pressures, mode='lines+markers',
+                            name=label, marker_symbol=marker, row=ply_row, col=ply_col, **kwargs)
+            fig.layout['yaxis%u' % rcd.iax].title.text = 'P (GPa)'
+
+        elif what == "forces":
+            forces_hist = self.reader.read_cart_forces()
+            fmin_steps, fmax_steps, fmean_steps, fstd_steps = [], [], [], []
+            for step in range(self.num_steps):
+                forces = forces_hist[step]
+                fmods = np.sqrt([np.dot(force, force) for force in forces])
+                fmean_steps.append(fmods.mean())
+                fstd_steps.append(fmods.std())
+                fmin_steps.append(fmods.min())
+                fmax_steps.append(fmods.max())
+
+            mark = kwargs.pop("marker", None)
+            markers = [0, 5, 6, 4] if mark is None else 4 * [mark]
+            fig.add_scatter(x=self.steps, y=fmin_steps, mode='lines+markers',
+                            name="min |F|", marker_symbol=markers[0], row=ply_row, col=ply_col, **kwargs)
+            fig.add_scatter(x=self.steps, y=fmax_steps, mode='lines+markers',
+                            name="max |F|", marker_symbol=markers[1], row=ply_row, col=ply_col, **kwargs)
+            fig.add_scatter(x=self.steps, y=fmean_steps, mode='lines+markers',
+                            name="mean |F|", marker_symbol=markers[2], row=ply_row, col=ply_col, **kwargs)
+            fig.add_scatter(x=self.steps, y=fstd_steps, mode='lines+markers',
+                            name="std |F|", marker_symbol=markers[3], row=ply_row, col=ply_col, **kwargs)
+            label = "std |F"
+            fig.layout['yaxis%u' % rcd.iax].title.text = 'F stats (eV/A)'
+
+        else:
+            raise ValueError("Invalid value for what: `%s`" % str(what))
+
+        fig.layout.legend.font.size = fontsize
+
     @add_fig_kwargs
     def plot(self, what_list=None, ax_list=None, fontsize=8, **kwargs):
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
-        as well as pressure, info on forces and total energy.
+        as well as pressure, info on forces and total energy with matplotlib.
 
         Args:
             what_list:
@@ -406,6 +512,44 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         for what, ax in zip(what_list, ax_list):
             self.plot_ax(ax, what, fontsize=fontsize, marker="o")
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly(self, what_list=None, fig=None, fontsize=12, **kwargs):
+        """
+        Plot the evolution of structural parameters (lattice lengths, angles and volume)
+        as well as pressure, info on forces and total energy with plotly.
+
+        Args:
+            what_list:
+            fig: The fig for plot and the DOS plot. If None, a new figure is created.
+            fontsize: fontsize for legend
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        if what_list is None:
+            what_list = ["abc", "angles", "volume", "pressure", "forces", "energy"]
+        else:
+            what_list = list_strings(what_list)
+
+        nplots = len(what_list)
+        nrows, ncols = 1, 1
+        if nplots > 1:
+            ncols = 2
+            nrows = nplots // ncols + nplots % ncols
+
+        if fig is None:
+            fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=[], sharex=True, sharey=False,
+                                     vertical_spacing=0.05)
+
+        for i, what in enumerate(what_list):
+            rcd = PlotlyRowColDesc(i//ncols, i%ncols, nrows, ncols)
+            self.plotly_traces(fig, what, rcd=rcd, fontsize=fontsize, marker=0)
+
+        fig.layout['xaxis%u' % rcd.iax].title.text = 'Step'
+        if nplots > 1:
+            fig.layout['xaxis%s' % str(rcd.iax-1)].title.text = 'Step'
 
         return fig
 
