@@ -96,7 +96,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
 
     @property
     def structure(self):
-        """Structure object provided by subclass."""
+        """Structure object provided by the subclass."""
         return self.ddb.structure
 
     @depends_on_btn_click('get_epsinf_btn')
@@ -113,12 +113,19 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         # Fill column
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
         #df_kwargs = dict(auto_edit=False, autosize_mode="fit_viewport")
-        df_kwargs = {}
 
         eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.gamma_ev)
-        ca(r"## $\epsilon^0$ in Cart. coords (computed with Gamma_eV):")
+        df_kwargs = {}
+
+        from abipy.panels.core import MyMarkdown as m
+        m = pn.pane.LaTeX
+        def m(s):
+            return pn.Row(pn.pane.LaTeX(s, style={'font-size': '18pt'}), sizing_mode="stretch_width")
+
+        #ca(m(r"$\epsilon^0$ in Cart. coords (computed with Gamma_eV):"))
+        ca(m(r"$\epsilon^0$ in Cart. coords:"))
         ca(dfc(eps0.get_dataframe(cmode="real"), **df_kwargs))
-        ca(r"## $\epsilon^\infty$ in Cart. coords:")
+        ca(m(r"$\epsilon^\infty$ in Cart. coords:"))
         ca(dfc(epsinf.get_dataframe(), **df_kwargs))
         ca("## Born effective charges in Cart. coords:")
         ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
@@ -170,8 +177,9 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
 
     @depends_on_btn_click('plot_phbands_btn')
     def plot_phbands_and_phdos(self):
-        """Compute phonon bands and DOSes from DDB and plot the results."""
-
+        """
+        Compute phonon bands and DOS from DDB by invoking Anaddb then plot results.
+        """
         # Computing phbands
         kwargs = self.kwargs_for_anaget_phbst_and_phdos_files(return_input=True)
 

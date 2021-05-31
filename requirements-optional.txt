@@ -11,6 +11,7 @@ param
 panel
 bokeh
 XlsxWriter  # For DataFrame.to_excel()
+#pymdown-extensions
 # Unit tests
 python-coveralls
 pytest

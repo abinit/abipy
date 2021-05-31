@@ -30,7 +30,7 @@ def abipanel():
 
     extensions = [
         "plotly",
-        #"mathjax",
+        "mathjax",
         #"katex",
     ]
 
