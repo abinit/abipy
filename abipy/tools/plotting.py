@@ -1089,7 +1089,7 @@ def plotly_set_lims(fig, lims, axname, iax=None):
     # Example: fig.update_layout(yaxis_range=[-4,4])
     k = dict(x="xaxis", y="yaxis")[axname]
     if iax:
-        k= k+str(iax)
+        k= k + str(iax)
     fig.layout[k].range = [left, right]
 
     return left, right

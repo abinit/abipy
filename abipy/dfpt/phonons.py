@@ -1849,7 +1849,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 phdos_file.close()
 
         fig.layout.legend.font.size = fontsize
-        fig.layout.title.font.size = fontsize+2
+        fig.layout.title.font.size = fontsize + 2
 
         return fig
 
