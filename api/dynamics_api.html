@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>dynamics Package &mdash; abipy 0.9.0 documentation</title>
+  <title>dynamics Package &mdash; abipy 0.9.1 documentation</title>
   
 
   
@@ -76,7 +76,7 @@
             
             
               <div class="version">
-                0.9.0
+                0.9.1
               </div>
             
           
@@ -383,7 +383,7 @@ See <code class="xref py py-class docutils literal notranslate"><span class="pre
 <dl class="py method">
 <dt id="abipy.dynamics.hist.HistFile.plot_ax">
 <code class="sig-name descname"><span class="pre">plot_ax</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">what</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot_ax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot_ax" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to plot quantity <code class="docutils literal notranslate"><span class="pre">what</span></code> on axis <code class="docutils literal notranslate"><span class="pre">ax</span></code>.</p>
+<dd><p>Helper function to plot quantity <code class="docutils literal notranslate"><span class="pre">what</span></code> on axis <code class="docutils literal notranslate"><span class="pre">ax</span></code> with matplotlib.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -395,10 +395,25 @@ See <code class="xref py py-class docutils literal notranslate"><span class="pre
 </dd></dl>
 
 <dl class="py method">
+<dt id="abipy.dynamics.hist.HistFile.plotly_traces">
+<code class="sig-name descname"><span class="pre">plotly_traces</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">what</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showlegend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plotly_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plotly_traces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to plot quantity <code class="docutils literal notranslate"><span class="pre">what</span></code> on figure <code class="docutils literal notranslate"><span class="pre">fig</span></code> with plotly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rcd</strong> – If <code class="docutils literal notranslate"><span class="pre">fig</span></code> has subplots, <code class="docutils literal notranslate"><span class="pre">rcd</span></code> is used to add traces on these subplots.</p></li>
+<li><p><strong>fontsize</strong> – fontsize for legend.</p></li>
+<li><p><strong>are passed to fig.add_scatter method.</strong> (<em>kwargs</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="abipy.dynamics.hist.HistFile.plot">
 <code class="sig-name descname"><span class="pre">plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">what_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the evolution of structural parameters (lattice lengths, angles and volume)
-as well as pressure, info on forces and total energy.</p>
+as well as pressure, info on forces and total energy with matplotlib.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -450,6 +465,53 @@ Default: False</p></td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.dynamics.hist.HistFile.plotly">
+<code class="sig-name descname"><span class="pre">plotly</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">what_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plotly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plotly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the evolution of structural parameters (lattice lengths, angles and volume)
+as well as pressure, info on forces and total energy with plotly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>what_list</strong> – </p></li>
+<li><p><strong>fig</strong> – The fig for plot and the DOS plot. If None, a new figure is created.</p></li>
+<li><p><strong>fontsize</strong> – fontsize for legend</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code></p>
+<blockquote>
+<div><p>Keyword arguments controlling the display of the figure:
+================  ====================================================================
+kwargs            Meaning
+================  ====================================================================
+title             Title of the plot (Default: None).
+show              True to show the figure (default: True).
+hovormode         True to show the hover info (default: False)
+savefig           “abc.png” , “abc.jpeg” or “abc.webp” to save the figure to a file.
+write_json        Write plotly figure to <cite>write_json</cite> JSON file.</p>
+<blockquote>
+<div><p>Inside jupyter-lab, one can right-click the <cite>write_json</cite> file from the file menu
+and open with “Plotly Editor”.
+Make some changes to the figure, then use the file menu to save the customized plotly plot.
+Requires <cite>jupyter labextension install jupyterlab-chart-editor</cite>.
+See <a class="reference external" href="https://github.com/plotly/jupyterlab-chart-editor">https://github.com/plotly/jupyterlab-chart-editor</a></p>
+</div></blockquote>
+<dl class="simple">
+<dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
+(separated by ‘+’ characters) or None. If None, then the default
+renderers specified in plotly.io.renderers.default are used.
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
+</dd>
+</dl>
+<p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py method">
@@ -801,7 +863,7 @@ and the list of pressures in GPa unit.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 30, 2021.
+        Last updated on Jun 01, 2021.
       </span>
 
     </p>

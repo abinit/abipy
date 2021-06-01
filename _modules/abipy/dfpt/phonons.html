@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>abipy.dfpt.phonons &mdash; abipy 0.9.0 documentation</title>
+  <title>abipy.dfpt.phonons &mdash; abipy 0.9.1 documentation</title>
   
 
   
@@ -74,7 +74,7 @@
             
             
               <div class="version">
-                0.9.0
+                0.9.1
               </div>
             
           
@@ -1759,7 +1759,7 @@
                       <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">max_stripe_width_mev</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                       <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot phonon fatbands and, optionally, atom-projected phonon DOSes.</span>
+<span class="sd">        Plot phonon fatbands and, optionally, atom-projected phonon DOSes with matplotlib.</span>
 <span class="sd">        The width of the band is given by ||v_{type}||</span>
 <span class="sd">        where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and</span>
 <span class="sd">        v_{type} selects only the terms associated to the atomic type.</span>
@@ -1895,6 +1895,153 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
+    <span class="c1"># TODO: fatbands along x, y, z</span>
+<div class="viewcode-block" id="PhononBands.plotly_fatbands"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plotly_fatbands">[docs]</a>    <span class="nd">@add_plotly_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plotly_fatbands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_eigvec</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;G10&quot;</span><span class="p">,</span> <span class="n">phdos_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">max_stripe_width_mev</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                      <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot phonon fatbands and, optionally, atom-projected phonon DOSes with plotly.</span>
+<span class="sd">        The width of the band is given by ||v_{type}||</span>
+<span class="sd">        where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and</span>
+<span class="sd">        v_{type} selects only the terms associated to the atomic type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            use_eigvec: True if the width of the phonon branch should be computed from the eigenvectors.</span>
+<span class="sd">                False to use phonon displacements. Note that the PHDOS is always decomposed in</span>
+<span class="sd">                terms of (orthonormal) eigenvectors.</span>
+<span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;).</span>
+<span class="sd">                Case-insensitive.</span>
+<span class="sd">            colormap: Have a look at the colormaps here and decide which one you like:</span>
+<span class="sd">                https://plotly.com/python/discrete-color/</span>
+<span class="sd">            phdos_file: Used to activate fatbands + PJDOS plot.</span>
+<span class="sd">                Accept string with path of PHDOS.nc file or |PhdosFile| object.</span>
+<span class="sd">            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)</span>
+<span class="sd">            max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to ``units``.</span>
+<span class="sd">            width_ratios: Ratio between the width of the fatbands plots and the DOS plots.</span>
+<span class="sd">                Used if `phdos_file` is not None</span>
+<span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</span>
+<span class="sd">                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}``.</span>
+<span class="sd">            fontsize: Legend and title fontsize.</span>
+
+<span class="sd">        Returns: |plotly.graph_objects.Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">ntypat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">ntypesp</span>
+
+        <span class="c1"># Prepare PJDOS.</span>
+        <span class="n">close_phdos_file</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">phdos_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">phdos_file</span><span class="p">):</span>
+                <span class="n">phdos_file</span> <span class="o">=</span> <span class="n">PhdosFile</span><span class="p">(</span><span class="n">phdos_file</span><span class="p">)</span>
+                <span class="n">close_phdos_file</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phdos_file</span><span class="p">,</span> <span class="n">PhdosFile</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expecting string or PhdosFile, got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">phdos_file</span><span class="p">))</span>
+
+        <span class="c1"># Fig with [ntypat] plots if fatbands only or [ntypat, 2] if fatbands + PJDOS</span>
+        <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="p">(</span><span class="n">ntypat</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">phdos_file</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="n">ntypat</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_figs_plotly</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">vertical_spacing</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                                 <span class="n">horizontal_spacing</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">column_widths</span><span class="o">=</span><span class="n">width_ratios</span> <span class="k">if</span> <span class="n">ncols</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="kn">import</span> <span class="nn">plotly.express</span> <span class="k">as</span> <span class="nn">px</span>
+        <span class="n">color_l</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">px</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">qualitative</span><span class="p">,</span> <span class="n">colormap</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">color_l</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Colormap </span><span class="si">%s</span><span class="s2"> is not enough, please provide one has more than %n colors&quot;</span>
+                             <span class="o">%</span> <span class="n">colormap</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">))</span>
+        <span class="n">qq</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">))</span>
+
+        <span class="c1"># phonon_displacements are in cartesian coordinates and stored in an array with shape</span>
+        <span class="c1"># (nqpt, 3*natom, 3*natom) where the last dimension stores the cartesian components.</span>
+        <span class="c1"># PJDoses are in cartesian coordinates and are computed by anaddb using the the</span>
+        <span class="c1"># phonon eigenvectors that are orthonormal.</span>
+
+        <span class="c1"># Precompute normalization factor:</span>
+        <span class="c1"># Here I use d2[q, nu] = \sum_{i=0}^{3*Nat-1) |d^{q\nu}_i|**2</span>
+        <span class="c1"># it makes sense only for displacements</span>
+        <span class="n">d2_qnu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_branches</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_eigvec</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">iq</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+                    <span class="n">cvect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdispl_cart</span><span class="p">[</span><span class="n">iq</span><span class="p">,</span> <span class="n">nu</span><span class="p">,</span> <span class="p">:]</span>
+                    <span class="n">d2_qnu</span><span class="p">[</span><span class="n">iq</span><span class="p">,</span> <span class="n">nu</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vdot</span><span class="p">(</span><span class="n">cvect</span><span class="p">,</span> <span class="n">cvect</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+
+        <span class="c1"># Plot fatbands: one plot per atom type.</span>
+        <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">):</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">color_l</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+            <span class="n">rcd</span> <span class="o">=</span> <span class="n">PlotlyRowColDesc</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+            <span class="n">iax</span><span class="o">=</span><span class="n">rcd</span><span class="o">.</span><span class="n">iax</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decorate_plotly</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="n">qlabels</span><span class="p">,</span> <span class="n">iax</span><span class="o">=</span><span class="n">iax</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">row</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">):</span>
+                <span class="n">xaxis</span> <span class="o">=</span> <span class="s1">&#39;xaxis</span><span class="si">%u</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">iax</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+            <span class="c1"># dir_indices lists the coordinate indices for the atoms of the same type.</span>
+            <span class="n">atom_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">indices_from_symbol</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+            <span class="n">dir_indices</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">aindx</span> <span class="ow">in</span> <span class="n">atom_indices</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">aindx</span>
+                <span class="n">dir_indices</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">start</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span>
+            <span class="n">dir_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dir_indices</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+                <span class="n">yy_qq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[:,</span> <span class="n">nu</span><span class="p">]</span> <span class="o">*</span> <span class="n">factor</span>
+
+                <span class="c1"># Exctract the sub-vector associated to this atom type (eigvec or diplacement).</span>
+                <span class="k">if</span> <span class="n">use_eigvec</span><span class="p">:</span>
+                    <span class="n">v_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dyn_mat_eigenvect</span><span class="p">[:,</span> <span class="n">nu</span><span class="p">,</span> <span class="n">dir_indices</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">v_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdispl_cart</span><span class="p">[:,</span> <span class="n">nu</span><span class="p">,</span> <span class="n">dir_indices</span><span class="p">]</span>
+
+                <span class="n">v2_type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">iq</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">):</span>
+                    <span class="n">v2_type</span><span class="p">[</span><span class="n">iq</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vdot</span><span class="p">(</span><span class="n">v_type</span><span class="p">[</span><span class="n">iq</span><span class="p">],</span> <span class="n">v_type</span><span class="p">[</span><span class="n">iq</span><span class="p">])</span><span class="o">.</span><span class="n">real</span>
+
+                <span class="c1"># Normalize and scale by max_stripe_width_mev taking into account units.</span>
+                <span class="c1"># The stripe is centered on the phonon branch hence the factor 2</span>
+                <span class="n">stype_qq</span> <span class="o">=</span> <span class="p">(</span><span class="n">factor</span> <span class="o">*</span> <span class="n">max_stripe_width_mev</span> <span class="o">*</span> <span class="mf">1.e-3</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">v2_type</span> <span class="o">/</span> <span class="n">d2_qnu</span><span class="p">[:,</span> <span class="n">nu</span><span class="p">])</span>
+
+                <span class="c1"># Plot the phonon branch with the stripe.</span>
+                <span class="n">ply_row</span><span class="p">,</span> <span class="n">ply_col</span> <span class="o">=</span> <span class="n">rcd</span><span class="o">.</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">rcd</span><span class="o">.</span><span class="n">ply_col</span>
+                <span class="k">if</span> <span class="n">nu</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">qq</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yy_qq</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">symbol</span><span class="p">,</span>
+                                    <span class="n">legendgroup</span><span class="o">=</span><span class="n">row</span> <span class="p">,</span><span class="n">row</span><span class="o">=</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">ply_col</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">qq</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yy_qq</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">symbol</span><span class="p">,</span>
+                                    <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">legendgroup</span><span class="o">=</span><span class="n">row</span> <span class="p">,</span><span class="n">row</span><span class="o">=</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">ply_col</span><span class="p">)</span>
+
+                <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">qq</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yy_qq</span><span class="o">-</span><span class="n">stype_qq</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                                <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">legendgroup</span><span class="o">=</span><span class="n">row</span> <span class="p">,</span><span class="n">row</span><span class="o">=</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">ply_col</span><span class="p">)</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">qq</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yy_qq</span><span class="o">+</span><span class="n">stype_qq</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                                <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">legendgroup</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;tonexty&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">ply_col</span><span class="p">)</span>
+
+            <span class="n">plotly_set_lims</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">iax</span><span class="o">=</span><span class="n">iax</span><span class="p">)</span>
+
+        <span class="c1"># Type projected DOSes (always computed from eigenvectors in anaddb).</span>
+        <span class="k">if</span> <span class="n">phdos_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">):</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">color_l</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+                <span class="n">rcd</span> <span class="o">=</span> <span class="n">PlotlyRowColDesc</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+
+                <span class="c1"># Get PJDOS: Dictionary symbol --&gt; partial PhononDos</span>
+                <span class="n">pjdos</span> <span class="o">=</span> <span class="n">phdos_file</span><span class="o">.</span><span class="n">pjdos_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">pjdos</span><span class="o">.</span><span class="n">mesh</span> <span class="o">*</span> <span class="n">factor</span><span class="p">,</span> <span class="n">pjdos</span><span class="o">.</span><span class="n">values</span> <span class="o">/</span> <span class="n">factor</span>
+
+                <span class="n">ply_row</span><span class="p">,</span> <span class="n">ply_col</span> <span class="o">=</span> <span class="n">rcd</span><span class="o">.</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">rcd</span><span class="o">.</span><span class="n">ply_col</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                <span class="n">legendgroup</span><span class="o">=</span><span class="n">row</span> <span class="p">,</span><span class="n">row</span><span class="o">=</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">ply_col</span><span class="p">)</span>
+                <span class="n">plotly_set_lims</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">iax</span><span class="o">=</span><span class="n">rcd</span><span class="o">.</span><span class="n">iax</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">close_phdos_file</span><span class="p">:</span>
+                <span class="n">phdos_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">font</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">fontsize</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">font</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">fontsize</span> <span class="o">+</span> <span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
 <div class="viewcode-block" id="PhononBands.plot_with_phdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_with_phdos">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_with_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phdos</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -1977,7 +2124,7 @@
         <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># build fig and align bands and DOS.</span>
             <span class="n">fig</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_figs_plotly</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">subplot_titles</span><span class="o">=</span><span class="p">[],</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                     <span class="n">horizontal_spacing</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">column_widths</span><span class="o">=</span><span class="n">width_ratios</span><span class="p">)</span>
+                                     <span class="n">horizontal_spacing</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">column_widths</span><span class="o">=</span><span class="n">width_ratios</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;line_color&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;line_width&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">}</span>
@@ -4357,7 +4504,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdoses_dict</span><span class="p">:</span>
             <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
             <span class="n">fig</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_figs_plotly</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">subplot_titles</span><span class="o">=</span><span class="p">[],</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                      <span class="n">horizontal_spacing</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">column_widths</span><span class="o">=</span><span class="n">width_ratios</span><span class="p">)</span>
+                                      <span class="n">horizontal_spacing</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">column_widths</span><span class="o">=</span><span class="n">width_ratios</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">fig</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_fig_plotly</span><span class="p">()</span>
@@ -5243,7 +5390,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 30, 2021.
+        Last updated on Jun 01, 2021.
       </span>
 
     </p>

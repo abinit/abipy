@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>TaskManager &mdash; abipy 0.9.0 documentation</title>
+  <title>TaskManager &mdash; abipy 0.9.1 documentation</title>
   
 
   
@@ -76,7 +76,7 @@
             
             
               <div class="version">
-                0.9.0
+                0.9.1
               </div>
             
           
@@ -258,7 +258,7 @@ If no file is found, the code aborts immediately.</p>
 <p>An important piece of information for the <code class="docutils literal notranslate"><span class="pre">TaskManager</span></code> is the type of queueing system available on the cluster,
 the list of queues and their specifications.
 In AbiPy queueing systems or resource managers are supported via <code class="docutils literal notranslate"><span class="pre">quadapters</span></code>.
-At the time of writing (May 30, 2021), AbiPy provides <code class="docutils literal notranslate"><span class="pre">qadapters</span></code> for the following resource managers:</p>
+At the time of writing (Jun 01, 2021), AbiPy provides <code class="docutils literal notranslate"><span class="pre">qadapters</span></code> for the following resource managers:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">shell</span></code></p></li>
 <li><p><a class="reference external" href="http://pbspro.org/">pbspro</a></p></li>
@@ -344,288 +344,22 @@ available on your personal computer.
 Save the file in the current working directory and run the <span class="xref std std-ref">abicheck.py</span> script provided by AbiPy.
 If everything is configured properly, you should see something like this in the terminal.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abicheck.py --no-colors
-/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pymatgen/util/testing.py:42: UserWarning: It is recommended that you set the PMG_TEST_FILES_DIR environment variable explicity. Now using a fallback location based on relative path from this module.
-  warnings.warn(
-AbiPy Manager:
-[Qadapter 0]
-ShellAdapter:gmac
-Hardware:
-   num_nodes: 1, sockets_per_node: 1, cores_per_socket: 2, mem_per_node 4096,
-Qadapter selected: 0
-
-self.info  DATA TYPE INFORMATION: 
- REAL:      Data type name: REAL(DP) 
-            Kind value:      8
-            Precision:      15
-            Smallest nonnegligible quantity relative to 1: 0.22204460E-015
-            Smallest positive number:                      0.22250739E-307
-            Largest representable number:                  0.17976931E+309
- INTEGER:   Data type name: INTEGER(default) 
-            Kind value: 4
-            Bit size:   32
-            Largest representable number: 2147483647
- LOGICAL:   Data type name: LOGICAL 
-            Kind value: 4
- CHARACTER: Data type name: CHARACTER             Kind value: 1
-  ==== Using MPI-2 specifications ==== 
-  MPI-IO support is ON
-  xmpi_tag_ub ................    268435455
-  xmpi_bsize_ch ..............            1
-  xmpi_bsize_int .............            4
-  xmpi_bsize_sp ..............            4
-  xmpi_bsize_dp ..............            8
-  xmpi_bsize_spc .............            8
-  xmpi_bsize_dpc .............           16
-  xmpio_bsize_frm ............            4
-  xmpi_address_kind ..........            8
-  xmpi_offset_kind ...........            8
-  MPI_WTICK ..................    1.0000000000000002E-006
-
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- CPP options activated during the build:
-
-                    CC_GNU                   CXX_GNU                    FC_GNU
- 
- HAVE_FC_ALLOCATABLE_DT...             HAVE_FC_ASYNC         HAVE_FC_BACKTRACE
- 
-  HAVE_FC_COMMAND_ARGUMENT      HAVE_FC_COMMAND_LINE        HAVE_FC_CONTIGUOUS
- 
-           HAVE_FC_CPUTIME              HAVE_FC_EXIT             HAVE_FC_FLUSH
- 
-             HAVE_FC_GAMMA            HAVE_FC_GETENV   HAVE_FC_IEEE_ARITHMETIC
- 
-   HAVE_FC_IEEE_EXCEPTIONS          HAVE_FC_INT_QUAD             HAVE_FC_IOMSG
- 
-     HAVE_FC_ISO_C_BINDING  HAVE_FC_ISO_FORTRAN_2008        HAVE_FC_LONG_LINES
- 
-        HAVE_FC_MOVE_ALLOC  HAVE_FC_ON_THE_FLY_SHAPE           HAVE_FC_PRIVATE
- 
-         HAVE_FC_PROTECTED           HAVE_FC_SHIFTLR         HAVE_FC_STREAM_IO
- 
-            HAVE_FC_SYSTEM                HAVE_FFTW3          HAVE_FORTRAN2003
- 
-               HAVE_GW_DPC                 HAVE_HDF5        HAVE_LIBPAW_ABINIT
- 
-      HAVE_LIBTETRA_ABINIT                HAVE_LIBXC         HAVE_LINALG_AXPBY
- 
-        HAVE_LINALG_GEMM3M     HAVE_LINALG_ZDOTC_B*G     HAVE_LINALG_ZDOTU_B*G
- 
-                  HAVE_MPI                 HAVE_MPI2         HAVE_MPI2_INPLACE
- 
-       HAVE_MPI_IALLGATHER       HAVE_MPI_IALLREDUCE        HAVE_MPI_IALLTOALL
- 
-       HAVE_MPI_IALLTOALLV           HAVE_MPI_IBCAST         HAVE_MPI_IGATHERV
- 
-        HAVE_MPI_INTEGER16               HAVE_MPI_IO HAVE_MPI_TYPE_CREATE_S...
- 
-               HAVE_NETCDF       HAVE_NETCDF_FORTRAN         HAVE_TIMER_ABINIT
- 
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
- === Build Information === 
-  Version       : 9.5.2
-  Build target  : x86_64_darwin20.3.0_gnu8.2
-  Build date    : 20210505
-
- === Compiler Suite === 
-  C compiler       : gnu8.2
-  C++ compiler     : gnu8.2
-  Fortran compiler : gnu8.2
-  CFLAGS           : -g -O2 -mtune=native -march=native
-  CXXFLAGS         : -g -O2 -mtune=native -march=native
-  FCFLAGS          : -g -O2 -fbacktrace -ffree-line-length-none   -I/Users/gmatteo/local ...
-  FC_LDFLAGS       : 
-
- === Optimizations === 
-  Debug level        : basic
-  Optimization level : standard
-  Architecture       : unknown_unknown
-
- === Multicore === 
-  Parallel build : /Users/gmatteo/local/build_gcc_820/
-  Parallel I/O   : yes
-  openMP support : no
-  GPU support    : 
-
- === Connectors / Fallbacks === 
-  LINALG flavor  : openblas
-  FFT flavor     : fftw3
-  HDF5           : yes
-  NetCDF         : yes
-  NetCDF Fortran : yes
-  LibXC          : yes
-  Wannier90      : no
-
- === Experimental features === 
-  Exports             : 
-  GW double-precision : yes
-
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Default optimizations:
-   --- None ---
-
-
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
- DATA TYPE INFORMATION: 
- REAL:      Data type name: REAL(DP) 
-            Kind value:      8
-            Precision:      15
-            Smallest nonnegligible quantity relative to 1: 0.22204460E-015
-            Smallest positive number:                      0.22250739E-307
-            Largest representable number:                  0.17976931E+309
- INTEGER:   Data type name: INTEGER(default) 
-            Kind value: 4
-            Bit size:   32
-            Largest representable number: 2147483647
- LOGICAL:   Data type name: LOGICAL 
-            Kind value: 4
- CHARACTER: Data type name: CHARACTER             Kind value: 1
-  ==== Using MPI-2 specifications ==== 
-  MPI-IO support is ON
-  xmpi_tag_ub ................    268435455
-  xmpi_bsize_ch ..............            1
-  xmpi_bsize_int .............            4
-  xmpi_bsize_sp ..............            4
-  xmpi_bsize_dp ..............            8
-  xmpi_bsize_spc .............            8
-  xmpi_bsize_dpc .............           16
-  xmpio_bsize_frm ............            4
-  xmpi_address_kind ..........            8
-  xmpi_offset_kind ...........            8
-  MPI_WTICK ..................    1.0000000000000002E-006
-
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- CPP options activated during the build:
-
-                    CC_GNU                   CXX_GNU                    FC_GNU
- 
- HAVE_FC_ALLOCATABLE_DT...             HAVE_FC_ASYNC         HAVE_FC_BACKTRACE
- 
-  HAVE_FC_COMMAND_ARGUMENT      HAVE_FC_COMMAND_LINE        HAVE_FC_CONTIGUOUS
- 
-           HAVE_FC_CPUTIME              HAVE_FC_EXIT             HAVE_FC_FLUSH
- 
-             HAVE_FC_GAMMA            HAVE_FC_GETENV   HAVE_FC_IEEE_ARITHMETIC
- 
-   HAVE_FC_IEEE_EXCEPTIONS          HAVE_FC_INT_QUAD             HAVE_FC_IOMSG
- 
-     HAVE_FC_ISO_C_BINDING  HAVE_FC_ISO_FORTRAN_2008        HAVE_FC_LONG_LINES
- 
-        HAVE_FC_MOVE_ALLOC  HAVE_FC_ON_THE_FLY_SHAPE           HAVE_FC_PRIVATE
- 
-         HAVE_FC_PROTECTED           HAVE_FC_SHIFTLR         HAVE_FC_STREAM_IO
- 
-            HAVE_FC_SYSTEM                HAVE_FFTW3          HAVE_FORTRAN2003
- 
-               HAVE_GW_DPC                 HAVE_HDF5        HAVE_LIBPAW_ABINIT
- 
-      HAVE_LIBTETRA_ABINIT                HAVE_LIBXC         HAVE_LINALG_AXPBY
- 
-        HAVE_LINALG_GEMM3M     HAVE_LINALG_ZDOTC_B*G     HAVE_LINALG_ZDOTU_B*G
- 
-                  HAVE_MPI                 HAVE_MPI2         HAVE_MPI2_INPLACE
- 
-       HAVE_MPI_IALLGATHER       HAVE_MPI_IALLREDUCE        HAVE_MPI_IALLTOALL
- 
-       HAVE_MPI_IALLTOALLV           HAVE_MPI_IBCAST         HAVE_MPI_IGATHERV
- 
-        HAVE_MPI_INTEGER16               HAVE_MPI_IO HAVE_MPI_TYPE_CREATE_S...
- 
-               HAVE_NETCDF       HAVE_NETCDF_FORTRAN         HAVE_TIMER_ABINIT
- 
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
- === Build Information === 
-  Version       : 9.5.2
-  Build target  : x86_64_darwin20.3.0_gnu8.2
-  Build date    : 20210505
-
- === Compiler Suite === 
-  C compiler       : gnu8.2
-  C++ compiler     : gnu8.2
-  Fortran compiler : gnu8.2
-  CFLAGS           : -g -O2 -mtune=native -march=native
-  CXXFLAGS         : -g -O2 -mtune=native -march=native
-  FCFLAGS          : -g -O2 -fbacktrace -ffree-line-length-none   -I/Users/gmatteo/local ...
-  FC_LDFLAGS       : 
-
- === Optimizations === 
-  Debug level        : basic
-  Optimization level : standard
-  Architecture       : unknown_unknown
-
- === Multicore === 
-  Parallel build : /Users/gmatteo/local/build_gcc_820/
-  Parallel I/O   : yes
-  openMP support : no
-  GPU support    : 
-
- === Connectors / Fallbacks === 
-  LINALG flavor  : openblas
-  FFT flavor     : fftw3
-  HDF5           : yes
-  NetCDF         : yes
-  NetCDF Fortran : yes
-  LibXC          : yes
-  Wannier90      : no
-
- === Experimental features === 
-  Exports             : 
-  GW double-precision : yes
-
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Default optimizations:
-   --- None ---
-
-
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Abinitbuild:
-Abinit Build Information:
-    Abinit version: 9.5.2
-    MPI: True, MPI-IO: True, OpenMP: False
-    Netcdf: True
-
-Abipy Scheduler:
-PyFlowScheduler, Pid: 23736
-Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 8}
-
-Installed packages:
-Package         Version
---------------  ---------
-system          Darwin
-python_version  3.9.4
-numpy           1.20.2
-scipy           1.6.3
-netCDF4         1.5.6
-apscheduler     3.7.0
-pydispatch      2.0.5
-yaml            5.4.1
-boken           2.3.2
-panel           0.11.3
-plotly          4.14.3
-ase             3.21.1
-phonopy         2.9.3
-monty           2021.5.9
-pymatgen        2022.0.8
-abipy           0.9.0
-
-
-Abipy requirements are properly configured
+Traceback (most recent call last):
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/bin/abicheck.py&quot;, line 4, in &lt;module&gt;
+    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.9.0&#39;)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3268, in &lt;module&gt;
+    def _initialize_master_working_set():
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3251, in _call_aside
+    f(*args, **kwargs)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3280, in _initialize_master_working_set
+    working_set = WorkingSet._build_master()
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 582, in _build_master
+    ws.require(__requires__)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 899, in require
+    needed = self.resolve(parse_requirements(requirements))
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 785, in resolve
+    raise DistributionNotFound(req, requirers)
+pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was not found and is required by the application
 </pre></div>
 </div>
 <p>This message tells us that everything is in place and we can finally run our first calculation.</p>
@@ -871,107 +605,22 @@ the phonon frequencies and plot the DOS and the phonon band structure with <a cl
 <p>gives the full documentation for the different entries of <code class="docutils literal notranslate"><span class="pre">manager.yml</span></code>.</p>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py . doc_manager
-
-# TaskManager configuration file (YAML Format)
-
-policy:
-    # Dictionary with options used to control the execution of the tasks.
-
-qadapters:
-    # List of qadapters objects (mandatory)
-    -  # qadapter_1
-    -  # qadapter_2
-
-db_connector:
-    # Connection to MongoDB database (optional)
-
-batch_adapter:
-    # Adapter used to submit flows with batch script. (optional)
-
-##########################################
-# Individual entries are documented below:
-##########################################
-
-policy: 
-    autoparal:                # (integer). 0 to disable the autoparal feature (DEFAULT: 1 i.e. autoparal is on)
-    condition:                # condition used to filter the autoparal configurations (Mongodb-like syntax).
-                              # DEFAULT: empty i.e. ignored.
-    vars_condition:           # Condition used to filter the list of ABINIT variables reported by autoparal
-                              # (Mongodb-like syntax). DEFAULT: empty i.e. ignored.
-    frozen_timeout:           # A job is considered frozen and its status is set to ERROR if no change to
-                              # the output file has been done for `frozen_timeout` seconds. Accepts int with seconds or
-                              # string in slurm form i.e. days-hours:minutes:seconds. DEFAULT: 1 hour.
-    precedence:               # Under development.
-    autoparal_priorities:     # Under development.
-
-qadapter: 
-# Dictionary with info on the hardware available on this queue.
-hardware:
-    num_nodes:           # Number of nodes available on this queue (integer, MANDATORY).
-    sockets_per_node:    # Number of sockets per node (integer, MANDATORY).
-    cores_per_socket:    # Number of cores per socket (integer, MANDATORY).
-                         # The total number of cores available on this queue is
-                         # `num_nodes * sockets_per_node * cores_per_socket`.
-
-# Dictionary with the options used to prepare the enviroment before submitting the job
-job:
-    setup:                # List of commands (strings) executed before running (DEFAULT: empty)
-    omp_env:              # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
-    modules:              # List of modules to be imported before running the code (DEFAULT: empty).
-                          # NB: Error messages produced by module load are redirected to mods.err
-    shell_env:            # Dictionary with shell environment variables.
-    mpi_runner:           # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
-                          # DEFAULT: None i.e. no mpirunner is used.
-    mpi_runner_options    # String with optional options passed to the `mpi_runner` e.g. &quot;--bind-to None&quot;
-    shell_runner:         # Used for running small sequential jobs on the front-end. Set it to None
-                          # if mpirun or mpiexec are not available on the fron-end. If not
-                          # given, small sequential jobs are executed with `mpi_runner`.
-    shell_runner_options  # Similar to mpi_runner_options but for the runner used on the front-end.
-    pre_run:              # List of commands (strings) executed before the run (DEFAULT: empty)
-    post_run:             # List of commands (strings) executed after the run (DEFAULT: empty)
-
-# dictionary with the name of the queue and optional parameters
-# used to build/customize the header of the submission script.
-queue:
-    qtype:                # String defining the qapapter type e.g. slurm, shell ...
-    qname:                # Name of the submission queue (string, MANDATORY)
-    qparams:              # Dictionary with values used to generate the header of the job script
-                          # We use the *normalized* version of the options i.e dashes in the official name
-                          # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
-                          # See pymatgen.io.abinit.qadapters.py for the list of supported values.
-                          # Use ``qverbatim`` to pass additional options that are not included in the template.
-
-# dictionary with the constraints that must be fulfilled in order to run on this queue.
-limits:
-    min_cores:             # Minimum number of cores (integer, DEFAULT: 1)
-    max_cores:             # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
-                           # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
-    hint_cores:            # The limit used in the initial setup of jobs.
-                           # Fix_Critical method may increase this number until max_cores is reached
-    min_mem_per_proc:      # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
-                           # (DEFAULT: hardware.mem_per_core)
-    max_mem_per_proc:      # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
-                           # (DEFAULT: hardware.mem_per_node)
-    timelimit:             # Initial time-limit. Accepts time according to slurm-syntax i.e:
-                           # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
-                           # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
-    timelimit_hard:        # The hard time-limit for this queue. Same format as timelimit.
-                           # Error handlers could try to submit jobs with increased timelimit
-                           # up to timelimit_hard. If not specified, timelimit_hard == timelimit
-    condition:             # MongoDB-like condition (DEFAULT: empty, i.e. not used)
-    allocation:            # String defining the policy used to select the optimal number of CPUs.
-                           # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
-                           # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
-                           # This is a soft limit, in the sense that the qadapter may use a configuration
-                           # that does not fulfill this requirement. In case of failure, it will try to use the
-                           # smallest number of nodes compatible with the optimal configuration.
-                           # Use `force_nodes` to enfore entire nodes allocation.
-                           # `shared` mode does not enforce any constraint (DEFAULT: shared).
-    max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
-
-
-qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
-Use `abirun.py . manager slurm` to have the list of qparams for slurm.
+Traceback (most recent call last):
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/bin/abirun.py&quot;, line 4, in &lt;module&gt;
+    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.9.0&#39;)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3268, in &lt;module&gt;
+    def _initialize_master_working_set():
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3251, in _call_aside
+    f(*args, **kwargs)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3280, in _initialize_master_working_set
+    working_set = WorkingSet._build_master()
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 582, in _build_master
+    ws.require(__requires__)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 899, in require
+    needed = self.resolve(parse_requirements(requirements))
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 785, in resolve
+    raise DistributionNotFound(req, requirers)
+pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was not found and is required by the application
 </pre></div>
 </div>
 </div>
@@ -1049,36 +698,22 @@ The next section discusses how to configure AbiPy to run on a cluster with a que
 <p>Use <code class="docutils literal notranslate"><span class="pre">abirun.py</span> <span class="pre">.</span> <span class="pre">doc_scheduler</span></code> to get the full list of options supported by the scheduler.</p>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py doc_scheduler
-Options that can be specified in scheduler.yml:
-
-            weeks: number of weeks to wait (DEFAULT: 0).
-            days: number of days to wait (DEFAULT: 0).
-            hours: number of hours to wait (DEFAULT: 0).
-            minutes: number of minutes to wait (DEFAULT: 0).
-            seconds: number of seconds to wait (DEFAULT: 0).
-            mailto: The scheduler will send an email to `mailto` every `remindme_s` seconds.
-                (DEFAULT: None i.e. not used).
-            verbose: (int) verbosity level. (DEFAULT: 0)
-            use_dynamic_manager: &quot;yes&quot; if the |TaskManager| must be re-initialized from
-                file before launching the jobs. (DEFAULT: &quot;no&quot;)
-            max_njobs_inqueue: Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)
-            max_ncores_used: Maximum number of cores that can be used by the scheduler.
-            remindme_s: The scheduler will send an email to the user specified
-                by `mailto` every `remindme_s` seconds. (int, DEFAULT: 1 day).
-            max_num_pyexcs: The scheduler will exit if the number of python exceptions is &gt; max_num_pyexcs
-                (int, DEFAULT: 0)
-            max_num_abierrs: The scheduler will exit if the number of errored tasks is &gt; max_num_abierrs
-                (int, DEFAULT: 0)
-            safety_ratio: The scheduler will exits if the number of jobs launched becomes greater than
-               `safety_ratio` * total_number_of_tasks_in_flow. (int, DEFAULT: 5)
-            max_nlaunches: Maximum number of tasks launched in a single iteration of the scheduler.
-                (DEFAULT: -1 i.e. no limit)
-            debug: Debug level. Use 0 for production (int, DEFAULT: 0)
-            fix_qcritical: &quot;yes&quot; if the launcher should try to fix QCritical Errors (DEFAULT: &quot;no&quot;)
-            rmflow: If &quot;yes&quot;, the scheduler will remove the flow directory if the calculation
-                completed successfully. (DEFAULT: &quot;no&quot;)
-            killjobs_if_errors: &quot;yes&quot; if the scheduler should try to kill all the runnnig jobs
-                before exiting due to an error. (DEFAULT: &quot;yes&quot;)
+Traceback (most recent call last):
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/bin/abirun.py&quot;, line 4, in &lt;module&gt;
+    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.9.0&#39;)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3268, in &lt;module&gt;
+    def _initialize_master_working_set():
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3251, in _call_aside
+    f(*args, **kwargs)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3280, in _initialize_master_working_set
+    working_set = WorkingSet._build_master()
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 582, in _build_master
+    ws.require(__requires__)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 899, in require
+    needed = self.resolve(parse_requirements(requirements))
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 785, in resolve
+    raise DistributionNotFound(req, requirers)
+pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was not found and is required by the application
 </pre></div>
 </div>
 </div>
@@ -1177,136 +812,22 @@ and it will stop when it reaches the maximum amount given by <code class="docuti
 will be added as time goes by.</p>
 <p>The get the complete list of options supported by the Slurm <code class="docutils literal notranslate"><span class="pre">qadapter</span></code> use:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py . doc_manager slurm
-
-# TaskManager configuration file (YAML Format)
-
-policy:
-    # Dictionary with options used to control the execution of the tasks.
-
-qadapters:
-    # List of qadapters objects (mandatory)
-    -  # qadapter_1
-    -  # qadapter_2
-
-db_connector:
-    # Connection to MongoDB database (optional)
-
-batch_adapter:
-    # Adapter used to submit flows with batch script. (optional)
-
-##########################################
-# Individual entries are documented below:
-##########################################
-
-policy: 
-    autoparal:                # (integer). 0 to disable the autoparal feature (DEFAULT: 1 i.e. autoparal is on)
-    condition:                # condition used to filter the autoparal configurations (Mongodb-like syntax).
-                              # DEFAULT: empty i.e. ignored.
-    vars_condition:           # Condition used to filter the list of ABINIT variables reported by autoparal
-                              # (Mongodb-like syntax). DEFAULT: empty i.e. ignored.
-    frozen_timeout:           # A job is considered frozen and its status is set to ERROR if no change to
-                              # the output file has been done for `frozen_timeout` seconds. Accepts int with seconds or
-                              # string in slurm form i.e. days-hours:minutes:seconds. DEFAULT: 1 hour.
-    precedence:               # Under development.
-    autoparal_priorities:     # Under development.
-
-qadapter: 
-# Dictionary with info on the hardware available on this queue.
-hardware:
-    num_nodes:           # Number of nodes available on this queue (integer, MANDATORY).
-    sockets_per_node:    # Number of sockets per node (integer, MANDATORY).
-    cores_per_socket:    # Number of cores per socket (integer, MANDATORY).
-                         # The total number of cores available on this queue is
-                         # `num_nodes * sockets_per_node * cores_per_socket`.
-
-# Dictionary with the options used to prepare the enviroment before submitting the job
-job:
-    setup:                # List of commands (strings) executed before running (DEFAULT: empty)
-    omp_env:              # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
-    modules:              # List of modules to be imported before running the code (DEFAULT: empty).
-                          # NB: Error messages produced by module load are redirected to mods.err
-    shell_env:            # Dictionary with shell environment variables.
-    mpi_runner:           # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
-                          # DEFAULT: None i.e. no mpirunner is used.
-    mpi_runner_options    # String with optional options passed to the `mpi_runner` e.g. &quot;--bind-to None&quot;
-    shell_runner:         # Used for running small sequential jobs on the front-end. Set it to None
-                          # if mpirun or mpiexec are not available on the fron-end. If not
-                          # given, small sequential jobs are executed with `mpi_runner`.
-    shell_runner_options  # Similar to mpi_runner_options but for the runner used on the front-end.
-    pre_run:              # List of commands (strings) executed before the run (DEFAULT: empty)
-    post_run:             # List of commands (strings) executed after the run (DEFAULT: empty)
-
-# dictionary with the name of the queue and optional parameters
-# used to build/customize the header of the submission script.
-queue:
-    qtype:                # String defining the qapapter type e.g. slurm, shell ...
-    qname:                # Name of the submission queue (string, MANDATORY)
-    qparams:              # Dictionary with values used to generate the header of the job script
-                          # We use the *normalized* version of the options i.e dashes in the official name
-                          # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
-                          # See pymatgen.io.abinit.qadapters.py for the list of supported values.
-                          # Use ``qverbatim`` to pass additional options that are not included in the template.
-
-# dictionary with the constraints that must be fulfilled in order to run on this queue.
-limits:
-    min_cores:             # Minimum number of cores (integer, DEFAULT: 1)
-    max_cores:             # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
-                           # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
-    hint_cores:            # The limit used in the initial setup of jobs.
-                           # Fix_Critical method may increase this number until max_cores is reached
-    min_mem_per_proc:      # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
-                           # (DEFAULT: hardware.mem_per_core)
-    max_mem_per_proc:      # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
-                           # (DEFAULT: hardware.mem_per_node)
-    timelimit:             # Initial time-limit. Accepts time according to slurm-syntax i.e:
-                           # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
-                           # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
-    timelimit_hard:        # The hard time-limit for this queue. Same format as timelimit.
-                           # Error handlers could try to submit jobs with increased timelimit
-                           # up to timelimit_hard. If not specified, timelimit_hard == timelimit
-    condition:             # MongoDB-like condition (DEFAULT: empty, i.e. not used)
-    allocation:            # String defining the policy used to select the optimal number of CPUs.
-                           # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
-                           # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
-                           # This is a soft limit, in the sense that the qadapter may use a configuration
-                           # that does not fulfill this requirement. In case of failure, it will try to use the
-                           # smallest number of nodes compatible with the optimal configuration.
-                           # Use `force_nodes` to enfore entire nodes allocation.
-                           # `shared` mode does not enforce any constraint (DEFAULT: shared).
-    max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
-
-
-qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
-Use `abirun.py . manager slurm` to have the list of qparams for slurm.
-
-QPARAMS for slurm
-#!/bin/bash
-
-#SBATCH --partition=$${partition}
-#SBATCH --job-name=$${job_name}
-#SBATCH --nodes=$${nodes}
-#SBATCH --total_tasks=$${total_tasks}
-#SBATCH --ntasks=$${ntasks}
-#SBATCH --ntasks-per-node=$${ntasks_per_node}
-#SBATCH --cpus-per-task=$${cpus_per_task}
-#####SBATCH --mem=$${mem}
-#SBATCH --mem-per-cpu=$${mem_per_cpu}
-#SBATCH --hint=$${hint}
-#SBATCH --time=$${time}
-#SBATCH	--exclude=$${exclude_nodes}
-#SBATCH --account=$${account}
-#SBATCH --mail-user=$${mail_user}
-#SBATCH --mail-type=$${mail_type}
-#SBATCH --constraint=$${constraint}
-#SBATCH --gres=$${gres}
-#SBATCH --requeue=$${requeue}
-#SBATCH --nodelist=$${nodelist}
-#SBATCH --propagate=$${propagate}
-#SBATCH --licenses=$${licenses}
-#SBATCH --output=$${_qout_path}
-#SBATCH --error=$${_qerr_path}
-#SBATCH --qos=$${qos}
-$${qverbatim}
+Traceback (most recent call last):
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/bin/abirun.py&quot;, line 4, in &lt;module&gt;
+    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.9.0&#39;)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3268, in &lt;module&gt;
+    def _initialize_master_working_set():
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3251, in _call_aside
+    f(*args, **kwargs)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3280, in _initialize_master_working_set
+    working_set = WorkingSet._build_master()
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 582, in _build_master
+    ws.require(__requires__)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 899, in require
+    needed = self.resolve(parse_requirements(requirements))
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 785, in resolve
+    raise DistributionNotFound(req, requirers)
+pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was not found and is required by the application
 </pre></div>
 </div>
 <div class="admonition important">
@@ -1483,40 +1004,22 @@ If you are interested in a particular task e.g. <code class="docutils literal no
 <p><code class="docutils literal notranslate"><span class="pre">abirun.py</span> <span class="pre">events</span> <span class="pre">--help</span></code> is your best friend</p>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py events --help
-usage: abirun.py [flowdir] events [-h] [-v] [--no-colors] [--no-logo]
-                                  [--loglevel LOGLEVEL] [--remove-lock]
-                                  [-n NIDS | -w WSLICE | -S TASK_STATUS | -t TASK_CLASS]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -v, --verbose         verbose, can be supplied multiple times to increase
-                        verbosity.
-  --no-colors           Disable ASCII colors.
-  --no-logo             Disable AbiPy logo.
-  --loglevel LOGLEVEL   Set the loglevel. Possible values: CRITICAL, ERROR
-                        (default), WARNING, INFO, DEBUG.
-  --remove-lock         Remove the lock on the pickle file used to save the
-                        status of the flow.
-  -n NIDS, --nids NIDS  Node identifier(s) used to select the task. Accept
-                        single integer, comma-separated list of integers or
-                        python slice. Use `status` command to get the node
-                        ids. Examples: --nids=12 --nids=12,13,16 --nids=10:12
-                        to select 10 and 11 (slice syntax), --nids=2:5:2 to
-                        select 2,4.
-  -w WSLICE, --wslice WSLICE
-                        Select the list of works to analyze (python syntax for
-                        slices): Examples: --wslice=1 to select the second
-                        workflow, --wslice=:3 for 0,1,2, --wslice=-1 for the
-                        last workflow, --wslice::2 for even indices.
-  -S TASK_STATUS, --task-status TASK_STATUS
-                        Select only the tasks with the given status. Default:
-                        None i.e. ignored. Possible values: [&#39;Initialized&#39;,
-                        &#39;Locked&#39;, &#39;Ready&#39;, &#39;Submitted&#39;, &#39;Running&#39;, &#39;Done&#39;,
-                        &#39;AbiCritical&#39;, &#39;QCritical&#39;, &#39;Unconverged&#39;, &#39;Error&#39;,
-                        &#39;Completed&#39;].
-  -t TASK_CLASS, --task-class TASK_CLASS
-                        Select only tasks with the given class e.g. `-t
-                        NscfTask`.
+Traceback (most recent call last):
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/bin/abirun.py&quot;, line 4, in &lt;module&gt;
+    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.9.0&#39;)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3268, in &lt;module&gt;
+    def _initialize_master_working_set():
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3251, in _call_aside
+    f(*args, **kwargs)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3280, in _initialize_master_working_set
+    working_set = WorkingSet._build_master()
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 582, in _build_master
+    ws.require(__requires__)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 899, in require
+    needed = self.resolve(parse_requirements(requirements))
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 785, in resolve
+    raise DistributionNotFound(req, requirers)
+pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was not found and is required by the application
 </pre></div>
 </div>
 <p>To get information on the Abinit executable called by AbiPy, use:</p>
@@ -1587,7 +1090,7 @@ Other values of autoparal are not supported.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 30, 2021.
+        Last updated on Jun 01, 2021.
       </span>
 
     </p>

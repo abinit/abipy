@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>abipy.panels.ddb &mdash; abipy 0.9.0 documentation</title>
+  <title>abipy.panels.ddb &mdash; abipy 0.9.1 documentation</title>
   
 
   
@@ -74,7 +74,7 @@
             
             
               <div class="version">
-                0.9.0
+                0.9.1
               </div>
             
           
@@ -285,7 +285,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Structure object provided by subclass.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Structure object provided by the subclass.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">structure</span>
 
 <div class="viewcode-block" id="DdbFilePanel.get_epsinf"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.get_epsinf">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;get_epsinf_btn&#39;</span><span class="p">)</span>
@@ -302,12 +302,19 @@
         <span class="c1"># Fill column</span>
         <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
         <span class="c1">#df_kwargs = dict(auto_edit=False, autosize_mode=&quot;fit_viewport&quot;)</span>
-        <span class="n">df_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="n">eps0</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">tensor_at_frequency</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gamma_ev</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_ev</span><span class="p">)</span>
-        <span class="n">ca</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;## $\epsilon^0$ in Cart. coords (computed with Gamma_eV):&quot;</span><span class="p">)</span>
+        <span class="n">df_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">MyMarkdown</span> <span class="k">as</span> <span class="n">m</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">LaTeX</span>
+        <span class="k">def</span> <span class="nf">m</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">LaTeX</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;font-size&#39;</span><span class="p">:</span> <span class="s1">&#39;18pt&#39;</span><span class="p">}),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="c1">#ca(m(r&quot;$\epsilon^0$ in Cart. coords (computed with Gamma_eV):&quot;))</span>
+        <span class="n">ca</span><span class="p">(</span><span class="n">m</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\epsilon^0$ in Cart. coords:&quot;</span><span class="p">))</span>
         <span class="n">ca</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">eps0</span><span class="o">.</span><span class="n">get_dataframe</span><span class="p">(</span><span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">),</span> <span class="o">**</span><span class="n">df_kwargs</span><span class="p">))</span>
-        <span class="n">ca</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;## $\epsilon^\infty$ in Cart. coords:&quot;</span><span class="p">)</span>
+        <span class="n">ca</span><span class="p">(</span><span class="n">m</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\epsilon^\infty$ in Cart. coords:&quot;</span><span class="p">))</span>
         <span class="n">ca</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">epsinf</span><span class="o">.</span><span class="n">get_dataframe</span><span class="p">(),</span> <span class="o">**</span><span class="n">df_kwargs</span><span class="p">))</span>
         <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Born effective charges in Cart. coords:&quot;</span><span class="p">)</span>
         <span class="n">ca</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">becs</span><span class="o">.</span><span class="n">get_voigt_dataframe</span><span class="p">(),</span> <span class="o">**</span><span class="n">df_kwargs</span><span class="p">))</span>
@@ -359,8 +366,9 @@
 
 <div class="viewcode-block" id="DdbFilePanel.plot_phbands_and_phdos"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.plot_phbands_and_phdos">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;plot_phbands_btn&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">plot_phbands_and_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Compute phonon bands and DOSes from DDB and plot the results.&quot;&quot;&quot;</span>
-
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute phonon bands and DOS from DDB by invoking Anaddb then plot results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Computing phbands</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs_for_anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="n">return_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -879,7 +887,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 30, 2021.
+        Last updated on Jun 01, 2021.
       </span>
 
     </p>

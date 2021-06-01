@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>dfpt Package &mdash; abipy 0.9.0 documentation</title>
+  <title>dfpt Package &mdash; abipy 0.9.1 documentation</title>
   
 
   
@@ -76,7 +76,7 @@
             
             
               <div class="version">
-                0.9.0
+                0.9.1
               </div>
             
           
@@ -5103,7 +5103,7 @@ Lazy property.</p>
 <dl class="py method">
 <dt id="abipy.dfpt.phonons.PhononBands.plot_fatbands">
 <code class="sig-name descname"><span class="pre">plot_fatbands</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_eigvec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phdos_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_stripe_width_mev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qlabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plot_fatbands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plot_fatbands" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot phonon fatbands and, optionally, atom-projected phonon DOSes.
+<dd><p>Plot phonon fatbands and, optionally, atom-projected phonon DOSes with matplotlib.
 The width of the band is given by ||v_{type}||
 where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and
 v_{type} selects only the terms associated to the atomic type.</p>
@@ -5173,6 +5173,69 @@ Default: False</p></td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.dfpt.phonons.PhononBands.plotly_fatbands">
+<code class="sig-name descname"><span class="pre">plotly_fatbands</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_eigvec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'G10'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phdos_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_stripe_width_mev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qlabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plotly_fatbands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plotly_fatbands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot phonon fatbands and, optionally, atom-projected phonon DOSes with plotly.
+The width of the band is given by ||v_{type}||
+where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and
+v_{type} selects only the terms associated to the atomic type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>use_eigvec</strong> – True if the width of the phonon branch should be computed from the eigenvectors.
+False to use phonon displacements. Note that the PHDOS is always decomposed in
+terms of (orthonormal) eigenvectors.</p></li>
+<li><p><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).
+Case-insensitive.</p></li>
+<li><p><strong>colormap</strong> – Have a look at the colormaps here and decide which one you like:
+<a class="reference external" href="https://plotly.com/python/discrete-color/">https://plotly.com/python/discrete-color/</a></p></li>
+<li><p><strong>phdos_file</strong> – Used to activate fatbands + PJDOS plot.
+Accept string with path of PHDOS.nc file or <a class="reference internal" href="#abipy.dfpt.phonons.PhdosFile" title="abipy.dfpt.phonons.PhdosFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.dfpt.phonons.PhdosFile</span></code></a> object.</p></li>
+<li><p><strong>alpha</strong> – The alpha blending value, between 0 (transparent) and 1 (opaque)</p></li>
+<li><p><strong>max_stripe_width_mev</strong> – The maximum width of the stripe in meV. Will be rescaled according to <code class="docutils literal notranslate"><span class="pre">units</span></code>.</p></li>
+<li><p><strong>width_ratios</strong> – Ratio between the width of the fatbands plots and the DOS plots.
+Used if <cite>phdos_file</cite> is not None</p></li>
+<li><p><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></p></li>
+<li><p><strong>qlabels</strong> – dictionary whose keys are tuples with the reduced coordinates of the q-points.
+The values are the labels. e.g. <code class="docutils literal notranslate"><span class="pre">qlabels</span> <span class="pre">=</span> <span class="pre">{(0.0,0.0,0.0):</span> <span class="pre">&quot;$\Gamma$&quot;,</span> <span class="pre">(0.5,0,0):</span> <span class="pre">&quot;L&quot;}</span></code>.</p></li>
+<li><p><strong>fontsize</strong> – Legend and title fontsize.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objects.Figure</span></code></p>
+<blockquote>
+<div><p>Keyword arguments controlling the display of the figure:
+================  ====================================================================
+kwargs            Meaning
+================  ====================================================================
+title             Title of the plot (Default: None).
+show              True to show the figure (default: True).
+hovormode         True to show the hover info (default: False)
+savefig           “abc.png” , “abc.jpeg” or “abc.webp” to save the figure to a file.
+write_json        Write plotly figure to <cite>write_json</cite> JSON file.</p>
+<blockquote>
+<div><p>Inside jupyter-lab, one can right-click the <cite>write_json</cite> file from the file menu
+and open with “Plotly Editor”.
+Make some changes to the figure, then use the file menu to save the customized plotly plot.
+Requires <cite>jupyter labextension install jupyterlab-chart-editor</cite>.
+See <a class="reference external" href="https://github.com/plotly/jupyterlab-chart-editor">https://github.com/plotly/jupyterlab-chart-editor</a></p>
+</div></blockquote>
+<dl class="simple">
+<dt>renderer          (str or None (default None)) –</dt><dd><p>A string containing the names of one or more registered renderers
+(separated by ‘+’ characters) or None. If None, then the default
+renderers specified in plotly.io.renderers.default are used.
+See <a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html">https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html</a></p>
+</dd>
+</dl>
+<p>config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
+chart_studio      True to push figure to chart_studio server. Requires authenticatios.</p>
+<blockquote>
+<div><p>Default: False.</p>
+</div></blockquote>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py method">
@@ -9410,7 +9473,7 @@ working directory is created. Return path to the notebook.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 30, 2021.
+        Last updated on Jun 01, 2021.
       </span>
 
     </p>

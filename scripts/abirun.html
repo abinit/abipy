@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>abirun.py &mdash; abipy 0.9.0 documentation</title>
+  <title>abirun.py &mdash; abipy 0.9.1 documentation</title>
   
 
   
@@ -76,7 +76,7 @@
             
             
               <div class="version">
-                0.9.0
+                0.9.1
               </div>
             
           
@@ -258,317 +258,63 @@
 <p>This script allows the user to submit the calculations contained in the AbiPy Flow
 (for further detail, consult the <a class="reference internal" href="../workflows/taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> documentation).</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py --help
-usage: abirun.py [-h] [-V]
-                 [flowdir]
-                 {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,abiopen,abibuild,doc_scheduler,panel,new_manager,tail,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,group,diff,networkx,graphviz,listext}
-                 ...
-
-positional arguments:
-  flowdir               File or directory containing the ABINIT
-                        flow/work/task. If not given, the flow in the current
-                        workdir is selected.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -V, --version         show program&#39;s version number and exit
-
-subcommands:
-  Valid subcommands
-
-  {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,abiopen,abibuild,doc_scheduler,panel,new_manager,tail,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,group,diff,networkx,graphviz,listext}
-                        sub-command help
-    single              Run single task and exit.
-    rapid               Run all tasks in rapidfire mode.
-    scheduler           Run all tasks with a Python scheduler. Requires
-                        scheduler.yml either in $PWD or ~/.abinit/abipy.
-    batch               Run scheduler in batch script.
-    status              Show status table.
-    set_status          Change the status of the task. WARNING: Option for
-                        developers!
-    cancel              Cancel the tasks in the queue. Not available if qtype
-                        is shell.
-    restart             Restart the tasks of the flow. By default, only the
-                        task whose status==Unconverged are restarted. Use -S
-                        `status` and/or -n node_ids to select particular
-                        tasks.
-    reset               Reset the tasks of the flow with the specified status.
-    move                Move the flow to a new directory and change the
-                        absolute paths.
-    open                Open files in $EDITOR, type `abirun.py FLOWDIR open
-                        --help` for help).
-    abiopen             Open FILE with abiopen. Same interface as abiopen.py
-    abibuild            Show ABINIT build information and exit.
-    doc_scheduler       Document the options available in scheduler.yml.
-    panel               Interact with the flow in the browser (requires panel
-                        package).
-    new_manager         Change the TaskManager.
-    tail                Use unix tail to follow the main output files of the
-                        flow.
-    deps                Show dependencies.
-    robot               Use a robot to analyze the results of multiple tasks
-                        (requires ipython).
-    cycles              Print self-consistent/relaxation cycles extracted from
-                        the output of the tasks.Use `-t ScfTask` or
-                        `FLOWDIR/w0/` or `FLOWDIR/w0/t1/` to select tasks by
-                        class, by work or by workdir.
-    dims                Print table with dimensions extracted from the output
-                        of the tasks.
-    inspect             Call matplotlib to inspect the tasks (execute
-                        task.inspect method)
-    inputs              Show the input files of the tasks.
-    abivars             Show pandas dataframe with Abinit input variables.
-    structures          Compare input/output structures of the tasks. Print
-                        max force and pressure if available.
-    ebands              Compare electronic bands produced by the tasks.
-    hist                Compare HIST.nc files produced by the tasks.
-    doc_manager         Document the TaskManager options.
-    events              Show ABINIT events (error messages, warnings,
-                        comments).
-    corrections         Show AbiPy corrections performed at runtime.
-    history             Show Node history.
-    handlers            Show event handlers installed in the flow.
-    notebook            Create and open an ipython notebook to interact with
-                        the flow.
-    ipython             Embed IPython. Useful for advanced operations or
-                        debugging purposes.
-    tar                 Create tarball file.
-    tricky              Show tricky tasks i.e. tasks that have been restarted,
-                        launched more than once or tasks that have been
-                        corrected.
-    debug               Analyze error files and log files for possible error
-                        messages.
-    debug_reset         Analyze error files and log files produced by reset
-                        tasks for possible error messages.
-    group               Group tasks according to property.
-    diff                Compare files produced by two or three nodes.
-    networkx            Draw flow and node dependencies with networkx package.
-    graphviz            Draw flow and node dependencies with graphviz package.
-                        Accept (FLOWDIR|WORKDIR|TASKDIR). See
-                        https://graphviz.readthedocs.io/.
-    listext             List all the output files with the given extension
-                        that have been produced by the nodes.
-
-Notes:
-
-    If FLOWDIR is not given, abirun.py automatically selects the database located within
-    the working directory. An Exception is raised if multiple databases are found.
-
-    Note, moreover, that one can replace FLOWDIR with the directory of a work/task
-    to make the command operate on this node of the flow without having to specify the node ids with --nids.
-    For example, to have the list of events of the task in `FLOWDIR/w0/t1` use:
-
-        abirun.py FLOWDIR/w0/t1 events
-
-    instead of:
-
-        abirun.py FLOWDIR events -n 123
-
-    where 123 is the node identifier associated to w0/t1.
-
-    To start the scheduler with a time interval of 30 seconds, use:
-
-        nohup abirun.py FLOWDIR scheduler -s 30 &gt; sched.log 2&gt; sched.err
-
-    Alternatively one can specify the scheduler options via the `scheduler.yml` file.
-    Remember that AbiPy will first look for `scheduler.yml` and `manager.yml` files
-    in the current working directory and then inside $HOME/.abinit/abipy/
-
-    Use `abirun.py --help` for help and `abirun.py COMMAND --help` to get the documentation for `COMMAND`.
-    Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
-
-Usage example:
-
-###########
-# Execution
-###########
-
-  abirun.py FLOWDIR rapid                 =&gt; Keep repeating, stop when no task can be executed.
-  abirun.py FLOWDIR scheduler             =&gt; Execute flow with the scheduler.
-  abirun.py FLOWDIR status                =&gt; Show status table.
-  abirun.py FLOWDIR events                =&gt; Print ABINIT events (Warnings/Errors/Comments) found in log files.
-  abirun.py FLOWDIR history               =&gt; Print Task histories.
-  abirun.py FLOWDIR cancel                =&gt; Cancel jobs in the queue.
-  abirun.py FLOWDIR debug                 =&gt; Analyze error files and log files for possible error messages.
-  abirun.py FLOWDIR corrections           =&gt; Show AbiPy corrections performed at runtime.
-  abirun.py FLOWDIR handlers              =&gt; Show event handlers installed in the flow.
-
-##########
-# Analysis
-##########
-
-  abirun.py FLOWDIR inputs                =&gt; Print input files.
-  abirun.py FLOWDIR abivars -vn ecut,nband  =&gt; Print table with these input variables.
-  abirun.py FLOWDIR structures            =&gt; Compare input/output structures of the tasks.
-  abirun.py FLOWDIR ebands -t NscfTask    =&gt; Print table with electronic properties computed in NscfTask
-  abirun.py FLOWDIR hist -p               =&gt; Print table with last iteration in hist files and plot results.
-  abirun.py FLOWDIR cycles -p             =&gt; Print (and plot) SCF/relaxation cycles extracted from the output of the tasks.
-  abirun.py FLOWDIR robot hist            =&gt; Build robot for HIST files, start ipython shell to interact with the robot.
-  abirun.py FLOWDIR dims                  =&gt; Print table with dimensions extracted from the output of the tasks.
-  abirun.py FLOWDIR group -g task_class   =&gt; Print table with node ids and tasks grouped by class
-  abirun.py FLOWDIR inspect               =&gt; Call matplotlib to inspect the tasks.
-  abirun.py FLOWDIR tail                  =&gt; Use Unix tail to follow the main output files of the flow.
-  abirun.py FLOWDIR deps                  =&gt; Show task dependencies.
-  abirun.py FLOWDIR listext GSR SIGRES    =&gt; Show output files with the given extension(s).
-  abirun.py FILE abiopen                  =&gt; Open FILE with abiopen. Same interface as abiopen.py
-
-###############
-# Miscelleanous
-###############
-
-  abirun.py FLOWDIR ipython               =&gt; Open flow in ipython terminal.
-  abirun.py FLOWDIR notebook              =&gt; Generate jupyter notebook.
-  abirun.py FLOWDIR networkx              =&gt; Plot flow graph with networkx.
-  abirun.py FLOWDIR graphviz              =&gt; Plot flow graph with graphviz
-                                            (can also select tasks/works and show files with -d).
-  abirun.py abibuild                      =&gt; Show ABINIT build information and exit.
-
-###############
-# Documentation
-###############
-
-  abirun.py FLOWDIR doc_manager slurm     =&gt; Document the TaskManager options availabe for Slurm.
-  abirun.py . doc_manager script          =&gt; Show the job script that will be produced with the current settings.
-  abirun.py . doc_scheduler               =&gt; Document the options available in scheduler.yml.
+Traceback (most recent call last):
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/bin/abirun.py&quot;, line 4, in &lt;module&gt;
+    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.9.0&#39;)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3268, in &lt;module&gt;
+    def _initialize_master_working_set():
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3251, in _call_aside
+    f(*args, **kwargs)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3280, in _initialize_master_working_set
+    working_set = WorkingSet._build_master()
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 582, in _build_master
+    ws.require(__requires__)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 899, in require
+    needed = self.resolve(parse_requirements(requirements))
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 785, in resolve
+    raise DistributionNotFound(req, requirers)
+pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was not found and is required by the application
 </pre></div>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py doc_scheduler
-Options that can be specified in scheduler.yml:
-
-            weeks: number of weeks to wait (DEFAULT: 0).
-            days: number of days to wait (DEFAULT: 0).
-            hours: number of hours to wait (DEFAULT: 0).
-            minutes: number of minutes to wait (DEFAULT: 0).
-            seconds: number of seconds to wait (DEFAULT: 0).
-            mailto: The scheduler will send an email to `mailto` every `remindme_s` seconds.
-                (DEFAULT: None i.e. not used).
-            verbose: (int) verbosity level. (DEFAULT: 0)
-            use_dynamic_manager: &quot;yes&quot; if the |TaskManager| must be re-initialized from
-                file before launching the jobs. (DEFAULT: &quot;no&quot;)
-            max_njobs_inqueue: Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)
-            max_ncores_used: Maximum number of cores that can be used by the scheduler.
-            remindme_s: The scheduler will send an email to the user specified
-                by `mailto` every `remindme_s` seconds. (int, DEFAULT: 1 day).
-            max_num_pyexcs: The scheduler will exit if the number of python exceptions is &gt; max_num_pyexcs
-                (int, DEFAULT: 0)
-            max_num_abierrs: The scheduler will exit if the number of errored tasks is &gt; max_num_abierrs
-                (int, DEFAULT: 0)
-            safety_ratio: The scheduler will exits if the number of jobs launched becomes greater than
-               `safety_ratio` * total_number_of_tasks_in_flow. (int, DEFAULT: 5)
-            max_nlaunches: Maximum number of tasks launched in a single iteration of the scheduler.
-                (DEFAULT: -1 i.e. no limit)
-            debug: Debug level. Use 0 for production (int, DEFAULT: 0)
-            fix_qcritical: &quot;yes&quot; if the launcher should try to fix QCritical Errors (DEFAULT: &quot;no&quot;)
-            rmflow: If &quot;yes&quot;, the scheduler will remove the flow directory if the calculation
-                completed successfully. (DEFAULT: &quot;no&quot;)
-            killjobs_if_errors: &quot;yes&quot; if the scheduler should try to kill all the runnnig jobs
-                before exiting due to an error. (DEFAULT: &quot;yes&quot;)
+Traceback (most recent call last):
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/bin/abirun.py&quot;, line 4, in &lt;module&gt;
+    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.9.0&#39;)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3268, in &lt;module&gt;
+    def _initialize_master_working_set():
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3251, in _call_aside
+    f(*args, **kwargs)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3280, in _initialize_master_working_set
+    working_set = WorkingSet._build_master()
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 582, in _build_master
+    ws.require(__requires__)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 899, in require
+    needed = self.resolve(parse_requirements(requirements))
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 785, in resolve
+    raise DistributionNotFound(req, requirers)
+pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was not found and is required by the application
 </pre></div>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py . doc_manager
-
-# TaskManager configuration file (YAML Format)
-
-policy:
-    # Dictionary with options used to control the execution of the tasks.
-
-qadapters:
-    # List of qadapters objects (mandatory)
-    -  # qadapter_1
-    -  # qadapter_2
-
-db_connector:
-    # Connection to MongoDB database (optional)
-
-batch_adapter:
-    # Adapter used to submit flows with batch script. (optional)
-
-##########################################
-# Individual entries are documented below:
-##########################################
-
-policy: 
-    autoparal:                # (integer). 0 to disable the autoparal feature (DEFAULT: 1 i.e. autoparal is on)
-    condition:                # condition used to filter the autoparal configurations (Mongodb-like syntax).
-                              # DEFAULT: empty i.e. ignored.
-    vars_condition:           # Condition used to filter the list of ABINIT variables reported by autoparal
-                              # (Mongodb-like syntax). DEFAULT: empty i.e. ignored.
-    frozen_timeout:           # A job is considered frozen and its status is set to ERROR if no change to
-                              # the output file has been done for `frozen_timeout` seconds. Accepts int with seconds or
-                              # string in slurm form i.e. days-hours:minutes:seconds. DEFAULT: 1 hour.
-    precedence:               # Under development.
-    autoparal_priorities:     # Under development.
-
-qadapter: 
-# Dictionary with info on the hardware available on this queue.
-hardware:
-    num_nodes:           # Number of nodes available on this queue (integer, MANDATORY).
-    sockets_per_node:    # Number of sockets per node (integer, MANDATORY).
-    cores_per_socket:    # Number of cores per socket (integer, MANDATORY).
-                         # The total number of cores available on this queue is
-                         # `num_nodes * sockets_per_node * cores_per_socket`.
-
-# Dictionary with the options used to prepare the enviroment before submitting the job
-job:
-    setup:                # List of commands (strings) executed before running (DEFAULT: empty)
-    omp_env:              # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
-    modules:              # List of modules to be imported before running the code (DEFAULT: empty).
-                          # NB: Error messages produced by module load are redirected to mods.err
-    shell_env:            # Dictionary with shell environment variables.
-    mpi_runner:           # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
-                          # DEFAULT: None i.e. no mpirunner is used.
-    mpi_runner_options    # String with optional options passed to the `mpi_runner` e.g. &quot;--bind-to None&quot;
-    shell_runner:         # Used for running small sequential jobs on the front-end. Set it to None
-                          # if mpirun or mpiexec are not available on the fron-end. If not
-                          # given, small sequential jobs are executed with `mpi_runner`.
-    shell_runner_options  # Similar to mpi_runner_options but for the runner used on the front-end.
-    pre_run:              # List of commands (strings) executed before the run (DEFAULT: empty)
-    post_run:             # List of commands (strings) executed after the run (DEFAULT: empty)
-
-# dictionary with the name of the queue and optional parameters
-# used to build/customize the header of the submission script.
-queue:
-    qtype:                # String defining the qapapter type e.g. slurm, shell ...
-    qname:                # Name of the submission queue (string, MANDATORY)
-    qparams:              # Dictionary with values used to generate the header of the job script
-                          # We use the *normalized* version of the options i.e dashes in the official name
-                          # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
-                          # See pymatgen.io.abinit.qadapters.py for the list of supported values.
-                          # Use ``qverbatim`` to pass additional options that are not included in the template.
-
-# dictionary with the constraints that must be fulfilled in order to run on this queue.
-limits:
-    min_cores:             # Minimum number of cores (integer, DEFAULT: 1)
-    max_cores:             # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
-                           # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
-    hint_cores:            # The limit used in the initial setup of jobs.
-                           # Fix_Critical method may increase this number until max_cores is reached
-    min_mem_per_proc:      # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
-                           # (DEFAULT: hardware.mem_per_core)
-    max_mem_per_proc:      # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
-                           # (DEFAULT: hardware.mem_per_node)
-    timelimit:             # Initial time-limit. Accepts time according to slurm-syntax i.e:
-                           # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
-                           # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
-    timelimit_hard:        # The hard time-limit for this queue. Same format as timelimit.
-                           # Error handlers could try to submit jobs with increased timelimit
-                           # up to timelimit_hard. If not specified, timelimit_hard == timelimit
-    condition:             # MongoDB-like condition (DEFAULT: empty, i.e. not used)
-    allocation:            # String defining the policy used to select the optimal number of CPUs.
-                           # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
-                           # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
-                           # This is a soft limit, in the sense that the qadapter may use a configuration
-                           # that does not fulfill this requirement. In case of failure, it will try to use the
-                           # smallest number of nodes compatible with the optimal configuration.
-                           # Use `force_nodes` to enfore entire nodes allocation.
-                           # `shared` mode does not enforce any constraint (DEFAULT: shared).
-    max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
-
-
-qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
-Use `abirun.py . manager slurm` to have the list of qparams for slurm.
+Traceback (most recent call last):
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/bin/abirun.py&quot;, line 4, in &lt;module&gt;
+    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.9.0&#39;)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3268, in &lt;module&gt;
+    def _initialize_master_working_set():
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3251, in _call_aside
+    f(*args, **kwargs)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3280, in _initialize_master_working_set
+    working_set = WorkingSet._build_master()
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 582, in _build_master
+    ws.require(__requires__)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 899, in require
+    needed = self.resolve(parse_requirements(requirements))
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 785, in resolve
+    raise DistributionNotFound(req, requirers)
+pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was not found and is required by the application
 </pre></div>
 </div>
-<p>At the time of writing (May 30, 2021), AbiPy supports the following resource managers:</p>
+<p>At the time of writing (Jun 01, 2021), AbiPy supports the following resource managers:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">shell</span></code></p></li>
 <li><p><a class="reference external" href="http://pbspro.org/">pbspro</a></p></li>
@@ -688,8 +434,8 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 <div class="section" id="scheduler">
 <h3>scheduler<a class="headerlink" href="#scheduler" title="Permalink to this headline">¶</a></h3>
 <p>Run all tasks with a Python scheduler. Requires scheduler.yml either in $PWD or ~/.abinit/abipy.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">scheduler</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WEEKS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DAYS</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">-</span><span class="n">hs</span> <span class="n">HOURS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MINUTES</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SECONDS</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">scheduler</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WEEKS</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DAYS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">hs</span> <span class="n">HOURS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MINUTES</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SECONDS</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat3">
@@ -1140,7 +886,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="section" id="abiopen">
 <h3>abiopen<a class="headerlink" href="#abiopen" title="Permalink to this headline">¶</a></h3>
 <p>Open FILE with abiopen. Same interface as abiopen.py</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">abiopen</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">abiopen</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat12">
@@ -2492,8 +2239,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="section" id="networkx">
 <h3>networkx<a class="headerlink" href="#networkx" title="Permalink to this headline">¶</a></h3>
 <p>Draw flow and node dependencies with networkx package.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">networkx</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nxmode</span> <span class="n">NXMODE</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">--</span><span class="n">edge</span><span class="o">-</span><span class="n">labels</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">networkx</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">nxmode</span> <span class="n">NXMODE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">edge</span><span class="o">-</span><span class="n">labels</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat41">
@@ -2630,7 +2377,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 30, 2021.
+        Last updated on Jun 01, 2021.
       </span>
 
     </p>

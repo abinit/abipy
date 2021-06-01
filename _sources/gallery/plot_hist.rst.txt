@@ -24,7 +24,7 @@ Structural relaxation
 This example shows how to analyze the results of a
 structure relaxation run using the HIST.nc file.
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-27
+.. GENERATED FROM PYTHON SOURCE LINES 9-30
 
 
 
@@ -83,6 +83,9 @@ structure relaxation run using the HIST.nc file.
     # Plot the evolution of the lattice parameters, forces, etotal, ...
     hist.plot(tight_layout=True)
 
+    # Plotly version:
+    hist.plotly()
+
     # Plot the total energy at the different relaxation steps.
     hist.plot_energies(tight_layout=True)
 
@@ -91,7 +94,7 @@ structure relaxation run using the HIST.nc file.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.610 seconds)
+   **Total running time of the script:** ( 0 minutes  0.687 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_hist.py:

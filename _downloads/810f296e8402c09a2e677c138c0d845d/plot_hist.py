@@ -20,6 +20,9 @@ print(hist.final_structure)
 # Plot the evolution of the lattice parameters, forces, etotal, ...
 hist.plot(tight_layout=True)
 
+# Plotly version:
+hist.plotly()
+
 # Plot the total energy at the different relaxation steps.
 hist.plot_energies(tight_layout=True)
 

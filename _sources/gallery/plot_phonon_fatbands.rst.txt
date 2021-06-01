@@ -24,7 +24,7 @@ Phonon fatbands
 This example shows how to plot the phonon fatbands of AlAs.
 See tutorial/lesson_rf2.html
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-32
+.. GENERATED FROM PYTHON SOURCE LINES 9-40
 
 
 
@@ -88,13 +88,21 @@ See tutorial/lesson_rf2.html
     with abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as ncfile:
         phbands = ncfile.phbands
 
-    # Plot the phonon band structure.
+    # Plot the phonon band structure with matplotlib.
     phbands.plot_fatbands(title="AlAs phonon fatbands without LO-TO splitting")
 
-    # Plot the phonon band structure + PJDOS
+    # For the plotly version, use:
+    phbands.plotly_fatbands(title="AlAs phonon fatbands without LO-TO splitting")
+
+    # Provide the PHDOS file path produced by anaddb.
     # sphinx_gallery_thumbnail_number = 2
     phdos_path = abidata.ref_file("trf2_5.out_PHDOS.nc")
+
+    # Plot the phonon band structure + PJDOS with matplotlib.
     phbands.plot_fatbands(units="Thz", phdos_file=phdos_path, title="AlAs phonon fatbands with PJDOS")
+
+    # For the plotly version, use:
+    phbands.plotly_fatbands(units="Thz", phdos_file=phdos_path, title="AlAs phonon fatbands with PJDOS")
 
     # Plot contributions to the phonon displacement at the Gamma point grouped by atom type.
     phbands.plot_phdispl(qpoint=(0, 0, 0), units="meV", title=r"phonon displacements at $\Gamma$")
@@ -108,7 +116,7 @@ See tutorial/lesson_rf2.html
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.561 seconds)
+   **Total running time of the script:** ( 0 minutes  1.556 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_phonon_fatbands.py:

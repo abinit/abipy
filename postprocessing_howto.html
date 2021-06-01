@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Post-processing How-To &mdash; abipy 0.9.0 documentation</title>
+  <title>Post-processing How-To &mdash; abipy 0.9.1 documentation</title>
   
 
   
@@ -76,7 +76,7 @@
             
             
               <div class="version">
-                0.9.0
+                0.9.1
               </div>
             
           
@@ -288,142 +288,22 @@ The option can be can be supplied multiple times e.g. <code class="docutils lite
 </pre></div>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abiopen.py --help
-usage: abiopen.py [-h] [--loglevel LOGLEVEL] [-V] [-v] [-nb]
-                  [--classic-notebook] [--no-browser] [--foreground] [-p]
-                  [-pn] [-pnt PANEL_TEMPLATE] [-e] [-s] [-t SLIDE_TIMEOUT]
-                  [-sns [SEABORN]] [-mpl MPL_BACKEND] [-ew] [-ply]
-                  filepath
-
-positional arguments:
-  filepath              File to open. See table below for the list of
-                        supported extensions.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --loglevel LOGLEVEL   Set the loglevel. Possible values: CRITICAL, ERROR
-                        (default), WARNING, INFO, DEBUG
-  -V, --version         show program&#39;s version number and exit
-  -v, --verbose         verbose, can be supplied multiple times to increase
-                        verbosity
-  -nb, --notebook       Open file in jupyter notebook
-  --classic-notebook, -cnb
-                        Use classic jupyter notebook instead of jupyterlab.
-  --no-browser          Start the jupyter server to serve the notebook but
-                        don&#39;t open the notebook in the browser. Use this
-                        option to connect remotely from localhost to the
-                        machine running the kernel
-  --foreground          Run jupyter notebook in the foreground.
-  -p, --print           Print python object and return.
-  -pn, --panel          Open Dashboard in web browser, requires panel package.
-  -pnt PANEL_TEMPLATE, --panel-template PANEL_TEMPLATE
-                        Specify template for panel dasboard.Possible values
-                        are: FastList, FastGrid, Golden, Bootstrap, Material,
-                        React, Vanilla.Default: FastList
-  -e, --expose          Open file and generate matplotlib figures
-                        automatically by calling expose method.
-  -s, --slide-mode      Iterate over figures. Expose all figures at once if
-                        not given on the CLI.
-  -t SLIDE_TIMEOUT, --slide-timeout SLIDE_TIMEOUT
-                        Close figure after slide-timeout seconds (only if
-                        slide-mode). Block if not specified.
-  -sns [SEABORN], --seaborn [SEABORN]
-                        Use seaborn settings. Accept value defining context in
-                        (&quot;paper&quot;, &quot;notebook&quot;, &quot;talk&quot;, &quot;poster&quot;). Default:
-                        paper
-  -mpl MPL_BACKEND, --mpl-backend MPL_BACKEND
-                        Set matplotlib interactive backend. Possible values:
-                        GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX,
-                        TkAgg, Qt4Agg, Qt5Agg, macosx.See also:
-                        https://matplotlib.org/faq/usage_faq.html#what-is-a-
-                        backend.
-  -ew, --expose-web     Generate matplotlib plots in $BROWSER instead of
-                        X-server. WARNING: Not all the features are supported.
-  -ply, --plotly        Generate plotly plots in $BROWSER instead of
-                        matplotlib. WARNING: Not all the features are
-                        supported.
-
-======================================================================================================
-Usage example:
-
-    abiopen.py FILE          =&gt; Open file in ipython shell.
-    abiopen.py FILE -p       =&gt; Print info on object to terminal.
-    abiopen.py FILE -e       =&gt; Generate matplotlib figures automatically.
-                                Use -sns to activate seaborn settings.
-    abiopen.py FILE -eweb    =&gt; Generate matplotlib figures, show them in the $BROWSER.
-    abiopen.py FILE -ply     =&gt; Generate plotly figures automatically. Show them in the $BROWSER.
-                                Note that not all FILEs support plotly.
-    abiopen.py FILE -pn      =&gt; Generate GUI in web BROWSER to interact with FILE
-                                Requires panel package (WARNING: still under development!)
-    abiopen.py FILE -nb      =&gt; Generate jupyter-lab notebook.
-    abiopen.py FILE -cnb     =&gt; Generate classic jupyter notebook.
-
-where `FILE` is any file supported by abipy/pymatgen e.g. Netcdf files, Abinit input, POSCAR, xsf.
-File extensions supported (including zipped files with extension in &quot;.bz2&quot;, &quot;.gz&quot;, &quot;.z&quot;):
-Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
-
-JSON file are supported as well. In this case, abiopen.py tries to reconstruct python objects
-assuming JSON document in MSONable format and then invokes ipython with the `data` object.
-Use `-e` or `--notebook` or `--panel` to print the JSON dictionary without reconstructing python objects.
-======================================================================================================
-
-Table mapping file extension to AbiPy object:
-
-Extension          Class
------------------  -----------------------------------------------------
-.abi               &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
-.in                &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
-.abo               &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
-.out               &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
-.log               &lt;class &#39;abipy.abio.outputs.AbinitLogFile&#39;&gt;
-.cif               &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
-.abivars           &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
-.ucell             &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
-POSCAR             &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
-.cssr              &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
-.cube              &lt;class &#39;abipy.core.mixins.CubeFile&#39;&gt;
-anaddb.nc          &lt;class &#39;abipy.dfpt.anaddbnc.AnaddbNcFile&#39;&gt;
-DEN                &lt;class &#39;abipy.electrons.denpot.DensityFortranFile&#39;&gt;
-.psp8              &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
-.pspnc             &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
-.fhi               &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
-JTH.xml            &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
-.wout              &lt;class &#39;abipy.wannier90.wout.WoutFile&#39;&gt;
-COHPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.CoxpFile&#39;&gt;
-COOPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.CoxpFile&#39;&gt;
-ICOHPLIST.lobster  &lt;class &#39;abipy.electrons.lobster.ICoxpFile&#39;&gt;
-DOSCAR.lobster     &lt;class &#39;abipy.electrons.lobster.LobsterDoscarFile&#39;&gt;
-EDOS               &lt;class &#39;abipy.electrons.ebands.EdosFile&#39;&gt;
-GSR.nc             &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
-ESKW.nc            &lt;class &#39;abipy.electrons.eskw.EskwFile&#39;&gt;
-DEN.nc             &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
-OUT.nc             &lt;class &#39;abipy.abio.outputs.OutNcFile&#39;&gt;
-VHA.nc             &lt;class &#39;abipy.electrons.denpot.VhartreeNcFile&#39;&gt;
-VXC.nc             &lt;class &#39;abipy.electrons.denpot.VxcNcFile&#39;&gt;
-VHXC.nc            &lt;class &#39;abipy.electrons.denpot.VhxcNcFile&#39;&gt;
-POT.nc             &lt;class &#39;abipy.electrons.denpot.PotNcFile&#39;&gt;
-WFK.nc             &lt;class &#39;abipy.waves.wfkfile.WfkFile&#39;&gt;
-HIST.nc            &lt;class &#39;abipy.dynamics.hist.HistFile&#39;&gt;
-PSPS.nc            &lt;class &#39;abipy.electrons.psps.PspsFile&#39;&gt;
-DDB                &lt;class &#39;abipy.dfpt.ddb.DdbFile&#39;&gt;
-PHBST.nc           &lt;class &#39;abipy.dfpt.phonons.PhbstFile&#39;&gt;
-PHDOS.nc           &lt;class &#39;abipy.dfpt.phonons.PhdosFile&#39;&gt;
-SCR.nc             &lt;class &#39;abipy.electrons.scr.ScrFile&#39;&gt;
-SIGRES.nc          &lt;class &#39;abipy.electrons.gw.SigresFile&#39;&gt;
-GRUNS.nc           &lt;class &#39;abipy.dfpt.gruneisen.GrunsNcFile&#39;&gt;
-MDF.nc             &lt;class &#39;abipy.electrons.bse.MdfFile&#39;&gt;
-FATBANDS.nc        &lt;class &#39;abipy.electrons.fatbands.FatBandsFile&#39;&gt;
-FOLD2BLOCH.nc      &lt;class &#39;abipy.electrons.fold2bloch.Fold2BlochNcfile&#39;&gt;
-CUT3DDENPOT.nc     &lt;class &#39;abipy.electrons.denpot.Cut3dDenPotNcFile&#39;&gt;
-OPTIC.nc           &lt;class &#39;abipy.electrons.optic.OpticNcFile&#39;&gt;
-A2F.nc             &lt;class &#39;abipy.eph.a2f.A2fFile&#39;&gt;
-SIGEPH.nc          &lt;class &#39;abipy.eph.sigeph.SigEPhFile&#39;&gt;
-TRANSPORT.nc       &lt;class &#39;abipy.eph.transportfile.TransportFile&#39;&gt;
-RTA.nc             &lt;class &#39;abipy.eph.rta.RtaFile&#39;&gt;
-V1SYM.nc           &lt;class &#39;abipy.eph.v1sym.V1symFile&#39;&gt;
-GKQ.nc             &lt;class &#39;abipy.eph.gkq.GkqFile&#39;&gt;
-V1QNU.nc           &lt;class &#39;abipy.eph.v1qnu.V1qnuFile&#39;&gt;
-V1QAVG.nc          &lt;class &#39;abipy.eph.v1qavg.V1qAvgFile&#39;&gt;
-ABIWAN.nc          &lt;class &#39;abipy.wannier90.abiwan.AbiwanFile&#39;&gt;
+Traceback (most recent call last):
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/bin/abiopen.py&quot;, line 4, in &lt;module&gt;
+    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.9.0&#39;)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3268, in &lt;module&gt;
+    def _initialize_master_working_set():
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3251, in _call_aside
+    f(*args, **kwargs)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3280, in _initialize_master_working_set
+    working_set = WorkingSet._build_master()
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 582, in _build_master
+    ws.require(__requires__)
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 899, in require
+    needed = self.resolve(parse_requirements(requirements))
+  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 785, in resolve
+    raise DistributionNotFound(req, requirers)
+pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was not found and is required by the application
 </pre></div>
 </div>
 </div>
@@ -895,7 +775,7 @@ to open/visualize the files stored on the cluster.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on May 30, 2021.
+        Last updated on Jun 01, 2021.
       </span>
 
     </p>
