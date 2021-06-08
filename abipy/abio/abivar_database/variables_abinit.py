@@ -4683,6 +4683,27 @@ the variables [[gw_customnfreqsp]] and [[gw_freqsp]] can be used to make a user-
 """,
 ),
 
+
+Variable(
+    abivarname="tolcum",
+    varset="gw",
+    vartype="real",
+    topics=['SelfEnergy_basic'],
+    dimensions="real",
+    defaultval=1e-3,
+    mnemonics="Tolerance to find maximum value of time mesh",
+    characteristics=['[[ENERGY]]'],
+    requires="[[eph_task]] == 9",
+    added_in_version="v9.?",
+    text=r"""
+[[tolcum]] sets the maximum real time used to calculate the spectral
+function from the Green's function. [[tolcum]] is set to 1e-3
+if left undefined. [[tolcum]] and [[nfreqsp]] define the
+spacing of an equidistant time mesh.
+""",
+),
+
+
 Variable(
     abivarname="friction",
     varset="rlx",
