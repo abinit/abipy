@@ -474,6 +474,15 @@ class NodeContainer(metaclass=abc.ABCMeta):
             new_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(nprocs, 1)
             kwargs.update({"manager": new_manager})
 
+        if eph_inp.get("eph_task",0) == 9:
+            nkptgw = eph_inp.vars["nkptgw"]
+            max_cores = TaskManager.from_user_config().qadapter.max_cores
+            nprocs = max_cores
+            if max_cores > nkptgw:
+                nprocs = nkptgw
+            new_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(nprocs, 1)
+            kwargs.update({"manager": new_manager})
+
         return self.register_task(*args, **kwargs)
 
     def register_kerange_task(self, *args, **kwargs):
