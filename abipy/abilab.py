@@ -64,7 +64,7 @@ from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
-from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
+from abipy.eph.sigeph import SigEPhFile, SigEPhRobot, CumEPhFile
 from abipy.eph.eph_plotter import EphPlotter
 from abipy.eph.v1sym import V1symFile
 from abipy.eph.gkq import GkqFile, GkqRobot
@@ -149,6 +149,7 @@ abiext2ncfile = collections.OrderedDict([
     ("V1QNU.nc", V1qnuFile),
     ("V1QAVG.nc", V1qAvgFile),
     ("ABIWAN.nc", AbiwanFile),
+    ("EPH_CUMULANT.nc", CumEPhFile),
 ])
 
 
