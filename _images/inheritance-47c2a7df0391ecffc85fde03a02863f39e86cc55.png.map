@@ -1,7 +1,7 @@
 <map id="inheritance5d50b201b3" name="inheritance5d50b201b3">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="298,103,494,128"/>
-<area shape="rect" id="node6" href="#abipy.dfpt.gruneisen.GrunsNcFile" target="_top" title="This object provides an interface to the ``GRUNS.nc`` file produced by abinit." alt="" coords="551,54,763,79"/>
-<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="35,103,211,128"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="288,54,503,79"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="292,5,500,30"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="297,99,491,123"/>
+<area shape="rect" id="node6" href="#abipy.dfpt.gruneisen.GrunsNcFile" target="_top" title="This object provides an interface to the ``GRUNS.nc`` file produced by abinit." alt="" coords="549,52,763,76"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="35,99,210,123"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="287,52,502,76"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="290,5,498,29"/>
 </map>

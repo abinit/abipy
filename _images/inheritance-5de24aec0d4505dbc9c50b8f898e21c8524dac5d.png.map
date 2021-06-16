@@ -1,6 +1,6 @@
 <map id="inheritance32ca961597" name="inheritance32ca961597">
-<area shape="rect" id="node1" href="#abipy.tools.tensors.NLOpticalSusceptibilityTensor" target="_top" title="Subclass of |pmg&#45;Tensor| containing the non&#45;linear optical susceptibility tensor." alt="" coords="453,31,763,56"/>
-<area shape="rect" id="node2" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="206,31,405,56"/>
-<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="5,5,158,31"/>
-<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="29,55,135,80"/>
+<area shape="rect" id="node1" href="#abipy.tools.tensors.NLOpticalSusceptibilityTensor" target="_top" title="Subclass of |pmg&#45;Tensor| containing the non&#45;linear optical susceptibility tensor." alt="" coords="453,29,763,53"/>
+<area shape="rect" id="node2" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="206,29,405,53"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="5,5,158,29"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="27,53,136,77"/>
 </map>

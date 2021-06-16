@@ -95,7 +95,7 @@ QP results stored in the SIGRES.nc files produced by the GW code (sigma run).
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.951 seconds)
+   **Total running time of the script:** ( 0 minutes  7.932 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_qpconvergence.py:

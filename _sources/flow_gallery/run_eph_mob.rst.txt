@@ -24,7 +24,7 @@ Flow for phonon-limited mobilities in semiconductors
 This flow computes the phonon-limited mobility in AlAs.
 using different dense k/q meshes
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-132
+.. GENERATED FROM PYTHON SOURCE LINES 9-138
 
 
 
@@ -39,8 +39,8 @@ using different dense k/q meshes
 
  .. code-block:: none
 
-    <KerangeTask, node_id=401287, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmp91u6nv6r/w2/t0>: setting prtwf to -1
-    <KerangeTask, node_id=401291, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmp91u6nv6r/w3/t0>: setting prtwf to -1
+    <KerangeTask, node_id=402069, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpzsvzds3a/w2/t0>: setting prtwf to -1
+    <KerangeTask, node_id=402073, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpzsvzds3a/w3/t0>: setting prtwf to -1
 
 
 
@@ -128,22 +128,28 @@ using different dense k/q meshes
         # We loop over the dense meshes
         for i, sigma_ngkpt in enumerate(dense_meshes):
             # Use the kerange trick to generate a WFK file
-            multi = nscf_input.make_wfk_kerange_inputs(sigma_kerange=sigma_kerange, sigma_ngkpt=sigma_ngkpt)
+            multi = nscf_input.make_wfk_kerange_inputs(sigma_kerange=sigma_kerange,
+                                                       sigma_ngkpt=sigma_ngkpt)
             kerange_input, wfk_input = multi.split_datasets()
 
             work_eph = flowtk.Work()
             work_eph.register_kerange_task(kerange_input, deps={work0[2]: "WFK"})
-            work_eph.register_nscf_task(wfk_input, deps={work0[0]: "DEN", work_eph[0]: "KERANGE.nc"})
+            work_eph.register_nscf_task(wfk_input,
+                                        deps={work0[0]: "DEN", work_eph[0]: "KERANGE.nc"})
 
-            # Generate the input file for the transport calculation
-            eph_input = wfk_input.make_eph_transport_input(ddb_ngqpt=ddb_ngqpt, sigma_erange=sigma_erange,
-                                                           tmesh=tmesh, eph_ngqpt_fine=sigma_ngkpt, ibte_prep=1)
+            # Generate the input file for the transport calculation.
+            # Use ibte_prep to activate iterative BTE.
+            eph_input = wfk_input.make_eph_transport_input(ddb_ngqpt=ddb_ngqpt,
+                                                           sigma_erange=sigma_erange,
+                                                           tmesh=tmesh,
+                                                           eph_ngqpt_fine=sigma_ngkpt, ibte_prep=1)
 
-            # We compute the phonon dispersion to be able to check they are ok
+            # We compute the phonon dispersion in the EPH code to be able to check they are ok.
             if i == 0:
                 eph_input.set_qpath(20)
 
-            work_eph.register_eph_task(eph_input, deps={work_eph[1]: "WFK", ph_work: ["DDB", "DVDB"]})
+            work_eph.register_eph_task(eph_input,
+                                       deps={work_eph[1]: "WFK", ph_work: ["DDB", "DVDB"]})
 
             flow.register_work(work_eph)
 
@@ -178,7 +184,7 @@ using different dense k/q meshes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  3.435 seconds)
+   **Total running time of the script:** ( 0 minutes  3.692 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_eph_mob.py:

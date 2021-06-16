@@ -27,8 +27,8 @@ def make_ion_ioncell_inputs(paral_kgb=0):
 
     global_vars = dict(
         ecut=4,
-        ngkpt=[4,4,4],
-        shiftk=[0,0,0],
+        ngkpt=[4, 4, 4],
+        shiftk=[0, 0, 0],
         nshiftk=1,
         chksymbreak=0,
         paral_kgb=paral_kgb,

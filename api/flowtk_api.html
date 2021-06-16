@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -637,9 +638,9 @@ in non-parabolic behaviour.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-2a8bc3e63d82923a22de11c5f35e92d5b95ac54f.png" alt="Inheritance diagram of EffMassLineWork" usemap="#inheritancec27b1525f8" class="inheritance graphviz" /></div>
 <map id="inheritancec27b1525f8" name="inheritancec27b1525f8">
-<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.EffMassLineWork" target="_top" title="Work for the computation of effective masses via finite differences along a k&#45;line." alt="" coords="540,24,764,43"/>
-<area shape="rect" id="node2" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="377,24,503,43"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,132,24"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.EffMassLineWork" target="_top" title="Work for the computation of effective masses via finite differences along a k&#45;line." alt="" coords="540,23,764,41"/>
+<area shape="rect" id="node2" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="377,23,503,41"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,132,23"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.effmass_works.EffMassLineWork.from_scf_input">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_scf_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scf_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k0_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">red_dirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[[1,</span> <span class="pre">0,</span> <span class="pre">0],</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">0],</span> <span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cart_dirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">den_node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/effmass_works.html#EffMassLineWork.from_scf_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.effmass_works.EffMassLineWork.from_scf_input" title="Permalink to this definition">¶</a></dt>
@@ -673,9 +674,9 @@ Requires explicit list of k-points and range of bands.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-988a2f7508abedfe1c8659fcc3a2f6e2585b3023.png" alt="Inheritance diagram of EffMassDFPTWork" usemap="#inheritanced09b391ff9" class="inheritance graphviz" /></div>
 <map id="inheritanced09b391ff9" name="inheritanced09b391ff9">
-<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.EffMassDFPTWork" target="_top" title="Work for the computation of effective masses with DFPT." alt="" coords="535,23,764,43"/>
-<area shape="rect" id="node2" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="373,23,498,43"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,130,23"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.EffMassDFPTWork" target="_top" title="Work for the computation of effective masses with DFPT." alt="" coords="535,22,764,41"/>
+<area shape="rect" id="node2" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="374,22,498,41"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,131,22"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.effmass_works.EffMassDFPTWork.from_scf_input">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_scf_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scf_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k0_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effmass_bands_f90</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngfft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">den_node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/effmass_works.html#EffMassDFPTWork.from_scf_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.effmass_works.EffMassDFPTWork.from_scf_input" title="Permalink to this definition">¶</a></dt>
@@ -711,9 +712,9 @@ are computed at runtime.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-250d9f31147161f246d2e72038c234292cec2b6c.png" alt="Inheritance diagram of EffMassAutoDFPTWork" usemap="#inheritance7fd6c2ea68" class="inheritance graphviz" /></div>
 <map id="inheritance7fd6c2ea68" name="inheritance7fd6c2ea68">
-<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.EffMassAutoDFPTWork" target="_top" title="Work for the automatic computation of effective masses with DFPT." alt="" coords="521,23,764,42"/>
-<area shape="rect" id="node2" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="363,23,485,42"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,127,23"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.EffMassAutoDFPTWork" target="_top" title="Work for the automatic computation of effective masses with DFPT." alt="" coords="521,22,764,40"/>
+<area shape="rect" id="node2" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="364,22,485,40"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,127,22"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.effmass_works.EffMassAutoDFPTWork.from_scf_input">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_scf_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scf_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndivsm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolwfr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">den_node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/effmass_works.html#EffMassAutoDFPTWork.from_scf_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.effmass_works.EffMassAutoDFPTWork.from_scf_input" title="Permalink to this definition">¶</a></dt>
@@ -754,9 +755,9 @@ to generate a new work for effective masses with DFPT.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-73e2ae60116e80469ac8e68f69e0f2b605746774.png" alt="Inheritance diagram of FrohlichZPRFlow" usemap="#inheritanced405d366f0" class="inheritance graphviz" /></div>
 <map id="inheritanced405d366f0" name="inheritanced405d366f0">
-<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.FrohlichZPRFlow" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="477,54,763,79"/>
-<area shape="rect" id="node2" href="#abipy.flowtk.flows.Flow" target="_top" title="This object is a container of work. Its main task is managing the" alt="" coords="272,54,430,79"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="33,5,197,30"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.effmass_works.FrohlichZPRFlow" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="476,53,763,77"/>
+<area shape="rect" id="node2" href="#abipy.flowtk.flows.Flow" target="_top" title="This object is a container of work. Its main task is managing the" alt="" coords="274,53,428,77"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="33,5,198,29"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.effmass_works.FrohlichZPRFlow.from_scf_input">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_scf_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scf_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddb_node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndivsm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolwfr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/effmass_works.html#FrohlichZPRFlow.from_scf_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.effmass_works.FrohlichZPRFlow.from_scf_input" title="Permalink to this definition">¶</a></dt>
@@ -3322,62 +3323,62 @@ implemented by the nodes of the calculation.</p>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_INIT">
-<code class="sig-name descname"><span class="pre">S_INIT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Initialized,</span> <span class="pre">at</span> <span class="pre">4920794880&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_INIT" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_INIT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Initialized,</span> <span class="pre">at</span> <span class="pre">140603944704064&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_INIT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_LOCKED">
-<code class="sig-name descname"><span class="pre">S_LOCKED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Locked,</span> <span class="pre">at</span> <span class="pre">4920794944&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_LOCKED" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_LOCKED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Locked,</span> <span class="pre">at</span> <span class="pre">140603944704128&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_LOCKED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_READY">
-<code class="sig-name descname"><span class="pre">S_READY</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Ready,</span> <span class="pre">at</span> <span class="pre">4920795008&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_READY" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_READY</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Ready,</span> <span class="pre">at</span> <span class="pre">140603944704192&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_READY" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_SUB">
-<code class="sig-name descname"><span class="pre">S_SUB</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Submitted,</span> <span class="pre">at</span> <span class="pre">4920795072&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_SUB" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_SUB</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Submitted,</span> <span class="pre">at</span> <span class="pre">140603944704256&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_SUB" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_RUN">
-<code class="sig-name descname"><span class="pre">S_RUN</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Running,</span> <span class="pre">at</span> <span class="pre">4920815680&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_RUN" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_RUN</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Running,</span> <span class="pre">at</span> <span class="pre">140603944704320&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_RUN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_DONE">
-<code class="sig-name descname"><span class="pre">S_DONE</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Done,</span> <span class="pre">at</span> <span class="pre">4920815744&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_DONE" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_DONE</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Done,</span> <span class="pre">at</span> <span class="pre">140603944704384&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_DONE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_ABICRITICAL">
-<code class="sig-name descname"><span class="pre">S_ABICRITICAL</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">AbiCritical,</span> <span class="pre">at</span> <span class="pre">4920815808&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_ABICRITICAL" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_ABICRITICAL</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">AbiCritical,</span> <span class="pre">at</span> <span class="pre">140603944704448&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_ABICRITICAL" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_QCRITICAL">
-<code class="sig-name descname"><span class="pre">S_QCRITICAL</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">QCritical,</span> <span class="pre">at</span> <span class="pre">4920815872&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_QCRITICAL" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_QCRITICAL</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">QCritical,</span> <span class="pre">at</span> <span class="pre">140603944704512&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_QCRITICAL" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_UNCONVERGED">
-<code class="sig-name descname"><span class="pre">S_UNCONVERGED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Unconverged,</span> <span class="pre">at</span> <span class="pre">4920815936&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_UNCONVERGED" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_UNCONVERGED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Unconverged,</span> <span class="pre">at</span> <span class="pre">140603944704576&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_UNCONVERGED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_ERROR">
-<code class="sig-name descname"><span class="pre">S_ERROR</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Error,</span> <span class="pre">at</span> <span class="pre">4920816000&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_ERROR" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_ERROR</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Error,</span> <span class="pre">at</span> <span class="pre">140603944704640&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_ERROR" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.S_OK">
-<code class="sig-name descname"><span class="pre">S_OK</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Completed,</span> <span class="pre">at</span> <span class="pre">4920816064&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_OK" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_OK</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Status:</span> <span class="pre">Completed,</span> <span class="pre">at</span> <span class="pre">140603944704704&gt;</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.S_OK" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.nodes.Node.ALL_STATUS">
-<code class="sig-name descname"><span class="pre">ALL_STATUS</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[&lt;Status:</span> <span class="pre">Initialized,</span> <span class="pre">at</span> <span class="pre">4920794880&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Locked,</span> <span class="pre">at</span> <span class="pre">4920794944&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Ready,</span> <span class="pre">at</span> <span class="pre">4920795008&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Submitted,</span> <span class="pre">at</span> <span class="pre">4920795072&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Running,</span> <span class="pre">at</span> <span class="pre">4920815680&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Done,</span> <span class="pre">at</span> <span class="pre">4920815744&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">AbiCritical,</span> <span class="pre">at</span> <span class="pre">4920815808&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">QCritical,</span> <span class="pre">at</span> <span class="pre">4920815872&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Unconverged,</span> <span class="pre">at</span> <span class="pre">4920815936&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Error,</span> <span class="pre">at</span> <span class="pre">4920816000&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Completed,</span> <span class="pre">at</span> <span class="pre">4920816064&gt;]</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.ALL_STATUS" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">ALL_STATUS</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[&lt;Status:</span> <span class="pre">Initialized,</span> <span class="pre">at</span> <span class="pre">140603944704064&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Locked,</span> <span class="pre">at</span> <span class="pre">140603944704128&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Ready,</span> <span class="pre">at</span> <span class="pre">140603944704192&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Submitted,</span> <span class="pre">at</span> <span class="pre">140603944704256&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Running,</span> <span class="pre">at</span> <span class="pre">140603944704320&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Done,</span> <span class="pre">at</span> <span class="pre">140603944704384&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">AbiCritical,</span> <span class="pre">at</span> <span class="pre">140603944704448&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">QCritical,</span> <span class="pre">at</span> <span class="pre">140603944704512&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Unconverged,</span> <span class="pre">at</span> <span class="pre">140603944704576&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Error,</span> <span class="pre">at</span> <span class="pre">140603944704640&gt;,</span> <span class="pre">&lt;Status:</span> <span class="pre">Completed,</span> <span class="pre">at</span> <span class="pre">140603944704704&gt;]</span></em><a class="headerlink" href="#abipy.flowtk.nodes.Node.ALL_STATUS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -3971,9 +3972,9 @@ the relaxed structures to compute phonons, BECS and the dielectric tensor with D
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-ed27549e143d68eaeb49fcd03340839f7147ad3d.png" alt="Inheritance diagram of RelaxAndPhononWork" usemap="#inheritance52aade09f2" class="inheritance graphviz" /></div>
 <map id="inheritance52aade09f2" name="inheritance52aade09f2">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,137,25"/>
-<area shape="rect" id="node2" href="#abipy.flowtk.qha.RelaxAndPhononWork" target="_top" title="This work performs a structural relaxation for different volumes, then it uses" alt="" coords="562,25,764,45"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="392,25,524,45"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,137,23"/>
+<area shape="rect" id="node2" href="#abipy.flowtk.qha.RelaxAndPhononWork" target="_top" title="This work performs a structural relaxation for different volumes, then it uses" alt="" coords="560,23,764,43"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="391,23,522,43"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.qha.RelaxAndPhononWork.from_scf_input">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_scf_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scf_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volumes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngqpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_becs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optcell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ionmov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edos_ngkpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork.from_scf_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork.from_scf_input" title="Permalink to this definition">¶</a></dt>
@@ -4011,9 +4012,9 @@ Here are add a new PhononWork for each volume using the relaxed structure.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-fdee423e188be8a91c530db117504aa247cfc1f8.png" alt="Inheritance diagram of QhaFlow" usemap="#inheritance75b1b02d31" class="inheritance graphviz" /></div>
 <map id="inheritance75b1b02d31" name="inheritance75b1b02d31">
-<area shape="rect" id="node1" href="#abipy.flowtk.flows.Flow" target="_top" title="This object is a container of work. Its main task is managing the" alt="" coords="275,55,433,80"/>
-<area shape="rect" id="node5" href="#abipy.flowtk.qha.QhaFlow" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="481,55,653,80"/>
-<area shape="rect" id="node2" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="33,5,199,31"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.flows.Flow" target="_top" title="This object is a container of work. Its main task is managing the" alt="" coords="275,53,431,77"/>
+<area shape="rect" id="node5" href="#abipy.flowtk.qha.QhaFlow" target="_top" title=".. rubric:: Inheritance Diagram" alt="" coords="479,53,652,77"/>
+<area shape="rect" id="node2" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="33,5,199,29"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.qha.QhaFlow.from_scf_input">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_scf_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scf_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volumes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngqpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_becs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edos_ngkpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#QhaFlow.from_scf_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.qha.QhaFlow.from_scf_input" title="Permalink to this definition">¶</a></dt>
@@ -4104,57 +4105,57 @@ of the job and useful statistics. This is an abstract class.</p>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_UNKNOWN">
-<code class="sig-name descname"><span class="pre">S_UNKNOWN</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">UNKNOWN,</span> <span class="pre">at</span> <span class="pre">4920543552&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_UNKNOWN" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_UNKNOWN</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">UNKNOWN,</span> <span class="pre">at</span> <span class="pre">140603944348608&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_UNKNOWN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_PENDING">
-<code class="sig-name descname"><span class="pre">S_PENDING</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">PENDING,</span> <span class="pre">at</span> <span class="pre">4920543616&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_PENDING" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_PENDING</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">PENDING,</span> <span class="pre">at</span> <span class="pre">140603944348672&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_PENDING" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_RUNNING">
-<code class="sig-name descname"><span class="pre">S_RUNNING</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">RUNNING,</span> <span class="pre">at</span> <span class="pre">4920543680&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_RUNNING" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_RUNNING</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">RUNNING,</span> <span class="pre">at</span> <span class="pre">140603944348736&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_RUNNING" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_RESIZING">
-<code class="sig-name descname"><span class="pre">S_RESIZING</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">RESIZING,</span> <span class="pre">at</span> <span class="pre">4920543744&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_RESIZING" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_RESIZING</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">RESIZING,</span> <span class="pre">at</span> <span class="pre">140603944348800&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_RESIZING" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_SUSPENDED">
-<code class="sig-name descname"><span class="pre">S_SUSPENDED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">SUSPENDED,</span> <span class="pre">at</span> <span class="pre">4920543808&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_SUSPENDED" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_SUSPENDED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">SUSPENDED,</span> <span class="pre">at</span> <span class="pre">140603944348864&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_SUSPENDED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_COMPLETED">
-<code class="sig-name descname"><span class="pre">S_COMPLETED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">COMPLETED,</span> <span class="pre">at</span> <span class="pre">4920543872&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_COMPLETED" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_COMPLETED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">COMPLETED,</span> <span class="pre">at</span> <span class="pre">140603944348928&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_COMPLETED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_CANCELLED">
-<code class="sig-name descname"><span class="pre">S_CANCELLED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">CANCELLED,</span> <span class="pre">at</span> <span class="pre">4920543936&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_CANCELLED" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_CANCELLED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">CANCELLED,</span> <span class="pre">at</span> <span class="pre">140603944348992&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_CANCELLED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_FAILED">
-<code class="sig-name descname"><span class="pre">S_FAILED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">FAILED,</span> <span class="pre">at</span> <span class="pre">4920544000&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_FAILED" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_FAILED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">FAILED,</span> <span class="pre">at</span> <span class="pre">140603944349056&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_FAILED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_TIMEOUT">
-<code class="sig-name descname"><span class="pre">S_TIMEOUT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">TIMEOUT,</span> <span class="pre">at</span> <span class="pre">4920544064&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_TIMEOUT" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_TIMEOUT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">TIMEOUT,</span> <span class="pre">at</span> <span class="pre">140603944349120&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_TIMEOUT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_PREEMPTED">
-<code class="sig-name descname"><span class="pre">S_PREEMPTED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">PREEMPTED,</span> <span class="pre">at</span> <span class="pre">4920544128&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_PREEMPTED" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_PREEMPTED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">PREEMPTED,</span> <span class="pre">at</span> <span class="pre">140603944349184&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_PREEMPTED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.QueueJob.S_NODEFAIL">
-<code class="sig-name descname"><span class="pre">S_NODEFAIL</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">NODEFAIL,</span> <span class="pre">at</span> <span class="pre">4920544192&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_NODEFAIL" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">S_NODEFAIL</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">NODEFAIL,</span> <span class="pre">at</span> <span class="pre">140603944349248&gt;</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.QueueJob.S_NODEFAIL" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -4462,7 +4463,7 @@ Synonym for SIGIO</p></td>
 
 <dl class="py attribute">
 <dt id="abipy.flowtk.qjobs.PbsProJob.PBSSTAT_TO_SLURM">
-<code class="sig-name descname"><span class="pre">PBSSTAT_TO_SLURM</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{'E':</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">FAILED,</span> <span class="pre">at</span> <span class="pre">4920544000&gt;,</span> <span class="pre">'F':</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">COMPLETED,</span> <span class="pre">at</span> <span class="pre">4920543872&gt;,</span> <span class="pre">'Q':</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">PENDING,</span> <span class="pre">at</span> <span class="pre">4920543616&gt;,</span> <span class="pre">'R':</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">RUNNING,</span> <span class="pre">at</span> <span class="pre">4920543680&gt;,</span> <span class="pre">'S':</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">SUSPENDED,</span> <span class="pre">at</span> <span class="pre">4920543808&gt;}</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.PbsProJob.PBSSTAT_TO_SLURM" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">PBSSTAT_TO_SLURM</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{'E':</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">FAILED,</span> <span class="pre">at</span> <span class="pre">140603944349056&gt;,</span> <span class="pre">'F':</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">COMPLETED,</span> <span class="pre">at</span> <span class="pre">140603944348928&gt;,</span> <span class="pre">'Q':</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">PENDING,</span> <span class="pre">at</span> <span class="pre">140603944348672&gt;,</span> <span class="pre">'R':</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">RUNNING,</span> <span class="pre">at</span> <span class="pre">140603944348736&gt;,</span> <span class="pre">'S':</span> <span class="pre">&lt;JobStatus:</span> <span class="pre">SUSPENDED,</span> <span class="pre">at</span> <span class="pre">140603944348864&gt;}</span></em><a class="headerlink" href="#abipy.flowtk.qjobs.PbsProJob.PBSSTAT_TO_SLURM" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -6347,8 +6348,8 @@ graph can be really big.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-e606baa5cf24a83f07795f83284b576a0127ef5f.png" alt="Inheritance diagram of Work" usemap="#inheritancefbd85d57fe" class="inheritance graphviz" /></div>
 <map id="inheritancefbd85d57fe" name="inheritancefbd85d57fe">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="5,5,171,31"/>
-<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="488,31,652,56"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="5,5,171,29"/>
+<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="489,29,652,53"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.works.Work.set_manager">
 <code class="sig-name descname"><span class="pre">set_manager</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manager</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#Work.set_manager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.works.Work.set_manager" title="Permalink to this definition">¶</a></dt>
@@ -6636,9 +6637,9 @@ The array element is set to np.inf if an exception is raised while reading the G
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-337d3eb24c27c4f9c98d398078ebbb0e77e8b7fa.png" alt="Inheritance diagram of BandStructureWork" usemap="#inheritanceafbed424b4" class="inheritance graphviz" /></div>
 <map id="inheritanceafbed424b4" name="inheritanceafbed424b4">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,138,25"/>
-<area shape="rect" id="node2" href="#abipy.flowtk.works.BandStructureWork" target="_top" title="Work for band structure calculations." alt="" coords="565,25,764,45"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="394,25,526,45"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,138,24"/>
+<area shape="rect" id="node2" href="#abipy.flowtk.works.BandStructureWork" target="_top" title="Work for band structure calculations." alt="" coords="564,24,764,43"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="394,24,525,43"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.works.BandStructureWork.plot_ebands">
 <code class="sig-name descname"><span class="pre">plot_ebands</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#BandStructureWork.plot_ebands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.works.BandStructureWork.plot_ebands" title="Permalink to this definition">¶</a></dt>
@@ -6696,9 +6697,9 @@ and the lattice parameters are optimized.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-d5ea731bf87887a6dc974e33fc2968676919c594.png" alt="Inheritance diagram of RelaxWork" usemap="#inheritancef5a76b13ad" class="inheritance graphviz" /></div>
 <map id="inheritancef5a76b13ad" name="inheritancef5a76b13ad">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="5,5,145,26"/>
-<area shape="rect" id="node5" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="415,26,554,48"/>
-<area shape="rect" id="node4" href="#abipy.flowtk.works.RelaxWork" target="_top" title="Work for structural relaxations. The first task relaxes the atomic position" alt="" coords="595,26,763,48"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="5,5,145,25"/>
+<area shape="rect" id="node5" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="416,25,555,45"/>
+<area shape="rect" id="node4" href="#abipy.flowtk.works.RelaxWork" target="_top" title="Work for structural relaxations. The first task relaxes the atomic position" alt="" coords="596,25,763,45"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.works.RelaxWork.on_ok">
 <code class="sig-name descname"><span class="pre">on_ok</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sender</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#RelaxWork.on_ok"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.works.RelaxWork.on_ok" title="Permalink to this definition">¶</a></dt>
@@ -6734,9 +6735,9 @@ All input can be either single inputs or lists of inputs</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-49ac6d04d55d1548c20094f1080603ccd55aeabf.png" alt="Inheritance diagram of G0W0Work" usemap="#inheritance11724564e4" class="inheritance graphviz" /></div>
 <map id="inheritance11724564e4" name="inheritance11724564e4">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="5,5,145,26"/>
-<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="413,26,552,47"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.works.G0W0Work" target="_top" title="Work for generic G0W0 calculations." alt="" coords="593,26,763,47"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="5,5,145,25"/>
+<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="414,25,553,45"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.works.G0W0Work" target="_top" title="Work for generic G0W0 calculations." alt="" coords="593,25,763,45"/>
 </map></dd></dl>
 
 <dl class="py class">
@@ -6749,9 +6750,9 @@ all the partial screening files produced.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-562d3ee1a355f8885cd249dfb3ba4534792190cf.png" alt="Inheritance diagram of QptdmWork" usemap="#inheritancea2761343ac" class="inheritance graphviz" /></div>
 <map id="inheritancea2761343ac" name="inheritancea2761343ac">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="5,5,144,26"/>
-<area shape="rect" id="node5" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="413,26,551,47"/>
-<area shape="rect" id="node4" href="#abipy.flowtk.works.QptdmWork" target="_top" title="This work parallelizes the calculation of the q&#45;points of the screening." alt="" coords="592,26,763,47"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="5,5,145,25"/>
+<area shape="rect" id="node5" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="413,25,551,45"/>
+<area shape="rect" id="node4" href="#abipy.flowtk.works.QptdmWork" target="_top" title="This work parallelizes the calculation of the q&#45;points of the screening." alt="" coords="592,25,763,45"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.works.QptdmWork.create_tasks">
 <code class="sig-name descname"><span class="pre">create_tasks</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wfk_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scr_input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#QptdmWork.create_tasks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.works.QptdmWork.create_tasks" title="Permalink to this definition">¶</a></dt>
@@ -6793,9 +6794,9 @@ the final SCR file in the outdir of the <cite>Work</cite>.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-9be492e0e0d7ca9a0c7464fb08b019817c669c7d.png" alt="Inheritance diagram of SigmaConvWork" usemap="#inheritance80499e7696" class="inheritance graphviz" /></div>
 <map id="inheritance80499e7696" name="inheritance80499e7696">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,140,25"/>
-<area shape="rect" id="node5" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="400,25,534,46"/>
-<area shape="rect" id="node4" href="#abipy.flowtk.works.SigmaConvWork" target="_top" title="Work for self&#45;energy convergence studies." alt="" coords="574,25,764,46"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,140,24"/>
+<area shape="rect" id="node5" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="401,24,534,44"/>
+<area shape="rect" id="node4" href="#abipy.flowtk.works.SigmaConvWork" target="_top" title="Work for self&#45;energy convergence studies." alt="" coords="574,24,764,44"/>
 </map></dd></dl>
 
 <dl class="py class">
@@ -6808,9 +6809,9 @@ with the model dielectric function.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-4c5dbfdc87f0c5078412faf7ca697edbf51f1a93.png" alt="Inheritance diagram of BseMdfWork" usemap="#inheritance557336f86a" class="inheritance graphviz" /></div>
 <map id="inheritance557336f86a" name="inheritance557336f86a">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,143,26"/>
-<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="410,26,547,47"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.works.BseMdfWork" target="_top" title="Work for simple BSE calculations in which the self&#45;energy corrections" alt="" coords="588,26,764,47"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,144,25"/>
+<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="411,25,548,45"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.works.BseMdfWork" target="_top" title="Work for simple BSE calculations in which the self&#45;energy corrections" alt="" coords="588,25,764,45"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.works.BseMdfWork.get_mdf_robot">
 <code class="sig-name descname"><span class="pre">get_mdf_robot</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#BseMdfWork.get_mdf_robot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.works.BseMdfWork.get_mdf_robot" title="Permalink to this definition">¶</a></dt>
@@ -6831,9 +6832,9 @@ The two files are available in the output directory of the Work.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-2151f9729e0ff720973f08109f73d5eaffce221b.png" alt="Inheritance diagram of PhononWork" usemap="#inheritancea4fc0eba9f" class="inheritance graphviz" /></div>
 <map id="inheritancea4fc0eba9f" name="inheritancea4fc0eba9f">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,139,25"/>
-<area shape="rect" id="node6" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="409,24,543,44"/>
-<area shape="rect" id="node5" href="#abipy.flowtk.works.PhononWork" target="_top" title="This work consists of nirred Phonon tasks where nirred is" alt="" coords="594,44,764,65"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,139,24"/>
+<area shape="rect" id="node6" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="410,24,542,43"/>
+<area shape="rect" id="node5" href="#abipy.flowtk.works.PhononWork" target="_top" title="This work consists of nirred Phonon tasks where nirred is" alt="" coords="594,43,764,63"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.works.PhononWork.from_scf_task">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_scf_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scf_task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qpoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_ngqpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_becs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddk_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prtwf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#PhononWork.from_scf_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.works.PhononWork.from_scf_task" title="Permalink to this definition">¶</a></dt>
@@ -6894,9 +6895,9 @@ output directory of the Work. The WKQ files are removed at runtime.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-b9100bf046218b57dff7b178d33cf5add8875424.png" alt="Inheritance diagram of PhononWfkqWork" usemap="#inheritance40972a65c9" class="inheritance graphviz" /></div>
 <map id="inheritance40972a65c9" name="inheritance40972a65c9">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,134,24"/>
-<area shape="rect" id="node6" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="397,23,526,43"/>
-<area shape="rect" id="node5" href="#abipy.flowtk.works.PhononWfkqWork" target="_top" title="This work computes phonons with DFPT on an arbitrary q&#45;mesh (usually denser than the k&#45;mesh for electrons)" alt="" coords="576,43,764,63"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,135,23"/>
+<area shape="rect" id="node6" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="397,23,525,42"/>
+<area shape="rect" id="node5" href="#abipy.flowtk.works.PhononWfkqWork" target="_top" title="This work computes phonons with DFPT on an arbitrary q&#45;mesh (usually denser than the k&#45;mesh for electrons)" alt="" coords="575,42,764,61"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.works.PhononWfkqWork.from_scf_task">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_scf_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scf_task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngqpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ph_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolwfr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-22</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nband</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_becs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddk_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_ngqpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_wfkq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepgkk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#PhononWfkqWork.from_scf_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.works.PhononWfkqWork.from_scf_task" title="Permalink to this definition">¶</a></dt>
@@ -6951,9 +6952,9 @@ present in a DVDB and DDB file</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-6707532791d54887bbf1b9966103f02cf74a5375.png" alt="Inheritance diagram of GKKPWork" usemap="#inheritance04738cf680" class="inheritance graphviz" /></div>
 <map id="inheritance04738cf680" name="inheritance04738cf680">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="5,5,145,26"/>
-<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="413,26,552,47"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.works.GKKPWork" target="_top" title="This work computes electron&#45;phonon matrix elements for all the q&#45;points" alt="" coords="593,26,763,47"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="5,5,145,25"/>
+<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="415,25,553,45"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.works.GKKPWork" target="_top" title="This work computes electron&#45;phonon matrix elements for all the q&#45;points" alt="" coords="594,25,763,45"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.works.GKKPWork.from_den_ddb_dvdb">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_den_ddb_dvdb</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">den_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddb_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dvdb_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpiprocs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_wfkq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_ddk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#GKKPWork.from_den_ddb_dvdb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.works.GKKPWork.from_den_ddb_dvdb" title="Permalink to this definition">¶</a></dt>
@@ -6988,9 +6989,9 @@ partial DDB files produced by the work.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-52314042a73c0e7b0519c798d989f8f8dade36f2.png" alt="Inheritance diagram of BecWork" usemap="#inheritancec4cab8b911" class="inheritance graphviz" /></div>
 <map id="inheritancec4cab8b911" name="inheritancec4cab8b911">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,142,26"/>
-<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="419,24,555,46"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.works.BecWork" target="_top" title="Work for the computation of the Born effective charges." alt="" coords="608,46,764,67"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,142,24"/>
+<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="420,24,556,44"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.works.BecWork" target="_top" title="Work for the computation of the Born effective charges." alt="" coords="609,44,764,64"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.works.BecWork.from_scf_task">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_scf_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scf_task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddk_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ph_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#BecWork.from_scf_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.works.BecWork.from_scf_task" title="Permalink to this definition">¶</a></dt>
@@ -7028,9 +7029,9 @@ It provides the callback method (on_all_ok) that calls mrgddb to merge the parti
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-1d5be751018bd8335a81c26c4edf246e626be80e.png" alt="Inheritance diagram of DteWork" usemap="#inheritance1fae034e1b" class="inheritance graphviz" /></div>
 <map id="inheritance1fae034e1b" name="inheritance1fae034e1b">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,142,26"/>
-<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="420,24,556,46"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.works.DteWork" target="_top" title="Work for the computation of the third derivative of the energy." alt="" coords="609,46,764,67"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,143,24"/>
+<area shape="rect" id="node4" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="421,24,557,44"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.works.DteWork" target="_top" title="Work for the computation of the third derivative of the energy." alt="" coords="610,44,764,65"/>
 </map><dl class="py method">
 <dt id="abipy.flowtk.works.DteWork.from_scf_task">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_scf_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scf_task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddk_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#DteWork.from_scf_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.flowtk.works.DteWork.from_scf_task" title="Permalink to this definition">¶</a></dt>
@@ -7188,7 +7189,7 @@ return the absolute path of the new database in workdir.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 01, 2021.
+        Last updated on Jun 16, 2021.
       </span>
 
     </p>

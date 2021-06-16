@@ -1,6 +1,6 @@
 <map id="inheritancebf0918b5f5" name="inheritancebf0918b5f5">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="454,41,573,60"/>
-<area shape="rect" id="node5" href="#abipy.eph.rta.RtaRobot" target="_top" title="This robot analyzes the results contained in multiple RTA.nc files." alt="" coords="648,23,764,42"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="217,41,379,60"/>
-<area shape="rect" id="node4" title="Mixin class for robots associated to files with |ElectronBands|." alt="" coords="415,4,612,23"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="453,39,572,57"/>
+<area shape="rect" id="node5" href="#abipy.eph.rta.RtaRobot" target="_top" title="This robot analyzes the results contained in multiple RTA.nc files." alt="" coords="648,22,764,39"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="216,39,378,57"/>
+<area shape="rect" id="node4" title="Mixin class for robots associated to files with |ElectronBands|." alt="" coords="414,4,612,22"/>
 </map>

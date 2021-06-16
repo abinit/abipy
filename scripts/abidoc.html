@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -228,26 +229,50 @@ For example, the documentation for the <code class="docutils literal notranslate
 </div>
 <p>For the full list of commands use:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abidoc.py --help
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/bin/abidoc.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.9.0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3268, in &lt;module&gt;
-    def _initialize_master_working_set():
-  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3251, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 3280, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 582, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 899, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/panel-3.9/lib/python3.9/site-packages/pkg_resources/__init__.py&quot;, line 785, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was not found and is required by the application
+usage: abidoc.py [-h] [-V]
+                 {man,graphviz,browse,apropos,find,withdim,list,manager,scheduler,abibuild}
+                 ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program&#39;s version number and exit
+
+subcommands:
+  Valid subcommands
+
+  {man,graphviz,browse,apropos,find,withdim,list,manager,scheduler,abibuild}
+                        sub-command help
+    man                 Show documentation for varname.
+    graphviz            Draw variable dependencies with graphviz package.See
+                        https://graphviz.readthedocs.io/.
+    browse              Open documentation in browser.
+    apropos             Find variables related to varname.
+    find                Find all variables whose name contains varname.
+    withdim             Find all arrays depending on the given dimension.
+    list                List all variables.
+    manager             Document the TaskManager options.
+    scheduler           Document the options available in scheduler.yml.
+    abibuild            Show ABINIT build information and exit.
+
+Usage example:
+
+    abidoc.py man ecut        --&gt; Show documentation for ecut input variable.
+    abidoc.py graphviz acell  --&gt; Draw parents and children of variable with graphviz package.
+    abidoc.py browse acell    --&gt; Open url in external browser.
+    abidoc.py apropos ecut    --&gt; To search in the database for the variables related to ecut.
+    abidoc.py find paw        --&gt; To search in the database for the variables whose name contains paw.
+    abidoc.py list            --&gt; Print full list of variables.
+    abidoc.py withdim natom   --&gt; Print arrays depending on natom.
+    abidoc.py scheduler       --&gt; Document scheduler options.
+    abidoc.py manager         --&gt; Document manager options.
+
+Use `abidoc.py --help` for help and `abidoc.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </pre></div>
 </div>
 <p>Complete command line reference</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">{</span><span class="n">man</span><span class="p">,</span><span class="n">graphviz</span><span class="p">,</span><span class="n">browse</span><span class="p">,</span><span class="n">apropos</span><span class="p">,</span><span class="n">find</span><span class="p">,</span><span class="n">withdim</span><span class="p">,</span><span class="nb">list</span><span class="p">,</span><span class="n">manager</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">abibuild</span><span class="p">}</span> <span class="o">...</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
+                 <span class="p">{</span><span class="n">man</span><span class="p">,</span><span class="n">graphviz</span><span class="p">,</span><span class="n">browse</span><span class="p">,</span><span class="n">apropos</span><span class="p">,</span><span class="n">find</span><span class="p">,</span><span class="n">withdim</span><span class="p">,</span><span class="nb">list</span><span class="p">,</span><span class="n">manager</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">abibuild</span><span class="p">}</span> <span class="o">...</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments">
@@ -593,7 +618,7 @@ pkg_resources.DistributionNotFound: The &#39;abipy==0.9.0&#39; distribution was 
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 01, 2021.
+        Last updated on Jun 16, 2021.
       </span>
 
     </p>

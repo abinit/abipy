@@ -1,7 +1,7 @@
 <map id="inheritance52aade09f2" name="inheritance52aade09f2">
-<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,137,25"/>
-<area shape="rect" id="node4" title=".. rubric:: Inheritance Diagram" alt="" coords="186,4,343,25"/>
-<area shape="rect" id="node2" href="#abipy.flowtk.qha.RelaxAndPhononWork" target="_top" title="This work performs a structural relaxation for different volumes, then it uses" alt="" coords="562,25,764,45"/>
-<area shape="rect" id="node3" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="392,25,524,45"/>
-<area shape="rect" id="node5" title="Mixin classes for `Work` and `Flow` objects providing helper functions" alt="" coords="176,44,353,64"/>
+<area shape="rect" id="node1" href="#abipy.flowtk.nodes.Node" target="_top" title="Abstract base class defining the interface that must be" alt="" coords="4,4,137,23"/>
+<area shape="rect" id="node4" title=".. rubric:: Inheritance Diagram" alt="" coords="187,4,341,23"/>
+<area shape="rect" id="node2" href="#abipy.flowtk.qha.RelaxAndPhononWork" target="_top" title="This work performs a structural relaxation for different volumes, then it uses" alt="" coords="560,23,764,43"/>
+<area shape="rect" id="node3" href="#abipy.flowtk.works.Work" target="_top" title="A Work is a list of (possibly connected) tasks." alt="" coords="391,23,522,43"/>
+<area shape="rect" id="node5" title="Mixin classes for `Work` and `Flow` objects providing helper functions" alt="" coords="175,43,353,62"/>
 </map>

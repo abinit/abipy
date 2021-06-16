@@ -50,9 +50,9 @@ structure relaxations with the HIST robot.
 
  .. code-block:: none
 
-                   formula  natom  alpha  beta  ...  initial_fmax  initial_fmean  initial_fstd  initial_drift
-    sic_relaxation  Si1 C1      2   60.0  60.0  ...  1.095144e-29   1.095144e-29           0.0            0.0
-    same_hist       Si1 C1      2   60.0  60.0  ...  1.095144e-29   1.095144e-29           0.0            0.0
+                   formula  natom  alpha  ...  initial_fmean  initial_fstd  initial_drift
+    sic_relaxation  Si1 C1      2   60.0  ...   1.095144e-29           0.0            0.0
+    same_hist       Si1 C1      2   60.0  ...   1.095144e-29           0.0            0.0
 
     [2 rows x 26 columns]
 
@@ -89,7 +89,7 @@ structure relaxations with the HIST robot.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.016 seconds)
+   **Total running time of the script:** ( 0 minutes  1.501 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_multiple_hist.py:

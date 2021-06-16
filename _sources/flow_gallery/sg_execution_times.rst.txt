@@ -5,82 +5,82 @@
 
 Computation times
 =================
-**00:58.500** total execution time for **flow_gallery** files:
+**00:50.558** total execution time for **flow_gallery** files:
 
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_mgb2_phonons_nkpt_tsmear.py` (``run_mgb2_phonons_nkpt_tsmear.py``) | 00:05.110 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_mgb2_phonons_nkpt_tsmear.py` (``run_mgb2_phonons_nkpt_tsmear.py``) | 00:05.642 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_eph_pot.py` (``run_eph_pot.py``)                                   | 00:04.276 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_gkq.py` (``run_gkq.py``)                                           | 00:04.045 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_gkq.py` (``run_gkq.py``)                                           | 00:04.212 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_eph_mob.py` (``run_eph_mob.py``)                                   | 00:03.692 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_eph_mob.py` (``run_eph_mob.py``)                                   | 00:03.435 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_phonons.py` (``run_phonons.py``)                                   | 00:02.925 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_phonons.py` (``run_phonons.py``)                                   | 00:02.974 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_eph_pot.py` (``run_eph_pot.py``)                                   | 00:02.670 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_phonons_wkq.py` (``run_phonons_wkq.py``)                           | 00:02.706 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_phonons_wkq.py` (``run_phonons_wkq.py``)                           | 00:02.663 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_eph_al.py` (``run_eph_al.py``)                                     | 00:02.350 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_eph_al.py` (``run_eph_al.py``)                                     | 00:02.459 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_conducwork.py` (``run_conducwork.py``)                             | 00:01.801 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_conducwork.py` (``run_conducwork.py``)                             | 00:01.680 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts_tsmear.py` (``run_relax_vs_kpts_tsmear.py``)         | 00:01.682 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py` (``run_becs_and_epsilon_vs_kpts.py``) | 00:01.536 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py` (``run_becs_and_epsilon_vs_kpts.py``) | 00:01.646 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_si_ebands.py` (``run_si_ebands.py``)                               | 00:01.521 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_raman_optic.py` (``run_raman_optic.py``)                           | 00:01.614 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts_tsmear.py` (``run_relax_vs_kpts_tsmear.py``)         | 00:01.295 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_optic.py` (``run_optic.py``)                                       | 00:01.585 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_raman_optic.py` (``run_raman_optic.py``)                           | 00:01.291 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_gwconv_ecuteps.py` (``run_gwconv_ecuteps.py``)                     | 00:01.418 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_optic.py` (``run_optic.py``)                                       | 00:01.280 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_nonlinear.py` (``run_nonlinear.py``)                               | 00:01.400 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_gwconv_ecuteps.py` (``run_gwconv_ecuteps.py``)                     | 00:01.162 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_si_ebands.py` (``run_si_ebands.py``)                               | 00:01.358 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_elastic.py` (``run_elastic.py``)                                   | 00:01.133 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_elastic.py` (``run_elastic.py``)                                   | 00:01.274 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_nonlinear.py` (``run_nonlinear.py``)                               | 00:01.103 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_raman_bse.py` (``run_raman_bse.py``)                               | 00:01.199 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_effmass_dfpt.py` (``run_effmass_dfpt.py``)                         | 00:00.942 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_ht_si_g0w0ppm.py` (``run_ht_si_g0w0ppm.py``)                       | 00:01.138 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_frohlich_zpr.py` (``run_frohlich_zpr.py``)                         | 00:00.919 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_effmass_dfpt.py` (``run_effmass_dfpt.py``)                         | 00:01.131 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_phfrozen_ebands.py` (``run_phfrozen_ebands.py``)                   | 00:00.917 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_frohlich_zpr.py` (``run_frohlich_zpr.py``)                         | 00:01.126 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_raman_bse.py` (``run_raman_bse.py``)                               | 00:00.860 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_si_g0w0.py` (``run_si_g0w0.py``)                                   | 00:01.057 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_fe_ebands.py` (``run_fe_ebands.py``)                               | 00:00.846 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_phfrozen_ebands.py` (``run_phfrozen_ebands.py``)                   | 00:01.038 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_eos.py` (``run_eos.py``)                                           | 00:00.805 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_ldaus.py` (``run_ldaus.py``)                                       | 00:00.991 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_ldaus.py` (``run_ldaus.py``)                                       | 00:00.800 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_eos.py` (``run_eos.py``)                                           | 00:00.989 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_gaas_ebands_soc.py` (``run_gaas_ebands_soc.py``)                   | 00:00.779 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_mgb2_edoses.py` (``run_mgb2_edoses.py``)                           | 00:00.923 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_si_g0w0.py` (``run_si_g0w0.py``)                                   | 00:00.754 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_frohlich_zpr_from_ddb.py` (``run_frohlich_zpr_from_ddb.py``)       | 00:00.907 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_frohlich_zpr_from_ddb.py` (``run_frohlich_zpr_from_ddb.py``)       | 00:00.677 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_phonopy_si.py` (``run_phonopy_si.py``)                             | 00:00.905 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_mgb2_edoses.py` (``run_mgb2_edoses.py``)                           | 00:00.668 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts.py` (``run_relax_vs_kpts.py``)                       | 00:00.879 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_ht_si_ebands.py` (``run_ht_si_ebands.py``)                         | 00:00.620 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_relax.py` (``run_relax.py``)                                       | 00:00.878 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_phonopy_si.py` (``run_phonopy_si.py``)                             | 00:00.589 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_fe_ebands.py` (``run_fe_ebands.py``)                               | 00:00.877 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_ht_si_g0w0ppm.py` (``run_ht_si_g0w0ppm.py``)                       | 00:00.582 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_ht_si_ebands.py` (``run_ht_si_ebands.py``)                         | 00:00.845 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_relax_and_ebands.py` (``run_relax_and_ebands.py``)                 | 00:00.567 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_relax_and_ebands.py` (``run_relax_and_ebands.py``)                 | 00:00.826 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_relax.py` (``run_relax.py``)                                       | 00:00.546 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_gaas_ebands_soc.py` (``run_gaas_ebands_soc.py``)                   | 00:00.808 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_effmass_finitediff.py` (``run_effmass_finitediff.py``)             | 00:00.539 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_ht_si_bsemdf.py` (``run_ht_si_bsemdf.py``)                         | 00:00.799 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_ht_si_bsemdf.py` (``run_ht_si_bsemdf.py``)                         | 00:00.538 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_from_files.py` (``run_from_files.py``)                             | 00:00.774 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts.py` (``run_relax_vs_kpts.py``)                       | 00:00.533 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_effmass_finitediff.py` (``run_effmass_finitediff.py``)             | 00:00.764 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_from_files.py` (``run_from_files.py``)                             | 00:00.449 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_sic_relax.py` (``run_sic_relax.py``)                               | 00:00.739 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_sic_relax.py` (``run_sic_relax.py``)                               | 00:00.434 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_flow_gallery_run_gruneisen_abinit.py` (``run_gruneisen_abinit.py``)                 | 00:00.068 | 0.0 MB |
+| :ref:`sphx_glr_flow_gallery_run_gruneisen_abinit.py` (``run_gruneisen_abinit.py``)                 | 00:00.097 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------+-----------+--------+

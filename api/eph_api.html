@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -656,11 +657,11 @@ Provides methods to analyze and plot results.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-86eb96aff679280dbb4c7a114b22f1bcfd372567.png" alt="Inheritance diagram of A2fFile" usemap="#inheritanceae62ed8c21" class="inheritance graphviz" /></div>
 <map id="inheritanceae62ed8c21" name="inheritanceae62ed8c21">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="314,153,513,179"/>
-<area shape="rect" id="node7" href="#abipy.eph.a2f.A2fFile" target="_top" title="This file contains the phonon linewidths, EliashbergFunction, the |PhononBands|," alt="" coords="583,80,727,105"/>
-<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="305,104,522,129"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="292,5,535,31"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="308,55,519,80"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="316,149,514,173"/>
+<area shape="rect" id="node7" href="#abipy.eph.a2f.A2fFile" target="_top" title="This file contains the phonon linewidths, EliashbergFunction, the |PhononBands|," alt="" coords="585,77,731,101"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="305,101,524,125"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="292,5,537,29"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="309,53,521,77"/>
 </map><dl class="py method">
 <dt id="abipy.eph.a2f.A2fFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/a2f.html#A2fFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.a2f.A2fFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -1023,9 +1024,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-d50fe496636530d964070155f6f5b99590268a9c.png" alt="Inheritance diagram of A2fRobot" usemap="#inheritance100c4a733b" class="inheritance graphviz" /></div>
 <map id="inheritance100c4a733b" name="inheritance100c4a733b">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="453,77,571,96"/>
-<area shape="rect" id="node6" href="#abipy.eph.a2f.A2fRobot" target="_top" title="This robot analyzes the results contained in multiple A2F.nc files." alt="" coords="646,41,764,59"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="217,77,378,96"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="452,75,571,92"/>
+<area shape="rect" id="node6" href="#abipy.eph.a2f.A2fRobot" target="_top" title="This robot analyzes the results contained in multiple A2F.nc files." alt="" coords="646,39,764,57"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="216,75,377,92"/>
 </map><dl class="py attribute">
 <dt id="abipy.eph.a2f.A2fRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'A2F'</span></em><a class="headerlink" href="#abipy.eph.a2f.A2fRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -1348,9 +1349,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-7351123b0ff8ae961bfbb3e581df285771c30082.png" alt="Inheritance diagram of A2fReader" usemap="#inheritancee4f3900f8b" class="inheritance graphviz" /></div>
 <map id="inheritancee4f3900f8b" name="inheritancee4f3900f8b">
-<area shape="rect" id="node5" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="560,14,667,26"/>
-<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="298,25,382,37"/>
-<area shape="rect" id="node4" href="#abipy.eph.a2f.A2fReader" target="_top" title="Reads data from the EPH.nc file and constructs objects." alt="" coords="689,14,766,26"/>
+<area shape="rect" id="node5" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="559,13,667,24"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="297,24,381,35"/>
+<area shape="rect" id="node4" href="#abipy.eph.a2f.A2fReader" target="_top" title="Reads data from the EPH.nc file and constructs objects." alt="" coords="689,13,766,24"/>
 </map><dl class="py method">
 <dt id="abipy.eph.a2f.A2fReader.read_edos">
 <code class="sig-name descname"><span class="pre">read_edos</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/a2f.html#A2fReader.read_edos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.a2f.A2fReader.read_edos" title="Permalink to this definition">¶</a></dt>
@@ -1483,7 +1484,7 @@ the user to generate matplotlib plots related to e-ph interaction.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-da729a057d4327380a11002442f873b010680124.png" alt="Inheritance diagram of EphPlotter" usemap="#inheritancea014ad6cf9" class="inheritance graphviz" /></div>
 <map id="inheritancea014ad6cf9" name="inheritancea014ad6cf9">
-<area shape="rect" id="node1" href="#abipy.eph.eph_plotter.EphPlotter" target="_top" title="This object provides methods to plot electron and phonons for a single system." alt="" coords="5,5,216,31"/>
+<area shape="rect" id="node1" href="#abipy.eph.eph_plotter.EphPlotter" target="_top" title="This object provides methods to plot electron and phonons for a single system." alt="" coords="5,5,219,29"/>
 </map><dl class="py method">
 <dt id="abipy.eph.eph_plotter.EphPlotter.from_ddb">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_ddb</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ddb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ebands_kpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ebands_kmesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph_plotter.html#EphPlotter.from_ddb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.eph_plotter.EphPlotter.from_ddb" title="Permalink to this definition">¶</a></dt>
@@ -2119,9 +2120,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-a9238185f605534781af7d99622f4a2861a05441.png" alt="Inheritance diagram of RtaRobot" usemap="#inheritancebf0918b5f5" class="inheritance graphviz" /></div>
 <map id="inheritancebf0918b5f5" name="inheritancebf0918b5f5">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="454,41,573,60"/>
-<area shape="rect" id="node5" href="#abipy.eph.rta.RtaRobot" target="_top" title="This robot analyzes the results contained in multiple RTA.nc files." alt="" coords="648,23,764,42"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="217,41,379,60"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="453,39,572,57"/>
+<area shape="rect" id="node5" href="#abipy.eph.rta.RtaRobot" target="_top" title="This robot analyzes the results contained in multiple RTA.nc files." alt="" coords="648,22,764,39"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="216,39,378,57"/>
 </map><dl class="py attribute">
 <dt id="abipy.eph.rta.RtaRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'RTA'</span></em><a class="headerlink" href="#abipy.eph.rta.RtaRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -2758,11 +2759,11 @@ Provides methods to analyze and plot results.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-64de94f881258501367b96a128c0d20ab8c8d6a9.png" alt="Inheritance diagram of SigEPhFile" usemap="#inheritancec955d9a210" class="inheritance graphviz" /></div>
 <map id="inheritancec955d9a210" name="inheritancec955d9a210">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="311,152,507,177"/>
-<area shape="rect" id="node7" href="#abipy.eph.sigeph.SigEPhFile" target="_top" title="This file contains the Fan&#45;Migdal Debye&#45;Waller self&#45;energy, the |ElectronBands| on the k&#45;mesh." alt="" coords="577,79,763,104"/>
-<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="302,103,517,128"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="289,5,529,30"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="305,54,513,79"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="310,147,505,170"/>
+<area shape="rect" id="node7" href="#abipy.eph.sigeph.SigEPhFile" target="_top" title="This file contains the Fan&#45;Migdal Debye&#45;Waller self&#45;energy, the |ElectronBands| on the k&#45;mesh." alt="" coords="575,76,763,100"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="300,100,516,123"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="287,5,528,29"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="303,52,512,76"/>
 </map><dl class="py attribute">
 <dt id="abipy.eph.sigeph.SigEPhFile.marker_spin">
 <code class="sig-name descname"><span class="pre">marker_spin</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{0:</span> <span class="pre">'^',</span> <span class="pre">1:</span> <span class="pre">'v'}</span></em><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.marker_spin" title="Permalink to this definition">¶</a></dt>
@@ -3835,9 +3836,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-d7f5b052f2800489a643894d9eeacd9518bb9c3f.png" alt="Inheritance diagram of SigEPhRobot" usemap="#inheritancecd76e18211" class="inheritance graphviz" /></div>
 <map id="inheritancecd76e18211" name="inheritancecd76e18211">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="435,39,548,57"/>
-<area shape="rect" id="node5" href="#abipy.eph.sigeph.SigEPhRobot" target="_top" title="This robot analyzes the results contained in multiple SIGEPH.nc files." alt="" coords="620,22,764,40"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="208,39,363,57"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="434,38,547,55"/>
+<area shape="rect" id="node5" href="#abipy.eph.sigeph.SigEPhRobot" target="_top" title="This robot analyzes the results contained in multiple SIGEPH.nc files." alt="" coords="619,21,764,38"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="207,38,362,55"/>
 </map><dl class="py attribute">
 <dt id="abipy.eph.sigeph.SigEPhRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'SIGEPH'</span></em><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -4642,9 +4643,9 @@ Default: False</p></td>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-990e59d7e1fc240b73f2f0026adaadb96cd7cd7c.png" alt="Inheritance diagram of SigmaPhReader" usemap="#inheritancee22e7005ea" class="inheritance graphviz" /></div>
 <map id="inheritancee22e7005ea" name="inheritancee22e7005ea">
-<area shape="rect" id="node4" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="543,14,646,25"/>
-<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="288,25,370,36"/>
-<area shape="rect" id="node5" href="#abipy.eph.sigeph.SigmaPhReader" target="_top" title="Reads data from file and constructs objects." alt="" coords="668,14,766,25"/>
+<area shape="rect" id="node4" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="542,13,646,24"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="288,24,369,34"/>
+<area shape="rect" id="node5" href="#abipy.eph.sigeph.SigmaPhReader" target="_top" title="Reads data from file and constructs objects." alt="" coords="667,13,766,24"/>
 </map><dl class="py method">
 <dt id="abipy.eph.sigeph.SigmaPhReader.get_sigma_skb_kpoint">
 <code class="sig-name descname"><span class="pre">get_sigma_skb_kpoint</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.get_sigma_skb_kpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.get_sigma_skb_kpoint" title="Permalink to this definition">¶</a></dt>
@@ -5286,7 +5287,7 @@ working directory is created. Return path to the notebook.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 01, 2021.
+        Last updated on Jun 16, 2021.
       </span>
 
     </p>

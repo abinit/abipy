@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -245,9 +246,9 @@
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-7d29def371805e4519a64ae679cf30c065708af0.png" alt="Inheritance diagram of HistFile" usemap="#inheritance9680d46815" class="inheritance graphviz" /></div>
 <map id="inheritance9680d46815" name="inheritance9680d46815">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="301,55,500,80"/>
-<area shape="rect" id="node5" href="#abipy.dynamics.hist.HistFile" target="_top" title="File with the history of a structural relaxation or molecular dynamics calculation." alt="" coords="557,31,744,56"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,5,509,31"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="303,53,501,77"/>
+<area shape="rect" id="node5" href="#abipy.dynamics.hist.HistFile" target="_top" title="File with the history of a structural relaxation or molecular dynamics calculation." alt="" coords="560,29,745,53"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,5,512,29"/>
 </map><dl class="py method">
 <dt id="abipy.dynamics.hist.HistFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -610,9 +611,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-5f6ea2580281b29a5608b1057cb340d72ad98df6.png" alt="Inheritance diagram of HistRobot" usemap="#inheritance457e71f96e" class="inheritance graphviz" /></div>
 <map id="inheritance457e71f96e" name="inheritance457e71f96e">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="442,4,567,24"/>
-<area shape="rect" id="node4" href="#abipy.dynamics.hist.HistRobot" target="_top" title="This robot analyzes the results contained in multiple HIST.nc_ files." alt="" coords="605,4,764,24"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="231,4,404,24"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="442,4,569,23"/>
+<area shape="rect" id="node4" href="#abipy.dynamics.hist.HistRobot" target="_top" title="This robot analyzes the results contained in multiple HIST.nc_ files." alt="" coords="607,4,764,23"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="231,4,404,23"/>
 </map><dl class="py attribute">
 <dt id="abipy.dynamics.hist.HistRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'HIST'</span></em><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -795,8 +796,8 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-5480188098bc929ffc8d21f45b7126d6fb4d6409.png" alt="Inheritance diagram of HistReader" usemap="#inheritance9a55362006" class="inheritance graphviz" /></div>
 <map id="inheritance9a55362006" name="inheritance9a55362006">
-<area shape="rect" id="node1" href="#abipy.dynamics.hist.HistReader" target="_top" title="This object reads data from the HIST file." alt="" coords="613,4,764,22"/>
-<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="445,4,578,22"/>
+<area shape="rect" id="node1" href="#abipy.dynamics.hist.HistReader" target="_top" title="This object reads data from the HIST file." alt="" coords="614,4,764,21"/>
+<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="446,4,579,21"/>
 </map><dl class="py method">
 <dt id="abipy.dynamics.hist.HistReader.num_steps">
 <code class="sig-name descname"><span class="pre">num_steps</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.num_steps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.num_steps" title="Permalink to this definition">¶</a></dt>
@@ -863,7 +864,7 @@ and the list of pressures in GPa unit.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 01, 2021.
+        Last updated on Jun 16, 2021.
       </span>
 
     </p>

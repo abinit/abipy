@@ -1,5 +1,5 @@
 <map id="inheritance2f43c8a51a" name="inheritance2f43c8a51a">
-<area shape="rect" id="node1" href="#abipy.abio.outputs.AboRobot" target="_top" title="This robot analyzes the results contained in multiple Abinit output files." alt="" coords="612,4,764,25"/>
-<area shape="rect" id="node2" href="#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="446,4,574,25"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="234,4,408,25"/>
+<area shape="rect" id="node1" href="#abipy.abio.outputs.AboRobot" target="_top" title="This robot analyzes the results contained in multiple Abinit output files." alt="" coords="611,4,764,23"/>
+<area shape="rect" id="node2" href="#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="445,4,573,23"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,4,407,23"/>
 </map>

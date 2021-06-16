@@ -1,4 +1,4 @@
 <map id="inheritance5d51cbb43e" name="inheritance5d51cbb43e">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="5,5,216,31"/>
-<area shape="rect" id="node2" href="#abipy.electrons.ebands.ElectronBands" target="_top" title="Object storing the electron band structure." alt="" coords="264,5,508,31"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="5,5,218,29"/>
+<area shape="rect" id="node2" href="#abipy.electrons.ebands.ElectronBands" target="_top" title="Object storing the electron band structure." alt="" coords="266,5,514,29"/>
 </map>

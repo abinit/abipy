@@ -40,7 +40,7 @@ WARNING: The API could change!
 
  .. code-block:: none
 
-    <ScfTask, node_id=401193, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmplqb9jr_4/w1/t0>: setting prtwf to -1
+    <ScfTask, node_id=401975, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpjkrbx94a/w1/t0>: setting prtwf to -1
 
 
 
@@ -221,7 +221,7 @@ WARNING: The API could change!
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.826 seconds)
+   **Total running time of the script:** ( 0 minutes  0.567 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_relax_and_ebands.py:

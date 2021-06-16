@@ -1,6 +1,6 @@
 <map id="inheritance9680d46815" name="inheritance9680d46815">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="301,55,500,80"/>
-<area shape="rect" id="node5" href="#abipy.dynamics.hist.HistFile" target="_top" title="File with the history of a structural relaxation or molecular dynamics calculation." alt="" coords="557,31,744,56"/>
-<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="35,55,214,80"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,5,509,31"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="303,53,501,77"/>
+<area shape="rect" id="node5" href="#abipy.dynamics.hist.HistFile" target="_top" title="File with the history of a structural relaxation or molecular dynamics calculation." alt="" coords="560,29,745,53"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="35,53,214,77"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,5,512,29"/>
 </map>

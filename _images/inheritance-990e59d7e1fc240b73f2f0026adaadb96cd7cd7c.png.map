@@ -1,9 +1,9 @@
 <map id="inheritancee22e7005ea" name="inheritancee22e7005ea">
-<area shape="rect" id="node1" title="Mixin class that provides methods for reading k&#45;point data from a netcdf" alt="" coords="273,2,385,14"/>
-<area shape="rect" id="node2" title="This object reads band structure data from a netcdf_ file." alt="" coords="406,14,521,25"/>
-<area shape="rect" id="node4" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="543,14,646,25"/>
-<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="288,25,370,36"/>
-<area shape="rect" id="node5" href="#abipy.eph.sigeph.SigmaPhReader" target="_top" title="Reads data from file and constructs objects." alt="" coords="668,14,766,25"/>
-<area shape="rect" id="node6" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="138,25,252,36"/>
-<area shape="rect" id="node7" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="2,25,116,36"/>
+<area shape="rect" id="node1" title="Mixin class that provides methods for reading k&#45;point data from a netcdf" alt="" coords="273,2,384,13"/>
+<area shape="rect" id="node2" title="This object reads band structure data from a netcdf_ file." alt="" coords="405,13,520,24"/>
+<area shape="rect" id="node4" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="542,13,646,24"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="288,24,369,34"/>
+<area shape="rect" id="node5" href="#abipy.eph.sigeph.SigmaPhReader" target="_top" title="Reads data from file and constructs objects." alt="" coords="667,13,766,24"/>
+<area shape="rect" id="node6" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="137,24,251,34"/>
+<area shape="rect" id="node7" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="2,24,116,34"/>
 </map>

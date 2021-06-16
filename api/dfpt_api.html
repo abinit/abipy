@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -291,10 +292,10 @@ None, if the netcdf file does not contain the IFCs.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-6363edd7ee2a491b4e82b4ae0126b4d7dcdedf18.png" alt="Inheritance diagram of AnaddbNcFile" usemap="#inheritance8defe6c584" class="inheritance graphviz" /></div>
 <map id="inheritance8defe6c584" name="inheritance8defe6c584">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="294,102,488,126"/>
-<area shape="rect" id="node6" href="#abipy.dfpt.anaddbnc.AnaddbNcFile" target="_top" title="AnaddbNcFile provides a high&#45;level interface to the data stored in the anaddb.nc file." alt="" coords="544,53,763,78"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="285,53,497,78"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="288,5,494,30"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="293,98,485,121"/>
+<area shape="rect" id="node6" href="#abipy.dfpt.anaddbnc.AnaddbNcFile" target="_top" title="AnaddbNcFile provides a high&#45;level interface to the data stored in the anaddb.nc file." alt="" coords="542,52,763,75"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="283,52,496,75"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="287,5,492,28"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -443,9 +444,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-74a7afc2ec8198247a96e49741999cfaf5bbcf78.png" alt="Inheritance diagram of AnaddbNcRobot" usemap="#inheritance78c7737bde" class="inheritance graphviz" /></div>
 <map id="inheritance78c7737bde" name="inheritance78c7737bde">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="425,4,546,23"/>
-<area shape="rect" id="node4" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot" target="_top" title="This robot analyzes the results contained in multiple anaddb.nc files." alt="" coords="582,4,764,23"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="222,4,388,23"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="423,4,545,22"/>
+<area shape="rect" id="node4" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot" target="_top" title="This robot analyzes the results contained in multiple anaddb.nc files." alt="" coords="581,4,764,22"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="221,4,387,22"/>
 </map><dl class="py attribute">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'anaddb'</span></em><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -902,9 +903,9 @@ as well as methods to compute phonon band structures, phonon DOS, thermodynamic 
 <p class="rubric">Inheritance</p>
 <div class="graphviz"><img src="../_images/inheritance-b3521b97c4455a6f77c5c9146ccd62762e86eaf3.png" alt="Inheritance diagram of DdbFile" usemap="#inheritancecb0cf3a7e1" class="inheritance graphviz" /></div>
 <map id="inheritancecb0cf3a7e1" name="inheritancecb0cf3a7e1">
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,104,509,129"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="295,55,506,80"/>
-<area shape="rect" id="node6" href="#abipy.dfpt.ddb.DdbFile" target="_top" title="This object provides an interface to the DDB_ file produced by ABINIT" alt="" coords="557,55,709,80"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,101,512,125"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="296,53,508,77"/>
+<area shape="rect" id="node6" href="#abipy.dfpt.ddb.DdbFile" target="_top" title="This object provides an interface to the DDB_ file produced by ABINIT" alt="" coords="560,53,714,77"/>
 </map><dl class="py attribute">
 <dt id="abipy.dfpt.ddb.DdbFile.Error">
 <code class="sig-name descname"><span class="pre">Error</span></code><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.Error" title="Permalink to this definition">¶</a></dt>
@@ -2405,9 +2406,9 @@ and have computed with different parameters e.g. qmesh, tsmear, ecut ….</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-640bf4ed9b324c3b55c8d6b4608b03f1acac677a.png" alt="Inheritance diagram of DdbRobot" usemap="#inheritance0460c10005" class="inheritance graphviz" /></div>
 <map id="inheritance0460c10005" name="inheritance0460c10005">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="457,4,587,25"/>
-<area shape="rect" id="node4" href="#abipy.dfpt.ddb.DdbRobot" target="_top" title="This robot analyzes the results contained in multiple DDB files." alt="" coords="627,4,764,25"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="240,4,418,25"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="456,4,588,24"/>
+<area shape="rect" id="node4" href="#abipy.dfpt.ddb.DdbRobot" target="_top" title="This robot analyzes the results contained in multiple DDB files." alt="" coords="627,4,764,24"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="238,4,417,24"/>
 </map><dl class="py attribute">
 <dt id="abipy.dfpt.ddb.DdbRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'DDB'</span></em><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -3096,10 +3097,10 @@ This file contains Grunesein parameters computed via finite difference.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-47c2a7df0391ecffc85fde03a02863f39e86cc55.png" alt="Inheritance diagram of GrunsNcFile" usemap="#inheritance5d50b201b3" class="inheritance graphviz" /></div>
 <map id="inheritance5d50b201b3" name="inheritance5d50b201b3">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="298,103,494,128"/>
-<area shape="rect" id="node6" href="#abipy.dfpt.gruneisen.GrunsNcFile" target="_top" title="This object provides an interface to the ``GRUNS.nc`` file produced by abinit." alt="" coords="551,54,763,79"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="288,54,503,79"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="292,5,500,30"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="297,99,491,123"/>
+<area shape="rect" id="node6" href="#abipy.dfpt.gruneisen.GrunsNcFile" target="_top" title="This object provides an interface to the ``GRUNS.nc`` file produced by abinit." alt="" coords="549,52,763,76"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="287,52,502,76"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="290,5,498,29"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -3661,8 +3662,8 @@ It provides helper functions to access the most important quantities.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-aa3c7237b36deda9614223eb19895b945c0a017f.png" alt="Inheritance diagram of GrunsReader" usemap="#inheritanced0ee4d5629" class="inheritance graphviz" /></div>
 <map id="inheritanced0ee4d5629" name="inheritanced0ee4d5629">
-<area shape="rect" id="node1" href="#abipy.dfpt.gruneisen.GrunsReader" target="_top" title="This object reads the results stored in the GRUNS.nc file produced by ABINIT." alt="" coords="606,4,764,22"/>
-<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="440,4,571,22"/>
+<area shape="rect" id="node1" href="#abipy.dfpt.gruneisen.GrunsReader" target="_top" title="This object reads the results stored in the GRUNS.nc file produced by ABINIT." alt="" coords="604,4,764,21"/>
+<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="439,4,570,21"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.gruneisen.GrunsReader.read_doses">
 <code class="sig-name descname"><span class="pre">read_doses</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsReader.read_doses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsReader.read_doses" title="Permalink to this definition">¶</a></dt>
@@ -6583,11 +6584,11 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-d15389465c13996bf763271ffec02b854bde39a9.png" alt="Inheritance diagram of PhbstFile" usemap="#inheritancee7492c30a8" class="inheritance graphviz" /></div>
 <map id="inheritancee7492c30a8" name="inheritancee7492c30a8">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="309,152,506,177"/>
-<area shape="rect" id="node7" href="#abipy.dfpt.phonons.PhbstFile" target="_top" title="Object used to access data stored in the PHBST.nc file produced by ABINIT." alt="" coords="574,79,763,104"/>
-<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="300,103,516,128"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_PhononBands" target="_top" title="Mixin class for |AbinitNcFile| containing phonon data." alt="" coords="289,5,526,30"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="303,54,512,79"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="309,147,505,171"/>
+<area shape="rect" id="node7" href="#abipy.dfpt.phonons.PhbstFile" target="_top" title="Object used to access data stored in the PHBST.nc file produced by ABINIT." alt="" coords="573,76,763,100"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="299,100,515,123"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_PhononBands" target="_top" title="Mixin class for |AbinitNcFile| containing phonon data." alt="" coords="288,5,526,29"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="302,53,511,76"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.phonons.PhbstFile.to_string">
 <code class="sig-name descname"><span class="pre">to_string</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.to_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.to_string" title="Permalink to this definition">¶</a></dt>
@@ -7490,10 +7491,10 @@ Provides helper function to visualize/extract data.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-aac73c757786b7af4e09bcdb2ad1f832a235d741.png" alt="Inheritance diagram of PhdosFile" usemap="#inheritance39e463df1c" class="inheritance graphviz" /></div>
 <map id="inheritance39e463df1c" name="inheritance39e463df1c">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="301,104,500,129"/>
-<area shape="rect" id="node6" href="#abipy.dfpt.phonons.PhdosFile" target="_top" title="Container object storing the different DOSes stored in the" alt="" coords="557,55,751,80"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,55,509,80"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="295,5,506,31"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="303,101,501,125"/>
+<area shape="rect" id="node6" href="#abipy.dfpt.phonons.PhdosFile" target="_top" title="Container object storing the different DOSes stored in the" alt="" coords="560,53,756,77"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,53,512,77"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="296,5,508,29"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.phonons.PhdosFile.close">
 <code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.close" title="Permalink to this definition">¶</a></dt>
@@ -8392,8 +8393,8 @@ Does not include electronic entropic contributions for metals.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-fa8df8456faa2bcdee0d1f6e5e6989a71df1f05f.png" alt="Inheritance diagram of QHA" usemap="#inheritance3d5fb7ef7d" class="inheritance graphviz" /></div>
 <map id="inheritance3d5fb7ef7d" name="inheritance3d5fb7ef7d">
-<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,31"/>
-<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from electronic and phonon calculations" alt="" coords="239,5,375,31"/>
+<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,29"/>
+<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from electronic and phonon calculations" alt="" coords="239,5,376,29"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.qha.QHA.from_files">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gsr_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phdos_paths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.from_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.from_files" title="Permalink to this definition">¶</a></dt>
@@ -8465,8 +8466,8 @@ Does not include electronic entropic contributions for metals.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-d32394034ff687d76d4522cf1ddb519c33b50f1c.png" alt="Inheritance diagram of QHA3PF" usemap="#inheritance22c36fa5e9" class="inheritance graphviz" /></div>
 <map id="inheritance22c36fa5e9" name="inheritance22c36fa5e9">
-<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,31"/>
-<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA3PF" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from several electronic energies at different" alt="" coords="239,5,399,31"/>
+<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,29"/>
+<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA3PF" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from several electronic energies at different" alt="" coords="239,5,400,29"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.qha.QHA3PF.from_files">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gsr_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phdos_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind_doses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3PF.from_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3PF.from_files" title="Permalink to this definition">¶</a></dt>
@@ -8543,8 +8544,8 @@ Does not include electronic entropic contributions for metals.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-59d809776006cdc9641e11aae3dfe9c3795d86bc.png" alt="Inheritance diagram of QHA3P" usemap="#inheritance2ce23cbfaa" class="inheritance graphviz" /></div>
 <map id="inheritance2ce23cbfaa" name="inheritance2ce23cbfaa">
-<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,31"/>
-<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA3P" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from several electronic energies at different" alt="" coords="239,5,391,31"/>
+<area shape="rect" id="node1" href="#abipy.dfpt.qha.AbstractQHA" target="_top" title="Abstract class for the quasi&#45;harmonic approximation analysis." alt="" coords="5,5,191,29"/>
+<area shape="rect" id="node2" href="#abipy.dfpt.qha.QHA3P" target="_top" title="Object to extract results in the quasi&#45;harmonic approximation from several electronic energies at different" alt="" coords="239,5,392,29"/>
 </map><dl class="py method">
 <dt id="abipy.dfpt.qha.QHA3P.from_files">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gsr_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grun_file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind_doses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3P.from_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3P.from_files" title="Permalink to this definition">¶</a></dt>
@@ -9473,7 +9474,7 @@ working directory is created. Return path to the notebook.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 01, 2021.
+        Last updated on Jun 16, 2021.
       </span>
 
     </p>

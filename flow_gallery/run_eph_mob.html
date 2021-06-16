@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -243,8 +244,8 @@ to download the full example code or to run this example in your browser via Bin
 using different dense k/q meshes</p>
 <img alt="run eph mob" class="sphx-glr-single-img" src="../_images/sphx_glr_run_eph_mob_001.png" />
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;KerangeTask, node_id=401287, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmp91u6nv6r/w2/t0&gt;: setting prtwf to -1
-&lt;KerangeTask, node_id=401291, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmp91u6nv6r/w3/t0&gt;: setting prtwf to -1
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;KerangeTask, node_id=402069, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpzsvzds3a/w2/t0&gt;: setting prtwf to -1
+&lt;KerangeTask, node_id=402073, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpzsvzds3a/w3/t0&gt;: setting prtwf to -1
 </pre></div>
 </div>
 <div class="line-block">
@@ -327,22 +328,28 @@ using different dense k/q meshes</p>
     <span class="c1"># We loop over the dense meshes</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sigma_ngkpt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dense_meshes</span><span class="p">):</span>
         <span class="c1"># Use the kerange trick to generate a WFK file</span>
-        <span class="n">multi</span> <span class="o">=</span> <span class="n">nscf_input</span><span class="o">.</span><span class="n">make_wfk_kerange_inputs</span><span class="p">(</span><span class="n">sigma_kerange</span><span class="o">=</span><span class="n">sigma_kerange</span><span class="p">,</span> <span class="n">sigma_ngkpt</span><span class="o">=</span><span class="n">sigma_ngkpt</span><span class="p">)</span>
+        <span class="n">multi</span> <span class="o">=</span> <span class="n">nscf_input</span><span class="o">.</span><span class="n">make_wfk_kerange_inputs</span><span class="p">(</span><span class="n">sigma_kerange</span><span class="o">=</span><span class="n">sigma_kerange</span><span class="p">,</span>
+                                                   <span class="n">sigma_ngkpt</span><span class="o">=</span><span class="n">sigma_ngkpt</span><span class="p">)</span>
         <span class="n">kerange_input</span><span class="p">,</span> <span class="n">wfk_input</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
 
         <span class="n">work_eph</span> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.nodes.Node" title="abipy.flowtk.nodes.Node" class="sphx-glr-backref-module-abipy-flowtk-nodes sphx-glr-backref-type-py-class"><span class="n">flowtk</span><span class="o">.</span><span class="n">Work</span></a><span class="p">()</span>
         <span class="n">work_eph</span><span class="o">.</span><span class="n">register_kerange_task</span><span class="p">(</span><span class="n">kerange_input</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">work0</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
-        <span class="n">work_eph</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">wfk_input</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">work0</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">,</span> <span class="n">work_eph</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="s2">&quot;KERANGE.nc&quot;</span><span class="p">})</span>
+        <span class="n">work_eph</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">wfk_input</span><span class="p">,</span>
+                                    <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">work0</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">,</span> <span class="n">work_eph</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="s2">&quot;KERANGE.nc&quot;</span><span class="p">})</span>
 
-        <span class="c1"># Generate the input file for the transport calculation</span>
-        <span class="n">eph_input</span> <span class="o">=</span> <span class="n">wfk_input</span><span class="o">.</span><span class="n">make_eph_transport_input</span><span class="p">(</span><span class="n">ddb_ngqpt</span><span class="o">=</span><span class="n">ddb_ngqpt</span><span class="p">,</span> <span class="n">sigma_erange</span><span class="o">=</span><span class="n">sigma_erange</span><span class="p">,</span>
-                                                       <span class="n">tmesh</span><span class="o">=</span><span class="n">tmesh</span><span class="p">,</span> <span class="n">eph_ngqpt_fine</span><span class="o">=</span><span class="n">sigma_ngkpt</span><span class="p">,</span> <span class="n">ibte_prep</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Generate the input file for the transport calculation.</span>
+        <span class="c1"># Use ibte_prep to activate iterative BTE.</span>
+        <span class="n">eph_input</span> <span class="o">=</span> <span class="n">wfk_input</span><span class="o">.</span><span class="n">make_eph_transport_input</span><span class="p">(</span><span class="n">ddb_ngqpt</span><span class="o">=</span><span class="n">ddb_ngqpt</span><span class="p">,</span>
+                                                       <span class="n">sigma_erange</span><span class="o">=</span><span class="n">sigma_erange</span><span class="p">,</span>
+                                                       <span class="n">tmesh</span><span class="o">=</span><span class="n">tmesh</span><span class="p">,</span>
+                                                       <span class="n">eph_ngqpt_fine</span><span class="o">=</span><span class="n">sigma_ngkpt</span><span class="p">,</span> <span class="n">ibte_prep</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="c1"># We compute the phonon dispersion to be able to check they are ok</span>
+        <span class="c1"># We compute the phonon dispersion in the EPH code to be able to check they are ok.</span>
         <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">eph_input</span><span class="o">.</span><span class="n">set_qpath</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
 
-        <span class="n">work_eph</span><span class="o">.</span><span class="n">register_eph_task</span><span class="p">(</span><span class="n">eph_input</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">work_eph</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">,</span> <span class="n">ph_work</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;DDB&quot;</span><span class="p">,</span> <span class="s2">&quot;DVDB&quot;</span><span class="p">]})</span>
+        <span class="n">work_eph</span><span class="o">.</span><span class="n">register_eph_task</span><span class="p">(</span><span class="n">eph_input</span><span class="p">,</span>
+                                   <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">work_eph</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">,</span> <span class="n">ph_work</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;DDB&quot;</span><span class="p">,</span> <span class="s2">&quot;DVDB&quot;</span><span class="p">]})</span>
 
         <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work_eph</span><span class="p">)</span>
 
@@ -375,7 +382,7 @@ using different dense k/q meshes</p>
     <a href="https://docs.python.org/3/library/sys.html#sys.exit" title="sys.exit" class="sphx-glr-backref-module-sys sphx-glr-backref-type-py-function"><span class="n">sys</span><span class="o">.</span><span class="n">exit</span></a><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  3.435 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  3.692 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-eph-mob-py">
 <div class="binder-badge docutils container">
 <a class="reference external image-reference" href="https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_eph_mob.ipynb"><img alt="Launch binder" src="../_images/binder_badge_logo.svg" width="150px" /></a>
@@ -406,7 +413,7 @@ using different dense k/q meshes</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 01, 2021.
+        Last updated on Jun 16, 2021.
       </span>
 
     </p>

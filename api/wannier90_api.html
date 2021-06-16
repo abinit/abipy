@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
   <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
   <link rel="stylesheet" href="../_static/gallery-binder.css" type="text/css" />
@@ -251,12 +252,12 @@ calling wannier90 in library mode.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-6e8d7dfdc531d276e35f43020b03189f87e95397.png" alt="Inheritance diagram of AbiwanFile" usemap="#inheritanceb5e4c480bc" class="inheritance graphviz" /></div>
 <map id="inheritanceb5e4c480bc" name="inheritanceb5e4c480bc">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="296,191,483,215"/>
-<area shape="rect" id="node8" href="#abipy.wannier90.abiwan.AbiwanFile" target="_top" title="File produced by Abinit with the unitary matrices obtained by" alt="" coords="548,98,763,122"/>
-<area shape="rect" id="node7" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="287,144,491,168"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="275,5,503,29"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="295,51,483,75"/>
-<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="290,98,488,122"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="295,184,480,207"/>
+<area shape="rect" id="node8" href="#abipy.wannier90.abiwan.AbiwanFile" target="_top" title="File produced by Abinit with the unitary matrices obtained by" alt="" coords="546,95,763,117"/>
+<area shape="rect" id="node7" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="285,139,490,162"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="273,5,501,27"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="293,50,481,72"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="288,95,486,117"/>
 </map><dl class="py method">
 <dt id="abipy.wannier90.abiwan.AbiwanFile.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/wannier90/abiwan.html#AbiwanFile.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.wannier90.abiwan.AbiwanFile.from_file" title="Permalink to this definition">¶</a></dt>
@@ -510,8 +511,8 @@ It provides helper function to access the most important quantities.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-1b9fb32c179806750515756d9b1673080f10aa70.png" alt="Inheritance diagram of AbiwanReader" usemap="#inheritance2fdd3fd955" class="inheritance graphviz" /></div>
 <map id="inheritance2fdd3fd955" name="inheritance2fdd3fd955">
-<area shape="rect" id="node5" href="#abipy.wannier90.abiwan.AbiwanReader" target="_top" title="This object reads the results stored in the ABIWAN file produced by ABINIT after having" alt="" coords="634,16,765,29"/>
-<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="337,29,432,42"/>
+<area shape="rect" id="node5" href="#abipy.wannier90.abiwan.AbiwanReader" target="_top" title="This object reads the results stored in the ABIWAN file produced by ABINIT after having" alt="" coords="633,15,765,28"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="336,28,431,40"/>
 </map></dd></dl>
 
 <dl class="py class">
@@ -522,9 +523,9 @@ It provides helper function to access the most important quantities.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-81767236c0d276f575643f8afcdbf1195303ff29.png" alt="Inheritance diagram of AbiwanRobot" usemap="#inheritanced09d992b8d" class="inheritance graphviz" /></div>
 <map id="inheritanced09d992b8d" name="inheritanced09d992b8d">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="419,38,528,55"/>
-<area shape="rect" id="node5" href="#abipy.wannier90.abiwan.AbiwanRobot" target="_top" title="This robot analyzes the results contained in multiple ABIWAN.nc files." alt="" coords="598,21,764,38"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="200,38,350,55"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="418,36,527,53"/>
+<area shape="rect" id="node5" href="#abipy.wannier90.abiwan.AbiwanRobot" target="_top" title="This robot analyzes the results contained in multiple ABIWAN.nc files." alt="" coords="597,20,764,36"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="199,36,348,53"/>
 </map><dl class="py attribute">
 <dt id="abipy.wannier90.abiwan.AbiwanRobot.EXT">
 <code class="sig-name descname"><span class="pre">EXT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'ABIWAN'</span></em><a class="headerlink" href="#abipy.wannier90.abiwan.AbiwanRobot.EXT" title="Permalink to this definition">¶</a></dt>
@@ -671,9 +672,9 @@ working directory is created. Return path to the notebook.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-c2e1ba63b0862f9bdd767f7b58855358dee6792a.png" alt="Inheritance diagram of Wannier90Input" usemap="#inheritance82c2cc5b65" class="inheritance graphviz" /></div>
 <map id="inheritance82c2cc5b65" name="inheritance82c2cc5b65">
-<area shape="rect" id="node1" href="abio_api.html#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input classes." alt="" coords="499,30,609,44"/>
-<area shape="rect" id="node4" href="#abipy.wannier90.win.Wannier90Input" target="_top" title="This object stores the wannier90 input variables." alt="" coords="638,17,765,31"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="496,3,611,17"/>
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input classes." alt="" coords="497,29,607,42"/>
+<area shape="rect" id="node4" href="#abipy.wannier90.win.Wannier90Input" target="_top" title="This object stores the wannier90 input variables." alt="" coords="636,16,765,29"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="495,3,610,16"/>
 </map><dl class="py method">
 <dt id="abipy.wannier90.win.Wannier90Input.from_abinit_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_abinit_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/wannier90/win.html#Wannier90Input.from_abinit_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.wannier90.win.Wannier90Input.from_abinit_file" title="Permalink to this definition">¶</a></dt>
@@ -755,9 +756,9 @@ If None, we use the default high-symmetry k-path defined in the pymatgen databas
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-56d06e2f39a5f34e762e46656128122b69776b46.png" alt="Inheritance diagram of WoutFile" usemap="#inheritancefe6ca5ff52" class="inheritance graphviz" /></div>
 <map id="inheritancefe6ca5ff52" name="inheritancefe6ca5ff52">
-<area shape="rect" id="node5" href="#abipy.wannier90.wout.WoutFile" target="_top" title="Main output file produced by Wannier90" alt="" coords="557,55,760,80"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="292,104,509,129"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="295,55,506,80"/>
+<area shape="rect" id="node5" href="#abipy.wannier90.wout.WoutFile" target="_top" title="Main output file produced by Wannier90" alt="" coords="558,53,763,77"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="291,101,510,125"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="295,53,507,77"/>
 </map><dl class="py method">
 <dt id="abipy.wannier90.wout.WoutFile.close">
 <code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/wannier90/wout.html#WoutFile.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.wannier90.wout.WoutFile.close" title="Permalink to this definition">¶</a></dt>
@@ -917,7 +918,7 @@ working directory is created. Return path to the notebook.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 01, 2021.
+        Last updated on Jun 16, 2021.
       </span>
 
     </p>
