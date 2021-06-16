@@ -10,13 +10,13 @@ Stable version
 --------------
 
 The version at the `Python Package Index <https://pypi.python.org/pypi/abipy>`_ (PyPI) is always 
-the latest **stable** release that can be installed with::
+the latest **stable** release that can be installed in user mode with::
 
-    pip install abipy
+    pip install abipy --user
 
-Note that you may need to install pymatgen_ and other critical dependencies manually.
+Note that you may need to install some optional dependencies manually.
 In this case, please consult the detailed installation instructions provided in the
-`pymatgen howto <http://pymatgen.org/index.html#standard-install>`_ to install pymatgen 
+`pymatgen howto <https://pymatgen.org/installation.html>`_ to install these optional packages
 and then follow the instructions in the :ref:`netcdf4_installation` section.
 
 The installation process is greatly simplified if you install the required 
@@ -86,15 +86,15 @@ Remember that if a package is not available in the official conda repository, yo
 download the package from one of the conda channels or use ``pip install`` if no conda package is available.
 
 Fortunately there are conda channels providing all dependencies needed by AbiPy.
-Now add ``conda-forge``, and ``abinit`` to your conda channels with::
+Now add ``conda-forge`` to your conda channels with::
 
     conda config --add channels conda-forge
-    conda config --add channels abinit
 
-These are the channels from which we will download pymatgen, abipy and abinit.
-Finally, install AbiPy from the abinit-channel_ with::
+This is the channel from which we will download pymatgen, abipy and abinit.
 
-    conda install abipy --channel abinit
+Finally, install AbiPy with::
+
+    conda install abipy 
 
 Once you have completed the installation of AbiPy and pymatgen, open the ipython_ shell and type::
 

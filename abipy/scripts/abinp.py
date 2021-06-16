@@ -36,19 +36,24 @@ def get_pseudotable(options):
 
     try:
         from pseudo_dojo import OfficialTables
+
+        dojo_tables = OfficialTables()
+        if options.usepaw:
+            raise NotImplementedError("PAW table is missing")
+            #pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
+        else:
+            pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
+
+        print("Using pseudos from PseudoDojo table", repr(pseudos))
+
     except ImportError as exc:
+        from abipy.data.hgh_pseudos import HGH_TABLE
+        pseudos = HGH_TABLE
         print("PseudoDojo package not installed. Please install it with `pip install pseudo_dojo`")
         print("or use `--pseudos FILE_LIST` to specify the pseudopotentials to use.")
-        raise exc
+        print("Using internal HGH_TABLE!!!!")
+        #raise exc
 
-    dojo_tables = OfficialTables()
-    if options.usepaw:
-        raise NotImplementedError("PAW table is missing")
-        #pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
-    else:
-        pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
-
-    print("Using pseudos from PseudoDojo table", repr(pseudos))
     return pseudos
 
 
