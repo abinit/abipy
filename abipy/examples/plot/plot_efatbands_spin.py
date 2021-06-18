@@ -32,8 +32,14 @@ print(fbnc_kpath)
 # Plot the electronic fatbands grouped by atomic type.
 fbnc_kpath.plot_fatbands_typeview(ylims=elims, lmax=lmax, tight_layout=True)
 
+# For the plotly version use:
+fbnc_kpath.plotly_fatbands_typeview(ylims=elims, lmax=lmax)
+
 # Plot the electronic fatbands grouped by L.
 fbnc_kpath.plot_fatbands_lview(ylims=elims, lmax=lmax, tight_layout=True)
+
+# For the plotly version use:
+fbnc_kpath.plotly_fatbands_lview(ylims=elims, lmax=lmax)
 
 # Now we read another FATBANDS file produced on 18x18x18 k-mesh
 fbnc_kmesh = abilab.abiopen(abidata.ref_file("ni_666k_FATBANDS.nc"))
@@ -41,17 +47,27 @@ fbnc_kmesh = abilab.abiopen(abidata.ref_file("ni_666k_FATBANDS.nc"))
 # Plot the L-PJDOS grouped by atomic type.
 fbnc_kmesh.plot_pjdos_typeview(xlims=elims, lmax=lmax, tight_layout=True)
 
+# For the plotly version use:
+fbnc_kmesh.plotly_pjdos_typeview(xlims=elims, lmax=lmax)
+
 # Plot the L-PJDOS grouped by L.
 fbnc_kmesh.plot_pjdos_lview(xlims=elims, lmax=lmax, tight_layout=True)
 
+# For the plotly version use:
+fbnc_kmesh.plotly_pjdos_lview(xlims=elims, lmax=lmax)
+
 # Now we use the two netcdf files to produce plots with fatbands + PJDOSEs.
 # The data for the DOS is taken from pjdosfile.
-fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims,
-                                    lmax=lmax, view="type", tight_layout=True)
+fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, lmax=lmax, view="type", tight_layout=True)
+
+# For the plotly version use:
+fbnc_kpath.plotly_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, lmax=lmax, view="type")
 
 # fatbands + PJDOS grouped by L
-fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims,
-                                    lmax=lmax, view="lview", tight_layout=True)
+fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, lmax=lmax, view="lview", tight_layout=True)
+
+# For the plotly version use:
+fbnc_kpath.plotly_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, lmax=lmax, view="lview")
 
 # Close files.
 fbnc_kpath.close()
