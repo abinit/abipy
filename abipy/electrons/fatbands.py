@@ -14,7 +14,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_Elect
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools.numtools import gaussian
 from abipy.tools.plotting import (set_axlims, get_axarray_fig_plt, add_fig_kwargs, get_figs_plotly,
-    get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_set_lims)
+    add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_set_lims)
 
 
 def gaussians_dos(dos, mesh, width, values, energies, weights):
@@ -532,13 +532,13 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to ``e0 = 0``
-            fact:  float used to scale the stripe size.
+            fact: float used to scale the stripe size.
             ax_mat: Matrix of axes, if None a new figure is produced.
             lmax: Maximum L included in plot. None means full set available on file.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
-            fontsize: legend and title fontsize.
+            fontsize: Legend fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -599,12 +599,12 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to ``e0 = 0``
-            fact:  float used to scale the stripe size.
+            fact: float used to scale the stripe size.
             fig: The fig to plot on. None if a new figure should be created.
             lmax: Maximum L included in plot. None means full set available on file.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
             blist: List of band indices for the fatband plot. If None, all bands are included
-            fontsize: legend and title fontsize.
+            fontsize: Legend and subtitle fontsize.
             band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
                            If 0(default), only plot band on the created figure (when fig==None);
                            If 1, plot band on odd_col of ``fig``
@@ -612,10 +612,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         Returns: |plotly.graph_objects.Figure|
         """
         mylsize = self.lsize if lmax is None else lmax + 1
-        # Build or get grid with (nsppol, mylsize) axis.
         nrows, ncols = self.nsppol, mylsize
+        # Build fig with subplots.
         if fig is None:
-            # build fig and align bands and DOS.
             fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows * ncols + 1)),
                                      sharex=True, sharey=True, horizontal_spacing=0.02)
 
@@ -638,14 +637,12 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     title = "%s" % self.l2tex[l]
                 ebands.decorate_plotly(fig, iax=iax)
                 fig.layout.annotations[iax - 1].text = title
+                fig.layout.annotations[iax - 1].font.size = fontsize
 
                 if l != 0:
                     yaxis = 'yaxis%u' % iax
                     fig.layout[yaxis].title.text = ""
                     # Only the first column show labels.
-                    # Trick: Don't change the labels but set their fontsize to 0 otherwise
-                    # also the other axes are affected (likely due to sharey=True).
-                    # fig.layout[yaxis].tickfont.size = 0   # in plotly, this is setted by default
 
                 for ib, band in enumerate(mybands):
                     yup = ebands.eigens[spin, :, band] - e0
@@ -654,7 +651,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                         wlk = self.get_wl_symbol(symbol, spin=spin, band=band) * (fact / 2)
                         w = wlk[l]
                         y1, y2 = yup + w, ydown - w
-                        # Add width around each band. Only the [0,0] plot has the legend.
+                        # Add width around each band. Only the [0,0] plot show the legend.
                         fill_line_opts = {'color': self.symbol2color[symbol], 'width': 0.1}
                         fig.add_scatter(x=x, y=yup, mode='lines', line=fill_line_opts, opacity=self.alpha,
                                         name='', showlegend=False, legendgroup=symbol, row=ply_row, col=ply_col)
@@ -776,7 +773,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
-            fontsize: legend and title fontsize.
+            fontsize: Legend fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -840,7 +837,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             fig: The fig to plot on. None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
             blist: List of band indices for the fatband plot. If None, all bands are included
-            fontsize: legend and title fontsize.
+            fontsize: Legend and subtitle fontsize.
             band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
                            If 0(default), only plot band on the created figure (when fig==None);
                            If 1, plot band on odd_col of ``fig``
@@ -849,10 +846,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """
         mylsize = self.lsize if lmax is None else lmax + 1
 
-        # Get ax_mat and fig.
         nrows, ncols = self.nsppol, self.ntypat
+        # Build fig with (nsppol, ntypat) subplots.
         if fig is None:
-            # build fig and align bands and DOS.
             fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows*ncols+1)),
                                      sharex=True, sharey=True, horizontal_spacing=0.02)
 
@@ -874,6 +870,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                          else "type=%s" % symbol)
                 ebands.decorate_plotly(fig, iax=iax)
                 fig.layout.annotations[iax - 1].text = title
+                fig.layout.annotations[iax - 1].font.size = fontsize
                 if itype != 0:
                     yaxis = 'yaxis%u' % iax
                     fig.layout[yaxis].title.text = ""
@@ -1138,7 +1135,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Same meaning as ``xlims`` but for the y-axis
-            fontsize: Legend and label fontsize
+            fontsize: Legend and subtitle fontsize
 
         Returns: |matplotlib-Figure|
         """
@@ -1293,7 +1290,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             exchange_xy: True if the dos should be plotted on the x axis instead of y.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
             ylims: Same meaning as ``xlims`` but for the y-axis
-            fontsize:  Legend, subtitle and label fontsize.
+            fontsize:  Legend and subtitle fontsize.
             band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
                            If 0(default), only plot dos on the created figure (when fig==None);
                            If 1, plot dos on even_col of ``fig``
@@ -1317,16 +1314,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         mesh -= e0
         edos, symbols_lso = intg.edos, intg.symbols_lso
 
-        # Get grid of axes.
         mylsize = self.lsize if lmax is None else lmax + 1
         nrows = self.nsppol if not combined_spins else 1
         ncols = mylsize
+        # Build fig with subplots.
         if fig is None:
-            # build fig and align bands and DOS.
             fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows * ncols + 1)),
                                      sharex=True, sharey=True, horizontal_spacing=0.02)
 
-        # The code below expectes a matrix of subplots of shape[self.nsppol, self.lsize]
         # If spins are plotted on the same graph (combined_spins), aliased_axis is set to True
         # and comb_s is set to 2 so that [spin=0]//comb_s == [spin=1]//comb_s
         if self.nsppol == 2 and combined_spins:
@@ -1425,20 +1420,19 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                         else:
                             title = self.l2tex[l]
                     fig.layout.annotations[iax - 1].text = title
-                    fig.layout.annotations[iax - 1].font.size = fontsize
                 else:
                     fig.layout.annotations[iax - 1].text = ''
+                fig.layout.annotations[iax - 1].font.size = fontsize
 
                 if with_info:
-                    fig.layout['xaxis%u' % iax].title = dict(text="Energy (eV)", font_size=fontsize)
-                    # Display yticklabels only on the first plot.
+                    fig.layout['xaxis%u' % iax].title = dict(text="Energy (eV)")
+                    # Display y labels only on the first plot.
                     if l == 0:
-                        fig.layout.legend.font.size = fontsize
                         if exchange_xy:
-                            fig.layout['xaxis%u' % iax].title = dict(text='DOS (states/eV)', font_size=fontsize)
+                            fig.layout['xaxis%u' % iax].title = dict(text='DOS (states/eV)')
                         else:
-                            fig.layout['yaxis%u' % iax].title = dict(text='DOS (states/eV)', font_size=fontsize)
-
+                            fig.layout['yaxis%u' % iax].title = dict(text='DOS (states/eV)')
+        fig.layout.legend.font.size = fontsize
         return fig
 
     @add_fig_kwargs
@@ -1621,7 +1615,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             exchange_xy: True if the dos should be plotted on the x axis instead of y.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
             ylims: Same meaning as ``xlims`` but for the y-axis
-            fontsize: Legend, subtitle and label fontsize.
+            fontsize: Legend and subtitle fontsize.
             band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
                            If 0(default), only plot dos on the created figure (when fig==None);
                            If 1, plot dos on even_col of ``fig``
@@ -1647,15 +1641,13 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         mesh -= e0
         edos, symbols_lso = intg.edos, intg.symbols_lso
 
-        # Get grid of subplots in fig.
         nrows = self.nsppol if not combined_spins else 1
         ncols = self.ntypat
+        # Build fig with subplots.
         if fig is None:
-            # build fig and align bands and DOS.
             fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows * ncols + 1)),
                                      sharex=True, sharey=True, horizontal_spacing=0.02)
 
-        # The code below expectes a matrix of subplots of shape[self.nsppol, self.ntypat]
         # If spins are plotted on the same graph (combined_spins), aliased_axis is set to True
         # and comb_s is set to 2 so that [spin=0]//comb_s == [spin=1]//comb_s
         if self.nsppol == 2 and combined_spins:
@@ -1750,20 +1742,20 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     else:
                         title = r"$%s , %s$" % (symbol, self.spin2tex[spin].replace('$','')) if self.nsppol == 2 else symbol
                     fig.layout.annotations[iax - 1].text = title
-                    fig.layout.annotations[iax - 1].font.size = fontsize
                 else:
                     fig.layout.annotations[iax - 1].text = ''
+                fig.layout.annotations[iax - 1].font.size = fontsize
 
-                # Display yticklabels only on the first plot.
+                # Display y labels only on the first plot.
                 if with_info:
-                    fig.layout['xaxis%u' % iax].title = dict(text="Energy (eV)", font_size=fontsize)
+                    fig.layout['xaxis%u' % iax].title = dict(text="Energy (eV)")
                     if isymb == 0:
-                        fig.layout.legend.font.size = fontsize
                         if exchange_xy:
-                            fig.layout['xaxis%u' % iax].title = dict(text='DOS (states/eV)', font_size=fontsize)
+                            fig.layout['xaxis%u' % iax].title = dict(text='DOS (states/eV)')
                         else:
-                            fig.layout['yaxis%u' % iax].title = dict(text='DOS (states/eV)', font_size=fontsize)
+                            fig.layout['yaxis%u' % iax].title = dict(text='DOS (states/eV)')
 
+        fig.layout.legend.font.size = fontsize
         return fig
 
     @add_fig_kwargs
@@ -1785,7 +1777,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             edos_kwargs:
             stacked: True if DOS partial contributions should be stacked on top of each other.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
-            fontsize: Legend and label fontsize.
+            fontsize: Legend fontsize.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
 
@@ -1834,14 +1826,16 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         # Plot bands on fatbands_axmat and PJDOS on pjdos_axmat.
         if view == "lview":
-            self.plot_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat, ylims=ylims, show=False)
+            self.plot_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat,
+                                     fontsize=fontsize, ylims=ylims, show=False)
             pjdosfile.plot_pjdos_lview(e0=e0, lmax=lmax, ax_mat=pjdos_axmat, exchange_xy=True,
                                        stacked=stacked, combined_spins=False, fontsize=fontsize,
                                        with_info=False, with_spin_sign=False, show=False, ylims=ylims,
                                        **edos_kwargs)
 
         elif view == "type":
-            self.plot_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat, ylims=ylims, show=False)
+            self.plot_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat,
+                                        fontsize=fontsize, ylims=ylims, show=False)
             pjdosfile.plot_pjdos_typeview(e0=e0, lmax=lmax, ax_mat=pjdos_axmat, exchange_xy=True,
                                           stacked=stacked, combined_spins=False, fontsize=fontsize,
                                           with_info=False, with_spin_sign=False, show=False, ylims=ylims,
@@ -1881,7 +1875,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             edos_kwargs:
             stacked: True if DOS partial contributions should be stacked on top of each other.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
-            fontsize: Legend, label and subtitles fontsize.
+            fontsize: Legend and subtitle fontsize.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
 
         Returns: |plotly.graph_objects.Figure|
@@ -1903,25 +1897,25 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         if edos_kwargs is None: edos_kwargs = {}
 
-        # Build subplots grid.
         # Define number of columns depending on view
         mylsize = self.lsize if lmax is None else lmax + 1
         #ncols = dict(type=self.ntypat, lview=self.lsize)[view]
         ncols = dict(type=self.ntypat, lview=mylsize)[view]
+        # Build fig with subplots for bands(at odd_col) and dos(at even_col).
         fig, _ = get_figs_plotly(nrows=self.nsppol, ncols=ncols*2, subplot_titles=list(range(1, self.nsppol*ncols*2 + 1)),
                                  sharex=True, sharey=True, horizontal_spacing=0.02, column_widths=width_ratios*ncols)
 
         # Plot bands and PJDOS on fig with kwargs 'band_and_dos=1' .
         if view == "lview":
             self.plotly_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, fig=fig, ylims=ylims,
-                                       band_and_dos=1, show=False)
+                                       fontsize=fontsize, band_and_dos=1, show=False)
             pjdosfile.plotly_pjdos_lview(e0=e0, lmax=lmax, fig=fig, exchange_xy=True, stacked=stacked,
                                        combined_spins=False, fontsize=fontsize, with_info=False,
                                         with_spin_sign=False, ylims=ylims, band_and_dos=1, show=False, **edos_kwargs)
 
         elif view == "type":
             self.plotly_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, fig=fig, ylims=ylims,
-                                          band_and_dos=1, show=False)
+                                          fontsize=fontsize, band_and_dos=1, show=False)
             pjdosfile.plotly_pjdos_typeview(e0=e0, lmax=lmax, fig=fig, exchange_xy=True, stacked=stacked,
                                             combined_spins=False, fontsize=fontsize, with_info=False,
                                             with_spin_sign=False, ylims=ylims, band_and_dos=1, show=False, **edos_kwargs)
