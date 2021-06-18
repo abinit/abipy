@@ -13,7 +13,8 @@ from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools.numtools import gaussian
-from abipy.tools.plotting import set_axlims, get_axarray_fig_plt, add_fig_kwargs
+from abipy.tools.plotting import (set_axlims, get_axarray_fig_plt, add_fig_kwargs, get_figs_plotly,
+    add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_set_lims)
 
 
 def gaussians_dos(dos, mesh, width, values, energies, weights):
@@ -52,6 +53,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     # Markers used for up/down bands (collinear spin)
     marker_spin = {0: "^", 1: "v"}
+    marker_spin_plotly = {0: 5, 1: 6}
 
     # \U starts an eight-character Unicode escape. raw strings do not work in python2.7
     # and we need a latex symbol to avoid errors in matplotlib --> replace myuparrow --> uparrow
@@ -421,6 +423,16 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             #klabel_size=self.klabel_size,
         )
 
+    def eb_plotly_kwargs(self, spin):
+        """
+        Dictionary with the options passed to ``ebands.plot_ax``
+        when plotting a band line with spin index ``spin``.
+        Subclasses can redefine the implementation to customize the plots.
+        """
+        return dict(width=self.linewidth, color=self.linecolor), \
+               dict(marker = dict(size=self.marker_size+5, symbol=self.marker_spin_plotly[spin]))
+        #klabel_size=self.klabel_size,
+
     @add_fig_kwargs
     def plot_fatbands_siteview(self, e0="fermie", view="inequivalent", fact=1.0, fontsize=12,
                                ylims=None, blist=None, **kwargs):
@@ -513,20 +525,20 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     def plot_fatbands_lview(self, e0="fermie", fact=1.0, ax_mat=None, lmax=None,
                             ylims=None, blist=None, fontsize=12, **kwargs):
         """
-        Plot the electronic fatbands grouped by L.
+        Plot the electronic fatbands grouped by L with matplotlib.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to ``e0 = 0``
-            fact:  float used to scale the stripe size.
+            fact: float used to scale the stripe size.
             ax_mat: Matrix of axes, if None a new figure is produced.
             lmax: Maximum L included in plot. None means full set available on file.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
-            fontsize: legend and title fontsize.
+            fontsize: Legend fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -574,6 +586,90 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 set_axlims(ax, ylims, "y")
 
         ax_mat[0, 0].legend(loc="best", fontsize=fontsize, shadow=True)
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly_fatbands_lview(self, e0="fermie", fact=1.0, fig=None, lmax=None,
+                            ylims=None, blist=None, fontsize=12, band_and_dos=0,  **kwargs):
+        """
+        Plot the electronic fatbands grouped by L with plotly.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
+            fact: float used to scale the stripe size.
+            fig: The fig to plot on. None if a new figure should be created.
+            lmax: Maximum L included in plot. None means full set available on file.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+            blist: List of band indices for the fatband plot. If None, all bands are included
+            fontsize: Legend and subtitle fontsize.
+            band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
+                           If 0(default), only plot band on the created figure (when fig==None);
+                           If 1, plot band on odd_col of ``fig``
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        mylsize = self.lsize if lmax is None else lmax + 1
+        nrows, ncols = self.nsppol, mylsize
+        # Build fig with subplots.
+        if fig is None:
+            fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows * ncols + 1)),
+                                     sharex=True, sharey=True, horizontal_spacing=0.02)
+
+        ebands = self.ebands
+        e0 = ebands.get_e0(e0)
+        x = np.arange(self.nkpt)
+        mybands = range(ebands.mband) if blist is None else blist
+
+        for spin in range(self.nsppol):
+            for l in range(mylsize):
+                rcd = PlotlyRowColDesc(spin, l+band_and_dos*l, nrows, ncols*(1+band_and_dos))
+                ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
+
+                line_opts, marker_opts = self.eb_plotly_kwargs(spin)
+                ebands.plotly_traces(fig, e0, rcd=rcd, spin=spin, line_opts=line_opts, **marker_opts)
+
+                if self.nsppol == 2:
+                    title = r"$%s , %s$" % (self.l2tex[l].replace('$',''), self.spin2tex[spin].replace('$',''))
+                else:
+                    title = "%s" % self.l2tex[l]
+                ebands.decorate_plotly(fig, iax=iax)
+                fig.layout.annotations[iax - 1].text = title
+                fig.layout.annotations[iax - 1].font.size = fontsize
+
+                if l != 0:
+                    yaxis = 'yaxis%u' % iax
+                    fig.layout[yaxis].title.text = ""
+                    # Only the first column show labels.
+
+                for ib, band in enumerate(mybands):
+                    yup = ebands.eigens[spin, :, band] - e0
+                    ydown = yup
+                    for symbol in self.symbols:
+                        wlk = self.get_wl_symbol(symbol, spin=spin, band=band) * (fact / 2)
+                        w = wlk[l]
+                        y1, y2 = yup + w, ydown - w
+                        # Add width around each band. Only the [0,0] plot show the legend.
+                        fill_line_opts = {'color': self.symbol2color[symbol], 'width': 0.1}
+                        fig.add_scatter(x=x, y=yup, mode='lines', line=fill_line_opts, opacity=self.alpha,
+                                        name='', showlegend=False, legendgroup=symbol, row=ply_row, col=ply_col)
+                        fig.add_scatter(x=x, y=y1, mode='lines', line=fill_line_opts, opacity=self.alpha,
+                                        name='', showlegend=False, legendgroup=symbol, fill='tonexty', row=ply_row, col=ply_col)
+                        fig.add_scatter(x=x, y=ydown, mode='lines', line=fill_line_opts, opacity=self.alpha,
+                                        name='', showlegend=False, legendgroup=symbol, row=ply_row, col=ply_col)
+                        if (l, spin, ib) == (0, 0, 0):
+                            fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, opacity=self.alpha,
+                                            name=symbol, showlegend=True, legendgroup=symbol, fill='tonexty', row=ply_row, col=ply_col)
+                        else:
+                            fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, opacity=self.alpha,
+                                            name='', showlegend=False, legendgroup=symbol, fill='tonexty', row=ply_row, col=ply_col)
+                        yup, ydown = y1, y2
+
+                plotly_set_lims(fig, ylims, "y", iax=iax)
+
+        fig.layout.legend.font.size = fontsize
         return fig
 
     @add_fig_kwargs
@@ -664,7 +760,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     def plot_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, ax_mat=None, ylims=None,
                               blist=None, fontsize=8, **kwargs):
         """
-        Plot the electronic fatbands grouped by atomic type.
+        Plot the electronic fatbands grouped by atomic type with matplotlib.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -677,7 +773,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
-            fontsize: legend and title fontsize.
+            fontsize: Legend fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -723,6 +819,89 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 set_axlims(ax, ylims, "y")
 
         ax_mat[0, 0].legend(loc="best", fontsize=fontsize, shadow=True)
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None,
+                              blist=None, fontsize=12, band_and_dos=0, **kwargs):
+        """
+        Plot the electronic fatbands grouped by atomic type with plotly.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
+            fact:  float used to scale the stripe size.
+            lmax: Maximum L included in plot. None means full set available on file.
+            fig: The fig to plot on. None if a new figure should be created.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+            blist: List of band indices for the fatband plot. If None, all bands are included
+            fontsize: Legend and subtitle fontsize.
+            band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
+                           If 0(default), only plot band on the created figure (when fig==None);
+                           If 1, plot band on odd_col of ``fig``
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        mylsize = self.lsize if lmax is None else lmax + 1
+
+        nrows, ncols = self.nsppol, self.ntypat
+        # Build fig with (nsppol, ntypat) subplots.
+        if fig is None:
+            fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows*ncols+1)),
+                                     sharex=True, sharey=True, horizontal_spacing=0.02)
+
+        ebands = self.ebands
+        e0 = ebands.get_e0(e0)
+        x = np.arange(self.nkpt)
+        mybands = range(ebands.mband) if blist is None else blist
+
+        for itype, symbol in enumerate(self.symbols):
+            wl_sbk = self.get_wl_symbol(symbol) * (fact / 2)
+            for spin in range(self.nsppol):
+                rcd = PlotlyRowColDesc(spin, itype+band_and_dos*itype, nrows, ncols*(1+band_and_dos))
+                ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
+
+                line_opts, marker_opts = self.eb_plotly_kwargs(spin)
+                ebands.plotly_traces(fig, e0, rcd=rcd, spin=spin, line_opts=line_opts, **marker_opts)
+
+                title = (r"$\text{type=%s, }%s$" % (symbol, self.spin2tex[spin].replace('$','')) if self.nsppol == 2
+                         else "type=%s" % symbol)
+                ebands.decorate_plotly(fig, iax=iax)
+                fig.layout.annotations[iax - 1].text = title
+                fig.layout.annotations[iax - 1].font.size = fontsize
+                if itype != 0:
+                    yaxis = 'yaxis%u' % iax
+                    fig.layout[yaxis].title.text = ""
+
+                # Plot fatbands for given (symbol, spin) and all angular momenta.
+                for band in mybands:
+                    yup = ebands.eigens[spin, :, band] - e0
+                    ydown = yup
+                    for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
+                        # Add width around each band.
+                        w = wl_sbk[l, spin, band]
+                        y1, y2 = yup + w, ydown - w
+                        fill_line_opts = {'color': self.l2color[l], 'width': 0.1}
+                        fig.add_scatter(x=x, y=yup, mode='lines', line=fill_line_opts, name='',
+                                        opacity=self.alpha, showlegend=False, legendgroup=l, row=ply_row, col=ply_col)
+                        fig.add_scatter(x=x, y=y1, mode='lines', line=fill_line_opts, name='', opacity=self.alpha,
+                                        showlegend=False, legendgroup=l, fill='tonexty', row=ply_row, col=ply_col)
+                        fig.add_scatter(x=x, y=ydown, mode='lines', line=fill_line_opts, name='',
+                                        opacity=self.alpha, showlegend=False, legendgroup=l, row=ply_row, col=ply_col)
+                        if (itype, spin, band) == (0, 0, 0):
+                            fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, name=self.l2tex[l],
+                                        opacity=self.alpha, showlegend=True, legendgroup=l, fill='tonexty', row=ply_row, col=ply_col)
+                        else:
+                            fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, name='', opacity=self.alpha,
+                                            showlegend=False, legendgroup=l, fill='tonexty', row=ply_row, col=ply_col)
+                            # Note: could miss a label in the other plots if lmax is not large enough!
+                        yup, ydown = y1, y2
+
+                plotly_set_lims(fig, ylims, "y", iax=iax)
+
+        fig.layout.legend.font.size = fontsize
         return fig
 
     @add_fig_kwargs
@@ -935,7 +1114,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                          stacked=True, combined_spins=True, ax_mat=None, exchange_xy=False,
                          with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs):
         """
-        Plot the PJ-DOS on a linear mesh.
+        Plot the PJ-DOS on a linear mesh with matplotlib.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -956,7 +1135,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Same meaning as ``xlims`` but for the y-axis
-            fontsize: Legend and label fontsize
+            fontsize: Legend and subtitle fontsize
 
         Returns: |matplotlib-Figure|
         """
@@ -1086,12 +1265,182 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return fig
 
+    @add_plotly_fig_kwargs
+    def plotly_pjdos_lview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
+                         stacked=True, combined_spins=True, fig=None, exchange_xy=False, with_info=True,
+                           with_spin_sign=True, xlims=None, ylims=None, fontsize=12, band_and_dos=0, **kwargs):
+        """
+        Plot the PJ-DOS on a linear mesh with plotly.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
+            lmax: Maximum L included in plot. None means full set available on file.
+            method: String defining the method for the computation of the DOS.
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
+            stacked: True if DOS partial contributions should be stacked on top of each other.
+            combined_spins: Define how up/down DOS components should be plotted when nsppol==2.
+                If True, up/down DOSes are plotted on the same figure (positive values for up,
+                negative values for down component)
+                If False, up/down components are plotted on different axes.
+            fig: The fig to plot on. None if a new figure should be created.
+            exchange_xy: True if the dos should be plotted on the x axis instead of y.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+            ylims: Same meaning as ``xlims`` but for the y-axis
+            fontsize:  Legend and subtitle fontsize.
+            band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
+                           If 0(default), only plot dos on the created figure (when fig==None);
+                           If 1, plot dos on even_col of ``fig``
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        try:
+            intg = self.get_dos_integrator(method, step, width)
+        except Exception:
+            msg = traceback.format_exc()
+            msg += ("Error while trying to compute the DOS.\n"
+                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Returning None\n")
+            cprint(msg, "red")
+            return None
+
+        # Get energy mesh from total DOS and define the zero of energy
+        # Note that the mesh is not not spin-dependent.
+        e0 = self.ebands.get_e0(e0)
+        mesh = intg.mesh.copy()
+        mesh -= e0
+        edos, symbols_lso = intg.edos, intg.symbols_lso
+
+        mylsize = self.lsize if lmax is None else lmax + 1
+        nrows = self.nsppol if not combined_spins else 1
+        ncols = mylsize
+        # Build fig with subplots.
+        if fig is None:
+            fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows * ncols + 1)),
+                                     sharex=True, sharey=True, horizontal_spacing=0.02)
+
+        # If spins are plotted on the same graph (combined_spins), aliased_axis is set to True
+        # and comb_s is set to 2 so that [spin=0]//comb_s == [spin=1]//comb_s
+        if self.nsppol == 2 and combined_spins:
+            aliased_axis = True
+            comb_s = 2
+        else:
+            aliased_axis = False
+            comb_s = 1
+
+        spin_sign = +1
+        if not stacked:
+            # Plot PJDOS as lines.
+            for isymb, symbol in enumerate(self.symbols):
+                for spin in range(self.nsppol):
+                    if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                    # Loop over the columns of the grid.
+                    for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
+                        rcd = PlotlyRowColDesc(spin//comb_s, l+band_and_dos*(l+1), nrows, ncols*(1+band_and_dos))
+                        ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
+
+                        # Plot total DOS.
+                        x, y = mesh, spin_sign * edos.spin_dos[spin].values
+                        if exchange_xy: x, y = y, x
+                        label = "Tot"
+                        if ((l, spin, isymb) == (0, 0, 0)) & with_info:
+                            showlegend = True
+                        else:
+                            showlegend = False
+                        fig.add_scatter(x=x, y=y, mode='lines', line={'color': 'black'}, name=label,
+                                        showlegend=showlegend, legendgroup=label, row=ply_row, col=ply_col)
+
+                        # Plot PJ-DOS(l, spin)
+                        x, y = mesh, spin_sign * symbols_lso[symbol][l, spin]
+                        if exchange_xy: x, y = y, x
+                        label = symbol
+                        fig.add_scatter(x=x, y=y, mode='lines', line={'color': self.symbol2color[symbol]}, name=label,
+                                        showlegend=showlegend, legendgroup=label, row=ply_row, col=ply_col)
+
+                    plotly_set_lims(fig, xlims, "x", iax=iax)
+                    plotly_set_lims(fig, ylims, "y", iax=iax)
+
+        else:
+            # Plot stacked PJDOS
+            # Loop over the columns of the grid.
+            ls_stackdos = intg.ls_stackdos
+            spin_sign = +1
+            zerodos = np.zeros(len(mesh))
+            for l in range(mylsize):
+                for spin in self.ebands.spins:
+                    if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                    rcd = PlotlyRowColDesc(spin//comb_s, l+band_and_dos*(l+1), nrows, ncols*(1+band_and_dos))
+                    ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
+
+                    # Plot total DOS.
+                    x, y = mesh, spin_sign * edos.spin_dos[spin].values
+                    if exchange_xy: x, y = y, x
+                    label = "Tot"
+                    if ((l, spin) == (0, 0)) & with_info:
+                        showlegend = True
+                    else:
+                        showlegend = False
+                    fig.add_scatter(x=x, y=y, mode='lines', line={'color': 'black'}, name=label,
+                                    showlegend=showlegend, legendgroup=label, row=ply_row, col=ply_col)
+
+                    # Plot cumulative PJ-DOS(l, spin)
+                    stack = ls_stackdos[(l, spin)] * spin_sign
+                    for isymb, symbol in enumerate(self.symbols):
+                        yup = stack[isymb]
+                        ydown = stack[isymb-1] if isymb != 0 else zerodos
+                        label = "%s (stacked)" % symbol if (l, spin) == (0, 0) else None
+                        fill = 'tonextx' if not exchange_xy else 'tonexty'
+                        fill_line_opts = {'color': self.symbol2color[symbol], 'width': 0.1}
+                        x1, x2, y1, y2 = mesh, mesh, ydown, yup
+                        if exchange_xy: x1, x2, y1, y2 = y1, y2, x1, x2
+                        fig.add_scatter(x=x1, y=y1, mode='lines', line=fill_line_opts, name='',
+                                        showlegend=False, legendgroup=l, row=ply_row, col=ply_col)
+                        fig.add_scatter(x=x2, y=y2, mode='lines', line=fill_line_opts, name=label, opacity=self.alpha,
+                                        showlegend=showlegend, legendgroup=symbol, fill=fill, row=ply_row, col=ply_col)
+
+                    plotly_set_lims(fig, xlims, "x", iax=iax)
+                    plotly_set_lims(fig, ylims, "y", iax=iax)
+
+        # Decorate axis.
+        for spin in range(self.nsppol):
+            if aliased_axis and spin == 1: break # Don't repeat yourself!
+
+            for l in range(mylsize):
+                rcd = PlotlyRowColDesc(spin//comb_s, l+band_and_dos*(l+1), nrows, ncols*(1+band_and_dos))
+                iax = rcd.iax
+                if with_info:
+                    if combined_spins:
+                        title = self.l2tex[l]
+                    else:
+                        if self.nsppol == 2:
+                            title = r"$%s , %s$" % (self.l2tex[l].replace('$',''), self.spin2tex[spin].replace('$',''))
+                        else:
+                            title = self.l2tex[l]
+                    fig.layout.annotations[iax - 1].text = title
+                else:
+                    fig.layout.annotations[iax - 1].text = ''
+                fig.layout.annotations[iax - 1].font.size = fontsize
+
+                if with_info:
+                    fig.layout['xaxis%u' % iax].title = dict(text="Energy (eV)")
+                    # Display y labels only on the first plot.
+                    if l == 0:
+                        if exchange_xy:
+                            fig.layout['xaxis%u' % iax].title = dict(text='DOS (states/eV)')
+                        else:
+                            fig.layout['yaxis%u' % iax].title = dict(text='DOS (states/eV)')
+        fig.layout.legend.font.size = fontsize
+        return fig
+
     @add_fig_kwargs
     def plot_pjdos_typeview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
                             stacked=True, combined_spins=True, ax_mat=None, exchange_xy=False,
                             with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs):
         """
-        Plot the PJ-DOS on a linear mesh.
+        Plot the PJ-DOS on a linear mesh with matplotlib.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -1112,7 +1461,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Same meaning as ``xlims`` but for the y-axis
-            fontsize: Legend and label fontsize.
+            fontsize: Legend and subtitle fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -1241,12 +1590,180 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return fig
 
+    @add_plotly_fig_kwargs
+    def plotly_pjdos_typeview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
+                            stacked=True, combined_spins=True, fig=None, exchange_xy=False, with_info=True,
+                            with_spin_sign=True, xlims=None, ylims=None, fontsize=12, band_and_dos=0, **kwargs):
+        """
+        Plot the PJ-DOS on a linear mesh with plotly.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
+            lmax: Maximum L included in plot. None means full set available on file.
+            method: String defining the method for the computation of the DOS.
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
+            stacked: True if DOS partial contributions should be stacked on top of each other.
+            combined_spins: Define how up/down DOS components should be plotted when nsppol==2.
+                If True, up/down DOSes are plotted on the same figure (positive values for up,
+                negative values for down component)
+                If False, up/down components are plotted on different axes.
+            fig: The fig to plot on. None if a new figure should be created.
+            exchange_xy: True if the dos should be plotted on the x axis instead of y.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+            ylims: Same meaning as ``xlims`` but for the y-axis
+            fontsize: Legend and subtitle fontsize.
+            band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
+                           If 0(default), only plot dos on the created figure (when fig==None);
+                           If 1, plot dos on even_col of ``fig``
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        mylsize = self.lsize if lmax is None else lmax + 1
+
+        try:
+            intg = self.get_dos_integrator(method, step, width)
+        except Exception:
+            msg = traceback.format_exc()
+            msg += ("Error while trying to compute the DOS.\n"
+                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Returning None\n")
+            cprint(msg, "red")
+            return None
+
+        # Get energy mesh from total DOS and define the zero of energy
+        # Note that the mesh is not not spin-dependent.
+        e0 = self.ebands.get_e0(e0)
+        mesh = intg.mesh.copy()
+        mesh -= e0
+        edos, symbols_lso = intg.edos, intg.symbols_lso
+
+        nrows = self.nsppol if not combined_spins else 1
+        ncols = self.ntypat
+        # Build fig with subplots.
+        if fig is None:
+            fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows * ncols + 1)),
+                                     sharex=True, sharey=True, horizontal_spacing=0.02)
+
+        # If spins are plotted on the same graph (combined_spins), aliased_axis is set to True
+        # and comb_s is set to 2 so that [spin=0]//comb_s == [spin=1]//comb_s
+        if self.nsppol == 2 and combined_spins:
+            aliased_axis = True
+            comb_s = 2
+        else:
+            aliased_axis = False
+            comb_s = 1
+
+        spin_sign = +1
+        if not stacked:
+            for spin in range(self.nsppol):
+                if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                # Loop over the columns of the grid.
+                for isymb, symbol in enumerate(self.symbols):
+                    rcd = PlotlyRowColDesc(spin//comb_s, isymb+band_and_dos*(isymb+1), nrows, ncols*(1+band_and_dos))
+                    ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
+
+                    # Plot total DOS.
+                    x, y = mesh, spin_sign * edos.spin_dos[spin].values
+                    if exchange_xy: x, y = y, x
+                    label = "Tot"
+                    if ((spin, isymb) == (0, 0)) & with_info:
+                        showlegend = True
+                    else:
+                        showlegend = False
+                    fig.add_scatter(x=x, y=y, mode='lines', line={'color': 'black'}, name=label, showlegend=showlegend,
+                                    legendgroup=label, row=ply_row, col=ply_col)
+
+                    for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
+                        # Plot PJ-DOS(l, spin)
+                        x, y = mesh, spin_sign * symbols_lso[symbol][l, spin]
+                        if exchange_xy: x, y = y, x
+                        label = self.l2tex[l]
+                        fig.add_scatter(x=x, y=y, name=label , showlegend=showlegend, legendgroup=l,
+                                        mode='lines', line={'color': self.l2color[l]}, row=ply_row, col=ply_col)
+
+                    plotly_set_lims(fig, xlims, "x", iax=iax)
+                    plotly_set_lims(fig, ylims, "y", iax=iax)
+
+        else:
+            # Plot stacked PJDOS
+            # Loop over the columns of the grid.
+            #ls_stackdos = intg.ls_stackdos
+            spin_sign = +1
+            zerodos = np.zeros(len(mesh))
+            for spin in range(self.nsppol):
+                if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                for isymb, symbol in enumerate(self.symbols):
+                    rcd = PlotlyRowColDesc(spin//comb_s, isymb+band_and_dos*(isymb+1), nrows, ncols*(1+band_and_dos))
+                    ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
+
+                    # Plot total DOS.
+                    x, y = mesh, spin_sign * edos.spin_dos[spin].values
+                    if exchange_xy: x, y = y, x
+                    label = "Tot"
+                    if ((spin, isymb) == (0, 0)) & with_info:
+                        showlegend = True
+                    else:
+                        showlegend = False
+                    fig.add_scatter(x=x, y=y, mode='lines', line={'color': 'black'}, name=label, showlegend=showlegend,
+                                    legendgroup=label, row=ply_row, col=ply_col)
+
+                    # Plot cumulative PJ-DOS(l, spin)
+                    stack = intg.get_lstack_symbol(symbol, spin) * spin_sign
+                    for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
+                        yup = stack[l]
+                        ydown = stack[l-1] if l != 0 else zerodos
+                        label = r"$%s\text{ (stacked)}$" % self.l2tex[l].replace('$','') if (isymb, spin) == (0, 0) else None
+                        fill = 'tonextx' if not exchange_xy else 'tonexty'
+                        fill_line_opts = {'color': self.l2color[l], 'width': 0.1}
+                        x1, x2, y1, y2 = mesh, mesh, ydown, yup
+                        if exchange_xy: x1, x2, y1, y2 = y1, y2, x1, x2
+                        fig.add_scatter(x=x1, y=y1, mode='lines', line=fill_line_opts, name='',
+                                        showlegend=False, legendgroup=l, row=ply_row, col=ply_col)
+                        fig.add_scatter(x=x2, y=y2, mode='lines', line=fill_line_opts, name=label, opacity=self.alpha,
+                                        showlegend=showlegend, legendgroup=l, fill=fill, row=ply_row, col=ply_col)
+
+                    plotly_set_lims(fig, xlims, "x", iax=iax)
+                    plotly_set_lims(fig, ylims, "y", iax=iax)
+
+        # Decorate axis.
+        for spin in range(self.nsppol):
+            if aliased_axis and spin == 1: break # Don't repeat yourself!
+
+            for isymb, symbol in enumerate(self.symbols):
+                rcd = PlotlyRowColDesc(spin//comb_s, isymb+band_and_dos*(isymb+1), nrows, ncols*(1+band_and_dos))
+                iax = rcd.iax
+                if with_info:
+                    if combined_spins:
+                        title = "Type: %s" % symbol
+                    else:
+                        title = r"$%s , %s$" % (symbol, self.spin2tex[spin].replace('$','')) if self.nsppol == 2 else symbol
+                    fig.layout.annotations[iax - 1].text = title
+                else:
+                    fig.layout.annotations[iax - 1].text = ''
+                fig.layout.annotations[iax - 1].font.size = fontsize
+
+                # Display y labels only on the first plot.
+                if with_info:
+                    fig.layout['xaxis%u' % iax].title = dict(text="Energy (eV)")
+                    if isymb == 0:
+                        if exchange_xy:
+                            fig.layout['xaxis%u' % iax].title = dict(text='DOS (states/eV)')
+                        else:
+                            fig.layout['yaxis%u' % iax].title = dict(text='DOS (states/eV)')
+
+        fig.layout.legend.font.size = fontsize
+        return fig
+
     @add_fig_kwargs
     def plot_fatbands_with_pjdos(self, e0="fermie", fact=1.0, lmax=None, blist=None, view="type",
                                  pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
                                  fontsize=8, ylims=None, **kwargs):
         """
-        Compute the fatbands and the PJDOS on the same figure, a.k.a the Sistine Chapel.
+        Compute the fatbands and the PJDOS on the same figure with matplotlib, a.k.a the Sistine Chapel.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -1260,7 +1777,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             edos_kwargs:
             stacked: True if DOS partial contributions should be stacked on top of each other.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
-            fontsize: Legend and label fontsize.
+            fontsize: Legend fontsize.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
 
@@ -1309,14 +1826,16 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         # Plot bands on fatbands_axmat and PJDOS on pjdos_axmat.
         if view == "lview":
-            self.plot_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat, ylims=ylims, show=False)
+            self.plot_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat,
+                                     fontsize=fontsize, ylims=ylims, show=False)
             pjdosfile.plot_pjdos_lview(e0=e0, lmax=lmax, ax_mat=pjdos_axmat, exchange_xy=True,
                                        stacked=stacked, combined_spins=False, fontsize=fontsize,
                                        with_info=False, with_spin_sign=False, show=False, ylims=ylims,
                                        **edos_kwargs)
 
         elif view == "type":
-            self.plot_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat, ylims=ylims, show=False)
+            self.plot_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat,
+                                        fontsize=fontsize, ylims=ylims, show=False)
             pjdosfile.plot_pjdos_typeview(e0=e0, lmax=lmax, ax_mat=pjdos_axmat, exchange_xy=True,
                                           stacked=stacked, combined_spins=False, fontsize=fontsize,
                                           with_info=False, with_spin_sign=False, show=False, ylims=ylims,
@@ -1333,6 +1852,75 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             for xtick, ytick in zip(ax.xaxis.get_major_ticks(), ax.yaxis.get_major_ticks()):
                 xtick.label1.set_fontsize(0)
                 ytick.label1.set_fontsize(0)
+
+        if closeit: pjdosfile.close()
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly_fatbands_with_pjdos(self, e0="fermie", fact=1.0, lmax=None, blist=None, view="type",
+                                 pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
+                                 fontsize=12, ylims=None, **kwargs):
+        """
+        Compute the fatbands and the PJDOS on the same figure with plotly, a.k.a the Sistine Chapel.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
+            fact: float used to scale the stripe size.
+            lmax: Maximum L included in plot. None means full set available on file.
+            blist: List of band indices for the fatband plot. If None, all bands are included
+            pjdosfile: FATBANDS file used to compute the PJDOS. If None, the PJDOS is taken from self.
+            edos_kwargs:
+            stacked: True if DOS partial contributions should be stacked on top of each other.
+            width_ratios: Defines the ratio between the band structure plot and the dos plot.
+            fontsize: Legend and subtitle fontsize.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        closeit = False
+        if pjdosfile is not None:
+            if not isinstance(pjdosfile, FatBandsFile):
+                # String --> open the file here and close it before returning.
+                pjdosfile = FatBandsFile(pjdosfile)
+                closeit = True
+        else:
+            # Compute PJDOS from self.
+            pjdosfile = self
+
+        if not pjdosfile.ebands.kpoints.is_ibz:
+            cprint("DOS requires k-points in the IBZ but got pjdosfile: %s" % repr(pjdosfile), "yellow")
+            cprint("Returning None", "yellow")
+            return None
+
+        if edos_kwargs is None: edos_kwargs = {}
+
+        # Define number of columns depending on view
+        mylsize = self.lsize if lmax is None else lmax + 1
+        #ncols = dict(type=self.ntypat, lview=self.lsize)[view]
+        ncols = dict(type=self.ntypat, lview=mylsize)[view]
+        # Build fig with subplots for bands(at odd_col) and dos(at even_col).
+        fig, _ = get_figs_plotly(nrows=self.nsppol, ncols=ncols*2, subplot_titles=list(range(1, self.nsppol*ncols*2 + 1)),
+                                 sharex=True, sharey=True, horizontal_spacing=0.02, column_widths=width_ratios*ncols)
+
+        # Plot bands and PJDOS on fig with kwargs 'band_and_dos=1' .
+        if view == "lview":
+            self.plotly_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, fig=fig, ylims=ylims,
+                                       fontsize=fontsize, band_and_dos=1, show=False)
+            pjdosfile.plotly_pjdos_lview(e0=e0, lmax=lmax, fig=fig, exchange_xy=True, stacked=stacked,
+                                       combined_spins=False, fontsize=fontsize, with_info=False,
+                                        with_spin_sign=False, ylims=ylims, band_and_dos=1, show=False, **edos_kwargs)
+
+        elif view == "type":
+            self.plotly_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, fig=fig, ylims=ylims,
+                                          fontsize=fontsize, band_and_dos=1, show=False)
+            pjdosfile.plotly_pjdos_typeview(e0=e0, lmax=lmax, fig=fig, exchange_xy=True, stacked=stacked,
+                                            combined_spins=False, fontsize=fontsize, with_info=False,
+                                            with_spin_sign=False, ylims=ylims, band_and_dos=1, show=False, **edos_kwargs)
+        else:
+            raise ValueError("Don't know how to handle view=%s" % str(view))
 
         if closeit: pjdosfile.close()
         return fig
