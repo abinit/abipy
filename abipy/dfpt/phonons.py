@@ -3337,7 +3337,7 @@ class PhononDos(Function1D):
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
-            fontsize: Title fontsize.
+            fontsize: Label and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -3392,7 +3392,7 @@ class PhononDos(Function1D):
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
-            fontsize: Legend and title fontsize.
+            fontsize: Label and title fontsize.
 
         Returns |plotly.graph_objects.Figure|
         """

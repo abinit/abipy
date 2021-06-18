@@ -2373,6 +2373,7 @@ class ElectronBands(Has_Structure):
             lw_opts = kwargs.pop("lw_opts", dict(opacity=0.6))
             lw_fact = lw_opts.pop("fact", 2.0)
 
+        marker_opts = kwargs.pop("marker", None)
         xx = np.arange(self.nkpt)
         e0 = self.get_e0(e0)
         for spin in spin_range:
@@ -2382,8 +2383,12 @@ class ElectronBands(Has_Structure):
                 # Set label only at the first iteration
                 rcd = PlotlyRowColDesc.from_object(rcd)
                 ply_row, ply_col = rcd.ply_row, rcd.ply_col
-                fig.add_scatter(x=xx, y=yy, mode="lines", name=label, showlegend=showlegend, line=line_opts, **kwargs,
-                                row=ply_row, col=ply_col)
+                if marker_opts:
+                    fig.add_scatter(x=xx, y=yy, mode="lines+markers", name=label, showlegend=showlegend, line=line_opts,
+                                    marker=marker_opts, **kwargs, row=ply_row, col=ply_col)
+                else:
+                    fig.add_scatter(x=xx, y=yy, mode="lines", name=label, showlegend=showlegend, line=line_opts,
+                                    **kwargs, row=ply_row, col=ply_col)
                 label = ''
                 showlegend = False
 
