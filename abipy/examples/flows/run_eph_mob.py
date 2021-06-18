@@ -77,7 +77,7 @@ def build_flow(options):
     # Add the phonon work to the flow
     ddb_ngqpt = [4, 4, 4]
     ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints=ddb_ngqpt,
-                                              is_ngqpt=True, with_becs=True)
+                                              is_ngqpt=True, with_becs=True, with_quad=False)
     flow.register_work(ph_work)
 
     # We loop over the dense meshes

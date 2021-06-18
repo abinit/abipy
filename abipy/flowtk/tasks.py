@@ -3727,8 +3727,28 @@ class DfptTask(AbinitTask):
 
         AbiPy uses the user-friendly syntax deps={node: "DDK"} to specify that
         the children will read the DDK from `node` but this also means that
-        we have to implement extract logic to handle this case at runtime.
+        we have to implement extra logic to handle this case at runtime.
         """
+        natom = len(self.input.structure)
+        debug = True
+
+        def output_paths_from_regex(task, reg_string):
+            import re
+            reg = re.compile(reg_string)
+            out_filepaths = []
+            for path in task.outdir.list_filepaths():
+                if reg.match(os.path.basename(path)):
+                    out_filepaths.append(path)
+            return out_filepaths
+
+        def my_symlink(src, dst):
+            if debug: print("linking", dst, " to ", src)
+            if os.path.exists(dst):
+                #if os.path.realpath(dst) != src:
+                #    raise RuntimeError(f"{src} does not point to {dst}")
+                return
+            os.symlink(src, dst)
+
         for dep in self.deps:
             for d in dep.exts:
 
@@ -3748,7 +3768,34 @@ class DfptTask(AbinitTask):
 
                     infile = self.indir.path_in("in_1WF%d" % ddk_case)
                     if out_ddk.endswith(".nc"): infile = infile + ".nc"
-                    os.symlink(out_ddk, infile)
+
+                    my_symlink(out_ddk, infile)
+
+                elif d == "DKDK":
+                    # DKDK corresponds to ipert == dtset%natom + 10, see m_dfpt_looppert.
+                    # In principle we can have 9 entries although d_ij = d_ji
+                    #
+                    # for (ipert > = dtset%natom + 10) we have:
+                    # pertcase = idir + (ipert-dtset%natom-10)*9 + (dtset%natom+6)*3
+                    # and file extensions 1WFK[pertcase].
+                    #
+                    ipert = natom + 10
+                    possible_pertcases = [idir + (ipert - natom - 10) * 9 + (natom + 6) * 3 for idir in range(1, 10)]
+                    ext_list = ["1WF%d" % p for p in possible_pertcases]
+
+                    dkdk_task = dep.node
+                    dkdk_filepaths = []
+                    for ext in ext_list:
+                        p = dkdk_task.outdir.has_abiext(ext)
+                        if p: dkdk_filepaths.append(p)
+
+                    if not dkdk_filepaths:
+                        raise RuntimeError("%s didn't produce any DKDK file:" % dkdk_task)
+
+                    for out_path in dkdk_filepaths:
+                        infile = self.indir.path_in(os.path.basename(out_path))
+                        infile = infile.replace("out_", "in_", 1)
+                        my_symlink(out_path, infile)
 
                 elif d in ("WFK", "WFQ"):
                     gs_task = dep.node
@@ -3765,9 +3812,9 @@ class DfptTask(AbinitTask):
 
                     # Ensure link has .nc extension if iomode 3
                     if out_wfk.endswith(".nc"): bname = bname + ".nc"
-                    #print(d, out_wfk, "bname", bname)
                     if not os.path.exists(self.indir.path_in(bname)):
-                        os.symlink(out_wfk, self.indir.path_in(bname))
+                        infile = self.indir.path_in(bname)
+                        my_symlink(out_wfk, infile)
 
                 elif d == "DEN":
                     gs_task = dep.node
@@ -3777,27 +3824,37 @@ class DfptTask(AbinitTask):
                     infile = self.indir.path_in("in_DEN")
                     if out_wfk.endswith(".nc"): infile = infile + ".nc"
                     if not os.path.exists(infile):
-                        os.symlink(out_wfk, infile)
+                        my_symlink(out_wfk, infile)
 
                 elif d == "1WF":
-                    gs_task = dep.node
-                    out_wfk = gs_task.outdir.has_abiext("1WF")
-                    if not out_wfk:
-                        raise RuntimeError("%s didn't produce the 1WF file" % gs_task)
-                    dest = self.indir.path_in("in_" + out_wfk.split("_")[-1])
-                    if out_wfk.endswith(".nc"): dest = dest + ".nc"
-                    if not os.path.exists(dest):
-                        os.symlink(out_wfk, dest)
+                    dfpt_task = dep.node
+                    out_filepaths = output_paths_from_regex(dfpt_task, r"(\w+)_1WF(\d+)(\.nc)?")
+
+                    if not out_filepaths:
+                        raise RuntimeError("%s didn't produce the 1WF file" % dfpt_task)
+
+                    for out_path in out_filepaths:
+                        infile = self.indir.path_in(os.path.basename(out_path))
+                        infile = infile.replace("out_", "in_", 1)
+                        my_symlink(out_path, infile)
+
+                    #out_wfk = dfpt_task.outdir.has_abiext("1WF")
+                    #dest = self.indir.path_in("in_" + out_wfk.split("_")[-1])
+                    #if out_wfk.endswith(".nc"): dest = dest + ".nc"
+                    #if not os.path.exists(dest):
+                    #    my_symlink(out_wfk, dest)
 
                 elif d == "1DEN":
-                    gs_task = dep.node
-                    out_wfk = gs_task.outdir.has_abiext("DEN")
-                    if not out_wfk:
-                        raise RuntimeError("%s didn't produce the 1DEN file" % gs_task)
-                    dest = self.indir.path_in("in_" + out_wfk.split("_")[-1])
-                    if out_wfk.endswith(".nc"): dest = dest + ".nc"
-                    if not os.path.exists(dest):
-                        os.symlink(out_wfk, dest)
+                    dfpt_task = dep.node
+                    out_filepaths = output_paths_from_regex(dfpt_task, r"(\w+)_DEN(\d+)(\.nc)?")
+
+                    if not out_filepaths:
+                        raise RuntimeError("%s didn't produce any 1DEN file" % dfpt_task)
+
+                    for out_path in out_filepaths:
+                        infile = self.indir.path_in(os.path.basename(out_path))
+                        infile = infile.replace("out_", "in_", 1)
+                        my_symlink(out_path, infile)
 
                 else:
                     raise ValueError("Don't know how to handle extension: %s" % str(dep.exts))
@@ -3888,12 +3945,21 @@ class DdkTask(DfptTask):
         return results.register_gridfs_file(DDK=(self.outdir.has_abiext("DDK"), "t"))
 
 
+class DkdkTask(DfptTask):
+    """Task for the computation of d2/dkdk wave functions"""
+    color_rgb = np.array((0, 122, 204)) / 255
+
+
 class BecTask(DfptTask):
     """
     Task for the calculation of Born effective charges.
+    """
+    color_rgb = np.array((122, 122, 255)) / 255
 
-    bec_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
-    bec_deps.update({scf_task: "WFK"})
+
+class QuadTask(DfptTask):
+    """
+    Task for the calculation of dynamical quadrupoles.
     """
     color_rgb = np.array((122, 122, 255)) / 255
 

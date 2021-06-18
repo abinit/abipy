@@ -18,8 +18,8 @@ from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
 from . import wrappers
 from .nodes import Dependency, Node, NodeError, NodeResults, FileNode #, check_spectator
-from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask, EffMassTask,
-                    BseTask, RelaxTask, DdeTask, BecTask, ScrTask, SigmaTask, TaskManager,
+from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask, DkdkTask, QuadTask,
+                    EffMassTask, BseTask, RelaxTask, DdeTask, BecTask, ScrTask, SigmaTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 
 from .utils import Directory
@@ -418,6 +418,18 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_ddk_task(self, *args, **kwargs):
         """Register a DDK task."""
         kwargs["task_class"] = DdkTask
+        return self.register_task(*args, **kwargs)
+
+    def register_dkdk_task(self, *args, **kwargs):
+        """Register a DkdkTask task."""
+        kwargs["task_class"] = DkdkTask
+        return self.register_task(*args, **kwargs)
+
+    def register_quad_task(self, *args, **kwargs):
+        """Register a QuadTask task."""
+        kwargs["task_class"] = QuadTask
+        # FIXME: Hack to run it in sequential because effmass task does not support parallelism.
+        kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
         return self.register_task(*args, **kwargs)
 
     def register_effmass_task(self, *args, **kwargs):
@@ -1356,7 +1368,7 @@ class MergeDdb(object):
     Mixin class for Works that have to merge the DDB files produced by the tasks.
     """
 
-    def add_becs_from_scf_task(self, scf_task, ddk_tolerance, ph_tolerance):
+    def add_becs_from_scf_task(self, scf_task, ddk_tolerance, ph_tolerance, with_quad=False):
         """
         Build tasks for the computation of Born effective charges and add them to the work.
 
@@ -1364,6 +1376,9 @@ class MergeDdb(object):
             scf_task: |ScfTask| object.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run. None to use AbiPy default.
             ph_tolerance: dict {"varname": value} with the tolerance used in the phonon run. None to use AbiPy default.
+            with_quad: Activate calculation of dynamical quadrupoles.
+                Note that only selected features are compatible with dynamical quadrupoles.
+                Please consult <https://docs.abinit.org/topics/longwave/>
 
         Return: (ddk_tasks, bec_tasks)
         """
@@ -1383,13 +1398,32 @@ class MergeDdb(object):
         bec_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
         bec_deps.update({scf_task: "WFK"})
 
-        bec_inputs = scf_task.input.make_bec_inputs(tolerance=ph_tolerance)
+        bec_inputs = scf_task.input.make_bec_inputs(tolerance=ph_tolerance,
+                                                    prepalw=1 if with_quad else 0)
         bec_tasks = []
         for bec_inp in bec_inputs:
             bec_task = self.register_bec_task(bec_inp, deps=bec_deps)
             bec_tasks.append(bec_task)
 
+        dkdk_tasks, quad_task = (None, None)
+        if with_quad:
+            # Response function calculation of d2/dkdk wave function.
+            # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+            dkdk_inp = scf_task.input.make_dkdk_input(tolerance=ddk_tolerance)
+
+            dkdk_task = self.register_dkdk_task(dkdk_inp, deps=bec_deps)
+
+            # Dynamic Quadrupoles calculation
+            quad_deps = bec_deps.copy()
+            quad_deps.update({dkdk_task: "DKDK"})
+            quad_deps.update({bec_task: ["1DEN", "1WF"] for bec_task in bec_tasks})
+
+            quad_inp = scf_task.input.make_quad_input(tolerance=ph_tolerance)
+            quad_task = self.register_quad_task(quad_inp, deps=quad_deps)
+
         return ddk_tasks, bec_tasks
+        #return dict2namedtuple(ddk_tasks=ddk_tasks, bec_tasks=bec_tasks,
+        #                       dkdk_tasks=dkdk_tasks, quad_task=quad_task)
 
     def merge_ddb_files(self, delete_source_ddbs=False, only_dfpt_tasks=True,
                         exclude_tasks=None, include_tasks=None):
@@ -1502,8 +1536,8 @@ class PhononWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task, qpoints, is_ngqpt=False, tolerance=None, with_becs=False,
-                      ddk_tolerance=None, prtwf=-1, manager=None):
+    def from_scf_task(cls, scf_task, qpoints, is_ngqpt=False, with_becs=False, with_quad=False,
+                      tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
         """
         Construct a `PhononWork` from a |ScfTask| object.
         The input file for phonons is automatically generated from the input of the ScfTask.
@@ -1514,9 +1548,12 @@ class PhononWork(Work, MergeDdb):
             qpoints: q-points in reduced coordinates. Accepts single q-point, list of q-points
                 or three integers defining the q-mesh if `is_ngqpt`.
             is_ngqpt: True if `qpoints` should be interpreted as divisions instead of q-points.
+            with_becs: Activate calculation of Electric field and Born effective charges.
+            with_quad: Activate calculation of dynamical quadrupoles.
+                Note that only selected features are compatible with dynamical quadrupoles.
+                Please consult <https://docs.abinit.org/topics/longwave/>
             tolerance: dict {"varname": value} with the tolerance to be used in the phonon run.
                 None to use AbiPy default.
-            with_becs: Activate calculation of Electric field and Born effective charges.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if with_becs.
                 None to use AbiPy default.
             prtwf: Controls the output of the first-order WFK.
@@ -1534,8 +1571,12 @@ class PhononWork(Work, MergeDdb):
         qpoints = np.reshape(qpoints, (-1, 3))
 
         new = cls(manager=manager)
+
+        if with_quad and not with_becs:
+            raise RuntimeError("with_quad requires with_becs")
+
         if with_becs:
-            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance)
+            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance, with_quad=with_quad)
 
         for qpt in qpoints:
             is_gamma = np.sum(qpt ** 2) < 1e-12
@@ -1549,8 +1590,8 @@ class PhononWork(Work, MergeDdb):
         return new
 
     @classmethod
-    def from_scf_input(cls, scf_input, qpoints, is_ngqpt=False, tolerance=None,
-                       with_becs=False, ddk_tolerance=None, prtwf=-1, manager=None):
+    def from_scf_input(cls, scf_input, qpoints, is_ngqpt=False, with_becs=False, with_quad=False,
+                       tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
         """
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation. A new |ScfTask| is created and added to the Work.
@@ -1565,8 +1606,11 @@ class PhononWork(Work, MergeDdb):
         # Create ScfTask
         scf_task = new.register_scf_task(scf_input)
 
+        if with_quad and not with_becs:
+            raise RuntimeError("with_quad requires with_becs")
+
         if with_becs:
-            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance)
+            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance, with_quad=with_quad)
 
         for qpt in qpoints:
             is_gamma = np.sum(qpt ** 2) < 1e-12

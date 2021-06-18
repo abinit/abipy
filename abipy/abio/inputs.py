@@ -1625,6 +1625,42 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return ddk_inputs
 
+    def make_dkdk_input(self, tolerance=None, kptopt=2, manager=None):
+        """
+        Return inputs for performing d2/dkdk calculations.
+        This functions should be called with an input the represents a GS run.
+
+        Args:
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolwfr": 1.0e-22}.
+            kptopt: 2 to take into account time-reversal symmetry. Note that kptopt 1 is not available.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+
+        Return:
+            |MultiDataset| object.
+        """
+        if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+
+        if "tolvrs" in tolerance:
+            raise self.Error("tolvrs should not be used in a DDK calculation")
+
+        # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+        dkdk_input= self.new_with_vars(
+            qpt=(0, 0, 0),        # q-wavevector.
+            kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
+            iscf=-3,              # The d2/dk perturbation is treated in a non-self-consistent way
+            rf2_dkdk=1,
+            useylm=1,
+        )
+
+        dkdk_input.pop_tolerances()
+        dkdk_input.set_vars(tolerance)
+
+        return dkdk_input
+
     def make_dde_inputs(self, tolerance=None, use_symmetries=True, manager=None):
         """
         Return |MultiDataset| inputs for the calculation of electric field perturbations.
@@ -1756,10 +1792,16 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_bec_inputs(self, tolerance=None, manager=None):
+    def make_bec_inputs(self, tolerance=None, prepalw=0, manager=None):
         """
         Return |MultiDataset| inputs for the calculation of Born effective charges.
         This functions should be called with an input that represents a GS run.
+
+        Args:
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolvrs": 1.0e-10}.
+            prepalw: 1 to activate computation of all 3*natom perts. Used to prepare longwave-limit calculation.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
@@ -1767,11 +1809,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
-        # TODO: Check that one can use the same list of irred perts as in phonons
-        perts = self.abiget_irred_phperts(qpt=(0, 0, 0), manager=manager)
+        perts = self.abiget_irred_phperts(qpt=(0, 0, 0), prepalw=prepalw, manager=manager)
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+
+        # TODO: I don't understand why but this is needed to avoid Q* computations complaining about indkpt1
+        if prepalw != 0: multi.set_vars(prepalw=prepalw)
 
         # See tutorespfn/Input/trf1_5.in dataset 3
         for pert, inp in zip(perts, multi):
@@ -1792,6 +1836,34 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             inp.set_vars(tolerance)
 
         return multi
+
+    def make_quad_input(self, tolerance=None, manager=None):
+        """
+        Return an |AbinitInput| for the calculation of dynamical quadrupoles..
+        This functions should be called with an input that represents a GS run.
+
+        Note that only selected features are compatible with dynamical quadrupoles.
+        Please consult <https://docs.abinit.org/topics/longwave/>
+        """
+        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+
+        # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+        inp = self.new_with_vars(
+            optdriver=10,
+            kptopt=2,
+            lw_qdrpl=1,
+            useylm=1,
+            nqpt=1,
+            qpt=(0, 0, 0),
+        )
+
+        inp.pop_tolerances()
+        inp.set_vars(tolerance)
+
+        return inp
 
     def make_strain_perts_inputs(self, tolerance=None, phonon_pert=True, kptopt=2, manager=None):
         """
@@ -2203,7 +2275,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             except Exception as exc:
                 self._handle_task_exception(task, exc)
 
-    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, prepgkk=0, workdir=None, manager=None):
+    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None,
+                             prepgkk=0, prepalw=0, workdir=None, manager=None):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -2214,6 +2287,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
             shiftk: Shiftks (default None i.e. use shiftk from self)
             kptopt: Option for k-point generation. If None, the value in self is used.
+            prepalw: 1 to activate computation of all 3*natom perts. Used to prepare longwave-limit calculation.
             prepgkk: 1 to activate computation of all 3*natom perts (debugging option).
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
@@ -2230,6 +2304,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                             rfatpol=[1, len(self.structure)], # Set of atoms to displace.
                             rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
                             prepgkk=prepgkk,
+                            prepalw=prepalw,
                             )
 
         return self._abiget_irred_perts(phperts_vars, qpt=qpt, ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
