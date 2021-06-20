@@ -538,6 +538,20 @@ class TestAbinitInput(AbipyTest):
         # Validate with Abinit
         self.abivalidate_multi(bec_inputs)
 
+        #######################
+        # dynamical quadrupoles
+        #######################
+        quad_input = gs_inp.make_quad_input()
+        assert quad_input["kptopt"] == 2
+        assert quad_input["optdriver"] == 10
+        assert quad_input["lw_qdrpl"] == 1
+        assert quad_input["useylm"] == 1
+        assert quad_input["nstep"] == 100
+
+        # Validate with Abinit
+        # This is expected to fail since we have NC pseudos with NLCC.
+        #self.abivalidate_input(quad_input)
+
         #############
         # DDK methods
         #############
@@ -558,6 +572,16 @@ class TestAbinitInput(AbipyTest):
             assert inp["kptopt"] == 3
             assert inp["nstep"] == 1
             assert inp["nline"] == 1
+
+        #############
+        # DKDK methods
+        #############
+        dkdk_input = gs_inp.make_dkdk_input()
+        assert dkdk_input["kptopt"] == 2
+        assert dkdk_input["rf2_dkdk"] == 1
+        assert dkdk_input["useylm"] == 1
+        # Validate with Abinit
+        self.abivalidate_input(dkdk_input)
 
         #############
         # DDE methods

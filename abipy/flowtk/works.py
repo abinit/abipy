@@ -13,6 +13,7 @@ import numpy as np
 from monty.collections import AttrDict
 from monty.itertools import chunks
 from monty.functools import lazy_property
+from monty.collections import dict2namedtuple
 from monty.fnmatch import WildCard
 from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
@@ -428,8 +429,8 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_quad_task(self, *args, **kwargs):
         """Register a QuadTask task."""
         kwargs["task_class"] = QuadTask
-        # FIXME: Hack to run it in sequential because effmass task does not support parallelism.
-        kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
+        # FIXME: Hack to run it in sequential because QuadTask does not support parallelism.
+        #kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
         return self.register_task(*args, **kwargs)
 
     def register_effmass_task(self, *args, **kwargs):
@@ -1365,7 +1366,7 @@ class QptdmWork(Work):
 
 class MergeDdb(object):
     """
-    Mixin class for Works that have to merge the DDB files produced by the tasks.
+    Mixin class for Works that need to merge the DDB files produced by the tasks in self.
     """
 
     def add_becs_from_scf_task(self, scf_task, ddk_tolerance, ph_tolerance, with_quad=False):
@@ -1380,7 +1381,7 @@ class MergeDdb(object):
                 Note that only selected features are compatible with dynamical quadrupoles.
                 Please consult <https://docs.abinit.org/topics/longwave/>
 
-        Return: (ddk_tasks, bec_tasks)
+        Return: (ddk_tasks, bec_tasks, dkdk_task, quad_task)
         """
         if not isinstance(scf_task, ScfTask):
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
@@ -1421,9 +1422,8 @@ class MergeDdb(object):
             quad_inp = scf_task.input.make_quad_input(tolerance=ph_tolerance)
             quad_task = self.register_quad_task(quad_inp, deps=quad_deps)
 
-        return ddk_tasks, bec_tasks
-        #return dict2namedtuple(ddk_tasks=ddk_tasks, bec_tasks=bec_tasks,
-        #                       dkdk_tasks=dkdk_tasks, quad_task=quad_task)
+        return dict2namedtuple(ddk_tasks=ddk_tasks, bec_tasks=bec_tasks,
+                               dkdk_task=dkdk_task, quad_task=quad_task)
 
     def merge_ddb_files(self, delete_source_ddbs=False, only_dfpt_tasks=True,
                         exclude_tasks=None, include_tasks=None):
@@ -1511,7 +1511,7 @@ class MergeDdb(object):
         out_dvdb = self.outdir.path_in("out_DVDB")
 
         if len(pot1_files) == 1:
-            # Avoid the merge. Just move the DDB file to the outdir of the work
+            # Avoid the merge. Just move the DVDB file to the outdir of the work
             shutil.copy(pot1_files[0], out_dvdb)
         else:
             # FIXME: The merge may require a non-negligible amount of memory if lots of qpts.
@@ -1537,7 +1537,7 @@ class PhononWork(Work, MergeDdb):
 
     @classmethod
     def from_scf_task(cls, scf_task, qpoints, is_ngqpt=False, with_becs=False, with_quad=False,
-                      tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
+                      with_dvdb=True, tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
         """
         Construct a `PhononWork` from a |ScfTask| object.
         The input file for phonons is automatically generated from the input of the ScfTask.
@@ -1552,6 +1552,8 @@ class PhononWork(Work, MergeDdb):
             with_quad: Activate calculation of dynamical quadrupoles.
                 Note that only selected features are compatible with dynamical quadrupoles.
                 Please consult <https://docs.abinit.org/topics/longwave/>
+            with_dvdb: True to merge POT1 files associated to atomic perturbations in the DVDB file
+                at the end of the calculation
             tolerance: dict {"varname": value} with the tolerance to be used in the phonon run.
                 None to use AbiPy default.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if with_becs.
@@ -1571,6 +1573,7 @@ class PhononWork(Work, MergeDdb):
         qpoints = np.reshape(qpoints, (-1, 3))
 
         new = cls(manager=manager)
+        new.with_dvdb = with_dvdb
 
         if with_quad and not with_becs:
             raise RuntimeError("with_quad requires with_becs")
@@ -1591,7 +1594,7 @@ class PhononWork(Work, MergeDdb):
 
     @classmethod
     def from_scf_input(cls, scf_input, qpoints, is_ngqpt=False, with_becs=False, with_quad=False,
-                       tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
+                       with_dvdb=True, tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
         """
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation. A new |ScfTask| is created and added to the Work.
@@ -1603,6 +1606,8 @@ class PhononWork(Work, MergeDdb):
         qpoints = np.reshape(qpoints, (-1, 3))
 
         new = cls(manager=manager)
+        new.with_dvdb = with_dvdb
+
         # Create ScfTask
         scf_task = new.register_scf_task(scf_input)
 
@@ -1632,8 +1637,10 @@ class PhononWork(Work, MergeDdb):
         """
         # Merge DDB files.
         out_ddb = self.merge_ddb_files()
-        # Merge DVDB files.
-        out_dvdb = self.merge_pot1_files()
+
+        if getattr(self, "with_dvdb", True):
+            # Merge DVDB files (use getattr to maintain backward compability with pickle).
+            out_dvdb = self.merge_pot1_files()
 
         return self.Results(node=self, returncode=0, message="DDB merge done")
 

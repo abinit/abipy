@@ -1627,7 +1627,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     def make_dkdk_input(self, tolerance=None, kptopt=2, manager=None):
         """
-        Return inputs for performing d2/dkdk calculations.
+        Return an input for performing d2/dkdk calculations.
         This functions should be called with an input the represents a GS run.
 
         Args:
@@ -1637,7 +1637,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Return:
-            |MultiDataset| object.
+            |AbinitInput| object.
         """
         if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
 
@@ -1645,7 +1645,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         if "tolvrs" in tolerance:
-            raise self.Error("tolvrs should not be used in a DDK calculation")
+            raise self.Error("tolvrs should not be used in a DKDK calculation")
 
         # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
         dkdk_input= self.new_with_vars(
@@ -1814,7 +1814,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
 
-        # TODO: I don't understand why but this is needed to avoid Q* computations complaining about indkpt1
+        # Important: this is needed to avoid Q* computations complaining about indkpt1
         if prepalw != 0: multi.set_vars(prepalw=prepalw)
 
         # See tutorespfn/Input/trf1_5.in dataset 3
@@ -1837,13 +1837,20 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_quad_input(self, tolerance=None, manager=None):
+    def make_quad_input(self, tolerance=None, kptopt=2, nstep=100, manager=None):
         """
         Return an |AbinitInput| for the calculation of dynamical quadrupoles..
         This functions should be called with an input that represents a GS run.
 
         Note that only selected features are compatible with dynamical quadrupoles.
         Please consult <https://docs.abinit.org/topics/longwave/>
+
+        Args:
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolvrs": 1.0e-10}.
+            kptopt: 2 to take into account time-reversal symmetry.
+            nstep: Max number of SCF iterations. Since AbiPy is still not able to restart
+            a Quadrupole calculation, we increase the value if not already provided by the user.
         """
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
@@ -1855,9 +1862,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             optdriver=10,
             kptopt=2,
             lw_qdrpl=1,
-            useylm=1,
+            useylm=1,          # Require Yml in nonlop.
             nqpt=1,
             qpt=(0, 0, 0),
+            nstep=max(nstep, self.get("nstep", 0)),
         )
 
         inp.pop_tolerances()
@@ -1964,14 +1972,16 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         the WFK file used to start the EPH run so that we can directly inherit the k-mesh
 
         Args:
-            ddb_ngqpt: the coarse qpt grid used to compute the DDB and DVDB files in the phonon_work.
-            eph_ngqpt_fine: the fine qpt grid used for the Fourier interpolation.
+            ddb_ngqpt: the coarse q-grid used to compute the DDB and the DVDB file.
+            eph_ngqpt_fine: the fine q-grid used for the Fourier interpolation.
             sigma_erange: Energy window for k-states (see Abinit variable)
             tmesh: The mesh of temperatures (in Kelvin)
-            boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.
-            mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.
-            ibte_prep: Set it to 1 to activate the iterative Boltzmann equation. Default is RTA.
-            ibte_niter: Number of iterations to solve the Boltzmann equation.
+            boxcutmin: For the last task only, 1.1 is often used to decrease memory
+                and is faster over the Abinit default of 2.
+            mixprec: For the last task only, 1 is often used to make the EPH calculation faster.
+                Note that the Abinit default is 0.
+            ibte_prep: Set it to 1 to activate the iterative Boltzmann equation. Default is SERTA/MRTA.
+            ibte_niter: Max number of iterations to solve the Boltzmann equation.
             ibte_abs_tol: Stopping criterion for the IBTE.
         """
         eph_ngqpt_fine = self.get("ngkpt") if eph_ngqpt_fine is None else eph_ngqpt_fine

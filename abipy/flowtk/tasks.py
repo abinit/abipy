@@ -3720,7 +3720,7 @@ class DfptTask(AbinitTask):
     def make_links(self):
         """
         Replace the default behaviour of make_links. More specifically, this method
-        implements the logic required to connect DFPT calculation to `DDK` files.
+        implements the logic required to connect DFPT calculation to e.g. `DDK` files.
         Remember that DDK is an extension introduced in AbiPy to deal with the
         irdddk input variable and the fact that the 3 files with du/dk produced by Abinit
         have a file extension constructed from the number of atom (e.g. 1WF[3natom +1]).
@@ -3730,7 +3730,7 @@ class DfptTask(AbinitTask):
         we have to implement extra logic to handle this case at runtime.
         """
         natom = len(self.input.structure)
-        debug = True
+        debug = False
 
         def output_paths_from_regex(task, reg_string):
             import re
@@ -3837,12 +3837,6 @@ class DfptTask(AbinitTask):
                         infile = self.indir.path_in(os.path.basename(out_path))
                         infile = infile.replace("out_", "in_", 1)
                         my_symlink(out_path, infile)
-
-                    #out_wfk = dfpt_task.outdir.has_abiext("1WF")
-                    #dest = self.indir.path_in("in_" + out_wfk.split("_")[-1])
-                    #if out_wfk.endswith(".nc"): dest = dest + ".nc"
-                    #if not os.path.exists(dest):
-                    #    my_symlink(out_wfk, dest)
 
                 elif d == "1DEN":
                     dfpt_task = dep.node
@@ -3962,6 +3956,9 @@ class QuadTask(DfptTask):
     Task for the calculation of dynamical quadrupoles.
     """
     color_rgb = np.array((122, 122, 255)) / 255
+
+    def restart(self):
+        raise NotImplementedError("don't know how to restart dynamical quadrupoles")
 
 
 class EffMassTask(DfptTask):

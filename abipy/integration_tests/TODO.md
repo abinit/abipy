@@ -19,6 +19,9 @@ TODO list:
             NscfTask: {scale_max_cores: 0.5, scale_timelimit: 0.2}
             KerangeTask: {max_cores: 2, timelimit: 0:5:0}
 
+* Recheck autoparal code in abinit. For the DFPT part, the computation of the weights is clearly 
+  wrong because with nkpt 128 Abinit suggests to use nprocs 130 !!!!!!
+
 * Implement Task modifier i.e. operations that change the input file if some condition occurs.
   This extra logic is require to handle problematic cases in which for instance the ScfTask does not converge
   and modification in the input file are required
