@@ -38,7 +38,7 @@ class TestAbinitInput(AbipyTest):
         assert inp.get("foo", "bar") == "bar" and inp.pop("foo", "bar") == "bar"
         assert inp.comment is None
         inp.set_comment("This is a comment")
-        assert inp.comment == "#This is a comment"
+        assert inp.comment == "# This is a comment"
         assert inp.isnc and not inp.ispaw
         assert not inp.decorators
         assert len(inp.structure) == 2 and inp.num_valence_electrons == 8
@@ -79,8 +79,9 @@ class TestAbinitInput(AbipyTest):
         assert inp.to_string(sortmode="a", with_structure=False, with_pseudos=False, mode="html")
         assert inp._repr_html_()
 
-        inp.set_vars(ecut=5, toldfe=1e-6)
+        inp.set_vars(ecut=5, toldfe=1e-6, comment="hello")
         assert inp["ecut"] == 5
+        assert inp.comment == "# hello"
         inp.set_vars_ifnotin(ecut=-10)
         assert inp["ecut"] == 5
         assert inp.scf_tolvar == ("toldfe", inp["toldfe"])
@@ -616,19 +617,53 @@ class TestAbinitInput(AbipyTest):
         # Validate with Abinit
         self.abivalidate_multi(strain_inputs)
 
+        ###############
+        # EPH mobility
+        ###############
+
+        nscf_inp = gs_inp.new_with_vars(iscf=-2, tolwfr=1e-5, comment="this is just to have a NSCF input.")
+        sigma_erange = sigma_kerange = [0, 1.0]
+        sigma_ngkpt = [4, 4, 4]
+        kerange_inputs = nscf_inp.make_wfk_kerange_inputs(sigma_kerange, sigma_ngkpt, einterp=(1, 5, 0, 0))
+        inp_0, inp_1 = kerange_inputs
+        assert inp_0["wfk_task"] == '"wfk_kpts_erange"'
+        assert "iscf" not in inp_0
+        assert inp_0["sigma_erange"] == sigma_erange
+        assert inp_0["kptopt"] == 1
+        assert inp_0["sigma_ngkpt"] == sigma_ngkpt
+
+        assert inp_1["iscf"] == -2
+        assert inp_1["kptopt"] == 0
+        assert inp_1["ngkpt"] == sigma_ngkpt
+
+        self.abivalidate_multi(kerange_inputs)
+
+        ddb_ngqpt = [4, 4, 4]
+        tmesh = [0, 300, 10]
+
+        trans_inp = nscf_inp.make_eph_transport_input(ddb_ngqpt, sigma_erange, tmesh, kptopt=2, eph_ngqpt_fine=None,
+                                                      mixprec=1, boxcutmin=1.1, ibte_prep=0, ibte_niter=200,
+                                                      ibte_abs_tol=1e-3)
+        assert trans_inp["optdriver"] == 7
+        assert trans_inp["eph_task"] == -4
+        assert trans_inp["kptopt"] == 2
+        assert trans_inp["eph_ngqpt_fine"] == trans_inp["ngkpt"]
+
+        self.abivalidate_input(trans_inp)
+
         #####################
         # Non-linear methods
         ####################
-        if self.has_abinit(version='8.3.2'):
-            dte_inputs = gs_inp.make_dte_inputs(phonon_pert=True, skip_permutations=True, ixc=3)
-            print("dte inputs\n", dte_inputs)
-            assert len(dte_inputs) == 8
-            assert np.all(dte_inputs[0]["d3e_pert2_dir"] == [1, 0, 0])
-            assert np.all(dte_inputs[3]["d3e_pert1_atpol"] == [2, 2])
-            assert all(np.all(inp["optdriver"] == 5 for inp in dte_inputs))
+        #if self.has_abinit(version='8.3.2'):
+        dte_inputs = gs_inp.make_dte_inputs(phonon_pert=True, skip_permutations=True, ixc=3)
+        #print("dte inputs\n", dte_inputs)
+        assert len(dte_inputs) == 8
+        assert np.all(dte_inputs[0]["d3e_pert2_dir"] == [1, 0, 0])
+        assert np.all(dte_inputs[3]["d3e_pert1_atpol"] == [2, 2])
+        assert all(np.all(inp["optdriver"] == 5 for inp in dte_inputs))
 
-            # Validate with Abinit
-            self.abivalidate_multi(dte_inputs)
+        # Validate with Abinit
+        self.abivalidate_multi(dte_inputs)
 
     def test_input_check_sum(self):
         """Testing the hash method of AbinitInput"""
@@ -725,8 +760,9 @@ class TestMultiDataset(AbipyTest):
         assert multi[0].structure == multi[1].structure
         assert multi[0].structure is not multi[1].structure
 
-        multi.set_vars(ecut=2)
+        multi.set_vars(ecut=2, comment="hello")
         assert all(inp["ecut"] == 2 for inp in multi)
+        assert all(inp.comment == "# hello" for inp in multi)
         self.assert_equal(multi.get("ecut"), [2, 2])
 
         df = multi.get_vars_dataframe("ecut", "foobar")
@@ -784,7 +820,7 @@ class TestMultiDataset(AbipyTest):
         #self.assertMSONable(multi)
 
         # Test tags
-        new_multi.add_tags([GROUND_STATE, RELAX], [0,2])
+        new_multi.add_tags([GROUND_STATE, RELAX], [0, 2])
         assert len(new_multi[0].tags) == 2
         sub_multi = new_multi.filter_by_tags(GROUND_STATE)
         assert len(sub_multi) == 2

@@ -1852,7 +1852,7 @@ class GKKPWork(Work):
         # Create a WFK task
         kptopt = 1 if expand else 3
         nscf_inp = inp.new_with_vars(iscf=-2, kptopt=kptopt)
-        wfk_task = new.register_nscf_task(nscf_inp, deps={den_file: "DEN"},manager=tm)
+        wfk_task = new.register_nscf_task(nscf_inp, deps={den_file: "DEN"}, manager=tm)
         new.wfkq_tasks.append(wfk_task)
         new.wfk_task = wfk_task
 
