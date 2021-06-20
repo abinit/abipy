@@ -13,14 +13,15 @@ import numpy as np
 from monty.collections import AttrDict
 from monty.itertools import chunks
 from monty.functools import lazy_property
-from monty.collections import dict2namedtuple
+#from monty.collections import dict2namedtuple
 from monty.fnmatch import WildCard
 from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
 from . import wrappers
 from .nodes import Dependency, Node, NodeError, NodeResults, FileNode #, check_spectator
-from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask, DkdkTask, QuadTask,
-                    EffMassTask, BseTask, RelaxTask, DdeTask, BecTask, ScrTask, SigmaTask, TaskManager,
+from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
+                    DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask,
+                    EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 
 from .utils import Directory
@@ -429,8 +430,11 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_quad_task(self, *args, **kwargs):
         """Register a QuadTask task."""
         kwargs["task_class"] = QuadTask
-        # FIXME: Hack to run it in sequential because QuadTask does not support parallelism.
-        #kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
+        return self.register_task(*args, **kwargs)
+
+    def register_flexoe_task(self, *args, **kwargs):
+        """Register a FlexETask task."""
+        kwargs["task_class"] = FlexoETask
         return self.register_task(*args, **kwargs)
 
     def register_effmass_task(self, *args, **kwargs):
@@ -1369,7 +1373,8 @@ class MergeDdb(object):
     Mixin class for Works that need to merge the DDB files produced by the tasks in self.
     """
 
-    def add_becs_from_scf_task(self, scf_task, ddk_tolerance, ph_tolerance, with_quad=False):
+    def add_becs_from_scf_task(self, scf_task, ddk_tolerance, ph_tolerance,
+                               with_quad=False, with_flexoe=False):
         """
         Build tasks for the computation of Born effective charges and add them to the work.
 
@@ -1380,6 +1385,7 @@ class MergeDdb(object):
             with_quad: Activate calculation of dynamical quadrupoles.
                 Note that only selected features are compatible with dynamical quadrupoles.
                 Please consult <https://docs.abinit.org/topics/longwave/>
+            with_flexoe: True to activate computation of flexoelectric tensor.
 
         Return: (ddk_tasks, bec_tasks, dkdk_task, quad_task)
         """
@@ -1399,31 +1405,50 @@ class MergeDdb(object):
         bec_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
         bec_deps.update({scf_task: "WFK"})
 
-        bec_inputs = scf_task.input.make_bec_inputs(tolerance=ph_tolerance,
-                                                    prepalw=1 if with_quad else 0)
+        if with_flexoe:
+            bec_inputs = scf_task.input.make_strain_perts_inputs(tolerance=ph_tolerance,
+                                                                 phonon_pert=True, efield_pert=True,
+                                                                 prepalw=1)
+
+        else:
+            bec_inputs = scf_task.input.make_bec_inputs(tolerance=ph_tolerance,
+                                                        prepalw=1 if with_quad else 0)
+
         bec_tasks = []
         for bec_inp in bec_inputs:
             bec_task = self.register_bec_task(bec_inp, deps=bec_deps)
             bec_tasks.append(bec_task)
 
-        dkdk_tasks, quad_task = (None, None)
-        if with_quad:
+        if with_quad or with_flexoe:
             # Response function calculation of d2/dkdk wave function.
             # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
             dkdk_inp = scf_task.input.make_dkdk_input(tolerance=ddk_tolerance)
-
             dkdk_task = self.register_dkdk_task(dkdk_inp, deps=bec_deps)
 
-            # Dynamic Quadrupoles calculation
             quad_deps = bec_deps.copy()
             quad_deps.update({dkdk_task: "DKDK"})
             quad_deps.update({bec_task: ["1DEN", "1WF"] for bec_task in bec_tasks})
 
-            quad_inp = scf_task.input.make_quad_input(tolerance=ph_tolerance)
-            quad_task = self.register_quad_task(quad_inp, deps=quad_deps)
+            if with_quad:
+                # Dynamic Quadrupoles calculation
+                quad_inp = scf_task.input.make_quad_input(tolerance=ph_tolerance)
+                quad_task = self.register_quad_task(quad_inp, deps=quad_deps)
 
-        return dict2namedtuple(ddk_tasks=ddk_tasks, bec_tasks=bec_tasks,
-                               dkdk_task=dkdk_task, quad_task=quad_task)
+            if with_flexoe:
+                #flexoe_inp = scf_task.input.make_flexoe_input(tolerance=ph_tolerance)
+                flexoe_inp = scf_task.input.new_with_vars(
+                    optdriver=10,
+                    lw_flexo=1,
+                    kptopt=2,
+                    useylm=1,
+                    #get1wf5   4
+                    #get1den5  4
+                    #getddk5   2
+                    #getdkdk5  3
+                )
+
+                flexoe_task = self.register_flexoe_task(flexoe_inp, deps=quad_deps)
+
 
     def merge_ddb_files(self, delete_source_ddbs=False, only_dfpt_tasks=True,
                         exclude_tasks=None, include_tasks=None):
@@ -1536,8 +1561,9 @@ class PhononWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task, qpoints, is_ngqpt=False, with_becs=False, with_quad=False,
-                      with_dvdb=True, tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
+    def from_scf_task(cls, scf_task, qpoints, is_ngqpt=False, with_becs=False,
+                      with_quad=False, with_flexoe=False, with_dvdb=True,
+                      tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
         """
         Construct a `PhononWork` from a |ScfTask| object.
         The input file for phonons is automatically generated from the input of the ScfTask.
@@ -1549,9 +1575,10 @@ class PhononWork(Work, MergeDdb):
                 or three integers defining the q-mesh if `is_ngqpt`.
             is_ngqpt: True if `qpoints` should be interpreted as divisions instead of q-points.
             with_becs: Activate calculation of Electric field and Born effective charges.
-            with_quad: Activate calculation of dynamical quadrupoles.
+            with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
                 Note that only selected features are compatible with dynamical quadrupoles.
                 Please consult <https://docs.abinit.org/topics/longwave/>
+            with_flexoe: True to activate computation of flexoelectric tensor. Require `with_becs`
             with_dvdb: True to merge POT1 files associated to atomic perturbations in the DVDB file
                 at the end of the calculation
             tolerance: dict {"varname": value} with the tolerance to be used in the phonon run.
@@ -1575,11 +1602,13 @@ class PhononWork(Work, MergeDdb):
         new = cls(manager=manager)
         new.with_dvdb = with_dvdb
 
-        if with_quad and not with_becs:
-            raise RuntimeError("with_quad requires with_becs")
+        if (with_quad or with_flexoe) and not with_becs:
+            raise RuntimeError("with_quad or with_flexoe require with_becs")
 
         if with_becs:
-            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance, with_quad=with_quad)
+            # Special treatment of q == 0.
+            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance,
+                                       with_quad=with_quad, with_flexoe=with_flexoe)
 
         for qpt in qpoints:
             is_gamma = np.sum(qpt ** 2) < 1e-12
@@ -1593,7 +1622,8 @@ class PhononWork(Work, MergeDdb):
         return new
 
     @classmethod
-    def from_scf_input(cls, scf_input, qpoints, is_ngqpt=False, with_becs=False, with_quad=False,
+    def from_scf_input(cls, scf_input, qpoints, is_ngqpt=False, with_becs=False,
+                       with_quad=False, with_flexoe=False,
                        with_dvdb=True, tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
         """
         Similar to `from_scf_task`, the difference is that this method requires
@@ -1611,11 +1641,13 @@ class PhononWork(Work, MergeDdb):
         # Create ScfTask
         scf_task = new.register_scf_task(scf_input)
 
-        if with_quad and not with_becs:
-            raise RuntimeError("with_quad requires with_becs")
+        if (with_quad or with_flexoe) and not with_becs:
+            raise RuntimeError("with_quad or with_flexoe require with_becs")
 
         if with_becs:
-            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance, with_quad=with_quad)
+            # Special treatment of q == 0.
+            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance,
+                                       with_quad=with_quad, with_flexoe=with_flexoe)
 
         for qpt in qpoints:
             is_gamma = np.sum(qpt ** 2) < 1e-12
@@ -1636,7 +1668,7 @@ class PhononWork(Work, MergeDdb):
         the final DDB file in the outdir of the |Work|.
         """
         # Merge DDB files.
-        out_ddb = self.merge_ddb_files()
+        out_ddb = self.merge_ddb_files(only_dfpt_tasks=False)
 
         if getattr(self, "with_dvdb", True):
             # Merge DVDB files (use getattr to maintain backward compability with pickle).
@@ -1779,7 +1811,7 @@ class PhononWfkqWork(Work, MergeDdb):
         the final DDB file in the outdir of the |Work|.
         """
         # Merge DDB files.
-        out_ddb = self.merge_ddb_files()
+        out_ddb = self.merge_ddb_files(only_dfpt_tasks=True)
 
         # Merge DVDB files.
         out_dvdb = self.merge_pot1_files()
@@ -2000,7 +2032,7 @@ class BecWork(Work, MergeDdb):
         the final DDB file in the outdir of the |Work|.
         """
         # Merge DDB files.
-        out_ddb = self.merge_ddb_files()
+        out_ddb = self.merge_ddb_files(only_dfpt_tasks=True)
         return self.Results(node=self, returncode=0, message="DDB merge done")
 
 
@@ -2070,7 +2102,7 @@ class DteWork(Work, MergeDdb):
         the final DDB file in the outdir of the `Work`.
         """
         # Merge DDB files.
-        out_ddb = self.merge_ddb_files()
+        out_ddb = self.merge_ddb_files(only_dfpt_tasks=True)
         return self.Results(node=self, returncode=0, message="DDB merge done")
 
 
@@ -2169,7 +2201,7 @@ class ConducWork(Work):
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         # Verify Multi
-        if (not with_kerange) and (multi.ndtset != 3): #Without kerange, multi should contain 4 datasets
+        if (not with_kerange) and (multi.ndtset != 3): # Without kerange, multi should contain 4 datasets
             raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
                                 It should have 4 datasets and it had `%s`. You should generate
                                 multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)

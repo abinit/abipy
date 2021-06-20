@@ -38,7 +38,7 @@ class TestAbinitInput(AbipyTest):
         assert inp.get("foo", "bar") == "bar" and inp.pop("foo", "bar") == "bar"
         assert inp.comment is None
         inp.set_comment("This is a comment")
-        assert inp.comment == "This is a comment"
+        assert inp.comment == "#This is a comment"
         assert inp.isnc and not inp.ispaw
         assert not inp.decorators
         assert len(inp.structure) == 2 and inp.num_valence_electrons == 8

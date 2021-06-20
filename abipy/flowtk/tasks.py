@@ -3961,6 +3961,16 @@ class QuadTask(DfptTask):
         raise NotImplementedError("don't know how to restart dynamical quadrupoles")
 
 
+class FlexoETask(DfptTask):
+    """
+    Task for the calculation of Flexoelectric task..
+    """
+    color_rgb = np.array((122, 122, 255)) / 255
+
+    def restart(self):
+        raise NotImplementedError("don't know how to restart dynamical quadrupoles")
+
+
 class EffMassTask(DfptTask):
     """Task for effective mass calculations with DFPT."""
     color_rgb = np.array((0, 122, 204)) / 255
