@@ -12,6 +12,7 @@ import numpy as np
 
 from collections import OrderedDict
 from pprint import pprint
+from monty.json import jsanitize
 from pymatgen.util.io_utils import AtomicFile
 from pydispatch import dispatcher
 from monty.termcolor import colored
@@ -507,6 +508,14 @@ class Node(metaclass=abc.ABCMeta):
         # Actions performed to fix abicritical events.
         self._corrections = NodeCorrections()
 
+        # String in markdown syntax that may be used to add extra info in human-readable format.
+        # If set, a README.md file will be produced in the working directory of the node.
+        self.readme_md = None
+
+        # This object can be used to store metadata about the node
+        # The content will be saved in json format in the working directory of the node.
+        self.abipy_meta_json = None
+
         # Set to true if the node has been finalized.
         self._finalized = False
         self._status = self.S_INIT
@@ -613,6 +622,20 @@ class Node(metaclass=abc.ABCMeta):
     def node_id(self):
         """Node identifier."""
         return self._node_id
+
+    def set_readme(self, md_string):
+        """
+        Set the value of readme_md.
+        """
+        self.readme_md = str(md_string)
+
+    def set_abipy_meta_json(self, data):
+        """
+        Set the value of abipy_meta_json
+        """
+        self.abipy_meta_json = jsanitize(data, strict=False)
+        if not isinstance(self.abipy_meta_json, dict):
+            raise TypeError(f"abipy_meta_json should be a dict but got {type(self.abipy_meta_json)}")
 
     @check_spectator
     def set_node_id(self, node_id):
@@ -970,9 +993,19 @@ class Node(metaclass=abc.ABCMeta):
         Write data to json file of basename filename inside the outdir directory of the node.
         Support MSONable objects. Return path of json file.
         """
-        from monty.json import jsanitize
         data = jsanitize(data, strict=False)
         path = self.outdir.path_in(filename)
+        json_pretty_dump(data, path)
+
+        return path
+
+    def write_json_in_workdir(self, filename, data):
+        """
+        Write data to json file of basename filename inside the outdir directory of the node.
+        Support MSONable objects. Return path of json file.
+        """
+        data = jsanitize(data, strict=False)
+        path = os.path.join(self.workdir, filename)
         json_pretty_dump(data, path)
 
         return path

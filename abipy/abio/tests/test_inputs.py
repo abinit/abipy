@@ -316,7 +316,11 @@ class TestAbinitInput(AbipyTest):
         assert np.all(ibz.points == [[ 0.,  0.,  0.], [0.5,  0.,  0.], [0.5, 0.5, 0.]])
         assert np.all(ibz.weights == [0.125,  0.5,  0.375])
 
-        # This to test what happes with wrong inputs and Abinit errors.
+        scr_ibz = inp_si.abiget_scr_ibz()
+        assert np.all(scr_ibz.points == [[ 0.,  0.,  0.], [0.5,  0.,  0.], [0.5, 0.5, 0.]])
+        assert np.all(scr_ibz.weights == [0.125,  0.5,  0.375])
+
+        # This to test what happens with wrong inputs and Abinit errors.
         wrong = inp_si.deepcopy()
         removed = wrong.pop_vars("ecut")
         assert "ecut" not in wrong
@@ -343,6 +347,8 @@ class TestAbinitInput(AbipyTest):
                               {'idir': 2, 'ipert': 3, 'qpt': [0.5, 0.0, 0.0]},
                               {'idir': 3, 'ipert': 3, 'qpt': [0.5, 0.0, 0.0]}]
         for a, b in zip(irred_perts, irred_perts_values):
+            # The nkpt_rbz entry was added in Abinit v9.5 but it's not used by AbiPy.
+            if "nkpt_rbz" in a: b["nkpt_rbz"] = a["nkpt_rbz"]
             self.assertDictEqual(a, b)
 
         # Test abiget_autoparal_pconfs
@@ -845,7 +851,7 @@ class AnaddbInputTest(AbipyTest):
         assert inp.get("brav") == 1
 
         self.serialize_with_pickle(inp, test_eq=False)
-        #self.assertMSONable(inp, test_if_subclass=False)
+        self.assertMSONable(inp)
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
@@ -980,7 +986,7 @@ class TestCut3DInput(AbipyTest):
         cut3d_input.write(self.get_tmpname(text=True))
 
         self.serialize_with_pickle(cut3d_input, test_eq=False)
-        self.assertMSONable(cut3d_input, test_if_subclass=False)
+        self.assertMSONable(cut3d_input)
 
     def test_generation_methods(self):
         cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')

@@ -472,6 +472,31 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
         return pn.Column("## Software stack:", dfc(software_stack(as_dataframe=True), with_export_btn=True),
                          sizing_mode="scale_width")
 
+    @staticmethod
+    def get_fileinput_section(file_input):
+
+        css_style = """
+        <style>
+        .pnx-file-upload-area input[type=file] {
+            width: 100%;
+            height: 100%;
+            border: 3px dashed #9E9E9E;
+            background: transparent;
+            border-radius: 5px;
+            text-align: left;
+            margin: auto;
+        }
+        </style>"""
+
+        return pn.Column(
+            pn.pane.HTML(css_style, width=0, height=0, sizing_mode="stretch_width", margin=0),
+            file_input, sizing_mode="stretch_width"
+        )
+
+    @staticmethod
+    def get_template_cls_from_name(template):
+        return get_template_cls_from_name(template)
+
     def get_template_from_tabs(self, tabs, template):
         """
         This method receives panel Tabs, include them in a template and return the panel template.
@@ -1028,3 +1053,31 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
 
     #print(html)
     return pn.Column(pn.pane.HTML(html, sizing_mode="stretch_width"), sizing_mode="stretch_width")
+
+
+# All credits to
+# https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/styling/fileinput_area.py
+
+#def
+#    """Returns the File Input Area App"""
+#
+#    STYLE = """
+#    <style>
+#    .pnx-file-upload-area input[type=file] {
+#        width: 100%;
+#        height: 100%;
+#        border: 3px dashed #9E9E9E;
+#        background: transparent;
+#        border-radius: 5px;
+#        text-align: left;
+#        margin: auto;
+#    }
+#    </style>"""
+#
+#    #pn.config.sizing_mode = "stretch_width"
+#    fileinput_section = pn.Column(
+#        pn.pane.HTML(STYLE, width=0, height=0, sizing_mode="stretch_width", margin=0),
+#        pn.widgets.FileInput(height=100, css_classes=["pnx-file-upload-area"]),
+#    )
+#
+#    return fileinput_section

@@ -108,13 +108,27 @@ class FlowTest(FlowUnitTest):
         assert flow.isinstance(Flow)
         assert not flow.isinstance(None)
         assert not flow.has_scheduler
+        assert flow.readme_md is None
+        flow.set_readme("## hello flow")
+        assert flow.readme_md == "## hello flow"
+        assert not flow.abipy_meta_json
+        flow.set_abipy_meta_json(dict(message="hello flow"))
+        assert "message" in flow.abipy_meta_json
+        with self.assertRaises(TypeError):
+            flow.set_abipy_meta_json(["hello flow"])
 
         # Build a work with a task
         work = flow.register_task(self.fake_input)
         assert work.is_work
         assert len(work.color_hex) == 7
         assert work.color_hex.startswith("#")
+        work.set_readme("## hello work")
+        work.set_abipy_meta_json(dict(message="hello work"))
+
         task0_w0 = work[0]
+        task0_w0.set_readme("## hello task0_w0")
+        task0_w0.set_abipy_meta_json(dict(message="hello task0_w0"))
+
         assert task0_w0.is_task
         str(task0_w0.status.colored)
         assert len(flow) == 1

@@ -6,6 +6,8 @@ from monty.termcolor import cprint
 from pymatgen.io.abinit.abiobjects import *
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable, PseudoParser
 from pymatgen.io.abinit.netcdf import NetcdfReader
+from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, yaml_read_kpoints, yaml_read_irred_perts
+
 from .launcher import PyFlowScheduler, PyLauncher
 from .qadapters import show_qparams, all_qtypes
 from .wrappers import Mrgscr, Mrgddb, Cut3D, Fold2Bloch
@@ -16,12 +18,11 @@ from .works import *
 from .flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow, phonon_conv_flow,
     g0w0_flow, NonLinearCoeffFlow)
 from .abitimer import AbinitTimerParser, AbinitTimerSection
-from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, yaml_read_kpoints, yaml_read_irred_perts
-
 from .events import EventsParser, autodoc_event_handlers
 #from abipy.flowtk.works import *
 #from abipy.flowtk.gs_works import EosWork
-from abipy.flowtk.dfpt_works import ElasticWork, NscfDdksWork
+from .dfpt_works import ElasticWork, NscfDdksWork
+from .gw import ScreeningWork
 
 
 def flow_main(main):  # pragma: no cover

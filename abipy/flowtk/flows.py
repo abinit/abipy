@@ -1667,7 +1667,7 @@ class Flow(Node, NodeContainer, MSONable):
     def parse_timing(self, nids=None):
         """
         Parse the timer data in the main output file(s) of Abinit.
-        Requires timopt /= 0 in the input file (usually timopt = -1)
+        Requires timopt /= 0 in the input file, usually timopt = -1.
 
         Args:
             nids: optional list of node identifiers used to filter the tasks.
@@ -1683,6 +1683,7 @@ class Flow(Node, NodeContainer, MSONable):
         read_ok = parser.parse(paths)
         if read_ok:
             return parser
+
         return None
 
     def show_abierrors(self, nids=None, stream=sys.stdout):
@@ -1918,6 +1919,17 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         if self.pyfile and os.path.isfile(self.pyfile):
             shutil.copy(self.pyfile, self.workdir)
+
+        # Add README.md file if set
+        readme_md = getattr(self, "readme_md", None)
+        if readme_md is not None:
+            with open(os.path.join(self.workdir, "README.md"), "wt") as fh:
+                fh.write(readme_md)
+
+        # Add abipy_meta.json file if set
+        data = getattr(self, "abipy_meta_json", None)
+        if data is not None:
+            self.write_json_in_workdir("abipy_meta.json", data)
 
         for work in self:
             work.build(*args, **kwargs)

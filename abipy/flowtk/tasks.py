@@ -2377,6 +2377,21 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.input_file.write(self.make_input())
         self.manager.write_jobfile(self)
 
+        # Add README.md file if set
+        readme_md = getattr(self, "readme_md", None)
+        if readme_md is not None:
+            with open(self.path_in_workdir("README.md"), "wt") as fh:
+                fh.write(readme_md)
+
+        # Add abipy_meta.json file if set
+        data = getattr(self, "abipy_meta_json", None)
+        if data is None: data = {}
+        if hasattr(self.input, "as_dict"):
+            data["_input"] = self.input.as_dict()
+        else:
+            print("WARNING: Input object does not provide as_dict method!")
+        self.write_json_in_workdir("abipy_meta.json", data)
+
     #@check_spectator
     def rmtree(self, exclude_wildcard=""):
         """

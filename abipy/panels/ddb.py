@@ -393,6 +393,61 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
 
+class DdbPanelWithDownload(AbipyParameterized):
+
+    file_input = pnw.FileInput(height=100, css_classes=["pnx-file-upload-area"])
+
+    def __init__(self, **params):
+        super().__init__(**params)
+
+        help_str = """
+## Main area
+
+This web app exposes some of the post-processing capabilities of AbiPy.
+
+Use the **Choose File** to upload one of the files supported by this app.
+Keep in mind that the file extension matters!
+"""
+
+        self.main_area = pn.Column(help_str, sizing_mode="stretch_width")
+        self.abifile = None
+
+    #@param.depends("file_input.filename")
+    @param.depends("file_input.value", watch=True)
+    def update_main_area(self):
+        print("filename", self.file_input.filename)
+        if self.file_input.value is None: return None
+        #print("value", self.file_input.value)
+        import tempfile
+        workdir = tempfile.mkdtemp()
+
+        fd, tmp_path = tempfile.mkstemp(suffix=self.file_input.filename)
+        print(tmp_path)
+        with open(tmp_path, "wb") as fh:
+            fh.write(self.file_input.value)
+
+        if self.abifile is not None:
+            self.abifile.close()
+            del self.abifile
+
+        from abipy.abilab import abiopen
+        self.abifile = abiopen(tmp_path)
+        #print(self.abifile)
+        #self.main_area.ppend(self.abifile.get_panel())
+        self.main_area.objects = [self.abifile.get_panel()]
+
+    def get_panel(self):
+        fileinput_section = self.get_fileinput_section(self.file_input)
+
+        row = pn.Row(pn.Column("## Upload DDB file:", fileinput_section))
+        main = pn.Column(row, self.main_area, sizing_mode="stretch_width")
+
+        cls = self.get_template_cls_from_name("FastList")
+        template = cls(main=main)
+        return template
+
+
+
 class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
     """
     A panel to analyze multiple |DdbFile| via the low-level API provided by DdbRobot.
@@ -685,3 +740,45 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
 
         tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
+
+
+if __name__ == "__main__":
+    import os
+    import platform
+    from abipy import abilab
+    abilab.abipanel()
+    #DdbPanelWithDownload().get_panel().show(debug=True)
+
+    #APP_ROUTES = {app.url: app.view for app in site.applications}
+    APP_ROUTES = {
+        "/ddb1": DdbPanelWithDownload().get_panel(),
+        "/ddb2": DdbPanelWithDownload().get_panel(),
+    }
+
+
+    main = pn.Column(pn.pane.Markdown("""
+## Landing page
+
+This is the landing page
+To access one of the AbiPy GUIs, click one of the links in the sidebar.
+You will be redirect to a new page in which it is possible to upload the Abinit file.
+"""), sizing_mode="stretch_width")
+
+    home = pn.template.FastListTemplate(main=main)
+    links = "\n".join(f"- [{url}]({url})" for url in APP_ROUTES)
+    print(links)
+    links = pn.pane.Markdown(links)
+
+    APP_ROUTES["/"] = home
+    #home.sidebar.append()
+    for url, app in APP_ROUTES.items():
+        link = pn.pane.Markdown(f"[Link to {url} page]({url})")
+        app.sidebar.append(links)
+
+    kwargs = dict(address=os.getenv("BOKEH_ADDRESS", "0.0.0.0"),
+                  port=80,
+                  dev=True,
+                  #num_procs=4 if platform.system() != "Windows" else 1,
+                  )
+
+    pn.serve(APP_ROUTES, **kwargs)

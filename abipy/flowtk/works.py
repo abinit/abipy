@@ -13,8 +13,8 @@ import numpy as np
 from monty.collections import AttrDict
 from monty.itertools import chunks
 from monty.functools import lazy_property
-#from monty.collections import dict2namedtuple
 from monty.fnmatch import WildCard
+from monty.dev import deprecated
 from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
 from . import wrappers
@@ -789,6 +789,17 @@ class Work(BaseWork, NodeContainer):
         self.outdir.makedirs()
         self.tmpdir.makedirs()
 
+        # Add README.md file if set
+        readme_md = getattr(self, "readme_md", None)
+        if readme_md is not None:
+            with open(self.path_in_workdir("README.md"), "wt") as fh:
+                fh.write(readme_md)
+
+        # Add abipy_meta.json file if set
+        data = getattr(self, "abipy_meta_json", None)
+        if data is not None:
+            self.write_json_in_workdir("abipy_meta.json", data)
+
         # Build dirs and files of each task.
         for task in self:
             task.build(*args, **kwargs)
@@ -1288,6 +1299,8 @@ class QptdmWork(Work):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: QptdmWork
     """
+
+    @deprecated(message="QptdmWork is deprecated and will be removed in abipy 1.0, use flowtk.ScreeningWork")
     def create_tasks(self, wfk_file, scr_input):
         """
         Create the SCR tasks and register them in self.
@@ -2132,9 +2145,9 @@ class ConducWork(Work):
         Construct a ConducWork from a |PhononWork| and |MultiDataset|.
 
         Args:
-            phwork: a |PhononWork| object calculating the DDB and DVDB files.
-            multi: a |MultiDataset| object containing a list of 3 datasets or 5 with Kerange.
-                       See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
+            phwork: |PhononWork| object calculating the DDB and DVDB files.
+            multi: |MultiDataset| object containing a list of 3 datasets or 5 with Kerange.
+                See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
             nbr_proc: Required if with_kerange since autoparal doesn't work with optdriver=8.
             flow: The flow calling the work. Used for  with_fixed_mpi_omp.
             with_kerange: True if using Kerange.

@@ -538,6 +538,10 @@ Default: o
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o", choices=["o", "l", "e"],
         help="What to follow: `o` for output (default), `l` for logfile, `e` for stderr.")
 
+    # Subparser for tail.
+    p_timeit = subparsers.add_parser('timeit', parents=[copts_parser, flow_selector_parser],
+        help="Extract timing data from Abinit output files.")
+
     # Subparser for qstat.
     # TODO: finalize the implementation
     #p_qstat = subparsers.add_parser('qstat', parents=[copts_parser], help="Show additional info on the jobs in the queue.")
@@ -1039,6 +1043,13 @@ def main():
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
                 cprint("Received KeyboardInterrupt from user\n", "yellow")
+
+    elif options.command == "timeit":
+        flow.check_status()
+        time_parser = flow.parse_timing(nids=select_nids(flow, options))
+        print(time_parser)
+        df = time_parser.summarize()
+        abilab.print_dataframe(df, title="output o time_parse.summarize():")
 
     #elif options.command == "qstat":
     #    print("Warning: this option is still under development.")

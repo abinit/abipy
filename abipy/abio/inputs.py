@@ -1454,7 +1454,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         nscf_nband = self["nband"] + 10 if nscf_nband is None else nscf_nband
         edos_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr)
         edos_input.set_kmesh(ngkpt, shiftk)
-        edos_input.set_comment("Input file for electron DOS calculation from a GS SCF input.")
+        edos_input.set_comment("Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)")
 
         return edos_input
 
@@ -2122,6 +2122,18 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     #    return new
 
+    #def make_plasmonpole_input(self, ecuteps, nband, **kwargs):
+    #    new = self.new_with_vars(
+    #        optdriver=3,
+    #        ecuteps=ecuteps,
+    #        nband=nband,
+    #        #inclvkb=2,
+    #        #symchi=1,
+    #        #comment=""
+    #        **kwargs
+    #    )
+    #    return new
+
     def abivalidate(self, workdir=None, manager=None):
         """
         Run ABINIT in dry-run mode to validate the input file.
@@ -2162,13 +2174,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
         """
         # Avoid modifications in self.
-        inp = self.deepcopy()
-        if tolsym is not None: inp["tolsym"] = float(tolsym)
+        inp = self.new_with_vars(
+            chksymbreak=0,   # Bypass Abinit check as we always want to return results.
+            mem_test=0,      # Disable memory check.
+        )
 
-        # Bypass Abinit check as we always want to return results.
-        inp["chksymbreak"] = 0
-        # Disable memory check.
-        inp["mem_test"] = 0
+        if tolsym is not None: inp["tolsym"] = float(tolsym)
 
         # Build a Task to run Abinit in --dry-run mode.
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -2203,17 +2214,14 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Returns:
             `namedtuple` with attributes:
                 points: |numpy-array| with points in the IBZ in reduced coordinates.
-                weights: |numpy-array| with weights of the points.
+                weights: |numpy-array| with the weights of the points.
         """
         # Avoid modifications in self.
-        inp = self.deepcopy()
-
-        # The magic value that makes ABINIT print the IB~ and then stop.
-        inp["prtkpt"] = -2
-        # Bypass Abinit check as we always want to return results.
-        inp["chksymbreak"] = 0
-        # Disable memory check.
-        inp["mem_test"] = 0
+        inp = self.new_with_vars(
+            prtkpt=-2,          # The magic value that makes ABINIT print the IBZ and then stop.
+            chksymbreak=0,      # Bypass Abinit check as we always want to return results.
+            mem_test=0,         # Disable memory check.
+        )
 
         if ngkpt is not None: inp["ngkpt"] = ngkpt
         if shiftk is not None:
@@ -2234,6 +2242,55 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 ibz = collections.namedtuple("ibz", "points weights")
                 return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
                            weights=r.read_value("kpoint_weights"))
+
+        except Exception as exc:
+            self._handle_task_exception(task, exc)
+
+    def abiget_scr_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None, verbose=0):
+        """
+        This function computes the list of points in the IBZ expected by the SCREENING code
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
+        This is usually the NSCF input file used to generate the WFK file used by SCR/SIGMA
+
+        Args:
+            ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
+            shiftk: List of shifts (default None i.e. use shiftk from self)
+            kptopt: Option for k-point generation. If None, the value in self is used.
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+            verbose: verbosity level.
+
+        Returns:
+            `namedtuple` with attributes:
+                points: |numpy-array| with q-points in the IBZ in reduced coordinates.
+                weights: |numpy-array| with the weights of the points.
+        """
+        # Avoid modifications in self.
+        inp = self.new_with_vars(
+            nqptdm=-1,          # The magic value that makes ABINIT print the q-points
+            chksymbreak=0,      # Bypass Abinit check as we always want to return results.
+            mem_test=0,         # Disable memory check.
+        )
+
+        if ngkpt is not None: inp["ngkpt"] = ngkpt
+        if shiftk is not None:
+            shiftk = np.reshape(shiftk, (-1, 3))
+            inp.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
+
+        if kptopt is not None: inp["kptopt"] = kptopt
+        if verbose:
+            print("Computing qptdms with input:\n", str(inp))
+
+        # Build a Task to run Abinit in a shell subprocess
+        task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
+        task.start_and_wait(autoparal=False)
+
+        # Read the list of k-points from the netcdf file.
+        try:
+            with NetcdfReader(os.path.join(task.workdir, "qptdms.nc")) as r:
+                scr_ibz = collections.namedtuple("scr_ibz", "points weights")
+                return scr_ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
+                               weights=r.read_value("kpoint_weights"))
 
         except Exception as exc:
             self._handle_task_exception(task, exc)
@@ -2313,7 +2370,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         if ngkpt is not None: inp["ngkpt"] = ngkpt
         if shiftk is not None:
-            shiftk = np.reshape(shiftk, (-1,3))
+            shiftk = np.reshape(shiftk, (-1, 3))
             inp.set_vars(shiftk=shiftk, nshiftk=len(inp['shiftk']))
 
         inp.set_vars(
@@ -2519,13 +2576,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Get all the possible configurations up to ``max_ncpus``.
         Return list of parallel configurations.
         """
-        inp = self.deepcopy()
-        inp.set_vars(autoparal=autoparal, max_ncpus=max_ncpus)
-
-        # Bypass Abinit check as we always want to return results.
-        inp["chksymbreak"] = 0
-        # Disable memory check.
-        inp["mem_test"] = 0
+        inp = self.new_with_vars(
+            autoparal=autoparal,
+            max_ncpus=max_ncpus,
+            chksymbreak=0,  # Bypass Abinit check as we always want to return results.
+            mem_test=0,     # Disable memory check.
+        )
 
         # Run the job in a shell subprocess with mpi_procs = 1
         # Return code is always != 0
@@ -2991,16 +3047,43 @@ class AnaddbInputError(Exception):
     """Base error class for exceptions raised by `AnaddbInput`"""
 
 
-class AnaddbInput(AbiAbstractInput, Has_Structure):
+class AnaddbInput(AbiAbstractInput, MSONable, Has_Structure):
     """
     This object stores the anaddb variables.
-
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AnaddbInput
     """
 
     Error = AnaddbInputError
+
+    @pmg_serialize
+    def as_dict(self):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        anaddb_args = []
+        for key, value in self.items():
+            if isinstance(value, np.ndarray): value = value.tolist()
+            anaddb_args.append((key, value))
+
+        return dict(structure=self.structure.as_dict(),
+                    comment=self.comment,
+                    anaddb_args=anaddb_args,
+                    spell_check=self.spell_check,
+                    )
+
+    @classmethod
+    def from_dict(cls, d):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        #dec = MontyDecoder()
+        return cls(d["structure"],
+                   comment=d["comment"],
+                   anaddb_args=d["anaddb_args"],
+                   spell_check=d["spell_check"],
+                   )
 
     def __init__(self, structure, comment="", anaddb_args=None, anaddb_kwargs=None, spell_check=True):
 
@@ -3013,7 +3096,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             spell_check: False to disable spell checking for input variables.
         """
         self.set_spell_check(spell_check)
-        self._structure = structure
+        self._structure = Structure.as_structure(structure)
         self.comment = "" if comment is None else str(comment)
 
         anaddb_args = [] if anaddb_args is None else anaddb_args

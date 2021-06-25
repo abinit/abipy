@@ -10,6 +10,7 @@ and saved in ``flow_phonons_with_quad/outdata/``.
 
 The Q* tensor may be needed to improve the accuracy of the Fourier interpolation of the phonon frequencies,
 especially in the long-wavelength limit |q| --> 0.
+
 This example is based on  <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
 Note that only selected features are compatible with dynamical quadrupoles.
 Please consult <https://docs.abinit.org/topics/longwave/>
@@ -79,7 +80,7 @@ def build_flow(options):
     )
 
     # At the time of writing, Q* calculations are implemented only for
-    # NC LDA scalar-relativistic pseudos without non-linear core corrections.
+    # NC LDA scalar-relativistic pseudos without non-linear core correction.
     # This section shows how to use the Pseudo API to perform this kind of check
     # before runnnig the calculation.
     for pseudo in scf_input.pseudos:
