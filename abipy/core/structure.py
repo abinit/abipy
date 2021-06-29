@@ -597,6 +597,13 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             return super().to(fmt=fmt, filename=filename, **kwargs)
 
+    def mp_match(self, **kwargs):
+        """
+        Finds matching structures on the Materials Project database.
+        Just a wrapper around mp_match_structure.
+        """
+        return mp_match_structure(self, **kwargs)
+
     def write_cif_with_spglib_symms(self, filename, symprec=1e-3, angle_tolerance=5.0, significant_figures=8,
                                     ret_string=False):
         """
@@ -722,8 +729,12 @@ class Structure(pmg_Structure, NotebookWriter):
             symprec (float): Symmetry precision used to refine the structure.
             angle_tolerance (float): Tolerance on angles.
                 if ``symprec`` is None and `angle_tolerance` is None, no structure refinement is peformed.
-            primitive (bool): Whether to convert to a primitive cell following :cite:`Setyawan2010`
-            primitive_standard (bool): Returns most primitive structure found.
+            primitive (bool): Returns most primitive structure found.
+            primitive_standard (bool): Whether to convert to a primitive cell using
+                the standards defined in Setyawan, W., & Curtarolo, S. (2010).
+                High-throughput electronic band structure calculations:
+                Challenges and tools. Computational Materials Science, 49(2), 299-312.
+                doi:10.1016/j.commatsci.2010.05.010
         """
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
         structure = self.__class__.from_sites(self)

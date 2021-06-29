@@ -9,7 +9,6 @@ from pprint import pprint
 from monty.functools import lazy_property
 from monty.string import marquee
 
-
 from pymatgen.ext.matproj import MPRester, MPRestError
 from abipy.tools.printing import print_dataframe
 from abipy.core.mixins import NotebookWriter
@@ -285,7 +284,9 @@ class MpStructures(DatabaseStructures):
 
     @lazy_property
     def dataframe(self):
-        """Pandas dataframe constructed from self.data. None if data is not available."""
+        """
+        Pandas dataframe constructed from self.data. None if data is not available.
+        """
         if not self.data: return None
         import pandas as pd
         rows = []

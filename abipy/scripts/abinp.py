@@ -200,12 +200,12 @@ def abinp_phonons(options):
     structure = get_structure(options)
     pseudos = get_pseudotable(options)
 
-    gsinp = factories.gs_input(structure, pseudos,
+    gs_inp = factories.gs_input(structure, pseudos,
                                kppa=options.kppa, ecut=None, pawecutdg=None, scf_nband=None,
                                accuracy="normal", spin_mode=options.spin_mode,
                                smearing=options.smearing, charge=0.0, scf_algorithm=None)
 
-    multi = factories.phonons_from_gsinput(gsinp, ph_ngqpt=None, qpoints=None, with_ddk=True, with_dde=True, with_bec=False,
+    multi = factories.phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, with_dde=True, with_bec=False,
                                            ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, qpoints_to_skip=None)
 
     # Add getwfk variables.

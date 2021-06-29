@@ -59,9 +59,9 @@ Usage example:
                                               and save "abisanitized" structure to file.
   abistruct.py conventional FILE           => Read structure from FILE, generate conventional structure
                                               following doi:10.1016/j.commatsci.2010.05.010
-  abistruct.py proto FILE                 => Read structure from FILE, find possible crystallographic prototypes:
+  abistruct.py proto FILE                 => Read structure from FILE, find possible crystallographic prototypes
                                              in the AFLOW library of crystallographic prototypes.
-                                             http://doi.org/10.1016/j.commatsci.2017.01.017
+                                             See http://doi.org/10.1016/j.commatsci.2017.01.017
 
 ##################
 # Conversion tools
@@ -129,8 +129,8 @@ Usage example:
                                               to change output format. `-f None` to disable structure output.
   abistruct.py mp_pd FILE-or-elements      => Generate phase diagram with entries from the Materials Project.
   abistruct.py mp_ebands FILE             => Fetch electron band structure from MP database. Print gaps.
-                                              Accept FILE with structure if ebands fro structure is wanted
-                                              or mp id e.g. "mp-149 or list of elements e.g `Li-Fe-O` or chemical formula.
+                                             Accept FILE with structure if ebands from structure is wanted
+                                             or mp id e.g. "mp-149 or list of elements e.g `Li-Fe-O` or chemical formula.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input/output, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.

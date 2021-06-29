@@ -8,6 +8,10 @@ import copy
 import time
 import abc
 import json
+import tempfile
+import shutil
+import tarfile
+
 import numpy as np
 import abipy.abio.input_tags as atags
 
@@ -140,6 +144,27 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
 
         with open(filepath, "wt") as fh:
             fh.write(str(self))
+
+    def make_targz(self, tarname="input.tar.gz", **kwargs):
+        """
+        Build targz file with the Abinit input and the associated pseudos.
+        Return path to the targz file.
+        """
+        back = os.getcwd()
+        tmpdir = tempfile.mkdtemp()
+        os.chdir(tmpdir)
+
+        name = os.path.join(tmpdir, tarname)
+        with tarfile.open(name=name, mode='w:gz', **kwargs) as tar:
+            filepath = "run.abi"
+            self.write(filepath=filepath)
+            tar.add(filepath)
+
+            for pseudo in self.pseudos:
+                tar.add(pseudo.filepath, arcname=pseudo.basename)
+
+        os.chdir(back)
+        return name
 
     def deepcopy(self):
         """Deep copy of the input."""
@@ -372,6 +397,24 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
 
         self.enforce_znucl_and_typat(enforce_znucl, enforce_typat)
 
+        # TODO:
+        # Note that here the pseudos **must** be sorted according to znucl.
+        # Here we reorder the pseudos if the order is wrong.
+        #ord_pseudos = []
+
+        #znucl = [specie.number for specie in self.input.structure.species_by_znucl]
+
+        #for z in znucl:
+        #    for p in self.pseudos:
+        #        if p.Z == z:
+        #            ord_pseudos.append(p)
+        #            break
+        #    else:
+        #        raise ValueError("Cannot find pseudo with znucl %s in pseudos:\n%s" % (z, self.pseudos))
+
+        #for pseudo in ord_pseudos:
+        #    app(pseudo.path)
+
     def enforce_znucl_and_typat(self, znucl, typat):
         """
         These arrays are used to enforce a particular value of `znucl` and `typat` when writing the Abinit input file
@@ -454,6 +497,16 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
     def vars(self):
         """Dictionary with variables."""
         return self._vars
+
+    @property
+    def is_multidataset(self):
+        """Used to understand if we have an AbinitInput or a MultiDataset in polymorphic APIs."""
+        return False
+
+    @property
+    def is_input(self):
+        """Used to understand if we have an AbinitInput or a MultiDataset in polymorphic APIs."""
+        return True
 
     @classmethod
     def from_dict(cls, d):
@@ -760,6 +813,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             raise self.Error("The triple product of the lattice vector is negative. Use structure.abi_sanitize.")
 
         return self._structure
+
+    def replicate(self, ndtset):
+        """
+        Helper function to construct a |Multidataset| with ndtset datasets from an |AbinitInput|.
+        """
+        return MultiDataset.replicate_input(self, ndtset)
 
     def _check_nsppol_nspinor(self, nsppol, nspinor):
         """
@@ -1568,8 +1627,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         ph_inputs.pop_vars("iscf")
 
         # Set kptopt depending on the q-points i.e use time-reversal if Gamma
-        kptopt = 3
-        if np.allclose(qpt, 0): kptopt = 2
+        kptopt = 2 if np.allclose(qpt, 0) else 3
 
         # Note: this will work for phonons, but not for the other types of perturbations.
         for pert, ph_input in zip(perts, ph_inputs):
@@ -1629,7 +1687,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ddk_input.set_vars(
                 rfelfd=2,             # Activate the calculation of the d/dk perturbation
                                       # only the derivative of ground-state wavefunctions with respect to k
-                rfdir=rfdir,          # Direction of the per ddk.
+                rfdir=rfdir,          # Direction of the ddk.
                 nqpt=1,               # One wavevector is to be considered
                 qpt=(0, 0, 0),        # q-wavevector.
                 kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
@@ -2762,6 +2820,16 @@ class MultiDataset(object):
         #        raise selfError("Pseudos must be consistent when from_inputs is invoked.")
 
     @property
+    def is_multidataset(self):
+        """Used to understand if we have an AbinitInput or a MultiDataset in polymorphic APIs."""
+        return True
+
+    @property
+    def is_input(self):
+        """Used to understand if we have an AbinitInput or a MultiDataset in polymorphic APIs."""
+        return False
+
+    @property
     def ndtset(self):
         """Number of inputs in MultiDataset."""
         return len(self)
@@ -3033,14 +3101,40 @@ class MultiDataset(object):
 
         return MultiDataset.from_inputs(inputs) if inputs else None
 
-    def write(self, filepath="run.abi"):
+    def write(self, filepath="run.abi", split=True):
         """
-        Write ``ndset`` input files to disk. The name of the file is constructed from the dataset index e.g. runDS0.abi
+        Write ``ndset`` input files to disk.
+        The name of the file is constructed from the dataset index e.g. runDS0.abi
         """
-        root, ext = os.path.splitext(filepath)
-        for i, inp in enumerate(self):
-            p = root + "DS%d" % i + ext
-            inp.write(filepath=p)
+        if split:
+            root, ext = os.path.splitext(filepath)
+            for i, inp in enumerate(self):
+                p = root + "DS%d" % i + ext
+                inp.write(filepath=p)
+        else:
+            with open(filepath, "wt") as fh:
+                fh.write(str(self))
+
+    def make_targz(self, tarname="input.tar.gz", **kwargs):
+        """
+        Build targz file with the Multidataset input and the associated pseudos.
+        Return path to the targz file.
+        """
+        back = os.getcwd()
+        tmpdir = tempfile.mkdtemp()
+        os.chdir(tmpdir)
+
+        name = os.path.join(tmpdir, tarname)
+        with tarfile.open(name=name, mode='w:gz', **kwargs) as tar:
+            filepath = "run.abi"
+            self.write(filepath=filepath, split=False)
+            tar.add(filepath)
+
+            for pseudo in self.pseudos:
+                tar.add(pseudo.filepath, arcname=pseudo.basename)
+
+        os.chdir(back)
+        return name
 
 
 class AnaddbInputError(Exception):

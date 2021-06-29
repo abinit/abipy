@@ -2,7 +2,7 @@
 
 #import param
 import panel as pn
-#import panel.widgets as pnw
+import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 from abipy.panels.core import AbipyParameterized, mpl, ply, dfc
 
@@ -61,3 +61,56 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
         tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
+
+
+class AbinitOutputFilePanelWithFileInput(AbipyParameterized):
+
+    def __init__(self, **params):
+
+        super().__init__(**params)
+
+        help_str = """
+## Main area
+
+This web app exposes some of the post-processing capabilities of AbiPy.
+
+Use the **Choose File** to upload one of the files supported by this app.
+
+Drop one of of the files supported by AbiPy onto the FileInput area or
+click the **Choose File** button to upload
+
+Keep in mind that the **file extension matters**!
+Also, avoid uploading big files (size > XXX).
+"""
+
+        self.main_area = pn.Column(help_str, sizing_mode="stretch_width")
+        self.abifile = None
+
+        self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
+        self.file_input.param.watch(self.on_file_input, "value")
+
+    def on_file_input(self, event):
+        new_abifile = self.get_abifile_from_file_input(self.file_input)
+
+        if self.abifile is not None: # and hasattr(self.abifile, "remove"):
+            self.abifile.remove()
+
+        self.abifile = new_abifile
+        self.main_area.objects = [self.abifile.get_panel()]
+        #self.main_area.append(self.abifile.get_panel())
+
+    def get_panel(self):
+
+        col = pn.Column(
+            "## Upload a *.abo* file:",
+            self.get_fileinput_section(self.file_input),
+            sizing_mode="stretch_width")
+
+        main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
+
+        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
+        #cls(main=main, **kwds)
+
+        cls = self.get_template_cls_from_name("FastList")
+        template = cls(main=main, title="Abo Analyzer", header_background="#ff8c00") # Dark orange
+        return template

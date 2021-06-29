@@ -93,6 +93,14 @@ class BaseFile(metaclass=abc.ABCMeta):
         """Activated at the end of the with statement. It automatically closes the file."""
         self.close()
 
+    def remove(self):
+        """Close the file handle, remove the file from disk."""
+        self.close()
+        try:
+            os.remove(self.filepath)
+        except FileNotFoundError:
+            pass
+
 
 class TextFile(BaseFile):
 

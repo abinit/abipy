@@ -5,6 +5,7 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
+from abipy.core.structure import Structure
 from abipy.panels.core import (AbipyParameterized, HasStructureParams, BaseRobotPanel,
         mpl, ply, dfc, depends_on_btn_click)
 from abipy.dfpt.ddb import PhononBandsPlotter
@@ -40,22 +41,6 @@ class HasAnaddbParams(param.Parameterized):
 
     # Base buttons
     plot_check_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP", button_type='primary')
-
-    warning = pn.pane.Markdown(
-"""
-Refresh the page if plotly figures are not shown.
-
-Note that widgets for input variables such as *asr*, *chneut*, *dipdip*, *dos_method*, *etc.*
-are **shared by the different tabs**.
-
-This means that if you change the value of one of these variables in the active tab,
-the same value will **automagically** appear in the other tabs yet the results/figures
-are not automatically recomputed when you change the value.
-
-In other words, if you change some variable in the active tab and then you move to another tab,
-the results/figures are stil computed with the **old input variables** and you will need to
-recompute the new results by clicking the button.
-""", name="warning")
 
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs):
         """
@@ -176,7 +161,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         return col
 
     @depends_on_btn_click('plot_phbands_btn')
-    def plot_phbands_and_phdos(self):
+    def on_plot_phbands_and_phdos(self):
         """
         Compute phonon bands and DOS from DDB by invoking Anaddb then plot results.
         """
@@ -330,57 +315,59 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         """
         Return tabs with widgets to interact with the DDB file.
         """
+        ddb = self.ddb
         d = {}
         d["Summary"] = pn.Row(
             bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both")
         )
-        #if self.ddb.has_phonons
-        d["PH-bands"] = pn.Row(
-            self.pws_col(["### PH-bands options", "nqsmall", "ndivsm", "asr", "chneut", "dipdip",
-                          "lo_to_splitting", "dos_method", "stacked_pjdos", "temp_range", "plot_phbands_btn",
-                          self.helpc("plot_phbands_and_phdos")]),
-            self.plot_phbands_and_phdos
-        )
-        #if self.ddb.has_becs
-        d["BECs"] = pn.Row(
-            self.pws_col(["### Born effective charges options", "asr", "chneut", "dipdip", "gamma_ev",
-                          "get_epsinf_btn", self.helpc("get_epsinf")]),
-            self.get_epsinf
-        )
-        #if self.ddb.has_e0
-        d["eps0"] = pn.Row(
-            self.pws_col(["### epsilon_0", "asr", "chneut", "dipdip", "gamma_ev", "w_range", "plot_eps0w_btn",
-                          self.helpc("plot_eps0w")]),
-            self.plot_eps0w
-        )
-        #if self.ddb.has_phonons
-        d["Speed of sound"] = pn.Row(
-            self.pws_col(["### Speed of sound options", "asr", "chneut", "dipdip", "plot_vsound_btn",
-                         self.helpc("plot_vsound")]),
-            self.plot_vsound
-        )
-        #if self.ddb.has_phonons
-        d["ASR & DIPDIP"] = pn.Row(
-            self.pws_col(["### ASR & DIPDIP options", "nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
-                         self.helpc("plot_without_asr_dipdip")]),
-            self.plot_without_asr_dipdip
-        )
-        d["DOS vs q-mesh"] = pn.Row(
-            self.pws_col(["### DOS vs q-mesh options", "asr", "chneut", "dipdip", "dos_method", "nqsmall_list",
-                         "temp_range", "plot_dos_vs_qmesh_btn", self.helpc("plot_dos_vs_qmesh")]),
-            self.plot_dos_vs_qmesh
-        )
-        #if self.ddb.has_dynamical_quadrupoles
-        d["Quadrupoles"] = pn.Row(
-            self.pws_col(["### Quadrupoles options", "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
-                          "plot_phbands_quad_btn", self.helpc("plot_phbands_quad")]),
-            self.plot_phbands_quad
-        )
-        #if self.ddb.has_phonons
-        d["IFCs"] = pn.Row(
-            self.pws_col(["### IFCs options", "asr", "dipdip", "chneut", "plot_ifc_btn", self.helpc("plot_ifc")]),
-            self.plot_ifc
-        )
+
+        # Note how we build tabs according to the content of the DDB.
+        if ddb.has_at_least_one_atomic_perturbation():
+            d["PH-bands"] = pn.Row(
+                self.pws_col(["### PH-bands options", "nqsmall", "ndivsm", "asr", "chneut", "dipdip",
+                              "lo_to_splitting", "dos_method", "stacked_pjdos", "temp_range", "plot_phbands_btn",
+                              self.helpc("on_plot_phbands_and_phdos")]),
+                self.on_plot_phbands_and_phdos
+            )
+        if ddb.has_bec_terms(select="at_least_one"):
+            d["BECs"] = pn.Row(
+                self.pws_col(["### Born effective charges options", "asr", "chneut", "dipdip", "gamma_ev",
+                              "get_epsinf_btn", self.helpc("get_epsinf")]),
+                self.get_epsinf
+            )
+        if ddb.has_epsinf_terms(select="at_least_one_diagoterm"):
+            d["eps0"] = pn.Row(
+                self.pws_col(["### epsilon_0", "asr", "chneut", "dipdip", "gamma_ev", "w_range", "plot_eps0w_btn",
+                              self.helpc("plot_eps0w")]),
+                self.plot_eps0w
+            )
+        if ddb.has_at_least_one_atomic_perturbation():
+            d["Speed of sound"] = pn.Row(
+                self.pws_col(["### Speed of sound options", "asr", "chneut", "dipdip", "plot_vsound_btn",
+                             self.helpc("plot_vsound")]),
+                self.plot_vsound
+            )
+            d["ASR & DIPDIP"] = pn.Row(
+                self.pws_col(["### ASR & DIPDIP options", "nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
+                             self.helpc("plot_without_asr_dipdip")]),
+                self.plot_without_asr_dipdip
+            )
+            d["DOS vs q-mesh"] = pn.Row(
+                self.pws_col(["### DOS vs q-mesh options", "asr", "chneut", "dipdip", "dos_method", "nqsmall_list",
+                             "temp_range", "plot_dos_vs_qmesh_btn", self.helpc("plot_dos_vs_qmesh")]),
+                self.plot_dos_vs_qmesh
+            )
+            #if self.ddb.has_dynamical_quadrupoles
+            d["Quadrupoles"] = pn.Row(
+                self.pws_col(["### Quadrupoles options", "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
+                              "plot_phbands_quad_btn", self.helpc("plot_phbands_quad")]),
+                self.plot_phbands_quad
+            )
+            d["IFCs"] = pn.Row(
+                self.pws_col(["### IFCs options", "asr", "dipdip", "chneut", "plot_ifc_btn", self.helpc("plot_ifc")]),
+                self.plot_ifc
+            )
+
         d["Structure"] = self.get_struct_view_tab_entry()
         d["Global"] = pn.Row(
             self.pws_col(["### Global options", "units", "mpi_procs", "verbose"]),
@@ -393,11 +380,93 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
 
-class DdbPanelWithDownload(AbipyParameterized):
+class PanelWithFileInput(AbipyParameterized):
 
-    file_input = pnw.FileInput(height=100, css_classes=["pnx-file-upload-area"])
+    def __init__(self, use_structure=False, **params):
+
+        super().__init__(**params)
+
+        self.use_structure = use_structure
+        help_str = """
+## Main area
+
+This web app exposes some of the post-processing capabilities of AbiPy.
+
+Use the **Choose File** to upload one of the files supported by this app.
+
+Drop one of of the files supported by AbiPy onto the FileInput area or
+click the **Choose File** button to upload
+
+Keep in mind that the **file extension matters**!
+Also, avoid uploading big files (size > XXX).
+"""
+
+        # Add accordion after the button with warning and help taken from the docstring of the callback
+        #from abipy.abilab import abiopen, extcls_supporting_panel
+        #table_str = extcls_supporting_panel(tablefmt="html")
+        #table_str= pn.pane.HTML(table_str, name="extensions")
+        #col = pn.Column(); ca = col.append
+        #acc = pn.Accordion(
+        #        #("Help", pn.pane.Markdown(help_str, name="help")),
+        #        ("Supported Extensions", table_str),
+        #)
+        #ca(pn.layout.Divider())
+        #ca(acc)
+
+        self.main_area = pn.Column(help_str, sizing_mode="stretch_width")
+        self.abifile = None
+
+        self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
+        self.file_input.param.watch(self.on_file_input, "value")
+
+        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press Return')
+        self.mpid_input.param.watch(self.on_mpid_input, "value")
+
+    def on_file_input(self, event):
+        new_abifile = self.get_abifile_from_file_input(self.file_input, use_structure=self.use_structure)
+
+        if self.abifile is not None: # and hasattr(self.abifile, "remove"):
+            self.abifile.remove()
+
+        self.abifile = new_abifile
+        self.main_area.objects = [self.abifile.get_panel()]
+        #self.main_area.append(self.abifile.get_panel())
+
+    def on_mpid_input(self, event):
+        mp_id = self.mpid_input.value
+        print("Fetching structure from mp_id:", mp_id)
+        self.abifile = Structure.from_mpid(mp_id)
+
+        self.main_area.objects = [self.abifile.get_panel()]
+
+    def get_panel(self):
+
+        col = pn.Column(
+            "## Upload **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*):",
+            self.get_fileinput_section(self.file_input),
+            sizing_mode="stretch_width")
+
+        if self.use_structure:
+            col.extend([
+                "## or get the structure from the [Materials Project](https://materialsproject.org/) database:",
+                self.mpid_input
+            ])
+
+        main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
+        title = "Structure Analyzer" if self.use_structure else "Output File Analyzer"
+
+        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
+        #cls(main=main, **kwds)
+
+        cls = self.get_template_cls_from_name("FastList")
+        template = cls(main=main, title=title, header_background="#ff8c00") # Dark orange
+        return template
+
+
+class DdbPanelWithFileInput(AbipyParameterized):
 
     def __init__(self, **params):
+
         super().__init__(**params)
 
         help_str = """
@@ -406,46 +475,130 @@ class DdbPanelWithDownload(AbipyParameterized):
 This web app exposes some of the post-processing capabilities of AbiPy.
 
 Use the **Choose File** to upload one of the files supported by this app.
-Keep in mind that the file extension matters!
+
+Drop one of of the files supported by AbiPy onto the FileInput area or
+click the **Choose File** button to upload
+
+Keep in mind that the **file extension matters**!
+Also, avoid uploading big files (size > XXX).
 """
+
+        # Add accordion after the button with warning and help taken from the docstring of the callback
+        #from abipy.abilab import abiopen, extcls_supporting_panel
+        #table_str = extcls_supporting_panel(tablefmt="html")
+        #table_str= pn.pane.HTML(table_str, name="extensions")
+        #col = pn.Column(); ca = col.append
+        #acc = pn.Accordion(
+        #        #("Help", pn.pane.Markdown(help_str, name="help")),
+        #        ("Supported Extensions", table_str),
+        #)
+        #ca(pn.layout.Divider())
+        #ca(acc)
 
         self.main_area = pn.Column(help_str, sizing_mode="stretch_width")
         self.abifile = None
 
-    #@param.depends("file_input.filename")
-    @param.depends("file_input.value", watch=True)
-    def update_main_area(self):
-        print("filename", self.file_input.filename)
-        if self.file_input.value is None: return None
-        #print("value", self.file_input.value)
-        import tempfile
-        workdir = tempfile.mkdtemp()
+        self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
+        self.file_input.param.watch(self.on_file_input, "value")
 
-        fd, tmp_path = tempfile.mkstemp(suffix=self.file_input.filename)
-        print(tmp_path)
-        with open(tmp_path, "wb") as fh:
-            fh.write(self.file_input.value)
+        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press Return')
+        self.mpid_input.param.watch(self.on_mpid_input, "value")
 
-        if self.abifile is not None:
-            self.abifile.close()
-            del self.abifile
+    def on_file_input(self, event):
+        new_abifile = self.get_abifile_from_file_input(self.file_input)
 
-        from abipy.abilab import abiopen
-        self.abifile = abiopen(tmp_path)
-        #print(self.abifile)
-        #self.main_area.ppend(self.abifile.get_panel())
+        if self.abifile is not None: # and hasattr(self.abifile, "remove"):
+            self.abifile.remove()
+
+        self.abifile = new_abifile
+        self.main_area.objects = [self.abifile.get_panel()]
+        #self.main_area.append(self.abifile.get_panel())
+
+    def on_mpid_input(self, event):
+        mp_id = self.mpid_input.value
+        print("Fetching DDB from mp_id:", mp_id)
+        from abipy.dfpt.ddb import DdbFile
+        self.abifile = DdbFile.from_mpid(mp_id)
+
         self.main_area.objects = [self.abifile.get_panel()]
 
     def get_panel(self):
-        fileinput_section = self.get_fileinput_section(self.file_input)
 
-        row = pn.Row(pn.Column("## Upload DDB file:", fileinput_section))
-        main = pn.Column(row, self.main_area, sizing_mode="stretch_width")
+        col = pn.Column(
+            "## Upload a DDB file:",
+            self.get_fileinput_section(self.file_input),
+            "## or get the DDB from the [Materials Project](https://materialsproject.org/) database (if available):",
+            self.mpid_input,
+            sizing_mode="stretch_width")
+
+        main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
+
+        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
+        #cls(main=main, **kwds)
 
         cls = self.get_template_cls_from_name("FastList")
-        template = cls(main=main)
+        template = cls(main=main, title="DDB Analyzer", header_background="#ff8c00") # Dark orange
         return template
 
+
+class CompareDdbWithMP(AbipyParameterized):
+
+    def __init__(self, **params):
+
+        super().__init__(**params)
+
+        md = pn.pane.Markdown("""
+This panel alllows users to upload two files with KS energies.
+        """)
+
+        self.main_area = pn.Column(md, sizing_mode="stretch_width")
+
+        self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
+        self.file_input.param.watch(self.on_file_input, "value")
+
+    def on_file_input(self, event):
+        abinit_ddb = self.get_abifile_from_file_input(self.file_input)
+
+        # Match Abinit structure with MP.
+        mp = abinit_ddb.structure.mp_match()
+        if not mp.structures:
+            raise RuntimeError("No structure found in the MP database")
+
+        # Get structures from MP as AbiPy ElectronBands.
+        from abipy.dfpt.ddb import DdbFile
+        mp_ddb_list = []
+        for mp_id in mp.ids:
+            if mp_id == "this": continue
+            print("mp_id:", mp_id)
+            ddb = DdbFile.from_mpid(mp_id)
+            mp_ddb_list.append(ddb)
+
+        #col = pn.Column(sizing_mode="stretch_width"); ca = col.append
+        #ca("## Abinit phonon band structure:")
+        ##fig =  abinit_ddb.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)
+        #ca(ply(fig))
+
+        #for mp_ebands in mp_ebands_list:
+        #    ca("## MP Phonon band structure:")
+        #    #fig =  mp_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)
+        #    ca(ply(fig))
+
+        #self.main_area.objects = [col]
+
+    def get_panel(self):
+        col = pn.Column(
+            "## Upload a DDB file:",
+            self.get_fileinput_section(self.file_input),
+            sizing_mode="stretch_width")
+
+        main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
+
+        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
+        #cls(main=main, **kwds)
+
+        cls = self.get_template_cls_from_name("FastList")
+        template = cls(main=main, title="Compare with MP DDB", header_background="#ff8c00") # Dark orange
+        return template
 
 
 class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
@@ -563,7 +716,7 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
     #        return gspec
 
     #@param.depends('plot_phbands_btn.clicks')
-    #def plot_phbands_and_phdos(self, event=None):
+    #def on_plot_phbands_and_phdos(self, event=None):
     #    """Compute phonon bands and DOSes from DDB and plot the results."""
     #    if self.plot_phbands_btn.clicks == 0: return
 
@@ -683,9 +836,9 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
         #    pn.Column("# PH-bands options",
         #              *self.pws("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
         #                        "lo_to_splitting", "dos_method", "temp_range", "plot_phbands_btn",
-        #                        self.helpc("plot_phbands_and_phdos")),
+        #                        self.helpc("on_plot_phbands_and_phdos")),
         #              ),
-        #    self.plot_phbands_and_phdos)
+        #    self.on_plot_phbands_and_phdos)
         #))
         #app(("BECs", pn.Row(
         #    pn.Column("# Born effective charges options",
@@ -740,45 +893,3 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
 
         tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
-
-
-if __name__ == "__main__":
-    import os
-    import platform
-    from abipy import abilab
-    abilab.abipanel()
-    #DdbPanelWithDownload().get_panel().show(debug=True)
-
-    #APP_ROUTES = {app.url: app.view for app in site.applications}
-    APP_ROUTES = {
-        "/ddb1": DdbPanelWithDownload().get_panel(),
-        "/ddb2": DdbPanelWithDownload().get_panel(),
-    }
-
-
-    main = pn.Column(pn.pane.Markdown("""
-## Landing page
-
-This is the landing page
-To access one of the AbiPy GUIs, click one of the links in the sidebar.
-You will be redirect to a new page in which it is possible to upload the Abinit file.
-"""), sizing_mode="stretch_width")
-
-    home = pn.template.FastListTemplate(main=main)
-    links = "\n".join(f"- [{url}]({url})" for url in APP_ROUTES)
-    print(links)
-    links = pn.pane.Markdown(links)
-
-    APP_ROUTES["/"] = home
-    #home.sidebar.append()
-    for url, app in APP_ROUTES.items():
-        link = pn.pane.Markdown(f"[Link to {url} page]({url})")
-        app.sidebar.append(links)
-
-    kwargs = dict(address=os.getenv("BOKEH_ADDRESS", "0.0.0.0"),
-                  port=80,
-                  dev=True,
-                  #num_procs=4 if platform.system() != "Windows" else 1,
-                  )
-
-    pn.serve(APP_ROUTES, **kwargs)

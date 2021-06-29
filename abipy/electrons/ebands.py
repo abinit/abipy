@@ -459,7 +459,7 @@ class ElectronBands(Has_Structure):
             line_mode (bool): If True, fetch a BandStructureSymmLine object
                 (default). If False, return the uniform band structure.
         """
-        # Get pytmatgen structure and convert it to abipy structure
+        # Get pytmatgen structure and convert it to an AbiPy structure
         from abipy.core import restapi
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
             pmgb = rest.get_bandstructure_by_material_id(material_id=material_id, line_mode=line_mode)

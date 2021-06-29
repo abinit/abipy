@@ -40,8 +40,10 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
             bkw.PreText(text=self.gsr.to_string(verbose=self.verbose),  sizing_mode="scale_both")
         )
         d["e-Bands"] = pn.Row(
-            pn.Column("### e-Bands Options", self.get_plot_ebands_widgets(), self.helpc("on_plot_ebands_btn"),
-            self.on_plot_ebands_btn),
+            #pn.Column("### e-Bands Options", self.get_plot_ebands_widgets(), self.helpc("on_plot_ebands_btn"),
+            self.pws_col(["### e-Bands Options", "with_gaps", "set_fermie_to_vbm", "plot_ebands_btn",
+                      self.helpc("on_plot_ebands_btn")]),
+            self.on_plot_ebands_btn
         )
         # Add DOS tab but only if k-sampling.
         kpoints = self.gsr.ebands.kpoints

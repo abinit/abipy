@@ -1,7 +1,6 @@
 """"Basic tools and mixin classes for AbiPy panels."""
 
 import io
-#import pathlib
 import tempfile
 import numpy as np
 import param
@@ -13,9 +12,8 @@ import pandas as pd
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core import abinit_units as abu
+from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
-
-#pathlib.Path(__file__) / "assets"
 
 
 def abipanel():
@@ -87,8 +85,12 @@ Possible templates are: {list(pn.template.__dict__.keys())}
 """)
 
 
-def depends_on_btn_click(btn_name):
-
+def depends_on_btn_click(btn_name, show_exc=True):
+    """
+    This decorator is used for callbacks triggered by a button of name `btn_name`
+    If show_exc is True, a Markdown pane with the backtrace is returned
+    if an exception is raised.
+    """
     def decorator(func):
         from functools import wraps
         @wraps(func)
@@ -97,18 +99,52 @@ def depends_on_btn_click(btn_name):
             btn = getattr(self, btn_name)
             if btn.clicks == 0: return
             with ButtonContext(btn):
-                return func(*args,**kwargs)
+                return func(*args, **kwargs)
 
-        return pn.depends(f"{btn_name}.clicks")(decorated)
+        f = pn.depends(f"{btn_name}.clicks")(decorated)
+        if show_exc: f = show_exception(f)
+        return f
 
     return decorator
+
+
+def my_depends(*args, **kwargs):
+    show_exc = kwargs.pop("show_exc", False)
+    def decorator(func):
+        from functools import wraps
+        @wraps(func)
+        def decorated(*args, **kwargs):
+            f = pn.depends(func, *args, **kwargs)
+            if show_exc: f = show_exception(f)
+        return f
+
+    return decorator
+
+
+def show_exception(func):
+    """
+    This decorator returns a Markdown pane with the backtrace
+    if the function raises an exception.
+    """
+    from functools import wraps
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as exc:
+            print(exc)
+            import traceback
+            return pn.Column(pn.pane.Markdown("```shell\n%s\n```" % traceback.format_exc()),
+                             sizing_mode="stretch_width")
+
+    return decorated
 
 
 class HTMLwithClipboardBtn(pn.pane.HTML):
     """
     Receives an HTML string and returns an HTML pane with a button that allows the user
     to copy the content to the system clipboard.
-    Requires call to abipanel to load JS the extension.
+    Requires call to abipanel to load the JS extension.
     """
 
     # This counter is shared by all the instances. We use it so that the js script is included only once.
@@ -383,20 +419,31 @@ class ButtonContext(object):
 
 class AbipyParameterized(param.Parameterized):
     """
-    Base classs for AbiPy panels. Provide widgets for parameters supported by the differet AbiPy methods.
-    and helper functions to perform typical operations when build dashboards from python.
+    Base class for AbiPy panels. Provides helper functions for typical operations needed for
+    building dashboard and basic parameters supported by the subclasses.
     """
 
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used for running Fortran code.")
 
-    # mode = "webapp" This flag may be used to limit the user and/or decide the options that should
-    # be exposed. For instance structure_viewer == "Vesta" does not make sense in webapp mode
+    # This flag is set to True if we serving apps from the Abinit server.
+    # It is used to impose limitations on what users can do and select the options that should be exposed.
+    # For instance, structure_viewer == "Vesta" does not make sense in we are not serving from a local server.
+    #
+    uses_abinit_server = False
 
     warning = pn.pane.Markdown(
 """
-Please **refresh** the page using the refresh button of the browser if plotly figures are not shown.
-""")
+Note that widgets are **shared by the different tabs**.
+This means that if you change the value of one of these variables in the active tab,
+the same value will **automagically** appear in the other tabs yet results/figures
+are not automatically recomputed when you change the value.
+
+In other words, if you change some variable in the active tab and then you move to another tab,
+the results/figures are stil computed with the **old input** hence you will have to
+recompute the new results by clicking the button.
+""", name="warning")
+
 
     #def __repr__(self):
     #    # https://github.com/holoviz/param/issues/396
@@ -475,6 +522,9 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
     @staticmethod
     def get_fileinput_section(file_input):
 
+        # All credits go to:
+        # https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/styling/fileinput_area.py
+
         css_style = """
         <style>
         .pnx-file-upload-area input[type=file] {
@@ -490,12 +540,47 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
 
         return pn.Column(
             pn.pane.HTML(css_style, width=0, height=0, sizing_mode="stretch_width", margin=0),
-            file_input, sizing_mode="stretch_width"
-        )
+            file_input, sizing_mode="stretch_width")
+
+    @staticmethod
+    def get_abifile_from_file_input(file_input, use_structure=False):
+        print("filename", file_input.filename)
+        #if file_input.value is None: return None
+        #print("value", file_input.value)
+
+        workdir = tempfile.mkdtemp()
+
+        fd, tmp_path = tempfile.mkstemp(suffix=file_input.filename)
+        #print(tmp_path)
+        with open(tmp_path, "wb") as fh:
+            fh.write(file_input.value)
+
+        from abipy.abilab import abiopen
+        abifile = abiopen(tmp_path)
+        if use_structure:
+            abifile = Structure.as_structure(abifile)
+
+        return abifile
+
+    def get_ebands_from_file_input(self, file_input, remove=True):
+        """
+        Read and return an |ElectronBands| object from a file_input widget.
+        Return None if the file does not provide an ebands object.
+        Remove the file if remove == True.
+        """
+        with self.get_abifile_from_file_input(file_input) as abifile:
+            ebands = getattr(abifile, "ebands", None)
+        if remove: abifile.remove()
+        return ebands
 
     @staticmethod
     def get_template_cls_from_name(template):
         return get_template_cls_from_name(template)
+
+    def get_abinit_template_cls_and_kwds(self):
+        cls = self.get_template_cls_from_name("FastList")
+        kwds = dict(header_background="#ff8c00") # Dark orange
+        return cls, kwds
 
     def get_template_from_tabs(self, tabs, template):
         """
@@ -523,7 +608,7 @@ Please **refresh** the page using the refresh button of the browser if plotly fi
             # Assume .main area acts like a GridSpec
             template.main[:,:] = tabs
 
-        # Get widgets associated to Ph-bands tab and insert them in the slidebar
+        # Get widgets associated to Ph-bands tab and insert them in the sidebar.
         #row = tabs[1]
         #controllers_col, out = row[0], row[1]
         #template.sidebar.append(controllers_col)
@@ -548,7 +633,7 @@ class HasStructureParams(AbipyParameterized):
     @property
     def structure(self):
         """Structure object provided by the subclass."""
-        raise NotImplementedError(f"Subclass {type(self)} should implement `structure` attribute.")
+        raise NotImplementedError(f"Subclass {type(self)} should implement the `structure` attribute.")
 
     @pn.depends("structure_viewer")
     def view_structure(self):
@@ -726,6 +811,7 @@ class PanelWithElectronBands(AbipyParameterized):
 
     # Bands plot
     with_gaps = param.Boolean(False)
+
     #ebands_ylims
     #ebands_e0
     # e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -775,7 +861,7 @@ class PanelWithElectronBands(AbipyParameterized):
         """
         Receives the netcdf file selected by the user as binary string.
         """
-        print(type(self.ebands_kpath_fileinput))
+        #print(type(self.ebands_kpath_fileinput))
         bstring = self.ebands_kpath_fileinput
 
         #with ButtonContext(self.ebands_kpath_fileinput):
@@ -792,17 +878,16 @@ class PanelWithElectronBands(AbipyParameterized):
         if self.set_fermie_to_vbm:
             self.ebands.set_fermie_to_vbm()
 
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        sz_mode = "stretch_width"
+        col = pn.Column(sizing_mode=sz_mode); ca = col.append
         ca("## Electronic band structure:")
-        fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps, max_phfreq=None,
-                                  show=False)
+        fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps, max_phfreq=None, show=False)
         ca(ply(fig1))
 
         ca("## Brillouin zone and **k**-path:")
-        #kpath_pane = mpl(self.ebands.kpoints.plot(**self.mpl_kwargs), with_divider=False)
         kpath_pane = ply(self.ebands.kpoints.plotly(show=False), with_divider=False)
         df_kpts = dfc(self.ebands.kpoints.get_highsym_datataframe(), with_divider=False)
-        ca(pn.Row(kpath_pane, df_kpts))
+        ca(pn.Row(kpath_pane, df_kpts, sizing_mode=sz_mode))
         ca(pn.layout.Divider())
         #ca(bkw.PreText(text=self.ebands.to_string(verbose=self.verbose)))
 
@@ -1054,30 +1139,3 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
     #print(html)
     return pn.Column(pn.pane.HTML(html, sizing_mode="stretch_width"), sizing_mode="stretch_width")
 
-
-# All credits to
-# https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/styling/fileinput_area.py
-
-#def
-#    """Returns the File Input Area App"""
-#
-#    STYLE = """
-#    <style>
-#    .pnx-file-upload-area input[type=file] {
-#        width: 100%;
-#        height: 100%;
-#        border: 3px dashed #9E9E9E;
-#        background: transparent;
-#        border-radius: 5px;
-#        text-align: left;
-#        margin: auto;
-#    }
-#    </style>"""
-#
-#    #pn.config.sizing_mode = "stretch_width"
-#    fileinput_section = pn.Column(
-#        pn.pane.HTML(STYLE, width=0, height=0, sizing_mode="stretch_width", margin=0),
-#        pn.widgets.FileInput(height=100, css_classes=["pnx-file-upload-area"]),
-#    )
-#
-#    return fileinput_section
