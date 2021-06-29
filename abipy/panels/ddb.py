@@ -7,7 +7,7 @@ import bokeh.models.widgets as bkw
 
 from abipy.core.structure import Structure
 from abipy.panels.core import (AbipyParameterized, HasStructureParams, BaseRobotPanel,
-        mpl, ply, dfc, depends_on_btn_click)
+        mpl, ply, dfc, depends_on_btn_click, Loading)
 from abipy.dfpt.ddb import PhononBandsPlotter
 
 
@@ -177,23 +177,20 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
 
             ca("## Phonon band structure and DOS:")
             ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
-            #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))
 
             ca("## Brillouin zone and q-path:")
-            #qpath_pane = mpl(phbands.qpoints.plot(**self.mpl_kwargs), with_divider=False)
             qpath_pane = ply(phbands.qpoints.plotly(show=False), with_divider=False)
             df_qpts = phbands.qpoints.get_highsym_datataframe()
             ca(pn.Row(qpath_pane, df_qpts))
             ca(pn.layout.Divider())
 
             ca("## Type-projected phonon DOS:")
-            #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, **self.mpl_kwargs)))
             ca(ply(phdos_file.plotly_pjdos_type(units=self.units, stacked=self.stacked_pjdos.value, show=False)))
-            #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
+
             ca("## Thermodynamic properties in the harmonic approximation:")
             temps = self.temp_range
-            #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
             ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
+            #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
             #msqd_dos.plot_tensor(**self.mpl_kwargs)
 
             # Add Anaddb input file
@@ -216,7 +213,6 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
                                     verbose=self.verbose, mpi_procs=self.mpi_procs)
 
         ca("## Linear least-squares fit:")
-        #ca(mpl(sv.plot(**self.mpl_kwargs)))
         ca(ply(sv.plotly(show=False)))
         ca("## Speed of sound computed along different q-directions in reduced coords:")
         ca(dfc(sv.get_dataframe()))
@@ -245,10 +241,8 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
         ca("## Phonon bands and DOS with/wo acoustic sum rule:")
-        #ca(mpl(asr_plotter.plot(**self.mpl_kwargs)))
         ca(ply(asr_plotter.combiplotly(show=False)))
         ca("## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
-        #ca(mpl(dipdip_plotter.plot(**self.mpl_kwargs)))
         ca(ply(dipdip_plotter.combiplotly(show=False)))
 
         return col
@@ -387,7 +381,7 @@ class PanelWithFileInput(AbipyParameterized):
         super().__init__(**params)
 
         self.use_structure = use_structure
-        help_str = """
+        help_md = pn.pane.Markdown("""
 ## Main area
 
 This web app exposes some of the post-processing capabilities of AbiPy.
@@ -399,28 +393,18 @@ click the **Choose File** button to upload
 
 Keep in mind that the **file extension matters**!
 Also, avoid uploading big files (size > XXX).
-"""
+""")
 
-        # Add accordion after the button with warning and help taken from the docstring of the callback
-        #from abipy.abilab import abiopen, extcls_supporting_panel
-        #table_str = extcls_supporting_panel(tablefmt="html")
-        #table_str= pn.pane.HTML(table_str, name="extensions")
-        #col = pn.Column(); ca = col.append
-        #acc = pn.Accordion(
-        #        #("Help", pn.pane.Markdown(help_str, name="help")),
-        #        ("Supported Extensions", table_str),
-        #)
-        #ca(pn.layout.Divider())
-        #ca(acc)
-
-        self.main_area = pn.Column(help_str, sizing_mode="stretch_width")
+        self.main_area = pn.Column(help_md, sizing_mode="stretch_width")
         self.abifile = None
 
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press Return')
+        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
         self.mpid_input.param.watch(self.on_mpid_input, "value")
+        #self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website',
+        #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event):
         new_abifile = self.get_abifile_from_file_input(self.file_input, use_structure=self.use_structure)
@@ -433,34 +417,31 @@ Also, avoid uploading big files (size > XXX).
         #self.main_area.append(self.abifile.get_panel())
 
     def on_mpid_input(self, event):
-        mp_id = self.mpid_input.value
-        print("Fetching structure from mp_id:", mp_id)
-        self.abifile = Structure.from_mpid(mp_id)
+
+        with Loading(self.mpid_input):
+            self.abifile = Structure.from_mpid(self.mpid_input.value)
 
         self.main_area.objects = [self.abifile.get_panel()]
 
     def get_panel(self):
 
         col = pn.Column(
-            "## Upload **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*):",
+            "## Upload **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, POSCAR):",
             self.get_fileinput_section(self.file_input),
+            self.wdg_exts_with_get_panel(),
             sizing_mode="stretch_width")
 
         if self.use_structure:
             col.extend([
                 "## or get the structure from the [Materials Project](https://materialsproject.org/) database:",
-                self.mpid_input
+                pn.Row(self.mpid_input, sizing_mode="stretch_width"),
             ])
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
         title = "Structure Analyzer" if self.use_structure else "Output File Analyzer"
+        cls, kwds = self.get_abinit_template_cls_kwds()
 
-        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
-        #cls(main=main, **kwds)
-
-        cls = self.get_template_cls_from_name("FastList")
-        template = cls(main=main, title=title, header_background="#ff8c00") # Dark orange
-        return template
+        return cls(main=main, title=title, **kwds)
 
 
 class DdbPanelWithFileInput(AbipyParameterized):
@@ -469,7 +450,7 @@ class DdbPanelWithFileInput(AbipyParameterized):
 
         super().__init__(**params)
 
-        help_str = """
+        help_md = pn.pane.Markdown("""
 ## Main area
 
 This web app exposes some of the post-processing capabilities of AbiPy.
@@ -480,29 +461,20 @@ Drop one of of the files supported by AbiPy onto the FileInput area or
 click the **Choose File** button to upload
 
 Keep in mind that the **file extension matters**!
-Also, avoid uploading big files (size > XXX).
-"""
+""")
 
-        # Add accordion after the button with warning and help taken from the docstring of the callback
-        #from abipy.abilab import abiopen, extcls_supporting_panel
-        #table_str = extcls_supporting_panel(tablefmt="html")
-        #table_str= pn.pane.HTML(table_str, name="extensions")
-        #col = pn.Column(); ca = col.append
-        #acc = pn.Accordion(
-        #        #("Help", pn.pane.Markdown(help_str, name="help")),
-        #        ("Supported Extensions", table_str),
-        #)
-        #ca(pn.layout.Divider())
-        #ca(acc)
-
-        self.main_area = pn.Column(help_str, sizing_mode="stretch_width")
+        self.main_area = pn.Column(help_md,
+                                   self.get_alert_data_transfer(),
+                                   sizing_mode="stretch_width")
         self.abifile = None
 
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press Return')
+        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
         self.mpid_input.param.watch(self.on_mpid_input, "value")
+        #self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website',
+        #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event):
         new_abifile = self.get_abifile_from_file_input(self.file_input)
@@ -512,13 +484,12 @@ Also, avoid uploading big files (size > XXX).
 
         self.abifile = new_abifile
         self.main_area.objects = [self.abifile.get_panel()]
-        #self.main_area.append(self.abifile.get_panel())
 
     def on_mpid_input(self, event):
-        mp_id = self.mpid_input.value
-        print("Fetching DDB from mp_id:", mp_id)
+
         from abipy.dfpt.ddb import DdbFile
-        self.abifile = DdbFile.from_mpid(mp_id)
+        with Loading(self.mpid_input):
+            self.abifile = DdbFile.from_mpid(self.mpid_input.value)
 
         self.main_area.objects = [self.abifile.get_panel()]
 
@@ -532,13 +503,9 @@ Also, avoid uploading big files (size > XXX).
             sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
+        cls, kwds = self.get_abinit_template_cls_kwds()
 
-        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
-        #cls(main=main, **kwds)
-
-        cls = self.get_template_cls_from_name("FastList")
-        template = cls(main=main, title="DDB Analyzer", header_background="#ff8c00") # Dark orange
-        return template
+        return cls(main=main, title="DDB Analyzer", **kwds)
 
 
 class CompareDdbWithMP(AbipyParameterized):
@@ -547,11 +514,13 @@ class CompareDdbWithMP(AbipyParameterized):
 
         super().__init__(**params)
 
-        md = pn.pane.Markdown("""
+        help_md = pn.pane.Markdown("""
 This panel alllows users to upload two files with KS energies.
         """)
 
-        self.main_area = pn.Column(md, sizing_mode="stretch_width")
+        self.main_area = pn.Column(help_md,
+                                   self.get_alert_data_transfer(),
+                                   sizing_mode="stretch_width")
 
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
@@ -592,13 +561,9 @@ This panel alllows users to upload two files with KS energies.
             sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
+        cls, kwds = self.get_abinit_template_cls_kwds()
 
-        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
-        #cls(main=main, **kwds)
-
-        cls = self.get_template_cls_from_name("FastList")
-        template = cls(main=main, title="Compare with MP DDB", header_background="#ff8c00") # Dark orange
-        return template
+        return cls(main=main, title="Compare with MP DDB", **kwds)
 
 
 class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import platform
 import panel as pn
@@ -8,27 +9,17 @@ abilab.abipanel()
 #AbipyParameterized.uses_abinit_server = True
 
 #logos = pn.Row(
-#    #pn.pane.PNG("assets/abinit_logo.png", width=500, link_url="https://github.com/abinit/abinit"),
-#    pn.pane.PNG("assets/abipy_logo.png", width=500, link_url="https://github.com/abinit/abipy"),
+#    #pn.pane.PNG("assets/img/abinit_logo.png", width=500, link_url="https://github.com/abinit/abinit"),
+#    pn.pane.PNG("assets/img/abipy_logo.png", width=500, link_url="https://github.com/abinit/abipy"),
 #    #ncols=2,
 #)
 
-alert = pn.pane.Alert("""
-Please note that this web interface is not designed to handle large data transfer.
-To post-process the data stored in a big file e.g. a WFK.nc file,
-we strongly suggest running AbiPy on the same machine where the file is hosted.
-
-Examples of post-processing scripts are available in the
-[AbiPy gallery](https://abinit.github.io/abipy/gallery/index.html).
-""", alert_type="danger")
-
-
 main_home = pn.Column(
     #logos,
-    #pn.pane.PNG("assets/abipy_logo.png", width=500, link_url="https://github.com/abinit/abipy"),
+    #pn.pane.PNG("assets/img/abipy_logo.png", width=500, link_url="https://github.com/abinit/abipy"),
     pn.pane.Markdown("""
 
-![Caption](assets/abipy_logo.png)
+![Caption](assets/img/abipy_logo.png)
 
 # AbiPy Web App
 
@@ -36,6 +27,9 @@ This web application exposes some of the capabilities of the AbiPy package.
 It consists of multiple pages each of which provides specialized tools to operate on a particular ABINIT file.
 To access one of these tools, click one of the links in the sidebar or, alternatively, use the links below.
 To open/close the sidebar, click on the Hamburger Menu Icon ☰ in the header.
+
+Note that we do not store any of the files uploaded to this service but we kindly ask you to avoid uploading
+large binary files to avoid overloading the server.
 
 ## [Abinit Input Generator](/input_generator)
 
@@ -74,18 +68,15 @@ Compare your electronic bands with the MP
 
 Compare your DDB with the MP
 
-## [SKW interpolation](/skw)
+## [SKW Analyzer](/skw)
 
 This tool allows one to interpolate the KS energies with the star-function method and
 compare the interpolated band structure with the *ab-initio* one.
 
 """, sizing_mode="stretch_width"),
-alert,
 sizing_mode="stretch_width")
 
-
-home = pn.template.FastListTemplate(main=main_home, title="AbiPy GUI Home",
-                                    header_background="#ff8c00") # Dark orange
+home = pn.template.FastListTemplate(main=main_home, title="AbiPy GUI Home", header_background="#ff8c00") # Dark orange
 
 from abipy.panels.structure import InputFileGenerator
 from abipy.panels.ddb import PanelWithFileInput, DdbPanelWithFileInput, CompareDdbWithMP
@@ -123,7 +114,7 @@ kwargs = dict(#address=os.getenv("BOKEH_ADDRESS", "0.0.0.0"),
               show=True,
               title=app_title,
               #num_procs=4 if platform.system() != "Windows" else 1,
-              static_dirs={"/assets": "assets"},
+              #static_dirs={"/assets": "assets"},
               )
 
 pn.serve(app_routes, **kwargs)

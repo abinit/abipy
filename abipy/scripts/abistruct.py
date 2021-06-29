@@ -59,9 +59,9 @@ Usage example:
                                               and save "abisanitized" structure to file.
   abistruct.py conventional FILE           => Read structure from FILE, generate conventional structure
                                               following doi:10.1016/j.commatsci.2010.05.010
-  abistruct.py proto FILE                 => Read structure from FILE, find possible crystallographic prototypes
-                                             in the AFLOW library of crystallographic prototypes.
-                                             See http://doi.org/10.1016/j.commatsci.2017.01.017
+  abistruct.py proto FILE                  => Read structure from FILE, find possible crystallographic prototypes
+                                              in the AFLOW library of crystallographic prototypes.
+                                              See http://doi.org/10.1016/j.commatsci.2017.01.017
 
 ##################
 # Conversion tools

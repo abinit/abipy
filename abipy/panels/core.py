@@ -32,12 +32,15 @@ def abipanel():
         #"katex",
     ]
 
+    #pn.extension(loading_spinner='petal', loading_color='#00aa41')
+
     #print("loading extensions:", extensions)
     pn.extension(*extensions) # , raw_css=[css])
 
     pn.config.js_files.update({
         # This for copy to clipboard.
         "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
+        # This for jsmol.
         "jsmol": "http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
     })
 
@@ -45,6 +48,8 @@ def abipanel():
     #    'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js',
     #})
     #pn.extension(comms='ipywidgets')
+
+    #pn.config.sizing_mode = "stretch_width"
 
     return pn
 
@@ -417,6 +422,25 @@ class ButtonContext(object):
         return None
 
 
+class Loading(object):
+    """
+    A context manager for setting the loading attribute of a panel object.
+    """
+
+    def __init__(self, pobj):
+        self.pobj = pobj
+
+    def __enter__(self):
+        self.pobj.loading = True
+        return self.pobj
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.pobj.loading = False
+
+        # Don't handle the exception
+        return None
+
+
 class AbipyParameterized(param.Parameterized):
     """
     Base class for AbiPy panels. Provides helper functions for typical operations needed for
@@ -508,6 +532,14 @@ recompute the new results by clicking the button.
 
         return col
 
+    def wdg_exts_with_get_panel(self, name='File extensions supported:'):
+        """
+        Return Select widget with the list of file extensions implementing a get_panel method.
+        """
+        from abipy.abilab import extcls_supporting_panel
+        exts = [e[0] for e in extcls_supporting_panel(as_table=False)]
+        return pn.widgets.Select(name=name, options=exts)
+
     @staticmethod
     def html_with_clipboard_btn(html_str, **kwargs):
         return HTMLwithClipboardBtn(html_str, **kwargs)
@@ -574,10 +606,20 @@ recompute the new results by clicking the button.
         return ebands
 
     @staticmethod
+    def get_alert_data_transfer():
+        return pn.pane.Alert("""
+Please note that this web interface is not designed to handle **large data transfer**.
+To post-process the data stored in a big file e.g. a WFK.nc file,
+we strongly suggest running AbiPy on the same machine where the file is hosted.
+Examples of post-processing scripts are available in the
+[AbiPy gallery](https://abinit.github.io/abipy/gallery/index.html).
+""", alert_type="info")
+
+    @staticmethod
     def get_template_cls_from_name(template):
         return get_template_cls_from_name(template)
 
-    def get_abinit_template_cls_and_kwds(self):
+    def get_abinit_template_cls_kwds(self):
         cls = self.get_template_cls_from_name("FastList")
         kwds = dict(header_background="#ff8c00") # Dark orange
         return cls, kwds

@@ -1,6 +1,5 @@
 """Panels for interacting with output files in text format."""
 
-#import param
 import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
@@ -69,21 +68,17 @@ class AbinitOutputFilePanelWithFileInput(AbipyParameterized):
 
         super().__init__(**params)
 
-        help_str = """
+        help_md = pn.pane.Markdown("""
 ## Main area
 
 This web app exposes some of the post-processing capabilities of AbiPy.
 
 Use the **Choose File** to upload one of the files supported by this app.
-
 Drop one of of the files supported by AbiPy onto the FileInput area or
 click the **Choose File** button to upload
+""")
 
-Keep in mind that the **file extension matters**!
-Also, avoid uploading big files (size > XXX).
-"""
-
-        self.main_area = pn.Column(help_str, sizing_mode="stretch_width")
+        self.main_area = pn.Column(help_md, sizing_mode="stretch_width")
         self.abifile = None
 
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
@@ -92,7 +87,7 @@ Also, avoid uploading big files (size > XXX).
     def on_file_input(self, event):
         new_abifile = self.get_abifile_from_file_input(self.file_input)
 
-        if self.abifile is not None: # and hasattr(self.abifile, "remove"):
+        if self.abifile is not None:
             self.abifile.remove()
 
         self.abifile = new_abifile
@@ -101,16 +96,11 @@ Also, avoid uploading big files (size > XXX).
 
     def get_panel(self):
 
-        col = pn.Column(
-            "## Upload a *.abo* file:",
-            self.get_fileinput_section(self.file_input),
-            sizing_mode="stretch_width")
+        col = pn.Column("## Upload an *.abo* file:",
+                        self.get_fileinput_section(self.file_input),
+                        sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
 
-        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
-        #cls(main=main, **kwds)
-
-        cls = self.get_template_cls_from_name("FastList")
-        template = cls(main=main, title="Abo Analyzer", header_background="#ff8c00") # Dark orange
-        return template
+        cls, kwds = self.get_abinit_template_cls_kwds()
+        return cls(main=main, title="Abo Analyzer", **kwds)

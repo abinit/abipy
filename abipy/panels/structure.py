@@ -9,7 +9,7 @@ import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from abipy.core.structure import Structure
-from abipy.panels.core import AbipyParameterized, HasStructureParams, dfc, mpl, ply, depends_on_btn_click
+from abipy.panels.core import AbipyParameterized, HasStructureParams, dfc, mpl, ply, depends_on_btn_click, Loading
 
 
 def _make_targz_bytes(inp_or_multi, remove_dir=True):
@@ -33,8 +33,14 @@ class StructurePanel(HasStructureParams):
     Panel with widgets to interact with an AbiPy Structure
     """
 
-    def __init__(self, structure,  **params):
+    def __init__(self, structure,  with_inputs=True, **params):
+        """
+        Args:
+            structure: |Structure| object.
+            with_inputs: True if tabs for generating input files should be shown.
+        """
         self._structure = structure
+        self.with_inputs = with_inputs
 
         # Convert widgets.
         self.output_format = pnw.Select(name="format", value="abinit",
@@ -436,27 +442,30 @@ Examples of AbiPy scripst to automate calculations without datasets are availabl
                            self.helpc("on_gs_input_btn")]),
             self.on_gs_input_btn
         )
-        d["Ebands-input"] = pn.Row(
-            self.pws_col(['### Generate Ebands input',
-                          "spin_mode", "kppra", "edos_kppra", "smearing_type", "tsmear",
-                          "xc_type", "pseudos_type",
-                          "ebands_input_btn",
-                           self.helpc("on_ebands_input_btn")]),
-            self.on_ebands_input_btn
-        )
-        d["PH-input"] = pn.Row(
-            self.pws_col(['### Generate phonon input',
-                          "spin_mode", "kppra", "smearing_type", "tsmear",
-                          "with_becs",
-                          "xc_type", "pseudos_type",
-                          "ph_input_btn",
-                           self.helpc("on_ph_input_btn")]),
-            self.on_ph_input_btn
-        )
-        d["MP-match"] = pn.Column(pn.Row(self.mp_match_btn, align="center"),
-                                  pn.layout.Divider(),
-                                  self.on_mp_match_btn,
-                                  sizing_mode="stretch_width")
+
+        # Add tabs to generate inputs from structure.
+        if self.with_inputs:
+            d["Ebands-input"] = pn.Row(
+                self.pws_col(['### Generate Ebands input',
+                              "spin_mode", "kppra", "edos_kppra", "smearing_type", "tsmear",
+                              "xc_type", "pseudos_type",
+                              "ebands_input_btn",
+                               self.helpc("on_ebands_input_btn")]),
+                self.on_ebands_input_btn
+            )
+            d["PH-input"] = pn.Row(
+                self.pws_col(['### Generate phonon input',
+                              "spin_mode", "kppra", "smearing_type", "tsmear",
+                              "with_becs",
+                              "xc_type", "pseudos_type",
+                              "ph_input_btn",
+                               self.helpc("on_ph_input_btn")]),
+                self.on_ph_input_btn
+            )
+            d["MP-match"] = pn.Column(pn.Row(self.mp_match_btn, align="center"),
+                                      pn.layout.Divider(),
+                                      self.on_mp_match_btn,
+                                      sizing_mode="stretch_width")
 
         if as_dict: return d
 
@@ -477,21 +486,22 @@ class InputFileGenerator(AbipyParameterized):
         #self.spglib_symprec = pnw.Spinner(name="symprec", value=0.01, start=0.0, end=None, step=0.01)
         #self.spglib_angtol = pnw.Spinner(name="angtol", value=5, start=0.0, end=None, step=1)
 
-        help_str = """
+        help_md = pn.pane.Markdown("""
 ## Main area
 
 This web app exposes some of the post-processing capabilities of AbiPy.
-
 Use the **Choose File** to upload one of the files supported by this app.
-Keep in mind that the file extension matters!
-"""
+Keep in mind that **the file extension matters!**
+""")
 
-        self.main_area = pn.Column(help_str, sizing_mode="stretch_width")
+        self.main_area = pn.Column(help_md,
+                                   self.get_alert_data_transfer(),
+                                   sizing_mode="stretch_width")
 
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press Return')
+        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
         self.mpid_input.param.watch(self.on_mpid_input, "value")
 
     def on_file_input(self, event):
@@ -502,7 +512,6 @@ Keep in mind that the file extension matters!
         workdir = tempfile.mkdtemp()
 
         fd, tmp_path = tempfile.mkstemp(suffix=self.file_input.filename)
-        print(tmp_path)
         with open(tmp_path, "wb") as fh:
             fh.write(self.file_input.value)
 
@@ -511,9 +520,9 @@ Keep in mind that the file extension matters!
         self.update_main_area()
 
     def on_mpid_input(self, event):
-        mp_id = self.mpid_input.value
-        print("Fetching structure from mp_id:", mp_id)
-        self.input_structure = Structure.from_mpid(mp_id)
+        with Loading(self.mpid_input):
+            self.input_structure = Structure.from_mpid(self.mpid_input.value)
+
         self.update_main_area()
 
     def update_main_area(self):
@@ -531,15 +540,11 @@ Keep in mind that the file extension matters!
         col = pn.Column(
             "## Upload **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, *POSCAR*):",
             self.get_fileinput_section(self.file_input),
-            "## or get it from the [Materials Project](https://materialsproject.org/) database:",
+            "## or get the structure from the [Materials Project](https://materialsproject.org/) database:",
             self.mpid_input,
             sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
+        cls, kwds = self.get_abinit_template_cls_kwds()
 
-        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
-        #cls(main=main, **kwds)
-
-        cls = self.get_template_cls_from_name("FastList")
-        template = cls(main=main, title="Input File Generator", header_background="#ff8c00") # Dark orange
-        return template
+        return cls(main=main, title="Input File Generator", **kwds)
