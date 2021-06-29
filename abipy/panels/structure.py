@@ -503,6 +503,7 @@ Keep in mind that **the file extension matters!**
 
         self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
         self.mpid_input.param.watch(self.on_mpid_input, "value")
+        self.mpid_input_errstr = pn.Str("")
 
     def on_file_input(self, event):
         print("filename", self.file_input.filename)
@@ -541,7 +542,7 @@ Keep in mind that **the file extension matters!**
             "## Upload **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, *POSCAR*):",
             self.get_fileinput_section(self.file_input),
             "## or get the structure from the [Materials Project](https://materialsproject.org/) database:",
-            self.mpid_input,
+            pn.Row(self.mpid_input, self.mpid_input_errstr),
             sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")

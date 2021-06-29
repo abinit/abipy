@@ -427,15 +427,21 @@ class Loading(object):
     A context manager for setting the loading attribute of a panel object.
     """
 
-    def __init__(self, pobj):
-        self.pobj = pobj
+    def __init__(self, pn_obj, pn_errstr):
+        self.pn_obj = pn_obj
+        self.pn_errstr = pn_errstr
 
     def __enter__(self):
-        self.pobj.loading = True
-        return self.pobj
+        self.pn_obj.loading = True
+        return self.pn_obj
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.pobj.loading = False
+        self.pn_obj.loading = False
+
+        if exc_type:
+            self.pn_errstr.value = str(exc_value)
+        else:
+            self.pn_errstr.value = "OK"
 
         # Don't handle the exception
         return None
