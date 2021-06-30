@@ -468,9 +468,7 @@ Examples of AbiPy scripst to automate calculations without datasets are availabl
                                       sizing_mode="stretch_width")
 
         if as_dict: return d
-
-        tabs = pn.Tabs(*d.items())
-        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
 
 
 class InputFileGenerator(AbipyParameterized):
@@ -503,7 +501,7 @@ Keep in mind that **the file extension matters!**
 
         self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
         self.mpid_input.param.watch(self.on_mpid_input, "value")
-        self.mpid_input_errstr = pn.Str("")
+        self.mpid_input_errstr = pn.pane.Markdown("hello")
 
     def on_file_input(self, event):
         print("filename", self.file_input.filename)
@@ -521,7 +519,7 @@ Keep in mind that **the file extension matters!**
         self.update_main_area()
 
     def on_mpid_input(self, event):
-        with Loading(self.mpid_input):
+        with Loading(self.mpid_input, pn_errstr=self.mpid_input_errstr):
             self.input_structure = Structure.from_mpid(self.mpid_input.value)
 
         self.update_main_area()

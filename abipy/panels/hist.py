@@ -63,8 +63,6 @@ class HistFilePanel(AbipyParameterized):
         d["Relaxation"] = pn.Row(self.get_plot_relax_widgets(), self.on_plot_relax_btn)
 
         d["Visualize"] = pn.Row(pn.Column(self.appname, self.to_unit_cell, self.view_relax_btn),
-                                 self.on_view_relax_btn)
+                                self.on_view_relax_btn)
 
-        if as_dict: return d
-        tabs = pn.Tabs(*d.items())
-        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template", None))

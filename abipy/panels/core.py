@@ -4,6 +4,8 @@ import io
 import tempfile
 import numpy as np
 import param
+import time
+import shutil
 import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
@@ -173,6 +175,23 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
             new_text += "<script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
 
         self.object = new_text
+
+
+# https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/js_actions/js_actions.py
+#def copy_to_clipboard():
+#    """Copy"""
+#    source_textarea = pn.widgets.TextAreaInput(
+#        value="Copy this text to the clipboard by clicking the button",
+#        height=100,
+#    )
+#    copy_source_button = pn.widgets.Button(name="✂ Copy Source Value", button_type="primary")
+#    copy_source_code = "navigator.clipboard.writeText(source.value);"
+#    copy_source_button.js_on_click(args={"source": source_textarea}, code=copy_source_code)
+#    paste_text_area = pn.widgets.TextAreaInput(placeholder="Paste your value here", height=100)
+#    return pn.Column(
+#        pn.Row(source_textarea, copy_source_button, paste_text_area),
+#        name="✂ Copy to Clipboard",
+#    )
 
 
 def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True, **kwargs):
@@ -373,7 +392,7 @@ class MyMarkdown(pn.pane.Markdown):
     )
 
 
-class ButtonContext(object):
+class ButtonContext():
     """
     A context manager for buttons triggering computations on the server.
 
@@ -412,7 +431,6 @@ class ButtonContext(object):
             # Exception --> signal to the user that something went wrong for 2 seconds.
             self.btn.name = str(exc_type)
             self.btn.button_type = "danger"
-            import time
             time.sleep(2)
 
         # Back to the original button state.
@@ -422,12 +440,12 @@ class ButtonContext(object):
         return None
 
 
-class Loading(object):
+class Loading():
     """
     A context manager for setting the loading attribute of a panel object.
     """
 
-    def __init__(self, pn_obj, pn_errstr):
+    def __init__(self, pn_obj, pn_errstr=None):
         self.pn_obj = pn_obj
         self.pn_errstr = pn_errstr
 
@@ -438,10 +456,34 @@ class Loading(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.pn_obj.loading = False
 
+        if self.pn_errstr is not None:
+
+            if exc_type:
+                self.pn_errstr.object = str(exc_value)
+            #else:
+            #    self.pn_errstr.object = "OK"
+
+        # Don't handle the exception
+        return None
+
+
+class ActiveBar():
+    """
+    A context manager that sets progress.active to True on entry and False when we exit.
+    """
+
+    def __init__(self, progress):
+        self.progress = progress
+
+    def __enter__(self):
+        self.progress.active = True
+        return self.progress
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.progress.active = False
+
         if exc_type:
-            self.pn_errstr.value = str(exc_value)
-        else:
-            self.pn_errstr.value = "OK"
+            self.progress.bar_color = "danger"
 
         # Don't handle the exception
         return None
@@ -464,13 +506,13 @@ class AbipyParameterized(param.Parameterized):
 
     warning = pn.pane.Markdown(
 """
-Note that widgets are **shared by the different tabs**.
+Widgets are **shared by the different tabs**.
 This means that if you change the value of one of these variables in the active tab,
 the same value will **automagically** appear in the other tabs yet results/figures
 are not automatically recomputed when you change the value.
 
 In other words, if you change some variable in the active tab and then you move to another tab,
-the results/figures are stil computed with the **old input** hence you will have to
+the results/figures (if any) are stil computed with the **old input** hence you will have to
 recompute the new results by clicking the button.
 """, name="warning")
 
@@ -576,20 +618,19 @@ recompute the new results by clicking the button.
         }
         </style>"""
 
-        return pn.Column(
-            pn.pane.HTML(css_style, width=0, height=0, sizing_mode="stretch_width", margin=0),
-            file_input, sizing_mode="stretch_width")
+        return pn.Column(pn.pane.HTML(css_style, width=0, height=0, sizing_mode="stretch_width", margin=0),
+                         file_input,
+                         sizing_mode="stretch_width")
 
     @staticmethod
     def get_abifile_from_file_input(file_input, use_structure=False):
-        print("filename", file_input.filename)
+        #print("filename", file_input.filename)
         #if file_input.value is None: return None
         #print("value", file_input.value)
 
         workdir = tempfile.mkdtemp()
 
         fd, tmp_path = tempfile.mkstemp(suffix=file_input.filename)
-        #print(tmp_path)
         with open(tmp_path, "wb") as fh:
             fh.write(file_input.value)
 
@@ -597,6 +638,7 @@ recompute the new results by clicking the button.
         abifile = abiopen(tmp_path)
         if use_structure:
             abifile = Structure.as_structure(abifile)
+            shutil.rmtree(tmp_path, ignore_errors=True)
 
         return abifile
 
@@ -634,6 +676,9 @@ Examples of post-processing scripts are available in the
         """
         This method receives panel Tabs, include them in a template and return the panel template.
         """
+        if isinstance(tabs, dict):
+            tabs = pn.Tabs(*tabs.items())
+
         if template is None:
             return tabs
 
@@ -644,7 +689,9 @@ Examples of post-processing scripts are available in the
             title=self.__class__.__name__,
             header_background="#ff8c00", # Dark orange
             #favicon (str): URI of favicon to add to the document head (if local file, favicon is base64 encoded as URI).
+            #favicon="assets/img/abinit_favicon.ico",
             #logo (str): URI of logo to add to the header (if local file, logo is base64 encoded as URI).
+            #logo="assets/img/abipy_logo.png",
             #sidebar_footer (str): Can be used to insert additional HTML. For example a menu, some additional info, links etc.
             #enable_theme_toggle=False,  # If True a switch to toggle the Theme is shown. Default is True.
         )
@@ -818,9 +865,7 @@ def get_structure_info(structure):
 
 class PanelWithNcFile(AbipyParameterized):
     """
-    This frame allows the user to inspect the dimensions and the variables reported in a netcdf file.
-    Tab showing information on the netcdf file.
-
+    This mixin class allows the user to inspect the dimensions and the variables reported in a netcdf file.
     Subclasses should implement the `ncfile` property
     """
 
@@ -909,10 +954,8 @@ class PanelWithElectronBands(AbipyParameterized):
         """
         Receives the netcdf file selected by the user as binary string.
         """
-        #print(type(self.ebands_kpath_fileinput))
         bstring = self.ebands_kpath_fileinput
 
-        #with ButtonContext(self.ebands_kpath_fileinput):
         from abipy.electrons import ElectronBands
         self.ebands_kpath = ElectronBands.from_binary_string(bstring)
 
@@ -950,8 +993,8 @@ class PanelWithElectronBands(AbipyParameterized):
         """Button triggering edos plot."""
         edos = self.ebands.get_edos(method=self.edos_method, step=self.edos_step_ev, width=self.edos_width_ev)
 
-        return pn.Row(mpl(edos.plot(**self.mpl_kwargs)), sizing_mode='scale_width')
-        #return pn.Row(ply(edos.plotly(show=False))), sizing_mode='scale_width')
+        #return pn.Row(mpl(edos.plot(**self.mpl_kwargs)), sizing_mode='scale_width')
+        return pn.Row(ply(edos.plotly(show=False)), sizing_mode='scale_width')
 
     @depends_on_btn_click('plot_skw_btn')
     def on_plot_skw_btn(self):
@@ -981,8 +1024,8 @@ class PanelWithElectronBands(AbipyParameterized):
 
             plotter = self.ebands_kpath.get_plotter_with("Input", "Interpolated", intp.ebands_kpath)
             ca("## Input bands vs SKW interpolated bands:")
-            ca(mpl(plotter.combiplot(show=False)))
-            #ca(mpl(plotter.combiplotly(show=False)))
+            #ca(mpl(plotter.combiplot(show=False)))
+            ca(mpl(plotter.combiplotly(show=False)))
 
         return col
 
@@ -1075,20 +1118,20 @@ class BaseRobotPanel(AbipyParameterized):
 
 class PanelWithEbandsRobot(BaseRobotPanel):
     """
-    Mixin class for panels with a robot that owns a list of of |ElectronBands|
+    Mixin class for panels with a robot that owns a list of of |ElectronBands|.
     """
 
     def __init__(self, **params):
 
         # Widgets to plot ebands.
         self.ebands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
-            options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
+                                              options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
         self.ebands_plotter_btn = pnw.Button(name="Plot", button_type='primary')
         self.ebands_df_checkbox = pnw.Checkbox(name='With Ebands DataFrame', value=False)
 
         # Widgets to plot edos.
         self.edos_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
-            options=["gridplot", "combiplot"])
+                                            options=["gridplot", "combiplot"])
         self.edos_plotter_btn = pnw.Button(name="Plot", button_type='primary')
 
         super().__init__(**params)

@@ -77,21 +77,20 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
         #))
 
         if as_dict: return d
-        tabs = pn.Tabs(*d.items())
-        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
 
 
 class GsrRobotPanel(PanelWithEbandsRobot):
     """
-    A Panel to interoperate with multiple GSR files.
+    A Panel to interact with multiple GSR files.
     """
-    gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
-
-    transpose_gsr_dataframe = pnw.Checkbox(name='Transpose GSR dataframe')
 
     def __init__(self, robot, **params):
         super().__init__(**params)
         self.robot = robot
+
+        gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
+        transpose_gsr_dataframe = pnw.Checkbox(name='Transpose GSR dataframe')
 
     @depends_on_btn_click('gsr_dataframe_btn')
     def on_gsr_dataframe_btn(self):
@@ -99,7 +98,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
         transpose = self.transpose_gsr_dataframe.value
         return pn.Column(dfc(df, transpose=transpose), sizing_mode='stretch_width')
 
-    def get_panel(self, **kwargs):
+    def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the |GsrRobot|."""
         d = {}
         d["Summary"] = pn.Row(bkw.PreText(text=self.robot.to_string(verbose=self.verbose),
@@ -114,5 +113,5 @@ class GsrRobotPanel(PanelWithEbandsRobot):
             pn.Column(self.transpose_gsr_dataframe, self.gsr_dataframe_btn),
             self.on_gsr_dataframe_btn)
 
-        tabs = pn.Tabs(*d.items())
-        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
+        if as_dict: return d
+        return self.get_template_from_tabs(d, template=kwargs.get("template", None))

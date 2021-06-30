@@ -4,7 +4,7 @@ import param
 import panel as pn
 import panel.widgets as pnw
 
-from .core import AbipyParameterized, ply, mpl, depends_on_btn_click
+from .core import AbipyParameterized, ActiveBar, ply, mpl, depends_on_btn_click
 
 
 class SkwPanelWithFileInput(AbipyParameterized):
@@ -65,13 +65,9 @@ The user can change the SKW intepolation parameters to gauge the quality of the 
             sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
+        cls, kwds = self.get_abinit_template_cls_kwds()
 
-        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
-        #cls(main=main, **kwds)
-
-        cls = self.get_template_cls_from_name("FastList")
-        template = cls(main=main, title="SKW Analyzer", header_background="#ff8c00") # Dark orange
-        return template
+        return cls(main=main, title="SKW Analyzer", **kwds)
 
 
 class CompareEbandsWithMP(AbipyParameterized):
@@ -95,7 +91,7 @@ This panel alllows users to upload two files with KS energies.
 
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
-        self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website',
+        self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
                                                   active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event):
@@ -108,13 +104,12 @@ This panel alllows users to upload two files with KS energies.
 
         # Get structures from MP as AbiPy ElectronBands.
         from abipy.electrons.ebands import ElectronBands
-        self.mp_progress.active = True
         self.mp_ebands_list = []
-        for mp_id in mp.ids:
-            if mp_id == "this": continue
-            eb = ElectronBands.from_mpid(mp_id)
-            self.mp_ebands_list.append(eb)
-        self.mp_progress.active = False
+        with ActiveBar(self.mp_progress):
+            for mp_id in mp.ids:
+                if mp_id == "this": continue
+                eb = ElectronBands.from_mpid(mp_id)
+                self.mp_ebands_list.append(eb)
 
         self.update_main()
 
@@ -126,13 +121,11 @@ This panel alllows users to upload two files with KS energies.
 
         ca("## Abinit Electronic band structure:")
         ylims = self.ylims_ev
-        fig =  self.abinit_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)
-        ca(ply(fig))
+        ca(ply(self.abinit_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)))
 
         for mp_ebands in self.mp_ebands_list:
             ca("## MP Electronic band structure:")
-            fig =  mp_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)
-            ca(ply(fig))
+            ca(ply(mp_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)))
 
         #self.main_area.objects = [col]
         self.main_area.objects = col.objects
@@ -145,15 +138,11 @@ This panel alllows users to upload two files with KS energies.
         col = pn.Column(
             "## Upload a *nc* file with energies along a **k**-path (possibly a *GSR.nc* file):",
             self.get_fileinput_section(self.file_input),
-            pn.Row("### Fetching data from MP website: ", self.mp_progress, sizing_mode="stretch_width",
-                ),
+            pn.Row("### Fetching data from the MP website: ", self.mp_progress,
+                   sizing_mode="stretch_width"),
             sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
 
-        #cls, kwds = self.get_abinit_template_cls_and_kwargs()
-        #cls(main=main, **kwds)
-
-        cls = self.get_template_cls_from_name("FastList")
-        template = cls(main=main, title="Compare with MP Ebands", header_background="#ff8c00") # Dark orange
-        return template
+        cls, kwds = self.get_abinit_template_cls_kwds()
+        return cls(main=main, title="Compare with MP Ebands", **kwds)

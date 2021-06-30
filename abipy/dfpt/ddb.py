@@ -2737,13 +2737,14 @@ class DielectricTensorGenerator(Has_Structure):
 
 class DdbRobot(Robot):
     """
-    This robot analyzes the results contained in multiple DDB files.
-    Obviously, some `compare` methods make sense only if the DDB files have the same structures
+    This robot analyzes the results stored in multiple DDB files.
+    Obviously, particular `compare` methods make sense only if the DDB files have the same structures
     and have computed with different parameters e.g. qmesh, tsmear, ecut ....
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: DdbRobot
     """
+
     EXT = "DDB"
 
     @classmethod
@@ -2765,8 +2766,9 @@ class DdbRobot(Robot):
         """
         from abipy.core import restapi
         ddb_files = []
+        mpid_list = list_strings(mpid_list)
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
-            for mpid in list_strings(mpid_list):
+            for mpid in mpid_list:
                 try:
                     ddb_string = rest._make_request("/materials/%s/abinit_ddb" % mpid)
                 except rest.Error:
@@ -2778,7 +2780,7 @@ class DdbRobot(Robot):
                 with open(tmpfile, "wt") as fh:
                     fh.write(ddb_string)
 
-        return cls.from_files(ddb_files)
+        return cls.from_files(ddb_files, labels=mpid_list)
 
     #def get_qpoints_union(self):
     #    """

@@ -60,7 +60,6 @@ class FatBandsFilePanel(PanelWithElectronBands):
             raise ValueError("Neither a IBZ nor k-path!")
 
         if as_dict: return d
-        tabs = pn.Tabs(*d.items())
         return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
 
 

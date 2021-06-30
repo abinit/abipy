@@ -7,7 +7,7 @@ import bokeh.models.widgets as bkw
 
 from abipy.core.structure import Structure
 from abipy.panels.core import (AbipyParameterized, HasStructureParams, BaseRobotPanel,
-        mpl, ply, dfc, depends_on_btn_click, Loading)
+        mpl, ply, dfc, depends_on_btn_click, Loading, ActiveBar)
 from abipy.dfpt.ddb import PhononBandsPlotter
 
 
@@ -131,9 +131,8 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
 
         def p(component, reim):
             # Matplotlib
-            #fig = gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
-            #                reim=reim, units=self.units, **self.mpl_kwargs)
-            #return mpl(fig)
+            #return mpl(gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
+            #                reim=reim, units=self.units, **self.mpl_kwargs))
             fig = gen.plotly(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
                               reim=reim, units=self.units, show=False)
             return ply(fig, with_help=False)
@@ -351,7 +350,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
                              "temp_range", "plot_dos_vs_qmesh_btn", self.helpc("plot_dos_vs_qmesh")]),
                 self.plot_dos_vs_qmesh
             )
-            #if self.ddb.has_dynamical_quadrupoles
+            #if ddb.has_dynamical_quadrupoles:
             d["Quadrupoles"] = pn.Row(
                 self.pws_col(["### Quadrupoles options", "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
                               "plot_phbands_quad_btn", self.helpc("plot_phbands_quad")]),
@@ -369,9 +368,7 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         )
 
         if as_dict: return d
-
-        tabs = pn.Tabs(*d.items())
-        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
 
 
 class PanelWithFileInput(AbipyParameterized):
@@ -403,7 +400,7 @@ Also, avoid uploading big files (size > XXX).
 
         self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
         self.mpid_input.param.watch(self.on_mpid_input, "value")
-        #self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website',
+        #self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
         #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event):
@@ -473,7 +470,7 @@ Keep in mind that the **file extension matters**!
 
         self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
         self.mpid_input.param.watch(self.on_mpid_input, "value")
-        #self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website',
+        #self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
         #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event):
@@ -524,40 +521,29 @@ This panel alllows users to upload two files with KS energies.
 
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
+        self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
+                                                  active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event):
         abinit_ddb = self.get_abifile_from_file_input(self.file_input)
+        from abipy.dfpt.ddb import DdbFile, DdbRobot
 
         # Match Abinit structure with MP.
         mp = abinit_ddb.structure.mp_match()
         if not mp.structures:
             raise RuntimeError("No structure found in the MP database")
 
-        # Get structures from MP as AbiPy ElectronBands.
-        from abipy.dfpt.ddb import DdbFile
-        mp_ddb_list = []
-        for mp_id in mp.ids:
-            if mp_id == "this": continue
-            print("mp_id:", mp_id)
-            ddb = DdbFile.from_mpid(mp_id)
-            mp_ddb_list.append(ddb)
+        with ActiveBar(self.mp_progress):
+            ddb_robot = DdbRobot.from_mpid_list([mp_id for mp_id in mp.ids if mp_id != "this"])
+            ddb_robot.add_file("Yours DDB", abinit_ddb)
 
-        #col = pn.Column(sizing_mode="stretch_width"); ca = col.append
-        #ca("## Abinit phonon band structure:")
-        ##fig =  abinit_ddb.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)
-        #ca(ply(fig))
-
-        #for mp_ebands in mp_ebands_list:
-        #    ca("## MP Phonon band structure:")
-        #    #fig =  mp_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)
-        #    ca(ply(fig))
-
-        #self.main_area.objects = [col]
+        self.main_area.objects = [DdbRobotPanel(ddb_robot).get_panel()]
 
     def get_panel(self):
         col = pn.Column(
             "## Upload a DDB file:",
             self.get_fileinput_section(self.file_input),
+            pn.Row("### Fetching data from the MP website: ", self.mp_progress, sizing_mode="stretch_width"),
             sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
@@ -568,17 +554,17 @@ This panel alllows users to upload two files with KS energies.
 
 class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
     """
-    A panel to analyze multiple |DdbFile| via the low-level API provided by DdbRobot.
+    A panel to analyze multiple DdbFiles via the low-level API provided by DdbRobot.
     Provides widgets to invoke anaddb and visualize the results.
     """
-    # Buttons
-    plot_combiplot_btn = pnw.Button(name="Compute", button_type='primary')
-    combiplot_check_btn = pnw.CheckButtonGroup(name='Check Button Group',
-                                               value=['combiplot'], options=['combiplot', 'gridplot'])
-
     def __init__(self, robot, **params):
         super().__init__(**params)
         self.robot = robot
+
+        # Buttons
+        self.plot_combiplot_btn = pnw.Button(name="Compute", button_type='primary')
+        self.combiplot_check_btn = pnw.CheckButtonGroup(name='Check Button Group',
+                                                        value=['combiplot'], options=['combiplot', 'gridplot'])
 
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs):
         """Extend method of base class to handle lo_to_splitting"""
@@ -788,13 +774,12 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
 
         d["Params"] = self.get_compare_params_widgets()
 
-        d["Combiplot"] = pn.Row(
-            pn.Column("# PH-bands options",
-                      *self.pws("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
-                                "lo_to_splitting", "dos_method", "temp_range",
-                                "combiplot_check_btn", "plot_combiplot_btn",
-                                self.helpc("plot_combiplot")),
-                      ),
+        d["Plot"] = pn.Row(
+            self.pws_col(["# PH-bands options",
+                           "nqsmall", "ndivsm", "asr", "chneut", "dipdip",
+                           "lo_to_splitting", "dos_method", "temp_range",
+                           "combiplot_check_btn", "plot_combiplot_btn",
+                           self.helpc("plot_combiplot")]),
             self.plot_combiplot
         )
         #app(("PH-bands", pn.Row(
@@ -826,11 +811,11 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
         #              ),
         #    self.plot_vsound)
         #))
-        d["ASR & DIPDIP"] = pn.Row(
-            self.pws_col(["### ASR & DIPDIP options", "nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
-                          self.helpc("plot_without_asr_dipdip")]),
-            self.plot_without_asr_dipdip
-        )
+        #d["ASR & DIPDIP"] = pn.Row(
+        #    self.pws_col(["### ASR & DIPDIP options", "nqsmall", "ndivsm", "dos_method", "plot_check_asr_dipdip_btn",
+        #                  self.helpc("plot_without_asr_dipdip")]),
+        #    self.plot_without_asr_dipdip
+        #)
         #app(("DOS vs q-mesh", pn.Row(
         #    pn.Column("# DOS vs q-mesh options",
         #              *self.pws("asr", "chneut", "dipdip", "dos_method", "nqsmall_list", "plot_dos_vs_qmesh_btn",
@@ -852,9 +837,10 @@ class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
         #              ),
         #    self.plot_ifc)
         #))
-        d["Global"] = pn.pws_col(["### Global options", "units", "mpi_procs", "verbose"])
+        d["Global"] = pn.Row(
+            self.pws_col(["### Global options", "units", "mpi_procs", "verbose"]),
+            self.get_software_stack()
+        )
 
         if as_dict: return d
-
-        tabs = pn.Tabs(*d.items())
-        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
