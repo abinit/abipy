@@ -19,6 +19,8 @@ TODO list:
             NscfTask: {scale_max_cores: 0.5, scale_timelimit: 0.2}
             KerangeTask: {max_cores: 2, timelimit: 0:5:0}
 
+  You should be able to specify the Qadapter as well.
+
 * Recheck autoparal code in abinit. For the DFPT part, the computation of the weights is clearly 
   wrong because with nkpt 128 Abinit suggests to use nprocs 130 !!!!!!
 

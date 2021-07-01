@@ -58,6 +58,9 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
+        'abipy.panels': [
+            "assets/img/*",
+        ],
         'abipy.data': [
             "cifs/*.cif",
             "pseudos/*",
