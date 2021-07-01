@@ -18,15 +18,38 @@ from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
 
 
-def abipanel():
+_ABINIT_TEMPLATE_NAME = "FastList"
+
+
+def get_abinit_template_cls_kwds():
+    cls =  get_template_cls_from_name(_ABINIT_TEMPLATE_NAME)
+    kwds = dict(header_background="#ff8c00", # Dark orange
+                #favicon="assets/img/abinit_favicon.ico",
+                #logo="assets/img/abipy_logo.png", # TODO: Need new panel versio to fix logo alignment in FastLIst.
+                )
+
+    return cls, kwds
+
+
+def set_abinit_template(template_name):
+    global _ABINIT_TEMPLATE_NAME
+    _ABINIT_TEMPLATE_NAME = template_name
+
+
+def abipanel(panel_template="FastList"):
     """
     Activate panel extensions used by AbiPy. Return panel module.
+
+    Args:
+        panel_template: String with the name of the panel template to be used by default.
     """
     try:
         import panel as pn
     except ImportError as exc:
         cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
         raise exc
+
+    set_abinit_template(panel_template)
 
     extensions = [
         "plotly",
@@ -50,7 +73,6 @@ def abipanel():
     #    'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js',
     #})
     #pn.extension(comms='ipywidgets')
-
     #pn.config.sizing_mode = "stretch_width"
 
     return pn
@@ -668,9 +690,7 @@ Examples of post-processing scripts are available in the
         return get_template_cls_from_name(template)
 
     def get_abinit_template_cls_kwds(self):
-        cls = self.get_template_cls_from_name("FastList")
-        kwds = dict(header_background="#ff8c00") # Dark orange
-        return cls, kwds
+        return get_abinit_template_cls_kwds()
 
     def get_template_from_tabs(self, tabs, template):
         """
