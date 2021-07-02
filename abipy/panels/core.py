@@ -22,10 +22,11 @@ _ABINIT_TEMPLATE_NAME = "FastList"
 
 
 def get_abinit_template_cls_kwds():
+    #return pn.Column, {}
     cls =  get_template_cls_from_name(_ABINIT_TEMPLATE_NAME)
     kwds = dict(header_background="#ff8c00", # Dark orange
                 #favicon="assets/img/abinit_favicon.ico",
-                #logo="assets/img/abipy_logo.png", # TODO: Need new panel versio to fix logo alignment in FastLIst.
+                #logo="assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
                 )
 
     return cls, kwds

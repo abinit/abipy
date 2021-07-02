@@ -8,7 +8,7 @@ import panel as pn
 
 
 @click.command()
-@click.option('--port', default=80, help="Port to listen on. Default: 80")
+@click.option('--port', default=5006, help="Port to listen on. Default: 5006")
 @click.option('--address', default=None, help="The address the server should listen on for HTTP requests.")
 @click.option('--show', default=True, help="Open server app(s) in a browser")
 @click.option('--num_procs', default=1, help="Number of worker processes for the app. Defaults to 1")
@@ -116,6 +116,7 @@ compare the interpolated band structure with the *ab-initio* one.
     links = pn.pane.Markdown(links)
 
     for url, app in app_routes.items():
+        #if not hasattr(app, "sidebar"): continue
         app.sidebar.append(links)
 
     # Call pn.serve to serve the multipage app.
