@@ -544,6 +544,10 @@ recompute the new results by clicking the button.
     #    # https://github.com/holoviz/param/issues/396
     #    return f"AbiPyParametrized(name='{self.name}')"
 
+
+    def __call__(self):
+        return self.get_panel()
+
     @lazy_property
     def mpl_kwargs(self):
         """Default arguments passed to AbiPy matplotlib plot methods."""

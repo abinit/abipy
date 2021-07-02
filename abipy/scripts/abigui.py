@@ -83,27 +83,27 @@ compare the interpolated band structure with the *ab-initio* one.
 """, sizing_mode="stretch_width"),
     sizing_mode="stretch_width")
 
-    cls, kwds = get_abinit_template_cls_kwds()
-    print("Using panel template:", cls)
-    home = cls(main=main_home, title="AbiPy GUI Home", **kwds)
-
     # Import the apps and define routies for each page.
     from abipy.panels.structure import InputFileGenerator
     from abipy.panels.ddb import PanelWithFileInput, DdbPanelWithFileInput, CompareDdbWithMP
     from abipy.panels.electrons import SkwPanelWithFileInput, CompareEbandsWithMP
     from abipy.panels.outputs import AbinitOutputFilePanelWithFileInput as abo_cls
 
-    # url --> (app, title)
+    cls, kwds = get_abinit_template_cls_kwds()
+    print("Using panel template:", cls)
+    #home = cls(main=main_home, title="AbiPy GUI Home", **kwds)
+
+    # url --> (cls, title)
     app_routes_titles = {
-        "/": (home, "Home"),
-        "/input_generator": (InputFileGenerator().get_panel(), "Abinit Input Generator"),
-        "/structure_analyzer": (PanelWithFileInput(use_structure=True).get_panel(), "Structure Analyzer"),
-        "/outfile": (PanelWithFileInput().get_panel(), "Output File Analyzer"),
-        "/ddb": (DdbPanelWithFileInput().get_panel(), "DDB File Analyzer"),
-        "/abo": (abo_cls().get_panel(), "Abo File Analyzer"),
-        "/ebands_vs_mp": (CompareEbandsWithMP().get_panel(), "Compare Ebands with MP"),
-        "/ddb_vs_mp": (CompareDdbWithMP().get_panel(), "Compare DDB with MP"),
-        "/skw": (SkwPanelWithFileInput().get_panel(), "SKW Analyzer"),
+        "/": (cls, "AbiPy GUI Home"),
+        "/input_generator": (InputFileGenerator, "Abinit Input Generator"),
+        #"/structure_analyzer": (PanelWithFileInput(use_structure=True).get_panel(), "Structure Analyzer"),
+        "/outfile": (PanelWithFileInput, "Output File Analyzer"),
+        "/ddb": (DdbPanelWithFileInput, "DDB File Analyzer"),
+        "/abo": (abo_cls, "Abo File Analyzer"),
+        "/ebands_vs_mp": (CompareEbandsWithMP, "Compare Ebands with MP"),
+        "/ddb_vs_mp": (CompareDdbWithMP, "Compare DDB with MP"),
+        "/skw": (SkwPanelWithFileInput, "SKW Analyzer"),
         #"/abilog": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
         #"/gs_autoparal": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
     }
@@ -115,12 +115,40 @@ compare the interpolated band structure with the *ab-initio* one.
     links = "\n".join(f"- [{title}]({url})" for (url, title) in app_title.items())
     links = pn.pane.Markdown(links)
 
-    for url, app in app_routes.items():
-        #if not hasattr(app, "sidebar"): continue
+    from functools import partial
+    def func(cls, **kwargs):
+        app = cls(**kwargs)
+        if hasattr(app, "get_panel"):
+            app = app.get_panel()
         app.sidebar.append(links)
+        return app
+
+    #from types import FunctionType
+
+    class Partial():
+        # https://stackoverflow.com/questions/45485017/why-does-functools-partial-not-detected-as-a-types-functiontype
+        def __init__(self, func, *args, **kwargs):
+            self.func = func
+            self.args = args
+            self.kwargs = kwargs
+
+        def view(self, *args, **kwargs):
+            return self()
+
+        def __call__(self, *args, **kwargs):
+            return self.func(*self.args, *args, **self.kwargs, **kwargs)
+
+    for url, cls in app_routes.items():
+        if url == "/":
+            app_routes[url] = Partial(func, cls, **kwds).view
+        else:
+            app_routes[url] = Partial(func, cls).view
+
+    #for url, app in app_routes.items():
+    #    app.sidebar.append(links)
 
     # Call pn.serve to serve the multipage app.
-    kwargs = dict(address=address,
+    serve_kwargs = dict(address=address,
                   port=port,
                   #dev=True,
                   #start=True,
@@ -130,9 +158,9 @@ compare the interpolated band structure with the *ab-initio* one.
                   static_dirs={"/assets": assets_path},
     )
     from pprint import pformat
-    print("Calling pn.serve with kwargs:\n", pformat(kwargs))
+    print("Calling pn.serve with serve_kwargs:\n", pformat(serve_kwargs))
 
-    pn.serve(app_routes, **kwargs)
+    pn.serve(app_routes, **serve_kwargs)
 
 
 if __name__ == "__main__":

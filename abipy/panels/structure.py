@@ -236,8 +236,8 @@ Several input parameters have **default values** that might not be suitable for 
 Please check the input variable and modify it according to your needs.
 
 Also note that running big calculations with lot of datasets is not the most efficient approach.
-Examples of AbiPy scripst to automate calculations without datasets are available
-[on this page](https://abinit.github.io/abipy/flow_gallery/index.html)
+Examples of AbiPy scripts to automate calculations without datasets are available
+[here](https://abinit.github.io/abipy/flow_gallery/index.html)
 """
         alert = pn.pane.Alert(msg, alert_type="danger")
 
