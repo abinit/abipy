@@ -5,6 +5,9 @@ from abipy.abilab import abiopen
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import math
+from scipy.integrate import simps
+from scipy.special import factorial
 
 class DeltaSCF():
     """
@@ -282,6 +285,38 @@ class DeltaSCF():
             w_T = w_0 * np.sqrt(coth(self.eff_freq_ex() / (2 * k_b * T)))
             return w_T
 
+    def FC_factor(self):
+        # return FC factor between initial vib state m to final vib state n,
+        # using numerical integration of Hermite polynomials
+
+        return
+
+    def FC_factor_approx(self,n):
+        # return FC factor between initial vib state m=0 to final vib state n
+        # approx of same eff frequency in gs and ex
+        # approx of T=0K
+        FC = np.exp(self.S_em()) * self.S_em() ** n / math.factorial(n)
+        return FC
+
+    def A_1D_zero_temp(self,width):
+        n_x = 10000  #
+        E_x = np.linspace(1.5, 4, n_x)
+        n_trans = 100  # number of transitions considered
+        m = np.arange(0, n_trans)
+        gaussian_1D = np.zeros((n_trans, n_x))
+
+        A = np.zeros(n_x)  # A
+        sigma = width / (2.35482)
+        for i in range(n_trans):
+            f=np.exp(self.S_em())*self.S_em()**m[i]/math.factorial(m[i])
+            gaussian_1D[i] = np.absolute(f) * (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(
+                -((self.E_zpl() - self.eff_freq_gs() * i - E_x) ** 2 / (2 * (sigma) ** 2)))
+            A += gaussian_1D[i]
+
+        C = 1 / (simps(A, E_x))
+
+        return (E_x, C*A)
+
     def get_dict_results(self):
         d=dict([
             (r'$E_{em}$',self.E_em()),
@@ -308,22 +343,6 @@ class DeltaSCF():
         rows=[]
         index=[]
         d=self.get_dict_results()
-
- #       units=dict([
- #           (r'$E_{em}$','eV'),
- #           (r'E$_{abs}$','eV'),
- #           (r'E$_{zpl}$','eV'),
- #          (r'E$_{FC,g}$','eV'),
- #           (r'E$_{FC,e}$','eV'),
- #           (r'$\Delta S$','eV'),
- #           (r'$\Delta R$','Ang'),
- #           (r'$\Delta Q $','(amu^{1/2}.Ang)'),
- #           (r'$\hbar\Omega_g$','eV'),
- #           (r'$\hbar\Omega_e$','eV'),
- #           (r'$S_{em}$','/'),
- #           (r'$S_{abs}$','/'),
- #       ])
-
         rows.append(d)
         index.append(label)
 
@@ -359,4 +378,34 @@ class DeltaSCF():
        # ax.get_proj = lambda: np.dot(Axes3D.get_proj(ax), np.diag([1*a,1*a,(90/15)*a,1]))
         clb=plt.colorbar(sc)
         clb.set_label(r'$\Delta Q^2$ per atom')
+
+    def plot_dr_distance(self,defect_symbol,colors=["r","g","b","c","m"]):
+        symbols=self.structuregs.symbol_set
+        dfs = []
+        xs = []
+        ys = []
+        df=self.get_dataframe_atoms(defect_symbol=defect_symbol)
+
+        for i, symbol in enumerate(symbols):
+            dfs.append(df.loc[df['symbol'] == symbol])
+            xs.append(dfs[i]["dist. from defect"])
+            ys.append(dfs[i]["$\\Delta R^2$"])
+
+        f = plt.figure()
+
+        for i, symbol in enumerate(symbols):
+            plt.stem(xs[i], ys[i], label=symbol, linefmt=colors[i], markerfmt="o" + colors[i])
+            plt.xlabel(r'Distance from defect ($\AA$)')
+            plt.ylabel(r'$\Delta R ^2$ ($\AA^2$)')
+            plt.legend()
+
+        return f
+
+
+
+
+
+
+
+
 
