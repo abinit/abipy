@@ -89,9 +89,9 @@ compare the interpolated band structure with the *ab-initio* one.
     from abipy.panels.electrons import SkwPanelWithFileInput, CompareEbandsWithMP
     from abipy.panels.outputs import AbinitOutputFilePanelWithFileInput as abo_cls
 
-    cls, kwds = get_abinit_template_cls_kwds()
+    cls, cls_kwds = get_abinit_template_cls_kwds()
     print("Using panel template:", cls)
-    #home = cls(main=main_home, title="AbiPy GUI Home", **kwds)
+    #home = cls(main=main_home, title="AbiPy GUI Home", **cls_kwds)
 
     # url --> (cls, title)
     app_routes_titles = {
@@ -115,15 +115,12 @@ compare the interpolated band structure with the *ab-initio* one.
     links = "\n".join(f"- [{title}]({url})" for (url, title) in app_title.items())
     links = pn.pane.Markdown(links)
 
-    from functools import partial
-    def func(cls, **kwargs):
-        app = cls(**kwargs)
+    def func(cls, **cls_kwargs):
+        app = cls(**cls_kwargs)
         if hasattr(app, "get_panel"):
             app = app.get_panel()
         app.sidebar.append(links)
         return app
-
-    #from types import FunctionType
 
     class Partial():
         # https://stackoverflow.com/questions/45485017/why-does-functools-partial-not-detected-as-a-types-functiontype
@@ -132,20 +129,15 @@ compare the interpolated band structure with the *ab-initio* one.
             self.args = args
             self.kwargs = kwargs
 
-        def view(self, *args, **kwargs):
-            return self()
+        def view(self):
+            return self.func(*self.args, **self.kwargs)
 
-        def __call__(self, *args, **kwargs):
-            return self.func(*self.args, *args, **self.kwargs, **kwargs)
 
     for url, cls in app_routes.items():
         if url == "/":
-            app_routes[url] = Partial(func, cls, **kwds).view
+            app_routes[url] = Partial(func, cls, main=main_home, **cls_kwds).view
         else:
             app_routes[url] = Partial(func, cls).view
-
-    #for url, app in app_routes.items():
-    #    app.sidebar.append(links)
 
     # Call pn.serve to serve the multipage app.
     serve_kwargs = dict(address=address,
