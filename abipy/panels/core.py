@@ -22,7 +22,6 @@ _ABINIT_TEMPLATE_NAME = "FastList"
 
 
 def get_abinit_template_cls_kwds():
-    #return pn.Column, {}
     cls =  get_template_cls_from_name(_ABINIT_TEMPLATE_NAME)
     kwds = dict(header_background="#ff8c00", # Dark orange
                 #favicon="assets/img/abinit_favicon.ico",
@@ -222,12 +221,6 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
     Helper function returning a panel Column with a matplotly pane followed by
     a divider and (optionally) controls to customize the figure.
     """
-    #try:
-    #    from ipympl.backend_nbagg import FigureManager, Canvas, is_interactive
-    #    interactive = True
-    #except:
-    #    interactive = False
-
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
     mpl_pane = pn.pane.Matplotlib(fig, **kwargs)
     ca(mpl_pane)
@@ -369,11 +362,11 @@ def dfc(df,
             )
 
         def download(event):
-            print(f'Clicked menu item: "{event.new}"')
+            #print(f'Clicked menu item: "{event.new}"')
             file_download = d[event.new]
             print(file_download)
             #file_download._clicks = -1
-            print("Calling transfer")
+            #print("Calling transfer")
             file_download._transfer()
             #return file_download.callback()
 
@@ -506,6 +499,7 @@ class ActiveBar():
         self.progress.active = False
 
         if exc_type:
+            # Change the color to signal the user that something bad happened.
             self.progress.bar_color = "danger"
 
         # Don't handle the exception
@@ -539,14 +533,6 @@ the results/figures (if any) are stil computed with the **old input** hence you 
 recompute the new results by clicking the button.
 """, name="warning")
 
-
-    #def __repr__(self):
-    #    # https://github.com/holoviz/param/issues/396
-    #    return f"AbiPyParametrized(name='{self.name}')"
-
-
-    def __call__(self):
-        return self.get_panel()
 
     @lazy_property
     def mpl_kwargs(self):
@@ -646,8 +632,7 @@ recompute the new results by clicking the button.
         </style>"""
 
         return pn.Column(pn.pane.HTML(css_style, width=0, height=0, sizing_mode="stretch_width", margin=0),
-                         file_input,
-                         sizing_mode="stretch_width")
+                         file_input, sizing_mode="stretch_width")
 
     @staticmethod
     def get_abifile_from_file_input(file_input, use_structure=False):
@@ -673,7 +658,7 @@ recompute the new results by clicking the button.
         """
         Read and return an |ElectronBands| object from a file_input widget.
         Return None if the file does not provide an ebands object.
-        Remove the file if remove == True.
+        Remove the file if remove==True.
         """
         with self.get_abifile_from_file_input(file_input) as abifile:
             ebands = getattr(abifile, "ebands", None)
@@ -685,8 +670,9 @@ recompute the new results by clicking the button.
         return pn.pane.Alert("""
 Please note that this web interface is not designed to handle **large data transfer**.
 To post-process the data stored in a big file e.g. a WFK.nc file,
-we strongly suggest running AbiPy on the same machine where the file is hosted.
-Examples of post-processing scripts are available in the
+we strongly suggest executing the **abigui.py**  script on the same machine where the file is hosted.
+
+Also, note that examples of post-processing scripts are available in the
 [AbiPy gallery](https://abinit.github.io/abipy/gallery/index.html).
 """, alert_type="info")
 
@@ -699,7 +685,8 @@ Examples of post-processing scripts are available in the
 
     def get_template_from_tabs(self, tabs, template):
         """
-        This method receives panel Tabs, include them in a template and return the panel template.
+        This method receives panel Tabs or a dictionary,
+        include them in a template and return the template.
         """
         if isinstance(tabs, dict):
             tabs = pn.Tabs(*tabs.items())
@@ -715,8 +702,7 @@ Examples of post-processing scripts are available in the
             header_background="#ff8c00", # Dark orange
             #favicon (str): URI of favicon to add to the document head (if local file, favicon is base64 encoded as URI).
             #favicon="assets/img/abinit_favicon.ico",
-            #logo (str): URI of logo to add to the header (if local file, logo is base64 encoded as URI).
-            #logo="assets/img/abipy_logo.png",
+            #logo="assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
             #sidebar_footer (str): Can be used to insert additional HTML. For example a menu, some additional info, links etc.
             #enable_theme_toggle=False,  # If True a switch to toggle the Theme is shown. Default is True.
         )

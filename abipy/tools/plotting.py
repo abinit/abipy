@@ -1022,7 +1022,7 @@ def get_figs_plotly(nrows=1, ncols=1, subplot_titles=(), sharex=False, sharey=Fa
     from plotly.subplots import make_subplots
     import plotly.graph_objects as go
 
-    fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=subplot_titles, shared_xaxes=sharex,
+    fig = make_subplots(rows=int(nrows), cols=int(ncols), subplot_titles=subplot_titles, shared_xaxes=sharex,
                         shared_yaxes=sharey, **fig_kw)
 
     return fig, go

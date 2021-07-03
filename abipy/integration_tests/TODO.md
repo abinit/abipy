@@ -75,6 +75,9 @@ TODO list:
 * Check whether it's possible to reduce the memory of the SIGRES file wihouth brealing backward compatibility.
   eigvec_qp = self.read_variable("eigvec_qp") scales quite badly with nands
 
+* Migrate to pyproject.toml. Implement script to generate requirements.yml
+  Very likely `conda install --file requirements-optional.txt` is now broken to the introduction of `-r`.
+
 
 ## Medium priority
 

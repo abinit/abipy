@@ -661,10 +661,12 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                                         name='', showlegend=False, legendgroup=symbol, row=ply_row, col=ply_col)
                         if (l, spin, ib) == (0, 0, 0):
                             fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, opacity=self.alpha,
-                                            name=symbol, showlegend=True, legendgroup=symbol, fill='tonexty', row=ply_row, col=ply_col)
+                                            name=symbol, showlegend=True, legendgroup=symbol, fill='tonexty',
+                                            row=ply_row, col=ply_col)
                         else:
                             fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, opacity=self.alpha,
-                                            name='', showlegend=False, legendgroup=symbol, fill='tonexty', row=ply_row, col=ply_col)
+                                            name='', showlegend=False, legendgroup=symbol, fill='tonexty',
+                                            row=ply_row, col=ply_col)
                         yup, ydown = y1, y2
 
                 plotly_set_lims(fig, ylims, "y", iax=iax)
@@ -1716,7 +1718,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         yup = stack[l]
                         ydown = stack[l-1] if l != 0 else zerodos
-                        label = r"$%s\text{ (stacked)}$" % self.l2tex[l].replace('$','') if (isymb, spin) == (0, 0) else None
+                        label = r"$%s (stacked)" % self.l2tex[l].replace('$','') if (isymb, spin) == (0, 0) else None
                         fill = 'tonextx' if not exchange_xy else 'tonexty'
                         fill_line_opts = {'color': self.l2color[l], 'width': 0.1}
                         x1, x2, y1, y2 = mesh, mesh, ydown, yup
@@ -2121,7 +2123,6 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        #for fig in self.yield_ebands_figs(): yield fig
         if self.ebands.kpoints.is_path:
             yield self.ebands.kpoints.plot(show=False)
             yield self.plot_fatbands_lview(show=False)
@@ -2129,6 +2130,18 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         else:
             yield self.plot_pjdos_lview(show=False)
             yield self.plot_pjdos_typeview(show=False)
+
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        """
+        if self.ebands.kpoints.is_path:
+            yield self.ebands.kpoints.plotly(show=False)
+            yield self.plotly_fatbands_lview(show=False)
+            yield self.plotly_fatbands_typeview(show=False)
+        else:
+            yield self.plotly_pjdos_lview(show=False)
+            yield self.plotly_pjdos_typeview(show=False)
 
     def get_panel(self):
         """
