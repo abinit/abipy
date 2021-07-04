@@ -386,6 +386,9 @@ class DdbTest(AbipyTest):
 
     def test_ddb_from_mprester(self):
         """Test creation methods for DdbFile and DdbRobot from MP REST API."""
+        with self.assertRaises(ValueError):
+            abilab.DdbFile.from_mpid("foobar")
+
         #ddb = abilab.DdbFile.from_mpid("mp-1138")
         ddb = abilab.DdbFile.from_mpid("mp-149")
         assert ddb.structure.formula == "Si2"

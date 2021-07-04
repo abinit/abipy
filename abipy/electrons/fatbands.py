@@ -590,7 +590,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @add_plotly_fig_kwargs
     def plotly_fatbands_lview(self, e0="fermie", fact=1.0, fig=None, lmax=None,
-                            ylims=None, blist=None, fontsize=12, band_and_dos=0,  **kwargs):
+                              ylims=None, blist=None, fontsize=12, band_and_dos=0,  **kwargs):
         """
         Plot the electronic fatbands grouped by L with plotly.
 
@@ -605,8 +605,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
             blist: List of band indices for the fatband plot. If None, all bands are included
             fontsize: Legend and subtitle fontsize.
-            band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
-                           If 0(default), only plot band on the created figure (when fig==None);
+            band_and_dos : Define if both band and dos will be plotted on the same ``fig``.
+                           If 0 (default), only plot band on the created figure (when fig==None);
                            If 1, plot band on odd_col of ``fig``
 
         Returns: |plotly.graph_objects.Figure|
@@ -760,7 +760,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @add_fig_kwargs
     def plot_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, ax_mat=None, ylims=None,
-                              blist=None, fontsize=8, **kwargs):
+                               blist=None, fontsize=8, **kwargs):
         """
         Plot the electronic fatbands grouped by atomic type with matplotlib.
 
@@ -825,7 +825,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @add_plotly_fig_kwargs
     def plotly_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None,
-                              blist=None, fontsize=12, band_and_dos=0, **kwargs):
+                                 blist=None, fontsize=12, band_and_dos=0, **kwargs):
         """
         Plot the electronic fatbands grouped by atomic type with plotly.
 
@@ -840,7 +840,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
             blist: List of band indices for the fatband plot. If None, all bands are included
             fontsize: Legend and subtitle fontsize.
-            band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
+            band_and_dos : Define if both band and dos will be plotted on the same ``fig``.
                            If 0(default), only plot band on the created figure (when fig==None);
                            If 1, plot band on odd_col of ``fig``
 
@@ -894,7 +894,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                                         opacity=self.alpha, showlegend=False, legendgroup=l, row=ply_row, col=ply_col)
                         if (itype, spin, band) == (0, 0, 0):
                             fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, name=self.l2tex[l],
-                                        opacity=self.alpha, showlegend=True, legendgroup=l, fill='tonexty', row=ply_row, col=ply_col)
+                                           opacity=self.alpha, showlegend=True, legendgroup=l, fill='tonexty',
+                                           row=ply_row, col=ply_col)
                         else:
                             fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, name='', opacity=self.alpha,
                                             showlegend=False, legendgroup=l, fill='tonexty', row=ply_row, col=ply_col)
@@ -1293,7 +1294,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
             ylims: Same meaning as ``xlims`` but for the y-axis
             fontsize:  Legend and subtitle fontsize.
-            band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
+            band_and_dos : Define if both band and dos will be plotted on the same ``fig``.
                            If 0(default), only plot dos on the created figure (when fig==None);
                            If 1, plot dos on even_col of ``fig``
 
@@ -1618,7 +1619,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
             ylims: Same meaning as ``xlims`` but for the y-axis
             fontsize: Legend and subtitle fontsize.
-            band_and_dos : Define if both band and dos will be ploted on the same ``fig``.
+            band_and_dos : Define if both band and dos will be plotted on the same ``fig``.
                            If 0(default), only plot dos on the created figure (when fig==None);
                            If 1, plot dos on even_col of ``fig``
 
@@ -2143,12 +2144,12 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             yield self.plotly_pjdos_lview(show=False)
             yield self.plotly_pjdos_typeview(show=False)
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the |FatbandsFile| either in a notebook or in panel app.
         """
         from abipy.panels.fatbands import FatBandsFilePanel
-        return FatBandsFilePanel(self).get_panel()
+        return FatBandsFilePanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """

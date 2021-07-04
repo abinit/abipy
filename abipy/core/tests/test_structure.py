@@ -207,6 +207,8 @@ xred_symbols
 
         si = Structure.from_mpid("mp-149")
         assert si.formula == "Si2"
+        with self.assertRaises(ValueError):
+            Structure.from_mpid("foobar")
 
         # Test abiget_spginfo
         d = si.abiget_spginfo(tolsym=None, pre="abi_")

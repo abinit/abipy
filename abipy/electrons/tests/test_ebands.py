@@ -521,6 +521,10 @@ class ElectronBandsFromRestApi(AbipyTest):
 
     def test_from_mpid(self):
         """Testing interpolation of SnO2 band energies from MP database."""
+
+        with self.assertRaises(ValueError):
+            abilab.ElectronBands.from_mpid("foobar")
+
         #mpid = "mp-149"
         #mpid = "mp-856"
         mpid = "mp-3079"

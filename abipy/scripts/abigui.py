@@ -6,6 +6,8 @@ import os
 import click
 import panel as pn
 
+from abipy.core.release import version
+
 
 @click.command()
 @click.option('--port', default=5006, help="Port to listen on. Default: 5006")
@@ -16,6 +18,7 @@ import panel as pn
               help="Specify template for panel dasboard." +
                    "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                    "Default: FastList")
+@click.version_option(version=version, message='%(version)s')
 def gui_app(port, address, show, num_procs, panel_template):
 
     from abipy.panels.core import abipanel, get_abinit_template_cls_kwds #, AbipyParameterized
@@ -27,77 +30,37 @@ def gui_app(port, address, show, num_procs, panel_template):
     assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
     #AbipyParameterized.uses_abinit_server = True # TODO
 
-    main_home = pn.Column(pn.pane.Markdown("""
+    # Import the apps and define routies for each page.
+    from abipy.panels.structure import InputFileGenerator
+    from abipy.panels.ddb import PanelWithFileInput, PanelWithStructureInput, DdbPanelWithFileInput, CompareDdbWithMP
+    from abipy.panels.electrons import SkwPanelWithFileInput, CompareEbandsWithMP
+    from abipy.panels.outputs import AbinitOutputFilePanelWithFileInput as abo_cls
 
+    intro = """
 ![AbiPy Logo](assets/img/abipy_logo.png)
 
 # AbiPy Web App
 
 This web application exposes some of the capabilities of the AbiPy package.
-It consists of multiple pages each of which provides specialized tools to operate on a particular ABINIT file.
+It consists of **multiple pages** each of which provides **specialized tools** to operate on a particular ABINIT file.
 To access one of these tools, click one of the links in the sidebar or, alternatively, use the links below.
 To open/close the sidebar, click on the Hamburger Menu Icon ☰ in the header.
 
-## [Abinit Input Generator](/input_generator)
+Note that the **file extension*** really matters as the GUI won't work if you upload a file
+with an extension that is not recognized by AbiPy.
 
-Generate ABINIT input files for performing basic
-
-   - ground-state calculations
-   - band structure calculations
-   - DFPT phonon calculations
-
-starting from a crystalline structure provided by the user either via an external file
-or through the Materials Project identifier (*mp-id*)
-
-## [Structure Analyzer](/structure_analyzer)
-
-This application allows user to upload a file with structural info and operate on it.
-
-## [Output File Analyzer](/outfile)
-
-Post-process the data stored in one of the ABINIT output files.
-
-## [DDB File Analyzer](/ddb)
-
-This application allows users to post-process the data stored in one of the Abinit output files.
-The main difference with respect to [Abinit Output File Analyzer](/outfile) is that
-it is also possible to fetch the DDB file from the Materials Project Database.
-
-## [Abo File Analyzer](/abo)
-
-Analyze the Abinit main output file
-
-## [Ebands vs MP](/ebands_vs_mp)
-
-Compare your electronic bands with the MP
-
-## [DDB vs MP](/ddb_vs_mp)
-
-Compare your DDB with the MP
-
-## [SKW Analyzer](/skw)
-
-This tool allows one to interpolate the KS energies with the star-function method and
-compare the interpolated band structure with the *ab-initio* one.
-
-""", sizing_mode="stretch_width"),
-    sizing_mode="stretch_width")
-
-    # Import the apps and define routies for each page.
-    from abipy.panels.structure import InputFileGenerator
-    from abipy.panels.ddb import PanelWithFileInput, DdbPanelWithFileInput, CompareDdbWithMP
-    from abipy.panels.electrons import SkwPanelWithFileInput, CompareEbandsWithMP
-    from abipy.panels.outputs import AbinitOutputFilePanelWithFileInput as abo_cls
+"""
+    #main_home = pn.Column(pn.pane.Markdown(intro)
 
     cls, cls_kwds = get_abinit_template_cls_kwds()
     print("Using panel template:", cls)
-    #home = cls(main=main_home, title="AbiPy GUI Home", **cls_kwds)
 
     # url --> (cls, title)
     app_routes_titles = {
         "/": (cls, "AbiPy GUI Home"),
         "/input_generator": (InputFileGenerator, "Abinit Input Generator"),
         #"/structure_analyzer": (PanelWithFileInput(use_structure=True).get_panel(), "Structure Analyzer"),
+        "/structure_analyzer": (PanelWithStructureInput, "Structure Analyzer"),
         "/outfile": (PanelWithFileInput, "Output File Analyzer"),
         "/ddb": (DdbPanelWithFileInput, "DDB File Analyzer"),
         "/abo": (abo_cls, "Abo File Analyzer"),
@@ -106,20 +69,35 @@ compare the interpolated band structure with the *ab-initio* one.
         "/skw": (SkwPanelWithFileInput, "SKW Analyzer"),
         #"/abilog": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
         #"/gs_autoparal": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
+        #"/state": (pn.state, "State"),
     }
 
     app_routes = {k: v[0] for (k, v) in app_routes_titles.items()}
     app_title = {k: v[1] for (k, v) in app_routes_titles.items()}
 
+    for url, (cls, title) in app_routes_titles.items():
+        if url == "/": continue
+        intro += f"""
+
+## [{title}]({url})
+
+{cls.info_str}
+
+"""
+
+    main_home = pn.Column(pn.pane.Markdown(intro, width=700, sizing_mode="stretch_width"),
+                          sizing_mode="stretch_width")
+
     # Add links to sidebar of each app so that we can navigate easily.
     links = "\n".join(f"- [{title}]({url})" for (url, title) in app_title.items())
-    links = pn.pane.Markdown(links)
+    links = pn.Column(pn.pane.Markdown(links))
 
     def func(cls, **cls_kwargs):
         app = cls(**cls_kwargs)
         if hasattr(app, "get_panel"):
             app = app.get_panel()
         app.sidebar.append(links)
+        #app.header.append(links)
         return app
 
     class Partial():
@@ -136,6 +114,8 @@ compare the interpolated band structure with the *ab-initio* one.
     for url, cls in app_routes.items():
         if url == "/":
             app_routes[url] = Partial(func, cls, main=main_home, **cls_kwds).view
+        #elif url == "/state":
+        #    app_routes[url] = cls
         else:
             app_routes[url] = Partial(func, cls).view
 
@@ -149,6 +129,7 @@ compare the interpolated band structure with the *ab-initio* one.
                   num_procs=num_procs,
                   static_dirs={"/assets": assets_path},
     )
+
     from pprint import pformat
     print("Calling pn.serve with serve_kwargs:\n", pformat(serve_kwargs))
 

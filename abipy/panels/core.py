@@ -461,23 +461,26 @@ class Loading():
     A context manager for setting the loading attribute of a panel object.
     """
 
-    def __init__(self, pn_obj, pn_errstr=None):
-        self.pn_obj = pn_obj
-        self.pn_errstr = pn_errstr
+    def __init__(self, panel_obj, err_wdg=None, width=70):
+        self.panel_obj = panel_obj
+        self.err_wdg = err_wdg
+        if err_wdg is not None:
+            self.err_wdg.object = ""
+        self.width = int(width)
 
     def __enter__(self):
-        self.pn_obj.loading = True
-        return self.pn_obj
+        self.panel_obj.loading = True
+        return self.panel_obj
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.pn_obj.loading = False
+        self.panel_obj.loading = False
 
-        if self.pn_errstr is not None:
-
+        if self.err_wdg is not None:
             if exc_type:
-                self.pn_errstr.object = str(exc_value)
+                from textwrap import fill
+                self.err_wdg.object = "```sh\n%s\n```" % fill(str(exc_value), width=self.width)
             #else:
-            #    self.pn_errstr.object = "OK"
+            #    self.err_wdg.object = "OK"
 
         # Don't handle the exception
         return None
@@ -488,8 +491,12 @@ class ActiveBar():
     A context manager that sets progress.active to True on entry and False when we exit.
     """
 
-    def __init__(self, progress):
+    def __init__(self, progress, err_wdg=None, width=70):
         self.progress = progress
+        self.err_wdg = err_wdg
+        if err_wdg is not None:
+            self.err_wdg.object = ""
+        self.width = int(width)
 
     def __enter__(self):
         self.progress.active = True
@@ -501,6 +508,10 @@ class ActiveBar():
         if exc_type:
             # Change the color to signal the user that something bad happened.
             self.progress.bar_color = "danger"
+
+            if self.err_wdg is not None:
+                from textwrap import fill
+                self.err_wdg.object = "```sh\n%s\n```" % fill(str(exc_value), width=self.width)
 
         # Don't handle the exception
         return None
@@ -671,9 +682,12 @@ recompute the new results by clicking the button.
 Please note that this web interface is not designed to handle **large data transfer**.
 To post-process the data stored in a big file e.g. a WFK.nc file,
 we strongly suggest executing the **abigui.py**  script on the same machine where the file is hosted.
-
 Also, note that examples of post-processing scripts are available in the
 [AbiPy gallery](https://abinit.github.io/abipy/gallery/index.html).
+
+Last but not least, keep in mind that **the file extension matters** when uploading a file
+so don't change the default extension used by ABINIT.
+Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
 """, alert_type="info")
 
     @staticmethod
@@ -711,13 +725,13 @@ Also, note that examples of post-processing scripts are available in the
         if hasattr(template.main, "append"):
             template.main.append(tabs)
         else:
-            # Assume .main area acts like a GridSpec
+            # Assume main area acts like a GridSpec
             template.main[:,:] = tabs
 
         # Get widgets associated to Ph-bands tab and insert them in the sidebar.
-        #row = tabs[1]
-        #controllers_col, out = row[0], row[1]
-        #template.sidebar.append(controllers_col)
+        #row = tabs[0]
+        #controllers, out = row[0], row[1]
+        #template.sidebar.append(controllers)
         #template.main.append(out)
 
         return template

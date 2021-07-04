@@ -953,6 +953,69 @@ class GenericDataFilesPlotter(object):
 # Plotly helper functions
 ##########################
 
+_LATEX_GREEK_TO_UNICODE = dict(
+    alpha="α",
+    beta="β",
+    gamma="ɣ",
+    delta="δ",
+    epsilon="ε",
+    zeta="ζ",
+    eta="η",
+    theta="θ",
+    iota="ι",
+    kappa="κ",
+    #lambda="λ",
+    mu="μ",
+    nu="ν",
+    xi="ξ",
+    omicron="ο",
+    pi="π",
+    rho="ρ",
+    sigma="σ",
+    tau="τ",
+    upsilon="υ",
+    phi="φ",
+    chi="χ",
+    psi="ψ",
+    omega="ω",
+    # Capital case:
+    Alpha="Α",
+    Beta="Β",
+    Gamma="Γ",
+    Delta="Δ",
+    Epsilon="Ε",
+    Zeta="Ζ",
+    Eta="Η",
+    Theta="Θ",
+    Iota="Ι",
+    Kappa="Κ",
+    Lambda="Λ",
+    Mu="Μ",
+    Nu="Ν",
+    Xi="Ξ",
+    Omicron="Ο",
+    Po="Π",
+    Rho="Ρ",
+    Sigma="Σ",
+    Tau="Τ",
+    Upsilon="Υ",
+    Phi="Φ",
+    Chi="Χ",
+    Psi="Ψ",
+    Omega="Ω",
+)
+
+_LATEX_GREEK_TO_UNICODE["lambda"] = "λ"
+
+
+def latex_greek_2unicode(latex):
+    """
+    Convert a single greek letter in latex notation into unicode
+    """
+    s = latex.replace("$", "").replace("\\", "").strip()
+    return _LATEX_GREEK_TO_UNICODE[s]
+
+
 def is_plotly_figure(obj):
     """Return True if obj is a plotly Figure."""
     import plotly.graph_objs as go

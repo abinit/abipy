@@ -64,18 +64,18 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
 class AbinitOutputFilePanelWithFileInput(AbipyParameterized):
 
+    info_str = """
+This application allows users to analyze the Abinit main output file
+"""
+
     def __init__(self, **params):
 
         super().__init__(**params)
 
-        help_md = pn.pane.Markdown("""
-## Main area
+        help_md = pn.pane.Markdown(f"""
+## Description
 
-This web app exposes some of the post-processing capabilities of AbiPy.
-
-Use the **Choose File** to upload one of the files supported by this app.
-Drop one of of the files supported by AbiPy onto the FileInput area or
-click the **Choose File** button to upload
+{self.info_str}
 """)
 
         self.main_area = pn.Column(help_md, sizing_mode="stretch_width")
@@ -96,11 +96,12 @@ click the **Choose File** button to upload
 
     def get_panel(self):
 
-        col = pn.Column("## Upload an *.abo* file:",
+        col = pn.Column("## Upload (or drag & drop) an *.abo* file (main ABINIT output file):",
                         self.get_fileinput_section(self.file_input),
                         sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
 
         cls, kwds = self.get_abinit_template_cls_kwds()
+
         return cls(main=main, title="Abo Analyzer", **kwds)

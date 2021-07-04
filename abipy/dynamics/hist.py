@@ -10,8 +10,9 @@ from monty.collections import AttrDict
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
 from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, get_figs_plotly,\
-    get_fig_plotly, add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc, plotly_set_lims
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, get_figs_plotly, \
+    get_fig_plotly, add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc, plotly_set_lims, \
+    latex_greek_2unicode
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
@@ -363,7 +364,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.plot(self.steps, fmax_steps, label="max |F|", marker=markers[1], **kwargs)
             ax.plot(self.steps, fmean_steps, label="mean |F|", marker=markers[2], **kwargs)
             ax.plot(self.steps, fstd_steps, label="std |F|", marker=markers[3], **kwargs)
-            label = "std |F"
+            label = "std |F|"
             ax.set_ylabel('F stats (eV/A)')
 
         else:
@@ -418,10 +419,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
             # Lattice Angles
             mark = kwargs.pop("marker", None)
             markers = [0, 5, 6] if mark is None else 3 * [mark]
-            for i, label in enumerate(["alpha", "beta", "gamma"]):
+            for i, label in enumerate(["α ", "β ", "ɣ"]):
                 fig.add_scatter(x=self.steps, y=[s.lattice.angles[i] for s in self.structures], mode='lines+markers',
                                 name=label, marker_symbol=markers[i], row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = r"$\alpha\beta\gamma \text{ (degree)}$"+ "  "
+            fig.layout['yaxis%u' % rcd.iax].title.text = "αβɣ (degree)"+ "  "
             fig.layout['yaxis%u' % rcd.iax].tickformat = ".3r"
 
         elif what in ("alpha", "beta", "gamma"):
@@ -432,7 +433,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             label = kwargs.pop("label", what)
             fig.add_scatter(x=self.steps, y=[s.lattice.angles[i] for s in self.structures], mode='lines+markers',
                             name=label, marker_symbol=marker, row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = r"$\%s \text{ (degree)} $" % what
+            fig.layout['yaxis%u' % rcd.iax].title.text = r"%s (degree)" % latex_greek_2unicode(what)
             fig.layout['yaxis%u' % rcd.iax].tickformat = ".3r"
 
         elif what == "volume":
@@ -440,7 +441,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             label = kwargs.pop("label", "Volume")
             fig.add_scatter(x=self.steps, y=[s.lattice.volume for s in self.structures], mode='lines+markers',
                             name=label, marker_symbol=marker, row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = r'$V\, (A³)$'
+            fig.layout['yaxis%u' % rcd.iax].title.text = 'V (A³)'
 
         elif what == "pressure":
             stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
@@ -471,7 +472,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
                             name="mean |F|", marker_symbol=markers[2], row=ply_row, col=ply_col, **kwargs)
             fig.add_scatter(x=self.steps, y=fstd_steps, mode='lines+markers',
                             name="std |F|", marker_symbol=markers[3], row=ply_row, col=ply_col, **kwargs)
-            label = "std |F"
+            label = "std |F|"
             fig.layout['yaxis%u' % rcd.iax].title.text = 'F stats (eV/A)'
 
         else:
@@ -544,7 +545,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
                                      vertical_spacing=0.05)
 
         for i, what in enumerate(what_list):
-            rcd = PlotlyRowColDesc(i//ncols, i%ncols, nrows, ncols)
+            rcd = PlotlyRowColDesc(i // ncols, i % ncols, nrows, ncols)
             self.plotly_traces(fig, what, rcd=rcd, fontsize=fontsize, marker=0)
 
         fig.layout['xaxis%u' % rcd.iax].title.text = 'Step'
@@ -586,12 +587,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
         yield self.plot(show=False)
         yield self.plot_energies(show=False)
 
-    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
-    #    """
-    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-    #    """
-    #    yield self.plotly(show=False)
-    #    yield self.plotly_energies(show=False)
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plotly(show=False)
+        #yield self.plotly_energies(show=False)
 
     def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True,
                             with_forces=True, **kwargs):  # pragma: no cover

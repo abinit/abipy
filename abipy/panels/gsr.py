@@ -89,8 +89,8 @@ class GsrRobotPanel(PanelWithEbandsRobot):
         super().__init__(**params)
         self.robot = robot
 
-        gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
-        transpose_gsr_dataframe = pnw.Checkbox(name='Transpose GSR dataframe')
+        self.gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
+        self.transpose_gsr_dataframe = pnw.Checkbox(name='Transpose GSR dataframe')
 
     @depends_on_btn_click('gsr_dataframe_btn')
     def on_gsr_dataframe_btn(self):
@@ -114,4 +114,5 @@ class GsrRobotPanel(PanelWithEbandsRobot):
             self.on_gsr_dataframe_btn)
 
         if as_dict: return d
+
         return self.get_template_from_tabs(d, template=kwargs.get("template", None))

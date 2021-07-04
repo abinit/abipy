@@ -41,7 +41,7 @@ class HistFilePanel(AbipyParameterized):
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        box = pn.GridBox(nrows=nrows, ncols=ncols, sizing_mode=self.sizing_mode.value) #'scale_width')
+        box = pn.GridBox(nrows=nrows, ncols=ncols, sizing_mode="scale_width")
         for i, what in enumerate(self.what_list.value):
             irow, icol = divmod(i, ncols)
             box.append(mpl(self.hist.plot(what, title=what, **self.mpl_kwargs)))
@@ -64,5 +64,7 @@ class HistFilePanel(AbipyParameterized):
 
         d["Visualize"] = pn.Row(pn.Column(self.appname, self.to_unit_cell, self.view_relax_btn),
                                 self.on_view_relax_btn)
+
+        if as_dict: return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template", None))

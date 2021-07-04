@@ -85,6 +85,15 @@ class TestAbidoc(ScriptTest):
         r = env.run(self.script, "abibuild", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
+class TestAbigui(ScriptTest):
+
+    script = os.path.join(script_dir, "abigui.py")
+
+    def test_abigui(self):
+        """Testing abigui.py script"""
+        env = self.get_env()
+
+
 class TestAbinp(ScriptTest):
     script = os.path.join(script_dir, "abinp.py")
 

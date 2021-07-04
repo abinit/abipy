@@ -373,21 +373,24 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
 
 class PanelWithFileInput(AbipyParameterized):
 
+    info_str = """
+Post-process the data stored in one of the ABINIT output files.
+"""
+
     def __init__(self, use_structure=False, **params):
 
         super().__init__(**params)
 
         self.use_structure = use_structure
-        help_md = pn.pane.Markdown("""
-## Main area
+        #self.with_input_gen = with_input_gen
+        help_md = pn.pane.Markdown(f"""
+## Description
 
-This web app exposes some of the post-processing capabilities of AbiPy.
+{self.info_str}
 
 Use the **Choose File** to upload one of the files supported by this app.
-
 Drop one of of the files supported by AbiPy onto the FileInput area or
 click the **Choose File** button to upload
-
 Keep in mind that the **file extension matters**!
 Also, avoid uploading big files (size > XXX).
 """)
@@ -400,6 +403,7 @@ Also, avoid uploading big files (size > XXX).
 
         self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
         self.mpid_input.param.watch(self.on_mpid_input, "value")
+        self.mpid_err_wdg = pn.pane.Markdown("")
         #self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
         #                                          active=False, width=200, height=10, align="center")
 
@@ -411,19 +415,25 @@ Also, avoid uploading big files (size > XXX).
 
         self.abifile = new_abifile
         self.main_area.objects = [self.abifile.get_panel()]
-        #self.main_area.append(self.abifile.get_panel())
 
     def on_mpid_input(self, event):
 
-        with Loading(self.mpid_input):
+        with Loading(self.mpid_input, err_wdg=self.mpid_err_wdg):
             self.abifile = Structure.from_mpid(self.mpid_input.value)
 
         self.main_area.objects = [self.abifile.get_panel()]
 
     def get_panel(self):
 
+        if self.use_structure:
+            title = "Structure Analyzer"
+            msg = "## Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, POSCAR):"
+        else:
+            title = "Output File Analyzer"
+            msg = "## Upload (or drag & drop) **any file** supported by AbiPy-Panel. See list below:"
+
         col = pn.Column(
-            "## Upload **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, POSCAR):",
+            msg,
             self.get_fileinput_section(self.file_input),
             self.wdg_exts_with_get_panel(),
             sizing_mode="stretch_width")
@@ -431,33 +441,43 @@ Also, avoid uploading big files (size > XXX).
         if self.use_structure:
             col.extend([
                 "## or get the structure from the [Materials Project](https://materialsproject.org/) database:",
-                pn.Row(self.mpid_input, sizing_mode="stretch_width"),
+                pn.Row(self.mpid_input, pn.Column(self.mpid_err_wdg), sizing_mode="stretch_width"),
             ])
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
-        title = "Structure Analyzer" if self.use_structure else "Output File Analyzer"
+
         cls, kwds = self.get_abinit_template_cls_kwds()
 
         return cls(main=main, title=title, **kwds)
 
 
+class PanelWithStructureInput(PanelWithFileInput):
+
+    info_str = """
+This application allows user to upload a file with structural info and operate on it.
+"""
+
+
+    def __init__(self, **params):
+        super().__init__(use_structure=True, **params)
+
+
 class DdbPanelWithFileInput(AbipyParameterized):
+
+    info_str = """
+This application allows users to post-process the data stored in one of the Abinit output files.
+The main difference with respect to [Abinit Output File Analyzer](/outfile) is that
+it is also possible to fetch the DDB file from the Materials Project Database.
+"""
 
     def __init__(self, **params):
 
         super().__init__(**params)
 
-        help_md = pn.pane.Markdown("""
-## Main area
+        help_md = pn.pane.Markdown(f"""
+## Description
 
-This web app exposes some of the post-processing capabilities of AbiPy.
-
-Use the **Choose File** to upload one of the files supported by this app.
-
-Drop one of of the files supported by AbiPy onto the FileInput area or
-click the **Choose File** button to upload
-
-Keep in mind that the **file extension matters**!
+{self.info_str}
 """)
 
         self.main_area = pn.Column(help_md,
@@ -470,13 +490,15 @@ Keep in mind that the **file extension matters**!
 
         self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
         self.mpid_input.param.watch(self.on_mpid_input, "value")
+        self.mpid_err_wdg = pn.pane.Markdown("")
         #self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
         #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event):
+        self.mpid_err_wdg.object = ""
         new_abifile = self.get_abifile_from_file_input(self.file_input)
 
-        if self.abifile is not None: # and hasattr(self.abifile, "remove"):
+        if self.abifile is not None:
             self.abifile.remove()
 
         self.abifile = new_abifile
@@ -485,7 +507,7 @@ Keep in mind that the **file extension matters**!
     def on_mpid_input(self, event):
 
         from abipy.dfpt.ddb import DdbFile
-        with Loading(self.mpid_input):
+        with Loading(self.mpid_input, err_wdg=self.mpid_err_wdg):
             self.abifile = DdbFile.from_mpid(self.mpid_input.value)
 
         self.main_area.objects = [self.abifile.get_panel()]
@@ -493,10 +515,10 @@ Keep in mind that the **file extension matters**!
     def get_panel(self):
 
         col = pn.Column(
-            "## Upload a DDB file:",
+            "## Upload (or drag & drop) a DDB file:",
             self.get_fileinput_section(self.file_input),
-            "## or get the DDB from the [Materials Project](https://materialsproject.org/) database (if available):",
-            self.mpid_input,
+            "## or get the DDB from the [Materials Project](https://materialsproject.org/) database (*if available*):",
+            pn.Row(self.mpid_input, pn.Column(self.mpid_err_wdg), sizing_mode="stretch_width"),
             sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
@@ -507,13 +529,19 @@ Keep in mind that the **file extension matters**!
 
 class CompareDdbWithMP(AbipyParameterized):
 
+    info_str = """
+This panel alllows users to upload a DDB file and compare it with the one available on the MP.
+"""
+
     def __init__(self, **params):
 
         super().__init__(**params)
 
-        help_md = pn.pane.Markdown("""
-This panel alllows users to upload two files with KS energies.
-        """)
+        help_md = pn.pane.Markdown(f"""
+## Description
+
+{self.info_str}
+""")
 
         self.main_area = pn.Column(help_md,
                                    self.get_alert_data_transfer(),
@@ -521,8 +549,10 @@ This panel alllows users to upload two files with KS energies.
 
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
-        self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
-                                                  active=False, width=200, height=10, align="center")
+
+        self.mp_progress = pn.indicators.Progress(name='Fetching DDB from the MP website', bar_color="warning",
+                                                  active=False, width=100, height=10, align="center")
+        self.mp_err_wdg = pn.pane.Markdown("")
 
     def on_file_input(self, event):
         abinit_ddb = self.get_abifile_from_file_input(self.file_input)
@@ -533,7 +563,7 @@ This panel alllows users to upload two files with KS energies.
         if not mp.structures:
             raise RuntimeError("No structure found in the MP database")
 
-        with ActiveBar(self.mp_progress):
+        with ActiveBar(self.mp_progress, err_wdg=self.mp_err_wdg):
             ddb_robot = DdbRobot.from_mpid_list([mp_id for mp_id in mp.ids if mp_id != "this"])
             ddb_robot.add_file("Yours DDB", abinit_ddb)
 
@@ -541,9 +571,10 @@ This panel alllows users to upload two files with KS energies.
 
     def get_panel(self):
         col = pn.Column(
-            "## Upload a DDB file:",
+            "## Upload (or drag & drop) a DDB file:",
             self.get_fileinput_section(self.file_input),
-            pn.Row("### Fetching data from the MP website: ", self.mp_progress, sizing_mode="stretch_width"),
+            pn.Row("### Fetching data from the MP website: ", self.mp_progress, self.mp_err_wdg,
+                   sizing_mode="stretch_width"),
             sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")

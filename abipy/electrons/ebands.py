@@ -459,6 +459,10 @@ class ElectronBands(Has_Structure):
             line_mode (bool): If True, fetch a BandStructureSymmLine object
                 (default). If False, return the uniform band structure.
         """
+        material_id = str(material_id)
+        if not material_id.startswith("mp-"):
+            raise ValueError("Materials project ID should start with mp-")
+
         # Get pytmatgen structure and convert it to an AbiPy structure
         from abipy.core import restapi
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:

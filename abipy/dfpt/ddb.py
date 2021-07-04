@@ -137,6 +137,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
                 Defaults to the standard Materials Project REST address
         """
+        material_id = str(material_id)
+        if not material_id.startswith("mp-"):
+            raise ValueError("Materials project ID should start with mp-")
+
         from abipy.core import restapi
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
             ddb_string = rest._make_request("/materials/%s/abinit_ddb" % material_id)
