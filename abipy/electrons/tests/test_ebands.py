@@ -322,6 +322,9 @@ class ElectronBandsTest(AbipyTest):
         if self.has_ipywidgets():
             assert si_ebands_kmesh.ipw_edos_widget()
 
+        if self.has_panel():
+            assert si_ebands_kmesh.get_panel()
+
         # Test Abipy --> Pymatgen converter.
         pmg_bands_kmesh = si_ebands_kmesh.to_pymatgen()
         assert pmg_bands_kmesh.efermi == si_ebands_kmesh.fermie

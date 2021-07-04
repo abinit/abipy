@@ -6,12 +6,12 @@ import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from abipy.core.structure import Structure
-from abipy.panels.core import (AbipyParameterized, HasStructureParams, BaseRobotPanel,
+from abipy.panels.core import (AbipyParameterized, PanelWithStructure, BaseRobotPanel,
         mpl, ply, dfc, depends_on_btn_click, Loading, ActiveBar)
 from abipy.dfpt.ddb import PhononBandsPlotter
 
 
-class HasAnaddbParams(param.Parameterized):
+class PanelWithAnaddbParams(param.Parameterized):
     """
     Mixin for panel classes requiring widgets to invoke Anaddb via AbiPy.
     Used, for instance, by DdbFilePanel and DdbRobotPanel so that we don't have to
@@ -42,6 +42,9 @@ class HasAnaddbParams(param.Parameterized):
     # Base buttons
     plot_check_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP", button_type='primary')
 
+    def __init__(self, **params):
+        super().__init__(**params)
+
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs):
         """
         Return the parameters require to invoke anaget_phbst_and_phdos_files
@@ -57,13 +60,15 @@ class HasAnaddbParams(param.Parameterized):
         return d
 
 
-class DdbFilePanel(HasStructureParams, HasAnaddbParams):
+class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
     """
     A panel to analyze a |DdbFile|.
     Provides widgets to invoke anaddb and visualize the results.
     """
 
     def __init__(self, ddb, **params):
+        PanelWithStructure.__init__(self, structure=ddb.structure, **params)
+        #PanelWithAnaddbParams.__init__(self)
         self.ddb = ddb
 
         # Add buttons
@@ -76,13 +81,6 @@ class DdbFilePanel(HasStructureParams, HasAnaddbParams):
         self.plot_dos_vs_qmesh_btn = pnw.Button(name="Plot PHDos vs Qmesh", button_type='primary')
 
         self.stacked_pjdos = pnw.Checkbox(name="Stacked PJDOS", value=True)
-
-        super().__init__(**params)
-
-    @property
-    def structure(self):
-        """Structure object provided by the subclass."""
-        return self.ddb.structure
 
     @depends_on_btn_click('get_epsinf_btn')
     def get_epsinf(self):
@@ -583,12 +581,15 @@ This panel alllows users to upload a DDB file and compare it with the one availa
         return cls(main=main, title="Compare with MP DDB", **kwds)
 
 
-class DdbRobotPanel(BaseRobotPanel, HasAnaddbParams):
+class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     """
     A panel to analyze multiple DdbFiles via the low-level API provided by DdbRobot.
     Provides widgets to invoke anaddb and visualize the results.
     """
     def __init__(self, robot, **params):
+        # TODO
+        #BaseRobotPanel.__init__(robot=robot, **params)
+        #PanelWithAnaddbParams.__init__(self)
         super().__init__(**params)
         self.robot = robot
 

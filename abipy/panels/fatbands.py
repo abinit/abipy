@@ -14,8 +14,8 @@ class FatBandsFilePanel(PanelWithElectronBands):
     """
 
     def __init__(self, ncfile, **params):
+        PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
         self._ncfile = ncfile
-        super().__init__(**params)
 
         # Create buttons
         self.plot_fatbands_btn = pnw.Button(name="Plot fatbands", button_type='primary')
@@ -24,11 +24,6 @@ class FatBandsFilePanel(PanelWithElectronBands):
     @property
     def ncfile(self):
         return self._ncfile
-
-    @property
-    def ebands(self):
-        """|ElectronBands|."""
-        return self._ncfile.ebands
 
     @depends_on_btn_click('plot_fatbands_btn')
     def on_plot_fatbands_btn(self):

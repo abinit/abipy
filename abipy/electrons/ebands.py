@@ -610,6 +610,10 @@ class ElectronBands(Has_Structure):
 
         return plotter
 
+    def get_panel(self, **kwargs):
+        from abipy.panels.core import PanelWithElectronBands
+        return PanelWithElectronBands(ebands=self).get_panel(**kwargs)
+
     # Handy variables used to loop
     @property
     def spins(self):
@@ -1416,7 +1420,7 @@ class ElectronBands(Has_Structure):
             import re
             numl = re.findall(r'\d', formula)
             for s in numl:
-                formula = formula.replace(s,SUBSCRIPT_UNICODE[s])
+                formula = formula.replace(s, SUBSCRIPT_UNICODE[s])
 
         if enough_bands and not self.has_metallic_scheme:
             if self.nsppol == 1:

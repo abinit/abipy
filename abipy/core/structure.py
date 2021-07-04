@@ -674,7 +674,7 @@ class Structure(pmg_Structure, NotebookWriter):
     def get_panel(self, **kwargs):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
         from abipy.panels.structure import StructurePanel
-        return StructurePanel(self).get_panel(**kwargs)
+        return StructurePanel(structure=self, with_inputs=True).get_panel(**kwargs)
 
     def get_conventional_standard_structure(self, international_monoclinic=True,
                                            symprec=1e-3, angle_tolerance=5):

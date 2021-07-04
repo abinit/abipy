@@ -1950,7 +1950,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Build panel with widgets to interact with the |DdbFile| either in a notebook or in a bokeh app.
         """
         from abipy.panels.ddb import DdbFilePanel
-        return DdbFilePanel(self).get_panel(**kwargs)
+        return DdbFilePanel(ddb=self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """

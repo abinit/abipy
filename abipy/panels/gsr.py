@@ -5,31 +5,31 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from .core import (PanelWithElectronBands, HasStructureParams, PanelWithNcFile,
+from .core import (PanelWithElectronBands, NcFileMixin,
   PanelWithEbandsRobot, ButtonContext, ply, mpl, dfc, depends_on_btn_click)
 
 
-class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
+class GsrFilePanel(PanelWithElectronBands, NcFileMixin):
     """
     Panel with widgets to interact with a |GsrFile|.
     """
     def __init__(self, gsr, **params):
+        PanelWithElectronBands.__init__(self, ebands=gsr.ebands, **params)
         self.gsr = gsr
-        super().__init__(**params)
 
-    @property
-    def structure(self):
-        """|Structure| object"""
-        return self.gsr.structure
+    #@property
+    #def structure(self):
+    #    """|Structure| object"""
+    #    return self.gsr.structure
 
-    @property
-    def ebands(self):
-        """|ElectronBands| object."""
-        return self.gsr.ebands
+    #@property
+    #def ebands(self):
+    #    """|ElectronBands| object."""
+    #    return self.gsr.ebands
 
     @property
     def ncfile(self):
-        """This for for the PanelWithNcFile mixin"""
+        """This for for the NcFileMixin mixin"""
         return self.gsr
 
     def get_panel(self, as_dict=False, **kwargs):
@@ -40,9 +40,8 @@ class GsrFilePanel(PanelWithElectronBands, HasStructureParams, PanelWithNcFile):
             bkw.PreText(text=self.gsr.to_string(verbose=self.verbose),  sizing_mode="scale_both")
         )
         d["e-Bands"] = pn.Row(
-            #pn.Column("### e-Bands Options", self.get_plot_ebands_widgets(), self.helpc("on_plot_ebands_btn"),
             self.pws_col(["### e-Bands Options", "with_gaps", "set_fermie_to_vbm", "plot_ebands_btn",
-                      self.helpc("on_plot_ebands_btn")]),
+                          self.helpc("on_plot_ebands_btn")]),
             self.on_plot_ebands_btn
         )
         # Add DOS tab but only if k-sampling.
@@ -101,6 +100,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
     def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the |GsrRobot|."""
         d = {}
+
         d["Summary"] = pn.Row(bkw.PreText(text=self.robot.to_string(verbose=self.verbose),
                                sizing_mode="scale_both"))
         d["e-Bands"] = pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)

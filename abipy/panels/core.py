@@ -526,11 +526,11 @@ class AbipyParameterized(param.Parameterized):
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used for running Fortran code.")
 
-    # This flag is set to True if we serving apps from the Abinit server.
+    # This flag is set to True if we are serving apps from the Abinit server.
     # It is used to impose limitations on what users can do and select the options that should be exposed.
     # For instance, structure_viewer == "Vesta" does not make sense in we are not serving from a local server.
     #
-    uses_abinit_server = False
+    has_remote_server = param.Boolean(False)
 
     warning = pn.pane.Markdown(
 """
@@ -647,9 +647,8 @@ recompute the new results by clicking the button.
 
     @staticmethod
     def get_abifile_from_file_input(file_input, use_structure=False):
-        #print("filename", file_input.filename)
+        #print("filename", file_input.filename, "\nvalue", file_input.value)
         #if file_input.value is None: return None
-        #print("value", file_input.value)
 
         workdir = tempfile.mkdtemp()
 
@@ -737,27 +736,38 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
         return template
 
 
-class HasStructureParams(AbipyParameterized):
+class PanelWithStructure(AbipyParameterized):
     """
     Mixin class for panel objects providing a |Structure| object.
     """
 
-    structure_viewer = param.ObjectSelector(default=None,
-                                            objects=[None, "jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
-                                                     "matplotlib", "plotly", "ase_atoms", "mayavi"])
+    #structure_viewer = param.ObjectSelector(default=None,
+    #                                        objects=[None, "jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
+    #                                                 "matplotlib", "plotly", "ase_atoms", "mayavi"])
 
-    #def __init__(self, **params):
-    #    self.struct_view_btn = pnw.Button(name="View structure", button_type='primary')
-    #    super(self).__init__(**params)
+    def __init__(self, structure, **params):
+        super().__init__(**params)
+        self.structure = structure
+        self.struct_view_btn = pnw.Button(name="View structure", button_type='primary')
 
-    @property
-    def structure(self):
-        """Structure object provided by the subclass."""
-        raise NotImplementedError(f"Subclass {type(self)} should implement the `structure` attribute.")
+        objects = [None, "jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
+                    "matplotlib", "plotly", "ase_atoms", "mayavi"]
+        if self.has_remote_server:
+            objects = [None, "jsmol", "crystalk", "ngl", "matplotlib", "plotly", "ase_atoms"]
+
+        self.structure_viewer = param.ObjectSelector(default=None, objects=objects)
+
+    #@property
+    #def structure(self):
+    #    """Structure object provided by the subclass."""
+    #    raise NotImplementedError(f"Subclass {type(self)} should implement the `structure` attribute.")
 
     @pn.depends("structure_viewer")
     def view_structure(self):
         """Visualize input structure."""
+        # FIXME
+        return pn.Column()
+
         if self.structure_viewer is None:
             return pn.Column()
 
@@ -888,10 +898,10 @@ def get_structure_info(structure):
     return col
 
 
-class PanelWithNcFile(AbipyParameterized):
+class NcFileMixin(param.Parameterized):
     """
-    This mixin class allows the user to inspect the dimensions and the variables reported in a netcdf file.
-    Subclasses should implement the `ncfile` property
+    This mixin class allows the user to inspect the dimensions and the variables
+    reported in a netcdf file. Subclasses should implement the `ncfile` property
     """
 
     @property
@@ -920,7 +930,7 @@ class PanelWithNcFile(AbipyParameterized):
         return col
 
 
-class PanelWithElectronBands(AbipyParameterized):
+class PanelWithElectronBands(PanelWithStructure):
     """
     Mixin class for panel object associated to AbiPy object providing an |ElectronBands| object.
 
@@ -953,35 +963,36 @@ class PanelWithElectronBands(AbipyParameterized):
     ebands_kmesh = None
     ebands_kmesh_fileinput = param.FileSelector()
 
-    # Fermi surface plotter.
-    fs_viewer = param.ObjectSelector(default=None, objects=[None, "matplotlib", "xcrysden"])
-    plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
+    def __init__(self, ebands, **params):
 
-    def __init__(self, **params):
+        self.ebands = ebands
+        PanelWithStructure.__init__(self, structure=ebands.structure, **params)
 
         # Create buttons
         self.plot_ebands_btn = pnw.Button(name="Plot e-bands", button_type='primary')
         self.plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type='primary')
         self.plot_skw_btn = pnw.Button(name="Plot SKW interpolant", button_type='primary')
 
+        # Fermi surface plotter.
+        objects = [None, "matplotlib", "xcrysden"]
+        if self.has_remote_server:
+            objects = [None, "matplotlib"]
+        self.fs_viewer = param.ObjectSelector(default=None, objects=objects)
+        self.plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
+
         #ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
         #ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
 
-        super().__init__(**params)
-
-    @property
-    def ebands(self):
-        """abc does not play well with parametrized so we rely on this to enforce the protocol."""
-        raise NotImplementedError("subclass should implement `ebands` property.")
+        #super().__init__(**params)
+        #super().__init__(structure= **params)
 
     @pn.depends("ebands_kpath_fileinput", watch=True)
     def get_ebands_kpath(self):
         """
         Receives the netcdf file selected by the user as binary string.
         """
-        bstring = self.ebands_kpath_fileinput
-
         from abipy.electrons import ElectronBands
+        bstring = self.ebands_kpath_fileinput
         self.ebands_kpath = ElectronBands.from_binary_string(bstring)
 
     def get_plot_ebands_widgets(self):
@@ -1105,6 +1116,7 @@ class BaseRobotPanel(AbipyParameterized):
     """Base class for panels with AbiPy robot."""
 
     def __init__(self, **params):
+        #self.robot = robot
         self.compare_params_btn = pnw.Button(name="Compare structures", button_type='primary')
         self.transpose_params = pnw.Checkbox(name='Transpose tables')
 
@@ -1131,7 +1143,6 @@ class BaseRobotPanel(AbipyParameterized):
         return col
 
     # TODO: widgets to change robot labels.
-
     def get_compare_params_widgets(self):
         """
         """
@@ -1155,8 +1166,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
         self.ebands_df_checkbox = pnw.Checkbox(name='With Ebands DataFrame', value=False)
 
         # Widgets to plot edos.
-        self.edos_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
-                                            options=["gridplot", "combiplot"])
+        self.edos_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot", options=["gridplot", "combiplot"])
         self.edos_plotter_btn = pnw.Button(name="Plot", button_type='primary')
 
         super().__init__(**params)

@@ -9,7 +9,7 @@ import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from abipy.core.structure import Structure
-from abipy.panels.core import AbipyParameterized, HasStructureParams, dfc, mpl, ply, depends_on_btn_click, Loading
+from abipy.panels.core import AbipyParameterized, PanelWithStructure, dfc, mpl, ply, depends_on_btn_click, Loading
 
 
 def _make_targz_bytes(inp_or_multi, remove_dir=True):
@@ -28,18 +28,18 @@ def _make_targz_bytes(inp_or_multi, remove_dir=True):
     return output
 
 
-class StructurePanel(HasStructureParams):
+class StructurePanel(PanelWithStructure):
     """
     Panel with widgets to interact with an AbiPy Structure
     """
 
-    def __init__(self, structure,  with_inputs=True, **params):
+    def __init__(self, structure, with_inputs=True, **params):
         """
         Args:
             structure: |Structure| object.
             with_inputs: True if tabs for generating input files should be shown.
         """
-        self._structure = structure
+        PanelWithStructure.__init__(self, structure=structure, **params)
         self.with_inputs = with_inputs
 
         # Convert widgets.
@@ -99,11 +99,9 @@ class StructurePanel(HasStructureParams):
 
         self.spin_mode = pnw.Select(name="SpinMode", value="unpolarized", options=list(self.label2mode.keys()))
 
-        super().__init__(**params)
-
-    @property
-    def structure(self):
-        return self._structure
+    #@property
+    #def structure(self):
+    #    return self._structure
 
     @pn.depends("output_format.value")
     def convert(self):

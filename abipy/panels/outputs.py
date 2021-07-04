@@ -69,7 +69,6 @@ This application allows users to analyze the Abinit main output file
 """
 
     def __init__(self, **params):
-
         super().__init__(**params)
 
         help_md = pn.pane.Markdown(f"""

@@ -18,17 +18,23 @@ from abipy.core.release import version
               help="Specify template for panel dasboard." +
                    "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                    "Default: FastList")
+@click.option('--has-remote-server', default=False, is_flag=True,
+              help="True if we are running on the ABINIT server. This flag activates limitations on what the user can do." +
+                   "Default: False")
 @click.version_option(version=version, message='%(version)s')
-def gui_app(port, address, show, num_procs, panel_template):
+def gui_app(port, address, show, num_procs, panel_template, has_remote_server):
 
-    from abipy.panels.core import abipanel, get_abinit_template_cls_kwds #, AbipyParameterized
+    from abipy.panels.core import abipanel, get_abinit_template_cls_kwds, AbipyParameterized
     import abipy.panels as mod
 
     # Load abipy/panel extensions.
     abipanel(panel_template=panel_template)
 
     assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
-    #AbipyParameterized.uses_abinit_server = True # TODO
+    print("has_remote_server:", has_remote_server)
+    if has_remote_server:
+        print("Enforce limitations on what the user can do on the abinit server")
+        AbipyParameterized.has_remote_server = has_remote_server # TODO
 
     # Import the apps and define routies for each page.
     from abipy.panels.structure import InputFileGenerator
