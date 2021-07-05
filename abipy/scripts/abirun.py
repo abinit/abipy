@@ -526,6 +526,11 @@ Default: o
 
     p_panel = subparsers.add_parser('panel', parents=[copts_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
+    p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
+                        help="Specify template for panel dasboard." +
+                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                             "Default: FastList"
+                        )
 
     # Subparser for new_manager.
     p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser],
@@ -875,7 +880,8 @@ def main():
             cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
             raise exc
 
-        flow.get_panel().show()
+        app = flow.get_panel(template=options.panel_template)
+        app.show(debug=options.verbose > 0)
         return 0
 
     elif options.command == "events":

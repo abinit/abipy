@@ -629,7 +629,7 @@ class GsrRobot(Robot, RobotWithEbands):
         Build panel with widgets to interact with the |GsrRobot| either in a notebook or in panel app.
         """
         from abipy.panels.gsr import GsrRobotPanel
-        return GsrRobotPanel(self).get_panel(**kwargs)
+        return GsrRobotPanel(robot=self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """

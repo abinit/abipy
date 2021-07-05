@@ -38,4 +38,5 @@ class PhononBandsPlotterPanel(AbipyParameterized):
         d["PhbandsPlotter"] = pn.Row(ws, self.on_phbands_plot_btn, sizing_mode='scale_width')
 
         if as_dict: return d
+
         return self.get_template_from_tabs(d, template=kwargs.get("template", None))

@@ -16,7 +16,8 @@ class FlowPanel(AbipyParameterized):
     def __init__(self, flow, **params):
         self.flow = flow
 
-        self.engine = pnw.Select(value="fdp", options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
+        self.engine = pnw.Select(value="fdp",
+                      options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
         self.dirtree = pnw.Checkbox(name='Dirtree', value=False)
         self.graphviz_btn = pnw.Button(name="Show graph", button_type='primary')
 
@@ -49,12 +50,14 @@ class FlowPanel(AbipyParameterized):
         #radio_group = pn.widgets.RadioButtonGroup(
         #   name='Radio Button Group', options=['Biology', 'Chemistry', 'Physics'], button_type='success')
 
+        #files = pn.widgets.FileSelector('~')
+
         super().__init__(**params)
 
     @depends_on_btn_click("status_btn")
     def on_status_btn(self):
         stream = StringIO()
-        self.flow.show_status(stream=stream, verbose=self.verbose.value)
+        self.flow.show_status(stream=stream, verbose=self.verbose)
         return pn.Row(bkw.PreText(text=stream.getvalue()))
 
     @depends_on_btn_click("history_btn")
@@ -106,7 +109,7 @@ class FlowPanel(AbipyParameterized):
         #    flowtk.autodoc_event_handlers()
         #else:
         #show_events(self, status=None, nids=None, stream=sys.stdout):
-        self.flow.show_event_handlers(verbose=self.verbose.value, stream=stream)
+        self.flow.show_event_handlers(verbose=self.verbose, stream=stream)
         return pn.Row(bkw.PreText(text=stream.getvalue()))
 
     @depends_on_btn_click("vars_btn")
@@ -130,7 +133,7 @@ class FlowPanel(AbipyParameterized):
         if "output" in self.structures_io_checkbox.value: what += "o"
         dfs = self.flow.compare_structures(nids=None, # select_nids(flow, options),
                                            what=what,
-                                           verbose=self.verbose.value, with_spglib=False, printout=False,
+                                           verbose=self.verbose, with_spglib=False, printout=False,
                                            with_colors=False)
 
         return pn.Row(dfc(dfs.lattice), sizing_mode="scale_width")
@@ -143,7 +146,7 @@ class FlowPanel(AbipyParameterized):
     #                            nids=None, # select_nids(flow, options),
     #                            with_path="with_path" in self.ebands_ksamp_checkbox.value,
     #                            with_ibz="with_ibz" in self.ebands_ksamp_checkbox.value,
-    #                            verbose=self.verbose.value,
+    #                            verbose=self.verbose,
     #                            with_spglib=False
     #                            )
 
@@ -167,20 +170,20 @@ class FlowPanel(AbipyParameterized):
 
         d = {}
 
-        #row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose.value), sizing_mode="scale_both"))
+        #row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both"))
         d["Status"] = pn.Row(self.status_btn, self.on_status_btn)
         d["History"] = pn.Row(self.history_btn, self.on_history_btn)
         d["Events"] = pn.Row(self.events_btn, self.on_events_btn)
         d["Corrections"] = pn.Row(self.corrections_btn, self.on_corrections_btn)
         d["Handlers"] = pn.Row(self.handlers_btn, self.on_handlers_btn)
         d["Structures"] = pn.Row(pn.Column(self.structures_io_checkbox, self.structures_btn), self.on_structures_btn)
-        ws = pn.Column(self.ebands_plotter_mode, self.ebands_ksamp_checkbox, self.ebands_df_checkbox, self.ebands_plotter_btn)
+        #ws = pn.Column(self.ebands_plotter_mode, self.ebands_ksamp_checkbox, self.ebands_df_checkbox, self.ebands_plotter_btn)
         #d["Ebands"] = pn.Row(ws, self.on_ebands_btn)
-        d["Abivars"] = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
-        d["Dims"] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)
+        #d["Abivars"] = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
+        #d["Dims"] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)
         d["Debug"] = pn.Row(self.debug_btn, self.on_debug_btn)
         d["Graphviz"] = pn.Row(pn.Column(self.engine, self.dirtree, self.graphviz_btn), self.on_graphviz_btn)
 
         if as_dict: return d
-        tabs = pn.Tabs(*d.items())
-        return self.get_template_from_tabs(tabs, template=kwargs.get("template", None))
+
+        return self.get_template_from_tabs(d, template=kwargs.get("template", None), closable=False)

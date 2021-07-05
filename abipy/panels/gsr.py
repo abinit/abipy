@@ -17,16 +17,6 @@ class GsrFilePanel(PanelWithElectronBands, NcFileMixin):
         PanelWithElectronBands.__init__(self, ebands=gsr.ebands, **params)
         self.gsr = gsr
 
-    #@property
-    #def structure(self):
-    #    """|Structure| object"""
-    #    return self.gsr.structure
-
-    #@property
-    #def ebands(self):
-    #    """|ElectronBands| object."""
-    #    return self.gsr.ebands
-
     @property
     def ncfile(self):
         """This for for the NcFileMixin mixin"""
@@ -85,8 +75,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
     """
 
     def __init__(self, robot, **params):
-        super().__init__(**params)
-        self.robot = robot
+        PanelWithEbandsRobot.__init__(self, robot=robot, **params)
 
         self.gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
         self.transpose_gsr_dataframe = pnw.Checkbox(name='Transpose GSR dataframe')
@@ -95,6 +84,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
     def on_gsr_dataframe_btn(self):
         df = self.robot.get_dataframe(with_geo=True)
         transpose = self.transpose_gsr_dataframe.value
+
         return pn.Column(dfc(df, transpose=transpose), sizing_mode='stretch_width')
 
     def get_panel(self, as_dict=False, **kwargs):
@@ -103,13 +93,13 @@ class GsrRobotPanel(PanelWithEbandsRobot):
 
         d["Summary"] = pn.Row(bkw.PreText(text=self.robot.to_string(verbose=self.verbose),
                                sizing_mode="scale_both"))
-        d["e-Bands"] = pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)
+        d["Plot-eBands"] = pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)
 
         # Add e-DOS tab but only if all ebands have k-sampling.
         if all(abifile.ebands.kpoints.is_ibz for abifile in self.robot.abifiles):
-            d["e-DOS"] = pn.Row(self.get_edos_plotter_widgets(), self.on_edos_plotter_btn)
+            d["Plot-eDOS"] = pn.Row(self.get_edos_plotter_widgets(), self.on_edos_plotter_btn)
 
-        d["GSR-dataframe"] = pn.Row(
+        d["Dataframe"] = pn.Row(
             pn.Column(self.transpose_gsr_dataframe, self.gsr_dataframe_btn),
             self.on_gsr_dataframe_btn)
 

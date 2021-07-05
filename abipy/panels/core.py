@@ -531,6 +531,7 @@ class AbipyParameterized(param.Parameterized):
     # For instance, structure_viewer == "Vesta" does not make sense in we are not serving from a local server.
     #
     has_remote_server = param.Boolean(False)
+    #has_remote_server = param.Boolean(True)
 
     warning = pn.pane.Markdown(
 """
@@ -544,6 +545,12 @@ the results/figures (if any) are stil computed with the **old input** hence you 
 recompute the new results by clicking the button.
 """, name="warning")
 
+    def __init__(self, **params):
+        super().__init__(**params)
+        if self.has_remote_server:
+            self.param.mpi_procs.bounds = (1, 1)
+            print("Changing mpi_procs.bounds")
+            print("self.param.mpi_procs:", self.param.mpi_procs.bounds)
 
     @lazy_property
     def mpl_kwargs(self):
@@ -579,6 +586,9 @@ recompute the new results by clicking the button.
 
         if miss:
             raise ValueError(f"Cannot find `{str(miss)}` in param or in attribute space")
+
+        #for item in items:
+        #    print("item", item, "of type:", type(item))
 
         return items
 
@@ -620,7 +630,7 @@ recompute the new results by clicking the button.
     def get_software_stack():
         """Return column with version of python packages in tabular format."""
         from abipy.abilab import software_stack
-        return pn.Column("## Software stack:", dfc(software_stack(as_dataframe=True), with_export_btn=True),
+        return pn.Column("## Software stack:", dfc(software_stack(as_dataframe=True), with_export_btn=False),
                          sizing_mode="scale_width")
 
     @staticmethod
@@ -648,7 +658,6 @@ recompute the new results by clicking the button.
     @staticmethod
     def get_abifile_from_file_input(file_input, use_structure=False):
         #print("filename", file_input.filename, "\nvalue", file_input.value)
-        #if file_input.value is None: return None
 
         workdir = tempfile.mkdtemp()
 
@@ -696,13 +705,14 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
     def get_abinit_template_cls_kwds(self):
         return get_abinit_template_cls_kwds()
 
-    def get_template_from_tabs(self, tabs, template):
+    def get_template_from_tabs(self, tabs, template, tabs_location="above", closable=False):
         """
         This method receives panel Tabs or a dictionary,
         include them in a template and return the template.
         """
         if isinstance(tabs, dict):
-            tabs = pn.Tabs(*tabs.items())
+            tabs = pn.Tabs(*tabs.items(), tabs_location=tabs_location, closable=closable,
+                           sizing_mode="stretch_width")
 
         if template is None:
             return tabs
@@ -741,36 +751,24 @@ class PanelWithStructure(AbipyParameterized):
     Mixin class for panel objects providing a |Structure| object.
     """
 
-    #structure_viewer = param.ObjectSelector(default=None,
-    #                                        objects=[None, "jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
-    #                                                 "matplotlib", "plotly", "ase_atoms", "mayavi"])
+    structure_viewer = param.ObjectSelector(default="jsmol",
+                                            objects=["jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
+                                                     "matplotlib", "plotly", "ase_atoms", "mayavi"])
 
     def __init__(self, structure, **params):
+
         super().__init__(**params)
         self.structure = structure
-        self.struct_view_btn = pnw.Button(name="View structure", button_type='primary')
 
-        objects = [None, "jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
-                    "matplotlib", "plotly", "ase_atoms", "mayavi"]
         if self.has_remote_server:
-            objects = [None, "jsmol", "crystalk", "ngl", "matplotlib", "plotly", "ase_atoms"]
+            # Change the list of allowed visulizers if remote server.
+            self.param.structure_viewer.objects = ["jsmol", "crystalk", "ngl", "matplotlib", "plotly", "ase_atoms"]
 
-        self.structure_viewer = param.ObjectSelector(default=None, objects=objects)
+        self.view_structure_btn = pnw.Button(name="View structure", button_type='primary')
 
-    #@property
-    #def structure(self):
-    #    """Structure object provided by the subclass."""
-    #    raise NotImplementedError(f"Subclass {type(self)} should implement the `structure` attribute.")
-
-    @pn.depends("structure_viewer")
-    def view_structure(self):
+    @depends_on_btn_click('view_structure_btn')
+    def on_view_structure(self):
         """Visualize input structure."""
-        # FIXME
-        return pn.Column()
-
-        if self.structure_viewer is None:
-            return pn.Column()
-
         v = self.structure_viewer
 
         if v == "jsmol":
@@ -846,8 +844,9 @@ class PanelWithStructure(AbipyParameterized):
         Return tab entry to visualize the structure.
         """
         return pn.Row(
-            self.pws_col(["### Visualize structure", "structure_viewer", self.helpc("view_structure")]),
-            pn.Column(self.view_structure, self.get_structure_info())
+            self.pws_col(["### Visualize structure", "structure_viewer", "view_structure_btn",
+                          self.helpc("on_view_structure")]),
+            pn.Column(self.on_view_structure, self.get_structure_info())
         )
 
     def get_structure_info(self):
@@ -903,6 +902,10 @@ class NcFileMixin(param.Parameterized):
     This mixin class allows the user to inspect the dimensions and the variables
     reported in a netcdf file. Subclasses should implement the `ncfile` property
     """
+
+    #def __init__(self, ncfile, **params)
+    #    super().__init__(**params)
+    #    self.ncfile = ncfile
 
     @property
     def ncfile(self):
@@ -1029,7 +1032,6 @@ class PanelWithElectronBands(PanelWithStructure):
         """Button triggering edos plot."""
         edos = self.ebands.get_edos(method=self.edos_method, step=self.edos_step_ev, width=self.edos_width_ev)
 
-        #return pn.Row(mpl(edos.plot(**self.mpl_kwargs)), sizing_mode='scale_width')
         return pn.Row(ply(edos.plotly(show=False)), sizing_mode='scale_width')
 
     @depends_on_btn_click('plot_skw_btn')
@@ -1113,10 +1115,12 @@ class PanelWithElectronBands(PanelWithStructure):
 
 
 class BaseRobotPanel(AbipyParameterized):
-    """Base class for panels with AbiPy robot."""
+    """
+    Base class for panels with AbiPy robot.
+    """
 
-    def __init__(self, **params):
-        #self.robot = robot
+    def __init__(self, robot, **params):
+        self.robot = robot
         self.compare_params_btn = pnw.Button(name="Compare structures", button_type='primary')
         self.transpose_params = pnw.Checkbox(name='Transpose tables')
 
@@ -1130,10 +1134,10 @@ class BaseRobotPanel(AbipyParameterized):
         transpose = self.transpose_params.value
 
         dfs = self.robot.get_structure_dataframes()
-        ca("# Lattice daframe")
+        ca("# Lattice dataframe")
         ca(dfc(dfs.lattice, transpose=transpose))
 
-        ca("# Params daframe")
+        ca("# Parameters dataframe")
         ca(dfc(self.robot.get_params_dataframe(), transpose=transpose))
 
         accord = pn.Accordion(sizing_mode='stretch_width')
@@ -1157,7 +1161,9 @@ class PanelWithEbandsRobot(BaseRobotPanel):
     Mixin class for panels with a robot that owns a list of of |ElectronBands|.
     """
 
-    def __init__(self, **params):
+    def __init__(self, robot, **params):
+
+        BaseRobotPanel.__init__(self, robot=robot, **params)
 
         # Widgets to plot ebands.
         self.ebands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
@@ -1168,8 +1174,6 @@ class PanelWithEbandsRobot(BaseRobotPanel):
         # Widgets to plot edos.
         self.edos_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot", options=["gridplot", "combiplot"])
         self.edos_plotter_btn = pnw.Button(name="Plot", button_type='primary')
-
-        super().__init__(**params)
 
     def get_ebands_plotter_widgets(self):
         return pn.Column(self.ebands_plotter_mode, self.ebands_df_checkbox, self.ebands_plotter_btn)

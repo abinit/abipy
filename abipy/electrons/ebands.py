@@ -610,9 +610,9 @@ class ElectronBands(Has_Structure):
 
         return plotter
 
-    def get_panel(self, **kwargs):
-        from abipy.panels.core import PanelWithElectronBands
-        return PanelWithElectronBands(ebands=self).get_panel(**kwargs)
+    #def get_panel(self, **kwargs):
+    #    from abipy.panels.core import PanelWithElectronBands
+    #    return PanelWithElectronBands(ebands=self).get_panel(**kwargs)
 
     # Handy variables used to loop
     @property
@@ -3087,15 +3087,15 @@ class ElectronBandsPlotter(NotebookWriter):
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        for mname in ("gridplot", "boxplot"):
-            yield getattr(self, mname)(show=False)
+        for meth_name in ("gridplot", "boxplot"):
+            yield getattr(self, meth_name)(show=False)
 
     #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
     #    """
     #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
     #    """
-    #    for mname in ("gridplot", "boxplot"):
-    #        yield getattr(self, mname)(show=False)
+    #    for meth_name in ("gridplot", "boxplot"):
+    #        yield getattr(self, meth_name)(show=False)
 
     @add_fig_kwargs
     def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=8,

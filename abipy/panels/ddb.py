@@ -18,12 +18,12 @@ class PanelWithAnaddbParams(param.Parameterized):
     repeat the same parameters over and over again.
     """
 
-    nqsmall = param.Integer(10, bounds=(1, None), doc="Number of divisions for smallest vector to generate Q-mesh")
-    ndivsm = param.Integer(5, bounds=(None, None), doc="Number of divisions for smallest vector to generate Q-path")
+    nqsmall = param.Integer(10, bounds=(1, None), doc="Number of divisions for smallest vector to generate the q-mesh")
+    ndivsm = param.Integer(5, bounds=(None, None), doc="Number of divisions for smallest vector to generate the q-path")
     lo_to_splitting = param.ObjectSelector(default="automatic", objects=["automatic", True, False])
     chneut = param.ObjectSelector(default=1, objects=[0, 1, 2], doc="Abinit variable")
     dipdip = param.ObjectSelector(default=1, objects=[0, 1, -1], doc="Abinit variable")
-    # TODO: Add this widget, need to update anaget API.
+    # TODO: Add these widgetd but need to update anaget API.
     #dipquad = param.ObjectSelector(default=0, objects=[0, 1], doc="Abinit variable")
     #quadquad = param.ObjectSelector(default=0, objects=[0, 1], doc="Abinit variable")
     asr = param.ObjectSelector(default=2, objects=[0, 1, 2], doc="Abinit variable")
@@ -35,15 +35,19 @@ class PanelWithAnaddbParams(param.Parameterized):
     gamma_ev = param.Number(1e-4, bounds=(1e-20, None), doc="Phonon linewidth in eV")
     w_range = param.Range(default=(0.0, 0.1), bounds=(0.0, 1.0), doc="Frequency range (eV)")
 
-    # FIXME
-    nqsmall_list = pnw.LiteralInput(name='nsmalls (python list)', value=[10, 20, 30], type=list)
-    #nqqpt = pnw.LiteralInput(name='nsmalls (list)', value=[10, 20, 30], type=list)
-
-    # Base buttons
-    plot_check_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP", button_type='primary')
-
     def __init__(self, **params):
         super().__init__(**params)
+
+        #if self.has_remote_serve:
+        #    self.param.nqsmall.bounds = (1, 50)
+        #    self.param.ndivsm.bounds = (-30, 30)
+
+        # FIXME
+        self.nqsmall_list = pnw.LiteralInput(name='nsmalls (python list)', value=[10, 20, 30], type=list)
+        #nqqpt = pnw.LiteralInput(name='nsmalls (list)', value=[10, 20, 30], type=list)
+
+        # Base buttons
+        self.plot_check_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP", button_type='primary')
 
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs):
         """
@@ -68,7 +72,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
     def __init__(self, ddb, **params):
         PanelWithStructure.__init__(self, structure=ddb.structure, **params)
-        #PanelWithAnaddbParams.__init__(self)
+        PanelWithAnaddbParams.__init__(self)
         self.ddb = ddb
 
         # Add buttons
@@ -251,11 +255,10 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         of the dipole-quadrupole and quadrupole-quadrupole terms in the dynamical matrix.
         Requires DDB file with eps_inf, BECS and dynamical quadrupoles.
         """
-        num_cpus = 1
         #print(self.nqsmall_list.value)
         r = self.ddb.anacompare_phdos(self.nqsmall_list.value, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                                       dos_method=self.dos_method, ngqpt=None,
-                                      verbose=self.verbose, num_cpus=num_cpus, stream=sys.stdout)
+                                      verbose=self.verbose, num_cpus=1, stream=sys.stdout)
 
         #r.phdoses: List of |PhononDos| objects
 
@@ -291,7 +294,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         return col
 
     @depends_on_btn_click('plot_ifc_btn')
-    def plot_ifc(self):
+    def on_plot_ifc(self):
         ifc = self.ddb.anaget_ifc(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip)
 
         # Fill column
@@ -355,8 +358,8 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                 self.plot_phbands_quad
             )
             d["IFCs"] = pn.Row(
-                self.pws_col(["### IFCs options", "asr", "dipdip", "chneut", "plot_ifc_btn", self.helpc("plot_ifc")]),
-                self.plot_ifc
+                self.pws_col(["### IFCs options", "asr", "dipdip", "chneut", "plot_ifc_btn", self.helpc("on_plot_ifc")]),
+                self.on_plot_ifc
             )
 
         d["Structure"] = self.get_struct_view_tab_entry()
@@ -454,7 +457,6 @@ class PanelWithStructureInput(PanelWithFileInput):
     info_str = """
 This application allows user to upload a file with structural info and operate on it.
 """
-
 
     def __init__(self, **params):
         super().__init__(use_structure=True, **params)
@@ -558,11 +560,10 @@ This panel alllows users to upload a DDB file and compare it with the one availa
 
         # Match Abinit structure with MP.
         mp = abinit_ddb.structure.mp_match()
-        if not mp.structures:
-            raise RuntimeError("No structure found in the MP database")
 
         with ActiveBar(self.mp_progress, err_wdg=self.mp_err_wdg):
-            ddb_robot = DdbRobot.from_mpid_list([mp_id for mp_id in mp.ids if mp_id != "this"])
+            mpid_list = [mp_id for mp_id in mp.ids if mp_id != "this"]
+            ddb_robot = DdbRobot.from_mpid_list(mpid_list)
             ddb_robot.add_file("Yours DDB", abinit_ddb)
 
         self.main_area.objects = [DdbRobotPanel(ddb_robot).get_panel()]
@@ -587,11 +588,8 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     Provides widgets to invoke anaddb and visualize the results.
     """
     def __init__(self, robot, **params):
-        # TODO
-        #BaseRobotPanel.__init__(robot=robot, **params)
-        #PanelWithAnaddbParams.__init__(self)
-        super().__init__(**params)
-        self.robot = robot
+        BaseRobotPanel.__init__(self, robot=robot, **params)
+        PanelWithAnaddbParams.__init__(self)
 
         # Buttons
         self.plot_combiplot_btn = pnw.Button(name="Compute", button_type='primary')
@@ -865,9 +863,9 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         #app(("IFCs", pn.Row(
         #    pn.Column("# IFCs options",
         #              *self.pws("asr", "dipdip", "chneut", "plot_ifc_btn",
-        #                        self.helpc("plot_ifc")),
+        #                        self.helpc("on_plot_ifc")),
         #              ),
-        #    self.plot_ifc)
+        #    self.on_plot_ifc)
         #))
         d["Global"] = pn.Row(
             self.pws_col(["### Global options", "units", "mpi_procs", "verbose"]),

@@ -2771,6 +2771,12 @@ class DdbRobot(Robot):
         from abipy.core import restapi
         ddb_files = []
         mpid_list = list_strings(mpid_list)
+
+        if not mpid_list:
+            raise RuntimeError("No structure found in the MP database")
+        if any(not s.startswith("mp-") for s in mpid_list):
+            raise ValueError(f"Invalid mp-in in list:\n{mpid_list}")
+
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
             for mpid in mpid_list:
                 try:
