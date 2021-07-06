@@ -271,6 +271,19 @@ File type is detected from the extension</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="abipy.abilab.abirobot">
+<code class="sig-prename descclassname"><span class="pre">abipy.abilab.</span></code><code class="sig-name descname"><span class="pre">abirobot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepaths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abirobot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abilab.abirobot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory function to create and return a Robot subclass from a list of filenames
+The Robot subclass is detected from the extension of the first file hence
+all files are assumed to have the same extension.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filepaths</strong> – List of strings with the filename.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt id="abipy.abilab.display_structure">
 <code class="sig-prename descclassname"><span class="pre">abipy.abilab.</span></code><code class="sig-name descname"><span class="pre">display_structure</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#display_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abilab.display_structure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use Jsmol to display a structure in the jupyter notebook.
@@ -372,7 +385,7 @@ raises RuntimeError if configuration files are already present.</p></li>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

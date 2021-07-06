@@ -206,12 +206,14 @@
 <span class="kn">from</span> <span class="nn">monty.itertools</span> <span class="kn">import</span> <span class="n">chunks</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.fnmatch</span> <span class="kn">import</span> <span class="n">WildCard</span>
+<span class="kn">from</span> <span class="nn">monty.dev</span> <span class="kn">import</span> <span class="n">deprecated</span>
 <span class="kn">from</span> <span class="nn">pydispatch</span> <span class="kn">import</span> <span class="n">dispatcher</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="kn">import</span> <span class="n">EnergyArray</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">wrappers</span>
 <span class="kn">from</span> <span class="nn">.nodes</span> <span class="kn">import</span> <span class="n">Dependency</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeError</span><span class="p">,</span> <span class="n">NodeResults</span><span class="p">,</span> <span class="n">FileNode</span> <span class="c1">#, check_spectator</span>
-<span class="kn">from</span> <span class="nn">.tasks</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Task</span><span class="p">,</span> <span class="n">AbinitTask</span><span class="p">,</span> <span class="n">ScfTask</span><span class="p">,</span> <span class="n">NscfTask</span><span class="p">,</span> <span class="n">DfptTask</span><span class="p">,</span> <span class="n">PhononTask</span><span class="p">,</span> <span class="n">ElasticTask</span><span class="p">,</span> <span class="n">DdkTask</span><span class="p">,</span> <span class="n">EffMassTask</span><span class="p">,</span>
-                    <span class="n">BseTask</span><span class="p">,</span> <span class="n">RelaxTask</span><span class="p">,</span> <span class="n">DdeTask</span><span class="p">,</span> <span class="n">BecTask</span><span class="p">,</span> <span class="n">ScrTask</span><span class="p">,</span> <span class="n">SigmaTask</span><span class="p">,</span> <span class="n">TaskManager</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">.tasks</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Task</span><span class="p">,</span> <span class="n">AbinitTask</span><span class="p">,</span> <span class="n">ScfTask</span><span class="p">,</span> <span class="n">NscfTask</span><span class="p">,</span> <span class="n">DfptTask</span><span class="p">,</span> <span class="n">PhononTask</span><span class="p">,</span> <span class="n">ElasticTask</span><span class="p">,</span> <span class="n">DdkTask</span><span class="p">,</span>
+                    <span class="n">DkdkTask</span><span class="p">,</span> <span class="n">QuadTask</span><span class="p">,</span> <span class="n">FlexoETask</span><span class="p">,</span> <span class="n">DdeTask</span><span class="p">,</span> <span class="n">BecTask</span><span class="p">,</span>
+                    <span class="n">EffMassTask</span><span class="p">,</span> <span class="n">BseTask</span><span class="p">,</span> <span class="n">RelaxTask</span><span class="p">,</span> <span class="n">ScrTask</span><span class="p">,</span> <span class="n">SigmaTask</span><span class="p">,</span> <span class="n">TaskManager</span><span class="p">,</span>
                     <span class="n">DteTask</span><span class="p">,</span> <span class="n">EphTask</span><span class="p">,</span> <span class="n">KerangeTask</span><span class="p">,</span> <span class="n">CollinearThenNonCollinearScfTask</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">Directory</span>
@@ -612,6 +614,21 @@
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DdkTask</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">register_dkdk_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register a DkdkTask task.&quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DkdkTask</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">register_quad_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register a QuadTask task.&quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">QuadTask</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">register_flexoe_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register a FlexETask task.&quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">FlexoETask</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">register_effmass_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Register a effective mass task.&quot;&quot;&quot;</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EffMassTask</span>
@@ -964,6 +981,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tmpdir</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
 
+        <span class="c1"># Add README.md file if set</span>
+        <span class="n">readme_md</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;readme_md&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">readme_md</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_in_workdir</span><span class="p">(</span><span class="s2">&quot;README.md&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">readme_md</span><span class="p">)</span>
+
+        <span class="c1"># Add abipy_meta.json file if set</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;abipy_meta_json&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_json_in_workdir</span><span class="p">(</span><span class="s2">&quot;abipy_meta.json&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
         <span class="c1"># Build dirs and files of each task.</span>
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
             <span class="n">task</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1013,6 +1041,15 @@
             <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">task</span><span class="o">.</span><span class="n">S_LOCKED</span><span class="p">:</span> <span class="k">continue</span>
             <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">S_SUB</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="n">task</span><span class="o">.</span><span class="n">S_OK</span> <span class="k">for</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">task</span><span class="o">.</span><span class="n">deps_status</span><span class="p">):</span>
                 <span class="n">task</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">S_READY</span><span class="p">,</span> <span class="s2">&quot;Status set to Ready&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Work.get_panel"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build panel with widgets to interact with the Work either in a notebook or in panel app.</span>
+<span class="sd">        This is the implementation provided by the base class.</span>
+<span class="sd">        Subclasses may provide specialized implementations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.panels.works</span> <span class="kn">import</span> <span class="n">WorkPanel</span>
+        <span class="k">return</span> <span class="n">WorkPanel</span><span class="p">(</span><span class="n">work</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Work.rmtree"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work.rmtree">[docs]</a>    <span class="k">def</span> <span class="nf">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exclude_wildcard</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1463,7 +1500,9 @@
 <span class="sd">    .. rubric:: Inheritance Diagram</span>
 <span class="sd">    .. inheritance-diagram:: QptdmWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="QptdmWork.create_tasks"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.QptdmWork.create_tasks">[docs]</a>    <span class="k">def</span> <span class="nf">create_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wfk_file</span><span class="p">,</span> <span class="n">scr_input</span><span class="p">):</span>
+
+    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;QptdmWork is deprecated and will be removed in abipy 1.0, use flowtk.ScreeningWork&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">create_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wfk_file</span><span class="p">,</span> <span class="n">scr_input</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create the SCR tasks and register them in self.</span>
 
@@ -1504,7 +1543,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">gc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">new_task</span><span class="o">.</span><span class="n">set_gc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">gc</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span>
 
 <div class="viewcode-block" id="QptdmWork.merge_scrfiles"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.QptdmWork.merge_scrfiles">[docs]</a>    <span class="k">def</span> <span class="nf">merge_scrfiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_scrfiles</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1545,10 +1584,11 @@
 
 <span class="k">class</span> <span class="nc">MergeDdb</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Mixin class for Works that have to merge the DDB files produced by the tasks.</span>
+<span class="sd">    Mixin class for Works that need to merge the DDB files produced by the tasks in self.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">add_becs_from_scf_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">add_becs_from_scf_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="p">,</span>
+                               <span class="n">with_quad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_flexoe</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build tasks for the computation of Born effective charges and add them to the work.</span>
 
@@ -1556,8 +1596,12 @@
 <span class="sd">            scf_task: |ScfTask| object.</span>
 <span class="sd">            ddk_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the DDK run. None to use AbiPy default.</span>
 <span class="sd">            ph_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the phonon run. None to use AbiPy default.</span>
+<span class="sd">            with_quad: Activate calculation of dynamical quadrupoles.</span>
+<span class="sd">                Note that only selected features are compatible with dynamical quadrupoles.</span>
+<span class="sd">                Please consult &lt;https://docs.abinit.org/topics/longwave/&gt;</span>
+<span class="sd">            with_flexoe: True to activate computation of flexoelectric tensor.</span>
 
-<span class="sd">        Return: (ddk_tasks, bec_tasks)</span>
+<span class="sd">        Return: (ddk_tasks, bec_tasks, dkdk_task, quad_task)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ScfTask</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;task `</span><span class="si">%s</span><span class="s2">` does not inherit from ScfTask&quot;</span> <span class="o">%</span> <span class="n">scf_task</span><span class="p">)</span>
@@ -1575,13 +1619,50 @@
         <span class="n">bec_deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">ddk_task</span><span class="p">:</span> <span class="s2">&quot;DDK&quot;</span> <span class="k">for</span> <span class="n">ddk_task</span> <span class="ow">in</span> <span class="n">ddk_tasks</span><span class="p">}</span>
         <span class="n">bec_deps</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">scf_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
 
-        <span class="n">bec_inputs</span> <span class="o">=</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">make_bec_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">ph_tolerance</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">with_flexoe</span><span class="p">:</span>
+            <span class="n">bec_inputs</span> <span class="o">=</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">make_strain_perts_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">ph_tolerance</span><span class="p">,</span>
+                                                                 <span class="n">phonon_pert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">efield_pert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                                 <span class="n">prepalw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bec_inputs</span> <span class="o">=</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">make_bec_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">ph_tolerance</span><span class="p">,</span>
+                                                        <span class="n">prepalw</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">with_quad</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
         <span class="n">bec_tasks</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">bec_inp</span> <span class="ow">in</span> <span class="n">bec_inputs</span><span class="p">:</span>
             <span class="n">bec_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_bec_task</span><span class="p">(</span><span class="n">bec_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">bec_deps</span><span class="p">)</span>
             <span class="n">bec_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bec_task</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">ddk_tasks</span><span class="p">,</span> <span class="n">bec_tasks</span>
+        <span class="k">if</span> <span class="n">with_quad</span> <span class="ow">or</span> <span class="n">with_flexoe</span><span class="p">:</span>
+            <span class="c1"># Response function calculation of d2/dkdk wave function.</span>
+            <span class="c1"># See &lt;https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi&gt;</span>
+            <span class="n">dkdk_inp</span> <span class="o">=</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">make_dkdk_input</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">ddk_tolerance</span><span class="p">)</span>
+            <span class="n">dkdk_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_dkdk_task</span><span class="p">(</span><span class="n">dkdk_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">bec_deps</span><span class="p">)</span>
+
+            <span class="n">quad_deps</span> <span class="o">=</span> <span class="n">bec_deps</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">quad_deps</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">dkdk_task</span><span class="p">:</span> <span class="s2">&quot;DKDK&quot;</span><span class="p">})</span>
+            <span class="n">quad_deps</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">bec_task</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;1DEN&quot;</span><span class="p">,</span> <span class="s2">&quot;1WF&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">bec_task</span> <span class="ow">in</span> <span class="n">bec_tasks</span><span class="p">})</span>
+
+            <span class="k">if</span> <span class="n">with_quad</span><span class="p">:</span>
+                <span class="c1"># Dynamic Quadrupoles calculation</span>
+                <span class="n">quad_inp</span> <span class="o">=</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">make_quad_input</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">ph_tolerance</span><span class="p">)</span>
+                <span class="n">quad_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_quad_task</span><span class="p">(</span><span class="n">quad_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">quad_deps</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">with_flexoe</span><span class="p">:</span>
+                <span class="c1">#flexoe_inp = scf_task.input.make_flexoe_input(tolerance=ph_tolerance)</span>
+                <span class="n">flexoe_inp</span> <span class="o">=</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span>
+                    <span class="n">optdriver</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                    <span class="n">lw_flexo</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="n">useylm</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="c1">#get1wf5   4</span>
+                    <span class="c1">#get1den5  4</span>
+                    <span class="c1">#getddk5   2</span>
+                    <span class="c1">#getdkdk5  3</span>
+                <span class="p">)</span>
+
+                <span class="n">flexoe_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_flexoe_task</span><span class="p">(</span><span class="n">flexoe_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">quad_deps</span><span class="p">)</span>
+
 
     <span class="k">def</span> <span class="nf">merge_ddb_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delete_source_ddbs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">only_dfpt_tasks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                         <span class="n">exclude_tasks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_tasks</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1669,7 +1750,7 @@
         <span class="n">out_dvdb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;out_DVDB&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pot1_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># Avoid the merge. Just move the DDB file to the outdir of the work</span>
+            <span class="c1"># Avoid the merge. Just move the DVDB file to the outdir of the work</span>
             <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">pot1_files</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">out_dvdb</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># FIXME: The merge may require a non-negligible amount of memory if lots of qpts.</span>
@@ -1694,8 +1775,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PhononWork.from_scf_task"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.PhononWork.from_scf_task">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_scf_task</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_task</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_scf_task</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_task</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">with_quad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_flexoe</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_dvdb</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construct a `PhononWork` from a |ScfTask| object.</span>
 <span class="sd">        The input file for phonons is automatically generated from the input of the ScfTask.</span>
@@ -1706,9 +1788,15 @@
 <span class="sd">            qpoints: q-points in reduced coordinates. Accepts single q-point, list of q-points</span>
 <span class="sd">                or three integers defining the q-mesh if `is_ngqpt`.</span>
 <span class="sd">            is_ngqpt: True if `qpoints` should be interpreted as divisions instead of q-points.</span>
+<span class="sd">            with_becs: Activate calculation of Electric field and Born effective charges.</span>
+<span class="sd">            with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`</span>
+<span class="sd">                Note that only selected features are compatible with dynamical quadrupoles.</span>
+<span class="sd">                Please consult &lt;https://docs.abinit.org/topics/longwave/&gt;</span>
+<span class="sd">            with_flexoe: True to activate computation of flexoelectric tensor. Require `with_becs`</span>
+<span class="sd">            with_dvdb: True to merge POT1 files associated to atomic perturbations in the DVDB file</span>
+<span class="sd">                at the end of the calculation</span>
 <span class="sd">            tolerance: dict {&quot;varname&quot;: value} with the tolerance to be used in the phonon run.</span>
 <span class="sd">                None to use AbiPy default.</span>
-<span class="sd">            with_becs: Activate calculation of Electric field and Born effective charges.</span>
 <span class="sd">            ddk_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the DDK run if with_becs.</span>
 <span class="sd">                None to use AbiPy default.</span>
 <span class="sd">            prtwf: Controls the output of the first-order WFK.</span>
@@ -1726,8 +1814,15 @@
         <span class="n">qpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">qpoints</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">with_dvdb</span> <span class="o">=</span> <span class="n">with_dvdb</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">with_quad</span> <span class="ow">or</span> <span class="n">with_flexoe</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">with_becs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;with_quad or with_flexoe require with_becs&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">with_becs</span><span class="p">:</span>
-            <span class="n">new</span><span class="o">.</span><span class="n">add_becs_from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
+            <span class="c1"># Special treatment of q == 0.</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">add_becs_from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span>
+                                       <span class="n">with_quad</span><span class="o">=</span><span class="n">with_quad</span><span class="p">,</span> <span class="n">with_flexoe</span><span class="o">=</span><span class="n">with_flexoe</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">qpt</span> <span class="ow">in</span> <span class="n">qpoints</span><span class="p">:</span>
             <span class="n">is_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">qpt</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span>
@@ -1741,8 +1836,9 @@
         <span class="k">return</span> <span class="n">new</span></div>
 
 <div class="viewcode-block" id="PhononWork.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.PhononWork.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                       <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">with_quad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_flexoe</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">with_dvdb</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Similar to `from_scf_task`, the difference is that this method requires</span>
 <span class="sd">        an input for SCF calculation. A new |ScfTask| is created and added to the Work.</span>
@@ -1754,11 +1850,18 @@
         <span class="n">qpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">qpoints</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">with_dvdb</span> <span class="o">=</span> <span class="n">with_dvdb</span>
+
         <span class="c1"># Create ScfTask</span>
         <span class="n">scf_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="p">(</span><span class="n">with_quad</span> <span class="ow">or</span> <span class="n">with_flexoe</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">with_becs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;with_quad or with_flexoe require with_becs&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">with_becs</span><span class="p">:</span>
-            <span class="n">new</span><span class="o">.</span><span class="n">add_becs_from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
+            <span class="c1"># Special treatment of q == 0.</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">add_becs_from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span>
+                                       <span class="n">with_quad</span><span class="o">=</span><span class="n">with_quad</span><span class="p">,</span> <span class="n">with_flexoe</span><span class="o">=</span><span class="n">with_flexoe</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">qpt</span> <span class="ow">in</span> <span class="n">qpoints</span><span class="p">:</span>
             <span class="n">is_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">qpt</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span>
@@ -1779,9 +1882,11 @@
 <span class="sd">        the final DDB file in the outdir of the |Work|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Merge DDB files.</span>
-        <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">()</span>
-        <span class="c1"># Merge DVDB files.</span>
-        <span class="n">out_dvdb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_pot1_files</span><span class="p">()</span>
+        <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">(</span><span class="n">only_dfpt_tasks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;with_dvdb&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="c1"># Merge DVDB files (use getattr to maintain backward compability with pickle).</span>
+            <span class="n">out_dvdb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_pot1_files</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">(</span><span class="n">node</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">returncode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;DDB merge done&quot;</span><span class="p">)</span></div></div>
 
@@ -1920,7 +2025,7 @@
 <span class="sd">        the final DDB file in the outdir of the |Work|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Merge DDB files.</span>
-        <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">()</span>
+        <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">(</span><span class="n">only_dfpt_tasks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Merge DVDB files.</span>
         <span class="n">out_dvdb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_pot1_files</span><span class="p">()</span>
@@ -1961,7 +2066,7 @@
         <span class="c1"># Create a WFK task</span>
         <span class="n">kptopt</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">expand</span> <span class="k">else</span> <span class="mi">3</span>
         <span class="n">nscf_inp</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span><span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">)</span>
-        <span class="n">wfk_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">nscf_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">den_file</span><span class="p">:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">},</span><span class="n">manager</span><span class="o">=</span><span class="n">tm</span><span class="p">)</span>
+        <span class="n">wfk_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">nscf_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">den_file</span><span class="p">:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">},</span> <span class="n">manager</span><span class="o">=</span><span class="n">tm</span><span class="p">)</span>
         <span class="n">new</span><span class="o">.</span><span class="n">wfkq_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wfk_task</span><span class="p">)</span>
         <span class="n">new</span><span class="o">.</span><span class="n">wfk_task</span> <span class="o">=</span> <span class="n">wfk_task</span>
 
@@ -2141,7 +2246,7 @@
 <span class="sd">        the final DDB file in the outdir of the |Work|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Merge DDB files.</span>
-        <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">()</span>
+        <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">(</span><span class="n">only_dfpt_tasks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">(</span><span class="n">node</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">returncode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;DDB merge done&quot;</span><span class="p">)</span></div></div>
 
 
@@ -2211,7 +2316,7 @@
 <span class="sd">        the final DDB file in the outdir of the `Work`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Merge DDB files.</span>
-        <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">()</span>
+        <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">(</span><span class="n">only_dfpt_tasks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">(</span><span class="n">node</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">returncode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;DDB merge done&quot;</span><span class="p">)</span></div></div>
 
 
@@ -2241,9 +2346,9 @@
 <span class="sd">        Construct a ConducWork from a |PhononWork| and |MultiDataset|.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            phwork: a |PhononWork| object calculating the DDB and DVDB files.</span>
-<span class="sd">            multi: a |MultiDataset| object containing a list of 3 datasets or 5 with Kerange.</span>
-<span class="sd">                       See abipy/abio/factories.py -&gt; conduc_from_scf_nscf_inputs for details about multi.</span>
+<span class="sd">            phwork: |PhononWork| object calculating the DDB and DVDB files.</span>
+<span class="sd">            multi: |MultiDataset| object containing a list of 3 datasets or 5 with Kerange.</span>
+<span class="sd">                See abipy/abio/factories.py -&gt; conduc_from_scf_nscf_inputs for details about multi.</span>
 <span class="sd">            nbr_proc: Required if with_kerange since autoparal doesn&#39;t work with optdriver=8.</span>
 <span class="sd">            flow: The flow calling the work. Used for  with_fixed_mpi_omp.</span>
 <span class="sd">            with_kerange: True if using Kerange.</span>
@@ -2310,7 +2415,7 @@
 <span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Verify Multi</span>
-        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">with_kerange</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">multi</span><span class="o">.</span><span class="n">ndtset</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">):</span> <span class="c1">#Without kerange, multi should contain 4 datasets</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">with_kerange</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">multi</span><span class="o">.</span><span class="n">ndtset</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">):</span> <span class="c1"># Without kerange, multi should contain 4 datasets</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;The |MultiDataset| object does not contain the expected number of dataset.</span>
 <span class="s2">                                It should have 4 datasets and it had `</span><span class="si">%s</span><span class="s2">`. You should generate</span>
 <span class="s2">                                multi with the factory function conduc_from_scf_nscf_inputs&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">multi</span><span class="o">.</span><span class="n">ndtset</span><span class="p">)</span>
@@ -2371,7 +2476,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

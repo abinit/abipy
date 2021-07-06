@@ -649,7 +649,11 @@
 <span class="sd">            line_mode (bool): If True, fetch a BandStructureSymmLine object</span>
 <span class="sd">                (default). If False, return the uniform band structure.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Get pytmatgen structure and convert it to abipy structure</span>
+        <span class="n">material_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">material_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">material_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;mp-&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Materials project ID should start with mp-&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Get pytmatgen structure and convert it to an AbiPy structure</span>
         <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="kn">import</span> <span class="n">restapi</span>
         <span class="k">with</span> <span class="n">restapi</span><span class="o">.</span><span class="n">get_mprester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
             <span class="n">pmgb</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">get_bandstructure_by_material_id</span><span class="p">(</span><span class="n">material_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">line_mode</span><span class="o">=</span><span class="n">line_mode</span><span class="p">)</span>
@@ -795,6 +799,10 @@
         <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">other_key</span><span class="p">,</span> <span class="n">other_ebands</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">plotter</span></div>
+
+    <span class="c1">#def get_panel(self, **kwargs):</span>
+    <span class="c1">#    from abipy.panels.core import PanelWithElectronBands</span>
+    <span class="c1">#    return PanelWithElectronBands(ebands=self).get_panel(**kwargs)</span>
 
     <span class="c1"># Handy variables used to loop</span>
     <span class="nd">@property</span>
@@ -1602,7 +1610,7 @@
             <span class="kn">import</span> <span class="nn">re</span>
             <span class="n">numl</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d&#39;</span><span class="p">,</span> <span class="n">formula</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">numl</span><span class="p">:</span>
-                <span class="n">formula</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">SUBSCRIPT_UNICODE</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
+                <span class="n">formula</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">SUBSCRIPT_UNICODE</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="n">enough_bands</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_metallic_scheme</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -2563,6 +2571,7 @@
             <span class="n">lw_opts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lw_opts&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mf">0.6</span><span class="p">))</span>
             <span class="n">lw_fact</span> <span class="o">=</span> <span class="n">lw_opts</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;fact&quot;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
 
+        <span class="n">marker_opts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;marker&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">)</span>
         <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="n">spin_range</span><span class="p">:</span>
@@ -2572,8 +2581,12 @@
                 <span class="c1"># Set label only at the first iteration</span>
                 <span class="n">rcd</span> <span class="o">=</span> <span class="n">PlotlyRowColDesc</span><span class="o">.</span><span class="n">from_object</span><span class="p">(</span><span class="n">rcd</span><span class="p">)</span>
                 <span class="n">ply_row</span><span class="p">,</span> <span class="n">ply_col</span> <span class="o">=</span> <span class="n">rcd</span><span class="o">.</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">rcd</span><span class="o">.</span><span class="n">ply_col</span>
-                <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">xx</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yy</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="n">showlegend</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">line_opts</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-                                <span class="n">row</span><span class="o">=</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">ply_col</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">marker_opts</span><span class="p">:</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">xx</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yy</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;lines+markers&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="n">showlegend</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">line_opts</span><span class="p">,</span>
+                                    <span class="n">marker</span><span class="o">=</span><span class="n">marker_opts</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">ply_col</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">xx</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yy</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="n">showlegend</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">line_opts</span><span class="p">,</span>
+                                    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">ply_row</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">ply_col</span><span class="p">)</span>
                 <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
                 <span class="n">showlegend</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -3264,15 +3277,15 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">mname</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;boxplot&quot;</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mname</span><span class="p">)(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+        <span class="k">for</span> <span class="n">meth_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;boxplot&quot;</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meth_name</span><span class="p">)(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
     <span class="c1">#def yield_plotly_figs(self, **kwargs):  # pragma: no cover</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
     <span class="c1">#    This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    for mname in (&quot;gridplot&quot;, &quot;boxplot&quot;):</span>
-    <span class="c1">#        yield getattr(self, mname)(show=False)</span>
+    <span class="c1">#    for meth_name in (&quot;gridplot&quot;, &quot;boxplot&quot;):</span>
+    <span class="c1">#        yield getattr(self, meth_name)(show=False)</span>
 
 <div class="viewcode-block" id="ElectronBandsPlotter.combiplot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.combiplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
@@ -5386,7 +5399,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

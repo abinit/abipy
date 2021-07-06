@@ -2569,6 +2569,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_input</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">write_jobfile</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
+        <span class="c1"># Add README.md file if set</span>
+        <span class="n">readme_md</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;readme_md&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">readme_md</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_in_workdir</span><span class="p">(</span><span class="s2">&quot;README.md&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">readme_md</span><span class="p">)</span>
+
+        <span class="c1"># Add abipy_meta.json file if set</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;abipy_meta_json&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="p">,</span> <span class="s2">&quot;as_dict&quot;</span><span class="p">):</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_input&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Input object does not provide as_dict method!&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_json_in_workdir</span><span class="p">(</span><span class="s2">&quot;abipy_meta.json&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
     <span class="c1">#@check_spectator</span>
     <span class="k">def</span> <span class="nf">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exclude_wildcard</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -3011,6 +3026,16 @@
         <span class="n">paral_kgb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_inpvar</span><span class="p">(</span><span class="s2">&quot;paral_kgb&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="c1"># paral_kgb is used only in the GS part.</span>
         <span class="k">return</span> <span class="n">paral_kgb</span> <span class="o">==</span> <span class="n">value</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">GsTask</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AbinitTask.get_panel"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.AbinitTask.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build panel with widgets to interact with the Task either in a notebook or in panel app.</span>
+<span class="sd">        This is the implementation provided by the base class.</span>
+<span class="sd">        Subclasses may provide specialized implementations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.panels.tasks</span> <span class="kn">import</span> <span class="n">AbinitTaskPanel</span>
+        <span class="k">return</span> <span class="n">AbinitTaskPanel</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_change_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_structure</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Change the input structure.&quot;&quot;&quot;</span>
@@ -3912,15 +3937,35 @@
     <span class="k">def</span> <span class="nf">make_links</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Replace the default behaviour of make_links. More specifically, this method</span>
-<span class="sd">        implements the logic required to connect DFPT calculation to `DDK` files.</span>
+<span class="sd">        implements the logic required to connect DFPT calculation to e.g. `DDK` files.</span>
 <span class="sd">        Remember that DDK is an extension introduced in AbiPy to deal with the</span>
 <span class="sd">        irdddk input variable and the fact that the 3 files with du/dk produced by Abinit</span>
 <span class="sd">        have a file extension constructed from the number of atom (e.g. 1WF[3natom +1]).</span>
 
 <span class="sd">        AbiPy uses the user-friendly syntax deps={node: &quot;DDK&quot;} to specify that</span>
 <span class="sd">        the children will read the DDK from `node` but this also means that</span>
-<span class="sd">        we have to implement extract logic to handle this case at runtime.</span>
+<span class="sd">        we have to implement extra logic to handle this case at runtime.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">natom</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">def</span> <span class="nf">output_paths_from_regex</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">reg_string</span><span class="p">):</span>
+            <span class="kn">import</span> <span class="nn">re</span>
+            <span class="n">reg</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">reg_string</span><span class="p">)</span>
+            <span class="n">out_filepaths</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">task</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">list_filepaths</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">reg</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+                    <span class="n">out_filepaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">out_filepaths</span>
+
+        <span class="k">def</span> <span class="nf">my_symlink</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;linking&quot;</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="s2">&quot; to &quot;</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+                <span class="c1">#if os.path.realpath(dst) != src:</span>
+                <span class="c1">#    raise RuntimeError(f&quot;{src} does not point to {dst}&quot;)</span>
+                <span class="k">return</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">dep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deps</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dep</span><span class="o">.</span><span class="n">exts</span><span class="p">:</span>
 
@@ -3940,7 +3985,34 @@
 
                     <span class="n">infile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;in_1WF</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ddk_case</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">out_ddk</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">):</span> <span class="n">infile</span> <span class="o">=</span> <span class="n">infile</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span>
-                    <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">out_ddk</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
+
+                    <span class="n">my_symlink</span><span class="p">(</span><span class="n">out_ddk</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;DKDK&quot;</span><span class="p">:</span>
+                    <span class="c1"># DKDK corresponds to ipert == dtset%natom + 10, see m_dfpt_looppert.</span>
+                    <span class="c1"># In principle we can have 9 entries although d_ij = d_ji</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># for (ipert &gt; = dtset%natom + 10) we have:</span>
+                    <span class="c1"># pertcase = idir + (ipert-dtset%natom-10)*9 + (dtset%natom+6)*3</span>
+                    <span class="c1"># and file extensions 1WFK[pertcase].</span>
+                    <span class="c1">#</span>
+                    <span class="n">ipert</span> <span class="o">=</span> <span class="n">natom</span> <span class="o">+</span> <span class="mi">10</span>
+                    <span class="n">possible_pertcases</span> <span class="o">=</span> <span class="p">[</span><span class="n">idir</span> <span class="o">+</span> <span class="p">(</span><span class="n">ipert</span> <span class="o">-</span> <span class="n">natom</span> <span class="o">-</span> <span class="mi">10</span><span class="p">)</span> <span class="o">*</span> <span class="mi">9</span> <span class="o">+</span> <span class="p">(</span><span class="n">natom</span> <span class="o">+</span> <span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span> <span class="k">for</span> <span class="n">idir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span>
+                    <span class="n">ext_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1WF</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">possible_pertcases</span><span class="p">]</span>
+
+                    <span class="n">dkdk_task</span> <span class="o">=</span> <span class="n">dep</span><span class="o">.</span><span class="n">node</span>
+                    <span class="n">dkdk_filepaths</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">ext_list</span><span class="p">:</span>
+                        <span class="n">p</span> <span class="o">=</span> <span class="n">dkdk_task</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">p</span><span class="p">:</span> <span class="n">dkdk_filepaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">dkdk_filepaths</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> didn&#39;t produce any DKDK file:&quot;</span> <span class="o">%</span> <span class="n">dkdk_task</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">out_path</span> <span class="ow">in</span> <span class="n">dkdk_filepaths</span><span class="p">:</span>
+                        <span class="n">infile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">out_path</span><span class="p">))</span>
+                        <span class="n">infile</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;out_&quot;</span><span class="p">,</span> <span class="s2">&quot;in_&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">my_symlink</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
 
                 <span class="k">elif</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;WFK&quot;</span><span class="p">,</span> <span class="s2">&quot;WFQ&quot;</span><span class="p">):</span>
                     <span class="n">gs_task</span> <span class="o">=</span> <span class="n">dep</span><span class="o">.</span><span class="n">node</span>
@@ -3957,9 +4029,9 @@
 
                     <span class="c1"># Ensure link has .nc extension if iomode 3</span>
                     <span class="k">if</span> <span class="n">out_wfk</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">):</span> <span class="n">bname</span> <span class="o">=</span> <span class="n">bname</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span>
-                    <span class="c1">#print(d, out_wfk, &quot;bname&quot;, bname)</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="n">bname</span><span class="p">)):</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">out_wfk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="n">bname</span><span class="p">))</span>
+                        <span class="n">infile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="n">bname</span><span class="p">)</span>
+                        <span class="n">my_symlink</span><span class="p">(</span><span class="n">out_wfk</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
 
                 <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;DEN&quot;</span><span class="p">:</span>
                     <span class="n">gs_task</span> <span class="o">=</span> <span class="n">dep</span><span class="o">.</span><span class="n">node</span>
@@ -3969,27 +4041,31 @@
                     <span class="n">infile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;in_DEN&quot;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">out_wfk</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">):</span> <span class="n">infile</span> <span class="o">=</span> <span class="n">infile</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">infile</span><span class="p">):</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">out_wfk</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
+                        <span class="n">my_symlink</span><span class="p">(</span><span class="n">out_wfk</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
 
                 <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;1WF&quot;</span><span class="p">:</span>
-                    <span class="n">gs_task</span> <span class="o">=</span> <span class="n">dep</span><span class="o">.</span><span class="n">node</span>
-                    <span class="n">out_wfk</span> <span class="o">=</span> <span class="n">gs_task</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="s2">&quot;1WF&quot;</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">out_wfk</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> didn&#39;t produce the 1WF file&quot;</span> <span class="o">%</span> <span class="n">gs_task</span><span class="p">)</span>
-                    <span class="n">dest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;in_&quot;</span> <span class="o">+</span> <span class="n">out_wfk</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="k">if</span> <span class="n">out_wfk</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">):</span> <span class="n">dest</span> <span class="o">=</span> <span class="n">dest</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dest</span><span class="p">):</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">out_wfk</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span>
+                    <span class="n">dfpt_task</span> <span class="o">=</span> <span class="n">dep</span><span class="o">.</span><span class="n">node</span>
+                    <span class="n">out_filepaths</span> <span class="o">=</span> <span class="n">output_paths_from_regex</span><span class="p">(</span><span class="n">dfpt_task</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;(\w+)_1WF(\d+)(\.nc)?&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">out_filepaths</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> didn&#39;t produce the 1WF file&quot;</span> <span class="o">%</span> <span class="n">dfpt_task</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">out_path</span> <span class="ow">in</span> <span class="n">out_filepaths</span><span class="p">:</span>
+                        <span class="n">infile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">out_path</span><span class="p">))</span>
+                        <span class="n">infile</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;out_&quot;</span><span class="p">,</span> <span class="s2">&quot;in_&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">my_symlink</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
 
                 <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;1DEN&quot;</span><span class="p">:</span>
-                    <span class="n">gs_task</span> <span class="o">=</span> <span class="n">dep</span><span class="o">.</span><span class="n">node</span>
-                    <span class="n">out_wfk</span> <span class="o">=</span> <span class="n">gs_task</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="s2">&quot;DEN&quot;</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">out_wfk</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> didn&#39;t produce the 1DEN file&quot;</span> <span class="o">%</span> <span class="n">gs_task</span><span class="p">)</span>
-                    <span class="n">dest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;in_&quot;</span> <span class="o">+</span> <span class="n">out_wfk</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="k">if</span> <span class="n">out_wfk</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">):</span> <span class="n">dest</span> <span class="o">=</span> <span class="n">dest</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dest</span><span class="p">):</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">out_wfk</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span>
+                    <span class="n">dfpt_task</span> <span class="o">=</span> <span class="n">dep</span><span class="o">.</span><span class="n">node</span>
+                    <span class="n">out_filepaths</span> <span class="o">=</span> <span class="n">output_paths_from_regex</span><span class="p">(</span><span class="n">dfpt_task</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;(\w+)_DEN(\d+)(\.nc)?&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">out_filepaths</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> didn&#39;t produce any 1DEN file&quot;</span> <span class="o">%</span> <span class="n">dfpt_task</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">out_path</span> <span class="ow">in</span> <span class="n">out_filepaths</span><span class="p">:</span>
+                        <span class="n">infile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">out_path</span><span class="p">))</span>
+                        <span class="n">infile</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;out_&quot;</span><span class="p">,</span> <span class="s2">&quot;in_&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">my_symlink</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
 
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle extension: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">dep</span><span class="o">.</span><span class="n">exts</span><span class="p">))</span>
@@ -4080,14 +4156,36 @@
         <span class="k">return</span> <span class="n">results</span><span class="o">.</span><span class="n">register_gridfs_file</span><span class="p">(</span><span class="n">DDK</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="s2">&quot;DDK&quot;</span><span class="p">),</span> <span class="s2">&quot;t&quot;</span><span class="p">))</span></div></div>
 
 
+<span class="k">class</span> <span class="nc">DkdkTask</span><span class="p">(</span><span class="n">DfptTask</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Task for the computation of d2/dkdk wave functions&quot;&quot;&quot;</span>
+    <span class="n">color_rgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">122</span><span class="p">,</span> <span class="mi">204</span><span class="p">))</span> <span class="o">/</span> <span class="mi">255</span>
+
+
 <span class="k">class</span> <span class="nc">BecTask</span><span class="p">(</span><span class="n">DfptTask</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Task for the calculation of Born effective charges.</span>
-
-<span class="sd">    bec_deps = {ddk_task: &quot;DDK&quot; for ddk_task in ddk_tasks}</span>
-<span class="sd">    bec_deps.update({scf_task: &quot;WFK&quot;})</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">color_rgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">122</span><span class="p">,</span> <span class="mi">122</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mi">255</span>
+
+
+<span class="k">class</span> <span class="nc">QuadTask</span><span class="p">(</span><span class="n">DfptTask</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Task for the calculation of dynamical quadrupoles.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">color_rgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">122</span><span class="p">,</span> <span class="mi">122</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mi">255</span>
+
+    <span class="k">def</span> <span class="nf">restart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;don&#39;t know how to restart dynamical quadrupoles&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">FlexoETask</span><span class="p">(</span><span class="n">DfptTask</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Task for the calculation of Flexoelectric task..</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">color_rgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">122</span><span class="p">,</span> <span class="mi">122</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mi">255</span>
+
+    <span class="k">def</span> <span class="nf">restart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;don&#39;t know how to restart dynamical quadrupoles&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="EffMassTask"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.tasks.EffMassTask">[docs]</a><span class="k">class</span> <span class="nc">EffMassTask</span><span class="p">(</span><span class="n">DfptTask</span><span class="p">):</span>
@@ -4984,7 +5082,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

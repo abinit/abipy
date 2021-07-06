@@ -1,0 +1,7 @@
+<map id="inheritance53ec35adff" name="inheritance53ec35adff">
+<area shape="rect" id="node1" href="#abipy.abio.inputs.AbiAbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input objects." alt="" coords="545,47,649,59"/>
+<area shape="rect" id="node4" href="#abipy.abio.inputs.AnaddbInput" target="_top" title="This object stores the anaddb variables." alt="" coords="672,25,766,36"/>
+<area shape="rect" id="node2" href="#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input classes." alt="" coords="428,47,523,59"/>
+<area shape="rect" id="node5" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="561,2,633,14"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="548,25,647,36"/>
+</map>

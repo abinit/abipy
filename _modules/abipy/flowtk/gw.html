@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.flowtk.gw &mdash; abipy 0.9.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../flowtk.html">abipy.flowtk</a> &raquo;</li>
+        
+      <li>abipy.flowtk.gw</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.flowtk.gw</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Works and Flows for GW calculations with Abinit.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">wrappers</span>
+<span class="kn">from</span> <span class="nn">.nodes</span> <span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">.tasks</span> <span class="kn">import</span> <span class="n">NscfTask</span>
+<span class="kn">from</span> <span class="nn">.works</span> <span class="kn">import</span> <span class="n">Work</span>
+
+
+<div class="viewcode-block" id="ScreeningWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gw.ScreeningWork">[docs]</a><span class="k">class</span> <span class="nc">ScreeningWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This work parallelizes the calculation of the q-points of the screening.</span>
+<span class="sd">    It also provides the callback `on_all_ok` that calls the mrgscr tool</span>
+<span class="sd">    to merge all the partial SCR files produced.</span>
+
+<span class="sd">    The final SCR file is made available in the `outdata` directory of the work.</span>
+<span class="sd">    To use this SCR file as dependency of other tasks, use the syntax:</span>
+
+<span class="sd">        deps={scr_work: &quot;SCR&quot;}</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: ScreeningWork</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ScreeningWork.from_nscf_task"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gw.ScreeningWork.from_nscf_task">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_nscf_task</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">nscf_task</span><span class="p">,</span> <span class="n">scr_input</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct a `ScreeningWork` from a |NscfTask| object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            nscf_task: |NscfTask| object.</span>
+<span class="sd">            scr_input: |AbinitInput| object representing a SCREENING calculation.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nscf_task</span><span class="p">,</span> <span class="n">NscfTask</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;task `</span><span class="si">%s</span><span class="s2">` does not inherit from NscfTask&quot;</span> <span class="o">%</span> <span class="n">nscf_task</span><span class="p">)</span>
+
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="c1"># Get list of q-points for the dielectric matrix</span>
+        <span class="n">scr_ibz</span> <span class="o">=</span> <span class="n">scr_input</span><span class="o">.</span><span class="n">abiget_scr_ibz</span><span class="p">()</span>
+
+        <span class="c1"># Now we can register the task for the different q-points</span>
+        <span class="k">for</span> <span class="n">qpoint</span> <span class="ow">in</span> <span class="n">scr_ibz</span><span class="o">.</span><span class="n">points</span><span class="p">:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">register_scr_task</span><span class="p">(</span><span class="n">scr_input</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span><span class="n">nqptdm</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qptdm</span><span class="o">=</span><span class="n">qpoint</span><span class="p">),</span>
+                                  <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">nscf_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="ScreeningWork.from_wfk_filepath"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gw.ScreeningWork.from_wfk_filepath">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_wfk_filepath</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">wfk_filepath</span><span class="p">,</span> <span class="n">scr_input</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct a `ScreeningWork` from a WFK filepath and a screening input.</span>
+
+<span class="sd">        WARNING: the parameters reported in `scr_input` e.g. k-mesh, nband, ecut etc</span>
+<span class="sd">        must be consisten with those used to generate the WFK file.</span>
+<span class="sd">        No consistencty check is done at this level. You have been warned!</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wfk_filepath: Path to the WFK file.</span>
+<span class="sd">            scr_input: |AbinitInput| object representing a SCREENING calculation.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">wkf_node</span> <span class="o">=</span> <span class="n">Node</span><span class="o">.</span><span class="n">as_node</span><span class="p">(</span><span class="n">wfk_filepath</span><span class="p">)</span>
+
+        <span class="c1"># Get list of q-points for the dielectric matrix</span>
+        <span class="n">scr_ibz</span> <span class="o">=</span> <span class="n">scr_input</span><span class="o">.</span><span class="n">abiget_scr_ibz</span><span class="p">()</span>
+
+        <span class="c1"># Now we can register the task for the different q-points</span>
+        <span class="k">for</span> <span class="n">qpoint</span> <span class="ow">in</span> <span class="n">scr_ibz</span><span class="o">.</span><span class="n">points</span><span class="p">:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">register_scr_task</span><span class="p">(</span><span class="n">scr_input</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span><span class="n">nqptdm</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qptdm</span><span class="o">=</span><span class="n">qpoint</span><span class="p">),</span>
+                                  <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">wfk_node</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="ScreeningWork.merge_scr_files"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gw.ScreeningWork.merge_scr_files">[docs]</a>    <span class="k">def</span> <span class="nf">merge_scr_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_scrfiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called when all the q-points have been computed.</span>
+<span class="sd">        It runs `mrgscr` in sequential on the local machine to produce</span>
+<span class="sd">        the final SCR file in the outdir of the `Work`.</span>
+<span class="sd">        If remove_scrfiles is True, the partial SCR files are removed after the merge.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scr_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[</span><span class="n">task</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="s2">&quot;SCR&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Will call mrgscr to merge </span><span class="si">%s</span><span class="s2"> SCR files:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">scr_files</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">scr_files</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">mrgscr</span> <span class="o">=</span> <span class="n">wrappers</span><span class="o">.</span><span class="n">Mrgscr</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">manager</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">final_scr</span> <span class="o">=</span> <span class="n">mrgscr</span><span class="o">.</span><span class="n">merge_qpoints</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">scr_files</span><span class="p">,</span> <span class="n">out_prefix</span><span class="o">=</span><span class="s2">&quot;out&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">remove_scrfiles</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">scr_file</span> <span class="ow">in</span> <span class="n">scr_files</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">scr_file</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="n">final_scr</span></div>
+
+<div class="viewcode-block" id="ScreeningWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gw.ScreeningWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called when all the q-points have been computed.</span>
+<span class="sd">        It runs `mrgscr` in sequential on the local machine to produce</span>
+<span class="sd">        the final SCR file in the outdir of the `Work`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">final_scr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_scr_files</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">(</span><span class="n">node</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">returncode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;mrgscr done&quot;</span><span class="p">,</span> <span class="n">final_scr</span><span class="o">=</span><span class="n">final_scr</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on Jul 06, 2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -160,6 +160,48 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the dynamical matrix of GaP on user-defined q-mesh including ...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_with_quad_thumb.png
+     :alt: Dynamical quadrupoles
+
+     :ref:`sphx_glr_flow_gallery_run_phonons_with_quad.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_phonons_with_quad
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the dynamical matrix of GaP on user-defined q-mesh including ...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_flexoelectric_thumb.png
+     :alt: Dynamical quadrupoles
+
+     :ref:`sphx_glr_flow_gallery_run_flexoelectric.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_flexoelectric
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with DFPT. Two options are available:">
 
 .. only:: html
@@ -808,6 +850,27 @@ where `FLOWDIR` is the directory of the Flow.
    :hidden:
 
    /flow_gallery/run_relax_vs_kpts
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to compute the SCR file with different number of bands and different va...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_screening_thumb.png
+     :alt: Screening computation with different parameters
+
+     :ref:`sphx_glr_flow_gallery_run_screening.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_screening
 
 .. raw:: html
 

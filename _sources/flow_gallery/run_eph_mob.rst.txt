@@ -24,7 +24,7 @@ Flow for phonon-limited mobilities in semiconductors
 This flow computes the phonon-limited mobility in AlAs.
 using different dense k/q meshes
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-138
+.. GENERATED FROM PYTHON SOURCE LINES 9-139
 
 
 
@@ -39,8 +39,8 @@ using different dense k/q meshes
 
  .. code-block:: none
 
-    <KerangeTask, node_id=402069, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpzsvzds3a/w2/t0>: setting prtwf to -1
-    <KerangeTask, node_id=402073, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpzsvzds3a/w3/t0>: setting prtwf to -1
+    <KerangeTask, node_id=430189, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpt3cbi30q/w2/t0>: setting prtwf to -1
+    <KerangeTask, node_id=430193, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpt3cbi30q/w3/t0>: setting prtwf to -1
 
 
 
@@ -60,6 +60,7 @@ using different dense k/q meshes
 
 
     def build_flow(options):
+
         # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
         if not options.workdir:
             options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
@@ -85,7 +86,6 @@ using different dense k/q meshes
             nband=8,
             ecut=2.0,
             ngkpt=[4, 4, 4],
-            nshiftk=1,
             shiftk=[0, 0, 0],
             tolvrs=1.0e-10,
             diemac=9.0,
@@ -97,7 +97,7 @@ using different dense k/q meshes
         work0 = flowtk.Work()
         work0.register_scf_task(scf_input)
 
-        # Band structure calculation to make sure everything is ok
+        # Band structure calculation to make sure everything is OK
         # Also allows to compare the results obtained with abitk to
         # check the SKW interpolation works as needed
         bs_input = scf_input.make_ebands_input(tolwfr=1e-12, ndivsm=10, nb_extra=5)
@@ -122,7 +122,7 @@ using different dense k/q meshes
         # Add the phonon work to the flow
         ddb_ngqpt = [4, 4, 4]
         ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints=ddb_ngqpt,
-                                                  is_ngqpt=True, with_becs=True)
+                                                  is_ngqpt=True, with_becs=True, with_quad=False)
         flow.register_work(ph_work)
 
         # We loop over the dense meshes
@@ -138,11 +138,12 @@ using different dense k/q meshes
                                         deps={work0[0]: "DEN", work_eph[0]: "KERANGE.nc"})
 
             # Generate the input file for the transport calculation.
-            # Use ibte_prep to activate iterative BTE.
+            # Use ibte_prep = 1 to activate the iterative BTE.
             eph_input = wfk_input.make_eph_transport_input(ddb_ngqpt=ddb_ngqpt,
                                                            sigma_erange=sigma_erange,
                                                            tmesh=tmesh,
-                                                           eph_ngqpt_fine=sigma_ngkpt, ibte_prep=1)
+                                                           eph_ngqpt_fine=sigma_ngkpt,
+                                                           ibte_prep=1)
 
             # We compute the phonon dispersion in the EPH code to be able to check they are ok.
             if i == 0:
@@ -184,7 +185,7 @@ using different dense k/q meshes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  3.692 seconds)
+   **Total running time of the script:** ( 0 minutes  2.852 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_eph_mob.py:

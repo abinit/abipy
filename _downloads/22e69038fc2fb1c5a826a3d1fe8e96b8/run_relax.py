@@ -65,6 +65,8 @@ def make_ion_ioncell_inputs(paral_kgb=0):
         ntime=3,  # To test the restart
         )
 
+    #print(multi)
+
     ion_inp, ioncell_inp = multi.split_datasets()
     return ion_inp, ioncell_inp
 

@@ -23,7 +23,7 @@ G0W0 convergence study
 
 G0W0 convergence study wrt ecuteps and the number of bands in W.
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-143
+.. GENERATED FROM PYTHON SOURCE LINES 8-144
 
 
 
@@ -145,7 +145,8 @@ G0W0 convergence study wrt ecuteps and the number of bands in W.
         sigma_inputs = list(sig_inp.generate(ecuteps=ecuteps_list))
 
         for scr_task in scr_work:
-            sigma_conv = flowtk.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
+            sigma_conv = flowtk.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task,
+                                              sigma_inputs=sigma_inputs)
             flow.register_work(sigma_conv)
 
         return flow
@@ -176,7 +177,7 @@ G0W0 convergence study wrt ecuteps and the number of bands in W.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.162 seconds)
+   **Total running time of the script:** ( 0 minutes  0.812 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_gwconv_ecuteps.py:

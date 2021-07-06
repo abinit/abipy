@@ -26,7 +26,7 @@ This script shows how to perform a structural relaxation in two steps:
     1) Relaxation of atomic positions with unit cell parameters fixed.
     2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-114
+.. GENERATED FROM PYTHON SOURCE LINES 11-116
 
 
 
@@ -97,6 +97,8 @@ This script shows how to perform a structural relaxation in two steps:
             ntime=3,  # To test the restart
             )
 
+        #print(multi)
+
         ion_inp, ioncell_inp = multi.split_datasets()
         return ion_inp, ioncell_inp
 
@@ -147,7 +149,7 @@ This script shows how to perform a structural relaxation in two steps:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.546 seconds)
+   **Total running time of the script:** ( 0 minutes  0.407 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_relax.py:

@@ -596,7 +596,7 @@ with its methods and then call the factory function without having to decorate a
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
 <li><p><strong>kppa</strong> – Defines the sampling used for the SCF run. Defaults to 1000 if not given.</p></li>
 <li><p><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</p></li>
 <li><p><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
@@ -621,7 +621,7 @@ from the list of pseudos, the structure and the smearing option.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
 <li><p><strong>kppa</strong> – Defines the sampling used for the SCF run. Defaults to 1000 if not given.</p></li>
 <li><p><strong>nscf_nband</strong> – Number of bands included in the NSCF run. Set to scf_nband + 10 if None.</p></li>
 <li><p><strong>ndivsm</strong> – Number of divisions used to sample the smallest segment of the k-path.
@@ -692,7 +692,7 @@ If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array()
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
 <li><p><strong>kppa</strong> – Defines the sampling used for the SCF run.</p></li>
 <li><p><strong>nscf_nband</strong> – Number of bands included in the NSCF run.</p></li>
 <li><p><strong>ecuteps</strong> – Cutoff energy [Ha] for the screening matrix.</p></li>
@@ -727,7 +727,7 @@ See also <a class="bibtex reference internal" href="../zzbiblio.html#setten2017"
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.structure.Structure</span></code></a> object</p></li>
-<li><p><strong>pseudos</strong> – List of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects.</p></li>
+<li><p><strong>pseudos</strong> – List of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects.</p></li>
 <li><p><strong>kppa</strong> – k points per reciprocal atom.</p></li>
 <li><p><strong>scf_nband</strong> – number of scf bands</p></li>
 <li><p><strong>ecut</strong> – ecut for all calcs that that are not ecut convergence  cals at scf level</p></li>
@@ -763,7 +763,7 @@ The screening is modeled with the model dielectric function.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
 <li><p><strong>scf_kppa</strong> – Defines the sampling used for the SCF run.</p></li>
 <li><p><strong>nscf_nband</strong> – Number of bands included in the NSCF run.</p></li>
 <li><p><strong>nscf_ngkpt</strong> – Divisions of the k-mesh used for the NSCF and the BSE run.</p></li>
@@ -799,7 +799,7 @@ atomic positions at fixed unit cell. The second datasets optimizes both ions and
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
 <li><p><strong>kppa</strong> – Defines the sampling used for the Brillouin zone.</p></li>
 <li><p><strong>nband</strong> – Number of bands included in the SCF run.</p></li>
 <li><p><strong>accuracy</strong> – Accuracy of the calculation.</p></li>
@@ -828,7 +828,7 @@ second dataset to the inputs used for the band structure calculation.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
 <li><p><strong>kppa</strong> – Defines the sampling used for the Brillouin zone.</p></li>
 <li><p><strong>nband</strong> – Number of bands included in the SCF run.</p></li>
 <li><p><strong>accuracy</strong> – Accuracy of the calculation.</p></li>
@@ -851,7 +851,7 @@ GS input + the input files for the phonon calculation.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
 <li><p><strong>kppa</strong> – Defines the sampling used for the SCF run.</p></li>
 <li><p><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</p></li>
 <li><p><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
@@ -896,7 +896,7 @@ GS input + the input files for the elastic and piezoelectric constants calculati
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
 <li><p><strong>kppa</strong> – Defines the sampling used for the SCF run.</p></li>
 <li><p><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</p></li>
 <li><p><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
@@ -1010,7 +1010,7 @@ to execute.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1036,6 +1036,13 @@ to execute.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="abipy.abio.inputs.AbstractInput.make_targz">
+<code class="sig-name descname"><span class="pre">make_targz</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tarname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'input.tar.gz'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbstractInput.make_targz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbstractInput.make_targz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build targz file with the Abinit input and the associated pseudos.
+Return path to the targz file.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="abipy.abio.inputs.AbstractInput.deepcopy">
 <code class="sig-name descname"><span class="pre">deepcopy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbstractInput.deepcopy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbstractInput.deepcopy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Deep copy of the input.</p>
@@ -1044,8 +1051,8 @@ to execute.</p>
 <dl class="py method">
 <dt id="abipy.abio.inputs.AbstractInput.set_vars">
 <code class="sig-name descname"><span class="pre">set_vars</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbstractInput.set_vars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbstractInput.set_vars" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the value of the variables.
-Return dict with the variables added to the input.</p>
+<dd><p>Set the value of the variables. Accept also comment=”string”</p>
+<p>Return dict with the variables added to the input.</p>
 <p class="rubric">Example</p>
 <p>input.set_vars(ecut=10, ionmov=3)</p>
 </dd></dl>
@@ -1223,6 +1230,18 @@ This method is mainly used in unit tests to check the invariance of the input ob
 </dd></dl>
 
 <dl class="py method">
+<dt id="abipy.abio.inputs.AbinitInput.is_multidataset">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_multidataset</span></code><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.is_multidataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to understand if we have an AbinitInput or a MultiDataset in polymorphic APIs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.abio.inputs.AbinitInput.is_input">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_input</span></code><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.is_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to understand if we have an AbinitInput or a MultiDataset in polymorphic APIs.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="abipy.abio.inputs.AbinitInput.from_dict">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.from_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>JSON interface used in pymatgen for easier serialization.</p>
@@ -1324,6 +1343,12 @@ _DS1_ to all the input and output files.</p></li>
 <dt id="abipy.abio.inputs.AbinitInput.set_structure">
 <code class="sig-name descname"><span class="pre">set_structure</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.set_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.set_structure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set structure.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.abio.inputs.AbinitInput.replicate">
+<code class="sig-name descname"><span class="pre">replicate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ndtset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.replicate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.replicate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to construct a <a class="reference internal" href="#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.MultiDataset</span></code></a> with ndtset datasets from an <a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.AbinitInput</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1526,7 +1551,7 @@ the spin_up, spin_down channels if nsppol is 2.</p></li>
 <dl class="py method">
 <dt id="abipy.abio.inputs.AbinitInput.pseudos">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">pseudos</span></code><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.pseudos" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects.</p>
+<dd><p>List of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1674,7 +1699,7 @@ If more than one is present, an error is raised.</p>
 <dl class="py method">
 <dt id="abipy.abio.inputs.AbinitInput.make_ebands_input">
 <code class="sig-name descname"><span class="pre">make_ebands_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ndivsm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolwfr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nscf_nband</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_ebands_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_ebands_input" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate an input file for NSCF band structure calculation from a GS SCF input.</p>
+<dd><p>Generate an input file for a NSCF band structure calculation from a GS SCF input.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -1710,7 +1735,7 @@ as ndivsm &gt; 0 may produce a very large number of wavevectors.</p></li>
 <dl class="py method">
 <dt id="abipy.abio.inputs.AbinitInput.make_nscf_kptopt0_input">
 <code class="sig-name descname"><span class="pre">make_nscf_kptopt0_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kpts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolwfr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iscf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_nscf_kptopt0_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_nscf_kptopt0_input" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build an input for NSCF calculation from a GS-SCF one.
+<dd><p>Build an input for NSCF calculation from a GS SCF one.
 Uses explicit list of k-points and kptopt 0.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1789,6 +1814,26 @@ First-order wavefunctions won’t be converged –&gt; not usable for other DFPT
 </dd></dl>
 
 <dl class="py method">
+<dt id="abipy.abio.inputs.AbinitInput.make_dkdk_input">
+<code class="sig-name descname"><span class="pre">make_dkdk_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_dkdk_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_dkdk_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an input for performing d2/dkdk calculations.
+This functions should be called with an input the represents a GS run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tolerance</strong> – dict {varname: value} with the tolerance to be used in the DFPT run.
+Defaults to {“tolwfr”: 1.0e-22}.</p></li>
+<li><p><strong>kptopt</strong> – 2 to take into account time-reversal symmetry. Note that kptopt 1 is not available.</p></li>
+<li><p><strong>manager</strong> – <a class="reference internal" href="flowtk_api.html#abipy.flowtk.tasks.TaskManager" title="abipy.flowtk.tasks.TaskManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.AbinitInput</span></code></a> object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="abipy.abio.inputs.AbinitInput.make_dde_inputs">
 <code class="sig-name descname"><span class="pre">make_dde_inputs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_symmetries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_dde_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_dde_inputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return <a class="reference internal" href="#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.MultiDataset</span></code></a> inputs for the calculation of electric field perturbations.
@@ -1827,23 +1872,56 @@ will produce duplicated outputs.</p></li>
 
 <dl class="py method">
 <dt id="abipy.abio.inputs.AbinitInput.make_bec_inputs">
-<code class="sig-name descname"><span class="pre">make_bec_inputs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_bec_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_bec_inputs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">make_bec_inputs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepalw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_bec_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_bec_inputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return <a class="reference internal" href="#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.MultiDataset</span></code></a> inputs for the calculation of Born effective charges.
-This functions should be called with an input that represents a GS run.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="abipy.abio.inputs.AbinitInput.make_strain_perts_inputs">
-<code class="sig-name descname"><span class="pre">make_strain_perts_inputs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phonon_pert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_strain_perts_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_strain_perts_inputs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference internal" href="#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.MultiDataset</span></code></a> inputs for strain perturbation calculation.
 This functions should be called with an input that represents a GS run.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>tolerance</strong> – dict {varname: value} with the tolerance to be used in the DFPT run.
-Defaults to {“tolvrs”: 1.0e-12}.</p></li>
-<li><p><strong>phonon_pert</strong> – isf True also the phonon perturbations are considered. Default False.</p></li>
+Defaults to {“tolvrs”: 1.0e-10}.</p></li>
+<li><p><strong>prepalw</strong> – 1 to activate computation of all 3*natom perts. Used to prepare longwave-limit calculation.</p></li>
+<li><p><strong>manager</strong> – <a class="reference internal" href="flowtk_api.html#abipy.flowtk.tasks.TaskManager" title="abipy.flowtk.tasks.TaskManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.abio.inputs.AbinitInput.make_quad_input">
+<code class="sig-name descname"><span class="pre">make_quad_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nstep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_quad_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_quad_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an <a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.AbinitInput</span></code></a> for the calculation of dynamical quadrupoles..
+This function should be called with an input that represents a GS run.</p>
+<p>Note that only selected features are compatible with dynamical quadrupoles.
+Please consult &lt;<a class="reference external" href="https://docs.abinit.org/topics/longwave/">https://docs.abinit.org/topics/longwave/</a>&gt;.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tolerance</strong> – dict {varname: value} with the tolerance to be used in the DFPT run.
+Defaults to {“tolvrs”: 1.0e-10}.</p></li>
 <li><p><strong>kptopt</strong> – 2 to take into account time-reversal symmetry.</p></li>
+<li><p><strong>nstep</strong> – Max number of SCF iterations. Since AbiPy is still not able to restart</p></li>
+<li><p><strong>Quadrupole calculation</strong> (<em>a</em>) – </p></li>
+<li><p><strong>increase the value if not already provided by the user.</strong> (<em>we</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.abio.inputs.AbinitInput.make_strain_perts_inputs">
+<code class="sig-name descname"><span class="pre">make_strain_perts_inputs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phonon_pert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efield_pert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepalw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_strain_perts_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_strain_perts_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <a class="reference internal" href="#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.MultiDataset</span></code></a> inputs for strain perturbation calculation.
+This function should be called with an input that represents a GS run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tolerance</strong> – dict {varname: value} with the tolerance to be used in the DFPT run.
+Defaults to {“tolvrs”: 1.0e-12}.</p></li>
+<li><p><strong>phonon_pert</strong> – isf True also the phonon perturbations are considered. Default True.</p></li>
+<li><p><strong>efield_pert</strong> – if True, the electric field perturbation at gamma is included. Requires DDK files</p></li>
+<li><p><strong>kptopt</strong> – 2 to take into account time-reversal symmetry.</p></li>
+<li><p><strong>prepalw</strong> – 1 to activate computation of all 3*natom perts. Used to prepare calculation of flexoelectric tensor.</p></li>
 <li><p><strong>manager</strong> – <a class="reference internal" href="flowtk_api.html#abipy.flowtk.tasks.TaskManager" title="abipy.flowtk.tasks.TaskManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</p></li>
 </ul>
 </dd>
@@ -1852,7 +1930,7 @@ Defaults to {“tolvrs”: 1.0e-12}.</p></li>
 
 <dl class="py method">
 <dt id="abipy.abio.inputs.AbinitInput.make_wfk_kerange_inputs">
-<code class="sig-name descname"><span class="pre">make_wfk_kerange_inputs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma_kerange</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_ngkpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">einterp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">5,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_wfk_kerange_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_wfk_kerange_inputs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">make_wfk_kerange_inputs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma_kerange</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_ngkpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">einterp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">5,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_wfk_kerange_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_wfk_kerange_inputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.MultiDataset</span></code></a> with two inputs for performing a WFK calculation with the kerange trick.
 This method should be called with the input associated to the NSCF run that produces
 the WFK file used for the interpolation.</p>
@@ -1861,6 +1939,7 @@ the WFK file used for the interpolation.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sigma_kerange</strong> – The energy window for the WFK generation.</p></li>
 <li><p><strong>sigma_ngkpt</strong> – The fine grid of kpt inside the sigma_kerange interval.</p></li>
+<li><p><strong>kptopt</strong> – Option for the generation of the mesh. Default: use all symmetries.</p></li>
 <li><p><strong>einterp</strong> – The interpolation used. By default it is a star-function interpolation.</p></li>
 </ul>
 </dd>
@@ -1869,21 +1948,24 @@ the WFK file used for the interpolation.</p>
 
 <dl class="py method">
 <dt id="abipy.abio.inputs.AbinitInput.make_eph_transport_input">
-<code class="sig-name descname"><span class="pre">make_eph_transport_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ddb_ngqpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_erange</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eph_ngqpt_fine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixprec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxcutmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibte_prep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibte_niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibte_abs_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_eph_transport_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_eph_transport_input" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">make_eph_transport_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ddb_ngqpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_erange</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eph_ngqpt_fine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixprec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxcutmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibte_prep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibte_niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibte_abs_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_eph_transport_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_eph_transport_input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an <a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.AbinitInput</span></code></a> to perform phonon-limited transport calculations.
 This method is usually called with the input associated to the NSCF run that produces
 the WFK file used to start the EPH run so that we can directly inherit the k-mesh</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ddb_ngqpt</strong> – the coarse qpt grid used to compute the DDB and DVDB files in the phonon_work.</p></li>
-<li><p><strong>eph_ngqpt_fine</strong> – the fine qpt grid used for the Fourier interpolation.</p></li>
+<li><p><strong>ddb_ngqpt</strong> – the coarse q-grid used to compute the DDB and the DVDB file.</p></li>
 <li><p><strong>sigma_erange</strong> – Energy window for k-states (see Abinit variable)</p></li>
 <li><p><strong>tmesh</strong> – The mesh of temperatures (in Kelvin)</p></li>
-<li><p><strong>boxcutmin</strong> – For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.</p></li>
-<li><p><strong>mixprec</strong> – For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.</p></li>
-<li><p><strong>ibte_prep</strong> – Set it to 1 to activate the iterative Boltzmann equation. Default is RTA.</p></li>
-<li><p><strong>ibte_niter</strong> – Number of iterations to solve the Boltzmann equation.</p></li>
+<li><p><strong>eph_ngqpt_fine</strong> – the fine q-grid used for the Fourier interpolation.</p></li>
+<li><p><strong>kptopt</strong> – Option for the generation of the mesh. Default: use all symmetries.</p></li>
+<li><p><strong>mixprec</strong> – For the last task only, 1 is often used to make the EPH calculation faster.
+Note that the Abinit default is 0.</p></li>
+<li><p><strong>boxcutmin</strong> – For the last task only, 1.1 is often used to decrease memory
+and is faster over the Abinit default of 2.</p></li>
+<li><p><strong>ibte_prep</strong> – Set it to 1 to activate the iterative Boltzmann equation. Default is SERTA/MRTA.</p></li>
+<li><p><strong>ibte_niter</strong> – Max number of iterations to solve the Boltzmann equation.</p></li>
 <li><p><strong>ibte_abs_tol</strong> – Stopping criterion for the IBTE.</p></li>
 </ul>
 </dd>
@@ -1954,8 +2036,35 @@ It should be called with an input file that contains all the mandatory variables
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>points: <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with points in the IBZ in reduced coordinates.
-weights: <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with weights of the points.</p>
+<dd class="field-even"><p>points: <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with points in the IBZ in reduced coordinates.
+weights: <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with the weights of the points.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>namedtuple</cite> with attributes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.abio.inputs.AbinitInput.abiget_scr_ibz">
+<code class="sig-name descname"><span class="pre">abiget_scr_ibz</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ngkpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abiget_scr_ibz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abiget_scr_ibz" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes the list of points in the IBZ expected by the SCREENING code
+It should be called with an input file that contains all the mandatory variables required by ABINIT.
+This is usually the NSCF input file used to generate the WFK file used by SCR/SIGMA</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ngkpt</strong> – Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</p></li>
+<li><p><strong>shiftk</strong> – List of shifts (default None i.e. use shiftk from self)</p></li>
+<li><p><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</p></li>
+<li><p><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</p></li>
+<li><p><strong>manager</strong> – <a class="reference internal" href="flowtk_api.html#abipy.flowtk.tasks.TaskManager" title="abipy.flowtk.tasks.TaskManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</p></li>
+<li><p><strong>verbose</strong> – verbosity level.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>points: <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with q-points in the IBZ in reduced coordinates.
+weights: <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with the weights of the points.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><cite>namedtuple</cite> with attributes</p>
@@ -1965,7 +2074,7 @@ weights: <a class="reference external" href="https://numpy.org/doc/stable/refere
 
 <dl class="py method">
 <dt id="abipy.abio.inputs.AbinitInput.abiget_irred_phperts">
-<code class="sig-name descname"><span class="pre">abiget_irred_phperts</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngkpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepgkk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abiget_irred_phperts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abiget_irred_phperts" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">abiget_irred_phperts</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngkpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepgkk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepalw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abiget_irred_phperts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abiget_irred_phperts" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function, computes the list of irreducible perturbations for DFPT.
 It should be called with an input file that contains all the mandatory variables required by ABINIT.</p>
 <dl class="field-list simple">
@@ -1976,6 +2085,7 @@ if qpt is not passed, self must already contain “qpt” otherwise an exception
 <li><p><strong>ngkpt</strong> – Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</p></li>
 <li><p><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</p></li>
 <li><p><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</p></li>
+<li><p><strong>prepalw</strong> – 1 to activate computation of all 3*natom perts. Used to prepare longwave-limit calculation.</p></li>
 <li><p><strong>prepgkk</strong> – 1 to activate computation of all 3*natom perts (debugging option).</p></li>
 <li><p><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</p></li>
 <li><p><strong>manager</strong> – <a class="reference internal" href="flowtk_api.html#abipy.flowtk.tasks.TaskManager" title="abipy.flowtk.tasks.TaskManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</p></li>
@@ -2047,7 +2157,7 @@ It should be called with an input file that contains all the mandatory variables
 
 <dl class="py method">
 <dt id="abipy.abio.inputs.AbinitInput.abiget_irred_strainperts">
-<code class="sig-name descname"><span class="pre">abiget_irred_strainperts</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ngkpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phonon_pert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abiget_irred_strainperts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abiget_irred_strainperts" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">abiget_irred_strainperts</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ngkpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kptopt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phonon_pert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efield_pert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepalw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abiget_irred_strainperts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abiget_irred_strainperts" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function, computes the list of irreducible perturbations for strain perturbations in DFPT.
 It should be called with an input file that contains all the mandatory variables required by ABINIT.</p>
 <dl class="field-list simple">
@@ -2056,9 +2166,11 @@ It should be called with an input file that contains all the mandatory variables
 <li><p><strong>ngkpt</strong> – Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</p></li>
 <li><p><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</p></li>
 <li><p><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</p></li>
+<li><p><strong>phonon_pert</strong> – if True the phonon perturbation at gamma is included.</p></li>
+<li><p><strong>efield_pert</strong> – if True, the electric field perturbation at gamma is included. Requires DDK files</p></li>
+<li><p><strong>prepalw</strong> – 1 to activate computation of all 3*natom perts. Used to prepare calculation of flexoelectric tensor.</p></li>
 <li><p><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</p></li>
 <li><p><strong>manager</strong> – <a class="reference internal" href="flowtk_api.html#abipy.flowtk.tasks.TaskManager" title="abipy.flowtk.tasks.TaskManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</p></li>
-<li><p><strong>phonon_pert</strong> – if True the phonon perturbation at gamma will be included.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -2185,6 +2297,18 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <dt id="abipy.abio.inputs.MultiDataset.replicate_input">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">replicate_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndtset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#MultiDataset.replicate_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.replicate_input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a multidataset with ndtset from the <a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.AbinitInput</span></code></a> input.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.abio.inputs.MultiDataset.is_multidataset">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_multidataset</span></code><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.is_multidataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to understand if we have an AbinitInput or a MultiDataset in polymorphic APIs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.abio.inputs.MultiDataset.is_input">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_input</span></code><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.is_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to understand if we have an AbinitInput or a MultiDataset in polymorphic APIs.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2320,8 +2444,16 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 
 <dl class="py method">
 <dt id="abipy.abio.inputs.MultiDataset.write">
-<code class="sig-name descname"><span class="pre">write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'run.abi'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#MultiDataset.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write <code class="docutils literal notranslate"><span class="pre">ndset</span></code> input files to disk. The name of the file is constructed from the dataset index e.g. runDS0.abi</p>
+<code class="sig-name descname"><span class="pre">write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'run.abi'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#MultiDataset.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write <code class="docutils literal notranslate"><span class="pre">ndset</span></code> input files to disk.
+The name of the file is constructed from the dataset index e.g. runDS0.abi</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.abio.inputs.MultiDataset.make_targz">
+<code class="sig-name descname"><span class="pre">make_targz</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tarname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'input.tar.gz'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#MultiDataset.make_targz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.make_targz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build targz file with the Multidataset input and the associated pseudos.
+Return path to the targz file.</p>
 </dd></dl>
 
 </dd></dl>
@@ -2336,19 +2468,31 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <dl class="py class">
 <dt id="abipy.abio.inputs.AnaddbInput">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.abio.inputs.</span></code><code class="sig-name descname"><span class="pre">AnaddbInput</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anaddb_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anaddb_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spell_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbiAbstractInput" title="abipy.abio.inputs.AbiAbstractInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.AbiAbstractInput</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbiAbstractInput" title="abipy.abio.inputs.AbiAbstractInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.AbiAbstractInput</span></code></a>, <a class="reference external" href="https://pythonhosted.org/monty/monty.html#monty.json.MSONable" title="(in monty v1.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">monty.json.MSONable</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
 <p>This object stores the anaddb variables.</p>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-4241eec88c43921303fffff7e67f6e8600d64660.png" alt="Inheritance diagram of AnaddbInput" usemap="#inheritance53ec35adff" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-e52864cf3a038cde17075b808ba6f2858096f2e2.png" alt="Inheritance diagram of AnaddbInput" usemap="#inheritance53ec35adff" class="inheritance graphviz" /></div>
 <map id="inheritance53ec35adff" name="inheritance53ec35adff">
-<area shape="rect" id="node1" href="#abipy.abio.inputs.AbiAbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input objects." alt="" coords="545,25,649,36"/>
-<area shape="rect" id="node4" href="#abipy.abio.inputs.AnaddbInput" target="_top" title="This object stores the anaddb variables." alt="" coords="672,14,766,25"/>
-<area shape="rect" id="node2" href="#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input classes." alt="" coords="428,25,523,36"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="548,2,647,14"/>
+<area shape="rect" id="node1" href="#abipy.abio.inputs.AbiAbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input objects." alt="" coords="545,47,649,59"/>
+<area shape="rect" id="node4" href="#abipy.abio.inputs.AnaddbInput" target="_top" title="This object stores the anaddb variables." alt="" coords="672,25,766,36"/>
+<area shape="rect" id="node2" href="#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input classes." alt="" coords="428,47,523,59"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="548,25,647,36"/>
 </map><dl class="py attribute">
 <dt id="abipy.abio.inputs.AnaddbInput.Error">
 <code class="sig-name descname"><span class="pre">Error</span></code><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.Error" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#abipy.abio.inputs.AnaddbInputError" title="abipy.abio.inputs.AnaddbInputError"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.AnaddbInputError</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.abio.inputs.AnaddbInput.as_dict">
+<code class="sig-name descname"><span class="pre">as_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.as_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.as_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>JSON interface used in pymatgen for easier serialization.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="abipy.abio.inputs.AnaddbInput.from_dict">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>JSON interface used in pymatgen for easier serialization.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3524,6 +3668,12 @@ True if the file should be added to the plotter.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt id="abipy.abio.robots.Robot.remove">
+<code class="sig-name descname"><span class="pre">remove</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.robots.Robot.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the file handle, remove the file from disk for each file in the robot.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="abipy.abio.robots.Robot.pop_label">
 <code class="sig-name descname"><span class="pre">pop_label</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.pop_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.robots.Robot.pop_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove file with the given <code class="docutils literal notranslate"><span class="pre">label</span></code> and close it.</p>
@@ -4039,7 +4189,7 @@ It also provides tools to analyze and to visualize the parallel efficiency.</p>
 <dl class="py class">
 <dt id="abipy.abio.timer.AbinitTimerParser">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.abio.timer.</span></code><code class="sig-name descname"><span class="pre">AbinitTimerParser</span></code><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <dl class="py method">
 <dt id="abipy.abio.timer.AbinitTimerParser.yield_figs">
 <code class="sig-name descname"><span class="pre">yield_figs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser.yield_figs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser.yield_figs" title="Permalink to this definition">¶</a></dt>
@@ -4135,7 +4285,7 @@ The result might be spread among several lines.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

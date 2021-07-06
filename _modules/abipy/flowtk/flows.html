@@ -1859,7 +1859,7 @@
 <div class="viewcode-block" id="Flow.parse_timing"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.flows.Flow.parse_timing">[docs]</a>    <span class="k">def</span> <span class="nf">parse_timing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parse the timer data in the main output file(s) of Abinit.</span>
-<span class="sd">        Requires timopt /= 0 in the input file (usually timopt = -1)</span>
+<span class="sd">        Requires timopt /= 0 in the input file, usually timopt = -1.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            nids: optional list of node identifiers used to filter the tasks.</span>
@@ -1875,6 +1875,7 @@
         <span class="n">read_ok</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">read_ok</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">parser</span>
+
         <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Flow.show_abierrors"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.flows.Flow.show_abierrors">[docs]</a>    <span class="k">def</span> <span class="nf">show_abierrors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
@@ -2110,6 +2111,17 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pyfile</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pyfile</span><span class="p">):</span>
             <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pyfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+
+        <span class="c1"># Add README.md file if set</span>
+        <span class="n">readme_md</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;readme_md&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">readme_md</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;README.md&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">readme_md</span><span class="p">)</span>
+
+        <span class="c1"># Add abipy_meta.json file if set</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;abipy_meta_json&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_json_in_workdir</span><span class="p">(</span><span class="s2">&quot;abipy_meta.json&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">work</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
             <span class="n">work</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -3482,7 +3494,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

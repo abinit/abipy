@@ -26,7 +26,7 @@ More specifically, we build a flow to analyze the convergence of the QP correcti
 wrt to the number of bands in the self-energy. More complicated convergence studies
 can be implemented on the basis of this example.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-145
+.. GENERATED FROM PYTHON SOURCE LINES 11-146
 
 .. code-block:: default
 
@@ -46,7 +46,8 @@ can be implemented on the basis of this example.
         # Dataset 3: calculation of the screening
         # Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband
 
-        multi = abilab.MultiDataset(structure=data.cif_file("si.cif"), pseudos=data.pseudos("14si.pspnc"), ndtset=6)
+        multi = abilab.MultiDataset(structure=data.cif_file("si.cif"),
+                                    pseudos=data.pseudos("14si.pspnc"), ndtset=6)
 
         # This grid is the most economical, but does not contain the Gamma point.
         scf_kmesh = dict(
@@ -175,7 +176,7 @@ can be implemented on the basis of this example.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 146-207
+.. GENERATED FROM PYTHON SOURCE LINES 147-208
 
 Run the script with:
 
@@ -242,7 +243,7 @@ and then, inside the ipython terminal, type:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.754 seconds)
+   **Total running time of the script:** ( 0 minutes  0.513 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_si_g0w0.py:

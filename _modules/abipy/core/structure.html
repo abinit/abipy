@@ -495,6 +495,10 @@
 
 <span class="sd">        Returns: |Structure| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">material_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">material_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">material_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;mp-&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Materials project ID should start with mp-&quot;</span><span class="p">)</span>
+
         <span class="c1"># Get pytmatgen structure and convert it to abipy structure</span>
         <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="kn">import</span> <span class="n">restapi</span>
         <span class="k">with</span> <span class="n">restapi</span><span class="o">.</span><span class="n">get_mprester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
@@ -787,6 +791,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Structure.mp_match"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.mp_match">[docs]</a>    <span class="k">def</span> <span class="nf">mp_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds matching structures on the Materials Project database.</span>
+<span class="sd">        Just a wrapper around mp_match_structure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">mp_match_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Structure.write_cif_with_spglib_symms"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.write_cif_with_spglib_symms">[docs]</a>    <span class="k">def</span> <span class="nf">write_cif_with_spglib_symms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">significant_figures</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
                                     <span class="n">ret_string</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -853,7 +864,7 @@
 <div class="viewcode-block" id="Structure.get_panel"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Build panel with widgets to interact with the structure either in a notebook or in a bokeh app&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.panels.structure</span> <span class="kn">import</span> <span class="n">StructurePanel</span>
-        <span class="k">return</span> <span class="n">StructurePanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">StructurePanel</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_inputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.get_conventional_standard_structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_conventional_standard_structure">[docs]</a>    <span class="k">def</span> <span class="nf">get_conventional_standard_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">international_monoclinic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                            <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
@@ -912,8 +923,12 @@
 <span class="sd">            symprec (float): Symmetry precision used to refine the structure.</span>
 <span class="sd">            angle_tolerance (float): Tolerance on angles.</span>
 <span class="sd">                if ``symprec`` is None and `angle_tolerance` is None, no structure refinement is peformed.</span>
-<span class="sd">            primitive (bool): Whether to convert to a primitive cell following :cite:`Setyawan2010`</span>
-<span class="sd">            primitive_standard (bool): Returns most primitive structure found.</span>
+<span class="sd">            primitive (bool): Returns most primitive structure found.</span>
+<span class="sd">            primitive_standard (bool): Whether to convert to a primitive cell using</span>
+<span class="sd">                the standards defined in Setyawan, W., &amp; Curtarolo, S. (2010).</span>
+<span class="sd">                High-throughput electronic band structure calculations:</span>
+<span class="sd">                Challenges and tools. Computational Materials Science, 49(2), 299-312.</span>
+<span class="sd">                doi:10.1016/j.commatsci.2010.05.010</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.transformations.standard_transformations</span> <span class="kn">import</span> <span class="n">PrimitiveCellTransformation</span><span class="p">,</span> <span class="n">SupercellTransformation</span>
         <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -2707,7 +2722,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

@@ -190,21 +190,47 @@
   <h1>Source code for abipy.panels.structure</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;&quot;GUIs for structure.&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">param</span>
 <span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">panel.widgets</span> <span class="k">as</span> <span class="nn">pnw</span>
 <span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
 
-<span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">HasStructureParams</span><span class="p">,</span> <span class="n">dfc</span><span class="p">,</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span><span class="p">,</span> <span class="n">depends_on_btn_click</span>
+<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">AbipyParameterized</span><span class="p">,</span> <span class="n">PanelWithStructure</span><span class="p">,</span> <span class="n">dfc</span><span class="p">,</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span><span class="p">,</span> <span class="n">depends_on_btn_click</span><span class="p">,</span> <span class="n">Loading</span>
 
 
-<div class="viewcode-block" id="StructurePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel">[docs]</a><span class="k">class</span> <span class="nc">StructurePanel</span><span class="p">(</span><span class="n">HasStructureParams</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_make_targz_bytes</span><span class="p">(</span><span class="n">inp_or_multi</span><span class="p">,</span> <span class="n">remove_dir</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return bytesIO with the targz file containing input and pseudos.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">targz_path</span> <span class="o">=</span> <span class="n">inp_or_multi</span><span class="o">.</span><span class="n">make_targz</span><span class="p">()</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">targz_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="n">output</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># TODO Remove directory. Implement with in make_targz.</span>
+    <span class="c1">#if remove_dir:</span>
+
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<div class="viewcode-block" id="StructurePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel">[docs]</a><span class="k">class</span> <span class="nc">StructurePanel</span><span class="p">(</span><span class="n">PanelWithStructure</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Panel with widgets to interact with an AbiPy Structure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span>  <span class="o">**</span><span class="n">params</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">with_inputs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            structure: |Structure| object.</span>
+<span class="sd">            with_inputs: True if tabs for generating input files should be shown.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">PanelWithStructure</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">with_inputs</span> <span class="o">=</span> <span class="n">with_inputs</span>
 
         <span class="c1"># Convert widgets.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;format&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;abinit&quot;</span><span class="p">,</span>
@@ -213,6 +239,11 @@
         <span class="c1"># Spglib widgets</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spglib_symprec</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;symprec&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spglib_angtol</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;angtol&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Abisanitize widgets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abisanitize_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Run abisanitize&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select_primitive</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Select primitive&#39;</span><span class="p">,</span>
+                                           <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;primitive&#39;</span><span class="p">,</span> <span class="s1">&#39;primitive_standard&#39;</span><span class="p">,</span> <span class="s2">&quot;no_primitive&quot;</span><span class="p">])</span>
 
         <span class="c1"># K-path widgets</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kpath_format</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;format&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;abinit&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;abinit&quot;</span><span class="p">,</span> <span class="s2">&quot;siesta&quot;</span><span class="p">,</span> <span class="s2">&quot;wannier90&quot;</span><span class="p">])</span>
@@ -226,26 +257,41 @@
         <span class="c1">#mp_search_btn = pnw.Button(name=&quot;Connect to Materials Project&quot;, button_type=&#39;primary&#39;)</span>
         <span class="c1">#mp_api_key</span>
 
-        <span class="c1"># GS input generator widgets.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gs_input_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Generate input&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="c1"># Widgets to control the generation of input files.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kppra</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;kppra&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smearing_type</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Smearing type&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;fermi_dirac&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tsmear</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;tsmear (Ha)&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">xc_type</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;XC type&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;LDA&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;LDA&quot;</span><span class="p">,</span> <span class="s2">&quot;PBEsol&quot;</span><span class="p">,</span> <span class="s2">&quot;PBE&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pseudos_type</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Pseudos type&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;NC&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;NC&quot;</span><span class="p">,</span> <span class="s2">&quot;PAW&quot;</span><span class="p">])</span>
+
+        <span class="c1"># widgets for GS input generator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gs_type</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;GS type&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;scf&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;scf&quot;</span><span class="p">,</span> <span class="s2">&quot;relax&quot;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kppra</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;kppra&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gs_input_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Generate input&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+        <span class="c1"># widgets for e-bands input generator.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ebands_input_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Generate input&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edos_kppra</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;edos_kppra&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># widgets for DFPT phonons input generator.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ph_input_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Generate input&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">with_becs</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Born effective charges (polar semiconductor)&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1">#self.dfpt_ngqpt = pnw.LiteralInput(name=&#39;ngqpt (python list)&#39;, value=[None, None, None], type=list)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">label2mode</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;unpolarized&quot;</span><span class="p">:</span> <span class="s1">&#39;unpolarized&#39;</span><span class="p">,</span>
             <span class="s2">&quot;polarized&quot;</span><span class="p">:</span> <span class="s1">&#39;polarized&#39;</span><span class="p">,</span>
-            <span class="s2">&quot;anti-ferromagnetic&quot;</span><span class="p">:</span> <span class="s2">&quot;afm&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;non-collinear with magnetism&quot;</span><span class="p">:</span> <span class="s2">&quot;spinor&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;non-collinear, no magnetism&quot;</span><span class="p">:</span> <span class="s2">&quot;spinor_nomag&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;non-collinear SOC with magnetism&quot;</span><span class="p">:</span> <span class="s2">&quot;spinor&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;non-collinear SOC, no magnetism&quot;</span><span class="p">:</span> <span class="s2">&quot;spinor_nomag&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;collinear anti-ferromagnetic&quot;</span><span class="p">:</span> <span class="s2">&quot;afm&quot;</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">spin_mode</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;SpinMode&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;unpolarized&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label2mode</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
+    <span class="c1">#@property</span>
+    <span class="c1">#def structure(self):</span>
+    <span class="c1">#    return self._structure</span>
 
 <div class="viewcode-block" id="StructurePanel.convert"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.convert">[docs]</a>    <span class="nd">@pn</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;output_format.value&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -260,6 +306,47 @@
                                          <span class="n">angle_tolerance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spglib_angtol</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">))</span></div>
 
+<div class="viewcode-block" id="StructurePanel.on_abisanitize_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.on_abisanitize_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;abisanitize_btn&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_abisanitize_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a new structure in which:</span>
+
+<span class="sd">            - Structure is refined.</span>
+<span class="sd">            - Reduced to primitive settings.</span>
+<span class="sd">            - Lattice vectors are exchanged if the triple product is negative</span>
+
+<span class="sd">        **symprec**:</span>
+<span class="sd">            Symmetry precision used to refine the structure.</span>
+
+<span class="sd">        **angle_tolerance**:</span>
+<span class="sd">            Tolerance on angles.</span>
+
+<span class="sd">        **primitive**:</span>
+<span class="sd">            Returns most primitive structure found.</span>
+
+<span class="sd">        **primitive_standard**:</span>
+<span class="sd">            Whether to convert to a primitive cell using the standards defined in Setyawan, W., &amp; Curtarolo, S. (2010).</span>
+<span class="sd">            High-throughput electronic band structure calculations: Challenges and tools.</span>
+<span class="sd">            Computational Materials Science, 49(2), 299-312. doi:10.1016/j.commatsci.2010.05.010</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">primitive</span><span class="p">,</span> <span class="n">primitive_standard</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_primitive</span><span class="o">.</span><span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;primitive&#39;</span><span class="p">,</span> <span class="s1">&#39;primitive_standard&#39;</span><span class="p">):</span>
+            <span class="n">primitive</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">primitive_standard</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_primitive</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;primitive_standard&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_primitive</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;no_primitive&quot;</span>
+
+        <span class="c1">#print(&quot;primitive&quot;, primitive, &quot;primitive_standard&quot;, primitive_standard)</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">abi_sanitize</span><span class="p">(</span><span class="n">symprec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spglib_symprec</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                                        <span class="n">angle_tolerance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spglib_angtol</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                                        <span class="n">primitive</span><span class="o">=</span><span class="n">primitive</span><span class="p">,</span> <span class="n">primitive_standard</span><span class="o">=</span><span class="n">primitive_standard</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;## Input Structure:&quot;</span><span class="p">,</span> <span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">)),</span>
+                <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;## Sanitized:&quot;</span><span class="p">,</span> <span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">)),</span>
+                <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="StructurePanel.get_kpath"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.get_kpath">[docs]</a>    <span class="nd">@pn</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;kpath_format.value&quot;</span><span class="p">,</span> <span class="s2">&quot;line_density.value&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_kpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generate high-symmetry k-path from input structure in the ABINIT format.&quot;&quot;&quot;</span>
@@ -270,6 +357,7 @@
         <span class="n">ca</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_with_clipboard_btn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;pre&gt; </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2"> &lt;/pre&gt;&quot;</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_kpath</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="c1"># FIXME: I don&#39;t know why but these calls open in a new tab.</span>
             <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Brillouin zone and **k**-path:&quot;</span><span class="p">)</span>
             <span class="n">kpath_pane</span> <span class="o">=</span> <span class="n">ply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">plotly_bz</span><span class="p">(</span><span class="n">pmg_path</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">with_divider</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">df_kpts</span> <span class="o">=</span> <span class="n">dfc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="o">.</span><span class="n">get_highsym_datataframe</span><span class="p">(),</span> <span class="n">with_divider</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -278,34 +366,221 @@
 
         <span class="k">return</span> <span class="n">col</span></div>
 
+    <span class="k">def</span> <span class="nf">_get_pseudos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#self.xc_type.value</span>
+        <span class="c1">#self.pseudos_type.value</span>
+
+        <span class="kn">from</span> <span class="nn">abipy.data.hgh_pseudos</span> <span class="kn">import</span> <span class="n">HGH_TABLE</span>
+        <span class="k">return</span> <span class="n">HGH_TABLE</span>
+
+        <span class="c1">#if self.pseudo_type.value == &quot;NC&quot;:</span>
+        <span class="c1">#elif self.pseudo_type.value == &quot;PAW&quot;:</span>
+        <span class="c1">#    raise ValueError(&quot;PAW pseudos are not available!&quot;)</span>
+
+    <span class="k">def</span> <span class="nf">_get_smearing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">smearing</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">smearing_type</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">smearing</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2"> Ha&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smearing_type</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsmear</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">smearing</span>
+
+    <span class="k">def</span> <span class="nf">_finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp_or_multi</span><span class="p">):</span>
+
+        <span class="c1"># TODO ckksymbreak should be set to 0 else Abinit may stop.</span>
+        <span class="c1"># DEBUG MODE</span>
+        <span class="c1">#if inp_or_multi.is_input:</span>
+        <span class="c1">#    this = inp_or_multi.deepcopy()</span>
+        <span class="c1">#    this.pop_vars(&quot;pseudos&quot;)</span>
+        <span class="c1">#    v = this.abivalidate()</span>
+        <span class="c1">#    v_list = [v]</span>
+        <span class="c1">#else:</span>
+        <span class="c1">#    this = inp_or_multi.deepcopy()</span>
+        <span class="c1">#    this.pop_vars(&quot;pseudos&quot;)</span>
+        <span class="c1">#    v_list = this.abivalidate()</span>
+
+        <span class="c1">#count = 0</span>
+        <span class="c1">#for v in v_list:</span>
+        <span class="c1">#    if v.retcode != 0:</span>
+        <span class="c1">#        count += 1</span>
+        <span class="c1">#        print(v.stderr_file.read())</span>
+        <span class="c1">#        print(v.log_file.read())</span>
+        <span class="c1">#if count != 0: raise RuntimeError(&quot;&quot;)</span>
+
+
+        <span class="c1"># Here we replace the absolute paths with their basenames</span>
+        <span class="c1"># so that we can create a targz file with the pseudos</span>
+        <span class="c1"># We do it at this level because absolute paths are needed for executing abinit.</span>
+        <span class="n">inp_or_multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">pseudos</span><span class="o">=</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">basename</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">inp_or_multi</span><span class="o">.</span><span class="n">pseudos</span><span class="p">))</span>
+
+        <span class="n">html</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">html_with_clipboard_btn</span><span class="p">(</span><span class="n">inp_or_multi</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">())</span>
+        <span class="c1">#return html</span>
+
+        <span class="k">def</span> <span class="nf">download_input</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">_make_targz_bytes</span><span class="p">(</span><span class="n">inp_or_multi</span><span class="p">)</span>
+
+        <span class="n">file_download</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileDownload</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;input.tar.gz&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">download_input</span><span class="p">)</span>
+
+        <span class="n">alert</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Alert</span><span class="p">(</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">This input file has been automatically generated by AbiPy.</span>
+<span class="s2">Several input parameters have **default values** that might not be suitable for your particular calculation.</span>
+<span class="s2">Please check the input variables and modify them according to your needs.</span>
+
+<span class="s2">Also note that running big calculations with lot of datasets is not the most efficient approach.</span>
+<span class="s2">Examples of AbiPy scripts to automate calculations without datasets are available</span>
+<span class="s2">[at this page](https://abinit.github.io/abipy/flow_gallery/index.html).</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">alert_type</span><span class="o">=</span><span class="s2">&quot;danger&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">file_download</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">(),</span> <span class="n">alert</span><span class="p">,</span>
+                         <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StructurePanel.get_gs_input"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.get_gs_input">[docs]</a>    <span class="k">def</span> <span class="nf">get_gs_input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return an AbinitInput for GS calculation from the parameters selected via the widgets.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="kn">import</span> <span class="n">gs_input</span>
+        <span class="n">gs_inp</span> <span class="o">=</span> <span class="n">gs_input</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pseudos</span><span class="p">(),</span>
+                          <span class="n">kppa</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kppra</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                          <span class="n">ecut</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                          <span class="n">spin_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label2mode</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">spin_mode</span><span class="o">.</span><span class="n">value</span><span class="p">],</span>
+                          <span class="n">smearing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_smearing</span><span class="p">(),</span>
+                          <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                         <span class="p">)</span>
+
+        <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_mnemonics</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># TODO: Should reorder pseudos?</span>
+        <span class="n">gs_inp</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">((</span><span class="s2">&quot;charge&quot;</span><span class="p">,</span> <span class="s2">&quot;chksymbreak&quot;</span><span class="p">))</span>
+        <span class="c1">#gs_inp.set_vars(#ecut=&quot;??  # depends on pseudos&quot;,</span>
+        <span class="c1">#                #nband=&quot;?? # depends on pseudos&quot;,</span>
+        <span class="c1">#                pseudos=&#39;&quot;%s&quot;&#39; % &quot;, &quot;.join(p.basename for p in gs_inp.pseudos),</span>
+        <span class="c1">#                )</span>
+
+        <span class="k">return</span> <span class="n">gs_inp</span></div>
+
 <div class="viewcode-block" id="StructurePanel.on_gs_input_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.on_gs_input_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;gs_input_btn&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_gs_input_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generate minimalistic input file from the input structure.&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="kn">import</span> <span class="n">gs_input</span>
-        <span class="kn">from</span> <span class="nn">abipy.data.hgh_pseudos</span> <span class="kn">import</span> <span class="n">HGH_TABLE</span>
-
-        <span class="n">gs_inp</span> <span class="o">=</span> <span class="n">gs_input</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">HGH_TABLE</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kppra</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-            <span class="n">spin_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label2mode</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">spin_mode</span><span class="o">.</span><span class="n">value</span><span class="p">],</span>
-            <span class="n">smearing</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-        <span class="n">gs_inp</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">((</span><span class="s2">&quot;charge&quot;</span><span class="p">,</span> <span class="s2">&quot;chksymbreak&quot;</span><span class="p">))</span>
-        <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ecut</span><span class="o">=</span><span class="s2">&quot;?? # depends on pseudos&quot;</span><span class="p">,</span>
-                        <span class="n">nband</span><span class="o">=</span><span class="s2">&quot;?? # depends on pseudos&quot;</span><span class="p">,</span>
-                        <span class="n">pseudos</span><span class="o">=</span><span class="s1">&#39;&quot;pseudo1, pseudo2, ...&quot;&#39;</span>
-                       <span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate minimalistic input file from the structure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gs_inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gs_input</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_type</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;relax&quot;</span><span class="p">:</span>
             <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">optcell</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ecutsm</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dilatmx</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
 
-        <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_mnemonics</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">)</span></div>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">html_with_clipboard_btn</span><span class="p">(</span><span class="n">gs_inp</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">())</span></div>
+<div class="viewcode-block" id="StructurePanel.on_ebands_input_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.on_ebands_input_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;ebands_input_btn&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_ebands_input_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate minimalistic input file from band structure calculation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="kn">import</span> <span class="n">ebands_input</span>
+
+        <span class="n">dos_kppa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_kppra</span>
+        <span class="k">if</span> <span class="n">dos_kppa</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span> <span class="n">dos_kppa</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">multi</span> <span class="o">=</span> <span class="n">ebands_input</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pseudos</span><span class="p">(),</span>
+                             <span class="n">kppa</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kppra</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                             <span class="n">nscf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">ndivsm</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                             <span class="n">ecut</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                             <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">scf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">spin_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label2mode</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">spin_mode</span><span class="o">.</span><span class="n">value</span><span class="p">],</span>
+                             <span class="n">smearing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_smearing</span><span class="p">(),</span>
+                             <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                             <span class="n">dos_kppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Add getwfk variables.</span>
+        <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;getwfk&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">multi</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">((</span><span class="s2">&quot;charge&quot;</span><span class="p">,</span> <span class="s2">&quot;chksymbreak&quot;</span><span class="p">))</span>
+        <span class="c1">#multi.set_vars(#ecut=&quot;??  # depends on pseudos&quot;,</span>
+        <span class="c1">#               #nband=&quot;?? # depends on pseudos&quot;,</span>
+        <span class="c1">#               pseudos=&#39;&quot;%s&quot;&#39; % &quot;, &quot;.join(p.basename for p in multi.pseudos),</span>
+        <span class="c1">#               )</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">(</span><span class="n">multi</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="StructurePanel.on_ph_input_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.on_ph_input_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;ph_input_btn&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_ph_input_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate minimalistic input file from phonon calculations with DFPT.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="kn">import</span> <span class="n">phonons_from_gsinput</span>
+
+        <span class="n">gs_inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gs_input</span><span class="p">()</span>
+
+        <span class="n">ph_ngqpt</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="c1">#ph_ngqpt = gs_inp[&quot;ngkpt&quot;]</span>
+        <span class="n">qpoints</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="n">ph_ngqpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">points</span>
+
+        <span class="n">ndtset</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">qpoints</span><span class="p">)</span>
+        <span class="n">qstart</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">with_becs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_becs</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="n">with_becs</span><span class="p">:</span>
+            <span class="c1"># Account for the DDK (2nd dataset)</span>
+            <span class="n">ndtset</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">qstart</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="n">multi</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">replicate</span><span class="p">(</span><span class="n">ndtset</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">with_becs</span><span class="p">:</span>
+            <span class="n">ddk_input</span> <span class="o">=</span> <span class="n">multi</span><span class="p">[</span><span class="n">qstart</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">ddk_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+                    <span class="n">rfelfd</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>          <span class="c1"># only the derivative of ground-state wavefunctions with respect to k</span>
+                    <span class="n">rfdir</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                    <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                    <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>         <span class="c1"># 2 to take into account time-reversal symmetry.</span>
+                    <span class="n">iscf</span><span class="o">=-</span><span class="mi">3</span><span class="p">,</span>          <span class="c1"># The d/dk perturbation must be treated in a non-self-consistent way</span>
+                    <span class="n">getwfk</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Response Function calculation: d/dk&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">ddk_input</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
+            <span class="n">ddk_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.0e-22</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">ph_input</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qpoints</span><span class="p">,</span> <span class="n">multi</span><span class="p">[</span><span class="n">qstart</span><span class="p">:]):</span>
+            <span class="n">is_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">qpt</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span>
+            <span class="c1">#if with_becs and is_gamma: continue</span>
+            <span class="n">ph_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+                    <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span> <span class="k">if</span> <span class="n">is_gamma</span> <span class="k">else</span> <span class="mi">3</span><span class="p">,</span> <span class="c1"># use time-reversal if Gamma</span>
+                    <span class="n">rfphon</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>                    <span class="c1"># Will consider phonon-type perturbation</span>
+                    <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>                      <span class="c1"># One wavevector is to be considered</span>
+                    <span class="n">qpt</span><span class="o">=</span><span class="n">qpt</span><span class="p">,</span>                     <span class="c1"># q-wavevector.</span>
+                    <span class="n">rfatpol</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gs_inp</span><span class="o">.</span><span class="n">structure</span><span class="p">)],</span>
+                    <span class="n">rfdir</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                    <span class="n">getwfk</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">rfelfd</span><span class="o">=</span><span class="mi">3</span> <span class="k">if</span> <span class="p">(</span><span class="n">with_becs</span> <span class="ow">and</span> <span class="n">is_gamma</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="n">getddk</span><span class="o">=</span><span class="mi">2</span> <span class="k">if</span> <span class="p">(</span><span class="n">with_becs</span> <span class="ow">and</span> <span class="n">is_gamma</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="n">prtwf</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Input file for PH calculation with DFPT.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">ph_input</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
+            <span class="n">ph_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolvrs</span><span class="o">=</span><span class="mf">1.0e-10</span><span class="p">)</span>
+
+
+        <span class="c1">#multi = phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True,</span>
+        <span class="c1">#                             with_dde=True, with_bec=False,</span>
+        <span class="c1">#                             ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None,</span>
+        <span class="c1">#                             qpoints_to_skip=None, manager=None)</span>
+
+        <span class="c1"># Add getwfk variables.</span>
+        <span class="c1">#for inp in multi[1:]:</span>
+        <span class="c1">#    inp[&quot;getwfk&quot;] = 1</span>
+
+        <span class="c1">#multi.pop_vars((&quot;charge&quot;, &quot;chksymbreak&quot;))</span>
+        <span class="c1">#multi.set_vars(#ecut=&quot;??  # depends on pseudos&quot;,</span>
+        <span class="c1">#               #nband=&quot;?? # depends on pseudos&quot;,</span>
+        <span class="c1">#               pseudos=&#39;&quot;%s&quot;&#39; % &quot;, &quot;.join(p.basename for p in multi.pseudos),</span>
+        <span class="c1">#               )</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">(</span><span class="n">multi</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StructurePanel.on_mp_match_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.StructurePanel.on_mp_match_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;mp_match_btn&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_mp_match_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="n">mp_match_structure</span>
-        <span class="n">mp</span> <span class="o">=</span> <span class="n">mp_match_structure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">mp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">mp_match</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">mp</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No structure found in the MP database&quot;</span><span class="p">)</span>
 
@@ -331,6 +606,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s1">&#39;### Spglib options&#39;</span><span class="p">,</span> <span class="s2">&quot;spglib_symprec&quot;</span><span class="p">,</span> <span class="s2">&quot;spglib_angtol&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;spglib_summary&quot;</span><span class="p">)]),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">spglib_summary</span>
         <span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;AbiSanitize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s1">&#39;### Spglib options&#39;</span><span class="p">,</span> <span class="s2">&quot;spglib_symprec&quot;</span><span class="p">,</span> <span class="s2">&quot;spglib_angtol&quot;</span><span class="p">,</span> <span class="s2">&quot;select_primitive&quot;</span><span class="p">,</span> <span class="s2">&quot;abisanitize_btn&quot;</span><span class="p">,</span>
+                          <span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;on_abisanitize_btn&quot;</span><span class="p">)]),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_abisanitize_btn</span>
+        <span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Kpath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s1">&#39;### K-path options&#39;</span><span class="p">,</span> <span class="s2">&quot;kpath_format&quot;</span><span class="p">,</span> <span class="s2">&quot;line_density&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_kpath&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;get_kpath&quot;</span><span class="p">)]),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">get_kpath</span>
@@ -339,18 +619,129 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Convert structure&quot;</span><span class="p">,</span> <span class="s2">&quot;output_format&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;convert&quot;</span><span class="p">)]),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">convert</span>
         <span class="p">)</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_struct_view_tab_entry</span><span class="p">()</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Viewer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_struct_view_tab_entry</span><span class="p">()</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;GS-input&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s1">&#39;### Generate GS input&#39;</span><span class="p">,</span> <span class="s2">&quot;gs_type&quot;</span><span class="p">,</span> <span class="s2">&quot;spin_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;kppra&quot;</span><span class="p">,</span> <span class="s2">&quot;gs_input_btn&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s1">&#39;### Generate GS input&#39;</span><span class="p">,</span> <span class="s2">&quot;gs_type&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;spin_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;kppra&quot;</span><span class="p">,</span> <span class="s2">&quot;smearing_type&quot;</span><span class="p">,</span> <span class="s2">&quot;tsmear&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;xc_type&quot;</span><span class="p">,</span> <span class="s2">&quot;pseudos_type&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;gs_input_btn&quot;</span><span class="p">,</span>
                            <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;on_gs_input_btn&quot;</span><span class="p">)]),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">on_gs_input_btn</span>
         <span class="p">)</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;MP-match&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp_match_btn</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_mp_match_btn</span><span class="p">)</span>
+
+        <span class="c1"># Add tabs to generate inputs from structure.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_inputs</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Ebands-input&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s1">&#39;### Generate Ebands input&#39;</span><span class="p">,</span>
+                              <span class="s2">&quot;spin_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;kppra&quot;</span><span class="p">,</span> <span class="s2">&quot;edos_kppra&quot;</span><span class="p">,</span> <span class="s2">&quot;smearing_type&quot;</span><span class="p">,</span> <span class="s2">&quot;tsmear&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;xc_type&quot;</span><span class="p">,</span> <span class="s2">&quot;pseudos_type&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;ebands_input_btn&quot;</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;on_ebands_input_btn&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_ebands_input_btn</span>
+            <span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;PH-input&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s1">&#39;### Generate phonon input&#39;</span><span class="p">,</span>
+                              <span class="s2">&quot;spin_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;kppra&quot;</span><span class="p">,</span> <span class="s2">&quot;smearing_type&quot;</span><span class="p">,</span> <span class="s2">&quot;tsmear&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;with_becs&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;xc_type&quot;</span><span class="p">,</span> <span class="s2">&quot;pseudos_type&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;ph_input_btn&quot;</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;on_ph_input_btn&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_ph_input_btn</span>
+            <span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;MP-match&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp_match_btn</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">),</span>
+                                      <span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">(),</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">on_mp_match_btn</span><span class="p">,</span>
+                                      <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
 
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="InputFileGenerator"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.InputFileGenerator">[docs]</a><span class="k">class</span> <span class="nc">InputFileGenerator</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
+
+    <span class="c1">#symprec</span>
+    <span class="c1">#angle_tolerance</span>
+
+    <span class="n">info_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Generate ABINIT input files for performing basic</span>
+
+<span class="s2">   - ground-state calculations</span>
+<span class="s2">   - band structure calculations</span>
+<span class="s2">   - DFPT phonon calculations</span>
+
+<span class="s2">starting from a crystalline structure provided by the user either via an external file</span>
+<span class="s2">or through the Materials Project identifier (*mp-id*).</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="c1"># Spglib widgets</span>
+        <span class="c1">#self.spglib_symprec = pnw.Spinner(name=&quot;symprec&quot;, value=0.01, start=0.0, end=None, step=0.01)</span>
+        <span class="c1">#self.spglib_angtol = pnw.Spinner(name=&quot;angtol&quot;, value=5, start=0.0, end=None, step=1)</span>
+
+        <span class="n">help_md</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">## Description</span>
+
+<span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">info_str</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">help_md</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">get_alert_data_transfer</span><span class="p">(),</span>
+                                   <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileInput</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">css_classes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pnx-file-upload-area&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_file_input</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;mp-id&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="s1">&#39;Enter e.g. mp-149 for Silicon and press ⏎&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_mpid_input</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InputFileGenerator.on_file_input"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.InputFileGenerator.on_file_input">[docs]</a>    <span class="k">def</span> <span class="nf">on_file_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span><span class="o">.</span><span class="n">object</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="c1">#print(&quot;filename&quot;, self.file_input.filename)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1">#print(&quot;value&quot;, self.file_input.value)</span>
+        <span class="kn">import</span> <span class="nn">tempfile</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+
+        <span class="n">fd</span><span class="p">,</span> <span class="n">tmp_path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_main_area</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="InputFileGenerator.on_mpid_input"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.InputFileGenerator.on_mpid_input">[docs]</a>    <span class="k">def</span> <span class="nf">on_mpid_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Loading</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="p">,</span> <span class="n">err_wdg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">input_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_mpid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_main_area</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="InputFileGenerator.update_main_area"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.InputFileGenerator.update_main_area">[docs]</a>    <span class="k">def</span> <span class="nf">update_main_area</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#self.structure = self.input_structure.abi_sanitize(symprec=1e-3, angle_tolerance=5,</span>
+        <span class="c1">#                                                   primitive=True, primitive_standard=False)</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_structure</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="n">as_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;GS-input&quot;</span><span class="p">,</span> <span class="s2">&quot;Ebands-input&quot;</span><span class="p">,</span> <span class="s2">&quot;PH-input&quot;</span><span class="p">,</span> <span class="s2">&quot;Summary&quot;</span><span class="p">)}</span>
         <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="n">tabs</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="InputFileGenerator.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.structure.InputFileGenerator.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
+            <span class="s2">&quot;## Upload (or drag &amp; drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, *POSCAR*):&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_fileinput_section</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="p">),</span>
+            <span class="s2">&quot;## or get the structure from the [Materials Project](https://materialsproject.org/) database:&quot;</span><span class="p">,</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span><span class="p">)),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="n">main</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">kwds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_abinit_template_cls_kwds</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">main</span><span class="o">=</span><span class="n">main</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Input File Generator&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -364,7 +755,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

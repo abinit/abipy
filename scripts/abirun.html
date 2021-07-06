@@ -139,6 +139,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#panel">panel</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#new_manager">new_manager</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#tail">tail</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timeit">timeit</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#deps">deps</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#robot">robot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#cycles">cycles</a></li>
@@ -261,7 +262,7 @@
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py --help
 usage: abirun.py [-h] [-V]
                  [flowdir]
-                 {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,abiopen,abibuild,doc_scheduler,panel,new_manager,tail,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,group,diff,networkx,graphviz,listext}
+                 {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,abiopen,abibuild,doc_scheduler,panel,new_manager,tail,timeit,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,group,diff,networkx,graphviz,listext}
                  ...
 
 positional arguments:
@@ -276,7 +277,7 @@ optional arguments:
 subcommands:
   Valid subcommands
 
-  {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,abiopen,abibuild,doc_scheduler,panel,new_manager,tail,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,group,diff,networkx,graphviz,listext}
+  {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,abiopen,abibuild,doc_scheduler,panel,new_manager,tail,timeit,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,group,diff,networkx,graphviz,listext}
                         sub-command help
     single              Run single task and exit.
     rapid               Run all tasks in rapidfire mode.
@@ -305,6 +306,7 @@ subcommands:
     new_manager         Change the TaskManager.
     tail                Use unix tail to follow the main output files of the
                         flow.
+    timeit              Extract timing data from Abinit output files.
     deps                Show dependencies.
     robot               Use a robot to analyze the results of multiple tasks
                         (requires ipython).
@@ -569,7 +571,7 @@ qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge
 Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
-<p>At the time of writing (Jun 16, 2021), AbiPy supports the following resource managers:</p>
+<p>At the time of writing (Jul 06, 2021), AbiPy supports the following resource managers:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">shell</span></code></p></li>
 <li><p><a class="reference external" href="http://pbspro.org/">pbspro</a></p></li>
@@ -586,7 +588,7 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 <p>Complete command line reference</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
                  <span class="p">[</span><span class="n">flowdir</span><span class="p">]</span>
-                 <span class="p">{</span><span class="n">single</span><span class="p">,</span><span class="n">rapid</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">batch</span><span class="p">,</span><span class="n">status</span><span class="p">,</span><span class="n">set_status</span><span class="p">,</span><span class="n">cancel</span><span class="p">,</span><span class="n">restart</span><span class="p">,</span><span class="n">reset</span><span class="p">,</span><span class="n">move</span><span class="p">,</span><span class="nb">open</span><span class="p">,</span><span class="n">abiopen</span><span class="p">,</span><span class="n">abibuild</span><span class="p">,</span><span class="n">doc_scheduler</span><span class="p">,</span><span class="n">panel</span><span class="p">,</span><span class="n">new_manager</span><span class="p">,</span><span class="n">tail</span><span class="p">,</span><span class="n">deps</span><span class="p">,</span><span class="n">robot</span><span class="p">,</span><span class="n">cycles</span><span class="p">,</span><span class="n">dims</span><span class="p">,</span><span class="n">inspect</span><span class="p">,</span><span class="n">inputs</span><span class="p">,</span><span class="n">abivars</span><span class="p">,</span><span class="n">structures</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">doc_manager</span><span class="p">,</span><span class="n">events</span><span class="p">,</span><span class="n">corrections</span><span class="p">,</span><span class="n">history</span><span class="p">,</span><span class="n">handlers</span><span class="p">,</span><span class="n">notebook</span><span class="p">,</span><span class="n">ipython</span><span class="p">,</span><span class="n">tar</span><span class="p">,</span><span class="n">tricky</span><span class="p">,</span><span class="n">debug</span><span class="p">,</span><span class="n">debug_reset</span><span class="p">,</span><span class="n">group</span><span class="p">,</span><span class="n">diff</span><span class="p">,</span><span class="n">networkx</span><span class="p">,</span><span class="n">graphviz</span><span class="p">,</span><span class="n">listext</span><span class="p">}</span>
+                 <span class="p">{</span><span class="n">single</span><span class="p">,</span><span class="n">rapid</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">batch</span><span class="p">,</span><span class="n">status</span><span class="p">,</span><span class="n">set_status</span><span class="p">,</span><span class="n">cancel</span><span class="p">,</span><span class="n">restart</span><span class="p">,</span><span class="n">reset</span><span class="p">,</span><span class="n">move</span><span class="p">,</span><span class="nb">open</span><span class="p">,</span><span class="n">abiopen</span><span class="p">,</span><span class="n">abibuild</span><span class="p">,</span><span class="n">doc_scheduler</span><span class="p">,</span><span class="n">panel</span><span class="p">,</span><span class="n">new_manager</span><span class="p">,</span><span class="n">tail</span><span class="p">,</span><span class="n">timeit</span><span class="p">,</span><span class="n">deps</span><span class="p">,</span><span class="n">robot</span><span class="p">,</span><span class="n">cycles</span><span class="p">,</span><span class="n">dims</span><span class="p">,</span><span class="n">inspect</span><span class="p">,</span><span class="n">inputs</span><span class="p">,</span><span class="n">abivars</span><span class="p">,</span><span class="n">structures</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">doc_manager</span><span class="p">,</span><span class="n">events</span><span class="p">,</span><span class="n">corrections</span><span class="p">,</span><span class="n">history</span><span class="p">,</span><span class="n">handlers</span><span class="p">,</span><span class="n">notebook</span><span class="p">,</span><span class="n">ipython</span><span class="p">,</span><span class="n">tar</span><span class="p">,</span><span class="n">tricky</span><span class="p">,</span><span class="n">debug</span><span class="p">,</span><span class="n">debug_reset</span><span class="p">,</span><span class="n">group</span><span class="p">,</span><span class="n">diff</span><span class="p">,</span><span class="n">networkx</span><span class="p">,</span><span class="n">graphviz</span><span class="p">,</span><span class="n">listext</span><span class="p">}</span>
                  <span class="o">...</span>
 </pre></div>
 </div>
@@ -611,7 +613,7 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 <p>Valid subcommands</p>
 <dl class="option-list">
 <dt><kbd>command</kbd></dt>
-<dd><p>Possible choices: single, rapid, scheduler, batch, status, set_status, cancel, restart, reset, move, open, abiopen, abibuild, doc_scheduler, panel, new_manager, tail, deps, robot, cycles, dims, inspect, inputs, abivars, structures, ebands, hist, doc_manager, events, corrections, history, handlers, notebook, ipython, tar, tricky, debug, debug_reset, group, diff, networkx, graphviz, listext</p>
+<dd><p>Possible choices: single, rapid, scheduler, batch, status, set_status, cancel, restart, reset, move, open, abiopen, abibuild, doc_scheduler, panel, new_manager, tail, timeit, deps, robot, cycles, dims, inspect, inputs, abivars, structures, ebands, hist, doc_manager, events, corrections, history, handlers, notebook, ipython, tar, tricky, debug, debug_reset, group, diff, networkx, graphviz, listext</p>
 <p>sub-command help</p>
 </dd>
 </dl>
@@ -653,8 +655,7 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 <div class="section" id="rapid">
 <h3>rapid<a class="headerlink" href="#rapid" title="Permalink to this headline">¶</a></h3>
 <p>Run all tasks in rapidfire mode.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">rapid</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MAX_NLAUNCH</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">rapid</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MAX_NLAUNCH</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat2">
@@ -690,8 +691,8 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 <div class="section" id="scheduler">
 <h3>scheduler<a class="headerlink" href="#scheduler" title="Permalink to this headline">¶</a></h3>
 <p>Run all tasks with a Python scheduler. Requires scheduler.yml either in $PWD or ~/.abinit/abipy.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">scheduler</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WEEKS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DAYS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">hs</span> <span class="n">HOURS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MINUTES</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SECONDS</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">scheduler</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WEEKS</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DAYS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">hs</span> <span class="n">HOURS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MINUTES</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SECONDS</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat3">
@@ -743,8 +744,7 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 <div class="section" id="batch">
 <h3>batch<a class="headerlink" href="#batch" title="Permalink to this headline">¶</a></h3>
 <p>Run scheduler in batch script.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">batch</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">TIMELIMIT</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">batch</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">TIMELIMIT</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat4">
@@ -1268,6 +1268,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <h3>panel<a class="headerlink" href="#panel" title="Permalink to this headline">¶</a></h3>
 <p>Interact with the flow in the browser (requires panel package).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">panel</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pnt</span> <span class="n">PANEL_TEMPLATE</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat15">
@@ -1292,6 +1293,24 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <dt><kbd>--remove-lock</kbd></dt>
 <dd><p>Remove the lock on the pickle file used to save the status of the flow.</p>
 <p>Default: False</p>
+</dd>
+<dt><kbd>-n, --nids</kbd></dt>
+<dd><p>Node identifier(s) used to select the task. Accept single integer, comma-separated list of integers or python slice.
+Use <cite>status</cite> command to get the node ids.
+Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice syntax), –nids=2:5:2 to select 2,4.</p>
+</dd>
+<dt><kbd>-w, --wslice</kbd></dt>
+<dd><p>Select the list of works to analyze (python syntax for slices): Examples: –wslice=1 to select the second workflow, –wslice=:3 for 0,1,2, –wslice=-1 for the last workflow, –wslice::2 for even indices.</p>
+</dd>
+<dt><kbd>-S, --task-status</kbd></dt>
+<dd><p>Select only the tasks with the given status. Default: None i.e. ignored. Possible values: [‘Initialized’, ‘Locked’, ‘Ready’, ‘Submitted’, ‘Running’, ‘Done’, ‘AbiCritical’, ‘QCritical’, ‘Unconverged’, ‘Error’, ‘Completed’].</p>
+</dd>
+<dt><kbd>-t, --task-class</kbd></dt>
+<dd><p>Select only tasks with the given class e.g. <cite>-t NscfTask</cite>.</p>
+</dd>
+<dt><kbd>-pnt, --panel-template</kbd></dt>
+<dd><p>Specify template for panel dasboard.Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla.Default: FastList</p>
+<p>Default: “FastList”</p>
 </dd>
 </dl>
 </div>
@@ -1411,14 +1430,61 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dl>
 </div>
 </div>
+<div class="section" id="timeit">
+<h3>timeit<a class="headerlink" href="#timeit" title="Permalink to this headline">¶</a></h3>
+<p>Extract timing data from Abinit output files.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">timeit</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments_repeat18">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-v, --verbose</kbd></dt>
+<dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
+<p>Default: 0</p>
+</dd>
+<dt><kbd>--no-colors</kbd></dt>
+<dd><p>Disable ASCII colors.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no-logo</kbd></dt>
+<dd><p>Disable AbiPy logo.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--loglevel</kbd></dt>
+<dd><p>Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p>Default: “ERROR”</p>
+</dd>
+<dt><kbd>--remove-lock</kbd></dt>
+<dd><p>Remove the lock on the pickle file used to save the status of the flow.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-n, --nids</kbd></dt>
+<dd><p>Node identifier(s) used to select the task. Accept single integer, comma-separated list of integers or python slice.
+Use <cite>status</cite> command to get the node ids.
+Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice syntax), –nids=2:5:2 to select 2,4.</p>
+</dd>
+<dt><kbd>-w, --wslice</kbd></dt>
+<dd><p>Select the list of works to analyze (python syntax for slices): Examples: –wslice=1 to select the second workflow, –wslice=:3 for 0,1,2, –wslice=-1 for the last workflow, –wslice::2 for even indices.</p>
+</dd>
+<dt><kbd>-S, --task-status</kbd></dt>
+<dd><p>Select only the tasks with the given status. Default: None i.e. ignored. Possible values: [‘Initialized’, ‘Locked’, ‘Ready’, ‘Submitted’, ‘Running’, ‘Done’, ‘AbiCritical’, ‘QCritical’, ‘Unconverged’, ‘Error’, ‘Completed’].</p>
+</dd>
+<dt><kbd>-t, --task-class</kbd></dt>
+<dd><p>Select only tasks with the given class e.g. <cite>-t NscfTask</cite>.</p>
+</dd>
+</dl>
+</div>
+</div>
 <div class="section" id="deps">
 <h3>deps<a class="headerlink" href="#deps" title="Permalink to this headline">¶</a></h3>
 <p>Show dependencies.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">deps</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat18">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat19">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1460,8 +1526,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat19">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat20">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat20" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1520,8 +1586,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                  <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">combiplot</span><span class="p">,</span><span class="n">slideshow</span><span class="p">}]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat20">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat20" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat21">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat21" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1575,8 +1641,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat21">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat21" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat22">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat22" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1622,8 +1688,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                   <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat22">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat22" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat23">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat23" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1669,8 +1735,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                  <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">vn</span> <span class="p">[</span><span class="n">VARNAMES</span><span class="p">]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat23">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat23" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat24">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat24" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1719,8 +1785,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                   <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="o">-</span><span class="n">vn</span> <span class="n">VARNAMES</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat24">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat24" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat25">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat25" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1769,8 +1835,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                      <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">what</span> <span class="n">WHAT</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat25">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat25" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat26">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat26" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1821,8 +1887,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                  <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="n">boxplot</span><span class="p">,</span><span class="n">combiboxplot</span><span class="p">,</span><span class="n">animate</span><span class="p">}]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat26">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat26" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat27">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat27" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1872,8 +1938,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">}]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat27">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat27" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat28">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat28" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1919,8 +1985,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="section" id="doc_manager">
 <h3>doc_manager<a class="headerlink" href="#doc_manager" title="Permalink to this headline">¶</a></h3>
 <p>Document the TaskManager options.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">doc_manager</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-                      <span class="p">[</span><span class="n">qtype</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">doc_manager</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="n">qtype</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat7">
@@ -1931,8 +1996,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat28">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat28" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat29">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat29" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1964,8 +2029,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                  <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat29">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat29" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat30">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat30" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2011,8 +2076,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                       <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat30">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat30" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat31">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat31" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2058,8 +2123,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                   <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat31">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat31" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat32">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat32" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2112,8 +2177,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">handlers</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat32">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat32" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat33">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat33" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2149,8 +2214,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                    <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat33">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat33" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat34">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat34" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2186,8 +2251,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                   <span class="p">[</span><span class="o">--</span><span class="n">argv</span> <span class="p">[</span><span class="n">ARGV</span><span class="p">]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat34">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat34" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat35">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat35" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2219,12 +2284,12 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="section" id="tar">
 <h3>tar<a class="headerlink" href="#tar" title="Permalink to this headline">¶</a></h3>
 <p>Create tarball file.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">tar</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-              <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">MAX_FILESIZE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXCLUDE_EXTS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">EXCLUDE_DIRS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">l</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">tar</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">MAX_FILESIZE</span><span class="p">]</span>
+              <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXCLUDE_EXTS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">EXCLUDE_DIRS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">l</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat35">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat35" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat36">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat36" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2268,8 +2333,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">tricky</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat36">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat36" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat37">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat37" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2301,8 +2366,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat37">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat37" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat38">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat38" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2348,8 +2413,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                       <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat38">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat38" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat39">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat39" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2395,8 +2460,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="p">{</span><span class="n">status</span><span class="p">,</span><span class="n">task_class</span><span class="p">}]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat39">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat39" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat40">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat40" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2457,8 +2522,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat40">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat40" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat41">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat41" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2504,8 +2569,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                    <span class="p">[</span><span class="o">--</span><span class="n">nxmode</span> <span class="n">NXMODE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">edge</span><span class="o">-</span><span class="n">labels</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat41">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat41" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat42">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat42" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2541,12 +2606,12 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="section" id="graphviz">
 <h3>graphviz<a class="headerlink" href="#graphviz" title="Permalink to this headline">¶</a></h3>
 <p>Draw flow and node dependencies with graphviz package. Accept (FLOWDIR|WORKDIR|TASKDIR). See <a class="reference external" href="https://graphviz.readthedocs.io/">https://graphviz.readthedocs.io/</a>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">graphviz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENGINE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">graphviz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENGINE</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat42">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat42" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat43">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat43" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2595,8 +2660,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat43">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat43" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat44">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat44" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2640,7 +2705,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

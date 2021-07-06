@@ -130,7 +130,7 @@ using the eigenvalues stored in the GSR file produced at the end of the GS run.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  3.427 seconds)
+   **Total running time of the script:** ( 0 minutes  2.558 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_ebands_spin.py:

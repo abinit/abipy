@@ -294,9 +294,9 @@ self.info  DATA TYPE INFORMATION:
  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
  === Build Information === 
-  Version       : 9.5.2
+  Version       : 9.5.3
   Build target  : x86_64_darwin20.3.0_gnu8.2
-  Build date    : 20210519
+  Build date    : 20210702
 
  === Compiler Suite === 
   C compiler       : gnu8.2
@@ -304,7 +304,7 @@ self.info  DATA TYPE INFORMATION:
   Fortran compiler : gnu8.2
   CFLAGS           : -g -O2 -mtune=native -march=native
   CXXFLAGS         : -g -O2 -mtune=native -march=native
-  FCFLAGS          : -g -O2 -fbacktrace -ffree-line-length-none   -I/Users/gmatteo/local ...
+  FCFLAGS          : -g -O2 -fbacktrace -ffree-line-length-none   -I/Users/gmatteo/local/build_gcc_820/include -I/Users/gmatteo/local/build_gcc_820/include
   FC_LDFLAGS       : 
 
  === Optimizations === 
@@ -415,9 +415,9 @@ self.info  DATA TYPE INFORMATION:
  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
  === Build Information === 
-  Version       : 9.5.2
+  Version       : 9.5.3
   Build target  : x86_64_darwin20.3.0_gnu8.2
-  Build date    : 20210519
+  Build date    : 20210702
 
  === Compiler Suite === 
   C compiler       : gnu8.2
@@ -425,7 +425,7 @@ self.info  DATA TYPE INFORMATION:
   Fortran compiler : gnu8.2
   CFLAGS           : -g -O2 -mtune=native -march=native
   CXXFLAGS         : -g -O2 -mtune=native -march=native
-  FCFLAGS          : -g -O2 -fbacktrace -ffree-line-length-none   -I/Users/gmatteo/local ...
+  FCFLAGS          : -g -O2 -fbacktrace -ffree-line-length-none   -I/Users/gmatteo/local/build_gcc_820/include -I/Users/gmatteo/local/build_gcc_820/include
   FC_LDFLAGS       : 
 
  === Optimizations === 
@@ -464,12 +464,12 @@ self.info  DATA TYPE INFORMATION:
 
 Abinitbuild:
 Abinit Build Information:
-    Abinit version: 9.5.2
+    Abinit version: 9.5.3
     MPI: True, MPI-IO: True, OpenMP: False
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 50384
+PyFlowScheduler, Pid: 15495
 Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 8}
 
 Installed packages:
@@ -477,7 +477,7 @@ Package         Version
 --------------  ---------
 system          Darwin
 python_version  3.8.0
-numpy           1.20.3
+numpy           1.21.0
 scipy           1.6.2
 netCDF4         1.5.6
 apscheduler     3.7.0
@@ -485,7 +485,7 @@ pydispatch      2.0.5
 yaml            5.4.1
 boken           2.3.2
 panel           0.11.3
-plotly          4.14.3
+plotly          5.1.0
 ase             3.21.1
 phonopy         2.9.3
 monty           2021.3.3
@@ -499,8 +499,8 @@ Abipy requirements are properly configured
 <p>The command <code class="docutils literal notranslate"><span class="pre">abicheck.py</span> <span class="pre">--with-flow</span></code> can be used to run a small AbiPy flow in order to
 check the interface with the Abinit executables.</p>
 <p>Complete command line reference</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abicheck</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">flow</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">FLOW_DIR</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abicheck</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">flow</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">FLOW_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments">
@@ -560,7 +560,7 @@ check the interface with the Abinit executables.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

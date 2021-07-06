@@ -1,0 +1,403 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>abipy.panels.works &mdash; abipy 0.9.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abipy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>abipy.panels.works</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.panels.works</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;&quot;Panels to interact with the AbiPy tasks.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">param</span>
+<span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
+<span class="kn">import</span> <span class="nn">panel.widgets</span> <span class="k">as</span> <span class="nn">pnw</span>
+<span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
+
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">AbipyParameterized</span><span class="p">,</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span><span class="p">,</span> <span class="n">dfc</span><span class="p">,</span> <span class="n">depends_on_btn_click</span>
+
+
+<div class="viewcode-block" id="WorkPanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel">[docs]</a><span class="k">class</span> <span class="nc">WorkPanel</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Panel to interact with an AbiPy Flow.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">work</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">work</span> <span class="o">=</span> <span class="n">work</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nids</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">node_id</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;fdp&quot;</span><span class="p">,</span>
+                      <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dot&#39;</span><span class="p">,</span> <span class="s1">&#39;neato&#39;</span><span class="p">,</span> <span class="s1">&#39;twopi&#39;</span><span class="p">,</span> <span class="s1">&#39;circo&#39;</span><span class="p">,</span> <span class="s1">&#39;fdp&#39;</span><span class="p">,</span> <span class="s1">&#39;sfdp&#39;</span><span class="p">,</span> <span class="s1">&#39;patchwork&#39;</span><span class="p">,</span> <span class="s1">&#39;osage&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirtree</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Dirtree&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphviz_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Show graph&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Show status&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="c1">#self.task_btn = pnw.Button(name=&quot;Show Task&quot;, button_type=&#39;primary&#39;)</span>
+        <span class="c1">##self.work_btn = pnw.Button(name=&quot;Show Task&quot;, button_type=&#39;primary&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Show history&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Debug&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">events_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Events&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="c1">#self.corrections_btn = pnw.Button(name=&quot;Corrections&quot;, button_type=&#39;primary&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handlers_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Handlers&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+        <span class="c1">#self.vars_text = pnw.TextInput(name=&#39;Abivars&#39;, placeholder=&#39;Enter list of variables separate</span>
+        <span class="c1">#self.vars_btn = pnw.Button(name=&quot;Show Variables&quot;, button_type=&#39;primary&#39;)</span>
+
+        <span class="c1">#self.dims_btn = pnw.Button(name=&quot;Show Dimensions&quot;, button_type=&#39;primary&#39;)</span>
+
+        <span class="c1">#self.structures_btn = pnw.Button(name=&quot;Show Structures&quot;, button_type=&#39;primary&#39;)</span>
+        <span class="c1">#self.structures_io_checkbox = pnw.CheckBoxGroup(</span>
+        <span class="c1">#    name=&#39;Input/Output Structure&#39;, value=[&#39;output&#39;], options=[&#39;input&#39;, &#39;output&#39;], inline=Tru</span>
+
+        <span class="c1">## Widgets to plot ebands.</span>
+        <span class="c1">#self.ebands_btn = pnw.Button(name=&quot;Show Ebands&quot;, button_type=&#39;primary&#39;)</span>
+        <span class="c1">#self.ebands_plotter_mode = pnw.Select(name=&quot;Plot Mode&quot;, value=&quot;gridplot&quot;,</span>
+        <span class="c1">#    options=[&quot;gridplot&quot;, &quot;combiplot&quot;, &quot;boxplot&quot;, &quot;combiboxplot&quot;]) # &quot;animate&quot;,</span>
+        <span class="c1">#self.ebands_plotter_btn = pnw.Button(name=&quot;Plot&quot;, button_type=&#39;primary&#39;)</span>
+        <span class="c1">#self.ebands_df_checkbox = pnw.Checkbox(name=&#39;With Ebands DataFrame&#39;, value=False)</span>
+        <span class="c1">#self.ebands_ksamp_checkbox = pnw.CheckBoxGroup(</span>
+        <span class="c1">#    name=&#39;Input/Output Structure&#39;, value=[&quot;with_path&quot;, &quot;with_ibz&quot;], options=[&#39;with_path&#39;, &#39;w</span>
+
+        <span class="c1">#TODO: Implement widget for selected_nids(flow, options),</span>
+        <span class="c1">#radio_group = pn.widgets.RadioButtonGroup(</span>
+        <span class="c1">#   name=&#39;Radio Button Group&#39;, options=[&#39;Biology&#39;, &#39;Chemistry&#39;, &#39;Physics&#39;], button_type=&#39;suc</span>
+
+        <span class="c1">#files = pn.widgets.FileSelector(&#39;~&#39;)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WorkPanel.on_status_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel.on_status_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;status_btn&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_status_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">show_status</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="WorkPanel.on_history_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel.on_history_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;history_btn&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_history_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">show_history</span><span class="p">(</span><span class="n">nids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nids</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="WorkPanel.on_graphviz_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel.on_graphviz_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;graphviz_btn&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_graphviz_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize the flow with graphviz.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirtree</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_graphviz_dirtree</span><span class="p">(</span><span class="n">engine</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_graphviz</span><span class="p">(</span><span class="n">engine</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WorkPanel.on_debug_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel.on_debug_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;debug_btn&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_debug_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#TODO https://github.com/ralphbean/ansi2html ?</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+        <span class="c1">#flow.debug(status=options.task_status, nids=selected_nids(flow, options))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="WorkPanel.on_events_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel.on_events_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;events_btn&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_events_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">show_events</span><span class="p">(</span><span class="n">nids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nids</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="WorkPanel.on_corrections_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel.on_corrections_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;corrections_btn&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_corrections_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">show_corrections</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nids</span><span class="p">)</span>
+        <span class="c1">#flow.show_corrections(status=options.task_status, nids=selected_nids(flow, options))</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="WorkPanel.on_handlers_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel.on_handlers_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;handlers_btn&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_handlers_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+        <span class="c1">#if options.doc:</span>
+        <span class="c1">#    flowtk.autodoc_event_handlers()</span>
+        <span class="c1">#else:</span>
+        <span class="c1">#show_events(self, status=None, nids=None, stream=sys.stdout):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">show_event_handlers</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nids</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()))</span></div>
+
+    <span class="c1">#@depends_on_btn_click(&quot;vars_btn&quot;)</span>
+    <span class="c1">#def on_vars_btn(self):</span>
+    <span class="c1">#    if not self.vars_text.value: return</span>
+    <span class="c1">#    varnames = [s.strip() for s in self.vars_text.value.split(&quot;,&quot;)]</span>
+    <span class="c1">#    df = self.flow.compare_abivars(varnames=varnames, # nids=selected_nids(flow, options),</span>
+    <span class="c1">#                                   printout=False, with_colors=False)</span>
+    <span class="c1">#    return pn.Row(dfc(df))</span>
+
+<div class="viewcode-block" id="WorkPanel.on_dims_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel.on_dims_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;dims_btn&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_dims_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">get_dims_dataframe</span><span class="p">(</span><span class="n">nids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nids</span><span class="p">,</span>
+                                          <span class="n">printout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_colors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">df</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_width&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WorkPanel.on_structures_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel.on_structures_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s2">&quot;structures_btn&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_structures_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">what</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;input&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures_io_checkbox</span><span class="o">.</span><span class="n">value</span><span class="p">:</span> <span class="n">what</span> <span class="o">+=</span> <span class="s2">&quot;i&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures_io_checkbox</span><span class="o">.</span><span class="n">value</span><span class="p">:</span> <span class="n">what</span> <span class="o">+=</span> <span class="s2">&quot;o&quot;</span>
+        <span class="n">dfs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">compare_structures</span><span class="p">(</span><span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># select_nids(flow, options),</span>
+                                           <span class="n">what</span><span class="o">=</span><span class="n">what</span><span class="p">,</span>
+                                           <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">printout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                           <span class="n">with_colors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_width&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WorkPanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.works.WorkPanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return tabs with widgets to interact with the flow.&quot;&quot;&quot;</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1">#row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode=&quot;scale_</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status_btn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_status_btn</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;History&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history_btn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_history_btn</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Events&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events_btn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_events_btn</span><span class="p">)</span>
+        <span class="c1">##d[&quot;Corrections&quot;] = pn.Row(self.corrections_btn, self.on_corrections_btn)</span>
+        <span class="c1">##d[&quot;Handlers&quot;] = pn.Row(self.handlers_btn, self.on_handlers_btn)</span>
+        <span class="c1">##d[&quot;Structures&quot;] = pn.Row(pn.Column(self.structures_io_checkbox, self.structures_btn), self</span>
+        <span class="c1">###ws = pn.Column(self.ebands_plotter_mode, self.ebands_ksamp_checkbox, self.ebands_df_check</span>
+        <span class="c1">###d[&quot;Ebands&quot;] = pn.Row(ws, self.on_ebands_btn)</span>
+        <span class="c1">###d[&quot;Abivars&quot;] = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)</span>
+        <span class="c1">###d[&quot;Dims&quot;] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)</span>
+        <span class="c1">##d[&quot;Debug&quot;] = pn.Row(self.debug_btn, self.on_debug_btn)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Graphviz&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirtree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphviz_btn</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_graphviz_btn</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">closable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
+      <span class="lastupdated">
+        Last updated on Jul 06, 2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -123,7 +123,10 @@
 <li class="toctree-l2"><a class="reference internal" href="run_fe_ebands.html">Band structure w/wo magnetization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_gaas_ebands_soc.html">Band structure with/without SOC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_ht_si_bsemdf.html">Bethe-Salpeter Flow with factory functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_eph_sigma.html">Computation of Phonons, BECS and Eps_inf for MgO</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_conducwork.html">Conductivity in metals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_phonons_with_quad.html">Dynamical quadrupoles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_flexoelectric.html">Dynamical quadrupoles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_effmass_dfpt.html">Effective masses with DFPT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_effmass_finitediff.html">Effective masses with finite difference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_frohlich_zpr.html">Estimate the ZPR at the band edges with the generalized Frohlich model</a></li>
@@ -143,6 +146,7 @@
 <li class="toctree-l2"><a class="reference internal" href="run_eph_pot.html">Flow to compute e-ph scattering potentials</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">G0W0 Flow with convergence study wrt nband</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_ht_si_g0w0ppm.html">G0W0 Flow with factory functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_gw.html">G0W0 convergence study</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_gwconv_ecuteps.html">G0W0 convergence study</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_gruneisen_abinit.html">Gruneisen parameters with DFPT phonons and finite difference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_nonlinear.html">Nnon-linear optical properties with DFPT</a></li>
@@ -155,6 +159,7 @@
 <li class="toctree-l2"><a class="reference internal" href="run_relax.html">Relaxation Flow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_relax_vs_kpts_tsmear.html">Relaxation of GaN with different K-meshes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_relax_vs_kpts.html">Relaxation of GaN with different K-meshes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_screening.html">Screening computation with different parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_from_files.html">Starting a Flow from external files</a></li>
 </ul>
 </li>
@@ -259,7 +264,8 @@ can be implemented on the basis of this example.</p>
     <span class="c1"># Dataset 3: calculation of the screening</span>
     <span class="c1"># Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband</span>
 
-    <span class="n">multi</span> <span class="o">=</span> <a href="../api/abio_api.html#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset" class="sphx-glr-backref-module-abipy-abio-inputs sphx-glr-backref-type-py-class"><span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span></a><span class="p">(</span><span class="n">structure</span><span class="o">=</span><a href="../api/data_api.html#abipy.data.cif_file" title="abipy.data.cif_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">data</span><span class="o">.</span><span class="n">cif_file</span></a><span class="p">(</span><span class="s2">&quot;si.cif&quot;</span><span class="p">),</span> <span class="n">pseudos</span><span class="o">=</span><a href="../api/data_api.html#abipy.data.pseudos" title="abipy.data.pseudos" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">data</span><span class="o">.</span><span class="n">pseudos</span></a><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">),</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+    <span class="n">multi</span> <span class="o">=</span> <a href="../api/abio_api.html#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset" class="sphx-glr-backref-module-abipy-abio-inputs sphx-glr-backref-type-py-class"><span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span></a><span class="p">(</span><span class="n">structure</span><span class="o">=</span><a href="../api/data_api.html#abipy.data.cif_file" title="abipy.data.cif_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">data</span><span class="o">.</span><span class="n">cif_file</span></a><span class="p">(</span><span class="s2">&quot;si.cif&quot;</span><span class="p">),</span>
+                                <span class="n">pseudos</span><span class="o">=</span><a href="../api/data_api.html#abipy.data.pseudos" title="abipy.data.pseudos" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">data</span><span class="o">.</span><span class="n">pseudos</span></a><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">),</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
 
     <span class="c1"># This grid is the most economical, but does not contain the Gamma point.</span>
     <span class="n">scf_kmesh</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -434,7 +440,7 @@ flow_si_g0w0/w0/t5/outdata/out_SIGRES.nc         <span class="m">0</span>.13    
 </pre></div>
 </div>
 <img alt="QP results in Si plotted vs the KS energy e0." src="https://github.com/abinit/abipy_assets/blob/master/run_si_g0w0.png?raw=true" />
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.754 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.513 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-si-g0w0-py">
 <div class="binder-badge docutils container">
 <a class="reference external image-reference" href="https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_si_g0w0.ipynb"><img alt="Launch binder" src="../_images/binder_badge_logo.svg" width="150px" /></a>
@@ -465,7 +471,7 @@ flow_si_g0w0/w0/t5/outdata/out_SIGRES.nc         <span class="m">0</span>.13    
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

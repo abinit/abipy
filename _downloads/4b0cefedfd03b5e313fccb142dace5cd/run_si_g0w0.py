@@ -24,7 +24,8 @@ def make_inputs(ngkpt, paral_kgb=1):
     # Dataset 3: calculation of the screening
     # Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband
 
-    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"), pseudos=data.pseudos("14si.pspnc"), ndtset=6)
+    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"),
+                                pseudos=data.pseudos("14si.pspnc"), ndtset=6)
 
     # This grid is the most economical, but does not contain the Gamma point.
     scf_kmesh = dict(

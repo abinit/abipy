@@ -195,31 +195,21 @@
 <span class="kn">import</span> <span class="nn">panel.widgets</span> <span class="k">as</span> <span class="nn">pnw</span>
 <span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
 
-<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PanelWithElectronBands</span><span class="p">,</span> <span class="n">HasStructureParams</span><span class="p">,</span> <span class="n">PanelWithNcFile</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PanelWithElectronBands</span><span class="p">,</span> <span class="n">NcFileMixin</span><span class="p">,</span>
   <span class="n">PanelWithEbandsRobot</span><span class="p">,</span> <span class="n">ButtonContext</span><span class="p">,</span> <span class="n">ply</span><span class="p">,</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">dfc</span><span class="p">,</span> <span class="n">depends_on_btn_click</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="GsrFilePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.gsr.GsrFilePanel">[docs]</a><span class="k">class</span> <span class="nc">GsrFilePanel</span><span class="p">(</span><span class="n">PanelWithElectronBands</span><span class="p">,</span> <span class="n">HasStructureParams</span><span class="p">,</span> <span class="n">PanelWithNcFile</span><span class="p">):</span>
+<div class="viewcode-block" id="GsrFilePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.gsr.GsrFilePanel">[docs]</a><span class="k">class</span> <span class="nc">GsrFilePanel</span><span class="p">(</span><span class="n">PanelWithElectronBands</span><span class="p">,</span> <span class="n">NcFileMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Panel with widgets to interact with a |GsrFile|.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gsr</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="n">PanelWithElectronBands</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ebands</span><span class="o">=</span><span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gsr</span> <span class="o">=</span> <span class="n">gsr</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;|Structure| object&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsr</span><span class="o">.</span><span class="n">structure</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;|ElectronBands| object.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ncfile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;This for for the PanelWithNcFile mixin&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;This for for the NcFileMixin mixin&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsr</span>
 
 <div class="viewcode-block" id="GsrFilePanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.gsr.GsrFilePanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -230,8 +220,9 @@
             <span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gsr</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span>  <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;e-Bands&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;### e-Bands Options&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_plot_ebands_widgets</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;on_plot_ebands_btn&quot;</span><span class="p">),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">on_plot_ebands_btn</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### e-Bands Options&quot;</span><span class="p">,</span> <span class="s2">&quot;with_gaps&quot;</span><span class="p">,</span> <span class="s2">&quot;set_fermie_to_vbm&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_ebands_btn&quot;</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;on_plot_ebands_btn&quot;</span><span class="p">)]),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_plot_ebands_btn</span>
         <span class="p">)</span>
         <span class="c1"># Add DOS tab but only if k-sampling.</span>
         <span class="n">kpoints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span>
@@ -265,45 +256,46 @@
         <span class="c1">#))</span>
 
         <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
-        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
 
 
 <div class="viewcode-block" id="GsrRobotPanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.gsr.GsrRobotPanel">[docs]</a><span class="k">class</span> <span class="nc">GsrRobotPanel</span><span class="p">(</span><span class="n">PanelWithEbandsRobot</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A Panel to interoperate with multiple GSR files.</span>
+<span class="sd">    A Panel to interact with multiple GSR files.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">gsr_dataframe_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Compute&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
-
-    <span class="n">transpose_gsr_dataframe</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Transpose GSR dataframe&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span> <span class="o">=</span> <span class="n">robot</span>
+        <span class="n">PanelWithEbandsRobot</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot</span><span class="o">=</span><span class="n">robot</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gsr_dataframe_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Compute&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transpose_gsr_dataframe</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Transpose GSR dataframe&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="GsrRobotPanel.on_gsr_dataframe_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.gsr.GsrRobotPanel.on_gsr_dataframe_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;gsr_dataframe_btn&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_gsr_dataframe_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_dataframe</span><span class="p">(</span><span class="n">with_geo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">transpose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose_gsr_dataframe</span><span class="o">.</span><span class="n">value</span>
+
         <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">transpose</span><span class="o">=</span><span class="n">transpose</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GsrRobotPanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.gsr.GsrRobotPanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="GsrRobotPanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.gsr.GsrRobotPanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return tabs with widgets to interact with the |GsrRobot|.&quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Summary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span>
                                <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">))</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;e-Bands&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_ebands_plotter_widgets</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_ebands_plotter_btn</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Plot-eBands&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_ebands_plotter_widgets</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_ebands_plotter_btn</span><span class="p">)</span>
 
         <span class="c1"># Add e-DOS tab but only if all ebands have k-sampling.</span>
         <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">abifile</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_ibz</span> <span class="k">for</span> <span class="n">abifile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">abifiles</span><span class="p">):</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;e-DOS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_edos_plotter_widgets</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_edos_plotter_btn</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Plot-eDOS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_edos_plotter_widgets</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_edos_plotter_btn</span><span class="p">)</span>
 
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;GSR-dataframe&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Dataframe&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
             <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transpose_gsr_dataframe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsr_dataframe_btn</span><span class="p">),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">on_gsr_dataframe_btn</span><span class="p">)</span>
 
-        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+        <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
 </pre></div>
 
            </div>
@@ -317,7 +309,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

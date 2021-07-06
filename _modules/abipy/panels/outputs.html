@@ -190,9 +190,8 @@
   <h1>Source code for abipy.panels.outputs</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Panels for interacting with output files in text format.&quot;&quot;&quot;</span>
 
-<span class="c1">#import param</span>
 <span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
-<span class="c1">#import panel.widgets as pnw</span>
+<span class="kn">import</span> <span class="nn">panel.widgets</span> <span class="k">as</span> <span class="nn">pnw</span>
 <span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
 <span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">AbipyParameterized</span><span class="p">,</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span><span class="p">,</span> <span class="n">dfc</span>
 
@@ -251,6 +250,50 @@
 
         <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="AbinitOutputFilePanelWithFileInput"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.outputs.AbinitOutputFilePanelWithFileInput">[docs]</a><span class="k">class</span> <span class="nc">AbinitOutputFilePanelWithFileInput</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
+
+    <span class="n">info_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">This application allows users to analyze the Abinit main output file</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">help_md</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">## Description</span>
+
+<span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">info_str</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">help_md</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileInput</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">css_classes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pnx-file-upload-area&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_file_input</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AbinitOutputFilePanelWithFileInput.on_file_input"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.outputs.AbinitOutputFilePanelWithFileInput.on_file_input">[docs]</a>    <span class="k">def</span> <span class="nf">on_file_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">new_abifile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_abifile_from_file_input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="o">=</span> <span class="n">new_abifile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">abifile</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()]</span></div>
+        <span class="c1">#self.main_area.append(self.abifile.get_panel())</span>
+
+<div class="viewcode-block" id="AbinitOutputFilePanelWithFileInput.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.outputs.AbinitOutputFilePanelWithFileInput.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;## Upload (or drag &amp; drop) an *.abo* file (main ABINIT output file):&quot;</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">get_fileinput_section</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="p">),</span>
+                        <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="n">main</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">kwds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_abinit_template_cls_kwds</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">main</span><span class="o">=</span><span class="n">main</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Abo Analyzer&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -264,7 +307,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

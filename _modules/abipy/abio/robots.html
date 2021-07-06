@@ -559,6 +559,11 @@
         <span class="n">root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">root</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">]</span>
 
+<div class="viewcode-block" id="Robot.remove"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the file handle, remove the file from disk for each file in the robot.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">abifile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">:</span>
+            <span class="n">abifile</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="Robot.pop_label"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.pop_label">[docs]</a>    <span class="k">def</span> <span class="nf">pop_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove file with the given ``label`` and close it.</span>
@@ -1325,7 +1330,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

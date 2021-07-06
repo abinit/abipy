@@ -195,24 +195,25 @@
 <span class="kn">import</span> <span class="nn">panel.widgets</span> <span class="k">as</span> <span class="nn">pnw</span>
 <span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
 
-<span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">,</span> <span class="n">HasStructureParams</span><span class="p">,</span> <span class="n">BaseRobotPanel</span><span class="p">,</span>
-        <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span><span class="p">,</span> <span class="n">dfc</span><span class="p">,</span> <span class="n">depends_on_btn_click</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">,</span> <span class="n">PanelWithStructure</span><span class="p">,</span> <span class="n">BaseRobotPanel</span><span class="p">,</span>
+        <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span><span class="p">,</span> <span class="n">dfc</span><span class="p">,</span> <span class="n">depends_on_btn_click</span><span class="p">,</span> <span class="n">Loading</span><span class="p">,</span> <span class="n">ActiveBar</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="kn">import</span> <span class="n">PhononBandsPlotter</span>
 
 
-<div class="viewcode-block" id="HasAnaddbParams"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.HasAnaddbParams">[docs]</a><span class="k">class</span> <span class="nc">HasAnaddbParams</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">Parameterized</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelWithAnaddbParams"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.PanelWithAnaddbParams">[docs]</a><span class="k">class</span> <span class="nc">PanelWithAnaddbParams</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">Parameterized</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Mixin for panel classes requiring widgets to invoke Anaddb via AbiPy.</span>
 <span class="sd">    Used, for instance, by DdbFilePanel and DdbRobotPanel so that we don&#39;t have to</span>
 <span class="sd">    repeat the same parameters over and over again.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">nqsmall</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of divisions for smallest vector to generate Q-mesh&quot;</span><span class="p">)</span>
-    <span class="n">ndivsm</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of divisions for smallest vector to generate Q-path&quot;</span><span class="p">)</span>
+    <span class="n">nqsmall</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of divisions for smallest vector to generate the q-mesh&quot;</span><span class="p">)</span>
+    <span class="n">ndivsm</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of divisions for smallest vector to generate the q-path&quot;</span><span class="p">)</span>
     <span class="n">lo_to_splitting</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;automatic&quot;</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;automatic&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
     <span class="n">chneut</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Abinit variable&quot;</span><span class="p">)</span>
     <span class="n">dipdip</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Abinit variable&quot;</span><span class="p">)</span>
-    <span class="c1"># TODO: Add this widget, need to update anaget API.</span>
+    <span class="c1"># TODO: Add these widgetd but need to update anaget API.</span>
     <span class="c1">#dipquad = param.ObjectSelector(default=0, objects=[0, 1], doc=&quot;Abinit variable&quot;)</span>
     <span class="c1">#quadquad = param.ObjectSelector(default=0, objects=[0, 1], doc=&quot;Abinit variable&quot;)</span>
     <span class="n">asr</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Abinit variable&quot;</span><span class="p">)</span>
@@ -224,30 +225,21 @@
     <span class="n">gamma_ev</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">1e-20</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Phonon linewidth in eV&quot;</span><span class="p">)</span>
     <span class="n">w_range</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Range</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Frequency range (eV)&quot;</span><span class="p">)</span>
 
-    <span class="c1"># FIXME</span>
-    <span class="n">nqsmall_list</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">LiteralInput</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;nsmalls (python list)&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="nb">type</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-    <span class="c1">#nqqpt = pnw.LiteralInput(name=&#39;nsmalls (list)&#39;, value=[10, 20, 30], type=list)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
 
-    <span class="c1"># Base buttons</span>
-    <span class="n">plot_check_asr_dipdip_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Compute phonons with/wo ASR and DIPDIP&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="c1">#if self.has_remote_serve:</span>
+        <span class="c1">#    self.param.nqsmall.bounds = (1, 50)</span>
+        <span class="c1">#    self.param.ndivsm.bounds = (-30, 30)</span>
 
-    <span class="n">warning</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Refresh the page if plotly figures are not shown.</span>
+        <span class="c1"># FIXME</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nqsmall_list</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">LiteralInput</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;nsmalls (python list)&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="nb">type</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+        <span class="c1">#nqqpt = pnw.LiteralInput(name=&#39;nsmalls (list)&#39;, value=[10, 20, 30], type=list)</span>
 
-<span class="sd">Note that widgets for input variables such as *asr*, *chneut*, *dipdip*, *dos_method*, *etc.*</span>
-<span class="sd">are **shared by the different tabs**.</span>
+        <span class="c1"># Base buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_check_asr_dipdip_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Compute phonons with/wo ASR and DIPDIP&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
 
-<span class="sd">This means that if you change the value of one of these variables in the active tab,</span>
-<span class="sd">the same value will **automagically** appear in the other tabs yet the results/figures</span>
-<span class="sd">are not automatically recomputed when you change the value.</span>
-
-<span class="sd">In other words, if you change some variable in the active tab and then you move to another tab,</span>
-<span class="sd">the results/figures are stil computed with the **old input variables** and you will need to</span>
-<span class="sd">recompute the new results by clicking the button.</span>
-<span class="sd">&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;warning&quot;</span><span class="p">)</span>
-
-<div class="viewcode-block" id="HasAnaddbParams.kwargs_for_anaget_phbst_and_phdos_files"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.HasAnaddbParams.kwargs_for_anaget_phbst_and_phdos_files">[docs]</a>    <span class="k">def</span> <span class="nf">kwargs_for_anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelWithAnaddbParams.kwargs_for_anaget_phbst_and_phdos_files"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.PanelWithAnaddbParams.kwargs_for_anaget_phbst_and_phdos_files">[docs]</a>    <span class="k">def</span> <span class="nf">kwargs_for_anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the parameters require to invoke anaget_phbst_and_phdos_files</span>
 <span class="sd">        Additional kwargs can be specified if needed.</span>
@@ -262,13 +254,15 @@
         <span class="k">return</span> <span class="n">d</span></div></div>
 
 
-<div class="viewcode-block" id="DdbFilePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel">[docs]</a><span class="k">class</span> <span class="nc">DdbFilePanel</span><span class="p">(</span><span class="n">HasStructureParams</span><span class="p">,</span> <span class="n">HasAnaddbParams</span><span class="p">):</span>
+<div class="viewcode-block" id="DdbFilePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel">[docs]</a><span class="k">class</span> <span class="nc">DdbFilePanel</span><span class="p">(</span><span class="n">PanelWithStructure</span><span class="p">,</span> <span class="n">PanelWithAnaddbParams</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A panel to analyze a |DdbFile|.</span>
 <span class="sd">    Provides widgets to invoke anaddb and visualize the results.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ddb</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="n">PanelWithStructure</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="n">ddb</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">PanelWithAnaddbParams</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span> <span class="o">=</span> <span class="n">ddb</span>
 
         <span class="c1"># Add buttons</span>
@@ -281,13 +275,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">plot_dos_vs_qmesh_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot PHDos vs Qmesh&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">stacked_pjdos</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Stacked PJDOS&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Structure object provided by the subclass.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">structure</span>
 
 <div class="viewcode-block" id="DdbFilePanel.get_epsinf"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.get_epsinf">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;get_epsinf_btn&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_epsinf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -336,9 +323,8 @@
 
         <span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">reim</span><span class="p">):</span>
             <span class="c1"># Matplotlib</span>
-            <span class="c1">#fig = gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,</span>
-            <span class="c1">#                reim=reim, units=self.units, **self.mpl_kwargs)</span>
-            <span class="c1">#return mpl(fig)</span>
+            <span class="c1">#return mpl(gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,</span>
+            <span class="c1">#                reim=reim, units=self.units, **self.mpl_kwargs))</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">w_min</span><span class="o">=</span><span class="n">ws</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">w_max</span><span class="o">=</span><span class="n">w_max</span><span class="p">,</span> <span class="n">gamma_ev</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_ev</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">component</span><span class="p">,</span>
                               <span class="n">reim</span><span class="o">=</span><span class="n">reim</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">ply</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">with_help</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -365,8 +351,8 @@
         <span class="c1">#return gspec</span>
         <span class="k">return</span> <span class="n">col</span></div>
 
-<div class="viewcode-block" id="DdbFilePanel.plot_phbands_and_phdos"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.plot_phbands_and_phdos">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;plot_phbands_btn&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">plot_phbands_and_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DdbFilePanel.on_plot_phbands_and_phdos"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.on_plot_phbands_and_phdos">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;plot_phbands_btn&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_plot_phbands_and_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute phonon bands and DOS from DDB by invoking Anaddb then plot results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -382,23 +368,20 @@
 
             <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Phonon band structure and DOS:&quot;</span><span class="p">)</span>
             <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">plotly_with_phdos</span><span class="p">(</span><span class="n">phdos</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
-            <span class="c1">#ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))</span>
 
             <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Brillouin zone and q-path:&quot;</span><span class="p">)</span>
-            <span class="c1">#qpath_pane = mpl(phbands.qpoints.plot(**self.mpl_kwargs), with_divider=False)</span>
             <span class="n">qpath_pane</span> <span class="o">=</span> <span class="n">ply</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">with_divider</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">df_qpts</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">get_highsym_datataframe</span><span class="p">()</span>
             <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">qpath_pane</span><span class="p">,</span> <span class="n">df_qpts</span><span class="p">))</span>
             <span class="n">ca</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">())</span>
 
             <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Type-projected phonon DOS:&quot;</span><span class="p">)</span>
-            <span class="c1">#ca(mpl(phdos_file.plot_pjdos_type(units=self.units, **self.mpl_kwargs)))</span>
             <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="n">phdos_file</span><span class="o">.</span><span class="n">plotly_pjdos_type</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stacked_pjdos</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
-            <span class="c1">#ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))</span>
+
             <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Thermodynamic properties in the harmonic approximation:&quot;</span><span class="p">)</span>
             <span class="n">temps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_range</span>
-            <span class="c1">#ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))</span>
             <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="n">phdos</span><span class="o">.</span><span class="n">plotly_harmonic_thermo</span><span class="p">(</span><span class="n">tstart</span><span class="o">=</span><span class="n">temps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tstop</span><span class="o">=</span><span class="n">temps</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
+            <span class="c1">#ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))</span>
             <span class="c1">#msqd_dos.plot_tensor(**self.mpl_kwargs)</span>
 
             <span class="c1"># Add Anaddb input file</span>
@@ -421,7 +404,6 @@
                                     <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_procs</span><span class="p">)</span>
 
         <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Linear least-squares fit:&quot;</span><span class="p">)</span>
-        <span class="c1">#ca(mpl(sv.plot(**self.mpl_kwargs)))</span>
         <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="n">sv</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
         <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Speed of sound computed along different q-directions in reduced coords:&quot;</span><span class="p">)</span>
         <span class="n">ca</span><span class="p">(</span><span class="n">dfc</span><span class="p">(</span><span class="n">sv</span><span class="o">.</span><span class="n">get_dataframe</span><span class="p">()))</span>
@@ -450,10 +432,8 @@
         <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;stretch_width&#39;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
 
         <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Phonon bands and DOS with/wo acoustic sum rule:&quot;</span><span class="p">)</span>
-        <span class="c1">#ca(mpl(asr_plotter.plot(**self.mpl_kwargs)))</span>
         <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="n">asr_plotter</span><span class="o">.</span><span class="n">combiplotly</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
         <span class="n">ca</span><span class="p">(</span><span class="s2">&quot;## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:&quot;</span><span class="p">)</span>
-        <span class="c1">#ca(mpl(dipdip_plotter.plot(**self.mpl_kwargs)))</span>
         <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="n">dipdip_plotter</span><span class="o">.</span><span class="n">combiplotly</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
 
         <span class="k">return</span> <span class="n">col</span></div>
@@ -465,11 +445,10 @@
 <span class="sd">        of the dipole-quadrupole and quadrupole-quadrupole terms in the dynamical matrix.</span>
 <span class="sd">        Requires DDB file with eps_inf, BECS and dynamical quadrupoles.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">num_cpus</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="c1">#print(self.nqsmall_list.value)</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">anacompare_phdos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nqsmall_list</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dipdip</span><span class="p">,</span>
                                       <span class="n">dos_method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dos_method</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                      <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">num_cpus</span><span class="o">=</span><span class="n">num_cpus</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+                                      <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">num_cpus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
 
         <span class="c1">#r.phdoses: List of |PhononDos| objects</span>
 
@@ -504,8 +483,8 @@
 
         <span class="k">return</span> <span class="n">col</span></div>
 
-<div class="viewcode-block" id="DdbFilePanel.plot_ifc"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.plot_ifc">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;plot_ifc_btn&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">plot_ifc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DdbFilePanel.on_plot_ifc"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.on_plot_ifc">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;plot_ifc_btn&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_plot_ifc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ifc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">anaget_ifc</span><span class="p">(</span><span class="n">asr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dipdip</span><span class="p">)</span>
 
         <span class="c1"># Fill column</span>
@@ -520,57 +499,59 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return tabs with widgets to interact with the DDB file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Summary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
             <span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="c1">#if self.ddb.has_phonons</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;PH-bands&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### PH-bands options&quot;</span><span class="p">,</span> <span class="s2">&quot;nqsmall&quot;</span><span class="p">,</span> <span class="s2">&quot;ndivsm&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span>
-                          <span class="s2">&quot;lo_to_splitting&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span> <span class="s2">&quot;stacked_pjdos&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_range&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_phbands_btn&quot;</span><span class="p">,</span>
-                          <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_phbands_and_phdos&quot;</span><span class="p">)]),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_phbands_and_phdos</span>
-        <span class="p">)</span>
-        <span class="c1">#if self.ddb.has_becs</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;BECs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Born effective charges options&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma_ev&quot;</span><span class="p">,</span>
-                          <span class="s2">&quot;get_epsinf_btn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;get_epsinf&quot;</span><span class="p">)]),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">get_epsinf</span>
-        <span class="p">)</span>
-        <span class="c1">#if self.ddb.has_e0</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;eps0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### epsilon_0&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma_ev&quot;</span><span class="p">,</span> <span class="s2">&quot;w_range&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_eps0w_btn&quot;</span><span class="p">,</span>
-                          <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_eps0w&quot;</span><span class="p">)]),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_eps0w</span>
-        <span class="p">)</span>
-        <span class="c1">#if self.ddb.has_phonons</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Speed of sound&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Speed of sound options&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_vsound_btn&quot;</span><span class="p">,</span>
-                         <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_vsound&quot;</span><span class="p">)]),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_vsound</span>
-        <span class="p">)</span>
-        <span class="c1">#if self.ddb.has_phonons</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ASR &amp; DIPDIP&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### ASR &amp; DIPDIP options&quot;</span><span class="p">,</span> <span class="s2">&quot;nqsmall&quot;</span><span class="p">,</span> <span class="s2">&quot;ndivsm&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_check_asr_dipdip_btn&quot;</span><span class="p">,</span>
-                         <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_without_asr_dipdip&quot;</span><span class="p">)]),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_without_asr_dipdip</span>
-        <span class="p">)</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;DOS vs q-mesh&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### DOS vs q-mesh options&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span> <span class="s2">&quot;nqsmall_list&quot;</span><span class="p">,</span>
-                         <span class="s2">&quot;temp_range&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_dos_vs_qmesh_btn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_dos_vs_qmesh&quot;</span><span class="p">)]),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_dos_vs_qmesh</span>
-        <span class="p">)</span>
-        <span class="c1">#if self.ddb.has_dynamical_quadrupoles</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Quadrupoles&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Quadrupoles options&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;lo_to_splitting&quot;</span><span class="p">,</span> <span class="s2">&quot;ndivsm&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span>
-                          <span class="s2">&quot;plot_phbands_quad_btn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_phbands_quad&quot;</span><span class="p">)]),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_phbands_quad</span>
-        <span class="p">)</span>
-        <span class="c1">#if self.ddb.has_phonons</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;IFCs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### IFCs options&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_ifc_btn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_ifc&quot;</span><span class="p">)]),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_ifc</span>
-        <span class="p">)</span>
+
+        <span class="c1"># Note how we build tabs according to the content of the DDB.</span>
+        <span class="k">if</span> <span class="n">ddb</span><span class="o">.</span><span class="n">has_at_least_one_atomic_perturbation</span><span class="p">():</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;PH-bands&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### PH-bands options&quot;</span><span class="p">,</span> <span class="s2">&quot;nqsmall&quot;</span><span class="p">,</span> <span class="s2">&quot;ndivsm&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;lo_to_splitting&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span> <span class="s2">&quot;stacked_pjdos&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_range&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_phbands_btn&quot;</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;on_plot_phbands_and_phdos&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_plot_phbands_and_phdos</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">ddb</span><span class="o">.</span><span class="n">has_bec_terms</span><span class="p">(</span><span class="n">select</span><span class="o">=</span><span class="s2">&quot;at_least_one&quot;</span><span class="p">):</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;BECs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Born effective charges options&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma_ev&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;get_epsinf_btn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;get_epsinf&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_epsinf</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">ddb</span><span class="o">.</span><span class="n">has_epsinf_terms</span><span class="p">(</span><span class="n">select</span><span class="o">=</span><span class="s2">&quot;at_least_one_diagoterm&quot;</span><span class="p">):</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;eps0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### epsilon_0&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma_ev&quot;</span><span class="p">,</span> <span class="s2">&quot;w_range&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_eps0w_btn&quot;</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_eps0w&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_eps0w</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">ddb</span><span class="o">.</span><span class="n">has_at_least_one_atomic_perturbation</span><span class="p">():</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Speed of sound&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Speed of sound options&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_vsound_btn&quot;</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_vsound&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_vsound</span>
+            <span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ASR &amp; DIPDIP&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### ASR &amp; DIPDIP options&quot;</span><span class="p">,</span> <span class="s2">&quot;nqsmall&quot;</span><span class="p">,</span> <span class="s2">&quot;ndivsm&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_check_asr_dipdip_btn&quot;</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_without_asr_dipdip&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_without_asr_dipdip</span>
+            <span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;DOS vs q-mesh&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### DOS vs q-mesh options&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span> <span class="s2">&quot;nqsmall_list&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;temp_range&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_dos_vs_qmesh_btn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_dos_vs_qmesh&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_dos_vs_qmesh</span>
+            <span class="p">)</span>
+            <span class="c1">#if ddb.has_dynamical_quadrupoles:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Quadrupoles&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Quadrupoles options&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;lo_to_splitting&quot;</span><span class="p">,</span> <span class="s2">&quot;ndivsm&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;plot_phbands_quad_btn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_phbands_quad&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_phbands_quad</span>
+            <span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;IFCs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### IFCs options&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_ifc_btn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;on_plot_ifc&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_plot_ifc</span>
+            <span class="p">)</span>
+
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_struct_view_tab_entry</span><span class="p">()</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Global&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Global options&quot;</span><span class="p">,</span> <span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;mpi_procs&quot;</span><span class="p">,</span> <span class="s2">&quot;verbose&quot;</span><span class="p">]),</span>
@@ -578,24 +559,232 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
-
-        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
 
 
-<div class="viewcode-block" id="DdbRobotPanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbRobotPanel">[docs]</a><span class="k">class</span> <span class="nc">DdbRobotPanel</span><span class="p">(</span><span class="n">BaseRobotPanel</span><span class="p">,</span> <span class="n">HasAnaddbParams</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelWithFileInput"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.PanelWithFileInput">[docs]</a><span class="k">class</span> <span class="nc">PanelWithFileInput</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
+
+    <span class="n">info_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Post-process the data stored in one of the ABINIT output files.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_structure</span> <span class="o">=</span> <span class="n">use_structure</span>
+        <span class="c1">#self.with_input_gen = with_input_gen</span>
+        <span class="n">help_md</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">## Description</span>
+
+<span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">info_str</span><span class="si">}</span><span class="s2"></span>
+
+<span class="s2">Use the **Choose File** to upload one of the files supported by this app.</span>
+<span class="s2">Drop one of of the files supported by AbiPy onto the FileInput area or</span>
+<span class="s2">click the **Choose File** button to upload</span>
+<span class="s2">Keep in mind that the **file extension matters**!</span>
+<span class="s2">Also, avoid uploading big files (size &gt; XXX).</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">help_md</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileInput</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">css_classes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pnx-file-upload-area&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_file_input</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;mp-id&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="s1">&#39;Enter e.g. mp-149 for Silicon and press ⏎&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_mpid_input</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="c1">#self.mp_progress = pn.indicators.Progress(name=&#39;Fetching data from the MP website&#39;, bar_color=&quot;warning&quot;,</span>
+        <span class="c1">#                                          active=False, width=200, height=10, align=&quot;center&quot;)</span>
+
+<div class="viewcode-block" id="PanelWithFileInput.on_file_input"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.PanelWithFileInput.on_file_input">[docs]</a>    <span class="k">def</span> <span class="nf">on_file_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">new_abifile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_abifile_from_file_input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="p">,</span> <span class="n">use_structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_structure</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="o">=</span> <span class="n">new_abifile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">abifile</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="PanelWithFileInput.on_mpid_input"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.PanelWithFileInput.on_mpid_input">[docs]</a>    <span class="k">def</span> <span class="nf">on_mpid_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+
+        <span class="k">with</span> <span class="n">Loading</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="p">,</span> <span class="n">err_wdg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_mpid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">abifile</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="PanelWithFileInput.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.PanelWithFileInput.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_structure</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Structure Analyzer&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;## Upload (or drag &amp; drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, POSCAR):&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Output File Analyzer&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;## Upload (or drag &amp; drop) **any file** supported by AbiPy-Panel. See list below:&quot;</span>
+
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
+            <span class="n">msg</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_fileinput_section</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wdg_exts_with_get_panel</span><span class="p">(),</span>
+            <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_structure</span><span class="p">:</span>
+            <span class="n">col</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="s2">&quot;## or get the structure from the [Materials Project](https://materialsproject.org/) database:&quot;</span><span class="p">,</span>
+                <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">),</span>
+            <span class="p">])</span>
+
+        <span class="n">main</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">kwds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_abinit_template_cls_kwds</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">main</span><span class="o">=</span><span class="n">main</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="PanelWithStructureInput"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.PanelWithStructureInput">[docs]</a><span class="k">class</span> <span class="nc">PanelWithStructureInput</span><span class="p">(</span><span class="n">PanelWithFileInput</span><span class="p">):</span>
+
+    <span class="n">info_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">This application allows user to upload a file with structural info and operate on it.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">use_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DdbPanelWithFileInput"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbPanelWithFileInput">[docs]</a><span class="k">class</span> <span class="nc">DdbPanelWithFileInput</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
+
+    <span class="n">info_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">This application allows users to post-process the data stored in one of the Abinit output files.</span>
+<span class="s2">The main difference with respect to [Abinit Output File Analyzer](/outfile) is that</span>
+<span class="s2">it is also possible to fetch the DDB file from the Materials Project Database.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">help_md</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">## Description</span>
+
+<span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">info_str</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">help_md</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">get_alert_data_transfer</span><span class="p">(),</span>
+                                   <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileInput</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">css_classes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pnx-file-upload-area&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_file_input</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;mp-id&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="s1">&#39;Enter e.g. mp-149 for Silicon and press ⏎&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_mpid_input</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="c1">#self.mp_progress = pn.indicators.Progress(name=&#39;Fetching data from the MP website&#39;, bar_color=&quot;warning&quot;,</span>
+        <span class="c1">#                                          active=False, width=200, height=10, align=&quot;center&quot;)</span>
+
+<div class="viewcode-block" id="DdbPanelWithFileInput.on_file_input"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbPanelWithFileInput.on_file_input">[docs]</a>    <span class="k">def</span> <span class="nf">on_file_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span><span class="o">.</span><span class="n">object</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">new_abifile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_abifile_from_file_input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="o">=</span> <span class="n">new_abifile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">abifile</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="DdbPanelWithFileInput.on_mpid_input"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbPanelWithFileInput.on_mpid_input">[docs]</a>    <span class="k">def</span> <span class="nf">on_mpid_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+
+        <span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="kn">import</span> <span class="n">DdbFile</span>
+        <span class="k">with</span> <span class="n">Loading</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="p">,</span> <span class="n">err_wdg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">abifile</span> <span class="o">=</span> <span class="n">DdbFile</span><span class="o">.</span><span class="n">from_mpid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">abifile</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="DdbPanelWithFileInput.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbPanelWithFileInput.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
+            <span class="s2">&quot;## Upload (or drag &amp; drop) a DDB file:&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_fileinput_section</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="p">),</span>
+            <span class="s2">&quot;## or get the DDB from the [Materials Project](https://materialsproject.org/) database (*if available*):&quot;</span><span class="p">,</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_input</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpid_err_wdg</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">),</span>
+            <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="n">main</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">kwds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_abinit_template_cls_kwds</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">main</span><span class="o">=</span><span class="n">main</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;DDB Analyzer&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CompareDdbWithMP"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.CompareDdbWithMP">[docs]</a><span class="k">class</span> <span class="nc">CompareDdbWithMP</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
+
+    <span class="n">info_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">This panel alllows users to upload a DDB file and compare it with the one available on the MP.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">help_md</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">## Description</span>
+
+<span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">info_str</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">help_md</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">get_alert_data_transfer</span><span class="p">(),</span>
+                                   <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileInput</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">css_classes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pnx-file-upload-area&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_file_input</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mp_progress</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">indicators</span><span class="o">.</span><span class="n">Progress</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Fetching DDB from the MP website&#39;</span><span class="p">,</span> <span class="n">bar_color</span><span class="o">=</span><span class="s2">&quot;warning&quot;</span><span class="p">,</span>
+                                                  <span class="n">active</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mp_err_wdg</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CompareDdbWithMP.on_file_input"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.CompareDdbWithMP.on_file_input">[docs]</a>    <span class="k">def</span> <span class="nf">on_file_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">abinit_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_abifile_from_file_input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="kn">import</span> <span class="n">DdbFile</span><span class="p">,</span> <span class="n">DdbRobot</span>
+
+        <span class="c1"># Match Abinit structure with MP.</span>
+        <span class="n">mp</span> <span class="o">=</span> <span class="n">abinit_ddb</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">mp_match</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">ActiveBar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp_progress</span><span class="p">,</span> <span class="n">err_wdg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mp_err_wdg</span><span class="p">):</span>
+            <span class="n">mpid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">mp_id</span> <span class="k">for</span> <span class="n">mp_id</span> <span class="ow">in</span> <span class="n">mp</span><span class="o">.</span><span class="n">ids</span> <span class="k">if</span> <span class="n">mp_id</span> <span class="o">!=</span> <span class="s2">&quot;this&quot;</span><span class="p">]</span>
+            <span class="n">ddb_robot</span> <span class="o">=</span> <span class="n">DdbRobot</span><span class="o">.</span><span class="n">from_mpid_list</span><span class="p">(</span><span class="n">mpid_list</span><span class="p">)</span>
+            <span class="n">ddb_robot</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;Yours DDB&quot;</span><span class="p">,</span> <span class="n">abinit_ddb</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="n">DdbRobotPanel</span><span class="p">(</span><span class="n">ddb_robot</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="CompareDdbWithMP.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.CompareDdbWithMP.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
+            <span class="s2">&quot;## Upload (or drag &amp; drop) a DDB file:&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_fileinput_section</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_input</span><span class="p">),</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="s2">&quot;### Fetching data from the MP website: &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp_progress</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp_err_wdg</span><span class="p">,</span>
+                   <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">),</span>
+            <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="n">main</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">kwds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_abinit_template_cls_kwds</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">main</span><span class="o">=</span><span class="n">main</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Compare with MP DDB&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="DdbRobotPanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbRobotPanel">[docs]</a><span class="k">class</span> <span class="nc">DdbRobotPanel</span><span class="p">(</span><span class="n">BaseRobotPanel</span><span class="p">,</span> <span class="n">PanelWithAnaddbParams</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A panel to analyze multiple |DdbFile| via the low-level API provided by DdbRobot.</span>
+<span class="sd">    A panel to analyze multiple DdbFiles via the low-level API provided by DdbRobot.</span>
 <span class="sd">    Provides widgets to invoke anaddb and visualize the results.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Buttons</span>
-    <span class="n">plot_combiplot_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Compute&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
-    <span class="n">combiplot_check_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">CheckButtonGroup</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Check Button Group&#39;</span><span class="p">,</span>
-                                               <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;combiplot&#39;</span><span class="p">],</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;combiplot&#39;</span><span class="p">,</span> <span class="s1">&#39;gridplot&#39;</span><span class="p">])</span>
-
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span> <span class="o">=</span> <span class="n">robot</span>
+        <span class="n">BaseRobotPanel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot</span><span class="o">=</span><span class="n">robot</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">PanelWithAnaddbParams</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="c1"># Buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_combiplot_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Compute&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combiplot_check_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">CheckButtonGroup</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Check Button Group&#39;</span><span class="p">,</span>
+                                                        <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;combiplot&#39;</span><span class="p">],</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;combiplot&#39;</span><span class="p">,</span> <span class="s1">&#39;gridplot&#39;</span><span class="p">])</span>
 
 <div class="viewcode-block" id="DdbRobotPanel.kwargs_for_anaget_phbst_and_phdos_files"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbRobotPanel.kwargs_for_anaget_phbst_and_phdos_files">[docs]</a>    <span class="k">def</span> <span class="nf">kwargs_for_anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Extend method of base class to handle lo_to_splitting&quot;&quot;&quot;</span>
@@ -698,7 +887,7 @@
     <span class="c1">#        return gspec</span>
 
     <span class="c1">#@param.depends(&#39;plot_phbands_btn.clicks&#39;)</span>
-    <span class="c1">#def plot_phbands_and_phdos(self, event=None):</span>
+    <span class="c1">#def on_plot_phbands_and_phdos(self, event=None):</span>
     <span class="c1">#    &quot;&quot;&quot;Compute phonon bands and DOSes from DDB and plot the results.&quot;&quot;&quot;</span>
     <span class="c1">#    if self.plot_phbands_btn.clicks == 0: return</span>
 
@@ -805,22 +994,21 @@
 
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Params&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_compare_params_widgets</span><span class="p">()</span>
 
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Combiplot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# PH-bands options&quot;</span><span class="p">,</span>
-                      <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pws</span><span class="p">(</span><span class="s2">&quot;nqsmall&quot;</span><span class="p">,</span> <span class="s2">&quot;ndivsm&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span>
-                                <span class="s2">&quot;lo_to_splitting&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_range&quot;</span><span class="p">,</span>
-                                <span class="s2">&quot;combiplot_check_btn&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_combiplot_btn&quot;</span><span class="p">,</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_combiplot&quot;</span><span class="p">)),</span>
-                      <span class="p">),</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Plot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;# PH-bands options&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;nqsmall&quot;</span><span class="p">,</span> <span class="s2">&quot;ndivsm&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;lo_to_splitting&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_range&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;combiplot_check_btn&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_combiplot_btn&quot;</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_combiplot&quot;</span><span class="p">)]),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">plot_combiplot</span>
         <span class="p">)</span>
         <span class="c1">#app((&quot;PH-bands&quot;, pn.Row(</span>
         <span class="c1">#    pn.Column(&quot;# PH-bands options&quot;,</span>
         <span class="c1">#              *self.pws(&quot;nqsmall&quot;, &quot;ndivsm&quot;, &quot;asr&quot;, &quot;chneut&quot;, &quot;dipdip&quot;,</span>
         <span class="c1">#                        &quot;lo_to_splitting&quot;, &quot;dos_method&quot;, &quot;temp_range&quot;, &quot;plot_phbands_btn&quot;,</span>
-        <span class="c1">#                        self.helpc(&quot;plot_phbands_and_phdos&quot;)),</span>
+        <span class="c1">#                        self.helpc(&quot;on_plot_phbands_and_phdos&quot;)),</span>
         <span class="c1">#              ),</span>
-        <span class="c1">#    self.plot_phbands_and_phdos)</span>
+        <span class="c1">#    self.on_plot_phbands_and_phdos)</span>
         <span class="c1">#))</span>
         <span class="c1">#app((&quot;BECs&quot;, pn.Row(</span>
         <span class="c1">#    pn.Column(&quot;# Born effective charges options&quot;,</span>
@@ -843,11 +1031,11 @@
         <span class="c1">#              ),</span>
         <span class="c1">#    self.plot_vsound)</span>
         <span class="c1">#))</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ASR &amp; DIPDIP&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### ASR &amp; DIPDIP options&quot;</span><span class="p">,</span> <span class="s2">&quot;nqsmall&quot;</span><span class="p">,</span> <span class="s2">&quot;ndivsm&quot;</span><span class="p">,</span> <span class="s2">&quot;dos_method&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_check_asr_dipdip_btn&quot;</span><span class="p">,</span>
-                          <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;plot_without_asr_dipdip&quot;</span><span class="p">)]),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_without_asr_dipdip</span>
-        <span class="p">)</span>
+        <span class="c1">#d[&quot;ASR &amp; DIPDIP&quot;] = pn.Row(</span>
+        <span class="c1">#    self.pws_col([&quot;### ASR &amp; DIPDIP options&quot;, &quot;nqsmall&quot;, &quot;ndivsm&quot;, &quot;dos_method&quot;, &quot;plot_check_asr_dipdip_btn&quot;,</span>
+        <span class="c1">#                  self.helpc(&quot;plot_without_asr_dipdip&quot;)]),</span>
+        <span class="c1">#    self.plot_without_asr_dipdip</span>
+        <span class="c1">#)</span>
         <span class="c1">#app((&quot;DOS vs q-mesh&quot;, pn.Row(</span>
         <span class="c1">#    pn.Column(&quot;# DOS vs q-mesh options&quot;,</span>
         <span class="c1">#              *self.pws(&quot;asr&quot;, &quot;chneut&quot;, &quot;dipdip&quot;, &quot;dos_method&quot;, &quot;nqsmall_list&quot;, &quot;plot_dos_vs_qmesh_btn&quot;,</span>
@@ -865,16 +1053,99 @@
         <span class="c1">#app((&quot;IFCs&quot;, pn.Row(</span>
         <span class="c1">#    pn.Column(&quot;# IFCs options&quot;,</span>
         <span class="c1">#              *self.pws(&quot;asr&quot;, &quot;dipdip&quot;, &quot;chneut&quot;, &quot;plot_ifc_btn&quot;,</span>
-        <span class="c1">#                        self.helpc(&quot;plot_ifc&quot;)),</span>
+        <span class="c1">#                        self.helpc(&quot;on_plot_ifc&quot;)),</span>
         <span class="c1">#              ),</span>
-        <span class="c1">#    self.plot_ifc)</span>
+        <span class="c1">#    self.on_plot_ifc)</span>
         <span class="c1">#))</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Global&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Global options&quot;</span><span class="p">,</span> <span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;mpi_procs&quot;</span><span class="p">,</span> <span class="s2">&quot;verbose&quot;</span><span class="p">])</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Global&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Global options&quot;</span><span class="p">,</span> <span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;mpi_procs&quot;</span><span class="p">,</span> <span class="s2">&quot;verbose&quot;</span><span class="p">]),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_software_stack</span><span class="p">()</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
 
-        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+
+<div class="viewcode-block" id="RobotWithFileInput"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.RobotWithFileInput">[docs]</a><span class="k">class</span> <span class="nc">RobotWithFileInput</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
+
+    <span class="n">info_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">This application allows users to create an AbiPy robot to post-process</span>
+<span class="s2">a set of ABINIT output files of the same type.</span>
+<span class="s2"> &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+
+        <span class="n">help_md</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2"> ## Description</span>
+
+<span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">info_str</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">help_md</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">get_alert_data_transfer</span><span class="p">(),</span>
+                                   <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="kn">import</span> <span class="nn">os</span>
+        <span class="n">top</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">top</span> <span class="o">=</span> <span class="s2">&quot;/Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_phonons_nkpt_tsmear&quot;</span>
+        <span class="n">top</span> <span class="o">=</span> <span class="s2">&quot;~&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_selector</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">FileSelector</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robot_files_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Load files&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robot_files_btn</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_load_files</span><span class="p">)</span>
+
+    <span class="c1">#@depends_on_btn_click(&quot;robot_files_btn&quot;)</span>
+<div class="viewcode-block" id="RobotWithFileInput.on_load_files"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.RobotWithFileInput.on_load_files">[docs]</a>    <span class="k">def</span> <span class="nf">on_load_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_selector</span><span class="o">.</span><span class="n">value</span><span class="p">:</span> <span class="k">return</span>
+        <span class="c1">#self.mpid_err_wdg.object = &quot;&quot;</span>
+        <span class="c1">#new_abifile = self.get_abifile_from_file_input(self.file_input)</span>
+        <span class="c1">#print(&quot;in on_load_files&quot;)</span>
+        <span class="c1">#print(self.file_selector.value)</span>
+
+        <span class="c1"># This should be executed only if server mode: TODO</span>
+        <span class="c1">#if self.robot is not None:</span>
+        <span class="c1">#    self.robot.remove()</span>
+
+        <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abirobot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span> <span class="o">=</span> <span class="n">abirobot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_selector</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_panel</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="RobotWithFileInput.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.RobotWithFileInput.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Add help section explaining how to use the filesector. See:</span>
+        <span class="c1"># https://panel.holoviz.org/reference/widgets/FileSelector.html</span>
+        <span class="n">help_md</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Back (◀): Goes to the previous directory</span>
+
+<span class="s2">Forward (▶): Returns to the last directory after navigating back</span>
+
+<span class="s2">Up (⬆): Goes one directory up.</span>
+
+<span class="s2">Address bar: Display the directory to navigate to</span>
+
+<span class="s2">Enter (⬇): Navigates to the directory in the address bar</span>
+
+<span class="s2">Reload (↻): Reloads the contents of the current directory</span>
+
+<span class="s2">To navigate to a subfolder click on a directory in the file selector and then</span>
+<span class="s2">hit the down arrow (⬇) in the navigation bar.</span>
+<span class="s2">Files and folders may be selected by selecting them in the browser on the left and moving them</span>
+<span class="s2">to the right with the arrow buttons.</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
+            <span class="s2">&quot;## Select files (all with the same extension e.g. *_DDB:)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_selector</span><span class="p">,</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robot_files_btn</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Accordion</span><span class="p">((</span><span class="s2">&quot;Help&quot;</span><span class="p">,</span> <span class="n">help_md</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">),</span>
+                   <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">),</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Divider</span><span class="p">(),</span>
+            <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+
+        <span class="n">main</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_area</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">kwds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_abinit_template_cls_kwds</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">main</span><span class="o">=</span><span class="n">main</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Robot Analyzer&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -888,7 +1159,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

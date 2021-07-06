@@ -1370,7 +1370,7 @@ working directory is created. Return path to the notebook.</p>
 <dd><p>Reads the EPH coupling strength <em>interpolated</em> along the q-path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with shape [nqpath, natom3] if not sum_spin else [nsppol, nqpath, natom3]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with shape [nqpath, natom3] if not sum_spin else [nsppol, nqpath, natom3]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1381,7 +1381,7 @@ working directory is created. Return path to the notebook.</p>
 <dd><p>Reads the phonon linewidths (eV) <em>interpolated</em> along the q-path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with shape [nqpath, natom3] if not sum_spin else [nsppol, nqpath, natom3]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with shape [nqpath, natom3] if not sum_spin else [nsppol, nqpath, natom3]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2441,7 +2441,7 @@ Default: False</p></td>
 <dl class="py method">
 <dt id="abipy.eph.sigeph.QpTempList.get_field_itemp">
 <code class="sig-name descname"><span class="pre">get_field_itemp</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itemp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.get_field_itemp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.get_field_itemp" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> containing the values of field at temperature <code class="docutils literal notranslate"><span class="pre">itemp</span></code></p>
+<dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> containing the values of field at temperature <code class="docutils literal notranslate"><span class="pre">itemp</span></code></p>
 </dd></dl>
 
 <dl class="py method">
@@ -2845,20 +2845,20 @@ Set to -1 if IBZ k-point not present.</p>
 <dl class="py method">
 <dt id="abipy.eph.sigeph.SigEPhFile.ks_dirgaps">
 <code class="sig-name descname"><span class="pre">ks_dirgaps</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.ks_dirgaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.ks_dirgaps" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of shape [nsppol, nkcalc] with the KS gaps in eV ordered as kcalc.</p>
+<dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of shape [nsppol, nkcalc] with the KS gaps in eV ordered as kcalc.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="abipy.eph.sigeph.SigEPhFile.qp_dirgaps_t">
 <code class="sig-name descname"><span class="pre">qp_dirgaps_t</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.qp_dirgaps_t"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.qp_dirgaps_t" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of shape [nsppol, nkcalc, ntemp] with the QP direct gap in eV ordered as kcalc.
+<dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of shape [nsppol, nkcalc, ntemp] with the QP direct gap in eV ordered as kcalc.
 QP energies are computed with the linearized QP equation (Z factor)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="abipy.eph.sigeph.SigEPhFile.qp_dirgaps_otms_t">
 <code class="sig-name descname"><span class="pre">qp_dirgaps_otms_t</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.qp_dirgaps_otms_t"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.qp_dirgaps_otms_t" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of shape [nsppol, nkcalc, ntemp] with the QP direct gap in eV ordered as kcalc.
+<dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of shape [nsppol, nkcalc, ntemp] with the QP direct gap in eV ordered as kcalc.
 QP energies are computed with the on-the-mass-shell approximation</p>
 </dd></dl>
 
@@ -5287,7 +5287,7 @@ working directory is created. Return path to the notebook.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

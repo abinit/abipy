@@ -123,7 +123,10 @@
 <li class="toctree-l2"><a class="reference internal" href="run_fe_ebands.html">Band structure w/wo magnetization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_gaas_ebands_soc.html">Band structure with/without SOC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_ht_si_bsemdf.html">Bethe-Salpeter Flow with factory functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_eph_sigma.html">Computation of Phonons, BECS and Eps_inf for MgO</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_conducwork.html">Conductivity in metals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_phonons_with_quad.html">Dynamical quadrupoles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_flexoelectric.html">Dynamical quadrupoles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_effmass_dfpt.html">Effective masses with DFPT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_effmass_finitediff.html">Effective masses with finite difference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_frohlich_zpr.html">Estimate the ZPR at the band edges with the generalized Frohlich model</a></li>
@@ -143,6 +146,7 @@
 <li class="toctree-l2"><a class="reference internal" href="run_eph_pot.html">Flow to compute e-ph scattering potentials</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_si_g0w0.html">G0W0 Flow with convergence study wrt nband</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_ht_si_g0w0ppm.html">G0W0 Flow with factory functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_gw.html">G0W0 convergence study</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_gwconv_ecuteps.html">G0W0 convergence study</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_gruneisen_abinit.html">Gruneisen parameters with DFPT phonons and finite difference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_nonlinear.html">Nnon-linear optical properties with DFPT</a></li>
@@ -155,6 +159,7 @@
 <li class="toctree-l2"><a class="reference internal" href="run_relax.html">Relaxation Flow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_relax_vs_kpts_tsmear.html">Relaxation of GaN with different K-meshes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_relax_vs_kpts.html">Relaxation of GaN with different K-meshes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_screening.html">Screening computation with different parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run_from_files.html">Starting a Flow from external files</a></li>
 </ul>
 </li>
@@ -244,8 +249,8 @@ to download the full example code or to run this example in your browser via Bin
 using different dense k/q meshes</p>
 <img alt="run eph mob" class="sphx-glr-single-img" src="../_images/sphx_glr_run_eph_mob_001.png" />
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;KerangeTask, node_id=402069, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpzsvzds3a/w2/t0&gt;: setting prtwf to -1
-&lt;KerangeTask, node_id=402073, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpzsvzds3a/w3/t0&gt;: setting prtwf to -1
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;KerangeTask, node_id=430189, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpt3cbi30q/w2/t0&gt;: setting prtwf to -1
+&lt;KerangeTask, node_id=430193, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpt3cbi30q/w3/t0&gt;: setting prtwf to -1
 </pre></div>
 </div>
 <div class="line-block">
@@ -260,6 +265,7 @@ using different dense k/q meshes</p>
 
 
 <span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><a href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="argparse.Namespace" class="sphx-glr-backref-module-argparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span></a><span class="p">):</span>
+
     <span class="c1"># Working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
     <span class="k">if</span> <span class="ow">not</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a><span class="p">:</span>
         <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">options</span><span class="o">.</span><span class="n">workdir</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/os.path.html#os.path.basename" title="os.path.basename" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sys</span><span class="o">.</span><span class="n">argv</span></a><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
@@ -285,7 +291,6 @@ using different dense k/q meshes</p>
         <span class="n">nband</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
         <span class="n">ecut</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
         <span class="n">ngkpt</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
-        <span class="n">nshiftk</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
         <span class="n">tolvrs</span><span class="o">=</span><span class="mf">1.0e-10</span><span class="p">,</span>
         <span class="n">diemac</span><span class="o">=</span><span class="mf">9.0</span><span class="p">,</span>
@@ -297,7 +302,7 @@ using different dense k/q meshes</p>
     <span class="n">work0</span> <span class="o">=</span> <a href="../api/flowtk_api.html#abipy.flowtk.nodes.Node" title="abipy.flowtk.nodes.Node" class="sphx-glr-backref-module-abipy-flowtk-nodes sphx-glr-backref-type-py-class"><span class="n">flowtk</span><span class="o">.</span><span class="n">Work</span></a><span class="p">()</span>
     <span class="n">work0</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)</span>
 
-    <span class="c1"># Band structure calculation to make sure everything is ok</span>
+    <span class="c1"># Band structure calculation to make sure everything is OK</span>
     <span class="c1"># Also allows to compare the results obtained with abitk to</span>
     <span class="c1"># check the SKW interpolation works as needed</span>
     <span class="n">bs_input</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">make_ebands_input</span><span class="p">(</span><span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">nb_extra</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
@@ -322,7 +327,7 @@ using different dense k/q meshes</p>
     <span class="c1"># Add the phonon work to the flow</span>
     <span class="n">ddb_ngqpt</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
     <span class="n">ph_work</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">PhononWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="n">work0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">qpoints</span><span class="o">=</span><span class="n">ddb_ngqpt</span><span class="p">,</span>
-                                              <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                              <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_quad</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">ph_work</span><span class="p">)</span>
 
     <span class="c1"># We loop over the dense meshes</span>
@@ -338,11 +343,12 @@ using different dense k/q meshes</p>
                                     <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">work0</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">,</span> <span class="n">work_eph</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="s2">&quot;KERANGE.nc&quot;</span><span class="p">})</span>
 
         <span class="c1"># Generate the input file for the transport calculation.</span>
-        <span class="c1"># Use ibte_prep to activate iterative BTE.</span>
+        <span class="c1"># Use ibte_prep = 1 to activate the iterative BTE.</span>
         <span class="n">eph_input</span> <span class="o">=</span> <span class="n">wfk_input</span><span class="o">.</span><span class="n">make_eph_transport_input</span><span class="p">(</span><span class="n">ddb_ngqpt</span><span class="o">=</span><span class="n">ddb_ngqpt</span><span class="p">,</span>
                                                        <span class="n">sigma_erange</span><span class="o">=</span><span class="n">sigma_erange</span><span class="p">,</span>
                                                        <span class="n">tmesh</span><span class="o">=</span><span class="n">tmesh</span><span class="p">,</span>
-                                                       <span class="n">eph_ngqpt_fine</span><span class="o">=</span><span class="n">sigma_ngkpt</span><span class="p">,</span> <span class="n">ibte_prep</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                                                       <span class="n">eph_ngqpt_fine</span><span class="o">=</span><span class="n">sigma_ngkpt</span><span class="p">,</span>
+                                                       <span class="n">ibte_prep</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># We compute the phonon dispersion in the EPH code to be able to check they are ok.</span>
         <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -382,7 +388,7 @@ using different dense k/q meshes</p>
     <a href="https://docs.python.org/3/library/sys.html#sys.exit" title="sys.exit" class="sphx-glr-backref-module-sys sphx-glr-backref-type-py-function"><span class="n">sys</span><span class="o">.</span><span class="n">exit</span></a><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  3.692 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  2.852 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-eph-mob-py">
 <div class="binder-badge docutils container">
 <a class="reference external image-reference" href="https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/flow_gallery/run_eph_mob.ipynb"><img alt="Launch binder" src="../_images/binder_badge_logo.svg" width="150px" /></a>
@@ -413,7 +419,7 @@ using different dense k/q meshes</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

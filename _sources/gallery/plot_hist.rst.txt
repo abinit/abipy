@@ -83,7 +83,7 @@ structure relaxation run using the HIST.nc file.
     # Plot the evolution of the lattice parameters, forces, etotal, ...
     hist.plot(tight_layout=True)
 
-    # Plotly version:
+    # For the plotly version use:
     hist.plotly()
 
     # Plot the total energy at the different relaxation steps.
@@ -94,7 +94,7 @@ structure relaxation run using the HIST.nc file.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.830 seconds)
+   **Total running time of the script:** ( 0 minutes  0.602 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_hist.py:

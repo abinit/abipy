@@ -199,7 +199,7 @@ to plot the electronic DOS obtained with different number of k-points in the IBZ
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.668 seconds)
+   **Total running time of the script:** ( 0 minutes  0.464 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_mgb2_edoses.py:

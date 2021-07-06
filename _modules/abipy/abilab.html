@@ -478,6 +478,28 @@
     <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="abirobot"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.abirobot">[docs]</a><span class="k">def</span> <span class="nf">abirobot</span><span class="p">(</span><span class="n">filepaths</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Factory function to create and return a Robot subclass from a list of filenames</span>
+<span class="sd">    The Robot subclass is detected from the extension of the first file hence</span>
+<span class="sd">    all files are assumed to have the same extension.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepaths: List of strings with the filename.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">list_strings</span>
+    <span class="n">filepaths</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">filepaths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find `_` in the first string&quot;</span><span class="p">)</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="bp">cls</span> <span class="o">=</span> <span class="n">Robot</span><span class="o">.</span><span class="n">class_for_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
+    <span class="n">robot</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_files</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">robot</span></div>
+
+
 <div class="viewcode-block" id="display_structure"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.display_structure">[docs]</a><span class="k">def</span> <span class="nf">display_structure</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use Jsmol to display a structure in the jupyter notebook.</span>
@@ -798,7 +820,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

@@ -327,6 +327,10 @@
 <span class="sd">            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.</span>
 <span class="sd">                Defaults to the standard Materials Project REST address</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">material_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">material_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">material_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;mp-&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Materials project ID should start with mp-&quot;</span><span class="p">)</span>
+
         <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="kn">import</span> <span class="n">restapi</span>
         <span class="k">with</span> <span class="n">restapi</span><span class="o">.</span><span class="n">get_mprester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
             <span class="n">ddb_string</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">_make_request</span><span class="p">(</span><span class="s2">&quot;/materials/</span><span class="si">%s</span><span class="s2">/abinit_ddb&quot;</span> <span class="o">%</span> <span class="n">material_id</span><span class="p">)</span>
@@ -2136,7 +2140,7 @@
 <span class="sd">        Build panel with widgets to interact with the |DdbFile| either in a notebook or in a bokeh app.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.panels.ddb</span> <span class="kn">import</span> <span class="n">DdbFilePanel</span>
-        <span class="k">return</span> <span class="n">DdbFilePanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">DdbFilePanel</span><span class="p">(</span><span class="n">ddb</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DdbFile.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2927,13 +2931,14 @@
 
 <div class="viewcode-block" id="DdbRobot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot">[docs]</a><span class="k">class</span> <span class="nc">DdbRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This robot analyzes the results contained in multiple DDB files.</span>
-<span class="sd">    Obviously, some `compare` methods make sense only if the DDB files have the same structures</span>
+<span class="sd">    This robot analyzes the results stored in multiple DDB files.</span>
+<span class="sd">    Obviously, particular `compare` methods make sense only if the DDB files have the same structures</span>
 <span class="sd">    and have computed with different parameters e.g. qmesh, tsmear, ecut ....</span>
 
 <span class="sd">    .. rubric:: Inheritance Diagram</span>
 <span class="sd">    .. inheritance-diagram:: DdbRobot</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;DDB&quot;</span>
 
 <div class="viewcode-block" id="DdbRobot.class_handles_filename"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.class_handles_filename">[docs]</a>    <span class="nd">@classmethod</span>
@@ -2955,8 +2960,15 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="kn">import</span> <span class="n">restapi</span>
         <span class="n">ddb_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mpid_list</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">mpid_list</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mpid_list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No structure found in the MP database&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;mp-&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">mpid_list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid mp-in in list:</span><span class="se">\n</span><span class="si">{</span><span class="n">mpid_list</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="k">with</span> <span class="n">restapi</span><span class="o">.</span><span class="n">get_mprester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">mpid</span> <span class="ow">in</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">mpid_list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">mpid</span> <span class="ow">in</span> <span class="n">mpid_list</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">ddb_string</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">_make_request</span><span class="p">(</span><span class="s2">&quot;/materials/</span><span class="si">%s</span><span class="s2">/abinit_ddb&quot;</span> <span class="o">%</span> <span class="n">mpid</span><span class="p">)</span>
                 <span class="k">except</span> <span class="n">rest</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
@@ -2968,7 +2980,7 @@
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
                     <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ddb_string</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_files</span><span class="p">(</span><span class="n">ddb_files</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_files</span><span class="p">(</span><span class="n">ddb_files</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">mpid_list</span><span class="p">)</span></div>
 
     <span class="c1">#def get_qpoints_union(self):</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
@@ -3419,7 +3431,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

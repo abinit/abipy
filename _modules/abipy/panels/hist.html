@@ -189,15 +189,13 @@
             
   <h1>Source code for abipy.panels.hist</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;&quot;Panels for HIST files.&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">param</span>
+
+<span class="c1">#import param</span>
 <span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
 <span class="kn">import</span> <span class="nn">panel.widgets</span> <span class="k">as</span> <span class="nn">pnw</span>
 <span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
 
 <span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">AbipyParameterized</span><span class="p">,</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span><span class="p">,</span> <span class="n">depends_on_btn_click</span>
-
-
-<span class="n">_what_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pressure&quot;</span><span class="p">,</span> <span class="s2">&quot;forces&quot;</span><span class="p">,</span> <span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;abc&quot;</span><span class="p">,</span> <span class="s2">&quot;angles&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="HistFilePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.hist.HistFilePanel">[docs]</a><span class="k">class</span> <span class="nc">HistFilePanel</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
@@ -207,8 +205,10 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hist</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hist</span> <span class="o">=</span> <span class="n">hist</span>
+
+        <span class="n">_what_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;abc&quot;</span><span class="p">,</span> <span class="s2">&quot;angles&quot;</span><span class="p">,</span> <span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">,</span> <span class="s2">&quot;pressure&quot;</span><span class="p">,</span> <span class="s2">&quot;forces&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">what_list</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">CheckBoxGroup</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Select&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">_what_list</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">_what_list</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">plot_relax_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Show relaxation&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_relax_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot relaxation&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">appname</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Viewer&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;ovito&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ovito&quot;</span><span class="p">,</span> <span class="s2">&quot;mayavi&quot;</span><span class="p">,</span> <span class="s2">&quot;vtk&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">to_unit_cell</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;To unit cell&quot;</span><span class="p">)</span>
@@ -216,28 +216,18 @@
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
 
-<div class="viewcode-block" id="HistFilePanel.get_plot_relax_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.hist.HistFilePanel.get_plot_relax_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_plot_relax_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Widgets to visualize the structure relaxation.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">what_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_relax_btn</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">)</span></div>
-
 <div class="viewcode-block" id="HistFilePanel.on_plot_relax_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.hist.HistFilePanel.on_plot_relax_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;plot_relax_btn&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_plot_relax_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the evolution of structural parameters (lattice lengths, angles and volume)</span>
 <span class="sd">        as well as pressure, info on forces and total energy.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">num_plots</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">what_list</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="n">num_plots</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">ncols</span> <span class="o">=</span> <span class="mi">2</span>
-            <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">//</span> <span class="n">ncols</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span><span class="p">)</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;stretch_width&quot;</span><span class="p">);</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">for</span> <span class="n">what</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">what_list</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="c1">#ca(f&quot;## {what}&quot;)</span>
+            <span class="n">ca</span><span class="p">(</span><span class="n">ply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hist</span><span class="o">.</span><span class="n">plotly</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">what</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
 
-        <span class="n">box</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">GridBox</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sizing_mode</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="c1">#&#39;scale_width&#39;)</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">what</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">what_list</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
-            <span class="n">irow</span><span class="p">,</span> <span class="n">icol</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
-            <span class="n">box</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mpl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hist</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">what</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mpl_kwargs</span><span class="p">)))</span>
-
-        <span class="k">return</span> <span class="n">box</span></div>
-        <span class="c1">#return pn.Column(box, box.controls(jslink=True))</span>
+        <span class="k">return</span> <span class="n">col</span></div>
 
 <div class="viewcode-block" id="HistFilePanel.on_view_relax_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.hist.HistFilePanel.on_view_relax_btn">[docs]</a>    <span class="nd">@depends_on_btn_click</span><span class="p">(</span><span class="s1">&#39;view_relax_btn&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_view_relax_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -250,14 +240,21 @@
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Summary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hist</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span>
                               <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">))</span>
 
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Relaxation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_plot_relax_widgets</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_plot_relax_btn</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Plot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pws_col</span><span class="p">([</span><span class="s2">&quot;### Plot Options&quot;</span><span class="p">,</span> <span class="s2">&quot;what_list&quot;</span><span class="p">,</span> <span class="s2">&quot;plot_relax_btn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">helpc</span><span class="p">(</span><span class="s2">&quot;on_plot_relax_btn&quot;</span><span class="p">)]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_plot_relax_btn</span>
+        <span class="p">)</span>
 
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Visualize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">appname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_unit_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">view_relax_btn</span><span class="p">),</span>
-                                 <span class="bp">self</span><span class="o">.</span><span class="n">on_view_relax_btn</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_remote_server</span><span class="p">:</span>
+            <span class="c1"># As we don&#39;t have visualizers that can work in remote server mode, this tab should not be created.</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Visualize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                    <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">appname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_unit_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">view_relax_btn</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">on_view_relax_btn</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
-        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_from_tabs</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
 </pre></div>
 
            </div>
@@ -271,7 +268,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

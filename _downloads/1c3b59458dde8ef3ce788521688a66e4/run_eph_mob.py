@@ -15,6 +15,7 @@ import abipy.core.abinit_units as abu
 
 
 def build_flow(options):
+
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
         options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
@@ -40,7 +41,6 @@ def build_flow(options):
         nband=8,
         ecut=2.0,
         ngkpt=[4, 4, 4],
-        nshiftk=1,
         shiftk=[0, 0, 0],
         tolvrs=1.0e-10,
         diemac=9.0,
@@ -52,7 +52,7 @@ def build_flow(options):
     work0 = flowtk.Work()
     work0.register_scf_task(scf_input)
 
-    # Band structure calculation to make sure everything is ok
+    # Band structure calculation to make sure everything is OK
     # Also allows to compare the results obtained with abitk to
     # check the SKW interpolation works as needed
     bs_input = scf_input.make_ebands_input(tolwfr=1e-12, ndivsm=10, nb_extra=5)
@@ -77,7 +77,7 @@ def build_flow(options):
     # Add the phonon work to the flow
     ddb_ngqpt = [4, 4, 4]
     ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints=ddb_ngqpt,
-                                              is_ngqpt=True, with_becs=True)
+                                              is_ngqpt=True, with_becs=True, with_quad=False)
     flow.register_work(ph_work)
 
     # We loop over the dense meshes
@@ -93,11 +93,12 @@ def build_flow(options):
                                     deps={work0[0]: "DEN", work_eph[0]: "KERANGE.nc"})
 
         # Generate the input file for the transport calculation.
-        # Use ibte_prep to activate iterative BTE.
+        # Use ibte_prep = 1 to activate the iterative BTE.
         eph_input = wfk_input.make_eph_transport_input(ddb_ngqpt=ddb_ngqpt,
                                                        sigma_erange=sigma_erange,
                                                        tmesh=tmesh,
-                                                       eph_ngqpt_fine=sigma_ngkpt, ibte_prep=1)
+                                                       eph_ngqpt_fine=sigma_ngkpt,
+                                                       ibte_prep=1)
 
         # We compute the phonon dispersion in the EPH code to be able to check they are ok.
         if i == 0:

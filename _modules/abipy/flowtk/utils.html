@@ -657,6 +657,7 @@
 <span class="c1"># moving to the new approach requires some careful testing besides not all files support the get*_path syntax!</span>
 
 <span class="n">_EXT2VARS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># File extension -&gt; {varname: value}</span>
     <span class="s2">&quot;DEN&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;irdden&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
     <span class="s2">&quot;WFK&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;irdwfk&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
     <span class="s2">&quot;WFQ&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;irdwfq&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
@@ -676,8 +677,11 @@
     <span class="c1"># Abinit does not implement getkden and irdkden but relies on irden</span>
     <span class="s2">&quot;KDEN&quot;</span><span class="p">:</span> <span class="p">{},</span>  <span class="c1">#{&quot;irdkden&quot;: 1},</span>
     <span class="s2">&quot;KERANGE.nc&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;getkerange_filepath&quot;</span><span class="p">:</span> <span class="s1">&#39;&quot;indata/in_KERANGE.nc&quot;&#39;</span><span class="p">},</span>
-    <span class="s2">&quot;POT&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;getpot_filepath&quot;</span> <span class="p">:</span> <span class="s1">&#39;&quot;indata/in_POT.nc&quot;&#39;</span><span class="p">},</span>
-    <span class="s2">&quot;SIGEPH&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;getsigeph_filepath&quot;</span><span class="p">:</span> <span class="s1">&#39;&quot;indata/in_SIGEPH.nc&quot;&#39;</span><span class="p">},</span>
+    <span class="s2">&quot;POT&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;getpot_filepath&quot;</span> <span class="p">:</span> <span class="s1">&#39;&quot;indata/in_POT.nc&quot;&#39;</span><span class="p">},</span>
+    <span class="s2">&quot;SIGEPH&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;getsigeph_filepath&quot;</span><span class="p">:</span> <span class="s1">&#39;&quot;indata/in_SIGEPH.nc&quot;&#39;</span><span class="p">},</span>
+    <span class="s2">&quot;DKDK&quot;</span><span class="p">:</span> <span class="p">{},</span>  <span class="c1"># irddkdk is not defined.</span>
+    <span class="c1">#&quot;DKDE&quot;: {&quot;getdkde&quot;: 1},</span>
+    <span class="c1">#&quot;DELFD&quot;: {&quot;getdelfd&quot;: 1},</span>
 <span class="p">}</span>
 
 
@@ -1198,7 +1202,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

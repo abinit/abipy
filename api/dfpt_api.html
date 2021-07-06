@@ -390,7 +390,7 @@ None if the file does not contain this information.</p>
 <dl class="py method">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.oscillator_strength">
 <code class="sig-name descname"><span class="pre">oscillator_strength</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.oscillator_strength"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.oscillator_strength" title="Permalink to this definition">¶</a></dt>
-<dd><p>A complex <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> containing the oscillator strengths with shape [number of phonon modes, 3, 3],
+<dd><p>A complex <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> containing the oscillator strengths with shape [number of phonon modes, 3, 3],
 in a.u. (1 a.u.=253.2638413 m3/s2).
 None if the file does not contain this information.</p>
 </dd></dl>
@@ -654,7 +654,7 @@ and sort the IFC in the correct order.</p></li>
 <li><p><strong>calculator</strong> – a string with the name of the calculator. Will be used to set the conversion
 factor for the force constants coming from phonopy.</p></li>
 <li><p><strong>manager</strong> – <a class="reference internal" href="flowtk_api.html#abipy.flowtk.tasks.TaskManager" title="abipy.flowtk.tasks.TaskManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object. It will be
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object. It will be
 used by abinit to generate the base DDB file. If None the abipy.data.hgh_pseudos.HGH_TABLE
 table will be used.</p></li>
 <li><p><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</p></li>
@@ -763,7 +763,7 @@ as in the abinit calculation.</p></li>
 <li><p><strong>tolsym</strong> – Gives the tolerance to identify symmetries in abinit. See abinit documentation for
 more details.</p></li>
 <li><p><strong>manager</strong> – <a class="reference internal" href="flowtk_api.html#abipy.flowtk.tasks.TaskManager" title="abipy.flowtk.tasks.TaskManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</p></li>
-<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object. It will be
+<li><p><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object. It will be
 used by abinit to generate the base DDB file. If None the abipy.data.hgh_pseudos.HGH_TABLE
 table will be used.</p></li>
 <li><p><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</p></li>
@@ -2400,14 +2400,14 @@ Default: False</p></td>
 <dt id="abipy.dfpt.ddb.DdbRobot">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.dfpt.ddb.</span></code><code class="sig-name descname"><span class="pre">DdbRobot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.robots.Robot</span></code></a></p>
-<p>This robot analyzes the results contained in multiple DDB files.
-Obviously, some <cite>compare</cite> methods make sense only if the DDB files have the same structures
+<p>This robot analyzes the results stored in multiple DDB files.
+Obviously, particular <cite>compare</cite> methods make sense only if the DDB files have the same structures
 and have computed with different parameters e.g. qmesh, tsmear, ecut ….</p>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-640bf4ed9b324c3b55c8d6b4608b03f1acac677a.png" alt="Inheritance diagram of DdbRobot" usemap="#inheritance0460c10005" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-39779b7b547b4477c4adcfc0d31a441d660c5bc8.png" alt="Inheritance diagram of DdbRobot" usemap="#inheritance0460c10005" class="inheritance graphviz" /></div>
 <map id="inheritance0460c10005" name="inheritance0460c10005">
 <area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="456,4,588,24"/>
-<area shape="rect" id="node4" href="#abipy.dfpt.ddb.DdbRobot" target="_top" title="This robot analyzes the results contained in multiple DDB files." alt="" coords="627,4,764,24"/>
+<area shape="rect" id="node4" href="#abipy.dfpt.ddb.DdbRobot" target="_top" title="This robot analyzes the results stored in multiple DDB files." alt="" coords="627,4,764,24"/>
 <area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="238,4,417,24"/>
 </map><dl class="py attribute">
 <dt id="abipy.dfpt.ddb.DdbRobot.EXT">
@@ -2622,7 +2622,7 @@ with the data that should be given in the string.</p></li>
 <dl class="py class">
 <dt id="abipy.dfpt.elastic.MyElasticTensor">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.dfpt.elastic.</span></code><code class="sig-name descname"><span class="pre">MyElasticTensor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyElasticTensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyElasticTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.analysis.elasticity.elastic.html#pymatgen.analysis.elasticity.elastic.ElasticTensor" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.elasticity.elastic.ElasticTensor</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.analysis.elasticity.elastic.html#pymatgen.analysis.elasticity.elastic.ElasticTensor" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.elasticity.elastic.ElasticTensor</span></code></a></p>
 <dl class="py method">
 <dt id="abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe">
 <code class="sig-name descname"><span class="pre">get_voigt_dataframe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyElasticTensor.get_voigt_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
@@ -2636,7 +2636,7 @@ Elements below tol are set to zero.</p>
 <dl class="py class">
 <dt id="abipy.dfpt.elastic.MyPiezoTensor">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.dfpt.elastic.</span></code><code class="sig-name descname"><span class="pre">MyPiezoTensor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyPiezoTensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyPiezoTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.analysis.piezo.html#pymatgen.analysis.piezo.PiezoTensor" title="(in pymatgen v2022.0.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.piezo.PiezoTensor</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.analysis.piezo.html#pymatgen.analysis.piezo.PiezoTensor" title="(in pymatgen v2022.0.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.piezo.PiezoTensor</span></code></a></p>
 <dl class="py method">
 <dt id="abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe">
 <code class="sig-name descname"><span class="pre">get_voigt_dataframe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyPiezoTensor.get_voigt_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
@@ -4547,7 +4547,7 @@ among abinit and phonopy results if frequencies needs to be calculated.</p></li>
 <dl class="py method">
 <dt id="abipy.dfpt.phonons.PhononBands.linewidths">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">linewidths</span></code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.linewidths" title="Permalink to this definition">¶</a></dt>
-<dd><p>linewidths in eV. <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with shape [nqpt, num_branches].</p>
+<dd><p>linewidths in eV. <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with shape [nqpt, num_branches].</p>
 </dd></dl>
 
 <dl class="py method">
@@ -6976,7 +6976,7 @@ Possible values: [“internal_energy”, “free_energy”, “entropy”, “c_
 <li><p><strong>units</strong> – eV for energies in ev/unit_cell, Jmol for results in J/mole.</p></li>
 <li><p><strong>formula_units</strong> – the number of formula units per unit cell. If unspecified, the
 thermodynamic quantities will be given on a per-unit-cell basis.</p></li>
-<li><p><strong>fontsize</strong> – Title fontsize.</p></li>
+<li><p><strong>fontsize</strong> – Label and title fontsize.</p></li>
 </ul>
 </dd>
 </dl>
@@ -7039,7 +7039,7 @@ Possible values: [“internal_energy”, “free_energy”, “entropy”, “c_
 <li><p><strong>units</strong> – eV for energies in ev/unit_cell, Jmol for results in J/mole.</p></li>
 <li><p><strong>formula_units</strong> – the number of formula units per unit cell. If unspecified, the
 thermodynamic quantities will be given on a per-unit-cell basis.</p></li>
-<li><p><strong>fontsize</strong> – Legend and title fontsize.</p></li>
+<li><p><strong>fontsize</strong> – Label and title fontsize.</p></li>
 </ul>
 </dd>
 </dl>
@@ -7860,7 +7860,7 @@ pymatgen will be used. that this will almost always lead to inaccuracies in the 
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of the same shape as phdispl containing the eigenvectors of the dynamical matrix</p>
+<dd class="field-even"><p>A <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of the same shape as phdispl containing the eigenvectors of the dynamical matrix</p>
 </dd>
 </dl>
 </dd></dl>
@@ -9474,7 +9474,7 @@ working directory is created. Return path to the notebook.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jun 16, 2021.
+        Last updated on Jul 06, 2021.
       </span>
 
     </p>

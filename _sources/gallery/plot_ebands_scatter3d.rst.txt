@@ -49,7 +49,7 @@ The color of the point gives the energy of the state wrt to the Fermi level.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.064 seconds)
+   **Total running time of the script:** ( 0 minutes  0.715 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_ebands_scatter3d.py:

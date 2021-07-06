@@ -118,7 +118,7 @@ to compute thermodynamic properties within the quasi-harmonic approximation.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  3.086 seconds)
+   **Total running time of the script:** ( 0 minutes  2.077 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_qha.py:
