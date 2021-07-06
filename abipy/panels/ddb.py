@@ -35,7 +35,7 @@ class PanelWithAnaddbParams(param.Parameterized):
     gamma_ev = param.Number(1e-4, bounds=(1e-20, None), doc="Phonon linewidth in eV")
     w_range = param.Range(default=(0.0, 0.1), bounds=(0.0, 1.0), doc="Frequency range (eV)")
 
-    plot_ifc_yscale = param.ObjectSelector(default="linear", objects=["linear", "log", "symlog", "logit"])
+    plot_ifc_yscale = param.ObjectSelector(default="linear", objects=["log", "linear", "symlog", "logit"])
 
     def __init__(self, **params):
         super().__init__(**params)

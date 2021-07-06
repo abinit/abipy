@@ -46,7 +46,21 @@ class InteratomicForceConstants(Has_Structure):
 
     @classmethod
     def from_file(cls, filepath):
-        """Create the object from a netcdf_ file."""
+        """Create the object from a netcdf file."""
+        #
+        # Netcdf arrays on disk (NB: Fortran conventions)
+        #
+        # nctkarr_t('ifc_atoms_indices', "i", "natifc"),&
+        # nctkarr_t('ifc_neighbours_indices', "i", "ifcout, natifc"),&
+        # nctkarr_t('ifc_distances', "dp", "ifcout, natifc "),&
+        # nctkarr_t('ifc_matrix_cart_coord', "dp", "three, three, ifcout, natifc"),&
+        # nctkarr_t('ifc_atoms_cart_coord', "dp", "three, ifcout, natifc"),&
+        # nctkarr_t('ifc_weights', "dp", "ifcout, natifc")])
+        # if (Ifc%dipdip==1) then
+        #   nctkarr_t('ifc_matrix_cart_coord_short_range', "dp", "three, three, ifcout, natifc")])
+        # if (ifcana==1) then
+        #   nctkarr_t('ifc_local_vectors', "dp", "three, three, ifcout, natifc")])
+
         with ETSF_Reader(filepath) as r:
             try:
                 structure = r.read_structure()
@@ -95,15 +109,15 @@ class InteratomicForceConstants(Has_Structure):
 
     @lazy_property
     def ifc_cart_coord_ewald(self):
-        """Ewald part of the ifcs in cartesian coordinates"""
+        """Ewald part of the IFCs in cartesian coordinates."""
         if self.ifc_cart_coord_short_range is None:
             return None
         else:
-            return self.ifc_cart_coord-self.ifc_cart_coord_short_range
+            return self.ifc_cart_coord - self.ifc_cart_coord_short_range
 
     @lazy_property
     def ifc_local_coord(self):
-        """Ifcs in local coordinates"""
+        """IFCs in local coordinates."""
         if self.local_vectors is None:
             return None
         else:
@@ -111,7 +125,7 @@ class InteratomicForceConstants(Has_Structure):
 
     @lazy_property
     def ifc_local_coord_short_range(self):
-        """Short range part of the ifcs in cartesian coordinates"""
+        """Short range part of the IFCs in cartesian coordinates."""
         if self.local_vectors is None:
             return None
         else:
@@ -119,7 +133,7 @@ class InteratomicForceConstants(Has_Structure):
 
     @lazy_property
     def ifc_local_coord_ewald(self):
-        """Ewald part of the ifcs in local coordinates"""
+        """Ewald part of the IFCs in local coordinates."""
         return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord_ewald, self.local_vectors)
 
     def _filter_ifc_indices(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None, max_dist=None):
@@ -147,7 +161,7 @@ class InteratomicForceConstants(Has_Structure):
         if atom_indices is None:
             atom_indices = range(len(self.structure))
 
-        # apply the filter: construct matrices of num_atoms*num_neighbours size, all conditions should be satisfied.
+        # apply the filter: construct matrices of num_atoms * num_neighbours size, all conditions should be satisfied.
         ind = np.where(
             (np.tile(np.in1d(self.atoms_indices, atom_indices), [self.number_of_neighbours, 1])).T &
             (self.distances > min_dist if min_dist is not None else True) &
@@ -160,9 +174,9 @@ class InteratomicForceConstants(Has_Structure):
 
     def get_ifc_cartesian(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None, max_dist=None):
         """
-        Filters the IFCs in cartesian coordinates
+        Filters the IFCs in cartesian coordinates.
         All the arguments are optional. If None the filter will not be applied.
-        Returns two arrays containing the distances and the corresponding filtered ifcs.
+        Returns two arrays containing the distances and the corresponding filtered IFCs.
 
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
@@ -180,7 +194,7 @@ class InteratomicForceConstants(Has_Structure):
         """
         Filters the IFCs in local coordinates
         All the arguments are optional. If None the filter will not be applied.
-        Returns two arrays containing the distances and the corresponding filtered ifcs.
+        Returns two arrays containing the distances and the corresponding filtered IFCs.
 
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
@@ -190,7 +204,7 @@ class InteratomicForceConstants(Has_Structure):
             max_dist: maximum distance between atoms and neighbours.
         """
         if self.local_vectors is None:
-            raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
+            raise ValueError("Local coordinates are missing. Run anaddb with ifcana = 1")
 
         ind = self._filter_ifc_indices(atom_indices=atom_indices, atom_element=atom_element,
                                        neighbour_element=neighbour_element, min_dist=min_dist, max_dist=max_dist)
@@ -198,11 +212,11 @@ class InteratomicForceConstants(Has_Structure):
         return self.distances[ind], self.ifc_local_coord[ind]
 
     def get_plot_ifc(self, ifc, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
-                     max_dist=None, yscale="linear", ax=None, **kwargs):
+                     max_dist=None, yscale="log", ax=None, **kwargs):
         """
-        Plots the specified ifcs, filtered according to the optional arguments.
-        An array with shape number_of_atoms*number_of_neighbours, so only one of the components of the ifc matrix can
-        be plotted at a time.
+        Plots the specified IFCs, filtered according to the optional arguments.
+        An array with shape number_of_atoms * number_of_neighbours, so only one
+        of the components of the IFC matrix can be plotted at a time.
 
         Args:
             ifc: an array with shape number_of_atoms * number_of_neighbours of the ifc that should be plotted
@@ -228,13 +242,16 @@ class InteratomicForceConstants(Has_Structure):
         if 'marker' not in kwargs: kwargs['marker'] = 'o'
         if 'linewidth' not in kwargs and 'lw' not in kwargs: kwargs['lw'] = 0
 
-        ax.set_xlabel('Distance (Bohr)')
-        ax.set_ylabel(r'IFC (Ha/Bohr$^2$)')
-        ax.grid(True)
         ax.set_yscale(yscale)
+        ylabel = r'IFC (Ha/Bohr$^2$)'
         if yscale in ("log", "symlog", "logit"):
             filtered_ifc = np.abs(filtered_ifc)
             if yscale == "logit": filtered_ifc /= filtered_ifc.max()
+            yscale = f"{ylabel} ({yscale} scale)"
+
+        ax.set_xlabel('Distance (Bohr)')
+        ax.set_ylabel(ylabel)
+        ax.grid(True)
 
         ax.plot(dist, filtered_ifc, **kwargs)
 
@@ -242,9 +259,9 @@ class InteratomicForceConstants(Has_Structure):
 
     @add_fig_kwargs
     def plot_longitudinal_ifc(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
-                              max_dist=None, yscale="linear", ax=None, **kwargs):
+                              max_dist=None, yscale="log", ax=None, **kwargs):
         """
-        Plots the total longitudinal ifcs in local coordinates, filtered according to the optional arguments.
+        Plots the total longitudinal IFCs in local coordinates, filtered according to the optional arguments.
 
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
@@ -260,7 +277,7 @@ class InteratomicForceConstants(Has_Structure):
         Returns: |matplotlib-Figure|
         """
         if self.local_vectors is None:
-            raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
+            raise ValueError("Local coordinates are missing. Run anaddb with ifcana = 1")
 
         return self.get_plot_ifc(self.ifc_local_coord[:, :, 0, 0], atom_indices=atom_indices, atom_element=atom_element,
                                  neighbour_element=neighbour_element, min_dist=min_dist, max_dist=max_dist,
@@ -268,9 +285,9 @@ class InteratomicForceConstants(Has_Structure):
 
     @add_fig_kwargs
     def plot_longitudinal_ifc_short_range(self, atom_indices=None, atom_element=None, neighbour_element=None,
-                                          min_dist=None, max_dist=None, yscale="linear", ax=None, **kwargs):
+                                          min_dist=None, max_dist=None, yscale="log", ax=None, **kwargs):
         """
-        Plots the short range longitudinal ifcs in local coordinates, filtered according to the optional arguments.
+        Plots the short range longitudinal IFCs in local coordinates, filtered according to the optional arguments.
 
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
@@ -286,7 +303,7 @@ class InteratomicForceConstants(Has_Structure):
         Returns: |matplotlib-Figure|
         """
         if self.local_vectors is None:
-            raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
+            raise ValueError("Local coordinates are missing. Run anaddb with ifcana = 1")
 
         if self.ifc_local_coord_short_range is None:
             raise ValueError("Ewald contribution is missing, Run anaddb with dipdip=1")
@@ -297,9 +314,9 @@ class InteratomicForceConstants(Has_Structure):
 
     @add_fig_kwargs
     def plot_longitudinal_ifc_ewald(self, atom_indices=None, atom_element=None, neighbour_element=None,
-                                    min_dist=None, max_dist=None, yscale="linear", ax=None, **kwargs):
+                                    min_dist=None, max_dist=None, yscale="log", ax=None, **kwargs):
         """
-        Plots the Ewald part of the ifcs in local coordinates, filtered according to the optional arguments.
+        Plots the Ewald part of the IFCs in local coordinates, filtered according to the optional arguments.
 
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
@@ -315,7 +332,7 @@ class InteratomicForceConstants(Has_Structure):
         Returns: |matplotlib-Figure|
         """
         if self.local_vectors is None:
-            raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
+            raise ValueError("Local coordinates are missing. Run anaddb with ifcana = 1")
 
         if self.ifc_local_coord_ewald is None:
             raise ValueError("Ewald contribution is missing, Run anaddb with dipdip=1")

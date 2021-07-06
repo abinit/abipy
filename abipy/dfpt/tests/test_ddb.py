@@ -244,9 +244,9 @@ class DdbTest(AbipyTest):
         assert ifc.number_of_atoms == len(ddb.structure)
 
         if self.has_matplotlib():
-            assert ifc.plot_longitudinal_ifc(show=False)
-            assert ifc.plot_longitudinal_ifc_short_range(show=False)
-            assert ifc.plot_longitudinal_ifc_ewald(show=False)
+            assert ifc.plot_longitudinal_ifc(yscale="log", show=False)
+            assert ifc.plot_longitudinal_ifc_short_range(yscale="log", show=False)
+            assert ifc.plot_longitudinal_ifc_ewald(yscale="logit", show=False)
 
         # Test get_coarse.
         with ddb.get_coarse([2, 2, 2]) as coarse_ddb:
