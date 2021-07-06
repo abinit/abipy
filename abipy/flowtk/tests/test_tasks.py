@@ -181,7 +181,7 @@ class AbinitBuildTest(AbipyTest):
     def test_abinit_build(self):
         from abipy.flowtk import AbinitBuild
         build = AbinitBuild()
-        print(build)
+        str(build)
         assert build.has_netcdf
         #assert not build.has_omp
         #assert build.has_mpi

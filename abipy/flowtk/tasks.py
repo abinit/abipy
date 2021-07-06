@@ -2835,6 +2835,16 @@ class AbinitTask(Task):
         # paral_kgb is used only in the GS part.
         return paral_kgb == value and isinstance(self, GsTask)
 
+
+    def get_panel(self, **kwargs):
+        """
+        Build panel with widgets to interact with the Task either in a notebook or in panel app.
+        This is the implementation provided by the base class.
+        Subclasses may provide specialized implementations.
+        """
+        from abipy.panels.tasks import AbinitTaskPanel
+        return AbinitTaskPanel(task=self).get_panel(**kwargs)
+
     def _change_structure(self, new_structure):
         """Change the input structure."""
         # Compare new and old structure for logging purpose.

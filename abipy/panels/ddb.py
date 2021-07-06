@@ -411,7 +411,7 @@ Also, avoid uploading big files (size > XXX).
     def on_file_input(self, event):
         new_abifile = self.get_abifile_from_file_input(self.file_input, use_structure=self.use_structure)
 
-        if self.abifile is not None: # and hasattr(self.abifile, "remove"):
+        if self.abifile is not None:
             self.abifile.remove()
 
         self.abifile = new_abifile
@@ -874,3 +874,85 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
 
         if as_dict: return d
         return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+
+
+class RobotWithFileInput(AbipyParameterized):
+
+    info_str = """
+This application allows users to create an AbiPy robot to post-process
+a set of ABINIT output files of the same type.
+ """
+
+    def __init__(self, **params):
+
+        help_md = pn.pane.Markdown(f"""
+ ## Description
+
+ {self.info_str}
+""")
+
+        super().__init__(**params)
+
+        self.main_area = pn.Column(help_md,
+                                   self.get_alert_data_transfer(),
+                                   sizing_mode="stretch_width")
+        self.robot = None
+        import os
+        top = os.getcwd()
+        top = "/Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_phonons_nkpt_tsmear"
+        top = "~"
+        self.file_selector = pnw.FileSelector(top)
+        self.robot_files_btn = pnw.Button(name="Load files", button_type='primary', sizing_mode="stretch_width")
+        self.robot_files_btn.on_click(self.on_load_files)
+
+    #@depends_on_btn_click("robot_files_btn")
+    def on_load_files(self, event):
+        if not self.file_selector.value: return
+        #self.mpid_err_wdg.object = ""
+        #new_abifile = self.get_abifile_from_file_input(self.file_input)
+        #print("in on_load_files")
+        #print(self.file_selector.value)
+
+        # This should be executed only if server mode: TODO
+        #if self.robot is not None:
+        #    self.robot.remove()
+
+        from abipy.abilab import abirobot
+        self.robot = abirobot(self.file_selector.value)
+
+        self.main_area.objects = [self.robot.get_panel()]
+
+    def get_panel(self):
+
+        # Add help section explaining how to use the filesector. See:
+        # https://panel.holoviz.org/reference/widgets/FileSelector.html
+        help_md = pn.pane.Markdown("""
+Back (◀): Goes to the previous directory
+
+Forward (▶): Returns to the last directory after navigating back
+
+Up (⬆): Goes one directory up.
+
+Address bar: Display the directory to navigate to
+
+Enter (⬇): Navigates to the directory in the address bar
+
+Reload (↻): Reloads the contents of the current directory
+
+To navigate to a subfolder click on a directory in the file selector and then
+hit the down arrow (⬇) in the navigation bar.
+Files and folders may be selected by selecting them in the browser on the left and moving them
+to the right with the arrow buttons.
+""")
+        col = pn.Column(
+            "## Select files (all with the same extension e.g. *_DDB:)",
+            self.file_selector,
+            pn.Row(self.robot_files_btn, pn.Accordion(("Help", help_md), sizing_mode="stretch_width"),
+                   sizing_mode="stretch_width"),
+            pn.layout.Divider(),
+            sizing_mode="stretch_width")
+
+        main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
+        cls, kwds = self.get_abinit_template_cls_kwds()
+
+        return cls(main=main, title="Robot Analyzer", **kwds)

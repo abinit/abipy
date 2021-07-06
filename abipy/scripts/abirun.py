@@ -524,7 +524,7 @@ Default: o
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
 
-    p_panel = subparsers.add_parser('panel', parents=[copts_parser],
+    p_panel = subparsers.add_parser('panel', parents=[copts_parser, flow_selector_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
     p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
                         help="Specify template for panel dasboard." +
@@ -880,8 +880,16 @@ def main():
             cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
             raise exc
 
-        app = flow.get_panel(template=options.panel_template)
-        app.show(debug=options.verbose > 0)
+        abilab.abipanel()
+
+        if options.nids is None:
+            app = flow.get_panel(template=options.panel_template)
+            app.show(debug=options.verbose > 0)
+        else:
+            for node in flow.iflat_nodes(nids=options.nids):
+                app = node.get_panel(template=options.panel_template)
+                app.show(debug=options.verbose > 0)
+
         return 0
 
     elif options.command == "events":

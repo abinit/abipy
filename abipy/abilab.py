@@ -288,6 +288,28 @@ def abiopen(filepath):
     return cls.from_file(filepath)
 
 
+def abirobot(filepaths):
+    """
+    Factory function to create and return a Robot subclass from a list of filenames
+    The Robot subclass is detected from the extension of the first file hence
+    all files are assumed to have the same extension.
+
+    Args:
+        filepaths: List of strings with the filename.
+    """
+    from monty.string import list_strings
+    filepaths = list_strings(filepaths)
+    path = filepaths[0]
+    idx = path.rfind("_")
+    if idx == -1:
+        raise ValueError("Cannot find `_` in the first string")
+    ext = path[idx+1:]
+
+    cls = Robot.class_for_ext(ext)
+    robot = cls.from_files(filepaths)
+    return robot
+
+
 def display_structure(obj, **kwargs):
     """
     Use Jsmol to display a structure in the jupyter notebook.

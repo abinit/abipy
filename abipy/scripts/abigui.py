@@ -38,7 +38,8 @@ def gui_app(port, address, show, num_procs, panel_template, has_remote_server):
 
     # Import the apps and define routies for each page.
     from abipy.panels.structure import InputFileGenerator
-    from abipy.panels.ddb import PanelWithFileInput, PanelWithStructureInput, DdbPanelWithFileInput, CompareDdbWithMP
+    from abipy.panels.ddb import (PanelWithFileInput, PanelWithStructureInput, DdbPanelWithFileInput, CompareDdbWithMP,
+                                  RobotWithFileInput)
     from abipy.panels.electrons import SkwPanelWithFileInput, CompareEbandsWithMP
     from abipy.panels.outputs import AbinitOutputFilePanelWithFileInput as abo_cls
 
@@ -73,6 +74,7 @@ with an extension that is not recognized by AbiPy.
         "/ebands_vs_mp": (CompareEbandsWithMP, "Compare Ebands with MP"),
         "/ddb_vs_mp": (CompareDdbWithMP, "Compare DDB with MP"),
         "/skw": (SkwPanelWithFileInput, "SKW Analyzer"),
+        "/robot": (RobotWithFileInput, "Robot Analyzer"),
         #"/abilog": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
         #"/gs_autoparal": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
         #"/state": (pn.state, "State"),

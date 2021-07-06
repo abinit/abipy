@@ -100,3 +100,19 @@ panels Package
    :members:
    :undoc-members:
    :show-inheritance:
+
+:mod:`tasks` Module
+-------------------
+
+.. automodule:: abipy.panels.tasks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`works` Module
+-------------------
+
+.. automodule:: abipy.panels.works
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -55,6 +55,7 @@ def abipanel(panel_template="FastList"):
         "plotly",
         "mathjax",
         #"katex",
+        "ace",
     ]
 
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
@@ -1122,7 +1123,7 @@ class BaseRobotPanel(AbipyParameterized):
     def __init__(self, robot, **params):
         self.robot = robot
         self.compare_params_btn = pnw.Button(name="Compare structures", button_type='primary')
-        self.transpose_params = pnw.Checkbox(name='Transpose tables')
+        self.transpose_params = pnw.Checkbox(name='Transpose table', default=True)
 
         super().__init__(**params)
 
@@ -1189,6 +1190,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
 
         fig = plot_func(**self.mpl_kwargs)
         col = pn.Column(mpl(fig), sizing_mode='scale_width')
+
         if self.ebands_df_checkbox.value:
             df = ebands_plotter.get_ebands_frame(with_spglib=True)
             col.append(dfc(df))

@@ -850,6 +850,15 @@ class Work(BaseWork, NodeContainer):
             if task.status < task.S_SUB and all(status == task.S_OK for status in task.deps_status):
                 task.set_status(task.S_READY, "Status set to Ready")
 
+    def get_panel(self, **kwargs):
+        """
+        Build panel with widgets to interact with the Work either in a notebook or in panel app.
+        This is the implementation provided by the base class.
+        Subclasses may provide specialized implementations.
+        """
+        from abipy.panels.works import WorkPanel
+        return WorkPanel(work=self).get_panel(**kwargs)
+
     def rmtree(self, exclude_wildcard=""):
         """
         Remove all files and directories in the working directory

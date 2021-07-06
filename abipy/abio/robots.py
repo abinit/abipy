@@ -369,6 +369,11 @@ class Robot(NotebookWriter):
         root = os.getcwd()
         return [os.path.relpath(p, root) for p in paths]
 
+    def remove(self):
+        """Close the file handle, remove the file from disk for each file in the robot."""
+        for abifile in self.abifiles:
+            abifile.remove()
+
     def pop_label(self, label):
         """
         Remove file with the given ``label`` and close it.
