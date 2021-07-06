@@ -35,6 +35,8 @@ class PanelWithAnaddbParams(param.Parameterized):
     gamma_ev = param.Number(1e-4, bounds=(1e-20, None), doc="Phonon linewidth in eV")
     w_range = param.Range(default=(0.0, 0.1), bounds=(0.0, 1.0), doc="Frequency range (eV)")
 
+    plot_ifc_yscale = param.ObjectSelector(default="linear", objects=["linear", "log", "symlog", "logit"])
+
     def __init__(self, **params):
         super().__init__(**params)
 
@@ -80,7 +82,10 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         self.plot_phbands_btn = pnw.Button(name="Plot Bands and DOS", button_type='primary')
         self.plot_eps0w_btn = pnw.Button(name="Plot eps0(omega)", button_type='primary')
         self.plot_vsound_btn = pnw.Button(name="Calculate speed of sound", button_type='primary')
+
         self.plot_ifc_btn = pnw.Button(name="Compute IFC(R)", button_type='primary')
+
+
         self.plot_phbands_quad_btn = pnw.Button(name="Plot PHbands with/without quadrupoles", button_type='primary')
         self.plot_dos_vs_qmesh_btn = pnw.Button(name="Plot PHDos vs Qmesh", button_type='primary')
 
@@ -297,11 +302,15 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
     def on_plot_ifc(self):
         ifc = self.ddb.anaget_ifc(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip)
 
+        kwds = self.mpl_kwargs.copy()
+        kwds["yscale"] = self.plot_ifc_yscale
+        print(kwds)
+
         # Fill column
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-        ca(mpl(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", **self.mpl_kwargs)))
-        ca(mpl(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", **self.mpl_kwargs)))
-        ca(mpl(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", **self.mpl_kwargs)))
+        ca(mpl(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", **kwds)))
+        ca(mpl(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", **kwds)))
+        ca(mpl(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", **kwds)))
 
         return col
 
@@ -358,7 +367,8 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                 self.plot_phbands_quad
             )
             d["IFCs"] = pn.Row(
-                self.pws_col(["### IFCs options", "asr", "dipdip", "chneut", "plot_ifc_btn", self.helpc("on_plot_ifc")]),
+                self.pws_col(["### IFCs options", "asr", "dipdip", "chneut",
+                               "plot_ifc_yscale", "plot_ifc_btn", self.helpc("on_plot_ifc")]),
                 self.on_plot_ifc
             )
 

@@ -198,7 +198,7 @@ class InteratomicForceConstants(Has_Structure):
         return self.distances[ind], self.ifc_local_coord[ind]
 
     def get_plot_ifc(self, ifc, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
-                     max_dist=None, ax=None, **kwargs):
+                     max_dist=None, yscale="linear", ax=None, **kwargs):
         """
         Plots the specified ifcs, filtered according to the optional arguments.
         An array with shape number_of_atoms*number_of_neighbours, so only one of the components of the ifc matrix can
@@ -211,6 +211,7 @@ class InteratomicForceConstants(Has_Structure):
             neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
             min_dist: minimum distance between atoms and neighbours.
             max_dist: maximum distance between atoms and neighbours.
+            yscale: The axis scale type to apply: {"linear", "log", "symlog", "logit"}
             ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
@@ -230,13 +231,18 @@ class InteratomicForceConstants(Has_Structure):
         ax.set_xlabel('Distance (Bohr)')
         ax.set_ylabel(r'IFC (Ha/Bohr$^2$)')
         ax.grid(True)
+        ax.set_yscale(yscale)
+        if yscale in ("log", "symlog", "logit"):
+            filtered_ifc = np.abs(filtered_ifc)
+            if yscale == "logit": filtered_ifc /= filtered_ifc.max()
+
         ax.plot(dist, filtered_ifc, **kwargs)
 
         return fig
 
     @add_fig_kwargs
     def plot_longitudinal_ifc(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
-                              max_dist=None, ax=None, **kwargs):
+                              max_dist=None, yscale="linear", ax=None, **kwargs):
         """
         Plots the total longitudinal ifcs in local coordinates, filtered according to the optional arguments.
 
@@ -246,6 +252,8 @@ class InteratomicForceConstants(Has_Structure):
             neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
             min_dist: minimum distance between atoms and neighbours.
             max_dist: maximum distance between atoms and neighbours.
+            yscale: The axis scale type to apply: {"linear", "log", "symlog", "logit"}
+                See <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html>
             ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
@@ -255,11 +263,12 @@ class InteratomicForceConstants(Has_Structure):
             raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
 
         return self.get_plot_ifc(self.ifc_local_coord[:, :, 0, 0], atom_indices=atom_indices, atom_element=atom_element,
-                                 neighbour_element=neighbour_element, min_dist=min_dist, max_dist=max_dist, ax=ax, **kwargs)
+                                 neighbour_element=neighbour_element, min_dist=min_dist, max_dist=max_dist,
+                                 yscale=yscale, ax=ax, **kwargs)
 
     @add_fig_kwargs
     def plot_longitudinal_ifc_short_range(self, atom_indices=None, atom_element=None, neighbour_element=None,
-                                          min_dist=None, max_dist=None, ax=None, **kwargs):
+                                          min_dist=None, max_dist=None, yscale="linear", ax=None, **kwargs):
         """
         Plots the short range longitudinal ifcs in local coordinates, filtered according to the optional arguments.
 
@@ -269,6 +278,8 @@ class InteratomicForceConstants(Has_Structure):
             neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
             min_dist: minimum distance between atoms and neighbours.
             max_dist: maximum distance between atoms and neighbours.
+            yscale: The axis scale type to apply: {"linear", "log", "symlog", "logit"}
+                See <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html>
             ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
@@ -282,11 +293,11 @@ class InteratomicForceConstants(Has_Structure):
 
         return self.get_plot_ifc(self.ifc_local_coord_short_range[:, :, 0, 0], atom_indices=atom_indices,
                                  atom_element=atom_element, neighbour_element=neighbour_element, min_dist=min_dist,
-                                 max_dist=max_dist, ax=ax, **kwargs)
+                                 max_dist=max_dist, yscale=yscale, ax=ax, **kwargs)
 
     @add_fig_kwargs
     def plot_longitudinal_ifc_ewald(self, atom_indices=None, atom_element=None, neighbour_element=None,
-                                    min_dist=None, max_dist=None, ax=None, **kwargs):
+                                    min_dist=None, max_dist=None, yscale="linear", ax=None, **kwargs):
         """
         Plots the Ewald part of the ifcs in local coordinates, filtered according to the optional arguments.
 
@@ -296,6 +307,8 @@ class InteratomicForceConstants(Has_Structure):
             neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
             min_dist: minimum distance between atoms and neighbours.
             max_dist: maximum distance between atoms and neighbours.
+            yscale: The axis scale type to apply: {"linear", "log", "symlog", "logit"}
+                See <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html>
             ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
@@ -309,4 +322,4 @@ class InteratomicForceConstants(Has_Structure):
 
         return self.get_plot_ifc(self.ifc_local_coord_ewald[:, :, 0, 0], atom_indices=atom_indices,
                                  atom_element=atom_element, neighbour_element=neighbour_element, min_dist=min_dist,
-                                 max_dist=max_dist, ax=ax, **kwargs)
+                                 max_dist=max_dist, yscale=yscale, ax=ax, **kwargs)
