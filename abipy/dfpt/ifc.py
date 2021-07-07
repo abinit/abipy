@@ -247,7 +247,7 @@ class InteratomicForceConstants(Has_Structure):
         if yscale in ("log", "symlog", "logit"):
             filtered_ifc = np.abs(filtered_ifc)
             if yscale == "logit": filtered_ifc /= filtered_ifc.max()
-            yscale = f"{ylabel} ({yscale} scale)"
+            ylabel = f"{ylabel} ({yscale} scale)"
 
         ax.set_xlabel('Distance (Bohr)')
         ax.set_ylabel(ylabel)

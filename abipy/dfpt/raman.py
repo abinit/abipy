@@ -1,3 +1,5 @@
+"""Objects for post-processing Raman results produced by anaddb."""
+
 import numpy as np
 import abipy.core.abinit_units as abu
 from abipy.iotools import ETSF_Reader
@@ -387,8 +389,8 @@ class Raman:
 
         Args:
             temp: temperature in K.
-            laser_freq: frequency of the incident laser. The units are determined the "units"
-                argument.
+            laser_freq: frequency of the incident laser. The units are determined according to
+                the "units" argument.
             width: the width of the Lorentz distribution. The units are determined the "units"
                 argument. If None or 0 a plot of only the frequencies for each mode will be given.
             value: a string describing the value that should be plotted. Can be "powder" or
@@ -412,8 +414,7 @@ class Raman:
                 phonon modes.
             **kwargs: arguments passed to the plot function.
 
-        Returns:
-            |matplotlib-Figure|
+        Returns: |matplotlib-Figure|
         """
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)

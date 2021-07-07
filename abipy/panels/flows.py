@@ -17,7 +17,7 @@ class FlowPanel(AbipyParameterized):
         self.flow = flow
 
         self.engine = pnw.Select(value="fdp",
-                      options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
+                        options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
         self.dirtree = pnw.Checkbox(name='Dirtree', value=False)
         self.graphviz_btn = pnw.Button(name="Show graph", button_type='primary')
 

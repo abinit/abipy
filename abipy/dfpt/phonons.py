@@ -1913,7 +1913,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @add_plotly_fig_kwargs
     def plotly_with_phdos(self, phdos, units="eV", qlabels=None, fig=None, rcd_phbands=None, rcd_phdos=None,
-                          width_ratios=(2, 1), **kwargs):
+                          width_ratios=(2, 1), fontsize=12, **kwargs):
         r"""
         Plot the phonon band structure with the phonon DOS with plotly.
 
@@ -1927,6 +1927,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 is created.
             width_ratios: Ratio between the width of the bands plots and the DOS plots.
                 Used if ``fig`` is None
+            fontsize: Title fontsize.
 
         Returns: |plotly.graph_objects.Figure|
         """
@@ -1961,6 +1962,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             rcd_phdos = PlotlyRowColDesc(0, 1, 1, 2)
 
         phdos.plotly_dos_idos(fig, rcd=rcd_phdos, what="d", units=units, exchange_xy=True, showlegend=False, **kwargs)
+        fig.update_layout(font_size=fontsize)
 
         return fig
 
@@ -2984,13 +2986,6 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         This function *generates* a predefined list of plotly figures with minimal input from the user.
         """
         return self.yield_phbands_plotly_figs(**kwargs)
-
-    #def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):
-    #    """
-    #    This function *generates* a predefined list of plotly figures with minimal input from the user.
-    #    """
-    #    renderer = "chart_studio" if chart_studio else None
-    #    self.phbands.plotly(renderer=renderer)
 
     def write_notebook(self, nbpath=None):
         """
@@ -4370,16 +4365,13 @@ class PhononBandsPlotter(NotebookWriter):
             yield self.combiplot(show=False)
             yield self.combiboxplot(show=False)
 
-    def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):  # pragma: no cover
-        """This function *generates* a predefined list of plotly figures with minimal input from the user."""
-        kwargs["show"] = False
-
-        figs = []; f = figs.append
-        f(self.gridplotly(**kwargs))
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """This function *generates* a predefined list of matplotlib figures with minimal input from the user."""
+        yield self.gridplotly(show=False)
+        #yield self.boxplotly(show=False)
         if self.has_same_formula():
-            f(self.combiplotly(**kwargs))
-
-        push_to_chart_studio(figs) if chart_studio else plotlyfigs_to_browser(figs)
+            yield self.combiplotly(show=False)
+            #yield self.combiboxplotly(show=False)
 
     @add_fig_kwargs
     def gridplot(self, with_dos=True, units="eV", fontsize=8, **kwargs):
@@ -4419,24 +4411,38 @@ class PhononBandsPlotter(NotebookWriter):
         titles = list(self._bands_dict.keys())
         phb_objects = list(self._bands_dict.values())
         phdos_objects = None
+        plot_with_phdos = False
         if self.phdoses_dict and with_dos:
             phdos_objects = list(self.phdoses_dict.values())
+            plot_with_phdos = True
 
         # Build grid of plots.
         ncols, nrows = 1, 1
         num_plots = len(phb_objects)
+
+        if plot_with_phdos:
+            # Special treatment required for phbands with DOS.
+            num_plots *= 2
+            titles = []
+            for k in self._bands_dict.keys():
+                titles.extend([k, ""])
+
         if num_plots > 1:
             ncols = 2
             nrows = num_plots // ncols + num_plots % ncols
 
-        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=titles, sharex=True, sharey=False)
+        sharex = not plot_with_phdos
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=titles, sharex=sharex, sharey=False)
 
-        if self.phdoses_dict and with_dos:
-            raise NotImplementedError("")
-            for i, (phbands, phdos) in enumerate(zip(phb_objects, phdos_objects)):
-                row, col = divmod(i, ncols)
-                rcd_phdos = PlotlyRowColDesc(row, col, nrows, ncols)
+        if plot_with_phdos:
+            #print("Warning: plot_with_phdos is still under development!!!!!!!!!!")
+            jj = 0
+            for i, phbands in enumerate(phb_objects):
+                phdos = phdos_objects[i]
+                row, col = divmod(jj, ncols)
+                jj += 2
                 rcd_phbands = PlotlyRowColDesc(row, col, nrows, ncols)
+                rcd_phdos = PlotlyRowColDesc(row, col + 1, nrows, ncols)
                 phbands.plotly_with_phdos(phdos, fig=fig, rcd_phbands=rcd_phbands, rcd_phdos=rcd_phdos,
                                           units=units, fontsize=fontsize,
                                           width_ratios=(2, 1), show=False)
@@ -5041,17 +5047,14 @@ class PhononDosPlotter(NotebookWriter):
         #if self.has_same_formula():
         yield self.combiplot(show=False)
 
-    def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):  # pragma: no cover
-        """This function *generates* a predefined list of plotly figures with minimal input from the user."""
-        raise NotImplementedError("plotly_expose")
-        #kwargs["show"] = False
-        #figs = []
-        #f = figs.append
-        #f(self.gridplotly(**kwargs))
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        #yield self.gridplotply(show=False)
+        #yield self.plotly_harmonic_thermo(show=False)
         #if self.has_same_formula():
-        #    f(self.combiplotly(**kwargs))
-
-        #push_to_chart_studio(figs) if chart_studio else plotlyfigs_to_browser(figs)
+        yield self.combiplotly(show=False)
 
     def write_notebook(self, nbpath=None):
         """

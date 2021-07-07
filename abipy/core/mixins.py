@@ -854,13 +854,12 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
 
             return template.show()
 
-    def plotly_expose(self, **kwargs): # chart_studio=False, verbose=0,
+    def plotly_expose(self, **kwargs):
         """
         This function *generates* a predefined list of plotly figures with minimal input from the user.
-        Relies on yield_plotly_figs implemented by the subclass to generate the figures.
+        Relies on the yield_plotly_figs method implemented by the subclass in order to generate the figures.
         """
         #print("in plotly expose")
-
         pn, template = self._get_panel_and_template()
         pn.config.sizing_mode = 'stretch_width'
         from abipy.panels.core import mpl, ply
@@ -880,7 +879,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
             if hasattr(template.main, "append"):
                 template.main.append(p)
             else:
-                # Assume .main area acts like a panel GridSpec
+                # Assume main area acts like a panel GridSpec
                 row_slice = slice(3 * row, 3 * (row + 1))
                 if col == 0: template.main[row_slice, :6] = p
                 if col == 1: template.main[row_slice, 6:] = p

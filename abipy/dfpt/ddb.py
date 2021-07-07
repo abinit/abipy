@@ -1746,7 +1746,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def anaget_raman(self, asr=2, chneut=1, ramansr=1, alphon=1, workdir=None, mpi_procs=1,
                      manager=None, verbose=0, directions=None, anaddb_kwargs=None):
         """
-        Execute anaddb to compute the Raman spectrum
+        Execute anaddb to compute the Raman spectrum.
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed.
@@ -2412,7 +2412,7 @@ class DielectricTensorGenerator(Has_Structure):
 
     @add_plotly_fig_kwargs
     def plotly(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component='diag', reim="reim", units='eV',
-             with_phfreqs=True, fig=None, rcd=None, fontsize=16, **kwargs):
+               with_phfreqs=True, fig=None, rcd=None, fontsize=16, **kwargs):
         """
         Plots the selected components of the dielectric tensor as a function of frequency with plotly.
 
@@ -3157,20 +3157,15 @@ class DdbRobot(Robot):
             for fig in r.phbands_plotter.yield_figs(): yield fig
             for fig in r.phdos_plotter.yield_figs(): yield fig
 
-    def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):  # pragma: no cover
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
         """
-        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        renderer = "chart_studio" if chart_studio else None
-        figs = []; f = figs.append
         if all(ddb.has_at_least_one_atomic_perturbation() for ddb in self.abifiles):
             print("Invoking anaddb through anaget_phonon_plotters...")
             r = self.anaget_phonon_plotters()
-            #for fig in r.phbands_plotter.yield_plotly_figs(): yield fig
-            #for fig in r.phdos_plotter.yield_plotly_figs(): yield fig
-            f(r.phbands_plotter.combiplotly(show=False))
-
-        push_to_chart_studio(figs) if chart_studio else plotlyfigs_to_browser(figs)
+            for fig in r.phbands_plotter.yield_plotly_figs(): yield fig
+            for fig in r.phdos_plotter.yield_plotly_figs(): yield fig
 
     def get_panel(self, **kwargs):
         """Return a panel object that allows the user to compare the results with a web-based interface."""
