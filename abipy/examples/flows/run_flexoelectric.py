@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Dynamical quadrupoles
+Flexoelectric Tensor
 =====================
 
 This example shows how to compute the dynamical matrix of GaP on user-defined q-mesh

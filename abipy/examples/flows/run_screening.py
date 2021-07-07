@@ -93,7 +93,7 @@ xred_symbols
 
             # IMPORTANT:
             #   If you alredy have a WFK file and you want to skip the SCF + NSCF part
-            #    build the scr_work using `from_wkf_filepath` instead of `from_nscf_task` e.g.:
+            #   build the scr_work using `from_wkf_filepath` instead of `from_nscf_task` e.g.:
 
             #scr_work = ScreeningWork.from_wfk_file(wfk_filepath, scr_inp)
 
