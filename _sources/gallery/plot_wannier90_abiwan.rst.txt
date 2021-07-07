@@ -130,9 +130,9 @@ the `--expose` option to generate matplotlib figures automatically.
     6         [2.47968 0.23579 2.47968]  2.767
     7         [2.47968 2.47968 0.23579]  2.767
 
-    HWanR built in 0.008 (s)
-    Interpolation completed in 0.007 [s]
-    Interpolation completed in 0.002 [s]
+    HWanR built in 0.013 (s)
+    Interpolation completed in 0.014 [s]
+    Interpolation completed in 0.003 [s]
 
     <Figure size 640x480 with 2 Axes>
 
@@ -177,7 +177,7 @@ the `--expose` option to generate matplotlib figures automatically.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.705 seconds)
+   **Total running time of the script:** ( 0 minutes  0.832 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_wannier90_abiwan.py:

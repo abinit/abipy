@@ -134,6 +134,7 @@
 <li class="toctree-l2"><a class="reference internal" href="plot_gscycle.html">Ground-state SCF cycle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_gruneisen.html">Gruneisen parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_phonons_infrared.html">Infrared spectrum of AlAs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ifcs.html">Interatomic Force Constants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_ejdos.html">Joint Density of States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_kpath_from_ibz.html">K-path from IBZ</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_efatbands_lm.html">LM-fatbands</a></li>
@@ -318,11 +319,11 @@ Mesh3D: nx=18, ny=18, nz=18
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
 <span class="c1"># Open the DEN.nc file</span>
-<span class="n">ncfile</span> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;si_nscf_WFK.nc&quot;</span><span class="p">))</span>
+<span class="n">ncfile</span> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a></a><span class="p">(</span><span class="s2">&quot;si_nscf_WFK.nc&quot;</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">ncfile</span><span class="p">)</span>
 
 <span class="c1"># The DEN file has a `Structure` an `ElectronBands` object and wavefunctions.</span>
@@ -360,7 +361,7 @@ Mesh3D: nx=18, ny=18, nz=18
 <span class="n">ncfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.739 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.694 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-wfk-py">
 <div class="binder-badge docutils container">
 <a class="reference external image-reference" href="https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_wfk.ipynb"><img alt="Launch binder" src="../_images/binder_badge_logo1.svg" width="150px" /></a>
@@ -391,7 +392,7 @@ Mesh3D: nx=18, ny=18, nz=18
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

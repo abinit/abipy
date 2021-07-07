@@ -134,6 +134,7 @@
 <li class="toctree-l2"><a class="reference internal" href="plot_gscycle.html">Ground-state SCF cycle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_gruneisen.html">Gruneisen parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_phonons_infrared.html">Infrared spectrum of AlAs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ifcs.html">Interatomic Force Constants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_ejdos.html">Joint Density of States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_kpath_from_ibz.html">K-path from IBZ</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_efatbands_lm.html">LM-fatbands</a></li>
@@ -346,9 +347,9 @@ WF_index  Center                     Spread
 6         [2.47968 0.23579 2.47968]  2.767
 7         [2.47968 2.47968 0.23579]  2.767
 
-HWanR built in 0.008 (s)
-Interpolation completed in 0.007 [s]
-Interpolation completed in 0.002 [s]
+HWanR built in 0.013 (s)
+Interpolation completed in 0.014 [s]
+Interpolation completed in 0.003 [s]
 
 &lt;Figure size 640x480 with 2 Axes&gt;
 </pre></div>
@@ -359,15 +360,15 @@ Interpolation completed in 0.002 [s]
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
-<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a>
+<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a>
 
 <span class="c1"># Open the ABIWAN file</span>
-<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">filepath</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">abidata</span><span class="o">.</span><span class="n">dirpath</span></a><span class="p">,</span> <span class="s2">&quot;refs&quot;</span><span class="p">,</span> <span class="s2">&quot;wannier90&quot;</span><span class="p">,</span> <span class="s2">&quot;tutoplugs_tw90_4&quot;</span><span class="p">,</span> <span class="s2">&quot;tw90_4o_DS3_ABIWAN.nc&quot;</span><span class="p">)</span>
-<span class="n">abiwan</span> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">filepath</span></a><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">filepath</span></a></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><a href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">abidata</span><span class="o">.</span><span class="n">dirpath</span></a></a><span class="p">,</span> <span class="s2">&quot;refs&quot;</span><span class="p">,</span> <span class="s2">&quot;wannier90&quot;</span><span class="p">,</span> <span class="s2">&quot;tutoplugs_tw90_4&quot;</span><span class="p">,</span> <span class="s2">&quot;tw90_4o_DS3_ABIWAN.nc&quot;</span><span class="p">)</span>
+<span class="n">abiwan</span> <span class="o">=</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">filepath</span></a></a><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">abiwan</span><span class="p">)</span>
 
 <span class="c1"># Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.</span>
-<a href="../api/wannier90_api.html#abipy.wannier90.abiwan.HWanR.plot" title="abipy.wannier90.abiwan.HWanR.plot" class="sphx-glr-backref-module-abipy-wannier90-abiwan sphx-glr-backref-type-py-method"><span class="n">abiwan</span><span class="o">.</span><span class="n">hwan</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Matrix elements in real space&quot;</span><span class="p">)</span>
+<a href="../api/wannier90_api.html#abipy.wannier90.abiwan.HWanR.plot" title="abipy.wannier90.abiwan.HWanR.plot" class="sphx-glr-backref-module-abipy-wannier90-abiwan sphx-glr-backref-type-py-method"><a href="../api/wannier90_api.html#abipy.wannier90.abiwan.HWanR.plot" title="abipy.wannier90.abiwan.HWanR.plot" class="sphx-glr-backref-module-abipy-wannier90-abiwan sphx-glr-backref-type-py-method"><span class="n">abiwan</span><span class="o">.</span><span class="n">hwan</span><span class="o">.</span><span class="n">plot</span></a></a><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Matrix elements in real space&quot;</span><span class="p">)</span>
 
 <span class="c1"># Interpolate bands with Wannier functions using an automatically selected k-path</span>
 <span class="c1"># with 5 points for the smallest segment.</span>
@@ -387,7 +388,7 @@ Interpolation completed in 0.002 [s]
 <span class="c1">#plotter.combiplot()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.705 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.832 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-wannier90-abiwan-py">
 <div class="binder-badge docutils container">
 <a class="reference external image-reference" href="https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_wannier90_abiwan.ipynb"><img alt="Launch binder" src="../_images/binder_badge_logo1.svg" width="150px" /></a>
@@ -418,7 +419,7 @@ Interpolation completed in 0.002 [s]
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

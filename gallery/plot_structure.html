@@ -134,6 +134,7 @@
 <li class="toctree-l2"><a class="reference internal" href="plot_gscycle.html">Ground-state SCF cycle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_gruneisen.html">Gruneisen parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_phonons_infrared.html">Infrared spectrum of AlAs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ifcs.html">Interatomic Force Constants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_ejdos.html">Joint Density of States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_kpath_from_ibz.html">K-path from IBZ</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_efatbands_lm.html">LM-fatbands</a></li>
@@ -262,13 +263,13 @@ to download the full example code or to run this example in your browser via Bin
 <div class="sphx-glr-example-title section" id="unit-cell">
 <span id="sphx-glr-gallery-plot-structure-py"></span><h1>Unit cell<a class="headerlink" href="#unit-cell" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to display the unit cell with matplotlib.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 </pre></div>
 </div>
 <p>Extract structure from the netcdf file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;sio2_kpath_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
-    <span class="n">structure</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.Has_Structure.structure" title="abipy.core.mixins.Has_Structure.structure" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><span class="n">gsr</span><span class="o">.</span><span class="n">structure</span></a>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a></a><span class="p">(</span><span class="s2">&quot;sio2_kpath_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
+    <span class="n">structure</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.Has_Structure.structure" title="abipy.core.mixins.Has_Structure.structure" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><a href="../api/core_api.html#abipy.core.mixins.Has_Structure.structure" title="abipy.core.mixins.Has_Structure.structure" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><span class="n">gsr</span><span class="o">.</span><span class="n">structure</span></a></a>
 </pre></div>
 </div>
 <p>To visualize the structure with matplotlib, use:</p>
@@ -290,7 +291,7 @@ to download the full example code or to run this example in your browser via Bin
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 640x480 with 1 Axes&gt;
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.294 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.258 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-structure-py">
 <div class="binder-badge docutils container">
 <a class="reference external image-reference" href="https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_structure.ipynb"><img alt="Launch binder" src="../_images/binder_badge_logo1.svg" width="150px" /></a>
@@ -321,7 +322,7 @@ to download the full example code or to run this example in your browser via Bin
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

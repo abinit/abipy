@@ -133,7 +133,7 @@ structure are plotted with matplotlib.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  2.039 seconds)
+   **Total running time of the script:** ( 0 minutes  1.888 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_qpbands_with_scissor.py:

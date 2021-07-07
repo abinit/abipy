@@ -1201,7 +1201,7 @@ verbose               0    Integer  (0, None)  V RW</p>
 <dt id="abipy.panels.ddb.PanelWithAnaddbParams">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.panels.ddb.</span></code><code class="sig-name descname"><span class="pre">PanelWithAnaddbParams</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#PanelWithAnaddbParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.panels.ddb.PanelWithAnaddbParams" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">param.parameterized.Parameterized</span></code></p>
-<p>params(asr=ObjectSelector, chneut=ObjectSelector, dipdip=ObjectSelector, dos_method=ObjectSelector, gamma_ev=Number, lo_to_splitting=ObjectSelector, ndivsm=Integer, nqsmall=Integer, temp_range=Range, units=ObjectSelector, w_range=Range, name=String)</p>
+<p>params(asr=ObjectSelector, chneut=ObjectSelector, dipdip=ObjectSelector, dos_method=ObjectSelector, gamma_ev=Number, lo_to_splitting=ObjectSelector, ndivsm=Integer, nqsmall=Integer, plot_ifc_yscale=ObjectSelector, temp_range=Range, units=ObjectSelector, w_range=Range, name=String)</p>
 <blockquote>
 <div><p>Mixin for panel classes requiring widgets to invoke Anaddb via AbiPy.
 Used, for instance, by DdbFilePanel and DdbRobotPanel so that we don’t have to
@@ -1220,6 +1220,7 @@ gamma_ev             0.0001         Number      (1e-20, None)  V RW
 lo_to_splitting   ‘automatic’   ObjectSelector                 V RW
 ndivsm                 5           Integer                     V RW
 nqsmall                10          Integer        (1, None)    V RW
+plot_ifc_yscale     ‘linear’    ObjectSelector                 V RW
 temp_range        (0.0, 300.0)      Range         (0, 1000)    V RW
 units                 ‘eV’      ObjectSelector                 V RW
 w_range            (0.0, 0.1)       Range         (0.0, 1.0)   V RW</p>
@@ -1233,9 +1234,10 @@ w_range            (0.0, 0.1)       Range         (0.0, 1.0)   V RW</p>
 [1;31mlo_to_splitting: &lt; No docstring available &gt;[0m
 [1;34mndivsm:          Number of divisions for smallest vector to generate the q-path[0m
 [1;31mnqsmall:         Number of divisions for smallest vector to generate the q-mesh[0m
-[1;34mtemp_range:      Temperature range in K.[0m
-[1;31munits:           Energy units[0m
-[1;34mw_range:         Frequency range (eV)[0m</p>
+[1;34mplot_ifc_yscale: &lt; No docstring available &gt;[0m
+[1;31mtemp_range:      Temperature range in K.[0m
+[1;34munits:           Energy units[0m
+[1;31mw_range:         Frequency range (eV)[0m</p>
 <dl class="py attribute">
 <dt id="abipy.panels.ddb.PanelWithAnaddbParams.nqsmall">
 <code class="sig-name descname"><span class="pre">nqsmall</span></code><em class="property"> <span class="pre">=</span> <span class="pre">10</span></em><a class="headerlink" href="#abipy.panels.ddb.PanelWithAnaddbParams.nqsmall" title="Permalink to this definition">¶</a></dt>
@@ -1291,6 +1293,11 @@ w_range            (0.0, 0.1)       Range         (0.0, 1.0)   V RW</p>
 <code class="sig-name descname"><span class="pre">w_range</span></code><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">0.1)</span></em><a class="headerlink" href="#abipy.panels.ddb.PanelWithAnaddbParams.w_range" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py attribute">
+<dt id="abipy.panels.ddb.PanelWithAnaddbParams.plot_ifc_yscale">
+<code class="sig-name descname"><span class="pre">plot_ifc_yscale</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'linear'</span></em><a class="headerlink" href="#abipy.panels.ddb.PanelWithAnaddbParams.plot_ifc_yscale" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="abipy.panels.ddb.PanelWithAnaddbParams.kwargs_for_anaget_phbst_and_phdos_files">
 <code class="sig-name descname"><span class="pre">kwargs_for_anaget_phbst_and_phdos_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#PanelWithAnaddbParams.kwargs_for_anaget_phbst_and_phdos_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.panels.ddb.PanelWithAnaddbParams.kwargs_for_anaget_phbst_and_phdos_files" title="Permalink to this definition">¶</a></dt>
@@ -1309,7 +1316,7 @@ Additional kwargs can be specified if needed.</p>
 <dt id="abipy.panels.ddb.DdbFilePanel">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.panels.ddb.</span></code><code class="sig-name descname"><span class="pre">DdbFilePanel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ddb</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#DdbFilePanel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.PanelWithStructure" title="abipy.panels.core.PanelWithStructure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.PanelWithStructure</span></code></a>, <a class="reference internal" href="#abipy.panels.ddb.PanelWithAnaddbParams" title="abipy.panels.ddb.PanelWithAnaddbParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.ddb.PanelWithAnaddbParams</span></code></a></p>
-<p>params(structure_viewer=ObjectSelector, has_remote_server=Boolean, mpi_procs=Integer, verbose=Integer, asr=ObjectSelector, chneut=ObjectSelector, dipdip=ObjectSelector, dos_method=ObjectSelector, gamma_ev=Number, lo_to_splitting=ObjectSelector, ndivsm=Integer, nqsmall=Integer, temp_range=Range, units=ObjectSelector, w_range=Range, name=String)</p>
+<p>params(structure_viewer=ObjectSelector, has_remote_server=Boolean, mpi_procs=Integer, verbose=Integer, asr=ObjectSelector, chneut=ObjectSelector, dipdip=ObjectSelector, dos_method=ObjectSelector, gamma_ev=Number, lo_to_splitting=ObjectSelector, ndivsm=Integer, nqsmall=Integer, plot_ifc_yscale=ObjectSelector, temp_range=Range, units=ObjectSelector, w_range=Range, name=String)</p>
 <blockquote>
 <div><p>A panel to analyze a <a class="reference internal" href="dfpt_api.html#abipy.dfpt.ddb.DdbFile" title="abipy.dfpt.ddb.DdbFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.dfpt.ddb.DdbFile</span></code></a>.
 Provides widgets to invoke anaddb and visualize the results.</p>
@@ -1329,6 +1336,7 @@ lo_to_splitting     ‘automatic’   ObjectSelector                 V RW
 mpi_procs                1           Integer        (1, None)    V RW
 ndivsm                   5           Integer                     V RW
 nqsmall                  10          Integer        (1, None)    V RW
+plot_ifc_yscale       ‘linear’    ObjectSelector                 V RW
 structure_viewer      ‘jsmol’     ObjectSelector                 V RW
 temp_range          (0.0, 300.0)      Range         (0, 1000)    V RW
 units                   ‘eV’      ObjectSelector                 V RW
@@ -1346,11 +1354,12 @@ w_range              (0.0, 0.1)       Range         (0.0, 1.0)   V RW</p>
 [1;31mmpi_procs:         Number of MPI processes used for running Fortran code.[0m
 [1;34mndivsm:            Number of divisions for smallest vector to generate the q-path[0m
 [1;31mnqsmall:           Number of divisions for smallest vector to generate the q-mesh[0m
-[1;34mstructure_viewer:  &lt; No docstring available &gt;[0m
-[1;31mtemp_range:        Temperature range in K.[0m
-[1;34munits:             Energy units[0m
-[1;31mverbose:           Verbosity Level[0m
-[1;34mw_range:           Frequency range (eV)[0m</p>
+[1;34mplot_ifc_yscale:   &lt; No docstring available &gt;[0m
+[1;31mstructure_viewer:  &lt; No docstring available &gt;[0m
+[1;34mtemp_range:        Temperature range in K.[0m
+[1;31munits:             Energy units[0m
+[1;34mverbose:           Verbosity Level[0m
+[1;31mw_range:           Frequency range (eV)[0m</p>
 <dl class="py method">
 <dt id="abipy.panels.ddb.DdbFilePanel.get_epsinf">
 <code class="sig-name descname"><span class="pre">get_epsinf</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#DdbFilePanel.get_epsinf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.get_epsinf" title="Permalink to this definition">¶</a></dt>
@@ -1590,7 +1599,7 @@ verbose               0    Integer  (0, None)  V RW</p>
 <dt id="abipy.panels.ddb.DdbRobotPanel">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.panels.ddb.</span></code><code class="sig-name descname"><span class="pre">DdbRobotPanel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">robot</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#DdbRobotPanel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.panels.ddb.DdbRobotPanel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.BaseRobotPanel" title="abipy.panels.core.BaseRobotPanel"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.BaseRobotPanel</span></code></a>, <a class="reference internal" href="#abipy.panels.ddb.PanelWithAnaddbParams" title="abipy.panels.ddb.PanelWithAnaddbParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.ddb.PanelWithAnaddbParams</span></code></a></p>
-<p>params(has_remote_server=Boolean, mpi_procs=Integer, verbose=Integer, asr=ObjectSelector, chneut=ObjectSelector, dipdip=ObjectSelector, dos_method=ObjectSelector, gamma_ev=Number, lo_to_splitting=ObjectSelector, ndivsm=Integer, nqsmall=Integer, temp_range=Range, units=ObjectSelector, w_range=Range, name=String)</p>
+<p>params(has_remote_server=Boolean, mpi_procs=Integer, verbose=Integer, asr=ObjectSelector, chneut=ObjectSelector, dipdip=ObjectSelector, dos_method=ObjectSelector, gamma_ev=Number, lo_to_splitting=ObjectSelector, ndivsm=Integer, nqsmall=Integer, plot_ifc_yscale=ObjectSelector, temp_range=Range, units=ObjectSelector, w_range=Range, name=String)</p>
 <blockquote>
 <div><p>A panel to analyze multiple DdbFiles via the low-level API provided by DdbRobot.
 Provides widgets to invoke anaddb and visualize the results.</p>
@@ -1610,6 +1619,7 @@ lo_to_splitting     ‘automatic’   ObjectSelector                 V RW
 mpi_procs                1           Integer        (1, None)    V RW
 ndivsm                   5           Integer                     V RW
 nqsmall                  10          Integer        (1, None)    V RW
+plot_ifc_yscale       ‘linear’    ObjectSelector                 V RW
 temp_range          (0.0, 300.0)      Range         (0, 1000)    V RW
 units                   ‘eV’      ObjectSelector                 V RW
 verbose                  0           Integer        (0, None)    V RW
@@ -1626,10 +1636,11 @@ w_range              (0.0, 0.1)       Range         (0.0, 1.0)   V RW</p>
 [1;31mmpi_procs:         Number of MPI processes used for running Fortran code.[0m
 [1;34mndivsm:            Number of divisions for smallest vector to generate the q-path[0m
 [1;31mnqsmall:           Number of divisions for smallest vector to generate the q-mesh[0m
-[1;34mtemp_range:        Temperature range in K.[0m
-[1;31munits:             Energy units[0m
-[1;34mverbose:           Verbosity Level[0m
-[1;31mw_range:           Frequency range (eV)[0m</p>
+[1;34mplot_ifc_yscale:   &lt; No docstring available &gt;[0m
+[1;31mtemp_range:        Temperature range in K.[0m
+[1;34munits:             Energy units[0m
+[1;31mverbose:           Verbosity Level[0m
+[1;34mw_range:           Frequency range (eV)[0m</p>
 <dl class="py method">
 <dt id="abipy.panels.ddb.DdbRobotPanel.kwargs_for_anaget_phbst_and_phdos_files">
 <code class="sig-name descname"><span class="pre">kwargs_for_anaget_phbst_and_phdos_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#DdbRobotPanel.kwargs_for_anaget_phbst_and_phdos_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.panels.ddb.DdbRobotPanel.kwargs_for_anaget_phbst_and_phdos_files" title="Permalink to this definition">¶</a></dt>
@@ -2509,7 +2520,7 @@ verbose               0    Integer  (0, None)  V RW</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

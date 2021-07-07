@@ -134,6 +134,7 @@
 <li class="toctree-l2"><a class="reference internal" href="plot_gscycle.html">Ground-state SCF cycle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_gruneisen.html">Gruneisen parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_phonons_infrared.html">Infrared spectrum of AlAs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ifcs.html">Interatomic Force Constants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_ejdos.html">Joint Density of States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_kpath_from_ibz.html">K-path from IBZ</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_efatbands_lm.html">LM-fatbands</a></li>
@@ -268,15 +269,15 @@ to download the full example code or to run this example in your browser via Bin
 
 <span class="c1"># Extract the structure (supports multiple formats e.g netcdf, Abinit input, cif, POSCAR)</span>
 <span class="c1"># Also available via the `abistruct.py xrd FILE` command line interface.</span>
-<span class="n">structure</span> <span class="o">=</span> <a href="https://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.IStructure.from_file" title="pymatgen.core.structure.IStructure.from_file" class="sphx-glr-backref-module-pymatgen-core-structure sphx-glr-backref-type-py-method"><span class="n">abilab</span><span class="o">.</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;si_scf_WFK.nc&quot;</span><span class="p">))</span>
+<span class="n">structure</span> <span class="o">=</span> <a href="https://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.IStructure.from_file" title="pymatgen.core.structure.IStructure.from_file" class="sphx-glr-backref-module-pymatgen-core-structure sphx-glr-backref-type-py-method"><a href="https://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.IStructure.from_file" title="pymatgen.core.structure.IStructure.from_file" class="sphx-glr-backref-module-pymatgen-core-structure sphx-glr-backref-type-py-method"><span class="n">abilab</span><span class="o">.</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span></a></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a></a><span class="p">(</span><span class="s2">&quot;si_scf_WFK.nc&quot;</span><span class="p">))</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="k">if</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sys</span><span class="o">.</span><span class="n">version</span></a><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">&gt;</span> <span class="s1">&#39;2.7&#39;</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sys</span><span class="o">.</span><span class="n">version</span></a></a><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">&gt;</span> <span class="s1">&#39;2.7&#39;</span><span class="p">:</span>
     <span class="c1"># pmg broke py compatibility</span>
     <span class="n">structure</span><span class="o">.</span><span class="n">plot_xrd</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.096 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.101 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-xrd-py">
 <div class="binder-badge docutils container">
 <a class="reference external image-reference" href="https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_xrd.ipynb"><img alt="Launch binder" src="../_images/binder_badge_logo1.svg" width="150px" /></a>
@@ -307,7 +308,7 @@ to download the full example code or to run this example in your browser via Bin
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

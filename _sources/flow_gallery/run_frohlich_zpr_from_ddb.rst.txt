@@ -120,7 +120,7 @@ Run the script with:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.530 seconds)
+   **Total running time of the script:** ( 0 minutes  0.457 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_frohlich_zpr_from_ddb.py:

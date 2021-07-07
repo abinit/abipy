@@ -1044,13 +1044,12 @@
 
             <span class="k">return</span> <span class="n">template</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="NotebookWriter.plotly_expose"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.plotly_expose">[docs]</a>    <span class="k">def</span> <span class="nf">plotly_expose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="c1"># chart_studio=False, verbose=0,</span>
+<div class="viewcode-block" id="NotebookWriter.plotly_expose"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.plotly_expose">[docs]</a>    <span class="k">def</span> <span class="nf">plotly_expose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function *generates* a predefined list of plotly figures with minimal input from the user.</span>
-<span class="sd">        Relies on yield_plotly_figs implemented by the subclass to generate the figures.</span>
+<span class="sd">        Relies on the yield_plotly_figs method implemented by the subclass in order to generate the figures.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1">#print(&quot;in plotly expose&quot;)</span>
-
         <span class="n">pn</span><span class="p">,</span> <span class="n">template</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_panel_and_template</span><span class="p">()</span>
         <span class="n">pn</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">sizing_mode</span> <span class="o">=</span> <span class="s1">&#39;stretch_width&#39;</span>
         <span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">ply</span>
@@ -1070,7 +1069,7 @@
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">main</span><span class="p">,</span> <span class="s2">&quot;append&quot;</span><span class="p">):</span>
                 <span class="n">template</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># Assume .main area acts like a panel GridSpec</span>
+                <span class="c1"># Assume main area acts like a panel GridSpec</span>
                 <span class="n">row_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">row</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">template</span><span class="o">.</span><span class="n">main</span><span class="p">[</span><span class="n">row_slice</span><span class="p">,</span> <span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
                 <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">template</span><span class="o">.</span><span class="n">main</span><span class="p">[</span><span class="n">row_slice</span><span class="p">,</span> <span class="mi">6</span><span class="p">:]</span> <span class="o">=</span> <span class="n">p</span>
@@ -1100,7 +1099,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

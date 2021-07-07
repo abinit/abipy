@@ -188,7 +188,9 @@
            <div itemprop="articleBody">
             
   <h1>Source code for abipy.dfpt.raman</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;Objects for post-processing Raman results produced by anaddb.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="kn">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="kn">import</span> <span class="n">Function1D</span>
@@ -577,8 +579,8 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            temp: temperature in K.</span>
-<span class="sd">            laser_freq: frequency of the incident laser. The units are determined the &quot;units&quot;</span>
-<span class="sd">                argument.</span>
+<span class="sd">            laser_freq: frequency of the incident laser. The units are determined according to</span>
+<span class="sd">                the &quot;units&quot; argument.</span>
 <span class="sd">            width: the width of the Lorentz distribution. The units are determined the &quot;units&quot;</span>
 <span class="sd">                argument. If None or 0 a plot of only the frequencies for each mode will be given.</span>
 <span class="sd">            value: a string describing the value that should be plotted. Can be &quot;powder&quot; or</span>
@@ -602,8 +604,7 @@
 <span class="sd">                phonon modes.</span>
 <span class="sd">            **kwargs: arguments passed to the plot function.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            |matplotlib-Figure|</span>
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
@@ -672,7 +673,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

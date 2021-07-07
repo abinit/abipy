@@ -39,8 +39,8 @@ using different dense k/q meshes
 
  .. code-block:: none
 
-    <KerangeTask, node_id=430189, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpt3cbi30q/w2/t0>: setting prtwf to -1
-    <KerangeTask, node_id=430193, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpt3cbi30q/w3/t0>: setting prtwf to -1
+    <KerangeTask, node_id=438077, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpxl95dkcg/w2/t0>: setting prtwf to -1
+    <KerangeTask, node_id=438081, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpxl95dkcg/w3/t0>: setting prtwf to -1
 
 
 
@@ -185,7 +185,7 @@ using different dense k/q meshes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  2.852 seconds)
+   **Total running time of the script:** ( 0 minutes  2.711 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_eph_mob.py:

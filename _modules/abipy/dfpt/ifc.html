@@ -236,7 +236,21 @@
 
 <div class="viewcode-block" id="InteratomicForceConstants.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ifc.InteratomicForceConstants.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create the object from a netcdf_ file.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Create the object from a netcdf file.&quot;&quot;&quot;</span>
+        <span class="c1">#</span>
+        <span class="c1"># Netcdf arrays on disk (NB: Fortran conventions)</span>
+        <span class="c1">#</span>
+        <span class="c1"># nctkarr_t(&#39;ifc_atoms_indices&#39;, &quot;i&quot;, &quot;natifc&quot;),&amp;</span>
+        <span class="c1"># nctkarr_t(&#39;ifc_neighbours_indices&#39;, &quot;i&quot;, &quot;ifcout, natifc&quot;),&amp;</span>
+        <span class="c1"># nctkarr_t(&#39;ifc_distances&#39;, &quot;dp&quot;, &quot;ifcout, natifc &quot;),&amp;</span>
+        <span class="c1"># nctkarr_t(&#39;ifc_matrix_cart_coord&#39;, &quot;dp&quot;, &quot;three, three, ifcout, natifc&quot;),&amp;</span>
+        <span class="c1"># nctkarr_t(&#39;ifc_atoms_cart_coord&#39;, &quot;dp&quot;, &quot;three, ifcout, natifc&quot;),&amp;</span>
+        <span class="c1"># nctkarr_t(&#39;ifc_weights&#39;, &quot;dp&quot;, &quot;ifcout, natifc&quot;)])</span>
+        <span class="c1"># if (Ifc%dipdip==1) then</span>
+        <span class="c1">#   nctkarr_t(&#39;ifc_matrix_cart_coord_short_range&#39;, &quot;dp&quot;, &quot;three, three, ifcout, natifc&quot;)])</span>
+        <span class="c1"># if (ifcana==1) then</span>
+        <span class="c1">#   nctkarr_t(&#39;ifc_local_vectors&#39;, &quot;dp&quot;, &quot;three, three, ifcout, natifc&quot;)])</span>
+
         <span class="k">with</span> <span class="n">ETSF_Reader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">structure</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_structure</span><span class="p">()</span>
@@ -285,15 +299,15 @@
 
 <div class="viewcode-block" id="InteratomicForceConstants.ifc_cart_coord_ewald"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ifc.InteratomicForceConstants.ifc_cart_coord_ewald">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">ifc_cart_coord_ewald</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Ewald part of the ifcs in cartesian coordinates&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Ewald part of the IFCs in cartesian coordinates.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ifc_cart_coord_short_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ifc_cart_coord</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">ifc_cart_coord_short_range</span></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ifc_cart_coord</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ifc_cart_coord_short_range</span></div>
 
 <div class="viewcode-block" id="InteratomicForceConstants.ifc_local_coord"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ifc.InteratomicForceConstants.ifc_local_coord">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">ifc_local_coord</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Ifcs in local coordinates&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;IFCs in local coordinates.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_vectors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
@@ -301,7 +315,7 @@
 
 <div class="viewcode-block" id="InteratomicForceConstants.ifc_local_coord_short_range"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ifc.InteratomicForceConstants.ifc_local_coord_short_range">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">ifc_local_coord_short_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Short range part of the ifcs in cartesian coordinates&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Short range part of the IFCs in cartesian coordinates.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_vectors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
@@ -309,7 +323,7 @@
 
 <div class="viewcode-block" id="InteratomicForceConstants.ifc_local_coord_ewald"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ifc.InteratomicForceConstants.ifc_local_coord_ewald">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">ifc_local_coord_ewald</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Ewald part of the ifcs in local coordinates&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Ewald part of the IFCs in local coordinates.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ktli,ktij,ktuj-&gt;ktlu&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_vectors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ifc_cart_coord_ewald</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_vectors</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_filter_ifc_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atom_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">neighbour_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -337,7 +351,7 @@
         <span class="k">if</span> <span class="n">atom_indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">atom_indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
 
-        <span class="c1"># apply the filter: construct matrices of num_atoms*num_neighbours size, all conditions should be satisfied.</span>
+        <span class="c1"># apply the filter: construct matrices of num_atoms * num_neighbours size, all conditions should be satisfied.</span>
         <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
             <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms_indices</span><span class="p">,</span> <span class="n">atom_indices</span><span class="p">),</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">number_of_neighbours</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">T</span> <span class="o">&amp;</span>
             <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distances</span> <span class="o">&gt;</span> <span class="n">min_dist</span> <span class="k">if</span> <span class="n">min_dist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">True</span><span class="p">)</span> <span class="o">&amp;</span>
@@ -350,9 +364,9 @@
 
 <div class="viewcode-block" id="InteratomicForceConstants.get_ifc_cartesian"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ifc.InteratomicForceConstants.get_ifc_cartesian">[docs]</a>    <span class="k">def</span> <span class="nf">get_ifc_cartesian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atom_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">neighbour_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Filters the IFCs in cartesian coordinates</span>
+<span class="sd">        Filters the IFCs in cartesian coordinates.</span>
 <span class="sd">        All the arguments are optional. If None the filter will not be applied.</span>
-<span class="sd">        Returns two arrays containing the distances and the corresponding filtered ifcs.</span>
+<span class="sd">        Returns two arrays containing the distances and the corresponding filtered IFCs.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.</span>
@@ -370,7 +384,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Filters the IFCs in local coordinates</span>
 <span class="sd">        All the arguments are optional. If None the filter will not be applied.</span>
-<span class="sd">        Returns two arrays containing the distances and the corresponding filtered ifcs.</span>
+<span class="sd">        Returns two arrays containing the distances and the corresponding filtered IFCs.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.</span>
@@ -380,7 +394,7 @@
 <span class="sd">            max_dist: maximum distance between atoms and neighbours.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_vectors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Local coordinates are missing. Run anaddb with ifcana=1&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Local coordinates are missing. Run anaddb with ifcana = 1&quot;</span><span class="p">)</span>
 
         <span class="n">ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_ifc_indices</span><span class="p">(</span><span class="n">atom_indices</span><span class="o">=</span><span class="n">atom_indices</span><span class="p">,</span> <span class="n">atom_element</span><span class="o">=</span><span class="n">atom_element</span><span class="p">,</span>
                                        <span class="n">neighbour_element</span><span class="o">=</span><span class="n">neighbour_element</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="n">min_dist</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="n">max_dist</span><span class="p">)</span>
@@ -388,11 +402,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">distances</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ifc_local_coord</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="InteratomicForceConstants.get_plot_ifc"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ifc.InteratomicForceConstants.get_plot_ifc">[docs]</a>    <span class="k">def</span> <span class="nf">get_plot_ifc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ifc</span><span class="p">,</span> <span class="n">atom_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atom_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">neighbour_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                     <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                     <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plots the specified ifcs, filtered according to the optional arguments.</span>
-<span class="sd">        An array with shape number_of_atoms*number_of_neighbours, so only one of the components of the ifc matrix can</span>
-<span class="sd">        be plotted at a time.</span>
+<span class="sd">        Plots the specified IFCs, filtered according to the optional arguments.</span>
+<span class="sd">        An array with shape number_of_atoms * number_of_neighbours, so only one</span>
+<span class="sd">        of the components of the IFC matrix can be plotted at a time.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            ifc: an array with shape number_of_atoms * number_of_neighbours of the ifc that should be plotted</span>
@@ -401,6 +415,7 @@
 <span class="sd">            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.</span>
 <span class="sd">            min_dist: minimum distance between atoms and neighbours.</span>
 <span class="sd">            max_dist: maximum distance between atoms and neighbours.</span>
+<span class="sd">            yscale: The axis scale type to apply: {&quot;linear&quot;, &quot;log&quot;, &quot;symlog&quot;, &quot;logit&quot;}</span>
 <span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
 <span class="sd">            kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to blue, symbol to &#39;o&#39; and lw to 0</span>
 
@@ -417,18 +432,26 @@
         <span class="k">if</span> <span class="s1">&#39;marker&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;marker&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;o&#39;</span>
         <span class="k">if</span> <span class="s1">&#39;linewidth&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s1">&#39;lw&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;lw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="n">yscale</span><span class="p">)</span>
+        <span class="n">ylabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;IFC (Ha/Bohr$^2$)&#39;</span>
+        <span class="k">if</span> <span class="n">yscale</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;symlog&quot;</span><span class="p">,</span> <span class="s2">&quot;logit&quot;</span><span class="p">):</span>
+            <span class="n">filtered_ifc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">filtered_ifc</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">yscale</span> <span class="o">==</span> <span class="s2">&quot;logit&quot;</span><span class="p">:</span> <span class="n">filtered_ifc</span> <span class="o">/=</span> <span class="n">filtered_ifc</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="n">ylabel</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ylabel</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">yscale</span><span class="si">}</span><span class="s2"> scale)&quot;</span>
+
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Distance (Bohr)&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;IFC (Ha/Bohr$^2$)&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
         <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">filtered_ifc</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="InteratomicForceConstants.plot_longitudinal_ifc"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_longitudinal_ifc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atom_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">neighbour_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                              <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                              <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plots the total longitudinal ifcs in local coordinates, filtered according to the optional arguments.</span>
+<span class="sd">        Plots the total longitudinal IFCs in local coordinates, filtered according to the optional arguments.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.</span>
@@ -436,22 +459,25 @@
 <span class="sd">            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.</span>
 <span class="sd">            min_dist: minimum distance between atoms and neighbours.</span>
 <span class="sd">            max_dist: maximum distance between atoms and neighbours.</span>
+<span class="sd">            yscale: The axis scale type to apply: {&quot;linear&quot;, &quot;log&quot;, &quot;symlog&quot;, &quot;logit&quot;}</span>
+<span class="sd">                See &lt;https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html&gt;</span>
 <span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
 <span class="sd">            kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to blue, symbol to &#39;o&#39; and lw to 0</span>
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_vectors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Local coordinates are missing. Run anaddb with ifcana=1&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Local coordinates are missing. Run anaddb with ifcana = 1&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_plot_ifc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ifc_local_coord</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">atom_indices</span><span class="o">=</span><span class="n">atom_indices</span><span class="p">,</span> <span class="n">atom_element</span><span class="o">=</span><span class="n">atom_element</span><span class="p">,</span>
-                                 <span class="n">neighbour_element</span><span class="o">=</span><span class="n">neighbour_element</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="n">min_dist</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="n">max_dist</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+                                 <span class="n">neighbour_element</span><span class="o">=</span><span class="n">neighbour_element</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="n">min_dist</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="n">max_dist</span><span class="p">,</span>
+                                 <span class="n">yscale</span><span class="o">=</span><span class="n">yscale</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="InteratomicForceConstants.plot_longitudinal_ifc_short_range"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc_short_range">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_longitudinal_ifc_short_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atom_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">neighbour_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                          <span class="n">min_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                                          <span class="n">min_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plots the short range longitudinal ifcs in local coordinates, filtered according to the optional arguments.</span>
+<span class="sd">        Plots the short range longitudinal IFCs in local coordinates, filtered according to the optional arguments.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.</span>
@@ -459,26 +485,28 @@
 <span class="sd">            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.</span>
 <span class="sd">            min_dist: minimum distance between atoms and neighbours.</span>
 <span class="sd">            max_dist: maximum distance between atoms and neighbours.</span>
+<span class="sd">            yscale: The axis scale type to apply: {&quot;linear&quot;, &quot;log&quot;, &quot;symlog&quot;, &quot;logit&quot;}</span>
+<span class="sd">                See &lt;https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html&gt;</span>
 <span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
 <span class="sd">            kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to blue, symbol to &#39;o&#39; and lw to 0</span>
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_vectors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Local coordinates are missing. Run anaddb with ifcana=1&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Local coordinates are missing. Run anaddb with ifcana = 1&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ifc_local_coord_short_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Ewald contribution is missing, Run anaddb with dipdip=1&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_plot_ifc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ifc_local_coord_short_range</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">atom_indices</span><span class="o">=</span><span class="n">atom_indices</span><span class="p">,</span>
                                  <span class="n">atom_element</span><span class="o">=</span><span class="n">atom_element</span><span class="p">,</span> <span class="n">neighbour_element</span><span class="o">=</span><span class="n">neighbour_element</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="n">min_dist</span><span class="p">,</span>
-                                 <span class="n">max_dist</span><span class="o">=</span><span class="n">max_dist</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+                                 <span class="n">max_dist</span><span class="o">=</span><span class="n">max_dist</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="n">yscale</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="InteratomicForceConstants.plot_longitudinal_ifc_ewald"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc_ewald">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_longitudinal_ifc_ewald</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atom_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">neighbour_element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                    <span class="n">min_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                                    <span class="n">min_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plots the Ewald part of the ifcs in local coordinates, filtered according to the optional arguments.</span>
+<span class="sd">        Plots the Ewald part of the IFCs in local coordinates, filtered according to the optional arguments.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.</span>
@@ -486,20 +514,22 @@
 <span class="sd">            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.</span>
 <span class="sd">            min_dist: minimum distance between atoms and neighbours.</span>
 <span class="sd">            max_dist: maximum distance between atoms and neighbours.</span>
+<span class="sd">            yscale: The axis scale type to apply: {&quot;linear&quot;, &quot;log&quot;, &quot;symlog&quot;, &quot;logit&quot;}</span>
+<span class="sd">                See &lt;https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html&gt;</span>
 <span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
 <span class="sd">            kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to blue, symbol to &#39;o&#39; and lw to 0</span>
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_vectors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Local coordinates are missing. Run anaddb with ifcana=1&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Local coordinates are missing. Run anaddb with ifcana = 1&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ifc_local_coord_ewald</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Ewald contribution is missing, Run anaddb with dipdip=1&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_plot_ifc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ifc_local_coord_ewald</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">atom_indices</span><span class="o">=</span><span class="n">atom_indices</span><span class="p">,</span>
                                  <span class="n">atom_element</span><span class="o">=</span><span class="n">atom_element</span><span class="p">,</span> <span class="n">neighbour_element</span><span class="o">=</span><span class="n">neighbour_element</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="n">min_dist</span><span class="p">,</span>
-                                 <span class="n">max_dist</span><span class="o">=</span><span class="n">max_dist</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+                                 <span class="n">max_dist</span><span class="o">=</span><span class="n">max_dist</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="n">yscale</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -513,7 +543,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

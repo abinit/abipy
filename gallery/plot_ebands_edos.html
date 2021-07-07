@@ -134,6 +134,7 @@
 <li class="toctree-l2"><a class="reference internal" href="plot_gscycle.html">Ground-state SCF cycle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_gruneisen.html">Gruneisen parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_phonons_infrared.html">Infrared spectrum of AlAs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ifcs.html">Interatomic Force Constants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_ejdos.html">Joint Density of States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_kpath_from_ibz.html">K-path from IBZ</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_efatbands_lm.html">LM-fatbands</a></li>
@@ -263,18 +264,18 @@ to download the full example code or to run this example in your browser via Bin
 <span id="sphx-glr-gallery-plot-ebands-edos-py"></span><h1>Bands + DOS<a class="headerlink" href="#bands-dos" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to compute the DOS and plot a
 band structure with DOS using two GSR files.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
 <span class="c1"># Open the file with energies computed on a k-path in the BZ</span>
 <span class="c1"># and extract the band structure object.</span>
-<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">nscf_file</span><span class="p">:</span>
-    <span class="n">nscf_ebands</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><span class="n">nscf_file</span><span class="o">.</span><span class="n">ebands</span></a>
+<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a></a><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">nscf_file</span><span class="p">:</span>
+    <span class="n">nscf_ebands</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><span class="n">nscf_file</span><span class="o">.</span><span class="n">ebands</span></a></a>
 
 <span class="c1"># Open the file with energies computed with a homogeneous sampling of the BZ</span>
 <span class="c1"># and extract the band structure object.</span>
-<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">gs_file</span><span class="p">:</span>
-    <span class="n">gs_ebands</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><span class="n">gs_file</span><span class="o">.</span><span class="n">ebands</span></a>
+<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a></a><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">gs_file</span><span class="p">:</span>
+    <span class="n">gs_ebands</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><span class="n">gs_file</span><span class="o">.</span><span class="n">ebands</span></a></a>
 </pre></div>
 </div>
 <p>Compute the DOS with the Gaussian method (use default values for
@@ -294,8 +295,8 @@ the broadening and the step of the linear mesh.</p>
 <p>For the plotly version use:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nscf_ebands</span><span class="o">.</span><span class="n">plotly_with_edos</span><span class="p">(</span><span class="n">edos</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Si Electron bands + DOS&quot;</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;nscf_ebands.efermi&quot;</span><span class="p">,</span> <a href="https://pymatgen.org/pymatgen.core.units.html#pymatgen.core.units.ArrayWithUnit" title="pymatgen.core.units.ArrayWithUnit" class="sphx-glr-backref-module-pymatgen-core-units sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">nscf_ebands</span><span class="o">.</span><span class="n">fermie</span></a><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;gs_ebands.efermi&quot;</span><span class="p">,</span> <a href="https://pymatgen.org/pymatgen.core.units.html#pymatgen.core.units.ArrayWithUnit" title="pymatgen.core.units.ArrayWithUnit" class="sphx-glr-backref-module-pymatgen-core-units sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gs_ebands</span><span class="o">.</span><span class="n">fermie</span></a><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;nscf_ebands.efermi&quot;</span><span class="p">,</span> <a href="https://pymatgen.org/pymatgen.core.units.html#pymatgen.core.units.ArrayWithUnit" title="pymatgen.core.units.ArrayWithUnit" class="sphx-glr-backref-module-pymatgen-core-units sphx-glr-backref-type-py-class sphx-glr-backref-instance"><a href="https://pymatgen.org/pymatgen.core.units.html#pymatgen.core.units.ArrayWithUnit" title="pymatgen.core.units.ArrayWithUnit" class="sphx-glr-backref-module-pymatgen-core-units sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">nscf_ebands</span><span class="o">.</span><span class="n">fermie</span></a></a><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;gs_ebands.efermi&quot;</span><span class="p">,</span> <a href="https://pymatgen.org/pymatgen.core.units.html#pymatgen.core.units.ArrayWithUnit" title="pymatgen.core.units.ArrayWithUnit" class="sphx-glr-backref-module-pymatgen-core-units sphx-glr-backref-type-py-class sphx-glr-backref-instance"><a href="https://pymatgen.org/pymatgen.core.units.html#pymatgen.core.units.ArrayWithUnit" title="pymatgen.core.units.ArrayWithUnit" class="sphx-glr-backref-module-pymatgen-core-units sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gs_ebands</span><span class="o">.</span><span class="n">fermie</span></a></a><span class="p">)</span>
 </pre></div>
 </div>
 <p class="sphx-glr-script-out">Out:</p>
@@ -303,7 +304,7 @@ the broadening and the step of the linear mesh.</p>
 gs_ebands.efermi 5.598453325290463 eV
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.858 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.820 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-ebands-edos-py">
 <div class="binder-badge docutils container">
 <a class="reference external image-reference" href="https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_ebands_edos.ipynb"><img alt="Launch binder" src="../_images/binder_badge_logo1.svg" width="150px" /></a>
@@ -334,7 +335,7 @@ gs_ebands.efermi 5.598453325290463 eV
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

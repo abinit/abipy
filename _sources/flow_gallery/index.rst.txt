@@ -181,27 +181,6 @@ where `FLOWDIR` is the directory of the Flow.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the dynamical matrix of GaP on user-defined q-mesh including ...">
-
-.. only:: html
-
- .. figure:: /flow_gallery/images/thumb/sphx_glr_run_flexoelectric_thumb.png
-     :alt: Dynamical quadrupoles
-
-     :ref:`sphx_glr_flow_gallery_run_flexoelectric.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_flexoelectric
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with DFPT. Two options are available:">
 
 .. only:: html
@@ -283,6 +262,27 @@ where `FLOWDIR` is the directory of the Flow.
    :hidden:
 
    /flow_gallery/run_frohlich_zpr_from_ddb
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the dynamical matrix of GaP on user-defined q-mesh including ...">
+
+.. only:: html
+
+ .. figure:: /flow_gallery/images/thumb/sphx_glr_run_flexoelectric_thumb.png
+     :alt: Flexoelectric Tensor
+
+     :ref:`sphx_glr_flow_gallery_run_flexoelectric.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_flexoelectric
 
 .. raw:: html
 

@@ -5,124 +5,126 @@
 
 Computation times
 =================
-**02:39.410** total execution time for **gallery** files:
+**02:15.428** total execution time for **gallery** files:
 
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_eph_from_mp.py` (``plot_eph_from_mp.py``)                               | 00:29.779 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_eph_from_mp.py` (``plot_eph_from_mp.py``)                               | 00:26.218 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_qha_vs_qmesh.py` (``plot_qha_vs_qmesh.py``)                             | 00:21.891 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_qha_vs_qmesh.py` (``plot_qha_vs_qmesh.py``)                             | 00:19.360 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_ddb_asr.py` (``plot_ddb_asr.py``)                                       | 00:11.299 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_ddb_asr.py` (``plot_ddb_asr.py``)                                       | 00:08.178 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_mdf.py` (``plot_mdf.py``)                                               | 00:07.507 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_mdf.py` (``plot_mdf.py``)                                               | 00:07.303 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_phonons_msqd.py` (``plot_phonons_msqd.py``)                             | 00:07.140 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_phonons_msqd.py` (``plot_phonons_msqd.py``)                             | 00:06.181 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_phbands_nkpt_tsmear.py` (``plot_phbands_nkpt_tsmear.py``)               | 00:06.519 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_efatbands_spin.py` (``plot_efatbands_spin.py``)                         | 00:05.397 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_efatbands_spin.py` (``plot_efatbands_spin.py``)                         | 00:05.485 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_phbands_nkpt_tsmear.py` (``plot_phbands_nkpt_tsmear.py``)               | 00:05.266 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_a2f.py` (``plot_a2f.py``)                                               | 00:05.045 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_a2f.py` (``plot_a2f.py``)                                               | 00:04.533 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_efatbands.py` (``plot_efatbands.py``)                                   | 00:04.981 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_efatbands.py` (``plot_efatbands.py``)                                   | 00:04.204 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_qpconvergence.py` (``plot_qpconvergence.py``)                           | 00:04.026 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_phbands_grid.py` (``plot_phbands_grid.py``)                             | 00:03.114 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_phbands_grid.py` (``plot_phbands_grid.py``)                             | 00:03.864 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_qpbands_with_interpolation.py` (``plot_qpbands_with_interpolation.py``) | 00:02.490 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_qpbands_with_interpolation.py` (``plot_qpbands_with_interpolation.py``) | 00:03.771 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_gruneisen.py` (``plot_gruneisen.py``)                                   | 00:02.317 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_efatbands_lm.py` (``plot_efatbands_lm.py``)                             | 00:02.782 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_ebands_grid.py` (``plot_ebands_grid.py``)                               | 00:02.186 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_ebands_grid.py` (``plot_ebands_grid.py``)                               | 00:02.622 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_ebands_spin.py` (``plot_ebands_spin.py``)                               | 00:02.132 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_ebands_spin.py` (``plot_ebands_spin.py``)                               | 00:02.558 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_phonons_infrared.py` (``plot_phonons_infrared.py``)                     | 00:02.067 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_phonons_infrared.py` (``plot_phonons_infrared.py``)                     | 00:02.248 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_qpbands_with_scissor.py` (``plot_qpbands_with_scissor.py``)             | 00:01.888 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_qha.py` (``plot_qha.py``)                                               | 00:02.077 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_efatbands_lm.py` (``plot_efatbands_lm.py``)                             | 00:01.858 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_gruneisen.py` (``plot_gruneisen.py``)                                   | 00:02.071 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_qha.py` (``plot_qha.py``)                                               | 00:01.765 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_qpbands_with_scissor.py` (``plot_qpbands_with_scissor.py``)             | 00:02.039 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_phonon_fatbands.py` (``plot_phonon_fatbands.py``)                       | 00:01.723 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_speed_of_sound.py` (``plot_speed_of_sound.py``)                         | 00:01.728 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_speed_of_sound.py` (``plot_speed_of_sound.py``)                         | 00:01.555 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_phonon_fatbands.py` (``plot_phonon_fatbands.py``)                       | 00:01.521 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_kpath_from_ibz.py` (``plot_kpath_from_ibz.py``)                         | 00:01.440 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_gw_spectral_functions.py` (``plot_gw_spectral_functions.py``)           | 00:01.491 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_ebands.py` (``plot_ebands.py``)                                         | 00:01.239 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_kpath_from_ibz.py` (``plot_kpath_from_ibz.py``)                         | 00:01.488 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_qpconvergence.py` (``plot_qpconvergence.py``)                           | 00:01.189 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_optic.py` (``plot_optic.py``)                                           | 00:01.387 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_qps.py` (``plot_qps.py``)                                               | 00:01.180 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_phbands_and_dos.py` (``plot_phbands_and_dos.py``)                       | 00:01.382 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_ifcs.py` (``plot_ifcs.py``)                                             | 00:01.048 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_qps.py` (``plot_qps.py``)                                               | 00:01.258 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_multiple_hist.py` (``plot_multiple_hist.py``)                           | 00:00.937 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_dfpt_cycle.py` (``plot_dfpt_cycle.py``)                                 | 00:01.206 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_scqpgw.py` (``plot_scqpgw.py``)                                         | 00:00.934 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_phonons_lo_to.py` (``plot_phonons_lo_to.py``)                           | 00:01.204 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_phbands_and_dos.py` (``plot_phbands_and_dos.py``)                       | 00:00.913 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_ejdos.py` (``plot_ejdos.py``)                                           | 00:01.117 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_optic.py` (``plot_optic.py``)                                           | 00:00.874 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_ebands.py` (``plot_ebands.py``)                                         | 00:01.116 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_edos_vs_broad.py` (``plot_edos_vs_broad.py``)                           | 00:00.857 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_lobster_files.py` (``plot_lobster_files.py``)                           | 00:01.006 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_wannier90_abiwan.py` (``plot_wannier90_abiwan.py``)                     | 00:00.832 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_multiple_hist.py` (``plot_multiple_hist.py``)                           | 00:00.996 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_ebands_edos.py` (``plot_ebands_edos.py``)                               | 00:00.820 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_den.py` (``plot_den.py``)                                               | 00:00.965 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_ejdos.py` (``plot_ejdos.py``)                                           | 00:00.808 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_scqpgw.py` (``plot_scqpgw.py``)                                         | 00:00.948 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_dfpt_cycle.py` (``plot_dfpt_cycle.py``)                                 | 00:00.800 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_edos_vs_broad.py` (``plot_edos_vs_broad.py``)                           | 00:00.913 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_phonons.py` (``plot_phonons.py``)                                       | 00:00.782 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_ebands_edos.py` (``plot_ebands_edos.py``)                               | 00:00.858 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_scr_matrix.py` (``plot_scr_matrix.py``)                                 | 00:00.708 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plotly_phbands_and_dos.py` (``plotly_phbands_and_dos.py``)                   | 00:00.812 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_multiple_mdf.py` (``plot_multiple_mdf.py``)                             | 00:00.698 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_multiple_mdf.py` (``plot_multiple_mdf.py``)                             | 00:00.788 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_wfk.py` (``plot_wfk.py``)                                               | 00:00.694 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_phonons.py` (``plot_phonons.py``)                                       | 00:00.773 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_den.py` (``plot_den.py``)                                               | 00:00.693 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_wfk.py` (``plot_wfk.py``)                                               | 00:00.739 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_lobster_files.py` (``plot_lobster_files.py``)                           | 00:00.688 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_ebands_scatter3d.py` (``plot_ebands_scatter3d.py``)                     | 00:00.715 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_phonons_lo_to.py` (``plot_phonons_lo_to.py``)                           | 00:00.661 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_wannier90_abiwan.py` (``plot_wannier90_abiwan.py``)                     | 00:00.705 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_ebands_scatter3d.py` (``plot_ebands_scatter3d.py``)                     | 00:00.598 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_lobster_cohp.py` (``plot_lobster_cohp.py``)                             | 00:00.691 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plotly_phbands_and_dos.py` (``plotly_phbands_and_dos.py``)                   | 00:00.564 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_scr_matrix.py` (``plot_scr_matrix.py``)                                 | 00:00.670 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_phonon_pjdos.py` (``plot_phonon_pjdos.py``)                             | 00:00.560 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_hist.py` (``plot_hist.py``)                                             | 00:00.602 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_hist.py` (``plot_hist.py``)                                             | 00:00.558 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_wannier90_wout.py` (``plot_wannier90_wout.py``)                         | 00:00.520 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_lobster_cohp.py` (``plot_lobster_cohp.py``)                             | 00:00.518 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_phonon_pjdos.py` (``plot_phonon_pjdos.py``)                             | 00:00.483 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_potentials.py` (``plot_potentials.py``)                                 | 00:00.450 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_potentials.py` (``plot_potentials.py``)                                 | 00:00.460 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_gw_spectral_functions.py` (``plot_gw_spectral_functions.py``)           | 00:00.431 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_fermisurface.py` (``plot_fermisurface.py``)                             | 00:00.452 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_wannier90_wout.py` (``plot_wannier90_wout.py``)                         | 00:00.418 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_scr.py` (``plot_scr.py``)                                               | 00:00.448 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_fold2bloch.py` (``plot_fold2bloch.py``)                                 | 00:00.389 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_ebands_boxplot.py` (``plot_ebands_boxplot.py``)                         | 00:00.374 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_fermisurface.py` (``plot_fermisurface.py``)                             | 00:00.376 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_fold2bloch.py` (``plot_fold2bloch.py``)                                 | 00:00.351 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_phthermo.py` (``plot_phthermo.py``)                                     | 00:00.353 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_phthermo.py` (``plot_phthermo.py``)                                     | 00:00.328 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_scr.py` (``plot_scr.py``)                                               | 00:00.353 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_structure.py` (``plot_structure.py``)                                   | 00:00.294 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_structure.py` (``plot_structure.py``)                                   | 00:00.258 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_edos.py` (``plot_edos.py``)                                             | 00:00.275 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_edos.py` (``plot_edos.py``)                                             | 00:00.255 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_bz.py` (``plot_bz.py``)                                                 | 00:00.233 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_ebands_boxplot.py` (``plot_ebands_boxplot.py``)                         | 00:00.238 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_gscycle.py` (``plot_gscycle.py``)                                       | 00:00.157 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_bz.py` (``plot_bz.py``)                                                 | 00:00.226 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_funcs.py` (``plot_funcs.py``)                                           | 00:00.155 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_gscycle.py` (``plot_gscycle.py``)                                       | 00:00.154 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_gallery_plot_xrd.py` (``plot_xrd.py``)                                               | 00:00.096 | 0.0 MB |
+| :ref:`sphx_glr_gallery_plot_xrd.py` (``plot_xrd.py``)                                               | 00:00.101 | 0.0 MB |
++-----------------------------------------------------------------------------------------------------+-----------+--------+
+| :ref:`sphx_glr_gallery_plot_funcs.py` (``plot_funcs.py``)                                           | 00:00.101 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------------+-----------+--------+

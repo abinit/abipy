@@ -22,7 +22,8 @@ ddb = abilab.abiopen(filepath)
 # Invoke anaddb to compute phonon bands and dos.
 #dos_method = "gaussian"
 dos_method = "tetra"
-phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, dos_method=dos_method, ndivsm=1, mpi_procs=2)
+phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, dos_method=dos_method,
+                                                          ndivsm=1, mpi_procs=2)
 
 # Extract msqd_dos
 msqd_dos = phdos_file.msqd_dos

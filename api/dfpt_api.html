@@ -1700,7 +1700,7 @@ the stress left inside cell. The DDB must contain the stress tensor.</p></li>
 <dl class="py method">
 <dt id="abipy.dfpt.ddb.DdbFile.anaget_raman">
 <code class="sig-name descname"><span class="pre">anaget_raman</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chneut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ramansr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpi_procs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anaddb_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_raman"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_raman" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute anaddb to compute the Raman spectrum</p>
+<dd><p>Execute anaddb to compute the Raman spectrum.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -2578,9 +2578,9 @@ whose value will be added to the Dataframe.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="abipy.dfpt.ddb.DdbRobot.plotly_expose">
-<code class="sig-name descname"><span class="pre">plotly_expose</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chart_studio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.plotly_expose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.plotly_expose" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function <em>generates</em> a predefined list of plotly figures with minimal input from the user.</p>
+<dt id="abipy.dfpt.ddb.DdbRobot.yield_plotly_figs">
+<code class="sig-name descname"><span class="pre">yield_plotly_figs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.yield_plotly_figs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.yield_plotly_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3759,7 +3759,7 @@ Read from anaddb.nc</p>
 <dl class="py method">
 <dt id="abipy.dfpt.ifc.InteratomicForceConstants.from_file">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create the object from a <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> file.</p>
+<dd><p>Create the object from a netcdf file.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3783,33 +3783,33 @@ Read from anaddb.nc</p>
 <dl class="py method">
 <dt id="abipy.dfpt.ifc.InteratomicForceConstants.ifc_cart_coord_ewald">
 <code class="sig-name descname"><span class="pre">ifc_cart_coord_ewald</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.ifc_cart_coord_ewald"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.ifc_cart_coord_ewald" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ewald part of the ifcs in cartesian coordinates</p>
+<dd><p>Ewald part of the IFCs in cartesian coordinates.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="abipy.dfpt.ifc.InteratomicForceConstants.ifc_local_coord">
 <code class="sig-name descname"><span class="pre">ifc_local_coord</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.ifc_local_coord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.ifc_local_coord" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ifcs in local coordinates</p>
+<dd><p>IFCs in local coordinates.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="abipy.dfpt.ifc.InteratomicForceConstants.ifc_local_coord_short_range">
 <code class="sig-name descname"><span class="pre">ifc_local_coord_short_range</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.ifc_local_coord_short_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.ifc_local_coord_short_range" title="Permalink to this definition">¶</a></dt>
-<dd><p>Short range part of the ifcs in cartesian coordinates</p>
+<dd><p>Short range part of the IFCs in cartesian coordinates.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="abipy.dfpt.ifc.InteratomicForceConstants.ifc_local_coord_ewald">
 <code class="sig-name descname"><span class="pre">ifc_local_coord_ewald</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.ifc_local_coord_ewald"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.ifc_local_coord_ewald" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ewald part of the ifcs in local coordinates</p>
+<dd><p>Ewald part of the IFCs in local coordinates.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="abipy.dfpt.ifc.InteratomicForceConstants.get_ifc_cartesian">
 <code class="sig-name descname"><span class="pre">get_ifc_cartesian</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbour_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.get_ifc_cartesian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.get_ifc_cartesian" title="Permalink to this definition">¶</a></dt>
-<dd><p>Filters the IFCs in cartesian coordinates
+<dd><p>Filters the IFCs in cartesian coordinates.
 All the arguments are optional. If None the filter will not be applied.
-Returns two arrays containing the distances and the corresponding filtered ifcs.</p>
+Returns two arrays containing the distances and the corresponding filtered IFCs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -3828,7 +3828,7 @@ Returns two arrays containing the distances and the corresponding filtered ifcs.
 <code class="sig-name descname"><span class="pre">get_ifc_local</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbour_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.get_ifc_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.get_ifc_local" title="Permalink to this definition">¶</a></dt>
 <dd><p>Filters the IFCs in local coordinates
 All the arguments are optional. If None the filter will not be applied.
-Returns two arrays containing the distances and the corresponding filtered ifcs.</p>
+Returns two arrays containing the distances and the corresponding filtered IFCs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -3844,10 +3844,10 @@ Returns two arrays containing the distances and the corresponding filtered ifcs.
 
 <dl class="py method">
 <dt id="abipy.dfpt.ifc.InteratomicForceConstants.get_plot_ifc">
-<code class="sig-name descname"><span class="pre">get_plot_ifc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ifc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbour_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.get_plot_ifc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.get_plot_ifc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the specified ifcs, filtered according to the optional arguments.
-An array with shape number_of_atoms*number_of_neighbours, so only one of the components of the ifc matrix can
-be plotted at a time.</p>
+<code class="sig-name descname"><span class="pre">get_plot_ifc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ifc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbour_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.get_plot_ifc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.get_plot_ifc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the specified IFCs, filtered according to the optional arguments.
+An array with shape number_of_atoms * number_of_neighbours, so only one
+of the components of the IFC matrix can be plotted at a time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -3857,6 +3857,7 @@ be plotted at a time.</p>
 <li><p><strong>neighbour_element</strong> – symbol of an element in the structure. Only neighbours of this specie will be considered.</p></li>
 <li><p><strong>min_dist</strong> – minimum distance between atoms and neighbours.</p></li>
 <li><p><strong>max_dist</strong> – maximum distance between atoms and neighbours.</p></li>
+<li><p><strong>yscale</strong> – The axis scale type to apply: {“linear”, “log”, “symlog”, “logit”}</p></li>
 <li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>kwargs</strong> – kwargs passed to the matplotlib function ‘plot’. Color defaults to blue, symbol to ‘o’ and lw to 0</p></li>
 </ul>
@@ -3867,8 +3868,8 @@ be plotted at a time.</p>
 
 <dl class="py method">
 <dt id="abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc">
-<code class="sig-name descname"><span class="pre">plot_longitudinal_ifc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbour_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.plot_longitudinal_ifc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the total longitudinal ifcs in local coordinates, filtered according to the optional arguments.</p>
+<code class="sig-name descname"><span class="pre">plot_longitudinal_ifc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbour_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.plot_longitudinal_ifc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the total longitudinal IFCs in local coordinates, filtered according to the optional arguments.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -3877,6 +3878,8 @@ be plotted at a time.</p>
 <li><p><strong>neighbour_element</strong> – symbol of an element in the structure. Only neighbours of this specie will be considered.</p></li>
 <li><p><strong>min_dist</strong> – minimum distance between atoms and neighbours.</p></li>
 <li><p><strong>max_dist</strong> – maximum distance between atoms and neighbours.</p></li>
+<li><p><strong>yscale</strong> – The axis scale type to apply: {“linear”, “log”, “symlog”, “logit”}
+See &lt;<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html">https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html</a>&gt;</p></li>
 <li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>kwargs</strong> – kwargs passed to the matplotlib function ‘plot’. Color defaults to blue, symbol to ‘o’ and lw to 0</p></li>
 </ul>
@@ -3928,8 +3931,8 @@ Default: False</p></td>
 
 <dl class="py method">
 <dt id="abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc_short_range">
-<code class="sig-name descname"><span class="pre">plot_longitudinal_ifc_short_range</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbour_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.plot_longitudinal_ifc_short_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc_short_range" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the short range longitudinal ifcs in local coordinates, filtered according to the optional arguments.</p>
+<code class="sig-name descname"><span class="pre">plot_longitudinal_ifc_short_range</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbour_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.plot_longitudinal_ifc_short_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc_short_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the short range longitudinal IFCs in local coordinates, filtered according to the optional arguments.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -3938,6 +3941,8 @@ Default: False</p></td>
 <li><p><strong>neighbour_element</strong> – symbol of an element in the structure. Only neighbours of this specie will be considered.</p></li>
 <li><p><strong>min_dist</strong> – minimum distance between atoms and neighbours.</p></li>
 <li><p><strong>max_dist</strong> – maximum distance between atoms and neighbours.</p></li>
+<li><p><strong>yscale</strong> – The axis scale type to apply: {“linear”, “log”, “symlog”, “logit”}
+See &lt;<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html">https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html</a>&gt;</p></li>
 <li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>kwargs</strong> – kwargs passed to the matplotlib function ‘plot’. Color defaults to blue, symbol to ‘o’ and lw to 0</p></li>
 </ul>
@@ -3989,8 +3994,8 @@ Default: False</p></td>
 
 <dl class="py method">
 <dt id="abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc_ewald">
-<code class="sig-name descname"><span class="pre">plot_longitudinal_ifc_ewald</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbour_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.plot_longitudinal_ifc_ewald"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc_ewald" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the Ewald part of the ifcs in local coordinates, filtered according to the optional arguments.</p>
+<code class="sig-name descname"><span class="pre">plot_longitudinal_ifc_ewald</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbour_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ifc.html#InteratomicForceConstants.plot_longitudinal_ifc_ewald"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.ifc.InteratomicForceConstants.plot_longitudinal_ifc_ewald" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the Ewald part of the IFCs in local coordinates, filtered according to the optional arguments.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -3999,6 +4004,8 @@ Default: False</p></td>
 <li><p><strong>neighbour_element</strong> – symbol of an element in the structure. Only neighbours of this specie will be considered.</p></li>
 <li><p><strong>min_dist</strong> – minimum distance between atoms and neighbours.</p></li>
 <li><p><strong>max_dist</strong> – maximum distance between atoms and neighbours.</p></li>
+<li><p><strong>yscale</strong> – The axis scale type to apply: {“linear”, “log”, “symlog”, “logit”}
+See &lt;<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html">https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yscale.html</a>&gt;</p></li>
 <li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>kwargs</strong> – kwargs passed to the matplotlib function ‘plot’. Color defaults to blue, symbol to ‘o’ and lw to 0</p></li>
 </ul>
@@ -5304,7 +5311,7 @@ Default: False</p></td>
 
 <dl class="py method">
 <dt id="abipy.dfpt.phonons.PhononBands.plotly_with_phdos">
-<code class="sig-name descname"><span class="pre">plotly_with_phdos</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phdos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qlabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcd_phbands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcd_phdos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plotly_with_phdos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plotly_with_phdos" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">plotly_with_phdos</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phdos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qlabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcd_phbands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcd_phdos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plotly_with_phdos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plotly_with_phdos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the phonon band structure with the phonon DOS with plotly.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -5318,6 +5325,7 @@ The values are the labels e.g. <code class="docutils literal notranslate"><span 
 is created.</p></li>
 <li><p><strong>width_ratios</strong> – Ratio between the width of the bands plots and the DOS plots.
 Used if <code class="docutils literal notranslate"><span class="pre">fig</span></code> is None</p></li>
+<li><p><strong>fontsize</strong> – Title fontsize.</p></li>
 </ul>
 </dd>
 </dl>
@@ -6168,9 +6176,9 @@ chart_studio      True to push figure to chart_studio server. Requires authentic
 </dd></dl>
 
 <dl class="py method">
-<dt id="abipy.dfpt.phonons.PhononBandsPlotter.plotly_expose">
-<code class="sig-name descname"><span class="pre">plotly_expose</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chart_studio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.plotly_expose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.plotly_expose" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function <em>generates</em> a predefined list of plotly figures with minimal input from the user.</p>
+<dt id="abipy.dfpt.phonons.PhononBandsPlotter.yield_plotly_figs">
+<code class="sig-name descname"><span class="pre">yield_plotly_figs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.yield_plotly_figs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.yield_plotly_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -7403,9 +7411,9 @@ from the phonon DOS within the harmonic approximation.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="abipy.dfpt.phonons.PhononDosPlotter.plotly_expose">
-<code class="sig-name descname"><span class="pre">plotly_expose</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chart_studio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDosPlotter.plotly_expose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDosPlotter.plotly_expose" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function <em>generates</em> a predefined list of plotly figures with minimal input from the user.</p>
+<dt id="abipy.dfpt.phonons.PhononDosPlotter.yield_plotly_figs">
+<code class="sig-name descname"><span class="pre">yield_plotly_figs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDosPlotter.yield_plotly_figs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDosPlotter.yield_plotly_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -8868,6 +8876,7 @@ Default: False</p></td>
 </div>
 <div class="section" id="module-abipy.dfpt.raman">
 <span id="raman-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">raman</span></code> Module</a><a class="headerlink" href="#module-abipy.dfpt.raman" title="Permalink to this headline">¶</a></h2>
+<p>Objects for post-processing Raman results produced by anaddb.</p>
 <dl class="py class">
 <dt id="abipy.dfpt.raman.PowderIntensity">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">abipy.dfpt.raman.</span></code><code class="sig-name descname"><span class="pre">PowderIntensity</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paral</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tot</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.dfpt.raman.PowderIntensity" title="Permalink to this definition">¶</a></dt>
@@ -9069,8 +9078,8 @@ intensities. Each one is a Function1D with “num” points.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>temp</strong> – temperature in K.</p></li>
-<li><p><strong>laser_freq</strong> – frequency of the incident laser. The units are determined the “units”
-argument.</p></li>
+<li><p><strong>laser_freq</strong> – frequency of the incident laser. The units are determined according to
+the “units” argument.</p></li>
 <li><p><strong>width</strong> – the width of the Lorentz distribution. The units are determined the “units”
 argument. If None or 0 a plot of only the frequencies for each mode will be given.</p></li>
 <li><p><strong>value</strong> – a string describing the value that should be plotted. Can be “powder” or
@@ -9095,10 +9104,8 @@ phonon modes.</p></li>
 <li><p><strong>**kwargs</strong> – arguments passed to the plot function.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
-</dd>
 </dl>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -9474,7 +9481,7 @@ working directory is created. Return path to the notebook.</p>
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

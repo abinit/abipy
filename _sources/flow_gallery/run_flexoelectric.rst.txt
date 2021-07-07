@@ -18,7 +18,7 @@
 .. _sphx_glr_flow_gallery_run_flexoelectric.py:
 
 
-Dynamical quadrupoles
+Flexoelectric Tensor
 =====================
 
 This example shows how to compute the dynamical matrix of GaP on user-defined q-mesh
@@ -172,7 +172,7 @@ https://docs.abinit.org/tests/tutorespfn/Input/tlw_1.abi
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.029 seconds)
+   **Total running time of the script:** ( 0 minutes  0.977 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_flexoelectric.py:

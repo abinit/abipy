@@ -134,6 +134,7 @@
 <li class="toctree-l2"><a class="reference internal" href="plot_gscycle.html">Ground-state SCF cycle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_gruneisen.html">Gruneisen parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_phonons_infrared.html">Infrared spectrum of AlAs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ifcs.html">Interatomic Force Constants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_ejdos.html">Joint Density of States</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">K-path from IBZ</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_efatbands_lm.html">LM-fatbands</a></li>
@@ -319,26 +320,26 @@ TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
 <span class="c1"># Open the file with energies computed with a homogeneous sampling of the BZ</span>
 <span class="c1"># and extract the band structure object.</span>
-<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">gs_file</span><span class="p">:</span>
-    <span class="n">ebands_ibz</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><span class="n">gs_file</span><span class="o">.</span><span class="n">ebands</span></a>
+<span class="k">with</span> <a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><a href="../api/abilab_api.html#abipy.abilab.abiopen" title="abipy.abilab.abiopen" class="sphx-glr-backref-module-abipy-abilab sphx-glr-backref-type-py-function"><span class="n">abiopen</span></a></a><span class="p">(</span><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><a href="../api/data_api.html#abipy.data.ref_file" title="abipy.data.ref_file" class="sphx-glr-backref-module-abipy-data sphx-glr-backref-type-py-function"><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span></a></a><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">gs_file</span><span class="p">:</span>
+    <span class="n">ebands_ibz</span> <span class="o">=</span> <a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><a href="../api/core_api.html#abipy.core.mixins.Has_ElectronBands.ebands" title="abipy.core.mixins.Has_ElectronBands.ebands" class="sphx-glr-backref-module-abipy-core-mixins sphx-glr-backref-type-py-method"><span class="n">gs_file</span><span class="o">.</span><span class="n">ebands</span></a></a>
 
 <span class="c1"># This is a GS calculation done with a 8x8x8 k-mesh.</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">ebands_ibz</span><span class="o">.</span><span class="n">kpoints</span><span class="p">)</span>
 
 <span class="c1"># Build new ebands with energies along G-X-L-G path.</span>
 <span class="c1"># Smooth bands require dense meshes.</span>
-<a href="https://pythonhosted.org/monty/monty.html#monty.collections.dict2namedtuple" title="monty.collections.dict2namedtuple" class="sphx-glr-backref-module-monty-collections sphx-glr-backref-type-py-function"><span class="n">r</span></a> <span class="o">=</span> <span class="n">ebands_ibz</span><span class="o">.</span><span class="n">with_points_along_path</span><span class="p">(</span><span class="n">knames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">])</span>
+<a href="https://pythonhosted.org/monty/monty.html#monty.collections.dict2namedtuple" title="monty.collections.dict2namedtuple" class="sphx-glr-backref-module-monty-collections sphx-glr-backref-type-py-function"><a href="https://pythonhosted.org/monty/monty.html#monty.collections.dict2namedtuple" title="monty.collections.dict2namedtuple" class="sphx-glr-backref-module-monty-collections sphx-glr-backref-type-py-function"><span class="n">r</span></a></a> <span class="o">=</span> <span class="n">ebands_ibz</span><span class="o">.</span><span class="n">with_points_along_path</span><span class="p">(</span><span class="n">knames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">])</span>
 
-<span class="nb">print</span><span class="p">(</span><a href="https://pythonhosted.org/monty/monty.html#monty.collections.dict2namedtuple" title="monty.collections.dict2namedtuple" class="sphx-glr-backref-module-monty-collections sphx-glr-backref-type-py-function"><span class="n">r</span></a><span class="o">.</span><span class="n">ebands</span><span class="p">)</span>
-<a href="https://pythonhosted.org/monty/monty.html#monty.collections.dict2namedtuple" title="monty.collections.dict2namedtuple" class="sphx-glr-backref-module-monty-collections sphx-glr-backref-type-py-function"><span class="n">r</span></a><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><a href="https://pythonhosted.org/monty/monty.html#monty.collections.dict2namedtuple" title="monty.collections.dict2namedtuple" class="sphx-glr-backref-module-monty-collections sphx-glr-backref-type-py-function"><a href="https://pythonhosted.org/monty/monty.html#monty.collections.dict2namedtuple" title="monty.collections.dict2namedtuple" class="sphx-glr-backref-module-monty-collections sphx-glr-backref-type-py-function"><span class="n">r</span></a></a><span class="o">.</span><span class="n">ebands</span><span class="p">)</span>
+<a href="https://pythonhosted.org/monty/monty.html#monty.collections.dict2namedtuple" title="monty.collections.dict2namedtuple" class="sphx-glr-backref-module-monty-collections sphx-glr-backref-type-py-function"><a href="https://pythonhosted.org/monty/monty.html#monty.collections.dict2namedtuple" title="monty.collections.dict2namedtuple" class="sphx-glr-backref-module-monty-collections sphx-glr-backref-type-py-function"><span class="n">r</span></a></a><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.488 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.440 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-kpath-from-ibz-py">
 <div class="binder-badge docutils container">
 <a class="reference external image-reference" href="https://mybinder.org/v2/gh/abinit/abipy/gh-pages?filepath=notebooks/gallery/plot_kpath_from_ibz.ipynb"><img alt="Launch binder" src="../_images/binder_badge_logo1.svg" width="150px" /></a>
@@ -369,7 +370,7 @@ TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

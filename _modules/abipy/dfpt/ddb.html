@@ -1936,7 +1936,7 @@
 <div class="viewcode-block" id="DdbFile.anaget_raman"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_raman">[docs]</a>    <span class="k">def</span> <span class="nf">anaget_raman</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ramansr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alphon</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                      <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Execute anaddb to compute the Raman spectrum</span>
+<span class="sd">        Execute anaddb to compute the Raman spectrum.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            qpoint: Reduced coordinates of the qpoint where phonon modes are computed.</span>
@@ -2602,7 +2602,7 @@
 
 <div class="viewcode-block" id="DielectricTensorGenerator.plotly"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DielectricTensorGenerator.plotly">[docs]</a>    <span class="nd">@add_plotly_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">w_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gamma_ev</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="s1">&#39;diag&#39;</span><span class="p">,</span> <span class="n">reim</span><span class="o">=</span><span class="s2">&quot;reim&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">,</span>
-             <span class="n">with_phfreqs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rcd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+               <span class="n">with_phfreqs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rcd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plots the selected components of the dielectric tensor as a function of frequency with plotly.</span>
 
@@ -3347,20 +3347,15 @@
             <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">phbands_plotter</span><span class="o">.</span><span class="n">yield_figs</span><span class="p">():</span> <span class="k">yield</span> <span class="n">fig</span>
             <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">phdos_plotter</span><span class="o">.</span><span class="n">yield_figs</span><span class="p">():</span> <span class="k">yield</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="DdbRobot.plotly_expose"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.plotly_expose">[docs]</a>    <span class="k">def</span> <span class="nf">plotly_expose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chart_studio</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+<div class="viewcode-block" id="DdbRobot.yield_plotly_figs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.yield_plotly_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_plotly_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This function *generates* a predefined list of plotly figures with minimal input from the user.</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">renderer</span> <span class="o">=</span> <span class="s2">&quot;chart_studio&quot;</span> <span class="k">if</span> <span class="n">chart_studio</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">figs</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">f</span> <span class="o">=</span> <span class="n">figs</span><span class="o">.</span><span class="n">append</span>
         <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">has_at_least_one_atomic_perturbation</span><span class="p">()</span> <span class="k">for</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invoking anaddb through anaget_phonon_plotters...&quot;</span><span class="p">)</span>
             <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anaget_phonon_plotters</span><span class="p">()</span>
-            <span class="c1">#for fig in r.phbands_plotter.yield_plotly_figs(): yield fig</span>
-            <span class="c1">#for fig in r.phdos_plotter.yield_plotly_figs(): yield fig</span>
-            <span class="n">f</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">phbands_plotter</span><span class="o">.</span><span class="n">combiplotly</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-
-        <span class="n">push_to_chart_studio</span><span class="p">(</span><span class="n">figs</span><span class="p">)</span> <span class="k">if</span> <span class="n">chart_studio</span> <span class="k">else</span> <span class="n">plotlyfigs_to_browser</span><span class="p">(</span><span class="n">figs</span><span class="p">)</span></div>
+            <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">phbands_plotter</span><span class="o">.</span><span class="n">yield_plotly_figs</span><span class="p">():</span> <span class="k">yield</span> <span class="n">fig</span>
+            <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">phdos_plotter</span><span class="o">.</span><span class="n">yield_plotly_figs</span><span class="p">():</span> <span class="k">yield</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="DdbRobot.get_panel"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a panel object that allows the user to compare the results with a web-based interface.&quot;&quot;&quot;</span>
@@ -3431,7 +3426,7 @@
     <p>
         &#169; Copyright 2021, M. Giantomassi and the AbiPy group.
       <span class="lastupdated">
-        Last updated on Jul 06, 2021.
+        Last updated on Jul 07, 2021.
       </span>
 
     </p>

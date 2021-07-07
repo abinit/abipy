@@ -52,7 +52,7 @@ This example shows how to plot the X-ray diffraction pattern with pymatgen
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.096 seconds)
+   **Total running time of the script:** ( 0 minutes  0.101 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_xrd.py:

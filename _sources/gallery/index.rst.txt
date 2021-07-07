@@ -502,6 +502,27 @@ Finally, use one of the options of the abiview.py_ script to plot the results au
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the longitudinal part of the Interatomic Force Constants in real...">
+
+.. only:: html
+
+ .. figure:: /gallery/images/thumb/sphx_glr_plot_ifcs_thumb.png
+     :alt: Interatomic Force Constants
+
+     :ref:`sphx_glr_gallery_plot_ifcs.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_ifcs
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how plot the different contributions to the electronic joint density of stat...">
 
 .. only:: html
