@@ -4303,7 +4303,7 @@ class PhononBandsPlotter(NotebookWriter):
             width_ratios: Ratio between the width of the phonon bands plots and the DOS plots.
                 Used if plotter has DOSes.
             fontsize: fontsize for titles and legend.
-            linestyle_dict: Dictionary mapping labels to plotly linestyle options.
+            linestyle_dict: Dictionary mapping labels to linestyle options passed to |plotly.graph_objects.scatter|.
 
         Returns: |plotly.graph_objects.Figure|
         """
@@ -4349,7 +4349,8 @@ class PhononBandsPlotter(NotebookWriter):
         if self.phdoses_dict:
             rcd = PlotlyRowColDesc(0, 1, nrows, ncols)
             for label, dos in self.phdoses_dict.items():
-                dos.plotly_dos_idos(fig, rcd=rcd, exchange_xy=True, units=units, **opts_label[label])
+                dos.plotly_dos_idos(fig, rcd=rcd, exchange_xy=True, units=units, trace_name=label, legendgroup=label,
+                                    showlegend=False, **opts_label[label])
 
         return fig
 
@@ -4376,7 +4377,7 @@ class PhononBandsPlotter(NotebookWriter):
     @add_fig_kwargs
     def gridplot(self, with_dos=True, units="eV", fontsize=8, **kwargs):
         """
-        Plot multiple phonon bandstructures and optionally DOSes on a grid.
+        Plot multiple phonon bandstructures and optionally DOSes on a grid with matplotlib.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
@@ -4396,9 +4397,9 @@ class PhononBandsPlotter(NotebookWriter):
                                 units=units, fontsize=fontsize, show=False)
 
     @add_plotly_fig_kwargs
-    def gridplotly(self, with_dos=True, units="eV", fontsize=8, **kwargs):
+    def gridplotly(self, with_dos=True, units="eV", fontsize=12, **kwargs):
         """
-        Plot multiple phonon bandstructures and optionally DOSes on a grid.
+        Plot multiple phonon bandstructures and optionally DOSes on a grid with plotly.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
