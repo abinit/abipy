@@ -554,10 +554,17 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return fig
 
+    @add_plotly_fig_kwargs
+    def plotly_energies(self, fig=None, fontsize=12, **kwargs):
+        """
+        Plot the total energies as function of the iteration step with plotly.
+        """
+        return self.plotly(what_list="energy", fig=fig, fontsize=fontsize, show=False, **kwargs)
+
     @add_fig_kwargs
     def plot_energies(self, ax=None, fontsize=8, **kwargs):
         """
-        Plot the total energies as function of the iteration step.
+        Plot the total energies as function of the iteration step with matplotlib.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.

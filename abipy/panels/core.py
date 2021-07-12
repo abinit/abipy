@@ -55,7 +55,7 @@ def abipanel(panel_template="FastList"):
         "plotly",
         "mathjax",
         #"katex",
-        "ace",
+        #"ace",
     ]
 
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
@@ -527,6 +527,11 @@ class AbipyParameterized(param.Parameterized):
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used for running Fortran code.")
 
+    plotly_template = param.ObjectSelector(default="plotly",
+                                            objects=["plotly", "plotly_white", "plotly_dark", "ggplot2",
+                                                     "seaborn", "simple_white", "none"])
+
+
     # This flag is set to True if we are serving apps from the Abinit server.
     # It is used to impose limitations on what users can do and select the options that should be exposed.
     # For instance, structure_viewer == "Vesta" does not make sense in we are not serving from a local server.
@@ -552,6 +557,12 @@ recompute the new results by clicking the button.
             self.param.mpi_procs.bounds = (1, 1)
             print("Changing mpi_procs.bounds")
             print("self.param.mpi_procs:", self.param.mpi_procs.bounds)
+
+
+    @pn.depends("plotly_template")
+    def on_plotly_template(self):
+        import plotly.io as pio
+        pio.templates.default = self.plotly_template
 
     @lazy_property
     def mpl_kwargs(self):

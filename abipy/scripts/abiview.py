@@ -372,6 +372,29 @@ qpoint = {qpoint}
     return 0
 
 
+def abiview_ddb_qpt(options):
+    """
+    Compute ph-frequencies at the selected q-point without passing through the
+    Fourier interpolation of the interatomic force constants.
+    """
+    #    asr = 2; chneut = 1; dipdip = 1
+    #    print("""
+    #Computing interatomic force constants with
+    #asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
+    #""".format(**locals()))
+
+    with abilab.abiopen(options.filepath) as ddb:
+        # Execute anaddb to compute phbands without Fourier interpolation.
+        phbands, inp = ddb.anaget_phmodes_at_qpoint(qpoint=options.qpoint,
+                            asr=2, chneut=1, dipdip=1, ifcflag=0, return_input=True)
+        print(inp)
+        df = phbands.get_dataframe()
+        abilab.print_dataframe(df, title="Phonon frequencies:")
+        df_to_clipboard(options, df)
+
+    return 0
+
+
 def abiview_ddb_ifc(options):
     """
     Visualize interatomic force constants in real space.
@@ -513,6 +536,8 @@ Usage example:
                                                Plot results with matplotlib (default) or plotly (--plotly)
     abiview.py ddb_quad                   ==>  Compute ph-bands from DDB with/wo dipole-quadrupole terms.
                                                Plot results with matplotlib (default) or plotly (--plotly)
+    abiview.py ddb_qpt -q 0 0.5 0         ==>  Compute ph-frequencies at the selected q-point without passing
+                                               through the Fourier interpolation of the interatomic force constants.
     abiview.py ddb_ifc                    ==>  Visualize interatomic force constants in real space.
     abiview.py phbands out_PHBST.nc -web  ==>  Visualize ph-bands and displacements with phononwebsite.
 
@@ -694,6 +719,13 @@ def get_parser(with_epilog=False):
     # Subparser for ddb_ifc command.
     p_ddb_ifc = subparsers.add_parser('ddb_ifc', parents=[copts_parser, pandas_parser, slide_parser],
                                      help=abiview_ddb_ifc.__doc__)
+
+    # Subparser for ddb_qpt command.
+    p_ddb_qpt = subparsers.add_parser('ddb_qpt', parents=[copts_parser, pandas_parser, slide_parser],
+                                     help=abiview_ddb_qpt.__doc__)
+
+    p_ddb_qpt.add_argument("-q", "--qpoint", nargs=3, type=float,
+        help="q-point in reduced coordinates e.g. `-q 0.25 0 0`. Default: 0, 0, 0", default=[0, 0, 0])
 
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, slide_parser], help=abiview_phbands.__doc__)

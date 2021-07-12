@@ -648,8 +648,9 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Returns a dictionary with the ABINIT variables.
 
-        enforce_znucl[ntypat] = Enforce this value for znucl.
-        enforce_typat[natom] = Fortran conventions. Start to count from 1.
+        Args:
+            enforce_znucl[ntypat] = Enforce this value for znucl.
+            enforce_typat[natom] = Fortran conventions. Start to count from 1.
         """
         return structure_to_abivars(self, enforce_znucl=enforce_znucl, enforce_typat=enforce_typat, **kwargs)
 
@@ -660,16 +661,76 @@ class Structure(pmg_Structure, NotebookWriter):
         return latexify(self.formula)
 
     @property
+    def poscar_string(self):
+        """String with the  structure in POSCAR format."""
+        return self.to(fmt="POSCAR")
+
+    @property
     def abi_string(self):
-        """Return a string with the ABINIT input associated to this structure."""
-        from abipy.abio.variable import InputVariable
+        """String with the ABINIT input associated to this structure."""
+        return self.get_abi_string(fmt="abinit_input")
+
+    def get_abi_string(self, fmt="abinit_input"):
+        """
+        Return a string with the ABINIT input associated to this structure. Two formats are available.
+        fmt="abinit_input" corresponds to the standard format with `typat`, `znucl`.
+        fmt="abicell" is the lightweight format that uses `xred_symbols`
+        This format can be used to include the structure in the input via the structure "abivars:FILE" syntax.
+        """
+
         lines = []
         app = lines.append
-        abivars = self.to_abivars()
-        for varname, value in abivars.items():
-            app(str(InputVariable(varname, value)))
 
-        return("\n".join(lines))
+        if fmt == "abinit_input":
+            from abipy.abio.variable import InputVariable
+            abivars = self.to_abivars()
+            for varname, value in abivars.items():
+                app(str(InputVariable(varname, value)))
+
+            return("\n".join(lines))
+
+        if fmt == "abicell":
+            # # MgB2 lattice structure.
+            # natom   3
+            # acell   2*3.086  3.523 Angstrom
+            # rprim   0.866025403784439  0.5  0.0
+            #        -0.866025403784439  0.5  0.0
+            #         0.0                0.0  1.0
+
+            # # Atomic positions in reduced coordinates followed by element symbol.
+            # xred_symbols
+            #  0.0  0.0  0.0 Mg
+            #  1/3  2/3  0.5 B
+            #  2/3  1/3  0.5 B
+
+            rprim = pmg_units.ArrayWithUnit(self.lattice.matrix, "ang").to("bohr")
+            #angdeg = structure.lattice.angles
+            xred = np.reshape([site.frac_coords for site in self], (-1, 3))
+
+            # Set small values to zero. This usually happens when the CIF file
+            # does not give structure parameters with enough digits.
+            rprim = np.where(np.abs(rprim) > 1e-8, rprim, 0.0)
+            xred = np.where(np.abs(xred) > 1e-8, xred, 0.0)
+            symbols = [site.specie.symbol for site in self]
+
+            app(f"# formula: {self.composition.formula}")
+            app(f"natom {len(self)}")
+            app("acell 1.0 1.0 1.0")
+            app("rprim")
+
+            def v_to_s(vec):
+                return "%.8f %.8f %.8f" % (vec[0], vec[1], vec[2])
+
+            for avec in rprim:
+                app(v_to_s(avec))
+            app("# Atomic positions in reduced coordinates followed by element symbol.")
+            app("xred_symbols")
+            for (frac_coords, symbol) in zip(xred, symbols):
+                app(v_to_s(frac_coords) + f" {symbol}")
+
+            return("\n".join(lines))
+
+        raise ValueError(f"Unknown fmt: {fmt}")
 
     def get_panel(self, **kwargs):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
@@ -919,10 +980,8 @@ class Structure(pmg_Structure, NotebookWriter):
                 "Reduced Formula: {}".format(self.composition.reduced_formula)]
         app = outs.append
         to_s = lambda x: "%0.6f" % x
-        outs.append("abc   : " + " ".join([to_s(i).rjust(10)
-                                           for i in self.lattice.abc]))
-        outs.append("angles: " + " ".join([to_s(i).rjust(10)
-                                           for i in self.lattice.angles]))
+        outs.append("abc   : " + " ".join([to_s(i).rjust(10) for i in self.lattice.abc]))
+        outs.append("angles: " + " ".join([to_s(i).rjust(10) for i in self.lattice.angles]))
         app("")
         app("Spglib space group info (magnetic symmetries not taken into account).")
         app("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
@@ -1390,14 +1449,14 @@ class Structure(pmg_Structure, NotebookWriter):
     @add_plotly_fig_kwargs
     def plotly_bz(self, fig=None, pmg_path=True, with_labels=True, **kwargs):
         """
-        Use matplotlib to plot the symmetry line path in the Brillouin Zone.
+        Use plotly to plot the symmetry line path in the Brillouin Zone.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fig: plotly figure or None if a new figure should be created.
             pmg_path (bool): True if the default path used in pymatgen should be show.
             with_labels (bool): True to plot k-point labels.
 
-        Returns: |matplotlib-Figure|.
+        Returns: |plotly.graph_objects.Figure|
         """
         from abipy.tools.plotting import plotly_brillouin_zone_from_kpath, plotly_brillouin_zone
         labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]

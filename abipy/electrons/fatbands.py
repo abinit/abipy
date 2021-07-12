@@ -1719,7 +1719,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         yup = stack[l]
                         ydown = stack[l-1] if l != 0 else zerodos
-                        label = r"$%s (stacked)" % self.l2tex[l].replace('$','') if (isymb, spin) == (0, 0) else None
+                        label = r"%s (stacked)" % self.l2tex[l].replace('$','') if (isymb, spin) == (0, 0) else None
                         fill = 'tonextx' if not exchange_xy else 'tonexty'
                         fill_line_opts = {'color': self.l2color[l], 'width': 0.1}
                         x1, x2, y1, y2 = mesh, mesh, ydown, yup
@@ -1743,7 +1743,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     if combined_spins:
                         title = "Type: %s" % symbol
                     else:
-                        title = r"$%s , %s$" % (symbol, self.spin2tex[spin].replace('$','')) if self.nsppol == 2 else symbol
+                        title = r"%s , %s" % (symbol, self.spin2tex[spin].replace('$','')) if self.nsppol == 2 else symbol
                     fig.layout.annotations[iax - 1].text = title
                 else:
                     fig.layout.annotations[iax - 1].text = ''

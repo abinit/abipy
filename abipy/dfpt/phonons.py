@@ -1709,8 +1709,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     # TODO: fatbands along x, y, z
     @add_plotly_fig_kwargs
     def plotly_fatbands(self, use_eigvec=True, units="eV", colormap="G10", phdos_file=None,
-                      alpha=0.6, max_stripe_width_mev=5.0, width_ratios=(2, 1),
-                      qlabels=None, ylims=None, fontsize=16, **kwargs):
+                       alpha=0.6, max_stripe_width_mev=5.0, width_ratios=(2, 1),
+                       qlabels=None, ylims=None, fontsize=16, **kwargs):
         r"""
         Plot phonon fatbands and, optionally, atom-projected phonon DOSes with plotly.
         The width of the band is given by ||v_{type}||
@@ -1758,7 +1758,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                                  horizontal_spacing=0.02, column_widths=width_ratios if ncols == 2 else None)
 
         import plotly.express as px
-        color_l=getattr(px.colors.qualitative, colormap)
+        color_l = getattr(px.colors.qualitative, colormap)
         if len(color_l) < len(self.structure.symbol_set):
             raise ValueError("Colormap %s is not enough, please provide one has more than %n colors"
                              % colormap, len(self.structure.symbol_set))

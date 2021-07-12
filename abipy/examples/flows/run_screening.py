@@ -7,6 +7,7 @@ This examples shows how to compute the SCR file with different number of bands
 and different values of ecuteps in order to prepare further GW convergence studies.
 Each screening calculation is automatically parallelized over q-points and the
 partial SCR files are then merged with the mrgscr utility.
+The total SCR file is available in the outdata directory of the ScreeningWork.
 """
 import sys
 import os

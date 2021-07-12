@@ -1189,6 +1189,7 @@ def add_plotly_fig_kwargs(func):
         config = kwargs.pop("config", None)
         renderer = kwargs.pop("renderer", None)
         chart_studio = kwargs.pop("chart_studio", False)
+        template = kwargs.pop("template", None)
 
         # Allow users to specify the renderer via shell env.
         if renderer is not None and os.getenv("PLOTLY_RENDERER", default=None) is not None:
@@ -1203,6 +1204,9 @@ def add_plotly_fig_kwargs(func):
         if title is not None:
             fig.update_layout(title_text=title, title_x=0.5)
 
+        if template is not None:
+            fig.update_layout(template=template)
+
         if savefig:
             fig.write_image(savefig)
 
@@ -1211,6 +1215,7 @@ def add_plotly_fig_kwargs(func):
             pio.write_json(fig, write_json)
 
         fig.layout.hovermode = hovermode
+
 
         if show: # and _PLOTLY_DEFAULT_SHOW:
             fig.show(renderer=renderer, config=config)
@@ -1246,6 +1251,9 @@ def add_plotly_fig_kwargs(func):
                 config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
                 chart_studio      True to push figure to chart_studio server. Requires authenticatios.
                                   Default: False.
+                template          Plotly template. See https://plotly.com/python/templates/
+                                  ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]
+                                  Default is None that is the default template is used.
                 ================  ====================================================================
         """
     )
@@ -1911,6 +1919,7 @@ def plotly_brillouin_zone_from_kpath(kpath, fig=None, **kwargs):
         lines=lines,
         fig=fig,
         labels=kpath.kpath["kpoints"],
+        show=False,
         **kwargs,
     )
 

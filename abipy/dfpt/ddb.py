@@ -935,7 +935,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         yield self.qpoints.plotly(show=False)
         yield self.structure.plotly_bz(show=False)
 
-    def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
+    def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, ifcflag=0, workdir=None, mpi_procs=1,
                                  manager=None, verbose=0, lo_to_splitting=False, spell_check=True,
                                  directions=None, anaddb_kwargs=None, return_input=False):
         """
@@ -966,7 +966,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 raise ValueError("%s contains %s qpoints and the choice is ambiguous.\n"
                                  "Please specify the qpoint." % (self, len(self.qpoints)))
 
-        return self.anaget_phmodes_at_qpoints(qpoints=[qpoint], asr=asr, chneut=chneut, dipdip=dipdip,
+        return self.anaget_phmodes_at_qpoints(qpoints=[qpoint], asr=asr, chneut=chneut, dipdip=dipdip, ifcflag=ifcflag,
                                               workdir=workdir, mpi_procs=mpi_procs, manager=manager,
                                               verbose=verbose, lo_to_splitting=lo_to_splitting, spell_check=spell_check,
                                               directions=directions, anaddb_kwargs=anaddb_kwargs, return_input=return_input)
@@ -978,7 +978,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Execute anaddb to compute phonon modes at the given list of q-points. Non analytical contribution
         can be added if Gamma belongs to the list and required elements are present in the DDB.
         If the list of q-points contains points that are not present in the DDB the values will be
-        interpolated and ifcflag should be set to 1.
+        interpolated provided ifcflag is set to 1.
 
         Args:
             qpoints: Reduced coordinates of a list of qpoints where phonon modes are computed.
