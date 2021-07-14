@@ -1112,6 +1112,15 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         self._cached_dos_integrators[key] = intg
         return intg
 
+    #def get_projected_magnetisation(self):
+    #    """
+    #    Final projected magnetisation as a numpy array with the shape (nkpoints, nbands,
+    #    natoms, norbitals, 3). Where the last axis is the contribution in the 3
+    #    cartesian directions. This attribute is only set if spin-orbit coupling
+    #    (LSORBIT = True) or non-collinear magnetism (LNONCOLLINEAR = True) is turned
+    #    on in the INCAR.
+    #    """
+
     @add_fig_kwargs
     def plot_pjdos_lview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
                          stacked=True, combined_spins=True, ax_mat=None, exchange_xy=False,

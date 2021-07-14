@@ -393,6 +393,40 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         """Compute the electronic DOS on a linear mesh. Wraps ebands.get_edos."""
         return self.ebands.get_edos(**kwargs)
 
+    def get_fs_and_plotter(self):
+
+        # Sanity check.
+        errors = []
+        eapp = errors.append
+        if not self.kpoints.is_ibz:
+            eapp("Expecting an IBZ sampling but got %s" % type(self.kpoints))
+        if not self.kpoints.is_mpmesh:
+            eapp("Homogeneous k-meshes are required.\nksampling: %s" % str(self.kpoints.ksampling))
+
+        if errors:
+            raise ValueError("\n".join(errors))
+
+        try:
+            from ifermi.interpolate import FourierInterpolator
+            from ifermi.surface import FermiSurface
+        except ImportError:
+            raise ImportError("Cannot import ifermi package. Please install the package\n:" +
+                              "following the instructions given at: https://github.com/fermisurfaces/IFermi")
+
+        # interpolate the energies onto a dense k-point mesh
+        bs = self.ebands.to_pymatgen()
+        interpolator = FourierInterpolator(bs)
+        dense_bs, velocities = interpolator.interpolate_bands(return_velocities=True, nworkers=-1)
+
+        # generate the Fermi surface and calculate the dimensionality
+        fs = FermiSurface.from_band_structure(
+          dense_bs, mu=0.0, wigner_seitz=False, calculate_dimensionality=True
+        )
+
+        fs_plotter = FermiSurfacePlotter(fs)
+
+        return fs, fs_plotter
+
     def yield_ebands_figs(self, **kwargs):
         """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
         with_gaps = not self.ebands.has_metallic_scheme

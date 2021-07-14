@@ -1208,7 +1208,25 @@ def add_plotly_fig_kwargs(func):
             fig.update_layout(template=template)
 
         if savefig:
-            fig.write_image(savefig)
+            # https://plotly.github.io/plotly.py-docs/generated/plotly.io.write_image.html
+            if savefig.endswith("html") in filename:
+                from plotly.offline import plot as show_plotly
+                show_plotly(fig, include_mathjax="cdn", filename=savefig, auto_open=False)
+
+            else:
+                try:
+                    import kaleido
+                except ImportError:
+                    kaleido = False
+
+                if kaleido is None:
+                    raise ValueError(
+                        "kaleido package required to save static ploty images\n"
+                        "please install it using:\npip install kaleido"
+                    )
+
+                fig.write_image(savefig, engine="kaleido", scale=5, width=750, height=750)
+                #fig.write_image(savefig)
 
         if write_json:
             import plotly.io as pio

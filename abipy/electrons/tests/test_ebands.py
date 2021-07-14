@@ -585,6 +585,17 @@ class ElectronBandsPlotterTest(AbipyTest):
             assert plotter.plot_band_edges(epad_ev=2.0, show=False)
             assert plotter.animate(show=False)
 
+        if self.has_plotly():
+            assert plotter.combiplotly(title="Silicon band structure", show=False)
+            # Alias for combiplot
+            assert plotter.plotly(e0=2, width_ratios=(3, 1), fontsize=12, show=False)
+            #if self.has_seaborn():
+            #    plotter.combiboxplot(title="Silicon band structure", swarm=True, show=False)
+            assert plotter.gridplotly(title="Silicon band structure", with_gaps=True, show=False)
+            #assert plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
+            #assert plotter.plot_band_edges(epad_ev=2.0, show=False)
+            #assert plotter.animate(show=False)
+
         if self.has_ipywidgets():
             assert plotter.ipw_select_plot() is not None
 

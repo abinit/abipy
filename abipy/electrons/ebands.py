@@ -3100,12 +3100,12 @@ class ElectronBandsPlotter(NotebookWriter):
         for meth_name in ("gridplot", "boxplot"):
             yield getattr(self, meth_name)(show=False)
 
-    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
-    #    """
-    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-    #    """
-    #    for meth_name in ("gridplot", "boxplot"):
-    #        yield getattr(self, meth_name)(show=False)
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        """
+        for meth_name in ("gridplot", "boxplot"):
+            yield getattr(self, meth_name)(show=False)
 
     @add_fig_kwargs
     def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=8,
@@ -3203,6 +3203,8 @@ class ElectronBandsPlotter(NotebookWriter):
     # An alias for combiplot.
     plot = combiplot
 
+
+
     @add_plotly_fig_kwargs
     def combiplotly(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=12,
                   linestyle_dict=None, **kwargs):
@@ -3284,6 +3286,8 @@ class ElectronBandsPlotter(NotebookWriter):
 
         return fig
 
+    plotly = combiplotly
+
     @add_fig_kwargs
     def gridplot(self, e0="fermie", with_dos=True, with_gaps=False, max_phfreq=None,
                  ylims=None, fontsize=8, **kwargs):
@@ -3311,7 +3315,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 -  None: Don't shift energies, equivalent to e0=0
 
             with_dos: True if DOS should be printed.
-            with_gaps: True to add markesr and arrows showing the fundamental and the direct gap.
+            with_gaps: True to add markers and arrows showing the fundamental and the direct gap.
             max_phfreq: Max phonon frequency in eV to activate scatterplot showing
                 possible phonon absorptions/emission processes based on energy-conservation alone.
                 All final states whose energy is within +- max_phfreq of the initial state are included.
@@ -4558,6 +4562,13 @@ class ElectronDosPlotter(NotebookWriter):
         """
         yield self.combiplot(show=False)
         yield self.gridplot(show=False)
+
+    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+    #    """
+    #    This function *generates* a predefined list of plotly figures with minimal input from the user.
+    #    """
+    #    yield self.combiplotly(show=False)
+    #    yield self.gridplotly(show=False)
 
     def write_notebook(self, nbpath=None):
         """

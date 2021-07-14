@@ -21,6 +21,14 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`context_managers` Module
+------------------------------
+
+.. automodule:: abipy.tools.context_managers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`decorators` Module
 ------------------------
 

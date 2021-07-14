@@ -16,6 +16,8 @@ from monty.termcolor import cprint
 from abipy.core import abinit_units as abu
 from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
+from abipy.tools.context_managers import Timer
+from abipy.tools.decorators import memoized_method
 
 
 _ABINIT_TEMPLATE_NAME = "FastList"
@@ -972,6 +974,22 @@ class PanelWithElectronBands(PanelWithStructure):
     skw_lpratio = param.Integer(5, bounds=(1, None))
     skw_line_density = param.Integer(20)
 
+    # Fermi surface.
+    #fs_viewer = param.ObjectSelector(default=None, objects=objects)
+    fs_wigner_seitz = param.Boolean(True, doc="Controls whether the cell is the Wigner-Seitz cell" +
+                                               "or the reciprocal unit cell parallelepiped.")
+    fs_interpolation_factor = param.Integer(default=5,
+            doc="The factor by which the band structure will be interpolated.")
+
+    fs_with_velocities = param.Boolean(True,
+        doc="Generate the Fermi surface and calculate the group velocity at the center of each triangular face")
+    fs_offset_eV = param.Number(default=0.0,
+                                 doc="Energy offset from the Fermi energy at which the isosurface is calculated.")
+    fs_plot_type = param.ObjectSelector(default="plotly", objects=["plotly", "matplotlib"])
+
+
+    # These are used to implent plots in which we need to upload an additional file
+    # For instance bands + edos.
     # For the max size of file see: https://github.com/holoviz/panel/issues/1559
     ebands_kpath = None
     ebands_kpath_fileinput = param.FileSelector()
@@ -989,17 +1007,20 @@ class PanelWithElectronBands(PanelWithStructure):
         self.plot_skw_btn = pnw.Button(name="Plot SKW interpolant", button_type='primary')
 
         # Fermi surface plotter.
-        objects = [None, "matplotlib", "xcrysden"]
-        if self.has_remote_server:
-            objects = [None, "matplotlib"]
-        self.fs_viewer = param.ObjectSelector(default=None, objects=objects)
-        self.plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
+        #objects = [None, "matplotlib", "xcrysden"]
+        #if self.has_remote_server:
+        #    objects = [None, "matplotlib"]
+        self.plot_fs_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
+
+        self.fs_plane_normal = pn.widgets.LiteralInput(name='Plane normal (list)', value=[0, 0, 0], type=list,
+                                                    placeholder="Enter normal in reduced coordinates")
+
+        end = 2 * max(ebands.structure.reciprocal_lattice.abc)
+        self.fs_distance = pn.widgets.RangeSlider(
+                name='distance', start=0, end=end, value=(0, 0), step=0.01)
 
         #ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
         #ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
-
-        #super().__init__(**params)
-        #super().__init__(structure= **params)
 
     @pn.depends("ebands_kpath_fileinput", watch=True)
     def get_ebands_kpath(self):
@@ -1091,32 +1112,69 @@ class PanelWithElectronBands(PanelWithStructure):
             self.pws_col(["skw_lpratio", "skw_line_density", "with_gaps", wdg, "plot_skw_btn"]),
             self.on_plot_skw_btn)
 
-    def get_plot_fermi_surface_widgets(self):
-        """Widgets to compute the Fermi surface."""
-        #return pn.Column(self.fs_viewer, self.plot_fermi_surface_btn)
+    def get_plot_fs_widgets(self):
+        """
+        Widgets to visualize the Fermi surface.
+        """
         return pn.Row(
-            self.pws_col(["skw_fs_viewer", "plot_fermi_surface_btn"]),
+            self.pws_col(["fs_offset_eV", "fs_wigner_seitz", "fs_interpolation_factor",
+                          "fs_with_velocities", "fs_plane_normal", "fs_distance", "fs_plot_type", "plot_fs_btn"]),
             self.on_plot_skw_btn)
 
-    @depends_on_btn_click('plot_fermi_surface_btn')
-    def on_plot_fermi_surface_btn(self):
+    def get_ifermi_view(self):
+        return pn.Row(
+            pn.Column("# Options", self.get_plot_fs_widgets(), self.helpc("on_plot_fs_btn")),
+            self.on_plot_fs_btn
+        )
+
+    @memoized_method(maxsize=12, typed=False)
+    def get_dense_bs(self, interpolation_factor, return_velocities):
+        """
+        Use per-instance lru_cache so that each user has his/her own cache.
+        Cannot use lru_cache from stdlib because cache would be global to the app.
+        """
+        try:
+            from ifermi.interpolate import FourierInterpolator
+        except ImportError:
+            raise ImportError("Cannot import ifermi package. Please install the package\n:" +
+                              "following the instructions given at: https://github.com/fermisurfaces/IFermi")
+
+        # interpolate the energies onto a dense k-point mesh
+        bs = self.ebands.to_pymatgen()
+        interpolator = FourierInterpolator(bs)
+
+        nworkers = 1
+        with Timer(f"BoltzTraP2 interpol with factor {interpolation_factor} and velocities: {return_velocities}"):
+            if return_velocities:
+                dense_bs, velocities = interpolator.interpolate_bands(interpolation_factor=interpolation_factor,
+                                                                       return_velocities=return_velocities,
+                                                                       nworkers=nworkers)
+            else:
+                dense_bs = interpolator.interpolate_bands(interpolation_factor=interpolation_factor,
+                                                          return_velocities=return_velocities,
+                                                          nworkers=nworkers)
+                velocities = None
+
+        return dense_bs, velocities
+
+    @depends_on_btn_click('plot_fs_btn')
+    def on_plot_fs_btn(self):
         #if self.fs_viewer is None: return pn.pane.HTML()
-
         # Cache eb3d
-        if hasattr(self, "_eb3d"):
-            eb3d = self._eb3d
-        else:
-            # Build ebands in full BZ.
-            eb3d = self._eb3d = self.ebands.get_ebands3d()
+        #if hasattr(self, "_eb3d"):
+        #    eb3d = self._eb3d
+        #else:
+        #    # Build ebands in full BZ.
+        #    eb3d = self._eb3d = self.ebands.get_ebands3d()
 
-        if self.fs_viewer == "matplotlib":
-            # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
-            # Warning: requires skimage package, rendering could be slow.
-            fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.mpl_kwargs)
-            return pn.Row(mpl(fig), sizing_mode='scale_width')
+        #if self.fs_viewer == "matplotlib":
+        #    # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
+        #    # Warning: requires skimage package, rendering could be slow.
+        #    fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.mpl_kwargs)
+        #    return pn.Row(mpl(fig), sizing_mode='scale_width')
 
-        else:
-            raise ValueError("Invalid choice: %s" % self.fs_viewer)
+        #else:
+        #    raise ValueError("Invalid choice: %s" % self.fs_viewer)
 
         #elif self.fs_viewer == "xcrysden":
             # Alternatively, it's possible to export the data in xcrysden format
@@ -1124,6 +1182,62 @@ class PanelWithElectronBands(PanelWithStructure):
             #eb3d.to_bxsf("mgb2.bxsf")
             # If you have mayavi installed, try:
             #eb3d.mvplot_isosurfaces()
+
+        # interpolate the energies onto a dense k-point mesh
+        dense_bs, velocities = self.get_dense_bs(self.fs_interpolation_factor, self.fs_with_velocities)
+
+        from ifermi.surface import FermiSurface
+        from ifermi.plot import FermiSlicePlotter, FermiSurfacePlotter #, save_plot, show_plot
+
+        # generate the Fermi surface and calculate the dimensionality
+        from ifermi.kpoints import kpoints_from_bandstructure
+        dense_kpoints = kpoints_from_bandstructure(dense_bs) if velocities else None
+
+        col = pn.Column(sizing_mode="stretch_width")
+        ca = col.append
+
+        with Timer("Building Fermi surface..."):
+            fs = FermiSurface.from_band_structure(
+              dense_bs, mu=self.fs_offset_eV, wigner_seitz=self.fs_wigner_seitz,
+              calculate_dimensionality=False,
+              property_data=velocities, property_kpoints=dense_kpoints,
+            )
+
+            fs_plotter = FermiSurfacePlotter(fs)
+            plt = fs_plotter.get_plot(plot_type=self.fs_plot_type)
+            if self.fs_plot_type == "plotly":
+                fig = ply(plt)
+            elif self.fs_plot_type == "matplotlib":
+                fig = plt.gcf()
+                plt.close(fig=fig)
+                fig = mpl(fig)
+            else:
+                raise NotImplementedError(f"{self.fs_plot_type}")
+
+            if self.fs_wigner_seitz:
+                ca("## Fermi surface in the Wigner-Seitz cell")
+            else:
+                ca("## Fermi surface in the reciprocal space unit cell")
+            ca(fig)
+
+        fs_plane_normal = self.fs_plane_normal.value
+        print("fs_plane normal:", fs_plane_normal)
+        if any(c != 0 for c in fs_plane_normal):
+            for distance in self.fs_distance.value:
+                # generate Fermi slice along the (0 0 1) plane going through the Γ-point.
+                ca(f"## Fermi slice along the {fs_plane_normal} plane going through the Γ-point at distance: {distance}")
+                fermi_slice = fs.get_fermi_slice(plane_normal=fs_plane_normal, distance=distance)
+                slice_plotter = FermiSlicePlotter(fermi_slice)
+                plt = slice_plotter.get_plot()
+                fig = plt.gcf()
+                plt.close(fig=fig)
+                fig = mpl(fig)
+                ca(fig)
+
+        #ca(pn.layout.Divider())
+        ca("## Powered by [ifermi](https://fermisurfaces.github.io/IFermi/)")
+
+        return col
 
 
 class BaseRobotPanel(AbipyParameterized):
@@ -1281,4 +1395,3 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
 
     #print(html)
     return pn.Column(pn.pane.HTML(html, sizing_mode="stretch_width"), sizing_mode="stretch_width")
-

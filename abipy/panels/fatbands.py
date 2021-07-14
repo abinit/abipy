@@ -82,8 +82,8 @@ class FatBandsFilePanel(PanelWithElectronBands):
 
             # Fermi surface requires a gamma-centered k-mesh
             #if self.ncfile.ebands.supports_fermi_surface:
-            #    d["Fermi Surface"] = pn.Row(self.get_plot_fermi_surface_widgets(),
-            #                                self.on_plot_fermi_surface_btn)
+            if self.ncfile.ebands.kpoints.is_ibz:
+                d["Fermi Surface"] = self.get_ifermi_view()
 
         elif self.ncfile.ebands.kpoints.is_path:
             # NC files have contributions up to L=4 (g channel)

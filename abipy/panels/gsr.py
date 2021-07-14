@@ -45,19 +45,14 @@ class GsrFilePanel(PanelWithElectronBands, NcFileMixin):
             d["SKW"] = self.get_plot_skw_widgets()
 
             #if self.gsr.ebands.supports_fermi_surface:
-            #    # Fermi surface requires Gamma-centered k-mesh
-            #    app(("Fermi Surface", pn.Row(
-            #        pn.Column("# Options",
-            #            self.get_plot_fermi_surface_widgets(),
-            #            self.helpc("on_plot_fermi_surface_btn"),
-            #    ),
-            #    self.on_plot_fermi_surface_btn)
-            #    ))
+            # Fermi surface requires Gamma-centered k-mesh
+            if self.gsr.ebands.kpoints.is_ibz:
+                d["Fermi Surface"] = self.get_ifermi_view()
 
         d["Structure"] = self.get_struct_view_tab_entry()
+
         # TODO
         #app(("NcFile", self.get_ncfile_panel()))
-
         #app(("Global", pn.Row(
         #    pn.Column("# Global options",
         #              *self.pws("units", "mpi_procs", "verbose"),
