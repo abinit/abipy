@@ -17,7 +17,7 @@ from monty.json import MSONable
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
-from monty.dev import deprecated
+#from monty.dev import deprecated
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
 from pymatgen.util.serialization import pmg_serialize
 from abipy.flowtk import AnaddbTask
@@ -227,7 +227,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("Has (all) strain terms: %s" % self.has_strain_terms(select="all"))
         app("Has (all) internal strain terms: %s" % self.has_internalstrain_terms(select="all"))
         app("Has (all) piezoelectric terms: %s" % self.has_piezoelectric_terms(select="all"))
-        #app("Has (all) dynamical quadrupole terms: %s" % self.has_quadrupole_terms(select="all"))
+        app("Has (all) dynamical quadrupole terms: %s" % self.has_quadrupole_terms(select="all"))
 
         if verbose:
             # Print q-points
@@ -723,9 +723,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False if select in ("at_least_one", "at_least_one_diagoterm") else True
 
-    @deprecated(message="has_emacro_terms is deprecated and will be removed in abipy 0.8, use has_epsinf_terms")
-    def has_emacro_terms(self, **kwargs):
-        return self.has_epsinf_terms(**kwargs)
+    #@deprecated(message="has_emacro_terms is deprecated and will be removed in abipy 0.8, use has_epsinf_terms")
+    #def has_emacro_terms(self, **kwargs):
+    #    return self.has_epsinf_terms(**kwargs)
 
     @lru_cache(typed=True)
     def has_bec_terms(self, select="at_least_one"):
@@ -897,6 +897,85 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     raise ValueError("Wrong select %s" % str(select))
 
         return False if select == "at_least_one" else True
+
+    def get_quadrupole_raw_dataframe(self, with_index_list=False):
+        """
+        """
+        not_found = (None, None) if with_index_list else None
+
+        # Find the block with 3rd order (long wave) derivatives
+        for block in self.blocks:
+            if block["dord"] == 3 and "(long wave)" in block["data"][0]:
+                break
+        else:
+            return not_found
+
+        # In a system with 2 atoms we have:
+        # (Efield_perts, Phonon_perts, ddq_perts):
+
+        # 3rd derivatives (long wave)  - # elements :      54
+        # qpt  0.00000000E+00  0.00000000E+00  0.00000000E+00   1.0
+        #      0.00000000E+00  0.00000000E+00  0.00000000E+00   1.0
+        #      0.00000000E+00  0.00000000E+00  0.00000000E+00   1.0
+        #   1   4   1   1   1  10  0.00000000000000D+00  0.23577723560036D+02
+        #   2   4   1   1   1  10  0.00000000000000D+00 -0.11788862271774D+02
+
+        natom = len(self.structure)
+        #ap_list = list(itertools.product(range(1, 4), range(1, natom + 1)))
+        #ep_list = list(itertools.product(range(1, 4), [natom + 2]))
+        #ddq_list = list(itertools.product(range(1, 4), [natom + 8]))
+
+        index_list = []
+        rows = []
+        for i, line in enumerate(block["data"]):
+            if i <= 3: continue
+            # Python does not support exp format with D
+            line = line.replace("D+", "E+").replace("D-", "E-")
+            tokens = line.split()
+            inds = tuple(map(int, tokens[:6]))
+            #print(inds)
+            if inds[1] != 4 or inds[3] > natom: continue
+            vals = tuple(map(float, tokens[6:8]))
+            index_list.append(inds)
+            rows.append({"idir_e": inds[0], "idir_atm": inds[2], "iatm": inds[3], "idir_ddq": inds[4],
+                         "re": vals[0], "imag": vals[1]})
+
+        df = pd.DataFrame(rows, columns=list(rows[0].keys())) if rows else None
+
+        return (df, index_list) if with_index_list else df
+
+    @lru_cache(typed=True)
+    def has_quadrupole_terms(self, select="all"):
+        """
+        True if the DDB file contains dynamical quadrupole terms
+        i.e 3rd order derivatives wrt (electric_field, phonon_perturbation_gamma, longwave_der)
+
+        Args:
+            select: Possible values in ["at_least_one", "all"]
+                If select == "at_least_one", we check if there's at least one entry associated to the strain.
+                and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+                If select == "all", all tensor components must be present in the DDB file.
+
+        .. note::
+
+            As anaddb is not yet able to reconstruct all the terms by symmetry,
+            the default value for select is "all"
+        """
+        df, index_list = self.get_quadrupole_raw_dataframe(with_index_list=True)
+        if df is None: return False
+
+        natom = len(self.structure)
+        ap_list = list(itertools.product(range(1, 4), range(1, natom + 1)))
+        ep_list = list(itertools.product(range(1, 4), [natom + 2]))
+        ddq_list = list(itertools.product(range(1, 4), [natom + 8]))
+
+        if select == "at_least_one": return True
+
+        all_quad_perts = set(itertools.product(ep_list, ap_list, ddq_list))
+        #print("all_quad_perts:", all_quad_perts)
+        quad_perts = set(((t[0], t[1]), (t[2], t[3]), (t[4], t[5])) for t in index_list)
+        #print("quad_perts:", quad_perts)
+        return all_quad_perts == quad_perts
 
     def view_phononwebsite(self, browser=None, verbose=0, dryrun=False, **kwargs):
         """
@@ -1495,10 +1574,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
             return dict2namedtuple(epsinf=epsinf, becs=becs)
 
-    @deprecated(message="anaget_emacro_and_becs is deprecated and will be removed in abipy 0.8, use anaget_epsinf_and_becs")
-    def anaget_emacro_and_becs(self, **kwargs):
-        r = self.anaget_epsinf_and_becs(**kwargs)
-        return r.epsinf, r.becs
+    #@deprecated(message="anaget_emacro_and_becs is deprecated and will be removed in abipy 0.8, use anaget_epsinf_and_becs")
+    #def anaget_emacro_and_becs(self, **kwargs):
+    #    r = self.anaget_epsinf_and_becs(**kwargs)
+    #    return r.epsinf, r.becs
 
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
                    mpi_procs=1, workdir=None, manager=None, verbose=0, anaddb_kwargs=None):

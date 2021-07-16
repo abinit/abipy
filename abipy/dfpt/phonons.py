@@ -4094,6 +4094,9 @@ class PhononBandsPlotter(NotebookWriter):
             if len(key_phbands) != len(key_phdos):
                 raise ValueError("key_phbands and key_phdos must have the same number of elements.")
 
+    def __len__(self):
+        return len(self._bands_dict)
+
     def __repr__(self):
         """Invoked by repr"""
         return self.to_string(func=repr)

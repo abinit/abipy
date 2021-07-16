@@ -1,6 +1,7 @@
 
 Release 0.9.2:
 
+   * G0W0WithQptdmFlow is deprecated and will be removed in v 0.9.3
    * Add abigui.py script
    * Add abilab.abirobot function to create a Robot from a list of filepaths.
    * Add plotly version of fatbands

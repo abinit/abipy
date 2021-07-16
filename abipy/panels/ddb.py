@@ -85,7 +85,6 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         self.plot_ifc_btn = pnw.Button(name="Compute IFC(R)", button_type='primary')
 
-
         self.plot_phbands_quad_btn = pnw.Button(name="Plot PHbands with/without quadrupoles", button_type='primary')
         self.plot_dos_vs_qmesh_btn = pnw.Button(name="Plot PHDos vs Qmesh", button_type='primary')
 
@@ -360,12 +359,12 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                              "temp_range", "plot_dos_vs_qmesh_btn", self.helpc("plot_dos_vs_qmesh")]),
                 self.plot_dos_vs_qmesh
             )
-            #if ddb.has_dynamical_quadrupoles:
-            d["Quadrupoles"] = pn.Row(
-                self.pws_col(["### Quadrupoles options", "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
-                              "plot_phbands_quad_btn", self.helpc("plot_phbands_quad")]),
-                self.plot_phbands_quad
-            )
+            if ddb.has_quadrupole_terms():
+                d["Quadrupoles"] = pn.Row(
+                    self.pws_col(["### Quadrupoles options", "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
+                                  "plot_phbands_quad_btn", self.helpc("plot_phbands_quad")]),
+                    self.plot_phbands_quad
+                )
             d["IFCs"] = pn.Row(
                 self.pws_col(["### IFCs options", "asr", "dipdip", "chneut",
                                "plot_ifc_yscale", "plot_ifc_btn", self.helpc("on_plot_ifc")]),

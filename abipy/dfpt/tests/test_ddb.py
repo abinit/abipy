@@ -157,6 +157,7 @@ class DdbTest(AbipyTest):
         assert not ddb.has_internalstrain_terms()
         assert not ddb.has_piezoelectric_terms()
         assert not ddb.has_strain_terms()
+        assert not ddb.has_quadrupole_terms()
         assert ddb.has_at_least_one_atomic_perturbation()
 
         ref_qpoints = np.reshape([
@@ -437,6 +438,48 @@ class DdbTest(AbipyTest):
             assert blocks[3]["qpt"] == None
             assert blocks[3]["dord"] == 3
             assert blocks[3]["qpt3"] == [[0.,] * 3] * 3
+
+
+    def test_ddb_with_quad(self):
+        """
+        Testing DDB files with dynamical quadrupoles and flexoelectric tensor.
+        """
+        with abilab.abiopen(abidata.ref_file("refs/LW_DDBs/tlw_5.quad_DDB")) as ddb:
+            assert ddb.has_lo_to_data()
+            assert ddb.has_epsinf_terms()
+            assert ddb.has_bec_terms(select="all")
+            assert not ddb.has_strain_terms()
+            assert not ddb.has_piezoelectric_terms()
+
+            assert ddb.has_quadrupole_terms()
+            df = ddb.get_quadrupole_raw_dataframe()
+
+            assert df is not None
+
+            plotter = ddb.anacompare_quad(asr=2, chneut=1, dipdip=-1, lo_to_splitting="automatic",
+                                          nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
+                                          verbose=1, mpi_procs=1)
+            assert len(plotter) == 3
+
+    def test_ddb_with_flexoe(self):
+        """
+        Testing DDB files with flexoelectric tensor.
+        """
+        with abilab.abiopen(abidata.ref_file("refs/LW_DDBs/tlw_2.flexo_DDB")) as ddb:
+            assert ddb.has_lo_to_data()
+            assert ddb.has_epsinf_terms()
+            assert ddb.has_bec_terms(select="all")
+            assert ddb.has_strain_terms()
+            assert ddb.has_piezoelectric_terms()
+
+            assert ddb.has_quadrupole_terms()
+            df = ddb.get_quadrupole_raw_dataframe()
+
+            #assert ddb.has_flexoe_terms()
+            #df = ddb.get_frexoe_raw_dataframe()
+            #assert df is not None
+
+            # TODO: anaget interface --> requires modifications in anaddb
 
 
 class DielectricTensorGeneratorTest(AbipyTest):
