@@ -2895,6 +2895,10 @@ class G0W0WithQptdmFlow(Flow):
         """
         super().__init__(workdir, manager=manager)
 
+        # TODO: Remove this class as it's not compatible with the computation of the q-points
+        # that is not performed at the level of the Abinit parser.
+        warnings.warn("DeprecationWarning: G0W0WithQptdmFlow is deprecated and will be removed in abipy v0.9.2")
+
         # Register the first work (GS + NSCF calculation)
         bands_work = self.register_work(BandStructureWork(scf_input, nscf_input))
 
