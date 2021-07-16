@@ -5037,9 +5037,17 @@ class RobotWithEbands(object):
         """Wraps combiplot method of |ElectronBandsPlotter|. kwargs passed to combiplot."""
         return self.get_ebands_plotter().combiplot(**kwargs)
 
+    def combiplotly_ebands(self, **kwargs):
+        """Wraps combiplotly method of |ElectronBandsPlotter|. kwargs passed to combiplotly."""
+        return self.get_ebands_plotter().combiplotly(**kwargs)
+
     def gridplot_ebands(self, **kwargs):
         """Wraps gridplot method of |ElectronBandsPlotter|. kwargs passed to gridplot."""
         return self.get_ebands_plotter().gridplot(**kwargs)
+
+    def gridplotly_ebands(self, **kwargs):
+        """Wraps gridplotly method of |ElectronBandsPlotter|. kwargs passed to gridplotly."""
+        return self.get_ebands_plotter().gridplotly(**kwargs)
 
     def boxplot_ebands(self, **kwargs):
         """Wraps boxplot method of |ElectronBandsPlotter|. kwargs passed to boxplot."""
@@ -5053,9 +5061,17 @@ class RobotWithEbands(object):
         """Wraps combiplot method of |ElectronDosPlotter|. kwargs passed to combiplot."""
         return self.get_edos_plotter().combiplot(**kwargs)
 
+    #def combiplotly_edos(self, **kwargs):
+    #    """Wraps combiplotly method of |ElectronDosPlotter|. kwargs passed to combiplotly."""
+    #    return self.get_edos_plotter().combiplotly(**kwargs)
+
     def gridplot_edos(self, **kwargs):
         """Wraps gridplot method of |ElectronDosPlotter|. kwargs passed to gridplot."""
         return self.get_edos_plotter().gridplot(**kwargs)
+
+    #def gridplotly_edos(self, **kwargs):
+    #    """Wraps gridplotly method of |ElectronDosPlotter|. kwargs passed to gridplotly."""
+    #    return self.get_edos_plotter().gridplotly(**kwargs)
 
     def get_ebands_plotter(self, kselect=None, filter_abifile=None, cls=None):
         """
@@ -5298,7 +5314,7 @@ def find_yaml_section_in_lines(lines, tag):
         raise ValueError(f"Cannot fine Yaml tag: `{magic}`")
 
     import ruamel.yaml as yaml
-    return yaml.safe_load("\n".join(buf))
+    return yaml.YAML(typ='safe', pure=True).load("\n".join(buf))
 
 
 class EdosFile(TextFile):

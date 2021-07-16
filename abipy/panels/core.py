@@ -1131,7 +1131,7 @@ class PanelWithElectronBands(PanelWithStructure):
     def get_dense_bs(self, interpolation_factor, return_velocities):
         """
         Use per-instance lru_cache so that each user has his/her own cache.
-        Cannot use lru_cache from stdlib because cache would be global to the app.
+        Cannot use lru_cache from stdlib because the cache would be global to the app.
         """
         try:
             from ifermi.interpolate import FourierInterpolator

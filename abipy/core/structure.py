@@ -579,6 +579,10 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             app(super().__str__())
 
+        if verbose:
+            for i, vec in enumerate(self.lattice.matrix):
+                app("a_%d: %.8f %.8f %.8f" % (i + 1, vec[0], vec[1], vec[2]))
+
         if self.abi_spacegroup is not None:
             app("\nAbinit Spacegroup: %s" % self.abi_spacegroup.to_string(verbose=verbose))
 
@@ -1200,6 +1204,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 instead of Reduced coordinates.
         """
         kname2frac = {k.name: k.frac_coords for k in self.hsym_kpoints}
+
         # Add aliases for Gamma.
         if r"$\Gamma$" in kname2frac:
             kname2frac["G"] = kname2frac[r"$\Gamma$"]

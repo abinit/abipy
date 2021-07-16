@@ -43,6 +43,14 @@ def straceback():
     return traceback.format_exc()
 
 
+def yaml_safe_load(string):
+    return yaml.YAML(typ='safe', pure=True).load(string)
+
+
+#def yaml_unsafe_load(string):
+#    return yaml.YAML(typ='unsafe', pure=True).load(string)
+
+
 class ScriptEditor(object):
     """Simple editor that simplifies the writing of shell scripts"""
     _shell = '/bin/bash'
@@ -375,14 +383,14 @@ class PyFlowScheduler(object):
     def from_file(cls, filepath):
         """Read the configuration parameters from a Yaml file."""
         with open(filepath, "rt") as fh:
-            return cls(**yaml.safe_load(fh))
+            return cls(**yaml_safe_load(fh))
 
     @classmethod
     def from_string(cls, s):
         """Create an istance from string s containing a YAML dictionary."""
         stream = StringIO(s)
         stream.seek(0)
-        return cls(**yaml.safe_load(stream))
+        return cls(**yaml_safe_load(stream))
 
     @classmethod
     def from_user_config(cls):

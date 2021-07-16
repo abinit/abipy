@@ -64,14 +64,9 @@ logger = logging.getLogger(__name__)
 # Tools and helper functions.
 
 
-def yaml_safe_load(s):
-    return yaml.safe_load(s)
-    #return yaml.YAML(typ='safe', pure=True).load(s)
-
-
-def yaml_unsafe_load(s):
-    return yaml.load(s)
-    #return yaml.YAML(typ='unsafe', pure=True).load(s)
+def yaml_safe_load(string):
+    #return yaml.safe_load(string)
+    return yaml.YAML(typ='safe', pure=True).load(string)
 
 
 def straceback():

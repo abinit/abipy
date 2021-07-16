@@ -429,7 +429,8 @@ class EventsParser(object):
                     try:
                         #print(doc.text)
                         event = yaml.load(doc.text)   # Can't use ruamel safe_load!
-                        #yaml.load(doc.text, Loader=ruamel.yaml.Loader)
+                        # FIXME: This new (recommend) API does not reproduce yaml.load behavior. bug in ruamel?
+                        #event = yaml.YAML(typ='unsafe', pure=True).load(dox.text)
                         #print(event.yaml_tag, type(event))
                     except Exception:
                         #raise
