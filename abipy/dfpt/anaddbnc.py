@@ -149,14 +149,6 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             #print(exc, "Returning None", sep="\n")
             return None
 
-    # FIXME To maintain backward compatibility
-    @property
-    def emacro(self):
-        msg = "emacro is deprecated. It will removed in abipy 0.8. Use epsinf"
-        warnings.simplefilter('default')
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return self.epsinf
-
     @lazy_property
     def eps0(self):
         """
@@ -169,14 +161,6 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             #print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
             return None
 
-    # FIXME To maintain backward compatibility
-    @property
-    def emacro_rlx(self):
-        msg = "emacro_rlx is deprecated and will removed in abipy 0.8. Use eps0"
-        warnings.simplefilter('default')
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return self.eps0
-
     @lazy_property
     def becs(self):
         """
@@ -186,7 +170,6 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return Becs(self.reader.read_value("becs_cart"), self.structure, chneut=chneut, order="f")
         except Exception as exc:
-            #print(exc, "Returning None", sep="\n")
             return None
 
     @lazy_property

@@ -152,6 +152,8 @@ class TestAbinitInput(AbipyTest):
 
         new_inp.set_vars(shiftk=[0, 0, 0, 0.5, 0, 0, 0, 0, 0.5])
         assert new_inp["nshiftk"] == 3
+        other_inp = new_inp.new_with_vars(ph_qpath=[0, 0, 0, 0.5, 0, 0])
+        assert other_inp["ph_nqpath"] == 2
 
     def test_input_errors(self):
         """Testing typical AbinitInput Error"""

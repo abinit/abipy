@@ -1714,8 +1714,8 @@ class PhononWfkqWork(Work, MergeDdb):
 
     @classmethod
     def from_scf_task(cls, scf_task, ngqpt, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
-                      with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=True, remove_wfkq=True,
-                      prepgkk=0, manager=None):
+                      with_becs=False, with_quad=False, ddk_tolerance=None, shiftq=(0, 0, 0),
+                      is_ngqpt=True, remove_wfkq=True, prepgkk=0, manager=None):
         """
         Construct a `PhononWfkqWork` from a |ScfTask| object.
         The input files for WFQ and phonons are automatically generated from the input of the ScfTask.
@@ -1725,6 +1725,9 @@ class PhononWfkqWork(Work, MergeDdb):
             scf_task: |ScfTask| object.
             ngqpt: three integers defining the q-mesh
             with_becs: Activate calculation of Electric field and Born effective charges.
+            with_quad: Activate calculation of dynamical quadrupoles.
+                Note that only selected features are compatible with dynamical quadrupoles.
+                Please consult <https://docs.abinit.org/topics/longwave/>
             ph_tolerance: dict {"varname": value} with the tolerance for the phonon run.
                 None to use AbiPy default.
             tolwfr: tolerance used to compute WFQ.
@@ -1760,7 +1763,7 @@ class PhononWfkqWork(Work, MergeDdb):
 
         if with_becs:
             # Add DDK and BECS.
-            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance)
+            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance, with_quad=with_quad)
 
         # Get ngkpt, shift for electrons from input.
         # Won't try to skip WFQ if multiple shifts or off-diagonal kptrlatt
@@ -1794,6 +1797,7 @@ class PhononWfkqWork(Work, MergeDdb):
                 if nband:
                     nbdbuf = max(2, nband*0.1)
                     nscf_inp.set_vars(nband=nband+nbdbuf, nbdbuf=nbdbuf)
+
                 wfkq_task = new.register_nscf_task(nscf_inp, deps={scf_task: ["DEN", "WFK"]})
                 new.wfkq_tasks.append(wfkq_task)
 
@@ -1988,6 +1992,7 @@ class GKKPWork(Work):
                 wfq_path = os.path.join(os.path.dirname(wfk_path), infile)
                 if not os.path.isfile(wfq_path): os.symlink(wfk_path, wfq_path)
                 deps[FileNode(wfq_path)] = 'WFQ'
+
             new.register_eph_task(eph_input, deps=deps)
 
         return new
@@ -2018,6 +2023,8 @@ class GKKPWork(Work):
 
         return super().on_ok(sender)
 
+
+# TODO: We may deprecate it and use PhononWork that is more general!
 
 class BecWork(Work, MergeDdb):
     """

@@ -17,7 +17,6 @@ from monty.json import MSONable
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
-#from monty.dev import deprecated
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
 from pymatgen.util.serialization import pmg_serialize
 from abipy.flowtk import AnaddbTask
@@ -723,10 +722,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False if select in ("at_least_one", "at_least_one_diagoterm") else True
 
-    #@deprecated(message="has_emacro_terms is deprecated and will be removed in abipy 0.8, use has_epsinf_terms")
-    #def has_emacro_terms(self, **kwargs):
-    #    return self.has_epsinf_terms(**kwargs)
-
     @lru_cache(typed=True)
     def has_bec_terms(self, select="at_least_one"):
         """
@@ -900,6 +895,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def get_quadrupole_raw_dataframe(self, with_index_list=False):
         """
+        Return pandas Dataframe with the dynamical quadrupoles.
+        In with_index_list is True, the list of with the 3 (idir, ipert) tuples is returned.
+        Return None or (None, None) is the DDB does not contain Q*.
+
+        .. note::
+
+            These are the raw terms computed with DFPT before the extra symmetrization
+            performed in anaddb.
         """
         not_found = (None, None) if with_index_list else None
 
@@ -911,7 +914,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             return not_found
 
         # In a system with 2 atoms we have:
-        # (Efield_perts, Phonon_perts, ddq_perts):
+        # (Efield_perts, atomic_perts, d/dq):
 
         # 3rd derivatives (long wave)  - # elements :      54
         # qpt  0.00000000E+00  0.00000000E+00  0.00000000E+00   1.0
@@ -947,18 +950,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     @lru_cache(typed=True)
     def has_quadrupole_terms(self, select="all"):
         """
-        True if the DDB file contains dynamical quadrupole terms
-        i.e 3rd order derivatives wrt (electric_field, phonon_perturbation_gamma, longwave_der)
+        True if the DDB file contains dynamical quadrupoles
+        i.e the 3rd order derivatives wrt (electric_field, atomic_perturbation_gamma, q-wavevector)
 
         Args:
             select: Possible values in ["at_least_one", "all"]
-                If select == "at_least_one", we check if there's at least one entry associated to the strain.
-                and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+                If select == "at_least_one", we check if there's at least one entry associated to Q*
                 If select == "all", all tensor components must be present in the DDB file.
 
         .. note::
 
-            As anaddb is not yet able to reconstruct all the terms by symmetry,
+            As anaddb is not yet able to reconstruct all the Q* entries by symmetry,
             the default value for select is "all"
         """
         df, index_list = self.get_quadrupole_raw_dataframe(with_index_list=True)
@@ -975,6 +977,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         #print("all_quad_perts:", all_quad_perts)
         quad_perts = set(((t[0], t[1]), (t[2], t[3]), (t[4], t[5])) for t in index_list)
         #print("quad_perts:", quad_perts)
+
         return all_quad_perts == quad_perts
 
     def view_phononwebsite(self, browser=None, verbose=0, dryrun=False, **kwargs):
@@ -1573,11 +1576,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             structure = r.read_structure()
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
             return dict2namedtuple(epsinf=epsinf, becs=becs)
-
-    #@deprecated(message="anaget_emacro_and_becs is deprecated and will be removed in abipy 0.8, use anaget_epsinf_and_becs")
-    #def anaget_emacro_and_becs(self, **kwargs):
-    #    r = self.anaget_epsinf_and_becs(**kwargs)
-    #    return r.epsinf, r.becs
 
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
                    mpi_procs=1, workdir=None, manager=None, verbose=0, anaddb_kwargs=None):

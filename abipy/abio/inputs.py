@@ -174,9 +174,9 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         """
         Set the value of the variables. Accept also comment="string"
 
-        Return dict with the variables added to the input.
+        Return: dict with the variables added to the input.
 
-        Example:
+        .. Example::
 
             input.set_vars(ecut=10, ionmov=3)
         """
@@ -192,8 +192,15 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
 
         # Just to make life easier to the user, we update some dimensions
         # if only the "array" part is specified in input.
-        if "shiftk" in kwargs:
-            self["nshiftk"] = len(np.reshape(self["shiftk"], (-1, 3)))
+        vname_dimname = [
+            ("shiftk", "nshiftk"),
+            ("ph_qpath", "ph_nqpath"),
+        ]
+
+        for vname, dimname in vname_dimname:
+            if vname in kwargs:
+                # e.g. self["nshiftk"] = len(np.reshape(self["shiftk"], (-1, 3)))
+                self[dimname] = len(np.reshape(self[vname], (-1, 3)))
 
         return kwargs
 
@@ -210,9 +217,9 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         added = {}
         for varname, varvalue in kwargs.items():
             if varname not in self:
-                self[varname] = varvalue
                 added[varname] = varvalue
-        return added
+
+        return self.set_vars(**added)
 
     def pop_vars(self, keys):
         """
