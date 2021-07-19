@@ -80,9 +80,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
                 self.on_plot_fatdos_btn
             )
 
-            # Fermi surface requires a gamma-centered k-mesh
-            #if self.ncfile.ebands.supports_fermi_surface:
-            if self.ncfile.ebands.kpoints.is_ibz:
+            if not self.gsr.ebands.isnot_ibz_sampling():
                 d["Fermi Surface"] = self.get_ifermi_view()
 
         elif self.ncfile.ebands.kpoints.is_path:

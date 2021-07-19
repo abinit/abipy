@@ -489,13 +489,26 @@ class ElectronBandsTest(AbipyTest):
         with abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
             ebands = fbnc_kmesh.ebands
             str(ebands)
-            assert ebands.supports_fermi_surface
+            assert not ebands.isnot_ibz_sampling()
             ebands.to_bxsf(self.get_tmpname(text=True))
 
             # Test Ebands3d
             eb3d = ebands.get_ebands3d()
             repr(eb3d); str(eb3d)
             assert eb3d.to_string(verbose=2)
+
+            if self.has_ifermi():
+                # Test interface with ifermi package.
+                kwargs = dict(interpolation_factor=1, with_velocities=True)
+                dense_bs, velocities = ebands.get_ifermi_dense_bs(**kwargs)
+                same_dense_bs, same_velocities = ebands.get_ifermi_dense_bs(**kwargs)
+                # Test memoized_method
+                assert dense_bs is same_dense_bs
+                assert velocities is same_velocities
+
+                r = ebands.get_ifermi_fs(**kwargs)
+                assert hasattr(r, "fs") and hasattr(r, "fs_plotter")
+                #r = ebands.get_ifermi_fs(interpolation_factor=1, cache=r)
 
             if self.has_matplotlib():
                 assert eb3d.plot_contour(band=4, spin=0, plane="xy", elevation=0, show=False)
@@ -507,7 +520,7 @@ class ElectronBandsTest(AbipyTest):
                 assert eb3d.mvplot_isosurfaces(verbose=1, show=False)
                 #assert eb3d.mvplot_cutplanes(band=4, spin=0, show=False)
 
-    def test_frame_from_ebands(self):
+    def test_dataframe_from_ebands(self):
         """Testing dataframe_from_ebands."""
         gsr_kmesh = abidata.ref_file("si_scf_GSR.nc")
         si_ebands_kmesh = ElectronBands.as_ebands(gsr_kmesh)
@@ -540,7 +553,7 @@ class ElectronBandsFromRestApi(AbipyTest):
 
         new_fermie = r.ebands_kpath.set_fermie_to_vbm()
         assert new_fermie == r.ebands_kpath.fermie
-        assert not r.ebands_kpath.supports_fermi_surface
+        assert r.ebands_kpath.isnot_ibz_sampling()
 
         edos = r.ebands_kmesh.get_edos()
         new_fermie = r.ebands_kpath.set_fermie_from_edos(edos)

@@ -4,6 +4,7 @@
 import time
 import functools
 import weakref
+import inspect
 
 def return_straceback_ifexc(func):
     """
@@ -66,3 +67,21 @@ def memoized_method(*lru_args, **lru_kwargs):
             return cached_method(*args, **kwargs)
         return wrapped_func
     return decorator
+
+
+def dump_args(func):
+    """
+    Decorator to print function call details.
+
+    This includes parameters names and effective values.
+    """
+
+    def wrapper(*args, **kwargs):
+        func_args = inspect.signature(func).bind(*args, **kwargs).arguments
+        func_args_str = ", ".join(
+            "{} = {!r}".format(*item) for item in func_args.items()
+        )
+        print(f"{func.__module__}.{func.__qualname__} ( {func_args_str} )")
+        return func(*args, **kwargs)
+
+    return wrapper

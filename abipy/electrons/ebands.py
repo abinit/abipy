@@ -29,6 +29,8 @@ from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.numtools import gaussian
+from abipy.tools.decorators import memoized_method
+from abipy.tools.context_managers import Timer
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
     get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
@@ -910,17 +912,29 @@ class ElectronBands(Has_Structure):
         """True if time-reversal symmetry is used in the BZ sampling."""
         return has_timrev_from_kptopt(self.kptopt)
 
-    @lazy_property
-    def supports_fermi_surface(self):
+    def isnot_ibz_sampling(self, require_gamma_centered=False):
         """
-        True if the kpoints used for the energies can be employed to visualize Fermi surface.
-        Fermi surface viewers require gamma-centered k-mesh.
+        Test whether the k-points in the band structure represent an IBZ with an associated k-mesh
+        Return string with error message if the condition is not fullfilled.
+
+        Args:
+            require_gamma_centered: True if the k-mesh should be Gamma-centered
         """
-        if self.kpoints.is_mpmesh:
+        errors = []
+        eapp = errors.append
+
+        if not self.kpoints.is_ibz:
+            eapp("Expecting an IBZ sampling but got type `%s`" % type(self.kpoints))
+
+        if not self.kpoints.is_mpmesh:
+            eapp("Note that homogeneous k-meshes are required for the FS.\nksampling:` %s`" % str(self.kpoints.ksampling))
+
+        if self.kpoints.is_mpmesh and require_gamma_centered:
             mpdivs, shifts = self.kpoints.mpdivs_shifts
-            if shifts is not None and np.all(shifts == 0.0):
-                return True
-        return False
+            if shifts is not None and not np.all(shifts == 0.0):
+                eapp(f"k-mesh should be gamma-centered but shifts: {shifts}")
+
+        return "\n".join(errors)
 
     def kindex(self, kpoint):
         """
@@ -1366,6 +1380,26 @@ class ElectronBands(Has_Structure):
     #    for spin in self.spins:
     #       if abs(fun_gaps.ene) <  TOL_EGAP
 
+
+    def get_edge_state(self, vbm_or_cbm, spin=None):
+
+        if spin is None:
+            # Returm max/min over spins (if any)
+
+            if vbm_or_cbm == "vbm":
+                ord_states = sorted(self.homos, key=lambda state: state.eig)
+                return ord_states[-1]
+            if vbm_or_cbm == "cbm":
+                ord_states = sorted(self.lumos, key=lambda state: state.eig)
+                return ord_states[0]
+
+            raise ValueError(f"Invalid value for vbm_or_cbm: {vbm_or_cbm}")
+
+        else:
+            if vbm_or_cbm == "vbm": return self.homos[spin]
+            if vbm_or_cbm == "cbm": return self.lumos[spin]
+            raise ValueError(f"Invalid value for vbm_or_cbm: {vbm_or_cbm}")
+
     @property
     def bandwidths(self):
         """The bandwidth for each spin channel i.e. the energy difference (homo - lomo)."""
@@ -1409,6 +1443,7 @@ class ElectronBands(Has_Structure):
             unicode: True to get unicode symbols for the formula else text.
         """
         enough_bands = (self.mband > self.nspinor * self.nelect // 2)
+
         if with_latex:
             dg_name, fg_name = "$E^{dir}_{gap}$", "$E^{fund}_{gap}$"
             formula = self.structure.latex_formula
@@ -1449,6 +1484,7 @@ class ElectronBands(Has_Structure):
         """
         from collections import defaultdict
         k0_list, effmass_bands_f90 = [], []
+
         for spin in self.spins:
             d = defaultdict(lambda: [np.inf, -np.inf])
             homo, lumo = self.homos[spin], self.lumos[spin]
@@ -2706,20 +2742,167 @@ class ElectronBands(Has_Structure):
         if not is_stream:
             f.close()
 
+    @memoized_method(maxsize=5, typed=False)
+    def get_ifermi_dense_bs(self, interpolation_factor, with_velocities):
+        """
+
+        Args:
+            interpolation_factor:
+            with_velocities:
+
+        .. note::
+
+            Use per-instance lru_cache so that each user has his/her own cache.
+            Cannot use lru_cache from stdlib because the cache would be global to the app.
+        """
+        err_msg = self.isnot_ibz_sampling()
+        if err_msg:
+            raise ValueError(err_msg)
+
+        try:
+            from ifermi.interpolate import FourierInterpolator
+        except ImportError:
+            raise ImportError("Cannot import ifermi package. Please install the package\n:" +
+                              "following the instructions given at: https://github.com/fermisurfaces/IFermi")
+
+        # interpolate the energies onto a dense k-point mesh
+        bs = self.to_pymatgen()
+        interpolator = FourierInterpolator(bs)
+
+        nworkers = 1 # Use 1 worker because it does not seem to scale well on my Mac.
+        with Timer(f"BoltzTraP2 interpolation with factor {interpolation_factor} and velocities: {with_velocities}"):
+            if with_velocities:
+                dense_bs, velocities = interpolator.interpolate_bands(interpolation_factor=interpolation_factor,
+                                                                      return_velocities=with_velocities,
+                                                                      nworkers=nworkers)
+            else:
+                dense_bs = interpolator.interpolate_bands(interpolation_factor=interpolation_factor,
+                                                          return_velocities=with_velocities,
+                                                          nworkers=nworkers)
+                velocities = None
+
+        return dense_bs, velocities
+
+    def get_ifermi_fs(self, interpolation_factor=5, mu=0.0, eref="fermie", wigner_seitz=True,
+                      with_velocities=False):
+        """
+        Use ifermi package to visualize the (interpolated) Fermi surface.
+        Requires netcdf file with energies in the IBZ.
+        See <https://fermisurfaces.github.io/IFermi/>
+
+        Args:
+            interpolation_factor:
+            mu:
+            wigner_seitz:
+            with_velocities:
+
+        Returns:
+
+        .. example::
+
+            r = ebands.get_ifermi_fs()
+            r.fs_plotter.get_plot(plot_type="plotly").show()
+
+        """
+        dense_bs, velocities = self.get_ifermi_dense_bs(interpolation_factor, with_velocities)
+
+        from ifermi.surface import FermiSurface
+        from ifermi.plot import FermiSurfacePlotter #, save_plot, show_plot FermiSlicePlotter,
+
+        eref = eref.lower()
+        if eref == "fermie":
+            edge_state = None
+
+        elif eref in ("vbm", "cbm"):
+
+            if eref == "vbm" and mu >= 0.0:
+                cprint("WARNING: when eref == 'vbm', mu is expected to be < 0", color="red")
+            if eref == "cbm" and mu <= 0.0:
+                cprint("WARNING: when eref == 'cbm', mu is expected to be > 0", color="red")
+
+            edge_state = self.get_edge_state(eref)
+            mu = -self.fermie + edge_state.eig + mu
+
+        else:
+            raise ValueError(f"Invalid value for eref: {eref}")
+
+        print("fermie", self.fermie, "edge_state:", edge_state, "mu:", mu)
+        # generate the Fermi surface
+        with Timer(f"Building Fermi surface with wigner_seitz: {wigner_seitz}, eref: {eref} and mu: {mu} (eV)"):
+
+            from ifermi.kpoints import kpoints_from_bandstructure
+            dense_kpoints = kpoints_from_bandstructure(dense_bs) if velocities else None
+
+            fs = FermiSurface.from_band_structure(
+              dense_bs, mu=mu, wigner_seitz=wigner_seitz,
+              calculate_dimensionality=False,
+              property_data=velocities, property_kpoints=dense_kpoints,
+            )
+
+        fs_plotter = FermiSurfacePlotter(fs)
+
+        return dict2namedtuple(fs=fs, fs_plotter=fs_plotter, dense_bs=dense_bs, velocities=velocities,
+                               edge_state=edge_state)
+
+    #def get_ifermi_slices(self, interpolation_factor=5, mu=0, eref="cbm", wigner_seitz=True,
+    #                      with_velocities=False):
+
+    #    r = self.get_ifermi_fs(interpolation_factor=interpolation_factor, mu=mu, eref=eref,
+    #                           wigner_seitz=wigner_seitz, with_velocities=with_velocities)
+
+    #    #plane_normals = [(1, 0, 0), ]
+    #    plane_normals = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+    #    #plane_normals += [(1, 1, 0), (0, 1, 1), (1, 1, 1)]
+    #    #plane_normals = [(1, 1, 1),]
+    #    print("edge_state:", r.edge_state.kpoint)
+    #    distance = r.edge_state.kpoint.norm  / units.bohr_to_ang / (2 * np.pi)
+    #    #distance = r.edge_state.kpoint.norm / units.bohr_to_ang
+
+    #    print("matrix1", r.edge_state.kpoint.lattice.matrix)
+    #    print("matrix2", r.fs.structure.lattice.reciprocal_lattice.matrix)
+    #    print("distance:", distance)
+    #    #distance = 0
+    #    print("reciprocal_lattice:\n", self.structure.reciprocal_lattice.as_dict(verbosity=1))
+    #    from ifermi.plot import FermiSlicePlotter
+
+    #    expose_web = True
+    #    from abipy.tools.plotting import MplExpose, PanelExpose
+    #    if expose_web:
+    #        e = PanelExpose(title=f"e-Bands of {self.structure.formula}")
+    #    else:
+    #        e = MplExpose(verbose=1)
+
+    #    with e:
+    #        for plane_normal in plane_normals:
+    #            fermi_slice = r.fs.get_fermi_slice(plane_normal=plane_normal, distance=distance)
+    #            slice_plotter = FermiSlicePlotter(fermi_slice)
+    #            plt = slice_plotter.get_plot()
+    #            fig = plt.gcf()
+    #            fig.suptitle(f"Plane normal to {plane_normal} at distance {distance:.3f} from the Γ-point")
+    #            e(fig)
+
     def to_bxsf(self, filepath):
         """
         Export the full band structure to ``filepath`` in BXSF format
         suitable for the visualization of isosurfaces with xcrysden_ (xcrysden --bxsf FILE).
         Require k-points in IBZ and gamma-centered k-mesh.
         """
+        err_msg = self.isnot_ibz_sampling(require_gamma_centered=True)
+        if err_msg:
+            raise ValueError(err_msg)
+
         self.get_ebands3d().to_bxsf(filepath)
 
     def get_ebands3d(self):
+        err_msg = self.isnot_ibz_sampling()
+        if err_msg:
+            raise valueError(err_msg)
+
         return ElectronBands3D(self.structure, self.kpoints, self.has_timrev, self.eigens, self.fermie)
 
     def derivatives(self, spin, band, order=1, acc=4):
         """
-        Compute the derivative of the eigenvalues wrt to k.
+        Compute the derivative of the eigenvalues wrt to k using finite difference.
 
         Args:
             spin: Spin index

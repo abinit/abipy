@@ -7,8 +7,10 @@ class Timer():
     """
     Context manager to time code section.
 
-    with Timer("Timing code section"):
-        do_stuff()
+    .. example::
+
+        with Timer("Timing code section"):
+            do_stuff()
     """
 
     def __init__(self, description):
@@ -19,4 +21,4 @@ class Timer():
 
     def __exit__(self, type, value, traceback):
         self.end = time.time()
-        print(f"{self.description}: {self.end - self.start} s")
+        print(f"{self.description}.\n\tCompleted in {self.end - self.start:.4f} seconds\n")

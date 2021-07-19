@@ -362,6 +362,15 @@ class AbipyTest(PymatgenTest):
         return cmp_version(ase.__version__, version, op=op)
 
     @staticmethod
+    def has_ifermi():
+        """True if ifermi package is available."""
+        try:
+            from ifermi.interpolate import FourierInterpolator
+            return True
+        except ImportError:
+            return False
+
+    @staticmethod
     def has_skimage():
         """True if skimage package is available."""
         try:
