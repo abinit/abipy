@@ -396,12 +396,12 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                 self.on_plot_ifc
             )
 
-        #if self.ddb.has_strain_terms(select="all"):
-        d["Elastic"] = pn.Row(
-            self.pws_col(["### Elastic options", "asr", "chneut",
-                          "compute_elastic_btn", self.helpc("on_compute_elastic_btn")]),
-            self.on_compute_elastic_btn
-        )
+        if self.ddb.has_strain_terms():
+            d["Elastic"] = pn.Row(
+                self.pws_col(["### Elastic options", "asr", "chneut",
+                              "compute_elastic_btn", self.helpc("on_compute_elastic_btn")]),
+                self.on_compute_elastic_btn
+            )
 
         d["Structure"] = self.get_struct_view_tab_entry()
         d["Global"] = pn.Row(

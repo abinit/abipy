@@ -427,6 +427,7 @@ class DdbTest(AbipyTest):
             for qpoint in ddb.qpoints:
                 assert qpoint in ddb.computed_dynmat
 
+            #assert ddb.has_raman_terms()
             raman, inp = ddb.anaget_raman(return_input=True)
             # take the mean to avoid potential changes in the order of degenerate modes.
             sus_mean = raman.susceptibility[3:, 0, 1].mean()
@@ -438,7 +439,6 @@ class DdbTest(AbipyTest):
             assert blocks[3]["qpt"] == None
             assert blocks[3]["dord"] == 3
             assert blocks[3]["qpt3"] == [[0.,] * 3] * 3
-
 
     def test_ddb_with_quad(self):
         """

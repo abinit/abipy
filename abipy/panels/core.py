@@ -65,7 +65,9 @@ def abipanel(panel_template="FastList"):
         "plotly",
         "mathjax",
         #"katex",
-        #"ace",
+        #"tabulator",
+        #"ace",   # This enters in conflict with Abipy Book
+
     ]
 
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
@@ -300,7 +302,7 @@ If everything is properly configured, a new window is automatically created in y
 
 def dfc(df,
         wdg_type="dataframe",
-        #wdg_type="tabulator",  # More recent version
+        #wdg_type="tabulator",  # More recent version. Still problematic
         with_export_btn=True, with_controls=False, with_divider=True, transpose=False, **kwargs):
     """
     Helper function returning a panel Column with a DataFrame or Tabulator widget followed by
@@ -1169,17 +1171,9 @@ class PanelWithElectronBands(PanelWithStructure):
                                       mu=self.ifermi_offset_eV,
                                       eref=self.ifermi_eref,
                                       wigner_seitz=self.ifermi_wigner_seitz,
+                                      calculate_dimensionality=False,
                                       with_velocities=self.ifermi_with_velocities,
                                       )
-        #fs = r.fs
-        #with Timer("Building Fermi surface..."):
-        #    fs = FermiSurface.from_band_structure(
-        #      dense_bs, mu=self.ifermi_offset_eV, wigner_seitz=self.ifermi_wigner_seitz,
-        #      calculate_dimensionality=False,
-        #      property_data=velocities, property_kpoints=dense_kpoints,
-        #    )
-
-        #    fs_plotter = FermiSurfacePlotter(fs)
 
         plt = r.fs_plotter.get_plot(plot_type=self.ifermi_plot_type)
 
@@ -1197,14 +1191,13 @@ class PanelWithElectronBands(PanelWithStructure):
         if self.ifermi_wigner_seitz:
             ca("## Fermi surface in the Wigner-Seitz unit cell")
         else:
-            ca("## Fermi surface in the reciprocal unit cell parallelepiped.")
+            ca("## Fermi surface in the reciprocal unit cell parallelepiped")
         ca(fig)
 
-        print("abc reciprocal", self.ebands.structure.reciprocal_lattice.abc)
-
         ifermi_plane_normal = self.ifermi_plane_normal.value
-        print("fs_plane normal:", ifermi_plane_normal)
         if any(c != 0 for c in ifermi_plane_normal):
+            print("fs_plane normal:", ifermi_plane_normal)
+            print("abc reciprocal", self.ebands.structure.reciprocal_lattice.abc)
             from ifermi.plot import FermiSlicePlotter
             for distance in self.ifermi_distance.value:
                 # generate Fermi slice along the (0 0 1) plane going through the Γ-point.

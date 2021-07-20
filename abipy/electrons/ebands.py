@@ -2784,7 +2784,7 @@ class ElectronBands(Has_Structure):
         return dense_bs, velocities
 
     def get_ifermi_fs(self, interpolation_factor=5, mu=0.0, eref="fermie", wigner_seitz=True,
-                      with_velocities=False):
+                      calculate_dimensionality=False, with_velocities=False):
         """
         Use ifermi package to visualize the (interpolated) Fermi surface.
         Requires netcdf file with energies in the IBZ.
@@ -2794,6 +2794,7 @@ class ElectronBands(Has_Structure):
             interpolation_factor:
             mu:
             wigner_seitz:
+            calculate_dimensionality:
             with_velocities:
 
         Returns:
@@ -2826,7 +2827,7 @@ class ElectronBands(Has_Structure):
         else:
             raise ValueError(f"Invalid value for eref: {eref}")
 
-        print("fermie", self.fermie, "edge_state:", edge_state, "mu:", mu)
+        #print("fermie", self.fermie, "edge_state:", edge_state, "mu:", mu)
         # generate the Fermi surface
         with Timer(f"Building Fermi surface with wigner_seitz: {wigner_seitz}, eref: {eref} and mu: {mu} (eV)"):
 

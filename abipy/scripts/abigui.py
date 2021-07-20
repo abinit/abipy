@@ -57,8 +57,6 @@ Note that the **file extension*** really matters as the GUI won't work if you up
 with an extension that is not recognized by AbiPy.
 
 """
-    #main_home = pn.Column(pn.pane.Markdown(intro)
-
     cls, cls_kwds = get_abinit_template_cls_kwds()
     print("Using panel template:", cls)
 
@@ -94,7 +92,7 @@ with an extension that is not recognized by AbiPy.
 """
 
     main_home = pn.Column(pn.pane.Markdown(intro, width=700, sizing_mode="stretch_width"),
-                          sizing_mode="stretch_width")
+                          sizing_mode="stretch_both")
 
     # Add links to sidebar of each app so that we can navigate easily.
     links = "\n".join(f"- [{title}]({url})" for (url, title) in app_title.items())

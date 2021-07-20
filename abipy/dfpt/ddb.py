@@ -202,24 +202,18 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             h.nsppol, h.nspinor, h.nspden, h.ixc, h.occopt, h.tsmear))
         app("")
 
-        app("Has total energy: %s, Has forces: %s" % (
-            self.total_energy is not None, self.cart_forces is not None))
+        app("Has total energy: %s" % (self.total_energy is not None))
         if self.total_energy is not None:
-            app("Total energy: %s [eV]" % self.total_energy)
-        #app("Has forces: %s" % (
-        #if self.cart_forces is not None:
-        #    app("Cartesian forces (eV/Ang):\n%s" % (self.cart_forces))
-        #    app("")
+            app("Total energy: %s" % self.total_energy)
+        app("Has forces: %s" % (self.cart_forces is not None))
         if self.cart_stress_tensor is not None:
             app("")
-            app("Cartesian stress tensor in GPa with pressure %.3e (GPa):\n%s" % (
+            app("Cartesian stress tensor in GPa with pressure: %.3e (GPa):\n%s" % (
                 - self.cart_stress_tensor.trace() / 3, self.cart_stress_tensor))
         else:
             app("Has stress tensor: %s" % (self.cart_stress_tensor is not None))
         app("")
         app("Has (at least one) atomic pertubation: %s" % self.has_at_least_one_atomic_perturbation())
-        #app("Has (at least one) electric-field perturbation: %s" % self.has_epsinf_terms(select="at_least_one"))
-        #app("Has (all) electric-field perturbation: %s" % self.has_epsinf_terms(select="all"))
         app("Has (at least one diagonal) electric-field perturbation: %s" %
             self.has_epsinf_terms(select="at_least_one_diagoterm"))
         app("Has (at least one) Born effective charge: %s" % self.has_bec_terms(select="at_least_one"))
@@ -915,7 +909,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             return not_found
 
         # In a system with 2 atoms we have:
-        # (Efield_perts, atomic_perts, d/dq):
+        # (Efield_perts, atomic_perts, d/dq) e.g.
+        # (1-3, 4), (1-3, 1:natom), (1:3, 10)
 
         # 3rd derivatives (long wave)  - # elements :      54
         # qpt  0.00000000E+00  0.00000000E+00  0.00000000E+00   1.0
@@ -975,11 +970,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if select == "at_least_one": return True
 
         all_quad_perts = set(itertools.product(ep_list, ap_list, ddq_list))
-        #print("all_quad_perts:", all_quad_perts)
         quad_perts = set(((t[0], t[1]), (t[2], t[3]), (t[4], t[5])) for t in index_list)
+        #print("all_quad_perts:", all_quad_perts)
         #print("quad_perts:", quad_perts)
 
         return all_quad_perts == quad_perts
+
+    #@lru_cache(typed=True)
+    #def has_raman_terms(select="all"):
+    #    self.inds3_gamma
+
 
     def view_phononwebsite(self, browser=None, verbose=0, dryrun=False, **kwargs):
         """
@@ -1858,6 +1858,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Return: |Raman| object.
         """
+        #if not self.has_raman_terms():
+        #    raise ValueError('The DDB file does not contain Raman terms.')
+
         inp = AnaddbInput.dfpt(self.structure, raman=True, asr=asr, chneut=chneut, ramansr=ramansr,
                                alphon=alphon, directions=directions, anaddb_kwargs=anaddb_kwargs)
 
