@@ -36,6 +36,24 @@ class MyElasticTensor(ElasticTensor):
         df.index.name = "Voigt index"
         return df
 
+    def get_elate_html(self, sysname="Unknown System"):
+        """
+        Return HTML string with ELATE webpage.
+        """
+        from abipy.tools.elate.elastic import ELATE
+        # Symmetrize the matrix else ELATE complains
+        matrix = self.voigt
+        matrix = (matrix + matrix.T) / 2.0
+
+        # This is needed because ELATE changes sys.stdout without reverting it before returning
+        import sys
+        save_stdout = sys.stdout
+        try:
+            html = ELATE(matrix.tolist(), sysname=sysname)
+            return html
+        finally:
+            sys.stdout = save_stdout
+
 
 class MyPiezoTensor(PiezoTensor):
 
@@ -69,7 +87,7 @@ class ElasticData(Has_Structure, MSONable):
     computed by anaddb. Data is stored in pymatgen tensor objects.
 
     Provides methods to analyze/tabulate data
-    Se also http://progs.coudert.name/elate/mp?query=mp-2172 for a web interface.
+    See also http://progs.coudert.name/elate/mp?query=mp-2172 for a web interface.
     """
 
     ALL_ELASTIC_TENSOR_NAMES = (
@@ -134,16 +152,16 @@ class ElasticData(Has_Structure, MSONable):
             structure: |Structure| object.
             params: Dictionary with input parameters.
             elastic_clamped: clamped-ion elastic tensor in Voigt notation in GPa. shape (6,6).
-            elastic_relaxed: relaxed-ion elastic tensor in Voigt notation in GPa. shape (6,6).
+            elastic_relaxed: relaxed-ion elastic tensor in Voigt notation in GPa. shape (6, 6).
             elastic_stress_corr: relaxed-ion elastic tensor considering the stress left inside cell
                 in Voigt notation in GPa. shape (6,6).
             elastic_relaxed_fixed_D: relaxed-ion elastic tensor at fixed displacement field
                 in Voigt notation in GPa. shape (6,6).
-            piezo_clamped: clamped-ion piezoelectric tensor in Voigt notation in c/m^2. shape (3,6).
-            piezo_relaxed: relaxed-ion piezoelectric tensor in Voigt notation in c/m^2. shape (3,6).
-            d_piezo_relaxed: relaxed-ion piezoelectric d tensor in Voigt notation in pc/m^2. shape (3,6).
-            g_piezo_relaxed: relaxed-ion piezoelectric g tensor in Voigt notation in m^2/c. shape (3,6).
-            h_piezo_relaxed: relaxed-ion piezoelectric h tensor in Voigt notation in GN/c. shape (3,6).
+            piezo_clamped: clamped-ion piezoelectric tensor in Voigt notation in c/m^2. shape (3, 6).
+            piezo_relaxed: relaxed-ion piezoelectric tensor in Voigt notation in c/m^2. shape (3, 6).
+            d_piezo_relaxed: relaxed-ion piezoelectric d tensor in Voigt notation in pc/m^2. shape (3, 6).
+            g_piezo_relaxed: relaxed-ion piezoelectric g tensor in Voigt notation in m^2/c. shape (3, 6).
+            h_piezo_relaxed: relaxed-ion piezoelectric h tensor in Voigt notation in GN/c. shape (3, 6).
 
         .. note::
 

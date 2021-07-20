@@ -83,6 +83,8 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         self.plot_eps0w_btn = pnw.Button(name="Plot eps0(omega)", button_type='primary')
         self.plot_vsound_btn = pnw.Button(name="Calculate speed of sound", button_type='primary')
 
+        self.compute_elastic_btn = pnw.Button(name="Compute Elastic", button_type='primary')
+
         self.plot_ifc_btn = pnw.Button(name="Compute IFC(R)", button_type='primary')
 
         self.plot_phbands_quad_btn = pnw.Button(name="Plot PHbands with/without quadrupoles", button_type='primary')
@@ -303,13 +305,36 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         kwds = self.mpl_kwargs.copy()
         kwds["yscale"] = self.plot_ifc_yscale
-        print(kwds)
+        #print(kwds)
 
         # Fill column
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
         ca(mpl(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", **kwds)))
         ca(mpl(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", **kwds)))
         ca(mpl(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", **kwds)))
+
+        return col
+
+    @depends_on_btn_click('compute_elastic_btn')
+    def on_compute_elastic_btn(self):
+
+        edata, inp = self.ddb.anaget_elastic(relaxed_ion="automatic", piezo="automatic",
+                                             dde=False, stress_correction=False, asr=self.asr, chneut=self.chneut,
+                                             mpi_procs=1, verbose=self.verbose, return_input=True)
+
+        #print(edata)
+        #edata.elastic_relaxed
+        #edata.elastic_relaxed.compliance_tensor
+        #edata.get_elastic_properties_dataframe(properties_as_index=True)
+        #edata.get_elastic_voigt_dataframe(tol=1e-5)
+        #edata.piezo_relaxed
+
+        # This will open a new tab in the browser with the ELATE webpage
+        #html = edata.elastic_relaxed.get_elate_html(sysname="FooBar")
+        #return pn.Template(html).show()
+
+        # Fill column
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
         return col
 
@@ -370,6 +395,13 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                                "plot_ifc_yscale", "plot_ifc_btn", self.helpc("on_plot_ifc")]),
                 self.on_plot_ifc
             )
+
+        #if self.ddb.has_strain_terms(select="all"):
+        d["Elastic"] = pn.Row(
+            self.pws_col(["### Elastic options", "asr", "chneut",
+                          "compute_elastic_btn", self.helpc("on_compute_elastic_btn")]),
+            self.on_compute_elastic_btn
+        )
 
         d["Structure"] = self.get_struct_view_tab_entry()
         d["Global"] = pn.Row(

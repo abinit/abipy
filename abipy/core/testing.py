@@ -477,7 +477,7 @@ class AbipyTest(PymatgenTest):
         """
         fd, tmpfile = tempfile.mkstemp(text=True)
 
-        with open(tmpfile, "w") as fh:
+        with open(tmpfile, "wt") as fh:
             fh.write(string)
 
         return tmpfile

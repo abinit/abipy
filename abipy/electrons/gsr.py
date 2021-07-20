@@ -608,13 +608,6 @@ class GsrRobot(Robot, RobotWithEbands):
         """
         return self.plot_convergence_items(items, sortby=sortby, hue=hue, fontsize=fontsize, show=False, **kwargs)
 
-    #def get_phasediagram_results(self):
-    #    from abipy.core.restapi import PhaseDiagramResults
-    #    entries = []
-    #    for label, gsr in self.items():
-    #        entries.append(gsr.get_computed_entry(inc_structure=True, parameters=None, data=None))
-    #    return PhaseDiagramResults(entries)
-
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.

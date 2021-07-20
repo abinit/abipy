@@ -238,7 +238,7 @@ class DdbTest(AbipyTest):
         assert c.phdoses and c.plotter is not None
 
         # Execute anaddb to compute the interatomic force constants.
-        ifc = ddb.anaget_ifc()
+        ifc, inp = ddb.anaget_ifc(return_input=True)
         str(ifc); repr(ifc)
         assert ifc.to_string(verbose=2)
         assert ifc.structure == ddb.structure
@@ -427,7 +427,7 @@ class DdbTest(AbipyTest):
             for qpoint in ddb.qpoints:
                 assert qpoint in ddb.computed_dynmat
 
-            raman = ddb.anaget_raman()
+            raman, inp = ddb.anaget_raman(return_input=True)
             # take the mean to avoid potential changes in the order of degenerate modes.
             sus_mean = raman.susceptibility[3:, 0, 1].mean()
             self.assertAlmostEqual(sus_mean, -0.002829737, places=5)

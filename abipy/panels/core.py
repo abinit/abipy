@@ -38,6 +38,14 @@ def set_abinit_template(template_name):
     _ABINIT_TEMPLATE_NAME = template_name
 
 
+def open_html(html_string, browser=None):
+    import tempfile
+    import webbrowser
+    with tempfile.NamedTemporaryFile(mode="wt", suffix=".html", delete=False) as tmpfile:
+        tmpfile.write(html_string)
+        webbrowser.get(browser).open_new_tab(f"file://{tmpfile.name}")
+
+
 def abipanel(panel_template="FastList"):
     """
     Activate panel extensions used by AbiPy. Return panel module.
@@ -1137,12 +1145,8 @@ class PanelWithElectronBands(PanelWithStructure):
     @depends_on_btn_click('plot_ifermi_btn')
     def on_plot_ifermi_btn(self):
         #if self.fs_viewer is None: return pn.pane.HTML()
-        # Cache eb3d
-        #if hasattr(self, "_eb3d"):
-        #    eb3d = self._eb3d
-        #else:
-        #    # Build ebands in full BZ.
-        #    eb3d = self._eb3d = self.ebands.get_ebands3d()
+        # Get eb3d (memoized)
+        #eb3d = self._eb3d = self.ebands.get_ebands3d()
 
         #if self.fs_viewer == "matplotlib":
         #    # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
@@ -1196,19 +1200,22 @@ class PanelWithElectronBands(PanelWithStructure):
             ca("## Fermi surface in the reciprocal unit cell parallelepiped.")
         ca(fig)
 
-        #ifermi_plane_normal = self.ifermi_plane_normal.value
-        #print("fs_plane normal:", ifermi_plane_normal)
-        #if any(c != 0 for c in ifermi_plane_normal):
-        #    for distance in self.ifermi_distance.value:
-        #        # generate Fermi slice along the (0 0 1) plane going through the Γ-point.
-        #        ca(f"## Fermi slice along the {ifermi_plane_normal} plane going through the Γ-point at distance: {distance}")
-        #        fermi_slice = r.fs.get_fermi_slice(plane_normal=ifermi_plane_normal, distance=distance)
-        #        slice_plotter = FermiSlicePlotter(fermi_slice)
-        #        plt = slice_plotter.get_plot()
-        #        fig = plt.gcf()
-        #        plt.close(fig=fig)
-        #        fig = mpl(fig)
-        #        ca(fig)
+        print("abc reciprocal", self.ebands.structure.reciprocal_lattice.abc)
+
+        ifermi_plane_normal = self.ifermi_plane_normal.value
+        print("fs_plane normal:", ifermi_plane_normal)
+        if any(c != 0 for c in ifermi_plane_normal):
+            from ifermi.plot import FermiSlicePlotter
+            for distance in self.ifermi_distance.value:
+                # generate Fermi slice along the (0 0 1) plane going through the Γ-point.
+                ca(f"## Fermi slice along the {ifermi_plane_normal} plane going through the Γ-point at distance: {distance}")
+                fermi_slice = r.fs.get_fermi_slice(plane_normal=ifermi_plane_normal, distance=distance)
+                slice_plotter = FermiSlicePlotter(fermi_slice)
+                plt = slice_plotter.get_plot()
+                fig = plt.gcf()
+                plt.close(fig=fig)
+                fig = mpl(fig)
+                ca(fig)
 
         #ca(pn.layout.Divider())
         ca("## Powered by [ifermi](https://fermisurfaces.github.io/IFermi/)")

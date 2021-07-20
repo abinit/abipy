@@ -227,6 +227,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("Has (all) internal strain terms: %s" % self.has_internalstrain_terms(select="all"))
         app("Has (all) piezoelectric terms: %s" % self.has_piezoelectric_terms(select="all"))
         app("Has (all) dynamical quadrupole terms: %s" % self.has_quadrupole_terms(select="all"))
+        #app("Has (at least one) Raman Term: %s" % self.has_raman_terms(select="at_least_one"))
 
         if verbose:
             # Print q-points
@@ -1547,7 +1548,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return phbands_plotter
 
-    def anaget_epsinf_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
+    def anaget_epsinf_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0, return_input=False):
         """
         Call anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
         and the Born effective charges in Cartesian coordinates.
@@ -1561,6 +1562,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Return: ``namedtuple`` with the following attributes::
             epsinf: |DielectricTensor| object.
             becs: Becs objects.
+            anaddb_input: |AnaddbInput| object.
         """
         if not self.has_lo_to_data():
             cprint("Dielectric tensor and Becs are not available in DDB: %s" % self.filepath, "yellow")
@@ -1575,10 +1577,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             epsinf = DielectricTensor(r.read_value("emacro_cart").T.copy())
             structure = r.read_structure()
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
-            return dict2namedtuple(epsinf=epsinf, becs=becs)
+
+            # I'm doing this because there are several examples with:
+            #       epsinf, becs = ddb.anaget_epsinf_and_becs()
+            # and we don't want to break backward compatibility
+            if return_input:
+                return dict2namedtuple(epsinf=epsinf, becs=becs, anaddb_input=inp)
+            else:
+                return dict2namedtuple(epsinf=epsinf, becs=becs)
 
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
-                   mpi_procs=1, workdir=None, manager=None, verbose=0, anaddb_kwargs=None):
+                   mpi_procs=1, workdir=None, manager=None, verbose=0, anaddb_kwargs=None, return_input=False):
         """
         Execute anaddb to compute the interatomic forces.
 
@@ -1591,6 +1600,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             anaddb_kwargs: additional kwargs for anaddb
+            return_input: True if the |AnaddbInput| object should be returned as 2nd argument
 
         Returns:
             :class:`InteratomicForceConstants` with the calculated ifc.
@@ -1603,12 +1613,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         anaddbnc_path = task.outpath_from_ext("anaddb.nc")
-        return InteratomicForceConstants.from_file(anaddbnc_path)
+        ifcs = InteratomicForceConstants.from_file(anaddbnc_path)
+
+        return ifcs if not return_input else (ifcs, inp)
 
     def anaget_phonopy_ifc(self, ngqpt=None, supercell_matrix=None, asr=0, chneut=0, dipdip=0,
                            manager=None, workdir=None, mpi_procs=1, symmetrize_tensors=False,
                            output_dir_path=None, prefix_outfiles="", symprec=1e-5, set_masses=False,
-                           verbose=0):
+                           verbose=0, return_input=False):
         """
         Runs anaddb to get the interatomic force constants(IFC), born effective charges(BEC) and dielectric
         tensor obtained and converts them to the phonopy format. Optionally writes the
@@ -1637,6 +1649,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 and will be present in the returned Phonopy object. This should improve compatibility
                 among abinit and phonopy results if frequencies needs to be calculated.
             verbose: verbosity level. Set it to a value > 0 to get more information
+            return_input: True if the |AnaddbInput| object should be returned as 2nd argument
 
         Returns:
             An instance of a Phonopy object that contains the IFC, BEC and dieletric tensor data.
@@ -1660,10 +1673,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                  symmetrize_tensors=symmetrize_tensors, output_dir_path=output_dir_path,
                                  prefix_outfiles=prefix_outfiles, symprec=symprec, set_masses=set_masses)
 
-        return phon
+        return phon if not return_input else (phon, inp)
 
     def anaget_interpolated_ddb(self, qpt_list, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None,
-                                manager=None, mpi_procs=1, verbose=0, anaddb_kwargs=None):
+                                manager=None, mpi_procs=1, verbose=0, anaddb_kwargs=None, return_input=False):
         """
         Runs anaddb to generate an interpolated DDB file on a list of qpt.
 
@@ -1676,6 +1689,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information.
             anaddb_kwargs: additional kwargs for anaddb.
+            return_input: True if the |AnaddbInput| object should be returned as 2nd argument
         """
 
         if ngqpt is None: ngqpt = self.guessed_ngqpt
@@ -1702,7 +1716,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if not os.path.exists(new_ddb_path):
             new_ddb_path = os.path.join(task.workdir, "run_DDB")
 
-        return self.__class__(new_ddb_path)
+        obj = self.__class__(new_ddb_path)
+
+        return obj if not return_input else (obj, inp)
 
     def anaget_dielectric_tensor_generator(self, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                            manager=None, verbose=0, anaddb_kwargs=None, return_input=False):
@@ -1717,7 +1733,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             anaddb_kwargs: additional kwargs for anaddb
-            return_input: True if |AnaddbInput| object should be returned as 2nd argument
+            return_input: True if the |AnaddbInput| object should be returned as 2nd argument
 
         Return: |DielectricTensorGenerator| object.
         """
@@ -1744,7 +1760,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anaget_elastic(self, relaxed_ion="automatic", piezo="automatic",
                        dde=False, stress_correction=False, asr=2, chneut=1,
-                       mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
+                       mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False, return_input=False):
         """
         Call anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
 
@@ -1773,12 +1789,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             retpath: True to return path to anaddb.nc file.
+            return_input: True if the |AnaddbInput| object should be returned as 2nd argument
 
         Return:
             |ElasticData| object if ``retpath`` is None else absolute path to anaddb.nc file.
         """
         if not self.has_strain_terms(): # DOH!
-            cprint("Strain perturbations are not available in DDB: %s" % self.filepath, "yellow")
+            raise RuntimeError("Strain perturbations are not available in DDB: %s" % self.filepath)
 
         if relaxed_ion == "automatic":
             relaxed_ion = self.has_internalstrain_terms() and self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0))
@@ -1818,10 +1835,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         # Read data from the netcdf output file produced by anaddb.
         anaddbnc_path = task.outpath_from_ext("anaddb.nc")
-        return ElasticData.from_file(anaddbnc_path) if not retpath else anaddbnc_path
+
+        retobj = ElasticData.from_file(anaddbnc_path) if not retpath else anaddbnc_path
+
+        return retobj if not return_input else (retobj, inp)
 
     def anaget_raman(self, asr=2, chneut=1, ramansr=1, alphon=1, workdir=None, mpi_procs=1,
-                     manager=None, verbose=0, directions=None, anaddb_kwargs=None):
+                     manager=None, verbose=0, directions=None, anaddb_kwargs=None, return_input=False):
         """
         Execute anaddb to compute the Raman spectrum.
 
@@ -1845,7 +1865,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         # Read data from the netcdf output file produced by anaddb.
         anaddbnc_path = task.outpath_from_ext("anaddb.nc")
-        return Raman.from_file(anaddbnc_path)
+        raman = Raman.from_file(anaddbnc_path)
+
+        return raman if not return_input else (raman, inp)
 
     def _run_anaddb_task(self, anaddb_input, mpi_procs, workdir, manager, verbose):
         """

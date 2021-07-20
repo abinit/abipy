@@ -16,6 +16,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import is_string, marquee, list_strings
 from monty.termcolor import cprint
+from monty.dev import deprecated
 from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
@@ -865,6 +866,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         return self._lattice.reciprocal_lattice
 
+    @deprecated(message="lattice_vectors is deprecated and will be removed in abipy 1.0")
     def lattice_vectors(self, space="r"):
         """
         Returns the vectors of the unit cell in Angstrom.

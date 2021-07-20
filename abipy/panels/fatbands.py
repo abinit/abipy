@@ -80,10 +80,10 @@ class FatBandsFilePanel(PanelWithElectronBands):
                 self.on_plot_fatdos_btn
             )
 
-            if not self.gsr.ebands.isnot_ibz_sampling():
+            if not self.ebands.isnot_ibz_sampling():
                 d["Fermi Surface"] = self.get_ifermi_view()
 
-        elif self.ncfile.ebands.kpoints.is_path:
+        elif self.ebands.kpoints.is_path:
             # NC files have contributions up to L=4 (g channel)
             # but here we are intererested in s,p,d terms only so
             # we use the optional argument lmax

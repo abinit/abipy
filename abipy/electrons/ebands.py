@@ -2893,6 +2893,7 @@ class ElectronBands(Has_Structure):
 
         self.get_ebands3d().to_bxsf(filepath)
 
+    #@memoized_method(maxsize=5, typed=False)
     def get_ebands3d(self):
         err_msg = self.isnot_ibz_sampling()
         if err_msg:
