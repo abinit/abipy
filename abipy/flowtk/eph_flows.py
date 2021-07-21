@@ -214,7 +214,7 @@ class GkqPathFlow(Flow):
                     eph_inp = make_eph_input(scf_input, ngqpt, qpt)
                     # Note eph_use_ftinterp 1 to force the interpolation
                     # of the DFPT potentials with eph_task -2.
-                    eph_inp.set_vasrs(eph_use_ftinterp=1, dvdb_add_lr=dvdb_add_lr)
+                    eph_inp.set_vars(eph_use_ftinterp=1, dvdb_add_lr=dvdb_add_lr)
                     t = inteph_work.register_eph_task(eph_inp, deps=task.deps)
                     t.add_deps({work_qmesh: ["DDB", "DVDB"]})
 

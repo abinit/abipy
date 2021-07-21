@@ -153,8 +153,8 @@ class StructurePanel(PanelWithStructure):
                                         primitive=primitive, primitive_standard=primitive_standard)
 
         return pn.Row(
-                pn.Column("## Input Structure:", bkw.PreText(text=str(self.structure), sizing_mode='stretch_width')),
-                pn.Column("## Sanitized:", bkw.PreText(text=str(s), sizing_mode='stretch_width')),
+                pn.Column("### Input Structure:", bkw.PreText(text=str(self.structure), sizing_mode='stretch_width')),
+                pn.Column("### Sanitized:", bkw.PreText(text=str(s), sizing_mode='stretch_width')),
                 sizing_mode='stretch_width')
 
     @pn.depends("kpath_format.value", "line_density.value")
@@ -168,7 +168,7 @@ class StructurePanel(PanelWithStructure):
 
         if self.plot_kpath.value:
             # FIXME: I don't know why but these calls open in a new tab.
-            ca("## Brillouin zone and **k**-path:")
+            ca("### Brillouin zone and **k**-path:")
             kpath_pane = ply(self.structure.plotly_bz(pmg_path=True, show=False), with_divider=False)
             df_kpts = dfc(self.structure.hsym_kpoints.get_highsym_datataframe(), with_divider=False)
             ca(pn.Row(kpath_pane, df_kpts))
@@ -493,7 +493,7 @@ or through the Materials Project identifier (*mp-id*).
         #self.spglib_angtol = pnw.Spinner(name="angtol", value=5, start=0.0, end=None, step=1)
 
         help_md = pn.pane.Markdown(f"""
-## Description
+### Description
 
 {self.info_str}
 """)
@@ -543,9 +543,9 @@ or through the Materials Project identifier (*mp-id*).
     def get_panel(self):
 
         col = pn.Column(
-            "## Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, *POSCAR*):",
+            "### Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, *POSCAR*):",
             self.get_fileinput_section(self.file_input),
-            "## or get the structure from the [Materials Project](https://materialsproject.org/) database:",
+            "### or get the structure from the [Materials Project](https://materialsproject.org/) database:",
             pn.Row(self.mpid_input, pn.Column(self.mpid_err_wdg)), sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")

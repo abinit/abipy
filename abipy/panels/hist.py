@@ -34,7 +34,7 @@ class HistFilePanel(AbipyParameterized):
         """
         col = pn.Column(sizing_mode="stretch_width"); ca = col.append
         for what in self.what_list.value:
-            #ca(f"## {what}")
+            #ca(f"### {what}")
             ca(ply(self.hist.plotly(what, title=what, show=False)))
 
         return col

@@ -32,13 +32,13 @@ class FatBandsFilePanel(PanelWithElectronBands):
         col = pn.Column(sizing_mode=sz_mode); ca = col.append
 
         # Plot the electronic fatbands grouped by atomic type.
-        ca("## Electronic fatbands grouped by atomic type:")
+        ca("### Electronic fatbands grouped by atomic type:")
         fig = self.ncfile.plotly_fatbands_typeview(e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None,
                                                    blist=None, fontsize=12, band_and_dos=0, show=False)
         ca(ply(fig))
 
         # Plot the electronic fatbands grouped by L.
-        ca("## Electronic fatbands grouped by L:")
+        ca("### Electronic fatbands grouped by L:")
         fig = self.ncfile.plotly_fatbands_lview(e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None,
                                                 blist=None, fontsize=12, band_and_dos=0, show=False)
         ca(ply(fig))
@@ -53,12 +53,12 @@ class FatBandsFilePanel(PanelWithElectronBands):
 
         # Plot the L-PJDOS grouped by atomic type.
         lmax = 2
-        ca("## Electronic fatdos grouped by atomic type:")
+        ca("### Electronic fatdos grouped by atomic type:")
         fig = self.ncfile.plotly_pjdos_typeview(lmax=lmax, show=False)
         ca(ply(fig))
 
         # Plot the L-PJDOS grouped by L.
-        ca("## Electronic fatdos grouped by L:")
+        ca("### Electronic fatdos grouped by L:")
         fig = self.ncfile.plotly_pjdos_lview(lmax=lmax, show=False)
         ca(ply(fig))
 

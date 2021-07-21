@@ -10,6 +10,8 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 import pandas as pd
+import functools
+import textwrap
 
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -122,24 +124,41 @@ def get_template_cls_from_name(name):
         return getattr(pn.template, try_name)
 
     raise ValueError(f"""
-Don't know how to return panel template from string: {name}
+Don't know how to return panel template from string: `{name}`.
 Possible templates are: {list(pn.template.__dict__.keys())}
 """)
 
 
-def depends_on_btn_click(btn_name, show_exc=True):
+def depends_on_btn_click(btn_name, show_doc=True, show_shared_wdg_warning=True, show_exc=True):
     """
     This decorator is used for callbacks triggered by a button of name `btn_name`
-    If show_exc is True, a Markdown pane with the backtrace is returned
-    if an exception is raised.
+
+    Args:
+        btn_name: String with the name of the button.
+        show_doc: If True, a Markdown pane with the doc string is returned the first time.
+        show_shared_warning:
+        show_exc: If True, a Markdown pane with the backtrace is returned if an exception is raised.
     """
     def decorator(func):
-        from functools import wraps
-        @wraps(func)
+        @functools.wraps(func)
         def decorated(*args, **kwargs):
             self = args[0]
             btn = getattr(self, btn_name)
-            if btn.clicks == 0: return
+            if btn.clicks == 0:
+                if show_doc:
+                    doc = getattr(self, func.__name__).__doc__
+                    if doc is None:
+                        doc = f"No docstring found for function `{func.__name__}`"
+                    doc = textwrap.dedent(doc)
+                    doc = f"### Description\n\n{doc}\n\n"
+                    objects = [my_md(doc)]
+                    if show_shared_wdg_warning:
+                        warning = pn.pane.Alert(SHARED_WIDGETS_WARNING, alert_type="danger")
+                        objects.append(warning)
+                    return pn.Column(*objects, sizing_mode="stretch_width")
+                else:
+                    return None
+
             with ButtonContext(btn):
                 return func(*args, **kwargs)
 
@@ -150,17 +169,17 @@ def depends_on_btn_click(btn_name, show_exc=True):
     return decorator
 
 
-def my_depends(*args, **kwargs):
-    show_exc = kwargs.pop("show_exc", False)
-    def decorator(func):
-        from functools import wraps
-        @wraps(func)
-        def decorated(*args, **kwargs):
-            f = pn.depends(func, *args, **kwargs)
-            if show_exc: f = show_exception(f)
-        return f
-
-    return decorator
+# TODO: Finalize
+#def my_depends(*args, **kwargs):
+#    show_exc = kwargs.pop("show_exc", False)
+#    def decorator(func):
+#        @functools.wraps(func)
+#        def decorated(*args, **kwargs):
+#            f = pn.depends(func, *args, **kwargs)
+#            if show_exc: f = show_exception(f)
+#        return f
+#
+#    return decorator
 
 
 def show_exception(func):
@@ -168,8 +187,7 @@ def show_exception(func):
     This decorator returns a Markdown pane with the backtrace
     if the function raises an exception.
     """
-    from functools import wraps
-    @wraps(func)
+    @functools.wraps(func)
     def decorated(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -215,14 +233,14 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
 # https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/js_actions/js_actions.py
 #def copy_to_clipboard():
 #    """Copy"""
-#    source_textarea = pn.widgets.TextAreaInput(
+#    source_textarea = pnw..TextAreaInput(
 #        value="Copy this text to the clipboard by clicking the button",
 #        height=100,
 #    )
-#    copy_source_button = pn.widgets.Button(name="✂ Copy Source Value", button_type="primary")
+#    copy_source_button = pnw.Button(name="✂ Copy Source Value", button_type="primary")
 #    copy_source_code = "navigator.clipboard.writeText(source.value);"
 #    copy_source_button.js_on_click(args={"source": source_textarea}, code=copy_source_code)
-#    paste_text_area = pn.widgets.TextAreaInput(placeholder="Paste your value here", height=100)
+#    paste_text_area = pnw.TextAreaInput(placeholder="Paste your value here", height=100)
 #    return pn.Column(
 #        pn.Row(source_textarea, copy_source_button, paste_text_area),
 #        name="✂ Copy to Clipboard",
@@ -328,12 +346,8 @@ def dfc(df,
     ca(w)
 
     if with_export_btn:
-        # Define callbacks with closure.
-        #clip_button = pnw.Button(name="Copy to clipboard")
-        #def to_clipboard(event):
-        #    df.to_clipboard()
-        #clip_button.on_click(to_clipboard)
 
+        # Define callbacks with closure.
         def to_xlsx():
             """
             Based on https://panel.holoviz.org/gallery/simple/file_download_examples.html
@@ -374,22 +388,22 @@ def dfc(df,
             json=pnw.FileDownload(filename="data.json", callback=to_json),
             )
 
-        def download(event):
-            #print(f'Clicked menu item: "{event.new}"')
-            file_download = d[event.new]
-            print(file_download)
-            #file_download._clicks = -1
-            #print("Calling transfer")
-            file_download._transfer()
-            #return file_download.callback()
+        # For the time being we use a Row with buttons.
+        #ca(pn.Row(*d.values(), sizing_mode="scale_width"))
+        ca(pn.Card(*d.values(), title="Export table", collapsed=True, sizing_mode='stretch_width'))
+
+        #def download(event):
+        #    file_download = d[event.new]
+        #    #print(f'Clicked menu item: "{event.new}"')
+        #    print(file_download)
+        #    #file_download._clicks = -1
+        #    file_download._transfer()
+        #    return file_download.callback()
 
         # FIXME: Menu button occupies less space but the upload does not work
-        #menu_btn = pnw.MenuButton(name='Export to:', items=list(d.keys()))
+        #menu_btn = pnw.MenuButton(name='Export table', items=list(d.keys()))
         #menu_btn.on_click(download)
         #ca(menu_btn)
-
-        # For the time being we use a Row with buttons.
-        ca(pn.Row(*d.values(), sizing_mode="scale_width"))
 
     if with_controls:
         ca(pn.Accordion(("dataframe controls", w.controls(jslink=True))))
@@ -400,25 +414,47 @@ def dfc(df,
     return col
 
 
-class MyMarkdown(pn.pane.Markdown):
+def my_md(string, **kwargs):
     """
-    A Markdown pane renders the markdown markup language to HTML and
-    displays it inside a bokeh Div model. It has no explicit
-    priority since it cannot be easily be distinguished from a
-    standard string, therefore it has to be invoked explicitly.
+    Return a Markdown pane from a string. Extra kwargs are passed to pane.Markdown.
+    The string can contain links to Abinit variables in the wikiling format.
+
+    .. example::
+
+        The anaddb variable [[dipdip@anaddb]] has the same meaning as the
+        Abinit variable [[dipdip]].
     """
+    import re
+    WIKILINK_RE = r'\[\[([^\[]+)\]\]'
+    from abipy.abio.abivar_database.variables import get_codevars
+    vars_code = get_codevars()
 
-    extensions = param.List(default=[
-        # Extensions used by the superclass.
-        "extra", "smarty", "codehilite",
-        # My extensions
-        #'pymdownx.arithmatex',
-        #'pymdownx.details',
-        #"pymdownx.tabbed",
-    ],
+    def repl(match):
+        var_name = match.group(1).strip()
+        codename = "abinit"
+        i = var_name.find("@")
+        if i != -1:
+            var_name, codename = var_name[:i], var_name[i+1:]
+        try:
+            var = vars_code[codename][var_name]
+            return var.html_link()
+        except:
+            return f"WRONG LINK for {var_name}"
 
-        doc="""Markdown extension to apply when transforming markup."""
-    )
+    string = re.sub(WIKILINK_RE, repl, string)
+    md = pn.pane.Markdown(string, **kwargs)
+
+    # TODO: Latex
+    #extensions = [
+    #    'pymdownx.arithmatex',
+    #    'pymdownx.details',
+    #    "pymdownx.tabbed",
+    #]
+
+    #md = pn.pane.Markdown(string, extensions=extensions, **kwargs)
+    #md.extensions.extend(extensions)
+
+    return md
 
 
 class ButtonContext():
@@ -490,8 +526,8 @@ class Loading():
 
         if self.err_wdg is not None:
             if exc_type:
-                from textwrap import fill
-                self.err_wdg.object = "```sh\n%s\n```" % fill(str(exc_value), width=self.width)
+
+                self.err_wdg.object = "```sh\n%s\n```" % textwrap.fill(str(exc_value), width=self.width)
             #else:
             #    self.err_wdg.object = "OK"
 
@@ -530,6 +566,17 @@ class ActiveBar():
         return None
 
 
+SHARED_WIDGETS_WARNING = """
+Note that widgets are **shared by the different tabs**.
+If you change the value of a variables in the active tab,
+the same value will **automagically** appear in the other tabs yet results/figures
+are not automatically recomputed when you change the value."""
+
+#In other words, if you change some variable in the active tab and then you move to another tab,
+#the results/figures (if any) are stil computed with the **old input** hence you will have to
+#recompute the new results by clicking the button."""
+
+
 class AbipyParameterized(param.Parameterized):
     """
     Base class for AbiPy panels. Provides helper functions for typical operations needed for
@@ -551,17 +598,7 @@ class AbipyParameterized(param.Parameterized):
     has_remote_server = param.Boolean(False)
     #has_remote_server = param.Boolean(True)
 
-    warning = pn.pane.Markdown(
-"""
-Widgets are **shared by the different tabs**.
-This means that if you change the value of one of these variables in the active tab,
-the same value will **automagically** appear in the other tabs yet results/figures
-are not automatically recomputed when you change the value.
-
-In other words, if you change some variable in the active tab and then you move to another tab,
-the results/figures (if any) are stil computed with the **old input** hence you will have to
-recompute the new results by clicking the button.
-""", name="warning")
+    warning = pn.pane.Markdown(SHARED_WIDGETS_WARNING, name="warning")
 
     def __init__(self, **params):
         super().__init__(**params)
@@ -573,6 +610,7 @@ recompute the new results by clicking the button.
 
     @pn.depends("plotly_template")
     def on_plotly_template(self):
+        """Change the default plotly template."""
         import plotly.io as pio
         pio.templates.default = self.plotly_template
 
@@ -616,6 +654,7 @@ recompute the new results by clicking the button.
 
         return items
 
+    # FIXME: Deprecated
     def helpc(self, method_name, extra_items=None):
         """
         Add accordion with a brief description and a warning after the button.
@@ -623,7 +662,6 @@ recompute the new results by clicking the button.
         Return Column.
         """
         col = pn.Column(); ca = col.append
-
         acc = pn.Accordion(("Help", pn.pane.Markdown(getattr(self, method_name).__doc__)))
 
         if hasattr(self, "warning"):
@@ -648,13 +686,15 @@ recompute the new results by clicking the button.
 
     @staticmethod
     def html_with_clipboard_btn(html_str, **kwargs):
+        if hasattr(html_str, "_repr_html_"):
+            html_str = html_str._repr_html_()
         return HTMLwithClipboardBtn(html_str, **kwargs)
 
     @staticmethod
     def get_software_stack():
         """Return column with version of python packages in tabular format."""
         from abipy.abilab import software_stack
-        return pn.Column("## Software stack:", dfc(software_stack(as_dataframe=True), with_export_btn=False),
+        return pn.Column("### Software stack:", dfc(software_stack(as_dataframe=True), with_export_btn=False),
                          sizing_mode="scale_width")
 
     @staticmethod
@@ -662,7 +702,7 @@ recompute the new results by clicking the button.
 
         # All credits go to:
         # https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/styling/fileinput_area.py
-
+        #
         css_style = """
         <style>
         .pnx-file-upload-area input[type=file] {
@@ -790,7 +830,7 @@ class PanelWithStructure(AbipyParameterized):
 
         self.view_structure_btn = pnw.Button(name="View structure", button_type='primary')
 
-    @depends_on_btn_click('view_structure_btn')
+    @depends_on_btn_click('view_structure_btn', show_shared_wdg_warning=False)
     def on_view_structure(self):
         """Visualize input structure."""
         v = self.structure_viewer
@@ -1060,11 +1100,11 @@ class PanelWithElectronBands(PanelWithStructure):
 
         sz_mode = "stretch_width"
         col = pn.Column(sizing_mode=sz_mode); ca = col.append
-        ca("## Electronic band structure:")
+        ca("### Electronic band structure:")
         fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps, max_phfreq=None, show=False)
         ca(ply(fig1))
 
-        ca("## Brillouin zone and **k**-path:")
+        ca("### Brillouin zone and **k**-path:")
         kpath_pane = ply(self.ebands.kpoints.plotly(show=False), with_divider=False)
         df_kpts = dfc(self.ebands.kpoints.get_highsym_datataframe(), with_divider=False)
         ca(pn.Row(kpath_pane, df_kpts, sizing_mode=sz_mode))
@@ -1094,11 +1134,11 @@ class PanelWithElectronBands(PanelWithStructure):
                                        kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
                                        verbose=self.verbose)
 
-        ca("## SKW interpolated bands along an automatically selected high-symmetry **k**-path")
+        ca("### SKW interpolated bands along an automatically selected high-symmetry **k**-path")
         ca(ply(intp.ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
 
         if self.ebands_kpath is not None:
-            ca("## Input bands taken from file uploaded by user:")
+            ca("### Input bands taken from file uploaded by user:")
             ca(ply(self.ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
 
             # Use line_density 0 to interpolate on the same set of k-points given in self.ebands_kpath
@@ -1111,7 +1151,7 @@ class PanelWithElectronBands(PanelWithStructure):
                                             verbose=self.verbose)
 
             plotter = self.ebands_kpath.get_plotter_with("Input", "Interpolated", intp.ebands_kpath)
-            ca("## Input bands vs SKW interpolated bands:")
+            ca("### Input bands vs SKW interpolated bands:")
             #ca(mpl(plotter.combiplot(show=False)))
             ca(mpl(plotter.combiplotly(show=False)))
 
@@ -1189,9 +1229,9 @@ class PanelWithElectronBands(PanelWithStructure):
         col = pn.Column(sizing_mode="stretch_width")
         ca = col.append
         if self.ifermi_wigner_seitz:
-            ca("## Fermi surface in the Wigner-Seitz unit cell")
+            ca("### Fermi surface in the Wigner-Seitz unit cell")
         else:
-            ca("## Fermi surface in the reciprocal unit cell parallelepiped")
+            ca("### Fermi surface in the reciprocal unit cell parallelepiped")
         ca(fig)
 
         ifermi_plane_normal = self.ifermi_plane_normal.value
@@ -1201,7 +1241,7 @@ class PanelWithElectronBands(PanelWithStructure):
             from ifermi.plot import FermiSlicePlotter
             for distance in self.ifermi_distance.value:
                 # generate Fermi slice along the (0 0 1) plane going through the Γ-point.
-                ca(f"## Fermi slice along the {ifermi_plane_normal} plane going through the Γ-point at distance: {distance}")
+                ca(f"### Fermi slice along the {ifermi_plane_normal} plane going through the Γ-point at distance: {distance}")
                 fermi_slice = r.fs.get_fermi_slice(plane_normal=ifermi_plane_normal, distance=distance)
                 slice_plotter = FermiSlicePlotter(fermi_slice)
                 plt = slice_plotter.get_plot()
@@ -1211,7 +1251,7 @@ class PanelWithElectronBands(PanelWithStructure):
                 ca(fig)
 
         #ca(pn.layout.Divider())
-        ca("## Powered by [ifermi](https://fermisurfaces.github.io/IFermi/)")
+        ca("#### Powered by [ifermi](https://fermisurfaces.github.io/IFermi/)")
 
         return col
 

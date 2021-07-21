@@ -21,7 +21,7 @@ This panel alllows users to upload two files with KS energies.
         super().__init__(**params)
 
         help_md = pn.pane.Markdown(f"""
-## Description
+### Description
 
 {self.info_str}
 """)
@@ -60,12 +60,12 @@ This panel alllows users to upload two files with KS energies.
         col = self.pws_col(["### Plot options", "with_gaps", "ylims_ev", "replot_btn"])
         ca = col.append
 
-        ca("## Abinit Electronic band structure:")
+        ca("### Abinit Electronic band structure:")
         ylims = self.ylims_ev
         ca(ply(self.abinit_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)))
 
         for mp_ebands in self.mp_ebands_list:
-            ca("## MP Electronic band structure:")
+            ca("### MP Electronic band structure:")
             ca(ply(mp_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)))
 
         #self.main_area.objects = [col]
@@ -77,7 +77,7 @@ This panel alllows users to upload two files with KS energies.
 
     def get_panel(self):
         col = pn.Column(
-            "## Upload a *nc* file with energies along a **k**-path (possibly a *GSR.nc* file):",
+            "### Upload a *nc* file with energies along a **k**-path (possibly a *GSR.nc* file):",
             self.get_fileinput_section(self.file_input),
             pn.Row("### Fetching data from the MP website: ", self.mp_progress,
                    sizing_mode="stretch_width"),
@@ -105,7 +105,7 @@ The user can change the SKW intepolation parameters to gauge the quality of the 
         super().__init__(**params)
 
         help_md = pn.pane.Markdown(f"""
-## Description
+### Description
 
 {self.info_str}
 """)
@@ -147,9 +147,9 @@ The user can change the SKW intepolation parameters to gauge the quality of the 
 
     def get_panel(self):
         col = pn.Column(
-            "## Upload (or drag & drop) any *nc* file with energies in the IBZ (_possibly a *GSR.nc* file_):",
+            "### Upload (or drag & drop) any *nc* file with energies in the IBZ (_possibly a *GSR.nc* file_):",
             self.get_fileinput_section(self.ibz_file_input),
-            "## Upload (or drag & drop) any *nc* file with energies along a **k**-path (_possibly a *GSR.nc* file_):",
+            "### Upload (or drag & drop) any *nc* file with energies along a **k**-path (_possibly a *GSR.nc* file_):",
             self.get_fileinput_section(self.kpath_file_input),
             sizing_mode="stretch_width")
 

@@ -3240,7 +3240,8 @@ to disable spell checking. Perhaps the internal database is not in synch
 with the Abinit version you are using. Please contact the AbiPy developers.""" % key)
 
     @classmethod
-    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
+    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
+                        ifcflag=0, lo_to_splitting=False,
                         directions=None, anaddb_args=None, anaddb_kwargs=None, spell_check=False):
         """
         Build an |AnaddbInput| for the calculation of the phonon frequencies at a given q-point.
@@ -3249,6 +3250,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             structure: |Structure| object
             qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted
             asr, chneut, dipdp, ifcflag: Anaddb input variable. See official documentation.
+            dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
             lo_to_splitting: if True calculation of the LO-TO splitting will be included if qpoint==Gamma
             directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
                 cartesian direction will be used
@@ -3263,11 +3265,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             raise ValueError("Wrong q-point %s" % qpoint)
 
         return cls.modes_at_qpoints(structure=structure, qpoints=[qpoint], asr=asr, chneut=chneut, dipdip=dipdip,
+                                    dipquad=dipquad, quadquad=quadquad,
                                     ifcflag=ifcflag, lo_to_splitting=lo_to_splitting, directions=directions,
                                     anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
     @classmethod
-    def modes_at_qpoints(cls, structure, qpoints, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
+    def modes_at_qpoints(cls, structure, qpoints, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
+                         ifcflag=0, lo_to_splitting=False,
                          directions=None, ngqpt=None, q1shft=(0, 0, 0), anaddb_args=None, anaddb_kwargs=None,
                          spell_check=False):
         """
@@ -3277,6 +3281,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             structure: |Structure| object
             qpoints: List of reduced coordinates of the q-point where phonon frequencies and modes are wanted
             asr, chneut, dipdp, ifcflag: Anaddb input variable. See official documentation.
+            dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
             lo_to_splitting: if True calculation of the LO-TO splitting will be included if qpoint==Gamma
             directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
                 cartesian direction will be used
@@ -3301,10 +3306,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             asr=asr,                # Acoustic Sum Rule
             chneut=chneut,          # Charge neutrality requirement for effective charges.
             dipdip=dipdip,          # Dipole-dipole interaction treatment
+            dipquad=dipquad,
+            quadquad=quadquad,
             # This part is fixed
             nph1l=n_qpoints,
             qph1l=np.append(qpoints, [[1]] * n_qpoints, axis=-1)
         )
+
         if ngqpt is not None:
             q1shft = np.reshape(q1shft, (-1, 3))
             new.set_vars(
@@ -3345,7 +3353,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
-                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
+                        qptbounds=None, asr=2, chneut=0, dipdip=1, dipquad=1, quadquad=1,
+                        dos_method="tetra", lo_to_splitting=False,
                         with_ifc=False, anaddb_args=None, anaddb_kwargs=None, spell_check=False, comment=None):
         """
         Build an |AnaddbInput| for the computation of phonon bands and phonon DOS.
@@ -3364,7 +3373,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             q1shft: Shifts used for the coarse Q-mesh
             qptbounds Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            asr, chneut: Anaddb input variable. See official documentation.
+            dipdip: 1 to activate the treatment of the dipole-dipole interaction (requires BECS and dielectric tensor).
+            dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
             dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             lo_to_splitting: if True calculation of the LO-TO splitting will be included
@@ -3421,6 +3432,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             asr=asr,
             chneut=chneut,
             dipdip=dipdip,
+            dipquad=dipquad,
+            quadquad=quadquad,
         )
 
         if lo_to_splitting:

@@ -18,22 +18,25 @@ class PanelWithAnaddbParams(param.Parameterized):
     repeat the same parameters over and over again.
     """
 
-    nqsmall = param.Integer(10, bounds=(1, None), doc="Number of divisions for smallest vector to generate the q-mesh")
-    ndivsm = param.Integer(5, bounds=(None, None), doc="Number of divisions for smallest vector to generate the q-path")
+    nqsmall = param.Integer(10, bounds=(1, None), label="nqsmall (determines BZ mesh)",
+                           doc="Number of divisions for smallest vector to generate the q-mesh")
+    ndivsm = param.Integer(5, bounds=(None, None), label="ndivsm (determines q-path)",
+                          doc="Number of divisions for smallest vector to generate the q-path")
     lo_to_splitting = param.ObjectSelector(default="automatic", objects=["automatic", True, False])
     chneut = param.ObjectSelector(default=1, objects=[0, 1, 2], doc="Abinit variable")
     dipdip = param.ObjectSelector(default=1, objects=[0, 1, -1], doc="Abinit variable")
-    # TODO: Add these widgetd but need to update anaget API.
-    #dipquad = param.ObjectSelector(default=0, objects=[0, 1], doc="Abinit variable")
-    #quadquad = param.ObjectSelector(default=0, objects=[0, 1], doc="Abinit variable")
+    dipquad = param.ObjectSelector(default=1, objects=[0, 1], doc="Abinit variable")
+    quadquad = param.ObjectSelector(default=1, objects=[0, 1], doc="Abinit variable")
     asr = param.ObjectSelector(default=2, objects=[0, 1, 2], doc="Abinit variable")
     units = param.ObjectSelector(default="eV", objects=["eV", "meV", "Ha", "cm-1", "Thz"], doc="Energy units")
 
-    dos_method = param.ObjectSelector(default="tetra", objects=["tetra", "gaussian"], doc="Integration method for DOS")
-    temp_range = param.Range(default=(0.0, 300.0), bounds=(0, 1000), doc="Temperature range in K.")
+    dos_method = param.ObjectSelector(default="tetra", objects=["tetra", "gaussian"], label="Integration method for DOS")
+    temp_range = param.Range(default=(200.0, 400.0), bounds=(0, 1000), label="Temperature range in K.")
+    #temp_range_slider = pnw.EditableRangeSlider(
+    #    name='Range Slider', start=0, end=1000, value=(200, 4000), step=1)
 
-    gamma_ev = param.Number(1e-4, bounds=(1e-20, None), doc="Phonon linewidth in eV")
-    w_range = param.Range(default=(0.0, 0.1), bounds=(0.0, 1.0), doc="Frequency range (eV)")
+    gamma_ev = param.Number(1e-4, bounds=(1e-20, None), label="Phonon linewidth in eV")
+    w_range = param.Range(default=(0.0, 0.1), bounds=(0.0, 1.0), label="Frequency range (eV)")
 
     plot_ifc_yscale = param.ObjectSelector(default="linear", objects=["log", "linear", "symlog", "logit"])
 
@@ -58,10 +61,12 @@ class PanelWithAnaddbParams(param.Parameterized):
         """
         d = dict(nqsmall=self.nqsmall, qppa=None, ndivsm=self.ndivsm,
                  line_density=None, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
+                 dipquad=self.dipquad, quadquad=self.quadquad,
                  dos_method=self.dos_method, lo_to_splitting=self.lo_to_splitting,
                  verbose=self.verbose, mpi_procs=self.mpi_procs)
 
         if extra_kwargs: d.update(extra_kwargs)
+        #print(d)
 
         return d
 
@@ -94,8 +99,9 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
     @depends_on_btn_click('get_epsinf_btn')
     def get_epsinf(self):
-        """Compute eps_infinity and Born effective charges from DDB."""
-
+        """
+        Compute eps_infinity and Born effective charges from DDB.
+        """
         epsinf, becs = self.ddb.anaget_epsinf_and_becs(chneut=self.chneut,
                                                        mpi_procs=self.mpi_procs, verbose=self.verbose)
 
@@ -110,8 +116,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.gamma_ev)
         df_kwargs = {}
 
-        from abipy.panels.core import MyMarkdown as m
-        m = pn.pane.LaTeX
+        #m = pn.pane.LaTeX
         def m(s):
             return pn.Row(pn.pane.LaTeX(s, style={'font-size': '18pt'}), sizing_mode="stretch_width")
 
@@ -123,7 +128,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         ca("## Born effective charges in Cart. coords:")
         ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
         ca("## Anaddb input file.")
-        ca(pn.pane.HTML(inp._repr_html_()))
+        ca(self.html_with_clipboard_btn(inp))
 
         return col
 
@@ -162,15 +167,18 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         ca(gen.get_oscillator_dataframe(reim="all", tol=1e-6))
         # Add HTML pane with input.
         ca("## Anaddb input file:")
-        ca(pn.pane.HTML(inp._repr_html_()))
+        ca(self.html_with_clipboard_btn(inp))
 
         #return gspec
         return col
 
     @depends_on_btn_click('plot_phbands_btn')
     def on_plot_phbands_and_phdos(self):
-        """
-        Compute phonon bands and DOS from DDB by invoking Anaddb then plot results.
+        r"""
+        This app computes the phonon bands and the phonon DOS from the DDB file
+        by invoking anaddb to Fourier-interpolate the dynamical matrix in **q**-space
+
+        The variables [[dipdip@anaddb]], [[dipquad@anaddb]] and [[quadquad@anaddb] and $$e = mc^2$$
         """
         # Computing phbands
         kwargs = self.kwargs_for_anaget_phbst_and_phdos_files(return_input=True)
@@ -202,27 +210,30 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
             # Add Anaddb input file
             ca("## Anaddb input file:")
-            ca(self.html_with_clipboard_btn(g.input._repr_html_()))
+            ca(self.html_with_clipboard_btn(g.input))
 
             return col
 
     @depends_on_btn_click('plot_vsound_btn')
     def plot_vsound(self):
         """
-        Compute the speed of sound by fitting phonon frequencies
-        along selected directions by linear least-squares fit.
+        Compute the speed of sound by fitting the first three phonon branches
+        along selected **q**-directions by linear least-squares fit.
         """
         col = pn.Column(sizing_mode="stretch_width"); ca = col.append
 
         from abipy.dfpt.vsound import SoundVelocity
-        sv = SoundVelocity.from_ddb(self.ddb.filepath, num_points=20, qpt_norm=0.1,
-                                    ignore_neg_freqs=True, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
-                                    verbose=self.verbose, mpi_procs=self.mpi_procs)
+        sv, inp = SoundVelocity.from_ddb(self.ddb.filepath, num_points=20, qpt_norm=0.1,
+                                    ignore_neg_freqs=True, asr=self.asr, chneut=self.chneut,
+                                    dipdip=self.dipdip, dipquad=self.dipquad, quadquad=self.quadquad,
+                                    verbose=self.verbose, mpi_procs=self.mpi_procs, return_input=True)
 
         ca("## Linear least-squares fit:")
         ca(ply(sv.plotly(show=False)))
         ca("## Speed of sound computed along different q-directions in reduced coords:")
         ca(dfc(sv.get_dataframe()))
+        ca("## Anaddb input file.")
+        ca(self.html_with_clipboard_btn(inp))
 
         return col
 
@@ -233,7 +244,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         and the treatment of the dipole-dipole interaction in the dynamical matrix.
         Requires DDB file with eps_inf, BECS.
         """
-        asr_plotter = self.ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1,
+        asr_plotter = self.ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1, dipquad=1, quadquad=1,
                                               lo_to_splitting=self.lo_to_splitting,
                                               nqsmall=self.nqsmall, ndivsm=self.ndivsm,
                                               dos_method=self.dos_method, ngqpt=None,
@@ -262,7 +273,8 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         Requires DDB file with eps_inf, BECS and dynamical quadrupoles.
         """
         #print(self.nqsmall_list.value)
-        r = self.ddb.anacompare_phdos(self.nqsmall_list.value, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
+        r = self.ddb.anacompare_phdos(self.nqsmall_list.value, asr=self.asr, chneut=self.chneut,
+                                      dipdip=self.dipdip, dipquad=self.dipquad, quadquad=self.quadquad,
                                       dos_method=self.dos_method, ngqpt=None,
                                       verbose=self.verbose, num_cpus=1, stream=sys.stdout)
 
@@ -301,7 +313,10 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
     @depends_on_btn_click('plot_ifc_btn')
     def on_plot_ifc(self):
-        ifc = self.ddb.anaget_ifc(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip)
+        """
+        Plot the Interatomic Force Constants in real space.
+        """
+        ifc, inp = self.ddb.anaget_ifc(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip, return_input=True)
 
         kwds = self.mpl_kwargs.copy()
         kwds["yscale"] = self.plot_ifc_yscale
@@ -312,15 +327,22 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         ca(mpl(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", **kwds)))
         ca(mpl(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", **kwds)))
         ca(mpl(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", **kwds)))
+        ca("## Anaddb input file.")
+        ca(self.html_with_clipboard_btn(inp))
 
         return col
 
     @depends_on_btn_click('compute_elastic_btn')
     def on_compute_elastic_btn(self):
+        """
+        Compute elastic properties
+        """
 
         edata, inp = self.ddb.anaget_elastic(relaxed_ion="automatic", piezo="automatic",
                                              dde=False, stress_correction=False, asr=self.asr, chneut=self.chneut,
                                              mpi_procs=1, verbose=self.verbose, return_input=True)
+
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
         #print(edata)
         #edata.elastic_relaxed
@@ -333,8 +355,8 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         #html = edata.elastic_relaxed.get_elate_html(sysname="FooBar")
         #return pn.Template(html).show()
 
-        # Fill column
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        ca("## Anaddb input file.")
+        ca(self.html_with_clipboard_btn(inp))
 
         return col
 
@@ -351,7 +373,8 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         # Note how we build tabs according to the content of the DDB.
         if ddb.has_at_least_one_atomic_perturbation():
             d["PH-bands"] = pn.Row(
-                self.pws_col(["### PH-bands options", "nqsmall", "ndivsm", "asr", "chneut", "dipdip",
+                self.pws_col(["### PH-bands options", "nqsmall", "ndivsm", "asr", "chneut",
+                              "dipdip", "dipquad", "quadquad",
                               "lo_to_splitting", "dos_method", "stacked_pjdos", "temp_range", "plot_phbands_btn",
                               self.helpc("on_plot_phbands_and_phdos")]),
                 self.on_plot_phbands_and_phdos
@@ -370,8 +393,8 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             )
         if ddb.has_at_least_one_atomic_perturbation():
             d["Speed of sound"] = pn.Row(
-                self.pws_col(["### Speed of sound options", "asr", "chneut", "dipdip", "plot_vsound_btn",
-                             self.helpc("plot_vsound")]),
+                self.pws_col(["### Speed of sound options", "asr", "chneut", "dipdip", "dipquad", "quadquad",
+                              "plot_vsound_btn", self.helpc("plot_vsound")]),
                 self.plot_vsound
             )
             d["ASR & DIPDIP"] = pn.Row(
@@ -380,13 +403,15 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                 self.plot_without_asr_dipdip
             )
             d["DOS vs q-mesh"] = pn.Row(
-                self.pws_col(["### DOS vs q-mesh options", "asr", "chneut", "dipdip", "dos_method", "nqsmall_list",
+                self.pws_col(["### DOS vs q-mesh options", "asr", "chneut", "dipdip", "dipquad", "quadquad",
+                              "dos_method", "nqsmall_list",
                              "temp_range", "plot_dos_vs_qmesh_btn", self.helpc("plot_dos_vs_qmesh")]),
                 self.plot_dos_vs_qmesh
             )
             if ddb.has_quadrupole_terms():
                 d["Quadrupoles"] = pn.Row(
-                    self.pws_col(["### Quadrupoles options", "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
+                    self.pws_col(["### Quadrupoles options", "asr", "chneut", "dipdip",
+                                  "lo_to_splitting", "ndivsm", "dos_method",
                                   "plot_phbands_quad_btn", self.helpc("plot_phbands_quad")]),
                     self.plot_phbands_quad
                 )
@@ -469,10 +494,10 @@ Also, avoid uploading big files (size > XXX).
 
         if self.use_structure:
             title = "Structure Analyzer"
-            msg = "## Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, POSCAR):"
+            msg = "### Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, POSCAR):"
         else:
             title = "Output File Analyzer"
-            msg = "## Upload (or drag & drop) **any file** supported by AbiPy-Panel. See list below:"
+            msg = "### Upload (or drag & drop) **any file** supported by AbiPy. See list below:"
 
         col = pn.Column(
             msg,
@@ -482,7 +507,7 @@ Also, avoid uploading big files (size > XXX).
 
         if self.use_structure:
             col.extend([
-                "## or get the structure from the [Materials Project](https://materialsproject.org/) database:",
+                "### or get the structure from the [Materials Project](https://materialsproject.org/) database:",
                 pn.Row(self.mpid_input, pn.Column(self.mpid_err_wdg), sizing_mode="stretch_width"),
             ])
 
@@ -516,7 +541,7 @@ it is also possible to fetch the DDB file from the Materials Project Database.
         super().__init__(**params)
 
         help_md = pn.pane.Markdown(f"""
-## Description
+### Description
 
 {self.info_str}
 """)
@@ -556,9 +581,9 @@ it is also possible to fetch the DDB file from the Materials Project Database.
     def get_panel(self):
 
         col = pn.Column(
-            "## Upload (or drag & drop) a DDB file:",
+            "### Upload (or drag & drop) a DDB file:",
             self.get_fileinput_section(self.file_input),
-            "## or get the DDB from the [Materials Project](https://materialsproject.org/) database (*if available*):",
+            "### or get the DDB from the [Materials Project](https://materialsproject.org/) database (*if available*):",
             pn.Row(self.mpid_input, pn.Column(self.mpid_err_wdg), sizing_mode="stretch_width"),
             sizing_mode="stretch_width")
 
@@ -611,7 +636,7 @@ This panel alllows users to upload a DDB file and compare it with the one availa
 
     def get_panel(self):
         col = pn.Column(
-            "## Upload (or drag & drop) a DDB file:",
+            "### Upload (or drag & drop) a DDB file:",
             self.get_fileinput_section(self.file_input),
             pn.Row("### Fetching data from the MP website: ", self.mp_progress, self.mp_err_wdg,
                    sizing_mode="stretch_width"),
@@ -704,7 +729,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     #        ca("## Born effective charges in Cart. coords:")
     #        ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
     #        ca("## Anaddb input file.")
-    #        ca(pn.pane.HTML(inp._repr_html_()))
+    #        ca(self.html_with_clipboard_btn(inp))
 
     #        return col
 
@@ -734,6 +759,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     #        gspec[2, :] = gen.get_oscillator_dataframe(reim="all", tol=1e-6)
     #        # Add HTML pane with input.
     #        gspec[3, 0] = pn.pane.HTML(inp._repr_html_())
+    #        ca(self.html_with_clipboard_btn(inp))
 
     #        return gspec
 
@@ -770,7 +796,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
 
     #        # Add HTML pane with input
     #        ca("## Anaddb input file:")
-    #        ca(pn.pane.HTML(g.input._repr_html_()))
+    #        ca(self.html_with_clipboard_btn(inp))
 
     #        return col
 

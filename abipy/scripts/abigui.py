@@ -14,7 +14,7 @@ from abipy.core.release import version
 @click.option('--address', default=None, help="The address the server should listen on for HTTP requests.")
 @click.option('--show', default=True, help="Open server app(s) in a browser")
 @click.option('--num_procs', default=1, help="Number of worker processes for the app. Defaults to 1")
-@click.option('--panel-template', default="FastList",
+@click.option('--panel-template', "-pnt", default="FastList",
               help="Specify template for panel dasboard." +
                    "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                    "Default: FastList")
@@ -82,13 +82,12 @@ with an extension that is not recognized by AbiPy.
     app_title = {k: v[1] for (k, v) in app_routes_titles.items()}
 
     for url, (cls, title) in app_routes_titles.items():
-        if url == "/": continue
+        if url in ("/", "/state"): continue
         intro += f"""
 
 ## [{title}]({url})
 
 {cls.info_str}
-
 """
 
     main_home = pn.Column(pn.pane.Markdown(intro, width=700, sizing_mode="stretch_width"),
@@ -117,13 +116,20 @@ with an extension that is not recognized by AbiPy.
             return self.func(*self.args, **self.kwargs)
 
 
+    cls_kwds.update(dict(
+        sidebar_width=240,
+        #sidebar_width=280,
+        #background_color="yellow",
+    ))
+
+
     for url, cls in app_routes.items():
         if url == "/":
             app_routes[url] = Partial(func, cls, main=main_home, **cls_kwds).view
-        #elif url == "/state":
-        #    app_routes[url] = cls
+        elif url == "/state":
+            app_routes[url] = cls
         else:
-            app_routes[url] = Partial(func, cls).view
+            app_routes[url] = Partial(func, cls, **cls_kwds).view
 
     # Call pn.serve to serve the multipage app.
     serve_kwargs = dict(address=address,
