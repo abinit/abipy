@@ -449,9 +449,10 @@ autodoc_member_order = "bysource"
 # pybtex provides a very powerful way to create and register new styles, using setuptools entry points,
 # as documented here: http://docs.pybtex.org/api/plugins.html
 
+bibtex_bibfiles = ['abiref.bib']
+
 from pybtex.style.formatting.plain import Style
 from pybtex.style.labels.alpha import LabelStyle
-
 
 class AbiPyLabelStyle(LabelStyle):
     def format_label(self, entry):

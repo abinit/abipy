@@ -77,14 +77,6 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`pipelines` Module
------------------------
-
-.. automodule:: abipy.panels.pipelines
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`sigeph` Module
 ---------------------
 
