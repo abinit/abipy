@@ -19,7 +19,6 @@ from abipy.core import abinit_units as abu
 from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
 from abipy.tools.context_managers import Timer
-#from abipy.tools.decorators import memoized_method
 
 
 _ABINIT_TEMPLATE_NAME = "FastList"
@@ -151,6 +150,7 @@ def depends_on_btn_click(btn_name, show_doc=True, show_shared_wdg_warning=True, 
                         doc = f"No docstring found for function `{func.__name__}`"
                     doc = textwrap.dedent(doc)
                     doc = f"### Description\n\n{doc}\n\n"
+                    #print(doc)
                     objects = [my_md(doc)]
                     if show_shared_wdg_warning:
                         warning = pn.pane.Alert(SHARED_WIDGETS_WARNING, alert_type="danger")

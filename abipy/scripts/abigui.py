@@ -48,13 +48,13 @@ def gui_app(port, address, show, num_procs, panel_template, has_remote_server):
 
 # AbiPy Web App
 
-This web application exposes some of the capabilities of the AbiPy package.
+This web application exposes some of the capabilities of the [AbiPy package](https://github.com/abinit/abipy)
 It consists of **multiple pages** each of which provides **specialized tools** to operate on a particular ABINIT file.
 To access one of these tools, click one of the links in the sidebar or, alternatively, use the links below.
 To open/close the sidebar, click on the Hamburger Menu Icon ☰ in the header.
 
-Note that the **file extension*** really matters as the GUI won't work if you upload a file
-with an extension that is not recognized by AbiPy.
+Note that the **file extension** matters as the GUI won't work properly if you upload files
+with extensions that are not recognized by AbiPy.
 
 """
     cls, cls_kwds = get_abinit_template_cls_kwds()
@@ -85,12 +85,12 @@ with an extension that is not recognized by AbiPy.
         if url in ("/", "/state"): continue
         intro += f"""
 
-## [{title}]({url})
+### [{title}]({url})
 
 {cls.info_str}
 """
 
-    main_home = pn.Column(pn.pane.Markdown(intro, width=700, sizing_mode="stretch_width"),
+    main_home = pn.Column(pn.pane.Markdown(intro, width=600, sizing_mode="stretch_width"),
                           sizing_mode="stretch_both")
 
     # Add links to sidebar of each app so that we can navigate easily.

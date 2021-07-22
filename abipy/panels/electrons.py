@@ -13,7 +13,7 @@ class CompareEbandsWithMP(AbipyParameterized):
     ylims_ev = param.Range(default=(-10, +10), doc="Energy window around the Fermi energy.")
 
     info_str = """
-This panel alllows users to upload two files with KS energies.
+This app alllows users to upload two files with KS energies.
 """
 
     def __init__(self, **params):
@@ -93,7 +93,7 @@ This panel alllows users to upload two files with KS energies.
 class SkwPanelWithFileInput(AbipyParameterized):
 
     info_str = """
-This panel allows users to upload two files with KS energies.
+This app allows users to upload two files with KS energies.
 The first file gives the energies in the IBZ used to perform the SKW interpolation
 The second file contains the enegies along a k-path.
 The interpolated energies are then compared with the ab-initio ones on the k-path.

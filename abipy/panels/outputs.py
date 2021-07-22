@@ -3,6 +3,7 @@
 import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
+
 from abipy.panels.core import AbipyParameterized, mpl, ply, dfc
 
 
