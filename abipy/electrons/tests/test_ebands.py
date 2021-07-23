@@ -500,11 +500,12 @@ class ElectronBandsTest(AbipyTest):
             if self.has_ifermi():
                 # Test interface with ifermi package.
                 kwargs = dict(interpolation_factor=1, with_velocities=True)
-                dense_bs, velocities = ebands.get_ifermi_dense_bs(**kwargs)
-                same_dense_bs, same_velocities = ebands.get_ifermi_dense_bs(**kwargs)
+                first = ebands.get_ifermi_dense_bs(**kwargs)
+                second = ebands.get_ifermi_dense_bs(**kwargs)
                 # Test memoized_method
-                assert dense_bs is same_dense_bs
-                assert velocities is same_velocities
+                assert first is second
+                assert first.dense_bs is second.dense_bs
+                assert first.velocities is second.velocities
 
                 r = ebands.get_ifermi_fs(**kwargs)
                 assert hasattr(r, "fs") and hasattr(r, "fs_plotter")

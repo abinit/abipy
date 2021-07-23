@@ -76,12 +76,12 @@ class FatBandsFilePanel(PanelWithElectronBands):
             d["e-DOS"] = pn.Row(self.get_plot_edos_widgets(), self.on_plot_edos_btn)
 
             d["FatDos"] = pn.Row(
-                self.pws_col(["### Fatdos", "plot_fatdos_btn", self.helpc("on_plot_fatdos_btn")]),
+                self.pws_col(["### Fatdos", "plot_fatdos_btn"]),
                 self.on_plot_fatdos_btn
             )
 
             if not self.ebands.isnot_ibz_sampling():
-                d["Fermi Surface"] = self.get_ifermi_view()
+                d["ifermi"] = self.get_ifermi_view()
 
         elif self.ebands.kpoints.is_path:
             # NC files have contributions up to L=4 (g channel)
@@ -90,7 +90,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
             lmax = 2
 
             d["FatBands"] = pn.Row(
-                self.pws_col(["### Fatbands", "plot_fatbands_btn", self.helpc("on_plot_fatbands_btn")]),
+                self.pws_col(["### Fatbands", "plot_fatbands_btn"]),
                 self.on_plot_fatbands_btn
             )
 

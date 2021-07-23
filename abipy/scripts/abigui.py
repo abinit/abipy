@@ -116,11 +116,11 @@ with extensions that are not recognized by AbiPy.
             return self.func(*self.args, **self.kwargs)
 
 
-    cls_kwds.update(dict(
-        sidebar_width=240,
-        #sidebar_width=280,
-        #background_color="yellow",
-    ))
+    #cls_kwds.update(dict(
+    #    sidebar_width=240,
+    #    #sidebar_width=280,
+    #    #background_color="yellow",
+    #))
 
 
     for url, cls in app_routes.items():

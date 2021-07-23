@@ -89,11 +89,6 @@ def dump_args(func):
 
     return wrapper
 
-
-# Taken from
-# https://github.com/pandas-dev/pandas/blob/3a7f956c30528736beaae5784f509a76d892e229/pandas/util/_decorators.py#L156
-# Add dedent and debug args
-
 class Appender(object):
     r"""
     A function decorator that will append an addendum to the docstring
@@ -110,6 +105,11 @@ class Appender(object):
     def my_dog(has='fleas'):
         "This docstring will have a copyright below"
         pass
+
+    MG took it from:
+    https://github.com/pandas-dev/pandas/blob/3a7f956c30528736beaae5784f509a76d892e229/pandas/util/_decorators.py#L156
+
+    MG: Added dedent and debug args.
     """
 
     def __init__(self, addendum, join='', indents=0, dedent=True, debug=False):

@@ -94,7 +94,7 @@ This application allows users to analyze the Abinit main output file
         self.main_area.objects = [self.abifile.get_panel()]
         #self.main_area.append(self.abifile.get_panel())
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
 
         col = pn.Column("### Upload (or drag & drop) an *.abo* file (main ABINIT output file):",
                         self.get_fileinput_section(self.file_input),

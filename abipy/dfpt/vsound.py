@@ -72,9 +72,9 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             labels (list): list of string with the name of the directions.
             num_points (int): number of points calculated along each direction and used to
                 fit the speed of sound.
-            qpt_norm (float): Norm of the largest point in fractional coordinates for
+            qpt_norm (float): Norm of the largest q-point in fractional coordinates for
                 each of the directions considered.
-            ignore_neg_freqs (bool): if True points with negative frequencies will not be
+            ignore_neg_freqs (bool): if True, q-points with negative frequencies will not be
                 considered in the fit, in order to ignore inaccuracies in the long range
                 behavior.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.

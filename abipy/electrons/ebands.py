@@ -2781,21 +2781,25 @@ class ElectronBands(Has_Structure):
                                                           nworkers=nworkers)
                 velocities = None
 
-        return dense_bs, velocities
+        return dict2namedtuple(dense_bs=dense_bs, velocities=velocities, interpolator=interpolator)
 
-    def get_ifermi_fs(self, interpolation_factor=5, mu=0.0, eref="fermie", wigner_seitz=True,
+    def get_ifermi_fs(self, interpolation_factor=8, mu=0.0, eref="fermie", wigner_seitz=True,
                       calculate_dimensionality=False, with_velocities=False):
         """
         Use ifermi package to visualize the (interpolated) Fermi surface.
         Requires netcdf file with energies in the IBZ.
-        See <https://fermisurfaces.github.io/IFermi/>
+        See also <https://fermisurfaces.github.io/IFermi/>
 
         Args:
-            interpolation_factor:
-            mu:
-            wigner_seitz:
+            interpolation_factor: The factor by which the band structure will be interpolated.
+            mu: Energy offset from the reference energy determing by `eref`.
+            eref: Defines the energy reference. Possible values: `fermie`, `cbm`, `vbm`.
+                The energy of the isosurface is given by: `eref` + `mu`.
+            wigner_seitz: Controls whether the cell is the Wigner-Seitz cell
+                          or the reciprocal unit cell parallelepiped.
             calculate_dimensionality:
-            with_velocities:
+            with_velocities: Generate the Fermi surface and calculate the group velocity
+                at the center of each triangular face.
 
         Returns:
 
@@ -2805,7 +2809,7 @@ class ElectronBands(Has_Structure):
             r.fs_plotter.get_plot(plot_type="plotly").show()
 
         """
-        dense_bs, velocities = self.get_ifermi_dense_bs(interpolation_factor, with_velocities)
+        r = self.get_ifermi_dense_bs(interpolation_factor, with_velocities)
 
         from ifermi.surface import FermiSurface
         from ifermi.plot import FermiSurfacePlotter #, save_plot, show_plot FermiSlicePlotter,
@@ -2832,18 +2836,19 @@ class ElectronBands(Has_Structure):
         with Timer(f"Building Fermi surface with wigner_seitz: {wigner_seitz}, eref: {eref} and mu: {mu} (eV)"):
 
             from ifermi.kpoints import kpoints_from_bandstructure
-            dense_kpoints = kpoints_from_bandstructure(dense_bs) if velocities else None
+            dense_kpoints = kpoints_from_bandstructure(r.dense_bs) if r.velocities else None
 
             fs = FermiSurface.from_band_structure(
-              dense_bs, mu=mu, wigner_seitz=wigner_seitz,
-              calculate_dimensionality=False,
-              property_data=velocities, property_kpoints=dense_kpoints,
+                  r.dense_bs, mu=mu, wigner_seitz=wigner_seitz,
+                  calculate_dimensionality=False,
+                  property_data=r.velocities,
+                  property_kpoints=dense_kpoints,
             )
 
         fs_plotter = FermiSurfacePlotter(fs)
 
-        return dict2namedtuple(fs=fs, fs_plotter=fs_plotter, dense_bs=dense_bs, velocities=velocities,
-                               edge_state=edge_state)
+        return dict2namedtuple(fs=fs, fs_plotter=fs_plotter, dense_bs=r.dense_bs, velocities=r.velocities,
+                               interpolator=r.interpolator, edge_state=edge_state)
 
     #def get_ifermi_slices(self, interpolation_factor=5, mu=0, eref="cbm", wigner_seitz=True,
     #                      with_velocities=False):
