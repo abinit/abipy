@@ -36,7 +36,7 @@ def timeit(method):
         result = method(self, *args, **kw)
         te = time.time()
 
-        setattr(self,"time_"+method.__name__, (te - ts) * 1000)
+        setattr(self,"time_" + method.__name__, (te - ts) * 1000)
         return result
     return timed
 
@@ -88,6 +88,7 @@ def dump_args(func):
         return func(*args, **kwargs)
 
     return wrapper
+
 
 class Appender(object):
     r"""

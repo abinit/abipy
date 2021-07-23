@@ -841,7 +841,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
     Args:
         gs_inp: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         ph_ngqpt: a list of three integers representing the gamma centered q-point grid used for the calculation.
-            If None and qpoint==None the ngkpt value present in the gs_input will be used.
+            If None and qpoint is None None, the ngkpt value present in the gs_input will be used.
             Incompatible with qpoints.
         qpoints: a list of coordinates of q points in reduced coordinates for which the phonon perturbations will
             be calculated. Incompatible with ph_ngqpt.
