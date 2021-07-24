@@ -85,8 +85,7 @@ Usage example:
     abiopen.py FILE -eweb    => Generate matplotlib figures, show them in the $BROWSER.
     abiopen.py FILE -ply     => Generate plotly figures automatically. Show them in the $BROWSER.
                                 Note that not all FILEs support plotly.
-    abiopen.py FILE -pn      => Generate GUI in web BROWSER to interact with FILE
-                                Requires panel package (WARNING: still under development!)
+    abiopen.py FILE -pn      => Generate GUI in web BROWSER to interact with FILE. Requires panel package.
     abiopen.py FILE -nb      => Generate jupyter-lab notebook.
     abiopen.py FILE -cnb     => Generate classic jupyter notebook.
 
@@ -141,6 +140,13 @@ def get_parser(with_epilog=False):
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
+
+    parser.add_argument("--port", default=0, type=int,
+                        help="Allows specifying a specific port when serving panel app")
+    parser.add_argument("--show", type=int,
+                        help="Allows specifying a specific port when serving panel app")
+
+
 
     # Expose option.
     parser.add_argument('-e', '--expose', action='store_true', default=False,
@@ -258,13 +264,19 @@ def main():
         elif options.panel:
             import matplotlib
             matplotlib.use("Agg")
-            abilab.abipanel()
+            pn = abilab.abipanel()
 
             if not hasattr(abifile, "get_panel"):
                 raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
 
             app = abifile.get_panel(template=options.panel_template)
-            app.show(debug=options.verbose > 0)
+            kwargs = dict(
+                debug=options.verbose > 0,
+                show=not options.no_browser,
+                port=options.port,
+                address=None,
+            )
+            pn.serve(app, **kwargs)
             return 0
 
         # Start ipython shell with namespace
@@ -317,7 +329,7 @@ def handle_json(options):
             d = json.load(fh)
         json_pane = pn.pane.JSON(d, name='JSON', height=300, width=500)
         app = pn.Row(json_pane.controls(jslink=True), json_pane)
-        app.show()
+        app.show(debug=options.verbose > 0)
         return 0
 
     else:

@@ -145,9 +145,9 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         ca(dfc(eps0.get_dataframe(cmode="real"), **df_kwargs))
         ca(m(r"$\epsilon^\infty$ in Cart. coords:"))
         ca(dfc(epsinf.get_dataframe(), **df_kwargs))
-        ca("### Born effective charges in Cart. coords:")
+        ca("## Born effective charges in Cart. coords:")
         ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
-        ca("### Anaddb input file.")
+        ca("## Anaddb input file.")
         ca(self.html_with_clipboard_btn(inp))
 
         return col
@@ -172,7 +172,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
         # Add figures
-        ca("### epsilon(w):")
+        ca("## epsilon(w):")
         ca(p("diag", "re"))
         ca(p("diag", "im"))
         ca(p("offdiag", "re"))
@@ -182,10 +182,10 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         # TODO: FIX
         # TypeError: Object of type complex is not JSON serializable
         #dfc(gen.get_oscillator_dataframe(reim="all", tol=1e-6))
-        ca("### Oscillator matrix elements:")
+        ca("## Oscillator matrix elements:")
         ca(gen.get_oscillator_dataframe(reim="all", tol=1e-6))
         # Add HTML pane with input.
-        ca("### Anaddb input file:")
+        ca("## Anaddb input file:")
         ca(self.html_with_clipboard_btn(inp))
 
         return col
@@ -200,11 +200,15 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         - Total phonon DOS and atom-projected phonon DOSes
         - Thermodynamic properties in the Harmonic approximation
 
+        ??? warning classes
+           Content.
+
         !!! important
 
             Note that **anaddb** uses the **q**-mesh found in the DDB file to build the
             interatomic force constants (IFCs) in real space and then compute phonon quantities
             at arbitrary **q**-points by Fourier interpolation.
+
         """
         # Computing phbands
         kwargs = self.kwargs_for_anaget_phbst_and_phdos_files(return_input=True)
@@ -216,26 +220,26 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             # Fill column
             col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-            ca("### Phonon band structure and DOS:")
+            ca("## Phonon band structure and DOS:")
             ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
 
-            ca("### Brillouin zone and q-path:")
+            ca("## Brillouin zone and q-path:")
             qpath_pane = ply(phbands.qpoints.plotly(show=False), with_divider=False)
             df_qpts = phbands.qpoints.get_highsym_datataframe()
             ca(pn.Row(qpath_pane, df_qpts))
             ca(pn.layout.Divider())
 
-            ca("### Type-projected phonon DOS:")
+            ca("## Type-projected phonon DOS:")
             ca(ply(phdos_file.plotly_pjdos_type(units=self.units, stacked=self.stacked_pjdos.value, show=False)))
 
-            ca("### Thermodynamic properties in the harmonic approximation:")
+            ca("## Thermodynamic properties in the harmonic approximation:")
             temps = self.temp_range
             ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
             #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
             #msqd_dos.plot_tensor(**self.mpl_kwargs)
 
             # Add Anaddb input file
-            ca("### Anaddb input file:")
+            ca("## Anaddb input file:")
             ca(self.html_with_clipboard_btn(g.input))
 
             return col
@@ -256,11 +260,11 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                                          dipdip=self.dipdip, dipquad=self.dipquad, quadquad=self.quadquad,
                                          verbose=self.verbose, mpi_procs=self.mpi_procs, return_input=True)
 
-        ca("### Linear least-squares fit:")
+        ca("## Linear least-squares fit:")
         ca(ply(sv.plotly(show=False)))
-        ca("### Speed of sound computed along different q-directions in reduced coords:")
+        ca("## Speed of sound computed along different q-directions in reduced coords:")
         ca(dfc(sv.get_dataframe()))
-        ca("### Anaddb input file.")
+        ca("## Anaddb input file.")
         ca(self.html_with_clipboard_btn(inp))
 
         return col
@@ -285,9 +289,9 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         # Fill column
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-        ca("### Phonon bands and DOS with/wo acoustic sum rule:")
+        ca("## Phonon bands and DOS with/wo acoustic sum rule:")
         ca(ply(asr_plotter.combiplotly(show=False)))
-        ca("### Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
+        ca("## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
         ca(ply(dipdip_plotter.combiplotly(show=False)))
 
         return col
@@ -308,10 +312,10 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         # Fill column
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-        ca("### Phonon DOSes obtained with different q-meshes:")
+        ca("## Phonon DOSes obtained with different q-meshes:")
         ca(ply(r.plotter.combiplotly(show=False)))
 
-        ca("### Convergence of termodynamic properties.")
+        ca("## Convergence of termodynamic properties.")
         temps = self.temp_range
         ca(mpl(r.plotter.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50,
                                               units=self.units, **self.mpl_kwargs)))
@@ -335,7 +339,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         # Fill column
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
-        ca("### Phonon Bands obtained with different q-meshes:")
+        ca("## Phonon Bands obtained with different q-meshes:")
         ca(ply(plotter.combiplotly(show=False)))
 
         return col
@@ -356,7 +360,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         ca(mpl(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", **kwds)))
         ca(mpl(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", **kwds)))
         ca(mpl(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", **kwds)))
-        ca("### Anaddb input file.")
+        ca("## Anaddb input file.")
         ca(self.html_with_clipboard_btn(inp))
 
         return col
@@ -389,7 +393,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         #html = edata.elastic_relaxed.get_elate_html(sysname="FooBar")
         #return pn.Template(html).show()
 
-        ca("### Anaddb input file.")
+        ca("## Anaddb input file.")
         ca(self.html_with_clipboard_btn(inp))
 
         return col
@@ -407,7 +411,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         # Note how we build tabs according to the content of the DDB.
         if ddb.has_at_least_one_atomic_perturbation():
             d["PH-bands"] = pn.Row(
-                self.pws_col(["### PH-bands options",
+                self.pws_col(["## PH-bands options",
                               "nqsmall", "ndivsm", "asr", "chneut",
                               "dipdip", "dipquad", "quadquad",
                               "lo_to_splitting", "dos_method", "stacked_pjdos", "temp_range", "plot_phbands_btn",
@@ -416,21 +420,21 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             )
         if ddb.has_bec_terms(select="at_least_one"):
             d["BECs"] = pn.Row(
-                self.pws_col(["### Born effective charges options",
+                self.pws_col(["## Born effective charges options",
                               "asr", "chneut", "dipdip", "eps0_gamma_ev", "get_epsinf_btn",
                               ]),
                 self.get_epsinf
             )
         if ddb.has_epsinf_terms(select="at_least_one_diagoterm"):
             d["eps0"] = pn.Row(
-                self.pws_col(["### epsilon_0",
+                self.pws_col(["## epsilon_0",
                               "asr", "chneut", "dipdip", "eps0_gamma_ev", "eps0_wrange", "plot_eps0w_btn",
                              ]),
                 self.plot_eps0w
             )
         if ddb.has_at_least_one_atomic_perturbation():
             d["Speed of sound"] = pn.Row(
-                self.pws_col(["### Speed of sound options",
+                self.pws_col(["## Speed of sound options",
                               "vsound_num_points", "vsound_qpt_norm",
                               "asr", "chneut", "dipdip", "dipquad", "quadquad",
                               "plot_vsound_btn",
@@ -440,13 +444,13 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
             if ddb.has_lo_to_data():
                 d["ASR & DIPDIP"] = pn.Row(
-                    self.pws_col(["### ASR & DIPDIP options",
+                    self.pws_col(["## ASR & DIPDIP options",
                                   "nqsmall", "ndivsm", "dos_method", "plot_without_asr_dipdip_btn",
                                  ]),
                     self.plot_without_asr_dipdip
                 )
             d["DOS vs q-mesh"] = pn.Row(
-                self.pws_col(["### DOS vs q-mesh options",
+                self.pws_col(["## DOS vs q-mesh options",
                               "nqsmall_list", "temp_range", "dos_method",
                               "asr", "chneut", "dipdip", "dipquad", "quadquad",
                               "plot_dos_vs_qmesh_btn",
@@ -455,14 +459,14 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             )
             if ddb.has_quadrupole_terms():
                 d["Quadrupoles"] = pn.Row(
-                    self.pws_col(["### Quadrupoles options",
+                    self.pws_col(["## Quadrupoles options",
                                   "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
                                   "plot_phbands_quad_btn",
                                   ]),
                     self.plot_phbands_quad
                 )
             d["IFCs"] = pn.Row(
-                self.pws_col(["### IFCs options",
+                self.pws_col(["## IFCs options",
                                "asr", "dipdip", "chneut", "ifc_yscale", "plot_ifc_btn",
                              ]),
                 self.on_plot_ifc
@@ -470,7 +474,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         if self.ddb.has_strain_terms():
             d["Elastic"] = pn.Row(
-                self.pws_col(["### Elastic options",
+                self.pws_col(["## Elastic options",
                               "asr", "chneut", "compute_elastic_btn",
                               ]),
                 self.on_compute_elastic_btn
@@ -478,7 +482,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         d["Structure"] = self.get_struct_view_tab_entry()
         d["Global"] = pn.Row(
-            self.pws_col(["### Global options", "units", "mpi_procs", "verbose"]),
+            self.pws_col(["## Global options", "units", "mpi_procs", "verbose"]),
             self.get_software_stack()
         )
 
@@ -499,7 +503,7 @@ Post-process the data stored in one of the ABINIT output files.
         self.use_structure = use_structure
         #self.with_input_gen = with_input_gen
         help_md = pn.pane.Markdown(f"""
-### Description
+## Description
 
 {self.info_str}
 
@@ -542,10 +546,10 @@ Also, avoid uploading big files (size > XXX).
 
         if self.use_structure:
             title = "Structure Analyzer"
-            msg = "### Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, POSCAR):"
+            msg = "## Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, POSCAR):"
         else:
             title = "Output File Analyzer"
-            msg = "### Upload (or drag & drop) **any file** supported by AbiPy. See list below:"
+            msg = "## Upload (or drag & drop) **any file** supported by AbiPy. See list below:"
 
         col = pn.Column(
             msg,
@@ -555,7 +559,7 @@ Also, avoid uploading big files (size > XXX).
 
         if self.use_structure:
             col.extend([
-                "### or get the structure from the [Materials Project](https://materialsproject.org/) database:",
+                "## or get the structure from the [Materials Project](https://materialsproject.org/) database:",
                 pn.Row(self.mpid_input, pn.Column(self.mpid_err_wdg), sizing_mode="stretch_width"),
             ])
 
@@ -589,7 +593,7 @@ here it is also possible to fetch the DDB file from the Materials Project Databa
         super().__init__(**params)
 
         help_md = pn.pane.Markdown(f"""
-### Description
+## Description
 
 {self.info_str}
 """)
@@ -629,9 +633,9 @@ here it is also possible to fetch the DDB file from the Materials Project Databa
     def get_panel(self):
 
         col = pn.Column(
-            "### Upload (or drag & drop) a DDB file:",
+            "## Upload (or drag & drop) a DDB file:",
             self.get_fileinput_section(self.file_input),
-            "### or get the DDB from the [Materials Project](https://materialsproject.org/) database (*if available*):",
+            "## or get the DDB from the [Materials Project](https://materialsproject.org/) database (*if available*):",
             pn.Row(self.mpid_input, pn.Column(self.mpid_err_wdg), sizing_mode="stretch_width"),
             sizing_mode="stretch_width")
 
@@ -652,7 +656,7 @@ This app alllows users to upload a DDB file and compare it with the one availabl
         super().__init__(**params)
 
         help_md = pn.pane.Markdown(f"""
-### Description
+## Description
 
 {self.info_str}
 """)
@@ -684,9 +688,9 @@ This app alllows users to upload a DDB file and compare it with the one availabl
 
     def get_panel(self):
         col = pn.Column(
-            "### Upload (or drag & drop) a DDB file:",
+            "## Upload (or drag & drop) a DDB file:",
             self.get_fileinput_section(self.file_input),
-            pn.Row("### Fetching data from the MP website: ", self.mp_progress, self.mp_err_wdg,
+            pn.Row("## Fetching data from the MP website: ", self.mp_progress, self.mp_err_wdg,
                    sizing_mode="stretch_width"),
             sizing_mode="stretch_width")
 
@@ -735,11 +739,11 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         col = pn.Column(sizing_mode='stretch_both'); ca = col.append
 
         if "combiplot" in self.combiplot_check_btn.value:
-            ca("### Combiplot:")
+            ca("## Combiplot:")
             ca(ply(r.phbands_plotter.combiplotly(units=self.units, show=False)))
 
         if "gridplot" in self.combiplot_check_btn.value:
-            ca("### Gridplot:")
+            ca("## Gridplot:")
             # FIXME implement with_dos = True
             ca(ply(r.phbands_plotter.gridplotly(units=self.units, with_dos=False, show=False)))
 
@@ -770,13 +774,13 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     #        #l = pn.pane.LaTeX
 
     #        eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.eps0_gamma_ev)
-    #        ca(r"### $\epsilon^0$ in Cart. coords (computed with Gamma_eV):")
+    #        ca(r"## $\epsilon^0$ in Cart. coords (computed with Gamma_eV):")
     #        ca(dfc(eps0.get_dataframe(cmode="real"), **df_kwargs))
-    #        ca(r"### $\epsilon^\infty$ in Cart. coords:")
+    #        ca(r"## $\epsilon^\infty$ in Cart. coords:")
     #        ca(dfc(epsinf.get_dataframe(), **df_kwargs))
-    #        ca("### Born effective charges in Cart. coords:")
+    #        ca("## Born effective charges in Cart. coords:")
     #        ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
-    #        ca("### Anaddb input file.")
+    #        ca("## Anaddb input file.")
     #        ca(self.html_with_clipboard_btn(inp))
 
     #        return col
@@ -830,20 +834,20 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     #        # Fill column
     #        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-    #        ca("### Phonon band structure and DOS:")
+    #        ca("## Phonon band structure and DOS:")
     #        ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
     #        #ca(mpl(phbands.plot_with_phdos(phdos, units=self.units, **self.mpl_kwargs)))
     #        #ca(mpl(phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.mpl_kwargs)))
     #        #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
     #        temps = self.temp_range.value
-    #        ca("### Thermodynamic properties in the harmonic approximation:")
+    #        ca("## Thermodynamic properties in the harmonic approximation:")
     #        #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
     #        ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
     #        #msqd_dos.plot_tensor(**self.mpl_kwargs)
     #        #self.plot_phbands_btn.button_type = "primary"
 
     #        # Add HTML pane with input
-    #        ca("### Anaddb input file:")
+    #        ca("## Anaddb input file:")
     #        ca(self.html_with_clipboard_btn(inp))
 
     #        return col
@@ -901,9 +905,9 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         # Fill column
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-        ca("### Phonon bands and DOS with/wo acoustic sum rule:")
+        ca("## Phonon bands and DOS with/wo acoustic sum rule:")
         ca(ply(asr_plotter.combiplotly(show=False)))
-        ca("### Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
+        ca("## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
         ca(ply(dipdip_plotter.combiplotly(show=False)))
 
         return col
@@ -957,7 +961,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         #    self.plot_vsound)
         #))
         #d["ASR & DIPDIP"] = pn.Row(
-        #    self.pws_col(["### ASR & DIPDIP options", "nqsmall", "ndivsm", "dos_method", "plot_without_asr_dipdip_btn",
+        #    self.pws_col(["## ASR & DIPDIP options", "nqsmall", "ndivsm", "dos_method", "plot_without_asr_dipdip_btn",
         #                  self.helpc("plot_without_asr_dipdip")]),
         #    self.plot_without_asr_dipdip
         #)
@@ -983,7 +987,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         #    self.on_plot_ifc)
         #))
         d["Global"] = pn.Row(
-            self.pws_col(["### Global options", "units", "mpi_procs", "verbose"]),
+            self.pws_col(["## Global options", "units", "mpi_procs", "verbose"]),
             self.get_software_stack()
         )
 
@@ -1001,7 +1005,7 @@ a set of ABINIT output files of the same type.
     def __init__(self, **params):
 
         help_md = pn.pane.Markdown(f"""
-### Description
+## Description
 
  {self.info_str}
 """)
@@ -1060,7 +1064,7 @@ Files and folders may be selected by selecting them in the browser on the left a
 to the right with the arrow buttons.
 """)
         col = pn.Column(
-            "### Select files (all with the same extension e.g. *_DDB:)",
+            "# Select files (all with the same extension e.g. *_DDB:)",
             self.file_selector,
             pn.Row(self.robot_files_btn, pn.Accordion(("Help", help_md), sizing_mode="stretch_width"),
                    sizing_mode="stretch_width"),

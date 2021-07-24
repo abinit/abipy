@@ -21,8 +21,9 @@ from abipy.core.release import version
 @click.option('--has-remote-server', default=False, is_flag=True,
               help="True if we are running on the ABINIT server. This flag activates limitations on what the user can do." +
                    "Default: False")
+@click.option('--verbose', default=0, help="Verbosity level")
 @click.version_option(version=version, message='%(version)s')
-def gui_app(port, address, show, num_procs, panel_template, has_remote_server):
+def gui_app(port, address, show, num_procs, panel_template, has_remote_server, verbose):
 
     from abipy.panels.core import abipanel, get_abinit_template_cls_kwds, AbipyParameterized
     import abipy.panels as mod
@@ -137,6 +138,7 @@ with extensions that are not recognized by AbiPy.
                   #dev=True,
                   #start=True,
                   show=show,
+                  debug=verbose > 0,
                   #title=app_title,
                   num_procs=num_procs,
                   static_dirs={"/assets": assets_path},

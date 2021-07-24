@@ -5,22 +5,17 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from .core import (PanelWithElectronBands, NcFileMixin,
+from .core import (PanelWithElectronBands,
   PanelWithEbandsRobot, ButtonContext, ply, mpl, dfc, depends_on_btn_click)
 
 
-class GsrFilePanel(PanelWithElectronBands, NcFileMixin):
+class GsrFilePanel(PanelWithElectronBands):
     """
     Panel with widgets to interact with a |GsrFile|.
     """
     def __init__(self, gsr, **params):
         PanelWithElectronBands.__init__(self, ebands=gsr.ebands, **params)
         self.gsr = gsr
-
-    @property
-    def ncfile(self):
-        """This for for the NcFileMixin mixin"""
-        return self.gsr
 
     def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the GSR file."""
@@ -52,10 +47,10 @@ class GsrFilePanel(PanelWithElectronBands, NcFileMixin):
                 #d["fsviewer"] = self.get_fsviewer_view()
 
         d["Structure"] = self.get_struct_view_tab_entry()
+        d["NcFile"] = self.gsr.get_ncfile_view()
 
         # TODO
-        #app(("NcFile", self.get_ncfile_panel()))
-        #app(("Global", pn.Row(
+        #d["Global"] = pn.Row(
         #    pn.Column("# Global options",
         #              *self.pws("units", "mpi_procs", "verbose"),
         #              ),

@@ -73,7 +73,7 @@ This application allows users to analyze the Abinit main output file
         super().__init__(**params)
 
         help_md = pn.pane.Markdown(f"""
-### Description
+## Description
 
 {self.info_str}
 """)
@@ -96,7 +96,7 @@ This application allows users to analyze the Abinit main output file
 
     def get_panel(self, **kwargs):
 
-        col = pn.Column("### Upload (or drag & drop) an *.abo* file (main ABINIT output file):",
+        col = pn.Column("## Upload (or drag & drop) an *.abo* file (main ABINIT output file):",
                         self.get_fileinput_section(self.file_input),
                         sizing_mode="stretch_width")
 

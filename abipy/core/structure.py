@@ -737,10 +737,15 @@ class Structure(pmg_Structure, NotebookWriter):
 
         raise ValueError(f"Unknown fmt: {fmt}")
 
-    def get_panel(self, **kwargs):
-        """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
+    def get_panel(self, with_inputs=True, **kwargs):
+        """
+        Build panel with widgets to interact with the structure either in a notebook or in a bokeh app.
+
+        Args:
+            with_inputs: True if tabs for generating input files should be shown.
+        """
         from abipy.panels.structure import StructurePanel
-        return StructurePanel(structure=self, with_inputs=True).get_panel(**kwargs)
+        return StructurePanel(structure=self).get_panel(with_inputs=with_inputs, **kwargs)
 
     def get_conventional_standard_structure(self, international_monoclinic=True,
                                            symprec=1e-3, angle_tolerance=5):

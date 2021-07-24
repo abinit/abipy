@@ -179,12 +179,20 @@ class AbinitNcFile(BaseFile):
         import pandas as pd
         return pd.DataFrame.from_dict(d, orient='index', columns=['value'])
 
-    #def get_abinit_input_str(self, path="/"):
-    #    group = self.reader.rootgrp if path == "/" else self.path2group[path]
-    #    input_string = group.get_varname_set("input_string")
-    #    return input_string
-    #    from abipy.abio.inputs import AbinitInput
-    #    return AbinitInput(structure, pseudos, pseudo_dir=None, abi_kwargs=None)
+    def get_input_string(self):
+        """
+        Read and return input string stored in the netcdf.
+        Only nc files generared by Abinit9 have this variable.
+        """
+        if "input_string" in self.reader.rootgrp.variables:
+            return self.reader.read_string("input_string")
+        else:
+            return "Nc file does not contain `input_string`"
+
+    def get_ncfile_view(self):
+        from abipy.panels.core import NcFileViewer
+        v = NcFileViewer(self).get_ncfile_view()
+        return v
 
 
 class AbinitFortranFile(BaseFile):

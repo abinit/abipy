@@ -34,13 +34,16 @@ class HistFilePanel(AbipyParameterized):
         """
         col = pn.Column(sizing_mode="stretch_width"); ca = col.append
         for what in self.what_list.value:
-            #ca(f"### {what}")
+            #ca(f"## {what}")
             ca(ply(self.hist.plotly(what, title=what, show=False)))
 
         return col
 
     @depends_on_btn_click('view_relax_btn')
     def on_view_relax_btn(self):
+        """
+        Visalize the structural relaxation with an external application.
+        """
         return self.hist.visualize(appname=self.appname.value, to_unit_cell=self.to_unit_cell.value)
 
     def get_panel(self, as_dict=False, **kwargs):
@@ -51,12 +54,13 @@ class HistFilePanel(AbipyParameterized):
                               sizing_mode="scale_both"))
 
         d["Plot"] = pn.Row(
-                self.pws_col(["### Plot Options", "what_list", "plot_relax_btn", self.helpc("on_plot_relax_btn")]),
+                self.pws_col(["## Plot Options", "what_list", "plot_relax_btn"]),
                 self.on_plot_relax_btn
         )
 
         if not self.has_remote_server:
-            # As we don't have visualizers that can work in remote server mode, this tab should not be created.
+            # As we don't have visualizers that can work in remote server mode,
+            # this tab should not be created.
             d["Visualize"] = pn.Row(
                     pn.Column(self.appname, self.to_unit_cell, self.view_relax_btn),
                     self.on_view_relax_btn

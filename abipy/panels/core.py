@@ -19,19 +19,10 @@ from abipy.core import abinit_units as abu
 from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
 from abipy.tools.context_managers import Timer
+from abipy.tools.decorators import Appender
 
 
 _ABINIT_TEMPLATE_NAME = "FastList"
-
-
-def get_abinit_template_cls_kwds():
-    cls =  get_template_cls_from_name(_ABINIT_TEMPLATE_NAME)
-    kwds = dict(header_background="#ff8c00", # Dark orange
-                #favicon="assets/img/abinit_favicon.ico",
-                #logo="assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
-                )
-
-    return cls, kwds
 
 
 def set_abinit_template(template_name):
@@ -39,7 +30,23 @@ def set_abinit_template(template_name):
     _ABINIT_TEMPLATE_NAME = template_name
 
 
+def get_abinit_template_cls_kwds():
+    cls =  get_template_cls_from_name(_ABINIT_TEMPLATE_NAME)
+    kwds = dict(header_background="#ff8c00", # Dark orange
+                #favicon="assets/img/abinit_favicon.ico",
+                #logo="assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
+                #sidebar_footer (str): Can be used to insert additional HTML.
+                #                      For example a menu, some additional info, links etc.
+                #enable_theme_toggle=False,  # If True a switch to toggle the Theme is shown. Default is True.
+                )
+
+    return cls, kwds
+
+
 def open_html(html_string, browser=None):
+    """
+    Open a string with an HTML document in browser.
+    """
     import tempfile
     import webbrowser
     with tempfile.NamedTemporaryFile(mode="wt", suffix=".html", delete=False) as tmpfile:
@@ -74,9 +81,8 @@ def abipanel(panel_template="FastList"):
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
     #print("loading extensions:", extensions)
 
-    #import os
-    #here = os.path.dirname(__file__)
-    #abipy_css = os.path.join(here, "assets", "css", "abipy.css")
+    import os
+    abipy_css = os.path.join(os.path.dirname(__file__), "assets", "css", "abipy.css")
 
     pn.extension(*extensions) #, css_files=[abipy_css])
 
@@ -92,6 +98,21 @@ def abipanel(panel_template="FastList"):
     #})
     #pn.extension(comms='ipywidgets')
     #pn.config.sizing_mode = "stretch_width"
+
+    #css = """
+    #    .pnx-file-upload-area input[type=file] {
+    #        width: 100%;
+    #        height: 100%;
+    #        border: 3px dashed #9E9E9E;
+    #        background: transparent;
+    #        border-radius: 5px;
+    #        text-align: left;
+    #        margin: auto;
+    #    }
+    #"""
+
+    #css = open(abipy_css, "rt").read()
+    #pn.config.raw_css.append(css)
 
     return pn
 
@@ -132,6 +153,16 @@ Possible templates are: {list(pn.template.__dict__.keys())}
 """)
 
 
+add_mp_rest_docstring = Appender("""
+NB: Requires a String API key for accessing the MaterialsProject REST interface.
+Please apply on the Materials Project website for one.
+If this is None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
+If so, it will use that environment
+This makes easier for heavy users to simply add this environment variable to their setups and MPRester can
+then be called without any arguments.
+""", indents=0)
+
+
 def depends_on_btn_click(btn_name, show_doc=True, show_shared_wdg_warning=True, show_exc=True):
     """
     This decorator is used for callbacks triggered by a button of name `btn_name`
@@ -153,7 +184,7 @@ def depends_on_btn_click(btn_name, show_doc=True, show_shared_wdg_warning=True, 
                     if doc is None:
                         doc = f"\nNo docstring found for function `{func.__name__}`\n"
                     doc = textwrap.dedent(doc)
-                    doc = f"### Description\n\n{doc}\n\n"
+                    doc = f"## Description\n\n{doc}\n\n"
                     #print(doc)
                     objects = [my_md(doc)]
                     if show_shared_wdg_warning and self._enable_show_shared_wdg_warning:
@@ -211,7 +242,8 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
     Requires call to abipanel to load the JS extension.
     """
 
-    # This counter is shared by all the instances. We use it so that the js script is included only once.
+    # This counter is shared by all the instances.
+    # We use it so that the js script is included only once.
     _init_counter = [0]
 
     def __init__(self, object=None, btn_cls=None, **params):
@@ -419,13 +451,13 @@ def dfc(df,
 
 def my_md(string, **kwargs):
     """
-    Return a Markdown pane from a string. Extra kwargs are passed to pane.Markdown.
-    The string can contain links to Abinit variables in the wikiling format.
+    Return a Markdown pane from `string`.
+    Extra kwargs are passed to pane.Markdown.
+    The string can contain links to Abinit variables in the wikilink format.
 
     .. example::
 
-        The anaddb variable [[dipdip@anaddb]] has the same meaning as the
-        Abinit variable [[dipdip]].
+        The anaddb variable [[dipdip@anaddb]] has the same meaning as the Abinit variable [[dipdip]].
     """
     import re
     WIKILINK_RE = r'\[\[([^\[]+)\]\]'
@@ -448,7 +480,7 @@ def my_md(string, **kwargs):
 
     # TODO: Latex
     extra_extensions = [
-         #"markdown.extensions.admonition",
+         "markdown.extensions.admonition",
          #'pymdownx.arithmatex',
          #'pymdownx.details',
          #"pymdownx.tabbed",
@@ -504,9 +536,6 @@ class ButtonContext():
         # Back to the original button state.
         self.btn.name, self.btn.button_type = self.prev_name, self.prev_type
 
-        # Don't handle the exception
-        return None
-
 
 class Loading():
     """
@@ -529,13 +558,9 @@ class Loading():
 
         if self.err_wdg is not None:
             if exc_type:
-
                 self.err_wdg.object = "```sh\n%s\n```" % textwrap.fill(str(exc_value), width=self.width)
             #else:
             #    self.err_wdg.object = "OK"
-
-        # Don't handle the exception
-        return None
 
 
 class ActiveBar():
@@ -564,9 +589,6 @@ class ActiveBar():
             if self.err_wdg is not None:
                 from textwrap import fill
                 self.err_wdg.object = "```sh\n%s\n```" % fill(str(exc_value), width=self.width)
-
-        # Don't handle the exception
-        return None
 
 
 SHARED_WIDGETS_WARNING = """
@@ -604,6 +626,7 @@ class AbipyParameterized(param.Parameterized):
     warning = pn.pane.Markdown(SHARED_WIDGETS_WARNING, name="warning")
 
     def __init__(self, **params):
+
         super().__init__(**params)
         if self.has_remote_server:
             self.param.mpi_procs.bounds = (1, 1)
@@ -677,26 +700,26 @@ class AbipyParameterized(param.Parameterized):
         return items
 
     # FIXME: Deprecated
-    def helpc(self, method_name, extra_items=None):
-        """
-        Add accordion with a brief description and a warning after the button.
-        The description of the tool is taken from the docstring of the callback.
-        Return Column.
-        """
-        col = pn.Column(); ca = col.append
-        acc = pn.Accordion(("Help", pn.pane.Markdown(getattr(self, method_name).__doc__)))
+    #def helpc(self, method_name, extra_items=None):
+    #    """
+    #    Add accordion with a brief description and a warning after the button.
+    #    The description of the tool is taken from the docstring of the callback.
+    #    Return Column.
+    #    """
+    #    col = pn.Column(); ca = col.append
+    #    acc = pn.Accordion(("Help", pn.pane.Markdown(getattr(self, method_name).__doc__)))
 
-        if hasattr(self, "warning"):
-            acc.append(("Warning", self.warning))
+    #    if hasattr(self, "warning"):
+    #        acc.append(("Warning", self.warning))
 
-        if extra_items is not None:
-            for name, attr in extra_items:
-                acc.append((name, item))
+    #    if extra_items is not None:
+    #        for name, attr in extra_items:
+    #            acc.append((name, item))
 
-        ca(pn.layout.Divider())
-        ca(acc)
+    #    ca(pn.layout.Divider())
+    #    ca(acc)
 
-        return col
+    #    return col
 
     def wdg_exts_with_get_panel(self, name='File extensions supported:'):
         """
@@ -710,13 +733,14 @@ class AbipyParameterized(param.Parameterized):
     def html_with_clipboard_btn(html_str, **kwargs):
         if hasattr(html_str, "_repr_html_"):
             html_str = html_str._repr_html_()
+
         return HTMLwithClipboardBtn(html_str, **kwargs)
 
     @staticmethod
     def get_software_stack():
         """Return column with version of python packages in tabular format."""
         from abipy.abilab import software_stack
-        return pn.Column("### Software stack:", dfc(software_stack(as_dataframe=True), with_export_btn=False),
+        return pn.Column("## Software stack:", dfc(software_stack(as_dataframe=True), with_export_btn=False),
                          sizing_mode="scale_width")
 
     @staticmethod
@@ -810,7 +834,6 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
             # A title to show in the header. Also added to the document head meta settings and as the browser tab title.
             title=self.__class__.__name__,
             header_background="#ff8c00", # Dark orange
-            #favicon (str): URI of favicon to add to the document head (if local file, favicon is base64 encoded as URI).
             #favicon="assets/img/abinit_favicon.ico",
             #logo="assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
             #sidebar_footer (str): Can be used to insert additional HTML. For example a menu, some additional info, links etc.
@@ -835,7 +858,7 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
 
 class PanelWithStructure(AbipyParameterized):
     """
-    Mixin class for panel objects providing a |Structure| object.
+    A paremeterized object with a |Structure| object.
     """
 
     structure_viewer = param.ObjectSelector(default="jsmol",
@@ -869,11 +892,11 @@ class PanelWithStructure(AbipyParameterized):
             #display(view)
             #return pn.Row(display(view))
             #view = pn.ipywidget(view)
-            view = pn.panel(view)
+            #view = pn.panel(view)
             #view = pn.pane.IPyWidget(view)
-            print(view)
+            #print(view)
             #view = pn.Column(view, sizing_mode='stretch_width')
-            return view
+            #return view
 
         if v == "crystalk":
             view = self.structure.get_crystaltk_view()
@@ -931,7 +954,7 @@ class PanelWithStructure(AbipyParameterized):
         Return tab entry to visualize the structure.
         """
         return pn.Row(
-            self.pws_col(["### Visualize structure",
+            self.pws_col(["## Visualize structure",
                           "structure_viewer", "view_structure_btn",
                           ]),
             pn.Column(self.on_view_structure, self.get_structure_info())
@@ -985,32 +1008,32 @@ def get_structure_info(structure):
     return col
 
 
-class NcFileMixin(param.Parameterized):
+class NcFileViewer(param.Parameterized):
     """
-    This mixin class allows the user to inspect the dimensions and the variables
-    reported in a netcdf file. Subclasses should implement the `ncfile` property
+    This class implements toool to inspect dimensions and variables stored in a netcdf file.
+
+    Relyes on the API provided by `AbinitNcFile` defined in core.mixins.py
     """
 
-    #def __init__(self, ncfile, **params)
-    #    super().__init__(**params)
-    #    self.ncfile = ncfile
+    nc_path = param.String("/", doc="nc group")
 
-    @property
-    def ncfile(self):
-        """abc does not play well with parametrized so we rely on this to enforce the protocol."""
-        raise NotImplementedError("subclass should implement the `ncfile` property.")
+    def __init__(self, ncfile, **params):
+        super().__init__(**params)
+        self.ncfile = ncfile
 
-    def get_ncfile_panel(self):
+    def get_ncfile_view(self):
+        # TODO: Finalize the implementation.
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
         #nc_grpname = pnw.Select(name="nc group name", options=["/"])
+        input_string = self.ncfile.get_input_string()
+        ca(f"## Input String")
+        ca(input_string)
 
         # Get dataframe with dimensions.
-        dims_df = self.ncfile.get_dims_dataframe(path="/")
+        dims_df = self.ncfile.get_dims_dataframe(path=self.nc_path)
+        ca(f"## Dimensions in nc group: {self.nc_path}")
         ca(dfc(dims_df))
-
-        #vars_df = self.ncfile.get_dims_dataframe(path="/")
-        #ca(dfc(vars_df))
 
         #ca(("NCFile", pn.Row(
         #    pn.Column("# NC dimensions and variables",
@@ -1024,8 +1047,6 @@ class NcFileMixin(param.Parameterized):
 class PanelWithElectronBands(PanelWithStructure):
     """
     Mixin class for panel object associated to AbiPy object providing an |ElectronBands| object.
-
-    Subclasses should implement the `ebands` property.
     """
 
     # Bands plot
@@ -1040,7 +1061,8 @@ class PanelWithElectronBands(PanelWithStructure):
     set_fermie_to_vbm = param.Boolean(False, label="Set Fermi energy to VBM")
 
     # e-DOS plot.
-    edos_method = param.ObjectSelector(default="gaussian", objects=["gaussian", "tetra"], label="Integration method for e-DOS")
+    edos_method = param.ObjectSelector(default="gaussian", label="Integration method for e-DOS",
+                                       objects=["gaussian", "tetra"])
     edos_step_ev = param.Number(0.1, bounds=(1e-6, None), step=0.1, label='e-DOS step in eV')
     edos_width_ev = param.Number(0.2, step=0.05, bounds=(1e-6, None), label='e-DOS Gaussian broadening in eV')
 
@@ -1057,8 +1079,7 @@ class PanelWithElectronBands(PanelWithStructure):
     ifermi_wigner_seitz = param.Boolean(True, label="Use Wigner Seitz cell",
                                         doc="Controls whether the cell is the Wigner-Seitz cell" +
                                             "or the reciprocal unit cell parallelepiped.")
-    ifermi_interpolation_factor = param.Integer(default=8, label="Interpolation factor",
-                                                bounds=(1, None),
+    ifermi_interpolation_factor = param.Integer(default=8, label="Interpolation factor", bounds=(1, None),
                                                 doc="The factor by which the band structure will be interpolated.")
 
     ifermi_eref = param.ObjectSelector(default="fermie", label="Energy reference",
@@ -1098,9 +1119,9 @@ class PanelWithElectronBands(PanelWithStructure):
         self.ifermi_plane_normal = pnw.LiteralInput(name='Plane normal (list)', value=[0, 0, 0], type=list,
                                                     placeholder="Enter normal in reduced coordinates")
 
-        end = 2 * max(ebands.structure.reciprocal_lattice.abc)
         self.ifermi_distance = pn.widgets.RangeSlider(
-                name='distance', start=0, end=end, value=(0, 0), step=0.01)
+                name='distance', start=0, end=2 * max(ebands.structure.reciprocal_lattice.abc),
+                value=(0, 0), step=0.01)
 
         #ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
         #ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
@@ -1147,7 +1168,7 @@ class PanelWithElectronBands(PanelWithStructure):
 
         sz_mode = "stretch_width"
         col = pn.Column(sizing_mode=sz_mode); ca = col.append
-        ca("### Electronic band structure:")
+        ca("## Electronic band structure:")
         fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps, max_phfreq=None, show=False)
         ca(ply(fig1))
 
@@ -1155,7 +1176,7 @@ class PanelWithElectronBands(PanelWithStructure):
         ktype = "IBZ sampling" if self.ebands.kpoints.is_ibz else "**k**-path"
         max_nkpt = 2000
 
-        ca(f"### Brillouin zone and {ktype}:")
+        ca(f"## Brillouin zone and {ktype}:")
         if nkpt < max_nkpt:
             kpath_pane = ply(self.ebands.kpoints.plotly(show=False), with_divider=False)
             df_kpts = dfc(self.ebands.kpoints.get_highsym_datataframe(), with_divider=False)
@@ -1190,11 +1211,11 @@ class PanelWithElectronBands(PanelWithStructure):
                                        kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
                                        verbose=self.verbose)
 
-        ca("### SKW interpolated bands along an automatically selected high-symmetry **k**-path")
+        ca("## SKW interpolated bands along an automatically selected high-symmetry **k**-path")
         ca(ply(intp.ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
 
         if self.skw_ebands_kpath is not None:
-            ca("### Input bands taken from file uploaded by user:")
+            ca("## Input bands taken from file uploaded by user:")
             ca(ply(self.skw_ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
 
             # Use line_density 0 to interpolate on the same set of k-points given in self.skw_ebands_kpath
@@ -1207,7 +1228,7 @@ class PanelWithElectronBands(PanelWithStructure):
                                             verbose=self.verbose)
 
             plotter = self.skw_ebands_kpath.get_plotter_with("Input", "Interpolated", intp.ebands_kpath)
-            ca("### Input bands vs SKW interpolated bands:")
+            ca("## Input bands vs SKW interpolated bands:")
             ca(ply(plotter.combiplotly(show=False)))
 
         return col
@@ -1221,10 +1242,10 @@ class PanelWithElectronBands(PanelWithStructure):
         )
 
         return pn.Row(
-            self.pws_col(["### SKW options",
+            self.pws_col(["## SKW options",
                           "skw_lpratio", "skw_line_density", "with_gaps",
-                          "#### Upload GSR.nc file with *ab-initio* energies along k-path to compare with", wdg,
-                          "plot_skw_btn"
+                          "## Upload GSR.nc file with *ab-initio* energies along a k-path to compare with", wdg,
+                          "plot_skw_btn",
                           ]),
             self.on_plot_skw_btn)
 
@@ -1275,9 +1296,9 @@ class PanelWithElectronBands(PanelWithStructure):
         col = pn.Column(sizing_mode="stretch_width")
         ca = col.append
         if self.ifermi_wigner_seitz:
-            ca("### Energy isosurface in the Wigner-Seitz unit cell")
+            ca("## Energy isosurface in the Wigner-Seitz unit cell")
         else:
-            ca("### Energy isosurface in the reciprocal unit cell parallelepiped")
+            ca("## Energy isosurface in the reciprocal unit cell parallelepiped")
         ca(fig)
 
         ifermi_plane_normal = self.ifermi_plane_normal.value
@@ -1287,7 +1308,7 @@ class PanelWithElectronBands(PanelWithStructure):
             from ifermi.plot import FermiSlicePlotter
             for distance in self.ifermi_distance.value:
                 # generate Fermi slice along the (0 0 1) plane going through the Γ-point.
-                ca(f"### Fermi slice along the {ifermi_plane_normal} plane going through the Γ-point at distance: {distance}")
+                ca(f"## Fermi slice along the {ifermi_plane_normal} plane going through the Γ-point at distance: {distance}")
                 fermi_slice = r.fs.get_fermi_slice(plane_normal=ifermi_plane_normal, distance=distance)
                 slice_plotter = FermiSlicePlotter(fermi_slice)
                 plt = slice_plotter.get_plot()
@@ -1297,7 +1318,7 @@ class PanelWithElectronBands(PanelWithStructure):
                 ca(fig)
 
         #ca(pn.layout.Divider())
-        #ca("#### Powered by [ifermi](https://fermisurfaces.github.io/IFermi/)")
+        #ca("## Powered by [ifermi](https://fermisurfaces.github.io/IFermi/)")
 
         return col
 
@@ -1332,7 +1353,7 @@ class PanelWithElectronBands(PanelWithStructure):
     #    #                        self.on_plot_fs_viewer_btn)
 
     #    return pn.Row(
-    #        self.pws_col(["### FS Viewer options",
+    #        self.pws_col(["## FS Viewer options",
     #                      "fs_viewer", "plot_fs_viewer_btn"
     #                      ]),
     #        self.on_plot_fs_viewer_btn)
@@ -1354,6 +1375,7 @@ class BaseRobotPanel(AbipyParameterized):
     @depends_on_btn_click("compare_params_btn")
     def on_compare_params_btn(self):
         """
+        Compare lattice parameters and atomic positions.
         """
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
         transpose = self.transpose_params.value
@@ -1405,7 +1427,9 @@ class PanelWithEbandsRobot(BaseRobotPanel):
 
     @depends_on_btn_click("ebands_plotter_btn")
     def on_ebands_plotter_btn(self):
-
+        """
+        Plot the electronic density of states.
+        """
         ebands_plotter = self.robot.get_ebands_plotter()
         plot_mode = self.ebands_plotter_mode.value
         plot_func = getattr(ebands_plotter, plot_mode, None)
@@ -1426,7 +1450,9 @@ class PanelWithEbandsRobot(BaseRobotPanel):
 
     @depends_on_btn_click("edos_plotter_btn")
     def on_edos_plotter_btn(self):
-        """Plot the electronic density of states."""
+        """
+        Plot the electronic density of states.
+        """
         edos_plotter = self.robot.get_edos_plotter()
         plot_mode = self.edos_plotter_mode.value
         plot_func = getattr(edos_plotter, plot_mode, None)
@@ -1444,9 +1470,7 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
 
     # There's a bug in boken when we use strings with several '" quotation marks
     # To bypass the problem I create a json list of strings and then I use a js variable
-    # to recreate the cif file by joining the tokens.
-    # const elements = ['Fire', 'Air', 'Water'];
-    # var string = elements.join('\n');
+    # to recreate the cif file by joining the tokens with: var string = elements.join('\n');
     import json
     lines = cif_str.split("\n")
     lines = json.dumps(lines, indent=4)

@@ -9,7 +9,8 @@ import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from abipy.core.structure import Structure
-from abipy.panels.core import AbipyParameterized, PanelWithStructure, dfc, mpl, ply, depends_on_btn_click, Loading
+from abipy.panels.core import (AbipyParameterized, PanelWithStructure, dfc, mpl, ply,
+    depends_on_btn_click, Loading,  add_mp_rest_docstring)
 from abipy.tools.decorators import Appender
 
 
@@ -52,7 +53,6 @@ class StructurePanel(PanelWithStructure):
             with_inputs: True if tabs for generating input files should be shown.
         """
         PanelWithStructure.__init__(self, structure=structure, **params)
-        self.with_inputs = with_inputs
 
         # Convert widgets.
         self.output_format = pnw.Select(name="format", value="abinit",
@@ -165,8 +165,8 @@ class StructurePanel(PanelWithStructure):
                                         primitive=primitive, primitive_standard=primitive_standard)
 
         return pn.Row(
-                pn.Column("### Input Structure:", bkw.PreText(text=str(self.structure), sizing_mode='stretch_width')),
-                pn.Column("### Sanitized:", bkw.PreText(text=str(s), sizing_mode='stretch_width')),
+                pn.Column("## Input Structure:", bkw.PreText(text=str(self.structure), sizing_mode='stretch_width')),
+                pn.Column("## Sanitized:", bkw.PreText(text=str(s), sizing_mode='stretch_width')),
                 sizing_mode='stretch_width')
 
     @pn.depends("kpath_format.value", "line_density.value")
@@ -180,7 +180,7 @@ class StructurePanel(PanelWithStructure):
 
         if self.plot_kpath.value:
             # FIXME: I don't know why but these calls open in a new tab.
-            ca("### Brillouin zone and **k**-path:")
+            ca("## Brillouin zone and **k**-path:")
             kpath_pane = ply(self.structure.plotly_bz(pmg_path=True, show=False), with_divider=False)
             df_kpts = dfc(self.structure.hsym_kpoints.get_highsym_datataframe(), with_divider=False)
             ca(pn.Row(kpath_pane, df_kpts))
@@ -285,7 +285,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         This tab allows you to generate a minimalistic ABINIT input file
         for ground-state calculations or structural relaxations.
         In the case of relaxation runs, the following variables are automatically added:
-        [[optcell] = 2, [[ionmov]] = 2, [[ecutsm]] = 0.5 and [[dilatmx]] = 1.05.
+        [[optcell]] = 2, [[ionmov]] = 2, [[ecutsm]] = 0.5 and [[dilatmx]] = 1.05.
         """
         gs_inp = self.get_gs_input()
 
@@ -425,15 +425,19 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         return self._finalize(multi, header=header)
 
-    @depends_on_btn_click('mp_match_btn')
+    @depends_on_btn_click('mp_match_btn', show_shared_wdg_warning=False)
+    @add_mp_rest_docstring
     def on_mp_match_btn(self):
         """
-        Match your structure with the ones available in the MP database."""
+        Match your structure with the ones available in the MP database.
+        Produce table with lattice parameters and space group info.
+        """
         mp = self.structure.mp_match()
         if not mp.structures:
             return pn.Column("## No structure found in the MP database")
 
-        return pn.Column(dfc(mp.lattice_dataframe), sizing_mode='stretch_width')
+        return pn.Column(dfc(mp.lattice_dataframe, transpose=True),
+                         sizing_mode='stretch_width')
 
     #@depends_on_btn_click('mp_search_btn')
     #def on_mp_search_btn(self):
@@ -445,20 +449,25 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
     #    return pn.Column(dfc(mp.lattice_dataframe), sizing_mode='stretch_width')
 
-    def get_panel(self, as_dict=False, **kwargs):
-        """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
+    def get_panel(self, with_inputs=True, as_dict=False, **kwargs):
+        """
+        Build panel with widgets to interact with the structure either in a notebook or in a bokeh app.
+
+        Args:
+            with_inputs: True if tabs for generating input files should be shown.
+        """
         d = {}
 
         d["Summary"] = pn.Row(bkw.PreText(text=self.structure.to_string(verbose=self.verbose),
                               sizing_mode="scale_both"))
         d["Spglib"] = pn.Row(
-            self.pws_col(['### Spglib options',
+            self.pws_col(['## Spglib options',
                           "spglib_symprec", "spglib_angtol", #, self.helpc("spglib_summary")
                         ]),
             self.spglib_summary
         )
         d["AbiSanitize"] = pn.Row(
-            self.pws_col(['### Spglib options',
+            self.pws_col(['## Spglib options',
                           "spglib_symprec", "spglib_angtol", "select_primitive", "abisanitize_btn",
                           pn.layout.Divider(),
                           #self.helpc("on_abisanitize_btn")
@@ -466,24 +475,24 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
             self.on_abisanitize_btn
         )
         d["Kpath"] = pn.Row(
-            self.pws_col(['### K-path options',
+            self.pws_col(['## K-path options',
                           "kpath_format", "line_density", "plot_kpath",
                           #self.helpc("get_kpath")
                          ]),
             self.get_kpath
         )
         d["Convert"] = pn.Row(
-            self.pws_col(["### Convert structure", "output_format",
+            self.pws_col(["## Convert structure", "output_format",
                          #self.helpc("convert")
                          ]),
             self.convert
         )
         d["Viewer"] = self.get_struct_view_tab_entry()
 
-        # Add tabs to generate inputs from structure.
-        if self.with_inputs:
+        if with_inputs:
+            # Add tabs to generate inputs from structure.
             d["GS-input"] = pn.Row(
-                self.pws_col(['### Generate GS input',
+                self.pws_col(['## Generate GS input',
                               "gs_type", "spin_mode", "kppra", "smearing_type", "tsmear", "xc_type", "pseudos_type",
                               "gs_input_btn",
                              ]),
@@ -491,7 +500,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
             )
 
             d["Ebands-input"] = pn.Row(
-                self.pws_col(['### Generate Ebands input',
+                self.pws_col(['## Generate Ebands input',
                               "spin_mode", "kppra", "edos_kppra", "smearing_type", "tsmear",
                               "xc_type", "pseudos_type",
                               "ebands_input_btn",
@@ -499,7 +508,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
                 self.on_ebands_input_btn
             )
             d["PH-input"] = pn.Row(
-                self.pws_col(['### Generate phonon input',
+                self.pws_col(['## Generate phonon input',
                               "spin_mode", "kppra", "smearing_type", "tsmear",
                               "with_becs", "xc_type", "pseudos_type",
                               "ph_input_btn",
@@ -507,9 +516,9 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
                 self.on_ph_input_btn
             )
 
-        d["MP-match"] = pn.Column(pn.Row(self.mp_match_btn, align="center"),
+        d["MP-match"] = pn.Column(self.on_mp_match_btn,
                                   pn.layout.Divider(),
-                                  self.on_mp_match_btn,
+                                  pn.Row(self.mp_match_btn, align="center"),
                                   sizing_mode="stretch_width")
 
         if as_dict: return d
@@ -542,7 +551,7 @@ or through the Materials Project identifier (*mp-id*).
         #self.spglib_angtol = pnw.Spinner(name="angtol", value=5, start=0.0, end=None, step=1)
 
         help_md = pn.pane.Markdown(f"""
-### Description
+## Description
 
 {self.info_str}
 """)
@@ -592,9 +601,9 @@ or through the Materials Project identifier (*mp-id*).
     def get_panel(self):
 
         col = pn.Column(
-            "### Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, *POSCAR*):",
+            "## Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, *POSCAR*):",
             self.get_fileinput_section(self.file_input),
-            "### or get the structure from the [Materials Project](https://materialsproject.org/) database:",
+            "## or get the structure from the [Materials Project](https://materialsproject.org/) database:",
             pn.Row(self.mpid_input, pn.Column(self.mpid_err_wdg)), sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
