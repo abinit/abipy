@@ -71,11 +71,11 @@ def abipanel(panel_template="FastList"):
 
     extensions = [
         "plotly",
-        "mathjax",
+        #"mathjax",
+        "terminal",
         #"katex",
         #"tabulator",
         #"ace",   # This enters in conflict with Abipy Book
-
     ]
 
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
@@ -670,6 +670,9 @@ class AbipyParameterized(param.Parameterized):
     def pws_col(self, keys):
         return pn.Column(*self.pws(keys))
 
+    def pws_row(self, keys):
+        return pn.Row(*self.pws(keys))
+
     def pws(self, keys):
         """
         Helper function returning the list of parameters and widgets defined in self from a list of strings.
@@ -720,6 +723,17 @@ class AbipyParameterized(param.Parameterized):
     #    ca(acc)
 
     #    return col
+
+    #def get_summary_view_for_abiobj(self, abiobj):
+    #    text = abiobj.to_string(verbose=self.verbose),
+
+    #    stream = pnw.Terminal(output="\n\n",
+    #        height=1200, # Need this one else the terminal is not show properly
+    #        sizing_mode='stretch_width',
+    #    )
+    #    return stream
+    #    #row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both"))
+    #    #return view
 
     def wdg_exts_with_get_panel(self, name='File extensions supported:'):
         """
@@ -1030,23 +1044,21 @@ class NcFileViewer(param.Parameterized):
         ca(f"## Input String")
         ca(input_string)
 
+        #ca(f"## Global attributes")
+
         # Get dataframe with dimensions.
         dims_df = self.ncfile.get_dims_dataframe(path=self.nc_path)
         ca(f"## Dimensions in nc group: {self.nc_path}")
         ca(dfc(dims_df))
 
-        #ca(("NCFile", pn.Row(
-        #    pn.Column("# NC dimensions and variables",
-        #              dfc(dims_df, wdg_type="tabulator"),
-        #             )),
-        #))
+        #ca(f"## Variables")
 
         return col
 
 
 class PanelWithElectronBands(PanelWithStructure):
     """
-    Mixin class for panel object associated to AbiPy object providing an |ElectronBands| object.
+    Provide widgets and views for operating on |ElectronBands| object.
     """
 
     # Bands plot
@@ -1248,6 +1260,7 @@ class PanelWithElectronBands(PanelWithStructure):
                           "plot_skw_btn",
                           ]),
             self.on_plot_skw_btn)
+
 
     def get_ifermi_view(self):
         """

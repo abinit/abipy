@@ -10,7 +10,7 @@ from abipy.panels.core import AbipyParameterized, mpl, ply, dfc, depends_on_btn_
 
 class AbinitTaskPanel(AbipyParameterized):
     """
-    Panel to interact with an AbiPy Flow.
+    Panel to interact with an AbiPy Task
     """
 
     def __init__(self, task, **params):
@@ -39,6 +39,8 @@ class AbinitTaskPanel(AbipyParameterized):
         #self.structures_btn = pnw.Button(name="Show Structures", button_type='primary')
         #self.structures_io_checkbox = pnw.CheckBoxGroup(
         #    name='Input/Output Structure', value=['output'], options=['input', 'output'], inline=Tru
+
+        self.workdir_selector = pn.widgets.FileSelector(flow.workdir)
 
         super().__init__(**params)
 
@@ -100,21 +102,23 @@ class AbinitTaskPanel(AbipyParameterized):
 
     @depends_on_btn_click("files_btn")
     def on_files_btn(self):
+        """Show the input files of the task."""
 
         col = pn.Column(sizing_mode="stretch_width")
         ca = col.append; cext = col.extend
 
-        input_html = self.html_with_clipboard_btn(self.task.input._repr_html_())
+        #input_html = self.html_with_clipboard_btn(self.task.input._repr_html_())
+        input_html = self.html_with_clipboard_btn(self.task.input)
         cext(["## Input", input_html, pn.layout.Divider()])
 
-        for fname in ["output_file", "job_file", "stderr_file", "mpiabort_file"]: # "log_file",
-            file = getattr(self.task, fname)
-            text = file.read() if file.exists else f"{fname} does not exist"
-            ace = pnw.Ace(value=text, language='text', readonly=True,
-                          sizing_mode='stretch_width', width=900)
-                          #sizing_mode='stretch_width', width=700, height=600)
-            #ca(pn.Accordion((f"{fname}", ace), sizing_mode='stretch_both'))
-            cext([f"## {fname}", ace, pn.layout.Divider()])
+        #for fname in ["output_file", "job_file", "stderr_file", "mpiabort_file"]: # "log_file",
+        #    file = getattr(self.task, fname)
+        #    text = file.read() if file.exists else f"{fname} does not exist"
+        #    #ace = pnw.Ace(value=text, language='text', readonly=True,
+        #    #              sizing_mode='stretch_width', width=900)
+        #    #              #sizing_mode='stretch_width', width=700, height=600)
+        #    #ca(pn.Accordion((f"{fname}", ace), sizing_mode='stretch_both'))
+        #    cext([f"## {fname}", entry, pn.layout.Divider()])
 
         return col
 

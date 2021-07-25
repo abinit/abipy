@@ -131,22 +131,15 @@ def get_parser(with_epilog=False):
     # print option
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
 
-    # panel option
+    # panel options
     parser.add_argument("-pn", '--panel', action='store_true', default=False,
                         help="Open Dashboard in web browser, requires panel package.")
-
     parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
                         help="Specify template for panel dasboard." +
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
-
-    parser.add_argument("--port", default=0, type=int,
-                        help="Allows specifying a specific port when serving panel app")
-    parser.add_argument("--show", type=int,
-                        help="Allows specifying a specific port when serving panel app")
-
-
+    parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
 
     # Expose option.
     parser.add_argument('-e', '--expose', action='store_true', default=False,
@@ -167,6 +160,28 @@ def get_parser(with_epilog=False):
             help='Generate plotly plots in $BROWSER instead of matplotlib. WARNING: Not all the features are supported.')
 
     return parser
+
+
+def serve_kwargs_from_options(options):
+
+    #address = "localhost"
+    if options.no_browser:
+        print("""
+Use:
+
+    ssh -N -f -L localhost:{port}:localhost:{port} username@you_remote_cluster
+
+for port forwarding.
+""")
+
+    return dict(
+        debug=options.verbose > 0,
+        show=not options.no_browser,
+        port=options.port,
+        #address=address,
+        #websocket_origin="{address}:{port}",
+    )
+
 
 
 @prof_main
@@ -262,22 +277,17 @@ def main():
             return 0
 
         elif options.panel:
+            if not hasattr(abifile, "get_panel"):
+                raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
+
             import matplotlib
             matplotlib.use("Agg")
             pn = abilab.abipanel()
 
-            if not hasattr(abifile, "get_panel"):
-                raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
-
             app = abifile.get_panel(template=options.panel_template)
-            kwargs = dict(
-                debug=options.verbose > 0,
-                show=not options.no_browser,
-                port=options.port,
-                address=None,
-            )
-            pn.serve(app, **kwargs)
-            return 0
+            serve_kwargs = serve_kwargs_from_options(options)
+
+            return pn.serve(app, **serve_kwargs)
 
         # Start ipython shell with namespace
         # Use embed because I don't know how to show a header with start_ipython.
@@ -324,13 +334,15 @@ def handle_json(options):
     elif options.panel:
         # Visualize JSON document in panel dashboard
         import json
-        import panel as pn
+        pn = abilab.abipanel()
         with open(options.filepath, "rt") as fh:
             d = json.load(fh)
+
         json_pane = pn.pane.JSON(d, name='JSON', height=300, width=500)
         app = pn.Row(json_pane.controls(jslink=True), json_pane)
-        app.show(debug=options.verbose > 0)
-        return 0
+
+        serve_kwargs = serve_kwargs_from_options(options)
+        return pn.serve(app, **serve_kwargs)
 
     else:
         if options.print:

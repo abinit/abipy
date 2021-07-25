@@ -60,12 +60,14 @@ class WorkPanel(AbipyParameterized):
 
     @depends_on_btn_click("status_btn")
     def on_status_btn(self):
+        """Show the status of the task."""
         stream = StringIO()
         self.flow.show_status(stream=stream, nids=self.nids, verbose=self.verbose)
         return pn.Row(bkw.PreText(text=stream.getvalue()))
 
     @depends_on_btn_click("history_btn")
     def on_history_btn(self):
+        """Show the history of the task."""
         stream = StringIO()
         self.flow.show_history(nids=self.nids, stream=stream)
         return pn.Row(bkw.PreText(text=stream.getvalue()))
@@ -73,7 +75,7 @@ class WorkPanel(AbipyParameterized):
     @depends_on_btn_click("graphviz_btn")
     def on_graphviz_btn(self):
         """
-        Visualize the flow with graphviz.
+        Visualize the work with graphviz.
         """
         node = self.task
         if self.dirtree.value:

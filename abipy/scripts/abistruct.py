@@ -351,6 +351,11 @@ closest points in this particular structure. This is usually what you want in a 
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
+    p_panel.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
+    p_panel.add_argument('--no-browser', action='store_true', default=False,
+                           help=("Start the bokeh server to serve the panel app "
+                                 "but don't open the notebook in the browser.\n"
+                                 "Use this option to connect remotely from localhost to the machine running the kernel"))
 
     # Subparser for kpath.
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
@@ -486,6 +491,27 @@ ehull < show_unstable will be shown.""")
         help="Read structures from HIST.nc or XDATCAR. Print structures in Xcrysden AXSF format to stdout.")
 
     return parser
+
+
+def serve_kwargs_from_options(options):
+
+    #address = "localhost"
+    if options.no_browser:
+        print("""
+Use:
+
+    ssh -N -f -L localhost:{port}:localhost:{port} username@you_remote_cluster
+
+for port forwarding.
+""")
+
+    return dict(
+        debug=options.verbose > 0,
+        show=not options.no_browser,
+        port=options.port,
+        #address=address,
+        #websocket_origin="{address}:{port}",
+    )
 
 
 @prof_main
@@ -768,10 +794,10 @@ def main():
 
     elif options.command == "panel":
         structure = abilab.Structure.from_file(options.filepath)
-        abilab.abipanel()
+        pn = abilab.abipanel()
+        serve_kwargs = serve_kwargs_from_options(options)
         app = structure.get_panel(template=options.panel_template)
-        app.show(debug=options.verbose > 0)
-        return 0
+        return pn.serve(app, **serve_kwargs)
 
     elif options.command == "visualize":
         structure = abilab.Structure.from_file(options.filepath)

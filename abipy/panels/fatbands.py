@@ -15,15 +15,11 @@ class FatBandsFilePanel(PanelWithElectronBands):
 
     def __init__(self, ncfile, **params):
         PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
-        self._ncfile = ncfile
+        self.ncfile = ncfile
 
         # Create buttons
         self.plot_fatbands_btn = pnw.Button(name="Plot fatbands", button_type='primary')
         self.plot_fatdos_btn = pnw.Button(name="Plot fatdos", button_type='primary')
-
-    @property
-    def ncfile(self):
-        return self._ncfile
 
     @depends_on_btn_click('plot_fatbands_btn')
     def on_plot_fatbands_btn(self):
@@ -96,6 +92,9 @@ class FatBandsFilePanel(PanelWithElectronBands):
 
         else:
             raise ValueError("Neither a IBZ nor k-path!")
+
+        d["Structure"] = self.get_struct_view_tab_entry()
+        d["NcFile"] = self.ncfile.get_ncfile_view()
 
         if as_dict: return d
 

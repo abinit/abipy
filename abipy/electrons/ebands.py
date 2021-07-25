@@ -2762,7 +2762,7 @@ class ElectronBands(Has_Structure):
         try:
             from ifermi.interpolate import FourierInterpolator
         except ImportError:
-            raise ImportError("Cannot import ifermi package. Please install the package\n:" +
+            raise ImportError("Cannot import ifermi package.\nPlease install the package " +
                               "following the instructions given at: https://github.com/fermisurfaces/IFermi")
 
         # interpolate the energies onto a dense k-point mesh

@@ -524,6 +524,7 @@ Default: o
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
 
+    # Subparser for panel
     p_panel = subparsers.add_parser('panel', parents=[copts_parser, flow_selector_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
     p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
@@ -531,6 +532,12 @@ Default: o
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
+    p_panel.add_argument('--no-browser', action='store_true', default=False,
+                        help=("Start the bokeh server to serve the panel app "
+                              "but don't open the app in the browser.\n"
+                              "Use this option to connect remotely from localhost to the machine running the server"))
+    p_panel.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
+
 
     # Subparser for new_manager.
     p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser],
@@ -649,6 +656,16 @@ Default: o
     p_notebook.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
 
+    # TODO:
+    #parser.add_argument('--classic-notebook', "-cnb", action='store_true', default=False,
+    #                    help="Use classic jupyter notebook instead of jupyterlab.")
+    #parser.add_argument('--no-browser', action='store_true', default=False,
+    #                    help=("Start the jupyter server to serve the notebook "
+    #                          "but don't open the notebook in the browser.\n"
+    #                          "Use this option to connect remotely from localhost to the machine running the kernel"))
+    #parser.add_argument('--foreground', action='store_true', default=False,
+    #                    help="Run jupyter notebook in the foreground.")
+
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser],
         help="Embed IPython. Useful for advanced operations or debugging purposes.")
@@ -720,6 +737,28 @@ Default: o
     p_listext.add_argument('listexts', nargs="*", default=[], help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
     return parser
+
+
+def serve_kwargs_from_options(options):
+
+    #address = "localhost"
+    if options.no_browser:
+        print("""
+Use:
+
+    ssh -N -f -L localhost:{port}:localhost:{port} username@you_remote_cluster
+
+for port forwarding.
+""")
+
+    return dict(
+        debug=options.verbose > 0,
+        show=not options.no_browser,
+        port=options.port,
+        #address=address,
+        #websocket_origin="{address}:{port}",
+    )
+
 
 
 @prof_main
@@ -880,15 +919,17 @@ def main():
             cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
             raise exc
 
-        abilab.abipanel()
+        pn = abilab.abipanel()
+        serve_kwargs = serve_kwargs_from_options(options)
 
         if options.nids is None:
             app = flow.get_panel(template=options.panel_template)
-            app.show(debug=options.verbose > 0)
+            return pn.serve(app, **serve_kwargs)
         else:
+            # TODO: Multipage app?
             for node in flow.iflat_nodes(nids=options.nids):
                 app = node.get_panel(template=options.panel_template)
-                app.show(debug=options.verbose > 0)
+                pn.serve(app, **serve_kwargs)
 
         return 0
 
