@@ -109,7 +109,7 @@ class FlowPanel(NodeParameterized):
         #d["Structures"] = pn.Row(pn.Column(self.structures_io_checkbox, self.structures_btn), self.on_structures_btn)
         ###ws = pn.Column(self.ebands_plotter_mode, self.ebands_ksamp_checkbox, self.ebands_df_checkbox, self.ebands_plotter_btn)
         ###d["Ebands"] = pn.Row(ws, self.on_ebands_btn)
-        d["Browse"] = self.get_workdir_view()
+        #d["Browse"] = self.get_workdir_view()
 
         if as_dict: return d
 

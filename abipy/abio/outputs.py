@@ -784,12 +784,12 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         return figures
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the Abinit output file either in a notebook or in panel app.
         """
         from abipy.panels.outputs import AbinitOutputFilePanel
-        return AbinitOutputFilePanel(self).get_panel()
+        return AbinitOutputFilePanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """

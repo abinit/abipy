@@ -4,7 +4,7 @@ import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import AbipyParameterized, mpl, ply, dfc
+from abipy.panels.core import AbipyParameterized, Loading, mpl, ply, dfc
 
 
 class AbinitOutputFilePanel(AbipyParameterized):
@@ -37,6 +37,21 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
         return box
 
+    def get_outfile_view(self):
+        col = pn.Column(sizing_mode="stretch_width")
+        ca = col.append; cext = col.extend
+
+        filepath = self.outfile.filepath
+        with open(filepath) as fh:
+            text = fh.read()
+
+        ace = pnw.Ace(value=text, language='text', readonly=True,
+                      sizing_mode='stretch_width', height=1200)
+                      #sizing_mode='stretch_width', width=900)
+        cext([f"## Output <small>{filepath}</small>", ace, pn.layout.Divider()])
+
+        return col
+
     def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the Abinit output file."""
         d = {}
@@ -44,6 +59,9 @@ class AbinitOutputFilePanel(AbipyParameterized):
         d["Summary"] = pn.Row(
             bkw.PreText(text=self.outfile.to_string(verbose=self.verbose), sizing_mode="scale_both")
         )
+
+        d["Output"] = self.get_outfile_view()
+
         df = self.outfile.get_dims_spginfo_dataframe().transpose()
         df.index.name = "Dataset"
         d["Dims"] = dfc(df)
@@ -85,14 +103,15 @@ This application allows users to analyze the Abinit main output file
         self.file_input.param.watch(self.on_file_input, "value")
 
     def on_file_input(self, event):
-        new_abifile = self.get_abifile_from_file_input(self.file_input)
 
-        if self.abifile is not None:
-            self.abifile.remove()
+        with Loading(self.main_area):
+            new_abifile = self.get_abifile_from_file_input(self.file_input)
 
-        self.abifile = new_abifile
-        self.main_area.objects = [self.abifile.get_panel()]
-        #self.main_area.append(self.abifile.get_panel())
+            if self.abifile is not None:
+                self.abifile.remove()
+
+            self.abifile = new_abifile
+            self.main_area.objects = [self.abifile.get_panel()]
 
     def get_panel(self, **kwargs):
 

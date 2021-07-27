@@ -304,17 +304,17 @@ class NodeParameterized(AbipyParameterized):
         d["Status"] = self.get_status_view()
         d["History"] = self.get_history_view()
         d["Events"] = self.get_events_view()
+        for where in ("workdir", "outdir", "indir"):
+            if self.filepath_select_dir[where]:
+                d[where.capitalize()] = self.get_files_in_dir_view(where)
+
+        d["Debug"] = self.get_debug_view()
         d["Corrections"] = pn.Row(self.corrections_btn, self.on_corrections_btn)
         d["Handlers"] = pn.Row(self.handlers_btn, self.on_handlers_btn)
         d["Abivars"] = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
         #d["Dims"] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)
-        d["Debug"] = self.get_debug_view()
         #d["Browse"] = self.get_workdir_view()
         d["Graphviz"] = pn.Row(pn.Column(self.engine, self.dirtree, self.graphviz_btn), self.on_graphviz_btn)
-
-        for where in ("workdir", "outdir", "indir"):
-            if self.filepath_select_dir[where]:
-                d[where.capitalize()] = self.get_files_in_dir_view(where)
 
         if as_dict: return d
 

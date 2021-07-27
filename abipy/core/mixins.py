@@ -104,10 +104,6 @@ class BaseFile(metaclass=abc.ABCMeta):
 
 class TextFile(BaseFile):
 
-    #@classmethood
-    #def from_string(cls, s):
-    #    return cls.from_file(filepath)
-
     def __enter__(self):
         # Open the file
         self._file
@@ -131,6 +127,31 @@ class TextFile(BaseFile):
     def seek(self, offset, whence=0):
         """Set the file's current position, like stdio's fseek()."""
         self._file.seek(offset, whence)
+
+
+class JsonFile(TextFile):
+    """
+    A text file with JSON data. Provides get_panel method
+    so that we can visualize the file with `abiopen.py FILE --panel`
+    """
+
+    def get_panel(self, with_controls=True, **kwargs):
+        import json
+        with self:
+            d = json.load(self._file)
+
+        import panel as pn
+        json_pane = pn.pane.JSON(d, name=self.basename,
+                                 #depth=2 # -1 indicates full expansion
+                                 hover_preview=True,
+                                 theme="dark",
+                                 #height=300, width=500,
+                                 sizing_mode="stretch_width",
+                                 )
+        if with_controls:
+            return pn.Row(json_pane.controls(jslink=True), json_pane, sizing_mode="stretch_width")
+        else:
+            return pn.Row(json_pane, sizing_mode="stretch_width")
 
 
 class AbinitNcFile(BaseFile):
@@ -189,10 +210,13 @@ class AbinitNcFile(BaseFile):
         else:
             return "Nc file does not contain `input_string`"
 
-    def get_ncfile_view(self):
+    def get_ncfile_view(self, **kwargs):
+        """
+        Return panel Parameterized object with widgets to visualize
+        netcdf dimensions and variables.
+        """
         from abipy.panels.core import NcFileViewer
-        v = NcFileViewer(self).get_ncfile_view()
-        return v
+        return NcFileViewer(self).get_ncfile_view(**kwargs)
 
 
 class AbinitFortranFile(BaseFile):

@@ -123,7 +123,6 @@ with extensions that are not recognized by AbiPy.
     #    #background_color="yellow",
     #))
 
-
     for url, cls in app_routes.items():
         if url == "/":
             app_routes[url] = Partial(func, cls, main=main_home, **cls_kwds).view

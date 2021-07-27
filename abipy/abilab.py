@@ -31,7 +31,7 @@ from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
 from abipy.core import restapi
 from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
   mp_match_structure, mp_search, cod_search)
-from abipy.core.mixins import CubeFile
+from abipy.core.mixins import JsonFile, CubeFile
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.abio.robots import Robot
@@ -98,6 +98,7 @@ ext2file = collections.OrderedDict([
     (".ucell", Structure),
     ("POSCAR", Structure),
     (".cssr", Structure),
+    (".json", JsonFile),
     (".cube", CubeFile),
     ("anaddb.nc", AnaddbNcFile),
     ("DEN", DensityFortranFile),

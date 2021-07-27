@@ -332,14 +332,10 @@ def handle_json(options):
         return 0
 
     elif options.panel:
-        # Visualize JSON document in panel dashboard
-        import json
+        # Visualize JSON document in panel dashboard.
         pn = abilab.abipanel()
-        with open(options.filepath, "rt") as fh:
-            d = json.load(fh)
-
-        json_pane = pn.pane.JSON(d, name='JSON', height=300, width=500)
-        app = pn.Row(json_pane.controls(jslink=True), json_pane)
+        with abilab.abiopen(options.filepath) as json_file:
+            app = json_file.get_panel()
 
         serve_kwargs = serve_kwargs_from_options(options)
         return pn.serve(app, **serve_kwargs)

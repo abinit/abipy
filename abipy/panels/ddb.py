@@ -527,20 +527,22 @@ Also, avoid uploading big files (size > XXX).
         #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event):
-        new_abifile = self.get_abifile_from_file_input(self.file_input, use_structure=self.use_structure)
 
-        if self.abifile is not None:
-            self.abifile.remove()
+        with Loading(self.main_area):
+            new_abifile = self.get_abifile_from_file_input(self.file_input, use_structure=self.use_structure)
 
-        self.abifile = new_abifile
-        self.main_area.objects = [self.abifile.get_panel()]
+            if self.abifile is not None:
+                self.abifile.remove()
+
+            self.abifile = new_abifile
+            self.main_area.objects = [self.abifile.get_panel()]
 
     def on_mpid_input(self, event):
 
         with Loading(self.mpid_input, err_wdg=self.mpid_err_wdg):
             self.abifile = Structure.from_mpid(self.mpid_input.value)
 
-        self.main_area.objects = [self.abifile.get_panel()]
+            self.main_area.objects = [self.abifile.get_panel()]
 
     def get_panel(self):
 
@@ -613,22 +615,23 @@ here it is also possible to fetch the DDB file from the Materials Project Databa
         #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event):
-        self.mpid_err_wdg.object = ""
-        new_abifile = self.get_abifile_from_file_input(self.file_input)
 
-        if self.abifile is not None:
-            self.abifile.remove()
+        with Loading(self.main_area):
+            self.mpid_err_wdg.object = ""
+            new_abifile = self.get_abifile_from_file_input(self.file_input)
 
-        self.abifile = new_abifile
-        self.main_area.objects = [self.abifile.get_panel()]
+            if self.abifile is not None:
+                self.abifile.remove()
+
+            self.abifile = new_abifile
+            self.main_area.objects = [self.abifile.get_panel()]
 
     def on_mpid_input(self, event):
 
         from abipy.dfpt.ddb import DdbFile
         with Loading(self.mpid_input, err_wdg=self.mpid_err_wdg):
             self.abifile = DdbFile.from_mpid(self.mpid_input.value)
-
-        self.main_area.objects = [self.abifile.get_panel()]
+            self.main_area.objects = [self.abifile.get_panel()]
 
     def get_panel(self):
 
@@ -679,12 +682,12 @@ This app alllows users to upload a DDB file and compare it with the one availabl
         # Match Abinit structure with MP.
         mp = abinit_ddb.structure.mp_match()
 
-        with ActiveBar(self.mp_progress, err_wdg=self.mp_err_wdg):
+        with ActiveBar(self.mp_progress, err_wdg=self.mp_err_wdg), Loading(self.main_area):
             mpid_list = [mp_id for mp_id in mp.ids if mp_id != "this"]
             ddb_robot = DdbRobot.from_mpid_list(mpid_list)
             ddb_robot.add_file("Yours DDB", abinit_ddb)
 
-        self.main_area.objects = [DdbRobotPanel(ddb_robot).get_panel()]
+            self.main_area.objects = [DdbRobotPanel(ddb_robot).get_panel()]
 
     def get_panel(self):
         col = pn.Column(

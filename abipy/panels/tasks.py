@@ -23,7 +23,7 @@ class AbinitTaskPanel(NodeParameterized):
         #self.structures_io_checkbox = pnw.CheckBoxGroup(
         #    name='Input/Output Structure', value=['output'], options=['input', 'output'], inline=Tru
 
-    def on_input_files_tab(self):
+    def get_inputs_view(self):
         """
         Show the input files of the task: submission script and Abinit input file.
         """
@@ -31,60 +31,91 @@ class AbinitTaskPanel(NodeParameterized):
         text = file.read() if file.exists else "Cannot find job_file!"
         job_file = pn.pane.Markdown(f"```shell\n{text}\n```")
 
+        json_pane = pn.pane.JSON(self.task.manager.as_dict(),
+                                 depth=-1, # full expansion
+                                 hover_preview=True,
+                                 theme="dark",
+                                 sizing_mode="stretch_width",
+                                 )
+
         return pn.Column(
             "## Submission script:",
             job_file,
             pn.layout.Divider(),
             "## Input file:",
-            self.html_with_clipboard_btn(self.task.input),
+            self.html_with_clipboard_btn(self.task.input, with_divider=False),
+            pn.layout.Divider(),
+            "## TaskManager:",
+            json_pane,
             sizing_mode="stretch_width",
         )
 
-    def on_err_files_tab(self):
+    def get_errs_view(self):
         """
         Show the error files of the task
+        Return None if no error is found so that we don't show this view in the GUI.
         """
         col = pn.Column(sizing_mode="stretch_width"); cext = col.extend
 
         count = 0
-        for fname in ["stderr_file", "mpiabort_file"]: # "log_file",
+        for fname in ("stderr_file", "mpiabort_file"):
             file = getattr(self.task, fname)
             if file.exists:
                 text = file.read().strip()
                 if text:
-                    cext([f"## {fname}", pn.pane.Markdown(f"```shell\n{text}\n```"), pn.layout.Divider()])
+                    cext([f"## {fname}",
+                         pn.pane.Markdown(f"```shell\n{text}\n```"),
+                         pn.layout.Divider()
+                         ])
                     count += 1
+
+        return col if count > 0 else None
+
+    def get_main_text_outs_view(self):
+        """
+        Show the main text output files of the task.
+        """
+        col = pn.Column(sizing_mode="stretch_width")
+        ca = col.append; cext = col.extend
+
+        for fname in ("output_file", "log_file"):
+            file = getattr(self.task, fname)
+            text = file.read() if file.exists else f"{fname} does not exist"
+            ace = pnw.Ace(value=text, language='text', readonly=True,
+                          sizing_mode='stretch_width', height=1200)
+                          #sizing_mode='stretch_width', width=900)
+            cext([f"## {fname} <small>{file.path}</small>", ace, pn.layout.Divider()])
 
         return col
 
-    @depends_on_btn_click("structures_btn")
-    def on_structures_btn(self):
-        what = ""
-        if "input" in self.structures_io_checkbox.value: what += "i"
-        if "output" in self.structures_io_checkbox.value: what += "o"
-        dfs = self.flow.compare_structures(nids=self.nids,
-                                           what=what,
-                                           verbose=self.verbose, with_spglib=False, printout=False,
-                                           with_colors=False)
+    #@depends_on_btn_click("structures_btn")
+    #def on_structures_btn(self):
+    #    what = ""
+    #    if "input" in self.structures_io_checkbox.value: what += "i"
+    #    if "output" in self.structures_io_checkbox.value: what += "o"
+    #    dfs = self.flow.compare_structures(nids=self.nids,
+    #                                       what=what,
+    #                                       verbose=self.verbose, with_spglib=False, printout=False,
+    #                                       with_colors=False)
 
-        return pn.Row(dfc(dfs.lattice), sizing_mode="scale_width")
+    #    return pn.Row(dfc(dfs.lattice), sizing_mode="scale_width")
 
     def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the flow."""
 
-        d =  super().get_panel(as_dict=True)
-        #return d
-        #d =  {}
+        d = {}
+
+        # This stuff is computed lazyly when the tab is activated.
+        d["Input"] = pn.param.ParamMethod(self.get_inputs_view, lazy=True)
+        d["Output"] = self.get_main_text_outs_view()
+        view = self.get_errs_view()
+        if view is not None: d["ErrFiles"] = view
+
+        super_d =  super().get_panel(as_dict=True)
+        d.update(super_d)
 
         #d["Summary"] = pn.Row(bkw.PreText(text=str(self.task))) # .to_string(verbose=self.verbose)))
         ##d["Structures"] = pn.Row(pn.Column(self.structures_io_checkbox, self.structures_btn), self
-        ###ws = pn.Column(self.ebands_plotter_mode, self.ebands_ksamp_checkbox, self.ebands_df_check
-        ###d["Ebands"] = pn.Row(ws, self.on_ebands_btn)
-
-        # This stuff is computed lazyly when the tab is activated.
-        d["Input"] = pn.param.ParamMethod(self.on_input_files_tab, lazy=True)
-        d["Err"] = pn.param.ParamMethod(self.on_err_files_tab, lazy=True)
-        #d["Outdir"] = self.get_dirview("outdir")
 
         if as_dict: return d
 

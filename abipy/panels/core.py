@@ -77,14 +77,14 @@ def abipanel(panel_template="FastList"):
         "terminal",
         #"katex",
         #"tabulator",
-        #"ace",   # This enters in conflict with Abipy Book
+        "ace",   # NB: This enters in conflict with Abipy Book
     ]
 
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
     #print("loading extensions:", extensions)
 
-    import os
-    abipy_css = os.path.join(os.path.dirname(__file__), "assets", "css", "abipy.css")
+    #import os
+    #abipy_css = os.path.join(os.path.dirname(__file__), "assets", "css", "abipy.css")
 
     pn.extension(*extensions) #, css_files=[abipy_css])
 
@@ -197,6 +197,9 @@ def depends_on_btn_click(btn_name, show_doc=True, show_shared_wdg_warning=True, 
                     return None
 
             with ButtonContext(btn):
+                #col = pn.Column(sizing_mode="stretch_width")
+                #yield col
+                #with Loading(col):
                 return func(*args, **kwargs)
 
         f = pn.depends(f"{btn_name}.clicks")(decorated)
@@ -521,12 +524,14 @@ class ButtonContext():
         # Disable the button.
         self.btn.name = "Executing ..."
         self.btn.button_type = "warning"
+        self.btn.loading = True
         self.btn.disabled = True
         return self.btn
 
     def __exit__(self, exc_type, exc_value, traceback):
         # First of all, reenable the button so that the user can stil interact with the GUI.
         self.btn.disabled = False
+        self.btn.loading = False
 
         if exc_type:
             # Exception --> signal to the user that something went wrong for 2 seconds.
@@ -546,8 +551,7 @@ class Loading():
     def __init__(self, panel_obj, err_wdg=None, width=70):
         self.panel_obj = panel_obj
         self.err_wdg = err_wdg
-        if err_wdg is not None:
-            self.err_wdg.object = ""
+        if err_wdg is not None: self.err_wdg.object = ""
         self.width = int(width)
 
     def __enter__(self):
@@ -572,8 +576,7 @@ class ActiveBar():
     def __init__(self, progress, err_wdg=None, width=70):
         self.progress = progress
         self.err_wdg = err_wdg
-        if err_wdg is not None:
-            self.err_wdg.object = ""
+        if err_wdg is not None: self.err_wdg.object = ""
         self.width = int(width)
 
     def __enter__(self):
@@ -697,51 +700,27 @@ class AbipyParameterized(param.Parameterized):
                 elif k.startswith("#"):
                     # Markdown string
                     items.append(k)
+                    #items.append(pn.layout.Divider(margin=(-20, 0, 0, 0)))
                 else:
                     miss.append(k)
             else:
                 # Assume widget instance.
                 items.append(k)
 
+        #for item in items: print("item", item, "of type:", type(item))
         if miss:
             raise ValueError(f"Cannot find `{str(miss)}` in param or in attribute space")
 
-        #for item in items:
-        #    print("item", item, "of type:", type(item))
-
         return items
 
-    # FIXME: Deprecated
-    #def helpc(self, method_name, extra_items=None):
-    #    """
-    #    Add accordion with a brief description and a warning after the button.
-    #    The description of the tool is taken from the docstring of the callback.
-    #    Return Column.
-    #    """
-    #    col = pn.Column(); ca = col.append
-    #    acc = pn.Accordion(("Help", pn.pane.Markdown(getattr(self, method_name).__doc__)))
-
-    #    if hasattr(self, "warning"):
-    #        acc.append(("Warning", self.warning))
-
-    #    if extra_items is not None:
-    #        for name, attr in extra_items:
-    #            acc.append((name, item))
-
-    #    ca(pn.layout.Divider())
-    #    ca(acc)
-
-    #    return col
-
     #def get_summary_view_for_abiobj(self, abiobj):
-    #    text = abiobj.to_string(verbose=self.verbose),
+    #    text = abiobj.to_string(verbose=self.verbose)
 
     #    stream = pnw.Terminal(output="\n\n",
     #        height=1200, # Need this one else the terminal is not show properly
     #        sizing_mode='stretch_width',
     #    )
-    #    return stream
-    #    #row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both"))
+    #    view = pn.Row(bkw.PreText(text=text, sizing_mode="scale_both"))
     #    #return view
 
     def wdg_exts_with_get_panel(self, name='File extensions supported:'):
@@ -763,8 +742,11 @@ class AbipyParameterized(param.Parameterized):
     def get_software_stack():
         """Return column with version of python packages in tabular format."""
         from abipy.abilab import software_stack
-        return pn.Column("## Software stack:", dfc(software_stack(as_dataframe=True), with_export_btn=False),
-                         sizing_mode="scale_width")
+        return pn.Column("## Software stack:",
+                         #pn.layout.Divider(margin=(-20, 0, 0, 0)),
+                         dfc(software_stack(as_dataframe=True), with_export_btn=False),
+                         sizing_mode="scale_width",
+                         )
 
     @staticmethod
     def get_fileinput_section(file_input):
