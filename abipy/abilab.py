@@ -183,8 +183,12 @@ def abipanel(**kwargs):
     """
     Activate panel extensions used by AbiPy. Return panel module.
     """
-    from abipy.panels.core import abipanel
-    return abipanel(**kwargs)
+    try:
+        from abipy.panels.core import abipanel
+        return abipanel(**kwargs)
+    except ImportError as exc:
+        cprint("use `conda install panel` or `pip install panel` to install the python package.", "red")
+        raise exc
 
 
 def abifile_subclass_from_filename(filename):

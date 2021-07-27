@@ -80,6 +80,7 @@ def select_nids(flow, options):
     """
     Return the list of node ids selected by the user via the command line interface.
     """
+    #print("options.nids:", options.nids)
     task_ids = [task.node_id for task in
                 flow.select_tasks(nids=options.nids, wslice=options.wslice, task_class=options.task_class)]
 
@@ -538,7 +539,6 @@ Default: o
                               "Use this option to connect remotely from localhost to the machine running the server"))
     p_panel.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
 
-
     # Subparser for new_manager.
     p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser],
         help="Change the TaskManager.")
@@ -913,23 +913,25 @@ def main():
         return flow.build_and_pickle_dump()
 
     elif options.command == "panel":
-        try:
-            import panel  # noqa: F401
-        except ImportError as exc:
-            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
-            raise exc
-
         pn = abilab.abipanel()
         serve_kwargs = serve_kwargs_from_options(options)
 
+        # TODO: Implement Multipage app for flow?
         if options.nids is None:
             app = flow.get_panel(template=options.panel_template)
-            return pn.serve(app, **serve_kwargs)
+            pn.serve(app, **serve_kwargs)
         else:
-            # TODO: Multipage app?
-            for node in flow.iflat_nodes(nids=options.nids):
-                app = node.get_panel(template=options.panel_template)
-                pn.serve(app, **serve_kwargs)
+            node_list = list(flow.iflat_nodes(nids=select_nids(flow, options)))
+            if len(node_list) > 1:
+                print("Got more than one node in node_list:")
+                print("Only the last node will be shown in the panel dashboard!\n")
+                for node in node_list:
+                    print(node)
+                print("")
+
+            node = node_list[-1]
+            app = node.get_panel(template=options.panel_template)
+            pn.serve(app, **serve_kwargs)
 
         return 0
 

@@ -159,10 +159,6 @@ class FlowTest(FlowUnitTest):
         work.register(self.fake_input)
         assert len(work) == 2
 
-        #if self.has_panel():
-        #    assert hasattr(task0_w0.get_panel(), "show")
-        #    assert hasattr(work.get_panel(), "show")
-
         flow.register_work(work, deps={task0_w0: "WFK"})
         assert flow.is_flow
         assert len(flow) == 2
@@ -261,6 +257,9 @@ class FlowTest(FlowUnitTest):
 
         if self.has_panel():
             assert hasattr(flow.get_panel(), "show")
+            assert hasattr(flow[0].get_panel(), "show")
+            assert hasattr(flow[0][0].get_panel(), "show")
+
 
     def test_workdir(self):
         """Testing if one can use workdir=None in flow.__init__ and then flow.allocate(workdir)."""

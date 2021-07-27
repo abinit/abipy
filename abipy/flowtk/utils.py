@@ -241,7 +241,7 @@ class Directory(object):
         """
         # Select the files in the directory.
         fnames = [f for f in os.listdir(self.path)]
-        filepaths = filter(os.path.isfile, [os.path.join(self.path, f) for f in fnames])
+        filepaths = list(filter(os.path.isfile, [os.path.join(self.path, f) for f in fnames]))
 
         if wildcard is not None:
             # Filter using shell patterns.
@@ -249,7 +249,7 @@ class Directory(object):
             filepaths = [path for path in filepaths if w.match(os.path.basename(path))]
             #filepaths = WildCard(wildcard).filter(filepaths)
 
-        return filepaths
+        return sorted(filepaths)
 
     def has_abiext(self, ext, single_file=True):
         """

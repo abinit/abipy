@@ -61,6 +61,16 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+
+:mod:`nodes` Module
+-------------------
+
+.. automodule:: abipy.panels.nodes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`outputs` Module
 ---------------------
 

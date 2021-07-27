@@ -65,11 +65,11 @@ class FatBandsFilePanel(PanelWithElectronBands):
         d = {}
 
         d["Summary"] = pn.Row(bkw.PreText(text=self.ncfile.to_string(verbose=self.verbose), sizing_mode="scale_both"))
-        d["e-Bands"] = pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)
+        d["e-Bands"] = self.get_plot_ebands_view()
 
         if self.ncfile.ebands.kpoints.is_ibz:
             # Add DOS tab but only if we have a k-sampling.
-            d["e-DOS"] = pn.Row(self.get_plot_edos_widgets(), self.on_plot_edos_btn)
+            d["e-DOS"] = self.get_plot_edos_view()
 
             d["FatDos"] = pn.Row(
                 self.pws_col(["## Fatdos", "plot_fatdos_btn"]),
@@ -93,7 +93,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
         else:
             raise ValueError("Neither a IBZ nor k-path!")
 
-        d["Structure"] = self.get_struct_view_tab_entry()
+        d["Structure"] = self.get_structure_view()
         d["NcFile"] = self.ncfile.get_ncfile_view()
 
         if as_dict: return d

@@ -462,7 +462,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
                               sizing_mode="scale_both"))
         d["Spglib"] = pn.Row(
             self.pws_col(['## Spglib options',
-                          "spglib_symprec", "spglib_angtol", #, self.helpc("spglib_summary")
+                          "spglib_symprec", "spglib_angtol",
                         ]),
             self.spglib_summary
         )
@@ -470,24 +470,21 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
             self.pws_col(['## Spglib options',
                           "spglib_symprec", "spglib_angtol", "select_primitive", "abisanitize_btn",
                           pn.layout.Divider(),
-                          #self.helpc("on_abisanitize_btn")
                         ]),
             self.on_abisanitize_btn
         )
         d["Kpath"] = pn.Row(
             self.pws_col(['## K-path options',
                           "kpath_format", "line_density", "plot_kpath",
-                          #self.helpc("get_kpath")
                          ]),
             self.get_kpath
         )
         d["Convert"] = pn.Row(
             self.pws_col(["## Convert structure", "output_format",
-                         #self.helpc("convert")
                          ]),
             self.convert
         )
-        d["Viewer"] = self.get_struct_view_tab_entry()
+        d["Viewer"] = self.get_structure_view()
 
         if with_inputs:
             # Add tabs to generate inputs from structure.

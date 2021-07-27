@@ -2,16 +2,18 @@
 
 import io
 import tempfile
-import numpy as np
-import param
-import time
-import shutil
-import panel as pn
-import panel.widgets as pnw
-import bokeh.models.widgets as bkw
-import pandas as pd
 import functools
 import textwrap
+import time
+import traceback
+import shutil
+import param
+import numpy as np
+import pandas as pd
+import bokeh.models.widgets as bkw
+import panel as pn
+import panel.widgets as pnw
+
 
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -228,7 +230,6 @@ def show_exception(func):
             return func(*args, **kwargs)
         except Exception as exc:
             print(exc)
-            import traceback
             return pn.Column(pn.pane.Markdown("```shell\n%s\n```" % traceback.format_exc()),
                              sizing_mode="stretch_width")
 
@@ -637,6 +638,14 @@ class AbipyParameterized(param.Parameterized):
         self._enable_show_doc = True
         self._enable_show_shared_wdg_warning = True
 
+    #def abiopen(self, filepath):
+    #    from abipy.abilab import abiopen
+    #    try:
+    #        abiobj = abiopen(filepath)
+    #        return abiobj
+    #    finally:
+    #        self._abiopened_files.append(filepath)
+
     def disable_show_messages(self, show_doc=False, show_shared_wdg_warning=False):
         """
         Context manager to disable the output of the docstring and the warning message.
@@ -811,6 +820,7 @@ class AbipyParameterized(param.Parameterized):
 
     @staticmethod
     def get_alert_data_transfer():
+        # https://discourse.holoviz.org/t/max-upload-size/2121/5
         return pn.pane.Alert("""
 Please note that this web interface is not designed to handle **large data transfer**.
 To post-process the data stored in a big file e.g. a WFK.nc file,
@@ -830,16 +840,16 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
     def get_abinit_template_cls_kwds(self):
         return get_abinit_template_cls_kwds()
 
-    def get_template_from_tabs(self, tabs, template, tabs_location="above", closable=False):
+    def get_template_from_tabs(self, tabs, template, **tabs_kwargs):
         """
         This method receives panel Tabs or a dictionary,
         include them in a template and return the template.
         """
         if isinstance(tabs, dict):
-            tabs = pn.Tabs(*tabs.items(), tabs_location=tabs_location, closable=closable,
-                           sizing_mode="stretch_width")
+            if "sizing_mode" not in tabs_kwargs: tabs_kwargs["sizing_mode"] = "stretch_width"
+            tabs = pn.Tabs(*tabs.items(), **tabs_kwargs)
 
-        if template is None:
+        if template is None or str(template) == "None":
             return tabs
 
         cls = get_template_cls_from_name(template)
@@ -963,13 +973,14 @@ class PanelWithStructure(AbipyParameterized):
 
         return self.structure.visualize(appname=self.structure_viewer)
 
-    def get_struct_view_tab_entry(self):
+    def get_structure_view(self):
         """
         Return tab entry to visualize the structure.
         """
         return pn.Row(
             self.pws_col(["## Visualize structure",
-                          "structure_viewer", "view_structure_btn",
+                          "structure_viewer",
+                          "view_structure_btn",
                           ]),
             pn.Column(self.on_view_structure, self.get_structure_info())
         )
@@ -1042,7 +1053,7 @@ class NcFileViewer(param.Parameterized):
         #nc_grpname = pnw.Select(name="nc group name", options=["/"])
         input_string = self.ncfile.get_input_string()
         ca(f"## Input String")
-        ca(input_string)
+        ca(bkw.PreText(text=input_string))
 
         #ca(f"## Global attributes")
 
@@ -1063,6 +1074,7 @@ class PanelWithElectronBands(PanelWithStructure):
 
     # Bands plot
     with_gaps = param.Boolean(False)
+    with_kpoints_plot = param.Boolean(False)
 
     #ebands_ylims
     #ebands_e0
@@ -1128,12 +1140,11 @@ class PanelWithElectronBands(PanelWithStructure):
         #self.plot_fs_viewer_btn = pnw.Button(name="Plot SKW interpolant", button_type='primary')
 
         self.plot_ifermi_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
-        self.ifermi_plane_normal = pnw.LiteralInput(name='Plane normal (list)', value=[0, 0, 0], type=list,
-                                                    placeholder="Enter normal in reduced coordinates")
-
-        self.ifermi_distance = pn.widgets.RangeSlider(
-                name='distance', start=0, end=2 * max(ebands.structure.reciprocal_lattice.abc),
-                value=(0, 0), step=0.01)
+        #self.ifermi_plane_normal = pnw.LiteralInput(name='Plane normal (list)', value=[0, 0, 0], type=list,
+        #                                            placeholder="Enter normal in reduced coordinates")
+        #self.ifermi_distance = pn.widgets.RangeSlider(
+        #        name='distance', start=0, end=2 * max(ebands.structure.reciprocal_lattice.abc),
+        #        value=(0, 0), step=0.01)
 
         #ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
         #ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
@@ -1165,9 +1176,13 @@ class PanelWithElectronBands(PanelWithStructure):
         """
         self.skw_ebands_kpath = self._get_ebands_from_bstring(self.skw_ebands_kpath_fileinput)
 
-    def get_plot_ebands_widgets(self):
-        """Column with the widgets used to plot ebands."""
-        return self.pws_col(["with_gaps", "set_fermie_to_vbm", "plot_ebands_btn"])
+    def get_plot_ebands_view(self):
+        return pn.Row(
+            self.pws_col(["### e-Bands Plot Options",
+                          "with_gaps", "set_fermie_to_vbm", "with_kpoints_plot", "plot_ebands_btn",
+                         ]),
+            self.on_plot_ebands_btn
+        )
 
     @depends_on_btn_click('plot_ebands_btn')
     def on_plot_ebands_btn(self):
@@ -1188,20 +1203,24 @@ class PanelWithElectronBands(PanelWithStructure):
         ktype = "IBZ sampling" if self.ebands.kpoints.is_ibz else "**k**-path"
         max_nkpt = 2000
 
-        ca(f"## Brillouin zone and {ktype}:")
-        if nkpt < max_nkpt:
-            kpath_pane = ply(self.ebands.kpoints.plotly(show=False), with_divider=False)
-            df_kpts = dfc(self.ebands.kpoints.get_highsym_datataframe(), with_divider=False)
-            ca(pn.Row(kpath_pane, df_kpts, sizing_mode=sz_mode))
-        else:
-            ca(f"k-points won't be shown as nkpt: {nkpt} is greater than {max_nkpt}")
+        if self.with_kpoints_plot:
+            ca(f"## Brillouin zone and {ktype}:")
+            if nkpt < max_nkpt:
+                kpath_pane = ply(self.ebands.kpoints.plotly(show=False), with_divider=False)
+                df_kpts = dfc(self.ebands.kpoints.get_highsym_datataframe(), with_divider=False)
+                ca(pn.Row(kpath_pane, df_kpts, sizing_mode=sz_mode))
+            else:
+                ca(f"k-points won't be shown as nkpt: {nkpt} is greater than {max_nkpt}")
         ca(pn.layout.Divider())
 
         return col
 
-    def get_plot_edos_widgets(self):
-        """Column with widgets associated to the e-DOS computation."""
-        return self.pws_col(["edos_method", "edos_step_ev", "edos_width_ev", "plot_edos_btn"])
+    def get_plot_edos_view(self):
+        return pn.Row(
+                self.pws_col(["## E-DOS Options", "edos_method", "edos_step_ev",
+                              "edos_width_ev", "plot_edos_btn"]),
+                self.on_plot_edos_btn
+                )
 
     @depends_on_btn_click('plot_edos_btn')
     def on_plot_edos_btn(self):
@@ -1211,6 +1230,22 @@ class PanelWithElectronBands(PanelWithStructure):
         edos = self.ebands.get_edos(method=self.edos_method, step=self.edos_step_ev, width=self.edos_width_ev)
 
         return pn.Row(ply(edos.plotly(show=False)), sizing_mode='scale_width')
+
+    def get_skw_view(self):
+        """Column with widgets to use SKW."""
+
+        wdg = pn.Param(
+            self.param['skw_ebands_kpath_fileinput'],
+            widgets={'skw_ebands_kpath_fileinput': pn.widgets.FileInput}
+        )
+
+        return pn.Row(
+            self.pws_col(["## SKW options",
+                          "skw_lpratio", "skw_line_density", "with_gaps",
+                          "## Upload GSR.nc file with *ab-initio* energies along a k-path to compare with", wdg,
+                          "plot_skw_btn",
+                          ]),
+            self.on_plot_skw_btn)
 
     @depends_on_btn_click('plot_skw_btn')
     def on_plot_skw_btn(self):
@@ -1245,30 +1280,13 @@ class PanelWithElectronBands(PanelWithStructure):
 
         return col
 
-    def get_plot_skw_widgets(self):
-        """Column with widgets to compute e-DOS."""
-
-        wdg = pn.Param(
-            self.param['skw_ebands_kpath_fileinput'],
-            widgets={'skw_ebands_kpath_fileinput': pn.widgets.FileInput}
-        )
-
-        return pn.Row(
-            self.pws_col(["## SKW options",
-                          "skw_lpratio", "skw_line_density", "with_gaps",
-                          "## Upload GSR.nc file with *ab-initio* energies along a k-path to compare with", wdg,
-                          "plot_skw_btn",
-                          ]),
-            self.on_plot_skw_btn)
-
-
     def get_ifermi_view(self):
         """
         Widgets to visualize the Fermi surface with ifermi
         """
         controls = self.pws_col([
                           "ifermi_offset_eV", "ifermi_eref", "ifermi_wigner_seitz", "ifermi_interpolation_factor",
-                          "ifermi_with_velocities", "ifermi_plane_normal", "ifermi_distance",
+                          "ifermi_with_velocities", # "ifermi_plane_normal", "ifermi_distance",
                           "ifermi_plot_type", "plot_ifermi_btn",
                           ])
 
@@ -1314,21 +1332,22 @@ class PanelWithElectronBands(PanelWithStructure):
             ca("## Energy isosurface in the reciprocal unit cell parallelepiped")
         ca(fig)
 
-        ifermi_plane_normal = self.ifermi_plane_normal.value
-        if any(c != 0 for c in ifermi_plane_normal):
-            print("fs_plane normal:", ifermi_plane_normal)
-            print("abc reciprocal", self.ebands.structure.reciprocal_lattice.abc)
-            from ifermi.plot import FermiSlicePlotter
-            for distance in self.ifermi_distance.value:
-                # generate Fermi slice along the (0 0 1) plane going through the Γ-point.
-                ca(f"## Fermi slice along the {ifermi_plane_normal} plane going through the Γ-point at distance: {distance}")
-                fermi_slice = r.fs.get_fermi_slice(plane_normal=ifermi_plane_normal, distance=distance)
-                slice_plotter = FermiSlicePlotter(fermi_slice)
-                plt = slice_plotter.get_plot()
-                fig = plt.gcf()
-                plt.close(fig=fig)
-                fig = mpl(fig)
-                ca(fig)
+        # TODO: This requires more testing
+        #ifermi_plane_normal = self.ifermi_plane_normal.value
+        #if any(c != 0 for c in ifermi_plane_normal):
+        #    print("fs_plane normal:", ifermi_plane_normal)
+        #    print("abc reciprocal", self.ebands.structure.reciprocal_lattice.abc)
+        #    from ifermi.plot import FermiSlicePlotter
+        #    for distance in self.ifermi_distance.value:
+        #        # generate Fermi slice along the (0 0 1) plane going through the Γ-point.
+        #        ca(f"## Fermi slice along the {ifermi_plane_normal} plane going through the Γ-point at distance: {distance}")
+        #        fermi_slice = r.fs.get_fermi_slice(plane_normal=ifermi_plane_normal, distance=distance)
+        #        slice_plotter = FermiSlicePlotter(fermi_slice)
+        #        plt = slice_plotter.get_plot()
+        #        fig = plt.gcf()
+        #        plt.close(fig=fig)
+        #        fig = mpl(fig)
+        #        ca(fig)
 
         #ca(pn.layout.Divider())
         #ca("## Powered by [ifermi](https://fermisurfaces.github.io/IFermi/)")

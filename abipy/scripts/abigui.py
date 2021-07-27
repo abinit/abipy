@@ -37,7 +37,7 @@ def gui_app(port, address, show, num_procs, panel_template, has_remote_server, v
         print("Enforce limitations on what the user can do on the abinit server")
         AbipyParameterized.has_remote_server = has_remote_server # TODO
 
-    # Import the apps and define routies for each page.
+    # Import the apps and define routes for each page.
     from abipy.panels.structure import InputFileGenerator
     from abipy.panels.ddb import (PanelWithFileInput, PanelWithStructureInput, DdbPanelWithFileInput, CompareDdbWithMP,
                                   RobotWithFileInput)

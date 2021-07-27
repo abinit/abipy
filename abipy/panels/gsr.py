@@ -22,31 +22,21 @@ class GsrFilePanel(PanelWithElectronBands):
         d = {}
 
         d["Summary"] = pn.Row(
-            bkw.PreText(text=self.gsr.to_string(verbose=self.verbose),  sizing_mode="scale_both")
+            bkw.PreText(text=self.gsr.to_string(verbose=self.verbose), sizing_mode="scale_both")
         )
-        d["e-Bands"] = pn.Row(
-            self.pws_col(["### e-Bands Options",
-                          "with_gaps", "set_fermie_to_vbm", "plot_ebands_btn",
-                         ]),
-            self.on_plot_ebands_btn
-        )
+        d["e-Bands"] = self.get_plot_ebands_view()
 
         kpoints = self.gsr.ebands.kpoints
-
         if kpoints.is_ibz:
             # Add DOS tab but only if k-sampling.
-            d["e-DOS"] = pn.Row(
-                pn.Column("### Options",
-                           self.get_plot_edos_widgets()), self.on_plot_edos_btn
-            )
-
-            d["SKW"] = self.get_plot_skw_widgets()
+            d["e-DOS"] = self.get_plot_edos_view()
+            d["SKW"] = self.get_skw_view()
 
             if not self.gsr.ebands.isnot_ibz_sampling():
                 d["ifermi"] = self.get_ifermi_view()
                 #d["fsviewer"] = self.get_fsviewer_view()
 
-        d["Structure"] = self.get_struct_view_tab_entry()
+        d["Structure"] = self.get_structure_view()
         d["NcFile"] = self.gsr.get_ncfile_view()
 
         # TODO

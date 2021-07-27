@@ -186,6 +186,8 @@ For instance, one can create a dashboard to interact with a ``DDB`` file with::
 Running dashboards or notebooks from a remote server
 ----------------------------------------------------
 
+inspired to https://ljvmiranda921.github.io/notebook/2018/01/31/running-a-jupyter-notebook/
+
 All the examples presented so far assume that both AbiPy and the web browser are running 
 on the same machine e.g our laptop.
 In many cases, however, calculations are performed on clusters in which web browsers are

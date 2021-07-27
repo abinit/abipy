@@ -480,7 +480,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                 self.on_compute_elastic_btn
             )
 
-        d["Structure"] = self.get_struct_view_tab_entry()
+        d["Structure"] = self.get_structure_view()
         d["Global"] = pn.Row(
             self.pws_col(["## Global options", "units", "mpi_procs", "verbose"]),
             self.get_software_stack()

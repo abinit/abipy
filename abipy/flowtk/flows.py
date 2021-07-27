@@ -2051,8 +2051,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                      If manager is None, we use the `TaskManager` specified during the creation of the work.
             workdir: The name of the directory used for the |Work|.
 
-        Returns:
-            The registered |Work|.
+        Returns: The registered |Work|.
         """
         if getattr(self, "workdir", None) is not None:
             # The flow has a directory, build the name of the directory of the work.
