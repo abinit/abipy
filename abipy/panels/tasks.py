@@ -3,8 +3,7 @@ import param
 import panel as pn
 import panel.widgets as pnw
 
-from io import StringIO
-from abipy.panels.core import AbipyParameterized, mpl, ply, dfc, depends_on_btn_click
+from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click
 from abipy.panels.nodes import NodeParameterized
 
 

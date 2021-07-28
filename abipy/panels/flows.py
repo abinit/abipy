@@ -5,7 +5,7 @@ import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from panel.viewable import Viewer
-from abipy.panels.core import AbipyParameterized, mpl, ply, dfc, depends_on_btn_click
+from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click
 from abipy.panels.nodes import NodeParameterized
 from abipy import flowtk
 

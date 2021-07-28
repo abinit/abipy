@@ -6,6 +6,7 @@ import numpy as np
 
 from abipy.core.kpoints import kpath_from_bounds_and_ndivsm
 from .works import Work, PhononWork, PhononWfkqWork
+from .nodes import Node
 from .flows import Flow
 
 
@@ -23,7 +24,8 @@ class EphPotFlow(Flow):
 
     @classmethod
     def from_scf_input(cls, workdir, scf_input, ngqpt, qbounds,
-                       ndivsm=5, with_becs=True, with_quad=True,
+                       ndivsm=5, with_becs=True, with_quad=True, dvdb_add_lr_list=(0, 1, 2),
+                       ddb_filepath=None, dvdb_filepath=None,
                        ddk_tolerance=None, prepgkk=0, manager=None):
         """
         Build the flow from an input file representing a GS calculation.
@@ -42,6 +44,9 @@ class EphPotFlow(Flow):
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
                 Note that only selected features are compatible with dynamical quadrupoles.
                 Please consult <https://docs.abinit.org/topics/longwave/>
+            dvdb_add_lr_list: List of dvdb_add_lr values to consider in the interpolation.
+            ddb_filepath, dvdb_filepath: Paths to the DDB/DVDB files that will be used
+                to bypass the DFPT computation on the `ngqpt` mesh.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if `with_becs`.
             prepgkk: 1 to activate computation of all 3 * natom perts (debugging option).
             manager: |TaskManager| object.
@@ -51,11 +56,21 @@ class EphPotFlow(Flow):
         # First work with GS run.
         scf_task = flow.register_scf_task(scf_input)[0]
 
-        # Second work to compute phonons on the input nqgpt q-mesh.
-        work_qmesh = PhononWork.from_scf_task(scf_task, qpoints=ngqpt, is_ngqpt=True,
-                                              with_becs=with_becs, with_quad=with_quad,
-                                              ddk_tolerance=ddk_tolerance)
-        flow.register_work(work_qmesh)
+        if dvdb_filepath or ddb_filepath:
+            # Use input files to bypass computation of work_qmesh.
+            if not (dvdb_filepath and ddb_filepath):
+                raise ValueError("Both dvdb_filepath and ddb_filepath must be specified.")
+            work_qmesh = None
+            # TODO Should check that ddb.qmesh == ngqpt
+            ddb_node = Node.as_node(ddb_filepath)
+            dvdb_node = Node.as_node(dvdb_filepath)
+
+        else:
+            # Second work to compute phonons on the input nqgpt q-mesh.
+            work_qmesh = PhononWork.from_scf_task(scf_task, qpoints=ngqpt, is_ngqpt=True,
+                                                  with_becs=with_becs, with_quad=with_quad,
+                                                  ddk_tolerance=ddk_tolerance)
+            flow.register_work(work_qmesh)
 
         if ndivsm > 0:
             # Generate list of q-points from qbounds and ndivsm.
@@ -89,14 +104,22 @@ class EphPotFlow(Flow):
 
             if eph_task == -15:
                 # Use DVDB with ab-initio POTS along q-path to produce V1QAVG
-                deps = {work_qmesh: "DDB", work_qpath: "DVDB"}
+                if work_qmesh is not None:
+                    deps = {work_qmesh: "DDB", work_qpath: "DVDB"}
+                else:
+                    deps = {ddb_node: "DDB", work_qpath: "DVDB"}
+
                 eph_work.register_eph_task(eph_inp, deps=deps)
 
             elif eph_task == 15:
                 # Use q-mesh to interpolate along the same q-path as above.
                 # use dvdb_add_lr to deactivate/activate the treatment of the LR part.
-                deps = {work_qmesh: ["DDB", "DVDB"]}
-                for dvdb_add_lr in (0, 1, 2):
+                if work_qmesh is not None:
+                    deps = {work_qmesh: ["DDB", "DVDB"]}
+                else:
+                    deps = {ddb_node: "DDB", dvdb_node: "DVDB"}
+
+                for dvdb_add_lr in dvdb_add_lr_list:
                     new_inp = eph_inp.new_with_vars(dvdb_add_lr=dvdb_add_lr, ph_qpath=qpath_list)
                     eph_work.register_eph_task(new_inp, deps=deps)
 
@@ -116,8 +139,9 @@ class GkqPathFlow(Flow):
 
     @classmethod
     def from_scf_input(cls, workdir, scf_input, ngqpt, qbounds,
-                       ndivsm=5, with_becs=True, with_quad=True, ddk_tolerance=None,
-                       test_ft_interpolation=False, prepgkk=0, manager=None):
+                       ndivsm=5, with_becs=True, with_quad=True, dvdb_add_lr_list=(0, 1, 2),
+                       ddb_filepath=None, dvdb_filepath=None,
+                       ddk_tolerance=None, test_ft_interpolation=False, prepgkk=0, manager=None):
         """
         Build the flow from an input file representing a GS calculation.
 
@@ -135,6 +159,9 @@ class GkqPathFlow(Flow):
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
                 Note that only selected features are compatible with dynamical quadrupoles.
                 Please consult <https://docs.abinit.org/topics/longwave/>
+            dvdb_add_lr_list: List of dvdb_add_lr values to consider in the interpolation.
+            ddb_filepath, dvdb_filepath: Paths to the DDB/DVDB files that will be used
+                to bypass the DFPT computation on the `ngqpt` mesh.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if `with_becs`.
             test_ft_interpolation: True to add an extra Work in which the GKQ files are computed
                 using the interpolated DFPT potentials and the q-mesh defined by `ngqpt`.
@@ -148,11 +175,22 @@ class GkqPathFlow(Flow):
         # First work with GS run.
         scf_task = flow.register_scf_task(scf_input)[0]
 
-        # Second work to compute phonons on the input nqgpt q-mesh.
-        work_qmesh = PhononWork.from_scf_task(scf_task, qpoints=ngqpt, is_ngqpt=True,
-                                              with_becs=with_becs, with_quad=with_quad,
-                                              ddk_tolerance=ddk_tolerance)
-        flow.register_work(work_qmesh)
+        if dvdb_filepath or ddb_filepath:
+            # Use input files to bypass computation of work_qmesh.
+            if not (dvdb_filepath and ddb_filepath):
+                raise ValueError("Both dvdb_filepath and ddb_filepath must be specified.")
+            work_qmesh = None
+            # TODO Should check that ddb.qmesh == ngqpt
+            ddb_node = Node.as_node(ddb_filepath)
+            dvdb_node = Node.as_node(dvdb_filepath)
+
+        else:
+
+            # Second work to compute phonons on the input nqgpt q-mesh.
+            work_qmesh = PhononWork.from_scf_task(scf_task, qpoints=ngqpt, is_ngqpt=True,
+                                                  with_becs=with_becs, with_quad=with_quad,
+                                                  ddk_tolerance=ddk_tolerance)
+            flow.register_work(work_qmesh)
 
         if ndivsm > 0:
             # Generate list of q-points from qbounds and ndivsm.
@@ -195,7 +233,11 @@ class GkqPathFlow(Flow):
             if qpt in qseen: continue
             qseen.add(qpt)
             t = eph_work.register_eph_task(make_eph_input(scf_input, ngqpt, qpt), deps=task.deps)
-            t.add_deps({work_qmesh: "DDB", work_qpath: "DVDB"})
+
+            if work_qmesh is not None:
+                t.add_deps({work_qmesh: "DDB", work_qpath: "DVDB"})
+            else:
+                t.add_deps({ddb_node: "DDB", work_qpath: "DVDB"})
 
         flow.register_work(eph_work)
 
@@ -204,7 +246,7 @@ class GkqPathFlow(Flow):
         # The potentials are interpolated using the input ngqpt q-mesh.
         if test_ft_interpolation:
 
-            for dvdb_add_lr in (0, 1, 2):
+            for dvdb_add_lr in dvdb_add_lr_list:
                 inteph_work = Work()
                 qseen = set()
                 for task in work_qpath.phonon_tasks:
@@ -216,7 +258,11 @@ class GkqPathFlow(Flow):
                     # of the DFPT potentials with eph_task -2.
                     eph_inp.set_vars(eph_use_ftinterp=1, dvdb_add_lr=dvdb_add_lr)
                     t = inteph_work.register_eph_task(eph_inp, deps=task.deps)
-                    t.add_deps({work_qmesh: ["DDB", "DVDB"]})
+
+                    if work_qmesh is not None:
+                        t.add_deps({work_qmesh: ["DDB", "DVDB"]})
+                    else:
+                        t.add_deps({ddb_node: "DDB", dvdb_node: "DVDB"})
 
                 flow.register_work(inteph_work)
 

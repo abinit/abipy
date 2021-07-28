@@ -6,7 +6,6 @@ import bokeh.models.widgets as bkw
 import panel as pn
 import panel.widgets as pnw
 
-#from panel.viewable import Viewer
 from abipy.panels.core import AbipyParameterized, Loading, ButtonContext, depends_on_btn_click, dfc #, #, mpl, ply,
 #from abipy import flowtk
 
