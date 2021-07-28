@@ -116,13 +116,37 @@ class NodeParameterized(AbipyParameterized):
             sizing_mode='stretch_width',
         )
 
-        self.flow.show_status(nids=self.nids, stream=stream, verbose=self.verbose)
+        data_task = self.flow.show_status(nids=self.nids, stream=stream, verbose=1) #self.verbose)
 
-        if self.node.is_flow:
-            stream.write("\n")
-            self.flow.show_summary(stream=stream)
+        stream.write("\n")
+        self.flow.show_summary(stream=stream)
 
-        return stream
+        if not self.node.is_flow:
+            return stream
+
+        grid = pn.GridSpec(sizing_mode='stretch_both')
+        status_counter = self.flow.status_counter
+        tot_num_tasks = sum(status_counter.values())
+        grid = pn.FlexBox()
+        for i, (status, count) in enumerate(status_counter.items()):
+            dial = pn.indicators.Dial(name=f'{status}', value=count / tot_num_tasks * 100, bounds=(0, 100))
+            grid.append(dial)
+
+        #from panel.layout.gridstack import GridStack
+        #pn.extension('gridstack')
+        #grid = GridStack(sizing_mode='stretch_both')
+        #grid = pn.GridSpec(sizing_mode='stretch_both') #width=800, height=600)
+        #print("data_task", data_task)
+        #for iw, work in enumerate(self.flow):
+        #    for it, task in enumerate(work):
+        #        if task not in data_task: continue
+        #        dial = pn.indicators.Dial(name='{repr(task)}', value=10, bounds=(0, 100))
+        #        grid[iw, it] = dial
+
+        return pn.Column(grid,
+                         pn.layout.Divider(),
+                         stream,
+                         sizing_mode="stretch_width")
 
     def get_history_view(self):
         return pn.Column(
@@ -148,23 +172,31 @@ class NodeParameterized(AbipyParameterized):
                                #status=options.task_status,
                                #full_history=options.full_history, metadata=options.metadata
                                )
-        #self.flow.show_history(stream=stream)
         return stream
+
+    def get_graphviz_view(self):
+        return pn.Column(pn.Column("## Graphviz options", self.engine, self.dirtree, self.graphviz_btn),
+                         self.on_graphviz_btn,
+                         sizing_mode="stretch_width")
 
     @depends_on_btn_click("graphviz_btn")
     def on_graphviz_btn(self):
         """
-        Visualize the node dependencies with graphviz.
+        Visualize node dependencies with [graphviz package](https://graphviz.readthedocs.io/en/stable/index.html)
         """
         if self.dirtree.value:
             graph = self.node.get_graphviz_dirtree(engine=self.engine.value)
         else:
             graph = self.node.get_graphviz(engine=self.engine.value)
 
+        #graph = pn.pane.SVG(graph)
         #self.flow.plot_networkx(mode="network", with_edge_labels=False, ax=None, arrows=False,
         #                        node_size="num_cores", node_label="name_class", layout_type="spring", **kwargs):
 
-        return pn.Column(graph)
+        return pn.Column("## Dependency Graph:",
+                         graph,
+                         sizing_mode="stretch_width"
+                         )
 
     def get_debug_view(self):
         return pn.Column(
@@ -217,10 +249,6 @@ class NodeParameterized(AbipyParameterized):
             height=1200, # Need this one else the terminal is not show properly
             sizing_mode='stretch_width',
         )
-        #if options.doc:
-        #    flowtk.autodoc_event_handlers()
-        #else:
-        #show_events(self, stream=sys.stdout):
         self.flow.show_event_handlers(stream=stream, verbose=self.verbose) #, nids=self.nids,  status=None,
         return stream
 
@@ -238,7 +266,6 @@ class NodeParameterized(AbipyParameterized):
         return pn.Row(dfc(df), sizing_mode="scale_width")
 
     #def get_workdir_view(self):
-
     #    col = pn.Column(sizing_mode="stretch_width"); ca = col.append
     #    ca(self.workdir_fileselector)
     #    self.workdir_selector_btn = pnw.Button(name="Show file", button_type='primary')
@@ -276,29 +303,30 @@ class NodeParameterized(AbipyParameterized):
                 sizing_mode="stretch_width"
         )
 
-    def on_workdir_selector_btn(self, event):
-        """hello word"""
-        filepaths = self.workdir_fileselector.value
-        if not filepaths:
-            objects = [pn.pane.Alert("## No file selected", altert_type="warning")]
+    #def on_workdir_selector_btn(self, event):
+    #    """hello word"""
+    #    filepaths = self.workdir_fileselector.value
+    #    if not filepaths:
+    #        objects = [pn.pane.Alert("## No file selected", altert_type="warning")]
 
-        else:
-            from abipy.abilab import abiopen
-            objects = []
-            for path in filepaths:
-                try:
-                    abifile = abiopen(path)
-                    pn_obj = abifile.get_panel()
-                except Exception:
-                    pn_obj = pn.pane.Alert(str(exc), altert_type="warning")
+    #    else:
+    #        from abipy.abilab import abiopen
+    #        objects = []
+    #        for path in filepaths:
+    #            try:
+    #                abifile = abiopen(path)
+    #                pn_obj = abifile.get_panel()
+    #            except Exception:
+    #                pn_obj = pn.pane.Alert(str(exc), altert_type="warning")
 
-                objects.append(pn_obj)
+    #            objects.append(pn_obj)
 
-        self.workdir_selector_output_area.objects = objects
+    #    self.workdir_selector_output_area.objects = objects
 
     def get_panel(self, as_dict=False, **kwargs):
-        """Return tabs with widgets to interact with the flow."""
-
+        """
+        Return tabs with widgets to interact with the flow.
+        """
         d = {}
 
         d["Status"] = self.get_status_view()
@@ -314,7 +342,7 @@ class NodeParameterized(AbipyParameterized):
         d["Abivars"] = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
         #d["Dims"] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)
         #d["Browse"] = self.get_workdir_view()
-        d["Graphviz"] = pn.Row(pn.Column(self.engine, self.dirtree, self.graphviz_btn), self.on_graphviz_btn)
+        d["Graphviz"] = self.get_graphviz_view()
 
         if as_dict: return d
 

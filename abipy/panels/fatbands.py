@@ -3,7 +3,6 @@
 #import param
 import panel as pn
 import panel.widgets as pnw
-import bokeh.models.widgets as bkw
 
 from .core import PanelWithElectronBands, ply, mpl, dfc, depends_on_btn_click #, PanelWithEbandsRobot
 
@@ -64,7 +63,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
         """Return tabs with widgets to interact with the FATBANDS.nc file."""
         d = {}
 
-        d["Summary"] = pn.Row(bkw.PreText(text=self.ncfile.to_string(verbose=self.verbose), sizing_mode="scale_both"))
+        d["Summary"] = self.get_summary_view_for_abiobj(self.ncfile)
         d["e-Bands"] = self.get_plot_ebands_view()
 
         if self.ncfile.ebands.kpoints.is_ibz:
@@ -121,8 +120,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
 #    def get_panel(self):
 #        """Return tabs with widgets to interact with the |GsrRobot|."""
 #        tabs = pn.Tabs(); app = tabs.append
-#        app(("Summary", pn.Row(bkw.PreText(text=self.robot.to_string(verbose=self.verbose),
-#                               sizing_mode="scale_both"))))
+#        app["Summary"] = self.get_summary_view_for_abiobj(self.robot)
 #        app(("e-Bands", pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)))
 #
 #        # Add e-DOS tab only if all ebands have k-sampling.

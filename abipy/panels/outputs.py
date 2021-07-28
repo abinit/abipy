@@ -56,10 +56,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
         """Return tabs with widgets to interact with the Abinit output file."""
         d = {}
 
-        d["Summary"] = pn.Row(
-            bkw.PreText(text=self.outfile.to_string(verbose=self.verbose), sizing_mode="scale_both")
-        )
-
+        d["Summary"] = self.get_summary_view_for_abiobj(self.outfile)
         d["Output"] = self.get_outfile_view()
 
         df = self.outfile.get_dims_spginfo_dataframe().transpose()

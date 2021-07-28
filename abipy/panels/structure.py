@@ -458,8 +458,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         """
         d = {}
 
-        d["Summary"] = pn.Row(bkw.PreText(text=self.structure.to_string(verbose=self.verbose),
-                              sizing_mode="scale_both"))
+        d["Summary"] = self.get_summary_view_for_abiobj(self.structure)
         d["Spglib"] = pn.Row(
             self.pws_col(['## Spglib options',
                           "spglib_symprec", "spglib_angtol",
@@ -590,10 +589,11 @@ or through the Materials Project identifier (*mp-id*).
         #self.structure = self.input_structure.abi_sanitize(symprec=1e-3, angle_tolerance=5,
         #                                                   primitive=True, primitive_standard=False)
 
-        d = self.input_structure.get_panel(as_dict=True)
-        d = {k: d[k] for k in ("GS-input", "Ebands-input", "PH-input", "Summary")}
-        tabs = pn.Tabs(*d.items())
-        self.main_area.objects = [tabs]
+        with Loading(self.main_area):
+            d = self.input_structure.get_panel(as_dict=True)
+            d = {k: d[k] for k in ("GS-input", "Ebands-input", "PH-input", "Summary")}
+            tabs = pn.Tabs(*d.items())
+            self.main_area.objects = [tabs]
 
     def get_panel(self):
 

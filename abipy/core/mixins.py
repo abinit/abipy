@@ -128,6 +128,28 @@ class TextFile(BaseFile):
         """Set the file's current position, like stdio's fseek()."""
         self._file.seek(offset, whence)
 
+    def get_panel(self, **kwargs):
+        import panel as pn
+        root, ext = os.path.splitext(self.basename)
+        text = open(self.filepath, "rt").read()
+        if not text: text = "This file is empty!"
+
+        # Use Markdown for selected extensions else Ace editor.
+        if ext and len(ext) > 1: ext = ext[1:]
+        ext2format = dict(sh="shell", py="python", stdin="shell", stdout="shell", stderr="shell")
+
+        if ext in ext2format:
+            fmt = ext2format[ext]
+            obj = pn.pane.Markdown(f"```{fmt}\n{text}\n```", sizing_mode="stretch_both")
+        else:
+            obj = pnw.Ace(value=text, language='text', readonly=True,
+                          sizing_mode='stretch_width', height=1200)
+                          #sizing_mode='stretch_width', width=900)
+
+        return pn.Column(f"## File: {self.filepath}",
+                         obj, pn.layout.Divider(),
+                         sizing_mode="stretch_width")
+
 
 class JsonFile(TextFile):
     """
@@ -135,7 +157,7 @@ class JsonFile(TextFile):
     so that we can visualize the file with `abiopen.py FILE --panel`
     """
 
-    def get_panel(self, with_controls=True, **kwargs):
+    def get_panel(self, with_controls=False, **kwargs):
         import json
         with self:
             d = json.load(self._file)

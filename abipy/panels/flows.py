@@ -35,15 +35,12 @@ class TaskSelector(Viewer):
         work = self._wstr2work[self._work_select.value]
         self._task_select.options = [f"t{i}" for i in range(len(work))]
         self.value = work[0]
-        print("_sync_widgets", self.value)
 
     @param.depends('_task_select.value', watch=True)
     def _update_task(self):
         work = self._wstr2work[self._work_select.value]
         task_idx = int(self._task_select.value[1:])
-        print("task_idx:", task_idx)
         self.value = work[task_idx]
-        print("_update_task", self.value)
 
 
 class FlowPanel(NodeParameterized):

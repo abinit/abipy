@@ -50,9 +50,7 @@ class HistFilePanel(AbipyParameterized):
         """Return tabs with widgets to interact with the HIST.nc file."""
         d = {}
 
-        d["Summary"] = pn.Row(bkw.PreText(text=self.hist.to_string(verbose=self.verbose),
-                              sizing_mode="scale_both"))
-
+        d["Summary"] = self.get_summary_view_for_abiobj(self.hist)
         d["Plot"] = pn.Row(
                 self.pws_col(["## Plot Options", "what_list", "plot_relax_btn"]),
                 self.on_plot_relax_btn

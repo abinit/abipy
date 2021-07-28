@@ -3,7 +3,6 @@ import sys
 import param
 import panel as pn
 import panel.widgets as pnw
-import bokeh.models.widgets as bkw
 
 from abipy.core.structure import Structure
 from abipy.panels.core import (AbipyParameterized, PanelWithStructure, BaseRobotPanel,
@@ -404,9 +403,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         """
         ddb = self.ddb
         d = {}
-        d["Summary"] = pn.Row(
-            bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both")
-        )
+        d["Summary"] = self.get_summary_view_for_abiobj(self.ddb)
 
         # Note how we build tabs according to the content of the DDB.
         if ddb.has_at_least_one_atomic_perturbation():
@@ -920,10 +917,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         robot = self.robot
 
         d = {}
-        d["Summary"] = pn.Row(
-            bkw.PreText(text=robot.to_string(verbose=self.verbose), sizing_mode="scale_both")
-        )
-
+        d["Summary"] = self.get_summary_view_for_abiobj(robot)
         d["Params"] = self.get_compare_params_widgets()
 
         d["Plot"] = pn.Row(

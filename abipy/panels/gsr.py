@@ -3,7 +3,6 @@
 import param
 import panel as pn
 import panel.widgets as pnw
-import bokeh.models.widgets as bkw
 
 from .core import (PanelWithElectronBands,
   PanelWithEbandsRobot, ButtonContext, ply, mpl, dfc, depends_on_btn_click)
@@ -21,9 +20,7 @@ class GsrFilePanel(PanelWithElectronBands):
         """Return tabs with widgets to interact with the GSR file."""
         d = {}
 
-        d["Summary"] = pn.Row(
-            bkw.PreText(text=self.gsr.to_string(verbose=self.verbose), sizing_mode="scale_both")
-        )
+        d["Summary"] = self.get_summary_view_for_abiobj(self.gsr)
         d["e-Bands"] = self.get_plot_ebands_view()
 
         kpoints = self.gsr.ebands.kpoints
@@ -33,7 +30,7 @@ class GsrFilePanel(PanelWithElectronBands):
             d["SKW"] = self.get_skw_view()
 
             if not self.gsr.ebands.isnot_ibz_sampling():
-                d["ifermi"] = self.get_ifermi_view()
+                d["Ifermi"] = self.get_ifermi_view()
                 #d["fsviewer"] = self.get_fsviewer_view()
 
         d["Structure"] = self.get_structure_view()
@@ -73,8 +70,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
         """Return tabs with widgets to interact with the |GsrRobot|."""
         d = {}
 
-        d["Summary"] = pn.Row(bkw.PreText(text=self.robot.to_string(verbose=self.verbose),
-                               sizing_mode="scale_both"))
+        d["Summary"] = self.get_summary_view_for_abiobj(self.robot)
         d["Plot-eBands"] = pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)
 
         # Add e-DOS tab but only if all ebands have k-sampling.

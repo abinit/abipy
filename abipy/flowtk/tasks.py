@@ -988,8 +988,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         Args:
             task: |Task| object.
 
-        Returns:
-            Process object.
+        Returns: Process object.
         """
         if task.status == task.S_LOCKED:
             raise ValueError("You shall not submit a locked task!")
@@ -1469,7 +1468,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.outdir = Directory(os.path.join(self.workdir, "outdata"))
         self.tmpdir = Directory(os.path.join(self.workdir, "tmpdata"))
 
-        # stderr and output file of the queue manager. Note extensions.
+        # stderr and output file of the queue manager. Note file extensions.
         self.qerr_file = File(os.path.join(self.workdir, "queue.qerr"))
         self.qout_file = File(os.path.join(self.workdir, "queue.qout"))
 

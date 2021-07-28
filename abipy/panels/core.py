@@ -77,6 +77,7 @@ def abipanel(panel_template="FastList"):
         "terminal",
         #"katex",
         #"tabulator",
+        #"gridstack",
         "ace",   # NB: This enters in conflict with Abipy Book
     ]
 
@@ -87,6 +88,7 @@ def abipanel(panel_template="FastList"):
     #abipy_css = os.path.join(os.path.dirname(__file__), "assets", "css", "abipy.css")
 
     pn.extension(*extensions) #, css_files=[abipy_css])
+    #pn.extension(template='fast', theme='dark')
 
     pn.config.js_files.update({
         # This for copy to clipboard.
@@ -196,10 +198,12 @@ def depends_on_btn_click(btn_name, show_doc=True, show_shared_wdg_warning=True, 
                 else:
                     return None
 
+            #print("template:", pn.state.template)
+            #col = pn.Column("# Hello World")
+            #pn.state.template.modal.objects = col.objects
+            #pn.state.template.open_modal()
+
             with ButtonContext(btn):
-                #col = pn.Column(sizing_mode="stretch_width")
-                #yield col
-                #with Loading(col):
                 return func(*args, **kwargs)
 
         f = pn.depends(f"{btn_name}.clicks")(decorated)
@@ -232,9 +236,9 @@ def show_exception(func):
         try:
             return func(*args, **kwargs)
         except Exception as exc:
-            print(exc)
-            return pn.Column(pn.pane.Markdown("```shell\n%s\n```" % traceback.format_exc()),
-                             sizing_mode="stretch_width")
+            s = traceback.format_exc()
+            print(s)
+            return pn.pane.Markdown(f"```shell\n{s}\n```", sizing_mode="stretch_both")
 
     return decorated
 
@@ -713,15 +717,16 @@ class AbipyParameterized(param.Parameterized):
 
         return items
 
-    #def get_summary_view_for_abiobj(self, abiobj):
-    #    text = abiobj.to_string(verbose=self.verbose)
+    def get_summary_view_for_abiobj(self, abiobj, **kwargs):
+        text = abiobj.to_string(verbose=self.verbose)
 
-    #    stream = pnw.Terminal(output="\n\n",
-    #        height=1200, # Need this one else the terminal is not show properly
-    #        sizing_mode='stretch_width',
-    #    )
-    #    view = pn.Row(bkw.PreText(text=text, sizing_mode="scale_both"))
-    #    #return view
+        view = pnw.Terminal(output=f"\n\n{text}",
+            #height=1200, # Need this one else the terminal is not show properly
+            #theme="monokai",
+            sizing_mode='stretch_both',
+        )
+        #view = pn.Row(bkw.PreText(text=text, sizing_mode="scale_both"))
+        return view
 
     def wdg_exts_with_get_panel(self, name='File extensions supported:'):
         """

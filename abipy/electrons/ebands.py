@@ -1678,7 +1678,7 @@ class ElectronBands(Has_Structure):
                         dos[spin] += weight * gaussian(mesh, width, center=e)
 
         else:
-            raise NotImplementedError("Method %s is not supported" % method)
+            raise NotImplementedError(f"{method} method is not supported")
 
         # Use fermie from Abinit if we are not using metallic scheme for occopt.
         fermie = None

@@ -2,7 +2,6 @@
 import param
 import panel as pn
 import panel.widgets as pnw
-import bokeh.models.widgets as bkw
 
 from io import StringIO
 from abipy.panels.core import AbipyParameterized, mpl, ply, dfc, depends_on_btn_click
@@ -16,7 +15,6 @@ class AbinitTaskPanel(NodeParameterized):
 
     def __init__(self, task, **params):
         NodeParameterized.__init__(self, node=task, **params)
-
         self.task = task
 
         #self.structures_btn = pnw.Button(name="Show Structures", button_type='primary')
@@ -43,7 +41,7 @@ class AbinitTaskPanel(NodeParameterized):
             job_file,
             pn.layout.Divider(),
             "## Input file:",
-            self.html_with_clipboard_btn(self.task.input, with_divider=False),
+            self.html_with_clipboard_btn(self.task.input),
             pn.layout.Divider(),
             "## TaskManager:",
             json_pane,
@@ -58,7 +56,7 @@ class AbinitTaskPanel(NodeParameterized):
         col = pn.Column(sizing_mode="stretch_width"); cext = col.extend
 
         count = 0
-        for fname in ("stderr_file", "mpiabort_file"):
+        for fname in ("stderr_file", "mpiabort_file", "qerr_file", "qout_file"):
             file = getattr(self.task, fname)
             if file.exists:
                 text = file.read().strip()
@@ -102,11 +100,11 @@ class AbinitTaskPanel(NodeParameterized):
 
     def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the flow."""
-
         d = {}
 
         # This stuff is computed lazyly when the tab is activated.
-        d["Input"] = pn.param.ParamMethod(self.get_inputs_view, lazy=True)
+        #d["Input"] = pn.param.ParamMethod(self.get_inputs_view, lazy=True)
+        d["Input"] = self.get_inputs_view()
         d["Output"] = self.get_main_text_outs_view()
         view = self.get_errs_view()
         if view is not None: d["ErrFiles"] = view
@@ -114,10 +112,9 @@ class AbinitTaskPanel(NodeParameterized):
         super_d =  super().get_panel(as_dict=True)
         d.update(super_d)
 
-        #d["Summary"] = pn.Row(bkw.PreText(text=str(self.task))) # .to_string(verbose=self.verbose)))
         ##d["Structures"] = pn.Row(pn.Column(self.structures_io_checkbox, self.structures_btn), self
 
         if as_dict: return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None),
-                                           closable=False, dynamic=True)
+        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+                                           #closable=False, dynamic=True)

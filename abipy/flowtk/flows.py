@@ -1176,6 +1176,9 @@ class Flow(Node, NodeContainer, MSONable):
             nids:  List of node identifiers. By defaults all nodes are shown
             wslice: Slice object used to select works.
             verbose: Verbosity level (default 0). > 0 to show only the works that are not finalized.
+
+        Return:
+            data_task dictionary with mapping: task --> dict(report=report, timedelta=timedelta)
         """
         stream = kwargs.pop("stream", sys.stdout)
         nids = as_set(kwargs.pop("nids", None))
@@ -1189,6 +1192,7 @@ class Flow(Node, NodeContainer, MSONable):
         #has_colours = stream_has_colours(stream)
         has_colours = True
         red = "red" if has_colours else None
+        data_task = {}
 
         for i, work in enumerate(self):
             if nids and work.node_id not in nids: continue
@@ -1222,6 +1226,9 @@ class Flow(Node, NodeContainer, MSONable):
                     timedelta = task.datetimes.get_time_inqueue()
                     if timedelta is not None:
                         stime = str(timedelta) + "Q"
+
+                # Add new entry to data_task
+                data_task[task] = dict(report=report, timedelta=timedelta)
 
                 events = "|".join(2*["NA"])
                 if report is not None:
@@ -1261,6 +1268,8 @@ class Flow(Node, NodeContainer, MSONable):
         if self.all_ok:
             cprint("\nall_ok reached\n", "green", file=stream)
 
+        return data_task
+
     def show_events(self, status=None, nids=None, stream=sys.stdout):
         """
         Print the Abinit events (ERRORS, WARNIING, COMMENTS) to stdout
@@ -1269,15 +1278,21 @@ class Flow(Node, NodeContainer, MSONable):
             status: if not None, only the tasks with this status are select
             nids: optional list of node identifiers used to filter the tasks.
             stream: File-like object, Default: sys.stdout
+
+        Return:
+            data_task dictionary with mapping: task --> report
         """
         nrows, ncols = get_terminal_size()
+        data_task = {}
 
         for task in self.iflat_tasks(status=status, nids=nids):
             report = task.get_event_report()
+            data_task[task] = report
             if report:
                 print(make_banner(str(task), width=ncols, mark="="), file=stream)
                 print(report, file=stream)
-                #report = report.filter_types()
+
+        return data_task
 
     def show_corrections(self, status=None, nids=None, stream=sys.stdout):
         """
@@ -1316,7 +1331,7 @@ class Flow(Node, NodeContainer, MSONable):
         nrows, ncols = get_terminal_size()
 
         works_done = []
-        # Loop on the tasks and show the history of the work is not in works_done
+        # Loop on the tasks and show the history of the work if not in works_done
         for task in self.iflat_tasks(status=status, nids=nids):
             work = task.work
 
