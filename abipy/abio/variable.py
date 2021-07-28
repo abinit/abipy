@@ -96,6 +96,9 @@ class InputVariable(object):
         if any(inp in var for inp in ('xred', 'xcart', 'rprim', 'qpt', 'kpt')):
             floatdecimal = 16
 
+        if var == 'qpt':
+            floatdecimal = 22
+
         # ...but not for those
         if any(inp in var for inp in ('ngkpt', 'kptrlatt', 'ngqpt', 'ng2qpt')):
             floatdecimal = 0
@@ -149,7 +152,11 @@ class InputVariable(object):
             addlen = 8
 
         ndec = max(len(str(fval-int(fval)))-2, floatdecimal)
-        ndec = min(ndec, 10)
+
+        if floatdecimal > 16:
+            ndec = max(floatdecimal,ndec)
+        else:
+            ndec = min(ndec, 10)
 
         sval = '{v:>{l}.{p}{f}}'.format(v=fval, l=ndec+addlen, p=ndec, f=form)
 

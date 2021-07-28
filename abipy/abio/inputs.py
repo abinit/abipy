@@ -2092,7 +2092,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return multi
 
     def make_eph_transport_input(self, ddb_ngqpt, sigma_erange, tmesh, eph_ngqpt_fine=None, kptopt=1,
-                                 mixprec=1, boxcutmin=1.1, ibte_prep=0, ibte_niter=200, ibte_abs_tol=1e-3):
+                                 mixprec=1, boxcutmin=1.1, ibte_prep=0, ibte_niter=200, ibte_abs_tol=0,
+                                 eph_restart=1):
         """
         Return an |AbinitInput| to perform phonon-limited transport calculations.
         This method is usually called with the input associated to the NSCF run that produces
@@ -2110,7 +2111,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 and is faster over the Abinit default of 2.
             ibte_prep: Set it to 1 to activate the iterative Boltzmann equation. Default is SERTA/MRTA.
             ibte_niter: Max number of iterations to solve the Boltzmann equation.
-            ibte_abs_tol: Stopping criterion for the IBTE.
+            ibte_abs_tol: Stopping criterion for the IBTE. 0 activatess the automatic determination of the threshold.
+            eph_restart: 1 to allow the restart of a run based on the SIGEPH.nc file.
         """
         eph_ngqpt_fine = self.get("ngkpt") if eph_ngqpt_fine is None else eph_ngqpt_fine
         nbdbuf = 0 if self.get("nbdbuf") is None else self.get("nbdbuf")
@@ -2130,6 +2132,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ibte_abs_tol=ibte_abs_tol,
             nband=nband,
             kptopt=kptopt,
+            eph_restart=eph_restart,
             comment="Input file for phonon-limited transport calculations.",
         )
 
