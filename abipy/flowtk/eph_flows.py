@@ -5,8 +5,8 @@ Flows for electron-phonon calculations (high-level interface)
 import numpy as np
 
 from abipy.core.kpoints import kpath_from_bounds_and_ndivsm
-from .works import Work, PhononWork, PhononWfkqWork
 from .nodes import Node
+from .works import Work, PhononWork, PhononWfkqWork
 from .flows import Flow
 
 
