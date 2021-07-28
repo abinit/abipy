@@ -339,7 +339,7 @@ so that AbiPy can authenticate your user on the chart studio portal before pushi
 If everything is properly configured, a new window is automatically created in your browser.
 """)
 
-        btn = pnw.Button(name="Upload to chart studio server")
+        btn = pnw.Button(name="Upload figure to chart studio server")
 
         def push_to_cs(event):
             with ButtonContext(btn):
@@ -348,10 +348,13 @@ If everything is properly configured, a new window is automatically created in y
         btn.on_click(push_to_cs)
 
         if with_help:
-            acc = pn.Accordion(("What is this?", md))
+            acc = pn.Accordion(("Help", md))
             ca(pn.Row(btn, acc))
         else:
             ca(pn.Row(btn))
+
+        #card = pn.Card(btn, acc, title="Push", collapsed=True)
+        #ca(card)
 
     if with_controls:
         ca(pn.Accordion(("plotly controls", plotly_pane.controls(jslink=True))))
@@ -568,8 +571,6 @@ class Loading():
         if self.err_wdg is not None:
             if exc_type:
                 self.err_wdg.object = "```sh\n%s\n```" % textwrap.fill(str(exc_value), width=self.width)
-            #else:
-            #    self.err_wdg.object = "OK"
 
 
 class ActiveBar():
@@ -722,7 +723,6 @@ class AbipyParameterized(param.Parameterized):
 
         view = pnw.Terminal(output=f"\n\n{text}",
             #height=1200, # Need this one else the terminal is not show properly
-            #theme="monokai",
             sizing_mode='stretch_both',
         )
         #view = pn.Row(bkw.PreText(text=text, sizing_mode="scale_both"))

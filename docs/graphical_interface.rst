@@ -189,22 +189,24 @@ Running dashboards or notebooks from a remote server
 inspired to https://ljvmiranda921.github.io/notebook/2018/01/31/running-a-jupyter-notebook/
 
 All the examples presented so far assume that both AbiPy and the web browser are running 
-on the same machine e.g our laptop.
+on the same machine.
 In many cases, however, calculations are performed on clusters in which web browsers are
 not always available or, even if the browser is installed, the connection may be too slow..
 Obviously, one can always copy files from the remote cluster to the local machine with scp
-or mount the remote file system with sshfs but this approach is far from being optimal.
-In principle, we would like to be able to ...
+or mount the remote file system with sshfs but both approaches is far from optimal.
+In principle, we would like to be able to execute Abipy and Abinit on the cluster and visualize 
+the results directly in our local machine.
 
 In this section, we discuss how to start a web server on the remote cluster and how to connect to it 
 from our local machine.
 In other words, The libraries, hardware, and all backend-related stuff depends on your remote machine, 
 but the GUI is seen in your local machine’s web browser. 
 
-Before starting, let's introduce some notations. 
-Let’s define the local user and host as localuser and localhost respectively. 
-Similarly, let’s define the remote user and remote host as remoteuser and remotehost. 
-Needless to say, make sure that Jupyter notebook and all its dependencies are installed in both machines. 
+Before starting, let us introduce some notations. 
+Let us define the local user and host as localuser and localhost, respectively. 
+Similarly, let us define the remote user and remote host as remoteuser and remotehost. 
+Needless to say, make sure that Abipy and all its dependencies are installed on the remotehost,
+including the taskmanager.yml 
 
 Step 1: 
 
@@ -215,10 +217,10 @@ Once the console shows, type the following:
 
     abiopen.py FILE --panel --no-browser --port 49412
 
-
 jupyter notebook: simply fires up your notebook
---no-browser: this starts the notebook without opening a browser
---port=XXXX: this sets the port for starting your notebook where the default is 8888. 
+
+--no-browser starts the notebook without opening the browser on the remote host
+--port=XXXX sets the port for starting the web server.
 When it’s occupied, it finds the next available port.
 
 Step 2: 
@@ -234,7 +236,8 @@ ssh: your handy ssh command. See man page for more info
 
 -N: suppresses the execution of a remote command. Pretty much used in port forwarding.
 -f: this requests the ssh command to go to background before execution.
--L: this argument requires an input in the form of local_socket:remote_socket. Here, we’re specifying our port as YYYY which will be binded to the port XXXX from your remote connection.
+-L: this argument requires an input in the form of local_socket:remote_socket. 
+    Here, we’re specifying our port as YYYY which will be binded to the port XXXX from your remote connection.
 
 Step 3: Fire-up Jupyter Notebook
 To open up the Jupyter notebook from your remote machine, simply start your browser 

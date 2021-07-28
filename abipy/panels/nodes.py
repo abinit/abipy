@@ -174,7 +174,8 @@ class NodeParameterized(AbipyParameterized):
         return stream
 
     def get_graphviz_view(self):
-        return pn.Column(pn.Column("## Graphviz options", self.engine, self.dirtree, self.graphviz_btn),
+        options = pn.Column("## Graphviz options", self.engine, self.dirtree, self.graphviz_btn)
+        return pn.Column(options,
                          self.on_graphviz_btn,
                          sizing_mode="stretch_width")
 

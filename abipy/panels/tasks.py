@@ -1,10 +1,48 @@
 """"Panels to interact with the AbiPy tasks."""
+import os
 import param
 import panel as pn
 import panel.widgets as pnw
 
-from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click
+from panel.viewable import Viewer
+from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click, Loading
 from abipy.panels.nodes import NodeParameterized
+
+
+
+class AceViewer(Viewer):
+
+    def __init__(self, filepath, **params):
+        self.filepath = filepath
+        super().__init__(**params)
+
+        basename = os.path.basename(filepath)
+
+        self.open_btn = pnw.Button(name=f"Open {basename}", button_type='primary')
+        self.open_btn.on_click(self.open_ace_editor)
+
+        self.ace = pnw.Ace(language='text', readonly=True, theme="terminal",
+                           sizing_mode='stretch_width', height=1200, visible=False)
+
+        ace_options = pn.Card(self.ace.param.height, self.ace.param.theme, self.ace.param.visible,
+                              title="Editor options", collapsed=True)
+
+        self.layout = pn.Column(f"## File: <small>{filepath}</small>",
+                                pn.Row(self.open_btn, ace_options),
+                                self.ace,
+                                pn.layout.Divider(),
+                                sizing_mode="stretch_width")
+
+
+    #@depends_on_btn_click("open_btn")
+    #def open_ace_editor(self):
+    def open_ace_editor(self, event):
+        self.ace.visible = True
+        self.ace.value = open(self.filepath, "rt").read()
+        self.open_btn.name = "Reopen %s" % os.path.basename(self.filepath)
+
+    def __panel__(self):
+        return self.layout
 
 
 class AbinitTaskPanel(NodeParameterized):
@@ -35,15 +73,22 @@ class AbinitTaskPanel(NodeParameterized):
                                  sizing_mode="stretch_width",
                                  )
 
+        def card(title, *items, collapsed=True):
+            return pn.Card(*items,
+                           title=title,
+                           collapsed=collapsed, sizing_mode="stretch_width",
+                           #header=pn.widgets.Button(name=title, button_type='primary'),
+                           header_color="blue",
+                           #header_background="blue",
+                           )
+
         return pn.Column(
-            "## Submission script:",
-            job_file,
+            card("Input file:", self.html_with_clipboard_btn(self.task.input), collapsed=False),
             pn.layout.Divider(),
-            "## Input file:",
-            self.html_with_clipboard_btn(self.task.input),
+            card("Submission script:", job_file),
             pn.layout.Divider(),
-            "## TaskManager:",
-            json_pane,
+            card("TaskManager:", json_pane),
+            pn.layout.Divider(),
             sizing_mode="stretch_width",
         )
 
@@ -77,11 +122,13 @@ class AbinitTaskPanel(NodeParameterized):
 
         for fname in ("output_file", "log_file"):
             file = getattr(self.task, fname)
-            text = file.read() if file.exists else f"{fname} does not exist"
-            ace = pnw.Ace(value=text, language='text', readonly=True,
-                          sizing_mode='stretch_width', height=1200)
-                          #sizing_mode='stretch_width', width=900)
-            cext([f"## {fname} <small>{file.path}</small>", ace, pn.layout.Divider()])
+
+            ca(AceViewer(file.path))
+
+            #text = file.read() if file.exists else f"{fname} does not exist"
+            #ace = pnw.Ace(value=text, language='text', readonly=True,
+            #              sizing_mode='stretch_width', height=1200)
+            #cext([f"## {fname} <small>{file.path}</small>", ace, pn.layout.Divider()])
 
         return col
 
