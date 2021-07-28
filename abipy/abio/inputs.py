@@ -391,11 +391,20 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
             pseudo_dir = os.path.abspath(pseudo_dir)
             if not os.path.exists(pseudo_dir): raise self.Error("Directory `%s` does not exist" % pseudo_dir)
             pseudos = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
+            #self["pp_dirpath"] = f'"{pseudo_dir}"'
 
         try:
             self._pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(self.structure)
         except ValueError as exc:
             raise self.Error(str(exc))
+
+        # This section will be activated when we finally drop support for Abinitv8 and the files file.
+        #if "pp_dirpath" in self:
+        #    pstring = ", ".join(p.basename for p in self._pseudos)
+        #else:
+        #    pstring = ", ".join(p.path for p in self._pseudos)
+        #
+        #self["pseudos"] = f'"{pstring}"'
 
         if comment is not None: self.set_comment(comment)
 
