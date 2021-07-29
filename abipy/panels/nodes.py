@@ -15,16 +15,21 @@ class FilePathSelect(pnw.Select):
     @classmethod
     def from_filepaths(cls, filepaths, filter_files=True, **kwargs):
         import os
-        #items = [(os.path.basename(p), p) for p in filepaths ]
-        #if filter_files:
-        #    def filter_basename(name):
-        #    items = [t for t in items if not filte
-        #
-        #base2path = dict(*items)
+        items = [(os.path.basename(p), p) for p in filepaths ]
 
-        base2path = {os.path.basename(p): p for p in filepaths}
+        if filter_files:
+            def filter_basename(name):
+                if name.startswith(".") or name.endswith(".pickle"):
+                    return False
+                return True
+
+            items = [t for t in items if filter_basename(t[0])]
+
+        base2path = dict(items)
+        #base2path = {os.path.basename(p): p for p in filepaths}
         new = cls(options=list(base2path.keys()), **kwargs)
         new._base2path = base2path
+
         return new
 
     @property
@@ -61,7 +66,7 @@ class NodeParameterized(AbipyParameterized):
             self.nids = self.node.node_id
 
         else:
-            raise ValueError(f"Don't know how to hande type: `{type(node)}`")
+            raise ValueError(f"Don't know how to handle type: `{type(node)}`")
 
         self.engine = pnw.Select(value="fdp",
                         options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
@@ -169,13 +174,19 @@ class NodeParameterized(AbipyParameterized):
         self.flow.show_history(nids=self.nids,
                                stream=stream,
                                #status=options.task_status,
-                               #full_history=options.full_history, metadata=options.metadata
+                               #full_history=options.full_history,
+                               #metadata=options.metadata
                                )
         return stream
 
     def get_graphviz_view(self):
-        options = pn.Column("## Graphviz options", self.engine, self.dirtree, self.graphviz_btn)
-        return pn.Column(options,
+        controls = pn.WidgetBox(
+            self.engine, self.dirtree, self.graphviz_btn
+        )
+
+        return pn.Column(f"## Graphviz options for node: `{repr(self.node)}`",
+                         controls,
+                         pn.layout.Divider(),
                          self.on_graphviz_btn,
                          sizing_mode="stretch_width")
 
@@ -218,7 +229,7 @@ class NodeParameterized(AbipyParameterized):
 
     def get_events_view(self):
         return pn.Column(
-            f"## Show the events of node: `{repr(self.node)}`",
+            f"## Show the events of: `{repr(self.node)}`",
             self.pws_col(["verbose", "events_btn"]),
             self.on_events_btn,
             pn.layout.Divider(),
@@ -277,11 +288,18 @@ class NodeParameterized(AbipyParameterized):
     #    return pn.Column(col, self.workdir_selector_output_area, sizing_mode="stretch_width")
 
     def get_files_in_dir_view(self, where):
+        """
+        Return None if no file is found
+        """
         select = self.filepath_select_dir[where]
+        if not select: return None
+
         btn = pnw.Button(name="Analyze", button_type='primary')
         output_area = pn.Column(sizing_mode="stretch_width")
 
         from abipy.abilab import abiopen
+        #from .core import NcFileViewer
+        return
         def update_output_area(event):
             with ButtonContext(btn), Loading(output_area):
                 try:
@@ -290,13 +308,20 @@ class NodeParameterized(AbipyParameterized):
                     output_area.objects = [abifile.get_panel()]
                 except Exception as exc:
                     #print(exc)
+                    #if select.filepath.endswith(".nc"):
+                    #    # We have a nc file but it's not supported by abiopen.
+                    #    # Let's create a minimalistic view of the netcdf dims/vars
+                    #    #abifile = AbinitNcFile(select.filepath)
+                    #    NcFileViewer(self).get_ncfile_view(**kwargs)
+                    #    output_area.objects = [abifile.get_ncfile_view()]
+                    #else:
                     obj = pn.pane.Markdown("```shell\n%s\n```" % traceback.format_exc())
                     output_area.objects = [obj]
 
         btn.on_click(update_output_area)
 
         return pn.Column(
-                "## Select the file and click the button to analyze the data",
+                "## Select a file and click the button to analyze the data",
                 pn.Row(select, btn),
                 pn.layout.Divider(),
                 output_area,
@@ -334,12 +359,14 @@ class NodeParameterized(AbipyParameterized):
         d["Events"] = self.get_events_view()
         for where in ("workdir", "outdir", "indir"):
             if self.filepath_select_dir[where]:
-                d[where.capitalize()] = self.get_files_in_dir_view(where)
+                view = self.get_files_in_dir_view(where)
+                if view is not None: d[where.capitalize()] = view
 
         d["Debug"] = self.get_debug_view()
-        d["Corrections"] = pn.Row(self.corrections_btn, self.on_corrections_btn)
-        d["Handlers"] = pn.Row(self.handlers_btn, self.on_handlers_btn)
-        d["Abivars"] = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
+        #d["Corrections"] = pn.Row(self.corrections_btn, self.on_corrections_btn)
+        #d["Handlers"] = pn.Row(self.handlers_btn, self.on_handlers_btn)
+        if not self.node.is_task:
+            d["Abivars"] = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
         #d["Dims"] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)
         #d["Browse"] = self.get_workdir_view()
         d["Graphviz"] = self.get_graphviz_view()

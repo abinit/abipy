@@ -10,45 +10,49 @@ from abipy.panels.nodes import NodeParameterized
 from abipy import flowtk
 
 
-class TaskSelector(Viewer):
+class WorkTaskSelector(Viewer):
 
-    value = param.ClassSelector(class_=flowtk.AbinitTask, doc="Task object")
+    task = param.ClassSelector(class_=flowtk.AbinitTask, doc="Task object")
 
     def __init__(self, flow, **params):
-        self._wstr2work = {f"w{i}": work for (i, work) in enumerate(flow.works)}
+        self._wstr2work = {f"w{i} ({work.__class__.__name__})": work for (i, work) in enumerate(flow.works)}
+        options = list(self._wstr2work.keys())
+        self.work_select = pnw.Select(name="Select a Work", value=options[0], options=options)
 
-        self._work_select = pnw.Select(name="Select a Work",
-                                       value="w0", options=list(self._wstr2work.keys()))
-        self._task_select = pnw.Select(name="Select a Task of the Work",
-                                       value="t0", options=[f"t{i}" for i in range(len(flow[0]))])
+        options = [f"t{i} ({task.__class__.__name__})" for (i, task) in enumerate(flow[0])]
+        self.task_select = pnw.Select(name="Select a Task in the Work", value=options[0], options=options)
 
         super().__init__(**params)
-        #self._layout = pn.Row(self._work_select, self._task_select)
-        self._layout = pn.WidgetBox(self._work_select, self._task_select)
-        self._sync_widgets()
+
+        self.layout = pn.Column(self.work_select, self.task_select)
+        #self.outarea = pn.Column("## Hello", sizing_mode="stretch_width")
+        #self.layout = pn.Row(pn.WidgetBox(self.work_select, self.task_select), self.outarea)
+        self.sync_widgets()
 
     def __panel__(self):
-        return self._layout
+        return self.layout
 
-    @param.depends('_work_select.value', watch=True)
-    def _sync_widgets(self):
-        work = self._wstr2work[self._work_select.value]
-        self._task_select.options = [f"t{i}" for i in range(len(work))]
-        self.value = work[0]
+    @pn.depends('work_select.value', watch=True)
+    def update_work(self):
+        work = self._wstr2work[self.work_select.value]
+        self.task_select.options = [f"t{i} ({task.__class__.__name__})" for (i, task) in enumerate(work)]
+        self.task = work[0]
 
-    @param.depends('_task_select.value', watch=True)
-    def _update_task(self):
-        work = self._wstr2work[self._work_select.value]
-        task_idx = int(self._task_select.value[1:])
-        self.value = work[task_idx]
+    @pn.depends('task_select.value', watch=True)
+    def sync_widgets(self):
+        work = self._wstr2work[self.work_select.value]
+        task_idx = int(self.task_select.value[1:].split()[0])
+        self.task = work[task_idx]
+        #print(repr(self.task))
+        #self.outarea.objects[0] = repr(self.task)
+        #self.outarea.append(pn.pane.Markdown(repr(self.task)))
+
 
 
 class FlowPanel(NodeParameterized):
     """
     Provides widgets and callbacks to interact with an AbiPy Flow.
     """
-
-    #param.FileSelector()
 
     def __init__(self, flow, **params):
         NodeParameterized.__init__(self, node=flow, **params)
@@ -57,29 +61,33 @@ class FlowPanel(NodeParameterized):
         self.structures_io_checkbox = pnw.CheckBoxGroup(
             name='Input/Output Structure', value=['output'], options=['input', 'output'], inline=True)
 
-        self.task_selector = TaskSelector(flow)
-        self.task_btn = pnw.Button(name="Show Task", button_type='primary')
+        self.wt_selector = WorkTaskSelector(flow)
+        self.task_btn = pnw.Button(name="Analyze Task", button_type='primary')
 
     def get_task_view(self):
+
+        wbox = pn.WidgetBox
+
         return pn.Column(
-            "## CLick the button to show the status of the task",
-            #self.pws_row(["task_selector", "task_btn"]),
-            self.task_selector,
-            self.task_btn,
+            wbox("## Select Work and Task",
+                 self.wt_selector,
+                 self.task_btn,
+            ),
             pn.layout.Divider(),
             self.on_task_btn,
             sizing_mode='stretch_width',
-            )
+        )
 
     @depends_on_btn_click("task_btn")
     def on_task_btn(self):
         """
         Return panel associated to the selected task.
         """
-        task = self.task_selector.value
+        task = self.wt_selector.task
         return pn.Column(
-                f"## {repr(task)}",
-                task.get_panel(),
+            f"## {repr(task)}",
+            task.get_panel(),
+            sizing_mode="stretch_width",
         )
 
     @depends_on_btn_click("structures_btn")

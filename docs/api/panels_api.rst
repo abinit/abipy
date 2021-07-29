@@ -111,6 +111,14 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`viewers` Module
+---------------------
+
+.. automodule:: abipy.panels.viewers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`works` Module
 -------------------
 

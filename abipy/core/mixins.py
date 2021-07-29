@@ -130,6 +130,8 @@ class TextFile(BaseFile):
 
     def get_panel(self, **kwargs):
         import panel as pn
+        import panel.widgets as pnw
+
         root, ext = os.path.splitext(self.basename)
         text = open(self.filepath, "rt").read()
         if not text: text = "This file is empty!"
@@ -144,36 +146,25 @@ class TextFile(BaseFile):
         else:
             obj = pnw.Ace(value=text, language='text', readonly=True,
                           sizing_mode='stretch_width', height=1200)
-                          #sizing_mode='stretch_width', width=900)
 
         return pn.Column(f"## File: {self.filepath}",
-                         obj, pn.layout.Divider(),
+                         obj,
+                         pn.layout.Divider(),
                          sizing_mode="stretch_width")
 
 
 class JsonFile(TextFile):
     """
-    A text file with JSON data. Provides get_panel method
-    so that we can visualize the file with `abiopen.py FILE --panel`
+    A TextFile containing JSON data.
+    Provides get_panel method so that we can visualize the file with `abiopen.py FILE --panel`
     """
 
-    def get_panel(self, with_controls=False, **kwargs):
+    def get_panel(self, **kwargs):
         import json
+        from abipy.panels.viewers import JSONViewer
         with self:
-            d = json.load(self._file)
+            return JSONViewer(json.load(self._file))
 
-        import panel as pn
-        json_pane = pn.pane.JSON(d, name=self.basename,
-                                 #depth=2 # -1 indicates full expansion
-                                 hover_preview=True,
-                                 theme="dark",
-                                 #height=300, width=500,
-                                 sizing_mode="stretch_width",
-                                 )
-        if with_controls:
-            return pn.Row(json_pane.controls(jslink=True), json_pane, sizing_mode="stretch_width")
-        else:
-            return pn.Row(json_pane, sizing_mode="stretch_width")
 
 
 class AbinitNcFile(BaseFile):

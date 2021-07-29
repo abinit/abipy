@@ -72,7 +72,8 @@ class PanelWithAnaddbParams(param.Parameterized):
         #nqqpt = pnw.LiteralInput(name='nsmalls (list)', value=[10, 20, 30], type=list)
 
         # Base buttons
-        self.plot_without_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP", button_type='primary')
+        self.plot_without_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP",
+                                                      button_type='primary')
 
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs):
         """

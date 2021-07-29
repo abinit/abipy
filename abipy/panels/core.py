@@ -684,11 +684,14 @@ class AbipyParameterized(param.Parameterized):
         """Default arguments passed to AbiPy matplotlib plot methods."""
         return dict(show=False, fig_close=True)
 
-    def pws_col(self, keys):
-        return pn.Column(*self.pws(keys))
+    def pws_col(self, keys, **kwargs):
+        return pn.Column(*self.pws(keys), **kwargs)
 
-    def pws_row(self, keys):
-        return pn.Row(*self.pws(keys))
+    def pws_row(self, keys, **kwargs):
+        return pn.Row(*self.pws(keys), **kwargs)
+
+    def wbox(self, keys, **kwargs):
+        return pn.WidgetBox(*self.pws(keys), **kwargs)
 
     def pws(self, keys):
         """
@@ -830,7 +833,7 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
     def get_template_from_tabs(self, tabs, template, **tabs_kwargs):
         """
         This method receives panel Tabs or a dictionary,
-        include them in a template and return the template.
+        include them in a template and return the template instance.
         """
         if isinstance(tabs, dict):
             if "sizing_mode" not in tabs_kwargs: tabs_kwargs["sizing_mode"] = "stretch_width"

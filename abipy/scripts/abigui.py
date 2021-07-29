@@ -116,7 +116,6 @@ with extensions that are not recognized by AbiPy.
         def view(self):
             return self.func(*self.args, **self.kwargs)
 
-
     #cls_kwds.update(dict(
     #    sidebar_width=240,
     #    #sidebar_width=280,

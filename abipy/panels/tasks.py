@@ -1,48 +1,11 @@
-""""Panels to interact with the AbiPy tasks."""
-import os
-import param
+"""Panels to interact with the AbiPy tasks."""
+
 import panel as pn
 import panel.widgets as pnw
 
-from panel.viewable import Viewer
+from abipy.panels.viewers import AceViewer
 from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click, Loading
 from abipy.panels.nodes import NodeParameterized
-
-
-
-class AceViewer(Viewer):
-
-    def __init__(self, filepath, **params):
-        self.filepath = filepath
-        super().__init__(**params)
-
-        basename = os.path.basename(filepath)
-
-        self.open_btn = pnw.Button(name=f"Open {basename}", button_type='primary')
-        self.open_btn.on_click(self.open_ace_editor)
-
-        self.ace = pnw.Ace(language='text', readonly=True, theme="terminal",
-                           sizing_mode='stretch_width', height=1200, visible=False)
-
-        ace_options = pn.Card(self.ace.param.height, self.ace.param.theme, self.ace.param.visible,
-                              title="Editor options", collapsed=True)
-
-        self.layout = pn.Column(f"## File: <small>{filepath}</small>",
-                                pn.Row(self.open_btn, ace_options),
-                                self.ace,
-                                pn.layout.Divider(),
-                                sizing_mode="stretch_width")
-
-
-    #@depends_on_btn_click("open_btn")
-    #def open_ace_editor(self):
-    def open_ace_editor(self, event):
-        self.ace.visible = True
-        self.ace.value = open(self.filepath, "rt").read()
-        self.open_btn.name = "Reopen %s" % os.path.basename(self.filepath)
-
-    def __panel__(self):
-        return self.layout
 
 
 class AbinitTaskPanel(NodeParameterized):
@@ -60,34 +23,31 @@ class AbinitTaskPanel(NodeParameterized):
 
     def get_inputs_view(self):
         """
-        Show the input files of the task: submission script and Abinit input file.
+        Show the input files of the task: input file, submission script and TaskManager
         """
         file = self.task.job_file
         text = file.read() if file.exists else "Cannot find job_file!"
         job_file = pn.pane.Markdown(f"```shell\n{text}\n```")
 
-        json_pane = pn.pane.JSON(self.task.manager.as_dict(),
-                                 depth=-1, # full expansion
-                                 hover_preview=True,
-                                 theme="dark",
-                                 sizing_mode="stretch_width",
-                                 )
+        from .viewers import JSONViewer
+        json_view = JSONViewer(self.task.manager.as_dict())
 
         def card(title, *items, collapsed=True):
             return pn.Card(*items,
                            title=title,
-                           collapsed=collapsed, sizing_mode="stretch_width",
-                           #header=pn.widgets.Button(name=title, button_type='primary'),
+                           collapsed=collapsed,
+                           sizing_mode="stretch_width",
                            header_color="blue",
                            #header_background="blue",
                            )
 
         return pn.Column(
-            card("Input file:", self.html_with_clipboard_btn(self.task.input), collapsed=False),
+            f"## Input files of `{repr(self.task)}`",
+            card("Input file", self.html_with_clipboard_btn(self.task.input), collapsed=False),
             pn.layout.Divider(),
-            card("Submission script:", job_file),
+            card("Submission script", job_file),
             pn.layout.Divider(),
-            card("TaskManager:", json_pane),
+            card("TaskManager", json_view),
             pn.layout.Divider(),
             sizing_mode="stretch_width",
         )
@@ -117,18 +77,12 @@ class AbinitTaskPanel(NodeParameterized):
         """
         Show the main text output files of the task.
         """
-        col = pn.Column(sizing_mode="stretch_width")
-        ca = col.append; cext = col.extend
+        col = pn.Column(f"## Main output file and log file of `{repr(self.task)}`",
+                        sizing_mode="stretch_width")
 
         for fname in ("output_file", "log_file"):
             file = getattr(self.task, fname)
-
-            ca(AceViewer(file.path))
-
-            #text = file.read() if file.exists else f"{fname} does not exist"
-            #ace = pnw.Ace(value=text, language='text', readonly=True,
-            #              sizing_mode='stretch_width', height=1200)
-            #cext([f"## {fname} <small>{file.path}</small>", ace, pn.layout.Divider()])
+            col.append(AceViewer(file.path))
 
         return col
 
@@ -149,8 +103,7 @@ class AbinitTaskPanel(NodeParameterized):
         d = {}
 
         # This stuff is computed lazyly when the tab is activated.
-        #d["Input"] = pn.param.ParamMethod(self.get_inputs_view, lazy=True)
-        d["Input"] = self.get_inputs_view()
+        d["Inputs"] = self.get_inputs_view()
         d["Output"] = self.get_main_text_outs_view()
         view = self.get_errs_view()
         if view is not None: d["ErrFiles"] = view

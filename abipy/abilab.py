@@ -103,6 +103,8 @@ ext2file = collections.OrderedDict([
     (".sh", TextFile),
     (".stdin", TextFile),
     (".stderr", TextFile),
+    (".err", TextFile),
+    (".files", TextFile),
     (".stdout", TextFile),
     (".cube", CubeFile),
     ("anaddb.nc", AnaddbNcFile),
@@ -217,8 +219,11 @@ def abifile_subclass_from_filename(filename):
         for ext, cls in abiext2ncfile.items():
             if filename.endswith(ext): return cls
 
-    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n\n%s" %
-        (filename, abiopen_ext2class_table()))
+    msg = f"""
+abiopen cannot handle this file as no phython class has been registered for file:\n`{filename}`\n\n
+This is the list of file extensions supported by abiopen:\n\n
+{abiopen_ext2class_table()}
+"""
     raise ValueError(msg)
 
 
