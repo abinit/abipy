@@ -310,7 +310,7 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
     return col
 
 
-def ply(fig, sizing_mode='stretch_width', with_chart_studio=True, with_help=True,
+def ply(fig, sizing_mode='stretch_both', with_chart_studio=True, with_help=True,
         with_divider=True, with_controls=False):
     """
     Helper function returning a panel Column with a plotly pane,  buttons to push the figure
@@ -690,7 +690,7 @@ class AbipyParameterized(param.Parameterized):
     def pws_row(self, keys, **kwargs):
         return pn.Row(*self.pws(keys), **kwargs)
 
-    def wbox(self, keys, **kwargs):
+    def wdg_box(self, keys, **kwargs):
         return pn.WidgetBox(*self.pws(keys), **kwargs)
 
     def pws(self, keys):

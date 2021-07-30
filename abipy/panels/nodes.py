@@ -6,7 +6,7 @@ import bokeh.models.widgets as bkw
 import panel as pn
 import panel.widgets as pnw
 
-from abipy.panels.core import AbipyParameterized, Loading, ButtonContext, depends_on_btn_click, dfc #, #, mpl, ply,
+from abipy.panels.core import AbipyParameterized, Loading, ButtonContext, depends_on_btn_click, dfc, ply
 #from abipy import flowtk
 
 
@@ -68,8 +68,8 @@ class NodeParameterized(AbipyParameterized):
         else:
             raise ValueError(f"Don't know how to handle type: `{type(node)}`")
 
-        self.engine = pnw.Select(value="fdp",
-                        options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
+        self.engine = pnw.Select(value="fdp", label="engine",
+                                 options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
         self.dirtree = pnw.Checkbox(name='Dirtree', value=False)
         self.graphviz_btn = pnw.Button(name="Show Graph", button_type='primary')
 
@@ -102,7 +102,7 @@ class NodeParameterized(AbipyParameterized):
         return pn.Column(
             f"## Show the status of: `{repr(self.node)}`",
             pn.Row(
-                self.pws_col(["verbose", "status_btn"]),
+                self.wdg_box(["verbose", "status_btn"]),
                 bkw.PreText(text=self.node.str_deps()),
             ),
             pn.layout.Divider(),
@@ -115,80 +115,59 @@ class NodeParameterized(AbipyParameterized):
         """
         Show the status of the node.
         """
-        stream = pnw.Terminal(output="\n\n",
-            height=1200, # Need this one else the terminal is not show properly
+        term = pnw.Terminal(
+            output="\n\n",
+            height=1200, # Need this one else the terminal is not shown properly
             sizing_mode='stretch_width',
         )
 
-        data_task = self.flow.show_status(nids=self.nids, stream=stream, verbose=1) #self.verbose)
-
-        stream.write("\n")
-        self.flow.show_summary(stream=stream)
+        # Here it's important to enforce verbose 1 else show_status
+        # does not analyze tasks that are completed.
+        df = self.flow.show_status(nids=self.nids, stream=term, verbose=1, return_df=True) #self.verbose)
+        term.write("\n")
+        #self.flow.show_summary(stream=term)
 
         if not self.node.is_flow:
-            return stream
+            return term
 
-        grid = pn.GridSpec(sizing_mode='stretch_both')
-        status_counter = self.flow.status_counter
-        tot_num_tasks = sum(status_counter.values())
-        grid = pn.FlexBox()
-        for i, (status, count) in enumerate(status_counter.items()):
-            dial = pn.indicators.Dial(name=f'{status}', value=count / tot_num_tasks * 100, bounds=(0, 100))
-            grid.append(dial)
-
-        #from panel.layout.gridstack import GridStack
-        #pn.extension('gridstack')
-        #grid = GridStack(sizing_mode='stretch_both')
-        #grid = pn.GridSpec(sizing_mode='stretch_both') #width=800, height=600)
-        #print("data_task", data_task)
-        #for iw, work in enumerate(self.flow):
-        #    for it, task in enumerate(work):
-        #        if task not in data_task: continue
-        #        dial = pn.indicators.Dial(name='{repr(task)}', value=10, bounds=(0, 100))
-        #        grid[iw, it] = dial
-
-        return pn.Column(grid,
-                         pn.layout.Divider(),
-                         stream,
-                         sizing_mode="stretch_width")
+        return StatusCards(df)
 
     def get_history_view(self):
         return pn.Column(
             f"## Show the history of: `{repr(self.node)}`",
-            self.pws_col(["verbose", "history_btn"]),
-            self.on_history_btn,
+            self.wdg_box(["verbose", "history_btn"]),
             pn.layout.Divider(),
+            self.on_history_btn,
             sizing_mode='stretch_width',
-            )
+       )
 
     @depends_on_btn_click("history_btn")
     def on_history_btn(self):
         """
         Show the history of the node.
         """
-        stream = pnw.Terminal(output="\n\n",
+        term = pnw.Terminal(
+            output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
             sizing_mode='stretch_width',
         )
 
         self.flow.show_history(nids=self.nids,
-                               stream=stream,
+                               stream=term,
                                #status=options.task_status,
                                #full_history=options.full_history,
                                #metadata=options.metadata
                                )
-        return stream
+        return term
 
     def get_graphviz_view(self):
-        controls = pn.WidgetBox(
-            self.engine, self.dirtree, self.graphviz_btn
+        return pn.Column(
+                f"## Graphviz options for node: `{repr(self.node)}`",
+                pn.WidgetBox(self.engine, self.dirtree, self.graphviz_btn),
+                pn.layout.Divider(),
+                self.on_graphviz_btn,
+                sizing_mode="stretch_width"
         )
-
-        return pn.Column(f"## Graphviz options for node: `{repr(self.node)}`",
-                         controls,
-                         pn.layout.Divider(),
-                         self.on_graphviz_btn,
-                         sizing_mode="stretch_width")
 
     @depends_on_btn_click("graphviz_btn")
     def on_graphviz_btn(self):
@@ -200,12 +179,11 @@ class NodeParameterized(AbipyParameterized):
         else:
             graph = self.node.get_graphviz(engine=self.engine.value)
 
-        #graph = pn.pane.SVG(graph)
         #self.flow.plot_networkx(mode="network", with_edge_labels=False, ax=None, arrows=False,
         #                        node_size="num_cores", node_label="name_class", layout_type="spring", **kwargs):
 
         return pn.Column("## Dependency Graph:",
-                         graph,
+                         pn.pane.SVG(graph),
                          sizing_mode="stretch_width"
                          )
 
@@ -220,12 +198,12 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("debug_btn")
     def on_debug_btn(self):
-        stream = pnw.Terminal(output="\n\n",
+        term = pnw.Terminal(output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
             sizing_mode='stretch_width',
         )
-        self.flow.debug(stream=stream, nids=self.nids) # status=options.task_status,
-        return stream
+        self.flow.debug(stream=term, nids=self.nids) # status=options.task_status,
+        return term
 
     def get_events_view(self):
         return pn.Column(
@@ -238,30 +216,33 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("events_btn")
     def on_events_btn(self):
-        stream = pnw.Terminal(output="\n\n",
+        term = pnw.Terminal(
+            output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
             sizing_mode='stretch_width',
         )
-        self.flow.show_events(stream=stream, nids=self.nids) # status=options.task_status,
-        return stream
+        self.flow.show_events(stream=term, nids=self.nids) # status=options.task_status,
+        return term
 
     @depends_on_btn_click("corrections_btn")
     def on_corrections_btn(self):
-        stream = pnw.Terminal(output="\n\n",
+        term = pnw.Terminal(
+            output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
             sizing_mode='stretch_width',
         )
-        self.flow.show_corrections(stream=stream, nids=self.nids)
-        return stream
+        self.flow.show_corrections(stream=term, nids=self.nids)
+        return term
 
     @depends_on_btn_click("handlers_btn")
     def on_handlers_btn(self):
-        stream = pnw.Terminal(output="\n\n",
+        term = pnw.Terminal(
+            output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
             sizing_mode='stretch_width',
         )
-        self.flow.show_event_handlers(stream=stream, verbose=self.verbose) #, nids=self.nids,  status=None,
-        return stream
+        self.flow.show_event_handlers(stream=term, verbose=self.verbose) #, nids=self.nids,  status=None,
+        return term
 
     @depends_on_btn_click("vars_btn")
     def on_vars_btn(self):
@@ -276,17 +257,6 @@ class NodeParameterized(AbipyParameterized):
         df = self.flow.get_dims_dataframe(nids=self.nids, printout=False, with_colors=False)
         return pn.Row(dfc(df), sizing_mode="scale_width")
 
-    #def get_workdir_view(self):
-    #    col = pn.Column(sizing_mode="stretch_width"); ca = col.append
-    #    ca(self.workdir_fileselector)
-    #    self.workdir_selector_btn = pnw.Button(name="Show file", button_type='primary')
-    #    self.workdir_selector_btn.on_click(self.on_workdir_selector_btn)
-    #    ca(self.workdir_selector_btn)
-    #    self.workdir_selector_output_area = pn.Column(sizing_mode="stretch_width")
-    #    ca(self.workdir_selector_output_area)
-
-    #    return pn.Column(col, self.workdir_selector_output_area, sizing_mode="stretch_width")
-
     def get_files_in_dir_view(self, where):
         """
         Return None if no file is found
@@ -299,7 +269,7 @@ class NodeParameterized(AbipyParameterized):
 
         from abipy.abilab import abiopen
         #from .core import NcFileViewer
-        return
+
         def update_output_area(event):
             with ButtonContext(btn), Loading(output_area):
                 try:
@@ -322,7 +292,7 @@ class NodeParameterized(AbipyParameterized):
 
         return pn.Column(
                 "## Select a file and click the button to analyze the data",
-                pn.Row(select, btn),
+                pn.WidgetBox(select, btn),
                 pn.layout.Divider(),
                 output_area,
                 sizing_mode="stretch_width"
@@ -368,9 +338,128 @@ class NodeParameterized(AbipyParameterized):
         if not self.node.is_task:
             d["Abivars"] = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
         #d["Dims"] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)
-        #d["Browse"] = self.get_workdir_view()
         d["Graphviz"] = self.get_graphviz_view()
 
         if as_dict: return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template", None), closable=False)
+
+
+
+class StatusCards(param.Parameterized):
+
+    def __init__(self, df, **params):
+        self.df = df
+        super().__init__(**params)
+
+        # For each work_idx, compute the min/max index
+        # we need this dict in add_vrect to shadow the region associated to the work.
+        self.w_start_stop = {}
+        for w_idx in df["work_idx"].unique():
+            lst = sorted(df.index[(df['work_idx'] == w_idx)].tolist())
+            self.w_start_stop[w_idx] = (lst[0], lst[-1])
+
+        header_list = [
+            "## Task status histogram",
+            "## Task class histogram",
+            "## Runtime in seconds for each task in the flow (-1 if task is not running)",
+            "## Number of WARNINGs found in the log file of the Task",
+            "## Barplot with number of MPI procs",
+            "## Task Timeline",
+        ]
+
+        #if len(df['status'].unique()) != 1:
+        # Show histogram with task status only if we have different status values.
+
+        import plotly.express as px
+        self.cards, self.done = {}, {}
+        for i, header in enumerate(header_list):
+            fig = None
+            card = pn.layout.Card(None, header=header, collapsed=True, sizing_mode="stretch_width")
+            card.param.watch(self.update_card, ['collapsed'])
+            self.cards[header] = card
+            self.done[header] = False
+
+        self.cards["## Task status histogram"].collapsed = False
+
+        open_btn = pnw.Button(name="Open all cards", button_type='primary')
+        open_btn.on_click(self.open_all_cards)
+        close_btn = pnw.Button(name="Close all cards", button_type='primary')
+        close_btn.on_click(self.close_all_cards)
+
+        self.layout = pn.Column(pn.Row(open_btn, close_btn),
+                                *list(self.cards.values()),
+                                sizing_mode="stretch_width"
+                                )
+
+    def __panel__(self):
+        return self.layout
+
+    def open_all_cards(self, event):
+        for card in self.cards.values():
+            card.collapsed = False
+
+    def close_all_cards(self, event):
+        for card in self.cards.values():
+            card.collapsed = True
+
+    def add_vrect_to_fig(self, fig):
+        """
+        Add vertical rectangles to the fig to group tasks belonging to the same Work.
+        """
+        for w_idx, (x0, x1) in self.w_start_stop.items():
+            fig.add_vrect(x0=x0, x1=x1,
+                          annotation_text=f"w{w_idx}", annotation_position="top left",
+                          fillcolor="grey", opacity=0.1, line_width=0)
+        return fig
+
+    def update_card(self, event):
+        header = event.obj.header
+        if self.done[header]: return
+        #print(event, event.obj.header)
+
+        card = self.cards[header]
+        with Loading(card):
+            import plotly.express as px
+            df = self.df
+            if header == "## Task status histogram":
+                fig = px.histogram(df, x="status")
+
+            elif header == "## Task class histogram":
+                fig = px.histogram(df, x="task_class", color="status")
+
+            elif header == "## Runtime in seconds for each task in the flow (-1 if task is not running)":
+                fig = px.scatter(df, x=df.index, y="task_runtime_s", color="status", #, symbol="work_idx", #size=
+                                 hover_data =["num_warnings", "num_comments", "work_idx", "task_class"],
+                                 hover_name="name")
+                self.add_vrect_to_fig(fig)
+
+            elif header == "## Number of WARNINGs found in the log file of the Task":
+
+                fig = px.scatter(df, x=df.index, y="num_warnings", color="status", #, symbol="work_idx", #size=
+                                 hover_data=["task_runtime_s", "num_comments", "work_idx", "task_class"],
+                                 hover_name="name")
+                self.add_vrect_to_fig(fig)
+
+            elif header == "## Barplot with number of MPI procs":
+
+                fig = px.bar(df, x="work_idx", y="mpi_procs", color="task_widx",
+                             #barmode="group",
+                             #color="status",
+                             #pattern_shape="task_class",
+                             #pattern_shape="status",
+                             #pattern_shape_sequence=[".", "x", "+"],
+                             hover_data =["num_warnings", "num_comments", "task_class"],
+                             hover_name="name")
+
+            elif header == "## Task Timeline":
+                fig = px.timeline(df, x_start="start_datetime", x_end="end_datetime", y="name",
+                                  color="task_class", hover_name="name")
+
+            else:
+                raise ValueError(f"No action registered for: {header}")
+
+            plotly_pane = ply(fig, with_chart_studio=False, with_help=False, with_divider=False)
+
+        card.objects = [plotly_pane]
+        self.done[header] = True

@@ -230,6 +230,7 @@ class FlowTest(FlowUnitTest):
 
         # Test show_status
         flow.show_status()
+        df = flow.show_status(return_df=True)
         flow.show_tricky_tasks()
         flow.show_event_handlers()
 

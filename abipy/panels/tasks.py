@@ -77,7 +77,7 @@ class AbinitTaskPanel(NodeParameterized):
         """
         Show the main text output files of the task.
         """
-        col = pn.Column(f"## Main output file and log file of `{repr(self.task)}`",
+        col = pn.Column(f"## Main output and log file of `{repr(self.task)}`",
                         sizing_mode="stretch_width")
 
         for fname in ("output_file", "log_file"):

@@ -1496,7 +1496,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
     @lazy_property
     def pos(self):
-        """The position of the task in the |Flow|"""
+        """The position of the task inside the |Flow|"""
         for i, task in enumerate(self.work):
             if self == task:
                 return self.work.pos, i
@@ -3998,7 +3998,7 @@ class FlexoETask(DfptTask):
     color_rgb = np.array((122, 122, 255)) / 255
 
     def restart(self):
-        raise NotImplementedError("don't know how to restart dynamical quadrupoles")
+        raise NotImplementedError("don't know how to restart Flexoelectric calculations.")
 
 
 class EffMassTask(DfptTask):
