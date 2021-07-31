@@ -25,7 +25,6 @@ class WorkTaskSelector(Viewer):
         super().__init__(**params)
 
         self.layout = pn.Column(self.work_select, self.task_select)
-        #self.outarea = pn.Column("## Hello", sizing_mode="stretch_width")
         #self.layout = pn.Row(pn.WidgetBox(self.work_select, self.task_select), self.outarea)
         self.sync_widgets()
 
@@ -65,7 +64,6 @@ class FlowPanel(NodeParameterized):
         self.task_btn = pnw.Button(name="Analyze Task", button_type='primary')
 
     def get_task_view(self):
-
         wbox = pn.WidgetBox
 
         return pn.Column(
@@ -119,3 +117,4 @@ class FlowPanel(NodeParameterized):
         if as_dict: return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template", None), closable=False)
+

@@ -16,28 +16,6 @@ from abipy import abilab
 from abipy import flowtk
 
 
-class FakeAbinitInput(object):
-    """Emulate an Abinit input."""
-    @lazy_property
-    def pseudos(self):
-        return [abidata.pseudo("14si.pspnc")]
-
-    @lazy_property
-    def structure(self):
-        coords = []
-        coords.append([0, 0, 0])
-        coords.append([0.75, 0.5, 0.75])
-        lattice = Lattice([[3.8401979337, 0.00, 0.00],
-                          [1.9200989668, 3.3257101909, 0.00],
-                          [0.00, -2.2171384943, 3.1355090603]])
-        return Structure(lattice, ["Si", "Si"], coords)
-
-    def get(self, key, default=None):
-        """The real AbinitInput is a dict-like object."""
-        if default is not None: return default
-        return key
-
-
 class FlowUnitTest(AbipyTest):
     """Provides helper function for testing Abinit flows."""
     MANAGER = """\
@@ -92,7 +70,15 @@ batch_adapter: *batch
         self.manager = TaskManager.from_string(self.MANAGER)
 
         # Fake input file
-        self.fake_input = FakeAbinitInput()
+        from abipy.abio.inputs import AbinitInput
+        coords = []
+        coords.append([0, 0, 0])
+        coords.append([0.75, 0.5, 0.75])
+        lattice = Lattice([[3.8401979337, 0.00, 0.00],
+                          [1.9200989668, 3.3257101909, 0.00],
+                          [0.00, -2.2171384943, 3.1355090603]])
+        self.fake_input = AbinitInput(structure=Structure(lattice, ["Si", "Si"], coords),
+                                      pseudos=abidata.pseudo("14si.pspnc"))
 
     def tearDown(self):
         """Delete workdir"""

@@ -68,7 +68,7 @@ class NodeParameterized(AbipyParameterized):
         else:
             raise ValueError(f"Don't know how to handle type: `{type(node)}`")
 
-        self.engine = pnw.Select(value="fdp", label="engine",
+        self.engine = pnw.Select(value="fdp", name="engine",
                                  options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
         self.dirtree = pnw.Checkbox(name='Dirtree', value=False)
         self.graphviz_btn = pnw.Button(name="Show Graph", button_type='primary')

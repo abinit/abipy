@@ -6,6 +6,7 @@ import os
 import click
 import panel as pn
 
+from pprint import pformat
 from abipy.core.release import version
 
 
@@ -21,21 +22,27 @@ from abipy.core.release import version
 @click.option('--has-remote-server', default=False, is_flag=True,
               help="True if we are running on the ABINIT server. This flag activates limitations on what the user can do." +
                    "Default: False")
-@click.option('--verbose', default=0, help="Verbosity level")
+@click.option("-v", '--verbose', default=0, count=True, help="Verbosity level")
 @click.version_option(version=version, message='%(version)s')
 def gui_app(port, address, show, num_procs, panel_template, has_remote_server, verbose):
 
     from abipy.panels.core import abipanel, get_abinit_template_cls_kwds, AbipyParameterized
     import abipy.panels as mod
 
-    # Load abipy/panel extensions.
+    # Load abipy/panel extensions and set the default template
+    #tmpl_kwds.update(dict(
+    #    sidebar_width=240,
+    #    #sidebar_width=280,
+    #    #background_color="yellow",
+    #))
     abipanel(panel_template=panel_template)
 
     assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
     print("has_remote_server:", has_remote_server)
     if has_remote_server:
-        print("Enforce limitations on what the user can do on the abinit server")
-        AbipyParameterized.has_remote_server = has_remote_server # TODO
+        print("Enforcing limitations on what the user can do on the abinit server")
+        # TODO finalize, remove files created by user
+        AbipyParameterized.has_remote_server = has_remote_server
 
     # Import the apps and define routes for each page.
     from abipy.panels.structure import InputFileGenerator
@@ -58,12 +65,47 @@ Note that the **file extension** matters as the GUI won't work properly if you u
 with extensions that are not recognized by AbiPy.
 
 """
-    cls, cls_kwds = get_abinit_template_cls_kwds()
-    print("Using panel template:", cls)
+    tmpl_cls, tmpl_kwds = get_abinit_template_cls_kwds()
+
+    if verbose:
+        print("Using default template:", tmpl_cls, "with kwds:\n", pformat(tmpl_kwds), "\n")
+
+    from abipy.panels.core import AbipyParameterized
+
+    class FlowApp(AbipyParameterized):
+        info_str = "hello work"
+
+        def __init__(self):
+            super().__init__()
+
+        def get_panel(self):
+            #print("in get_panel with location", pn.state.location)
+            #print("pathname:", pn.state.location.pathname)
+            #print("location pprint", pn.state.location.pprint())
+            #print("state", pn.state.pprint())
+            #print("rel_path:", pn.state.rel_path)
+            #print("session_args:", pn.state.session_args)
+            print("app_url:", pn.state.app_url)
+            # URL example: /w1/t5/w\d+/t\d+
+            tokens = pn.state.app_url.split("/")
+            work_idx = int(tokens[1][1:])
+            task_idx = None
+            if tokens[2].startswith("t"):
+                task_idx = int(tokens[2][1:])
+            print("work_idx:", work_idx, "task_idx:", task_idx)
+
+            if task_idx is None:
+                main = pn.Column(f"## Work {work_idx}")
+            else:
+                main = pn.Column(f"## Work {work_idx}, Task {task_idx}")
+
+            template = tmpl_cls(main=main, **tmpl_kwds)
+
+            return template
 
     # url --> (cls, title)
     app_routes_titles = {
-        "/": (cls, "AbiPy GUI Home"),
+        "/": (tmpl_cls, "AbiPy GUI Home"),
         "/input_generator": (InputFileGenerator, "Abinit Input Generator"),
         #"/structure_analyzer": (PanelWithFileInput(use_structure=True).get_panel(), "Structure Analyzer"),
         "/structure_analyzer": (PanelWithStructureInput, "Structure Analyzer"),
@@ -74,8 +116,9 @@ with extensions that are not recognized by AbiPy.
         "/ddb_vs_mp": (CompareDdbWithMP, "Compare DDB with MP"),
         "/skw": (SkwPanelWithFileInput, "SKW Analyzer"),
         "/robot": (RobotWithFileInput, "Robot Analyzer"),
+        r"/w\d+": (FlowApp, "FlowApp"),
+        r"/w\d+/t\d+": (FlowApp, "FlowApp"),
         #"/abilog": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
-        #"/gs_autoparal": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
         #"/state": (pn.state, "State"),
     }
 
@@ -91,59 +134,58 @@ with extensions that are not recognized by AbiPy.
 {cls.info_str}
 """
 
-    main_home = pn.Column(pn.pane.Markdown(intro, width=600, sizing_mode="stretch_width"),
+    main_home = pn.Column(pn.pane.Markdown(intro, sizing_mode="stretch_both"),
                           sizing_mode="stretch_both")
 
     # Add links to sidebar of each app so that we can navigate easily.
     links = "\n".join(f"- [{title}]({url})" for (url, title) in app_title.items())
     links = pn.Column(pn.pane.Markdown(links))
 
-    def func(cls, **cls_kwargs):
-        app = cls(**cls_kwargs)
-        if hasattr(app, "get_panel"):
-            app = app.get_panel()
-        app.sidebar.append(links)
-        #app.header.append(links)
-        return app
+    class AppBuilder():
 
-    class Partial():
-        # https://stackoverflow.com/questions/45485017/why-does-functools-partial-not-detected-as-a-types-functiontype
-        def __init__(self, func, *args, **kwargs):
-            self.func = func
-            self.args = args
-            self.kwargs = kwargs
+        def __init__(self, app_cls, sidebar_links, app_kwargs=None):
+            self.app_cls = app_cls
+            self.sidebar_links = sidebar_links
+            self.app_kwargs = app_kwargs if app_kwargs else {}
 
-        def view(self):
-            return self.func(*self.args, **self.kwargs)
+        def build(self):
+            app = self.app_cls(**self.app_kwargs)
+            if hasattr(app, "get_panel"):
+                app = app.get_panel()
 
-    #cls_kwds.update(dict(
-    #    sidebar_width=240,
-    #    #sidebar_width=280,
-    #    #background_color="yellow",
-    #))
+            if hasattr(app, "sidebar"):
+                app.sidebar.append(self.sidebar_links)
+                #app.header.append(self.sidebar_links)
 
-    for url, cls in app_routes.items():
+            return app
+
+
+    for url, app_cls in app_routes.items():
         if url == "/":
-            app_routes[url] = Partial(func, cls, main=main_home, **cls_kwds).view
+            app_kwargs = {"main": main_home}
+            app_kwargs.update(tmpl_kwds)
+            app_routes[url] = AppBuilder(app_cls, sidebar_links=links, app_kwargs=app_kwargs).build
         elif url == "/state":
-            app_routes[url] = cls
+            app_routes[url] = app_cls
         else:
-            app_routes[url] = Partial(func, cls, **cls_kwds).view
+            app_routes[url] = AppBuilder(app_cls, sidebar_links=links).build
 
     # Call pn.serve to serve the multipage app.
-    serve_kwargs = dict(address=address,
-                  port=port,
-                  #dev=True,
-                  #start=True,
-                  show=show,
-                  debug=verbose > 0,
-                  #title=app_title,
-                  num_procs=num_procs,
-                  static_dirs={"/assets": assets_path},
+    serve_kwargs = dict(
+        address=address,
+        port=port,
+        #dev=True,
+        #start=True,
+        show=show,
+        debug=verbose > 0,
+        #title=app_title,
+        num_procs=num_procs,
+        static_dirs={"/assets": assets_path},
     )
 
-    from pprint import pformat
-    print("Calling pn.serve with serve_kwargs:\n", pformat(serve_kwargs))
+
+    if verbose:
+        print("Calling pn.serve with serve_kwargs:\n", pformat(serve_kwargs), "\n")
 
     pn.serve(app_routes, **serve_kwargs)
 

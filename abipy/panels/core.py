@@ -843,6 +843,7 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
             return tabs
 
         cls = get_template_cls_from_name(template)
+        #cls, kwargs = get_abinit_template_cls_kwds()
 
         kwargs = dict(
             # A title to show in the header. Also added to the document head meta settings and as the browser tab title.
