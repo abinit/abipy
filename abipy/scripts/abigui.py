@@ -70,39 +70,6 @@ with extensions that are not recognized by AbiPy.
     if verbose:
         print("Using default template:", tmpl_cls, "with kwds:\n", pformat(tmpl_kwds), "\n")
 
-    from abipy.panels.core import AbipyParameterized
-
-    class FlowApp(AbipyParameterized):
-        info_str = "hello work"
-
-        def __init__(self):
-            super().__init__()
-
-        def get_panel(self):
-            #print("in get_panel with location", pn.state.location)
-            #print("pathname:", pn.state.location.pathname)
-            #print("location pprint", pn.state.location.pprint())
-            #print("state", pn.state.pprint())
-            #print("rel_path:", pn.state.rel_path)
-            #print("session_args:", pn.state.session_args)
-            print("app_url:", pn.state.app_url)
-            # URL example: /w1/t5/w\d+/t\d+
-            tokens = pn.state.app_url.split("/")
-            work_idx = int(tokens[1][1:])
-            task_idx = None
-            if tokens[2].startswith("t"):
-                task_idx = int(tokens[2][1:])
-            print("work_idx:", work_idx, "task_idx:", task_idx)
-
-            if task_idx is None:
-                main = pn.Column(f"## Work {work_idx}")
-            else:
-                main = pn.Column(f"## Work {work_idx}, Task {task_idx}")
-
-            template = tmpl_cls(main=main, **tmpl_kwds)
-
-            return template
-
     # url --> (cls, title)
     app_routes_titles = {
         "/": (tmpl_cls, "AbiPy GUI Home"),
@@ -116,8 +83,6 @@ with extensions that are not recognized by AbiPy.
         "/ddb_vs_mp": (CompareDdbWithMP, "Compare DDB with MP"),
         "/skw": (SkwPanelWithFileInput, "SKW Analyzer"),
         "/robot": (RobotWithFileInput, "Robot Analyzer"),
-        r"/w\d+": (FlowApp, "FlowApp"),
-        r"/w\d+/t\d+": (FlowApp, "FlowApp"),
         #"/abilog": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
         #"/state": (pn.state, "State"),
     }
@@ -159,7 +124,6 @@ with extensions that are not recognized by AbiPy.
 
             return app
 
-
     for url, app_cls in app_routes.items():
         if url == "/":
             app_kwargs = {"main": main_home}
@@ -182,7 +146,6 @@ with extensions that are not recognized by AbiPy.
         num_procs=num_procs,
         static_dirs={"/assets": assets_path},
     )
-
 
     if verbose:
         print("Calling pn.serve with serve_kwargs:\n", pformat(serve_kwargs), "\n")

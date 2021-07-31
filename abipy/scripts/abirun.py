@@ -918,8 +918,11 @@ def main():
 
         # TODO: Implement Multipage app for flow?
         if options.nids is None:
-            app = flow.get_panel(template=options.panel_template)
-            pn.serve(app, **serve_kwargs)
+            from abipy.panels.flows import FlowMultiPageApp
+            FlowMultiPageApp(flow, options.panel_template).serve(**serve_kwargs)
+            #app = flow.get_panel(template=options.panel_template)
+            #pn.serve(app, **serve_kwargs)
+
         else:
             node_list = list(flow.iflat_nodes(nids=select_nids(flow, options)))
             if len(node_list) > 1:

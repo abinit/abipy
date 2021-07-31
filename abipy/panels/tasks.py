@@ -8,7 +8,7 @@ from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click, Loading
 from abipy.panels.nodes import NodeParameterized
 
 
-class AbinitTaskPanel(NodeParameterized):
+class TaskPanel(NodeParameterized):
     """
     Provides widgets to interact with an AbiPy Task.
     """

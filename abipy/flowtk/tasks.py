@@ -2836,8 +2836,8 @@ class AbinitTask(Task):
         This is the implementation provided by the base class.
         Subclasses may provide specialized implementations.
         """
-        from abipy.panels.tasks import AbinitTaskPanel
-        return AbinitTaskPanel(task=self).get_panel(**kwargs)
+        from abipy.panels.tasks import TaskPanel
+        return TaskPanel(task=self).get_panel(**kwargs)
 
     def _change_structure(self, new_structure):
         """Change the input structure."""
