@@ -74,11 +74,12 @@ def abipanel(panel_template="FastList"):
     extensions = [
         "plotly",
         #"mathjax",
-        "terminal",
         #"katex",
-        #"tabulator",
-        #"gridstack",
+        "terminal",
+        "tabulator",
         "ace",   # NB: This enters in conflict with Abipy Book
+        #"gridstack",
+        #"ipywidgets",
     ]
 
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
@@ -93,7 +94,7 @@ def abipanel(panel_template="FastList"):
     pn.config.js_files.update({
         # This for copy to clipboard.
         "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
-        # This for jsmol.
+        # This for the jsmol viewer.
         "jsmol": "http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
     })
 
@@ -197,11 +198,6 @@ def depends_on_btn_click(btn_name, show_doc=True, show_shared_wdg_warning=True, 
                     return pn.Column(*objects, sizing_mode="stretch_width")
                 else:
                     return None
-
-            #print("template:", pn.state.template)
-            #col = pn.Column("# Hello World")
-            #pn.state.template.modal.objects = col.objects
-            #pn.state.template.open_modal()
 
             with ButtonContext(btn):
                 return func(*args, **kwargs)
@@ -624,7 +620,6 @@ class AbipyParameterized(param.Parameterized):
                                            objects=["plotly", "plotly_white", "plotly_dark", "ggplot2",
                                                     "seaborn", "simple_white", "none"])
 
-
     # This flag is set to True if we are serving apps from the Abinit server.
     # It is used to impose limitations on what users can do and select the options that should be exposed.
     # For instance, structure_viewer == "Vesta" does not make sense in we are not serving from a local server.
@@ -898,6 +893,7 @@ class PanelWithStructure(AbipyParameterized):
 
         if v == "jsmol":
             return jsmol_html(self.structure)
+
             #pn.extension(comms='ipywidgets') #, js_files=js_files)
             #view = self.structure.get_jsmol_view()
             #from ipywidgets_bokeh import IPyWidget
@@ -906,9 +902,9 @@ class PanelWithStructure(AbipyParameterized):
             #from IPython.display import display
             #display(view)
             #return pn.Row(display(view))
-            #view = pn.ipywidget(view)
-            #view = pn.panel(view)
-            #view = pn.pane.IPyWidget(view)
+            #return pn.ipywidget(view)
+            #return pn.panel(view)
+            #return pn.pane.IPyWidget(view)
             #print(view)
             #view = pn.Column(view, sizing_mode='stretch_width')
             #return view

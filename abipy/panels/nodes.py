@@ -120,17 +120,53 @@ class NodeParameterized(AbipyParameterized):
             height=1200, # Need this one else the terminal is not shown properly
             sizing_mode='stretch_width',
         )
+        term.write("\n")
+
+        if self.node.is_task:
+            return term
 
         # Here it's important to enforce verbose 1 else show_status
         # does not analyze tasks that are completed.
         df = self.flow.show_status(nids=self.nids, stream=term, verbose=1, return_df=True) #self.verbose)
-        term.write("\n")
-        #self.flow.show_summary(stream=term)
 
-        if not self.node.is_flow:
-            return term
+        #simple_df = df.drop(columns=["node_id", "queue_id", "qname", "task_queue_time_s", "submission_datetime",
+        #                    "start_datetime", "end_datetime", "task_widx"]) # "work_idx",
+        #simple_df.set_index('name', inplace=False)
 
-        return StatusCards(df)
+        return pn.Column(
+                StatusCards(df),
+                sizing_mode="stretch_width",
+        )
+
+        #return StatusCards(df)
+
+        max_num_tasks = max(len(work) for work in self.flow)
+        y = [f"w{i}" for i in range(len(self.flow))]
+        x = [f"t{i}" for i in range(max_num_tasks)]
+        z = []
+        for work in self.flow:
+            row = [None for i in range(max_num_tasks)]
+            for i, task in enumerate(work):
+                #row[i] = task.status
+                row[i] = task.mpi_procs
+            z.append(row)
+
+        import plotly.graph_objects as go
+        fig = go.Figure(data=go.Heatmap(
+                        x=x, y=y, z=z,
+                        hoverongaps=False, transpose=False, colorscale="Viridis",
+                        ))
+        fig.update_layout(title_text="Number of MPI procs", title_x=0.5)
+        return ply(fig)
+
+
+        #import random
+        #rcolor = lambda: "#%06x" % random.randint(0, 0xFFFFFF)
+        ##box = pn.GridBox(*[pn.pane.HTML(background=rcolor(), width=50, height=50) for i in range(24)], ncols=6)
+        #box = pn.GridBox(*[pn.pane.HTML(object=repr(task),
+        #                 background=task.status.color_opts["color"],
+        #                 width=50, height=50) for i in range(24)], ncols=6)
+        #return box
 
     def get_history_view(self):
         return pn.Column(
@@ -360,21 +396,20 @@ class StatusCards(param.Parameterized):
             self.w_start_stop[w_idx] = (lst[0], lst[-1])
 
         header_list = [
+            "## DataFrame",
             "## Task status histogram",
+            "## Task Timeline",
             "## Task class histogram",
             "## Runtime in seconds for each task in the flow (-1 if task is not running)",
             "## Number of WARNINGs found in the log file of the Task",
             "## Barplot with number of MPI procs",
-            "## Task Timeline",
         ]
 
         #if len(df['status'].unique()) != 1:
         # Show histogram with task status only if we have different status values.
 
-        import plotly.express as px
         self.cards, self.done = {}, {}
         for i, header in enumerate(header_list):
-            fig = None
             card = pn.layout.Card(None, header=header, collapsed=True, sizing_mode="stretch_width")
             card.param.watch(self.update_card, ['collapsed'])
             self.cards[header] = card
@@ -419,6 +454,7 @@ class StatusCards(param.Parameterized):
         #print(event, event.obj.header)
 
         card = self.cards[header]
+        has_pane = False
         with Loading(card):
             import plotly.express as px
             df = self.df
@@ -456,10 +492,21 @@ class StatusCards(param.Parameterized):
                 fig = px.timeline(df, x_start="start_datetime", x_end="end_datetime", y="name",
                                   color="task_class", hover_name="name")
 
+            elif header == "## DataFrame":
+                # Remove some columns as well as the index.
+                simple_df = df.drop(columns=["node_id", "queue_id", "qname",
+                                             "task_queue_time_s", "submission_datetime",
+                                             "start_datetime", "end_datetime", "task_widx"]) # "work_idx",
+                simple_df.set_index('name', inplace=True)
+
+                pane = pnw.Tabulator(simple_df, groupby=['work_idx']) #, height=240)
+                has_pane = True
+
             else:
                 raise ValueError(f"No action registered for: {header}")
 
-            plotly_pane = ply(fig, with_chart_studio=False, with_help=False, with_divider=False)
+        if not has_pane:
+            pane = ply(fig, with_chart_studio=False, with_help=False, with_divider=False)
 
-        card.objects = [plotly_pane]
+        card.objects = [pane]
         self.done[header] = True

@@ -16,7 +16,7 @@ from abipy.tools.decorators import Appender
 
 add_inp_docstring = Appender("""
 kprra (number of **k**-points per reciprocal atom) defines the **k**-mesh for electrons.
-AbiPy will atuomatically compute the ABINIT variables [[ngkpt]], [[nshiftk]] and [[shiftk]] from kprra.
+AbiPy will automatically compute the ABINIT variables [[ngkpt]], [[nshiftk]] and [[shiftk]] from kprra.
 The pseudopotentials are taken from the PseudoDojo table (XXX) according to value of `XC type`
 and `Pseudos type` and recommended values for [[ecut]] and [[pawecutdg]] and [[nband]]
 are automatically added to the input.
@@ -282,7 +282,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
     @add_inp_docstring
     def on_gs_input_btn(self):
         """
-        This tab allows you to generate a minimalistic ABINIT input file
+        This Tab provides widgets to generate a minimalistic ABINIT input file
         for ground-state calculations or structural relaxations.
         In the case of relaxation runs, the following variables are automatically added:
         [[optcell]] = 2, [[ionmov]] = 2, [[ecutsm]] = 0.5 and [[dilatmx]] = 1.05.
@@ -298,10 +298,10 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
     @add_inp_docstring
     def on_ebands_input_btn(self):
         """
-        This tab allows you to generate a minimalistic ABINIT input file
+        This Tab provides widgets to generate a minimalistic ABINIT input file
         for band structure calculations.
-        The first dataset performs a GS run to compute the density file
-        The second dataset reads the DEN and performs a NSCF calculation on
+        The first dataset performs a GS run to obtain the density file.
+        The second dataset reads the DEN file and performs a NSCF calculation on
         a high-symmetry **k**-path generated automatically according to the input structure.
         [[ndivsm]] and [[kptbounds]]
 
@@ -342,7 +342,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
     @add_inp_docstring
     def on_ph_input_btn(self):
         """
-        This tab allows you to generate a minimalistic ABINIT input file
+        This Tab provides widgets to generate a minimalistic ABINIT input file
         for the DFPT computation of phonons, Born effective charges (BECS)
         and macroscopic dieletric tensors.
         """

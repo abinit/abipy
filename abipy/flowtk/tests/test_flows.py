@@ -130,7 +130,8 @@ class FlowTest(FlowUnitTest):
         assert len(task0_w0.history) == 1
         str(task0_w0.history)
         record = task0_w0.history.pop()
-        print(record, repr(record))
+        repr(record)
+        str(record)
         assert record.get_message(asctime=False) == "Hello world"
         assert len(task0_w0.history) == 0
         assert flow.select_tasks(nids=task0_w0.node_id)[0] == task0_w0
@@ -219,6 +220,20 @@ class FlowTest(FlowUnitTest):
         df = flow.show_status(return_df=True)
         flow.show_tricky_tasks()
         flow.show_event_handlers()
+
+        assert task0_w0.pos == (0, 0)
+        d = task0_w0.get_dataframe(as_dict=True)
+        assert "status" in d
+        assert (d["work_idx"], d["task_widx"]) == task0_w0.pos
+        df = task0_w0.get_dataframe()
+        assert df["work_idx"][0] == task0_w0.pos[0]
+        assert df["task_widx"][0] == task0_w0.pos[1]
+
+        work0 = flow[0]
+        d_list = work0.get_dataframe(as_dict=True)
+        assert "status" in d_list[0]
+        df = work0.get_dataframe()
+        assert "status" in df
 
         df = flow.compare_abivars(varnames=["ecut", "natom"], printout=True, with_colors=True)
         assert "ecut" in df
@@ -383,7 +398,8 @@ class TestBatchLauncher(FlowUnitTest):
         """Testing BatchLauncher methods."""
         # Create the TaskManager.
         manager = TaskManager.from_string(self.MANAGER)
-        print("batch_adapter", manager.batch_adapter)
+        str(manager.batch_adapter)
+        #print("batch_adapter", manager.batch_adapter)
         assert manager.batch_adapter is not None
 
         def build_flow_with_name(name):

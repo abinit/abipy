@@ -145,6 +145,7 @@ with extensions that are not recognized by AbiPy.
         #title=app_title,
         num_procs=num_procs,
         static_dirs={"/assets": assets_path},
+        #websocket_origin="*",
     )
 
     if verbose:

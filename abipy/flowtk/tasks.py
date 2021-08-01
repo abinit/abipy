@@ -1,5 +1,6 @@
 # coding: utf-8
 """This module provides functions and classes related to Task objects."""
+
 import os
 import time
 import datetime
@@ -1543,7 +1544,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         return self.input.structure
 
     def make_input(self, with_header=False):
-        """Construct the input file of the calculation."""
+        """return string the input file of the calculation."""
         s = str(self.input)
         if with_header: s = str(self) + "\n" + s
         return s
@@ -1627,15 +1628,16 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         Disable autoparal and force execution with `mpi_procs` MPI processes
         and `omp_threads` OpenMP threads. Useful for generating benchmarks.
+        or for dealing with tasks that do not support autoparal.
         """
         manager = self.manager if hasattr(self, "manager") else self.flow.manager
         self.manager = manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
 
-    #def set_max_ncores(self, max_ncores):
+    #def set_max_ncores(self, max_ncores, om_threads):
     #    """
     #    """
-    #    manager = self.manager if hasattr(self, "manager") else self.flow.manager
-    #    self.manager = manager.new_with_max_ncores(mpi_procs, omp_threads)
+    #    new_manager = self.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+    #    self.set_manager(new_manager)
 
     #@check_spectator
     def _on_done(self):
@@ -2663,6 +2665,42 @@ class Task(Node, metaclass=abc.ABCMeta):
         #                seen.add(key)
 
         return fg
+
+    def get_dataframe(self, as_dict=False):
+        """
+        Return pandas dataframe task info or dictionary if as_dict is True.
+        """
+        from abipy.tools.duck import getattrd
+        task_attrs = [
+            "node_id", "name", "status", "task_class",
+            "mpi_procs", "omp_threads",
+            "num_launches", "num_restarts", "num_corrections",
+            "queue_id", "qname",
+        ]
+
+        def _getattr(task, aname):
+            if aname == "task_class": return getattrd(task, "__class__.__name__")
+            attr = getattr(task, aname)
+            if aname == "status": return str(attr)
+            return attr
+
+        d = {aname: _getattr(self, aname) for aname in task_attrs}
+
+        timedelta = self.datetimes.get_runtime()
+        d["task_runtime_s"] = timedelta.total_seconds() if timedelta else -1
+        timedelta = self.datetimes.get_time_inqueue()
+        d["task_queue_time_s"] = timedelta.total_seconds() if timedelta else -1
+        d["submission_datetime"] = self.datetimes.submission
+        d["start_datetime"] = self.datetimes.start
+        d["end_datetime"] = self.datetimes.end
+
+        d["work_idx"] = self.pos[0]
+        d["task_widx"] = self.pos[1]
+
+        if as_dict: return d
+
+        import pandas as pd
+        return pd.DataFrame(d, index=[0])
 
 
 class DecreaseDemandsError(Exception):

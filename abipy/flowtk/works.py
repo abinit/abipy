@@ -585,7 +585,7 @@ class Work(BaseWork, NodeContainer):
 
     @lazy_property
     def pos(self):
-        """The position of self in the |Flow|"""
+        """The position of work in the |Flow|"""
         for i, work in enumerate(self.flow):
             if self == work:
                 return i
@@ -859,6 +859,20 @@ class Work(BaseWork, NodeContainer):
         """
         from abipy.panels.works import WorkPanel
         return WorkPanel(work=self).get_panel(**kwargs)
+
+    def get_dataframe(self, as_dict=False):
+        """
+        Return pandas dataframe task info or dictionary if as_dict is True.
+        """
+        rows = []
+        for task in self:
+            d = task.get_dataframe(as_dict=True)
+            rows.append(d)
+
+        if as_dict: return rows
+
+        import pandas as pd
+        return pd.DataFrame(rows)
 
     def rmtree(self, exclude_wildcard=""):
         """

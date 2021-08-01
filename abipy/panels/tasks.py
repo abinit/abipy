@@ -116,4 +116,3 @@ class TaskPanel(NodeParameterized):
         if as_dict: return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template", None))
-                                           #closable=False, dynamic=True)

@@ -1167,6 +1167,18 @@ class Flow(Node, NodeContainer, MSONable):
         stream.write("%s, num_tasks=%s, all_ok=%s\n" % (str(self), self.num_tasks, self.all_ok))
         stream.write("\n")
 
+    def get_dataframe(self, as_dict=False):
+        rows = []
+        for work in self:
+            dict_list = work.get_dataframe(as_dict=True)
+            rows.extend(dict_list)
+
+        if as_dict: return rows
+
+        import pandas as pd
+        return pd.DataFrame(rows)
+
+
     def show_status(self, return_df=False, **kwargs):
         """
         Report the status of the works and the status of the different tasks on the specified stream.
@@ -1272,37 +1284,15 @@ class Flow(Node, NodeContainer, MSONable):
         if return_df:
             import pandas as pd
             rows = []
-            task_attrs = [
-                "node_id", "name", "status", "__class__.__name__", "queue_id", "qname",
-                "mpi_procs", "omp_threads",
-                "num_launches", "num_restarts", "num_corrections",
-            ]
-            from abipy.tools.duck import getattrd
             for task, data in data_task.items():
-                d = {aname: getattrd(task, aname) for aname in task_attrs}
-                d["status"] = str(d["status"])
-                d["task_class"] = d.pop("__class__.__name__")
-                d["task_pos"] = task.pos
-                d["work_idx"] = task.pos[0]
-                d["task_widx"] = task.pos[1]
-
-                timedelta = task.datetimes.get_runtime()
-                d["task_runtime_s"] = timedelta.total_seconds() if timedelta else -1
-                timedelta = task.datetimes.get_time_inqueue()
-                d["task_queue_time_s"] = timedelta.total_seconds() if timedelta else -1
-                d["submission_datetime"] = task.datetimes.submission
-                d["start_datetime"] = task.datetimes.start
-                d["end_datetime"] = task.datetimes.end
-                #print(type(task.datetimes.end), task.datetimes.end)
-
+                d = task.get_dataframe(as_dict=True)
+                # Add extra info from report
                 report = data["report"]
                 d["num_warnings"] = report.num_warnings if report is not None else -1
                 d["num_comments"] = report.num_comments if report is not None else -1
                 rows.append(d)
 
-            df = pd.DataFrame(rows)
-            #print(df)
-            return df
+            return pd.DataFrame(rows)
 
     def show_events(self, status=None, nids=None, stream=sys.stdout):
         """

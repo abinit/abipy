@@ -118,6 +118,15 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         self.compute_elastic_btn = pnw.Button(name="Compute Elastic", button_type='primary')
 
         self.stacked_pjdos = pnw.Checkbox(name="Stacked PJDOS", value=True)
+        self.with_qpath = pnw.Checkbox(name="Show q-path with plotly", value=True)
+
+    def get_becs_view(self):
+        return pn.Row(
+            self.pws_col(["## Born effective charges options",
+                          "asr", "chneut", "dipdip", "eps0_gamma_ev", "get_epsinf_btn",
+                          ]),
+            self.get_epsinf
+        )
 
     @depends_on_btn_click('get_epsinf_btn')
     def get_epsinf(self):
@@ -147,10 +156,18 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         ca(dfc(epsinf.get_dataframe(), **df_kwargs))
         ca("## Born effective charges in Cart. coords:")
         ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
-        ca("## Anaddb input file.")
+        ca("## Anaddb input file")
         ca(self.html_with_clipboard_btn(inp))
 
         return col
+
+    def get_eps0_view(self):
+        return pn.Row(
+                self.pws_col(["## epsilon_0",
+                              "asr", "chneut", "dipdip", "eps0_gamma_ev", "eps0_wrange", "plot_eps0w_btn",
+                             ]),
+                self.plot_eps0w
+            )
 
     @depends_on_btn_click('plot_eps0w_btn')
     def plot_eps0w(self):
@@ -185,16 +202,29 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         ca("## Oscillator matrix elements:")
         ca(gen.get_oscillator_dataframe(reim="all", tol=1e-6))
         # Add HTML pane with input.
-        ca("## Anaddb input file:")
+        ca("## Anaddb input file")
         ca(self.html_with_clipboard_btn(inp))
 
         return col
+
+    def get_phbands_view(self):
+        return pn.Row(
+                self.pws_col(["## PH-bands options",
+                              "nqsmall", "ndivsm", "asr", "chneut",
+                              "dipdip", "dipquad", "quadquad",
+                              "lo_to_splitting", "dos_method",
+                              "stacked_pjdos", "with_qpath", "temp_range",
+                              pn.layout.Divider(),
+                              "plot_phbands_btn",
+                             ]),
+                self.on_plot_phbands_and_phdos
+            )
 
     @depends_on_btn_click('plot_phbands_btn')
     @add_lr_docstring
     def on_plot_phbands_and_phdos(self):
         """
-        This Tab allows one to calls **anaddb** to compute:
+        This Tab provides widgets to compute:
 
         - Phonon dispersion along a high-symmetry **q**-path
         - Total phonon DOS and atom-projected phonon DOSes
@@ -223,11 +253,12 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             ca("## Phonon band structure and DOS:")
             ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
 
-            ca("## Brillouin zone and q-path:")
-            qpath_pane = ply(phbands.qpoints.plotly(show=False), with_divider=False)
-            df_qpts = phbands.qpoints.get_highsym_datataframe()
-            ca(pn.Row(qpath_pane, df_qpts))
-            ca(pn.layout.Divider())
+            if self.with_qpath.value:
+                ca("## Brillouin zone and q-path:")
+                qpath_pane = ply(phbands.qpoints.plotly(show=False), with_divider=False)
+                df_qpts = phbands.qpoints.get_highsym_datataframe()
+                ca(pn.Row(qpath_pane, df_qpts))
+                ca(pn.layout.Divider())
 
             ca("## Type-projected phonon DOS:")
             ca(ply(phdos_file.plotly_pjdos_type(units=self.units, stacked=self.stacked_pjdos.value, show=False)))
@@ -239,16 +270,26 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             #msqd_dos.plot_tensor(**self.mpl_kwargs)
 
             # Add Anaddb input file
-            ca("## Anaddb input file:")
+            ca("## Anaddb input file")
             ca(self.html_with_clipboard_btn(g.input))
 
             return col
+
+    def get_vsound_view(self):
+        return pn.Row(
+                self.pws_col(["## Speed of sound options",
+                              "vsound_num_points", "vsound_qpt_norm",
+                              "asr", "chneut", "dipdip", "dipquad", "quadquad",
+                              "plot_vsound_btn",
+                              ]),
+                self.plot_vsound
+            )
 
     @depends_on_btn_click('plot_vsound_btn')
     @add_lr_docstring
     def plot_vsound(self):
         """
-        This Tab allows one to compute the speed of sound by fitting
+        This Tab provides widgets to compute the speed of sound by fitting
         the **first three** phonon branches along selected **q**-directions by
         linear least-squares fit.
         """
@@ -260,19 +301,27 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                                          dipdip=self.dipdip, dipquad=self.dipquad, quadquad=self.quadquad,
                                          verbose=self.verbose, mpi_procs=self.mpi_procs, return_input=True)
 
-        ca("## Linear least-squares fit:")
+        ca("## Linear least-squares fit")
         ca(ply(sv.plotly(show=False)))
         ca("## Speed of sound computed along different q-directions in reduced coords:")
         ca(dfc(sv.get_dataframe()))
-        ca("## Anaddb input file.")
+        ca("## Anaddb input file")
         ca(self.html_with_clipboard_btn(inp))
 
         return col
 
+    def get_asr_dipdip_view(self):
+        return pn.Row(
+                    self.pws_col(["## ASR & DIPDIP options",
+                                  "nqsmall", "ndivsm", "dos_method", "plot_without_asr_dipdip_btn",
+                                 ]),
+                    self.plot_without_asr_dipdip
+                )
+
     @depends_on_btn_click('plot_without_asr_dipdip_btn')
     def plot_without_asr_dipdip(self):
         """
-        This Tab allows one to compare phonon bands and DOSes computed with/without
+        This Tab provides widgets to compare phonon bands and DOSes computed with/without
         enforcing the acoustic sum rule and the treatment of the dipole-dipole interaction in the dynamical matrix.
         Requires DDB file with eps_inf, BECS.
         """
@@ -296,12 +345,22 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         return col
 
+    def get_dos_vs_qmesh_view(self):
+        return pn.Row(
+                self.pws_col(["## DOS vs q-mesh options",
+                              "nqsmall_list", "temp_range", "dos_method",
+                              "asr", "chneut", "dipdip", "dipquad", "quadquad",
+                              "plot_dos_vs_qmesh_btn",
+                             ]),
+                self.plot_dos_vs_qmesh
+            )
+
     @depends_on_btn_click('plot_dos_vs_qmesh_btn')
     @add_lr_docstring
     def plot_dos_vs_qmesh(self):
         """
-        Compare phonon DOSes and thermodynamic properties obtained using
-        different q-meshes specifined via `nqsmall_list`.
+        This Tab provides widgets to compare phonon DOSes and thermodynamic properties
+        obtained using different q-meshes specifined via `nqsmall_list`.
         """
         r = self.ddb.anacompare_phdos(self.nqsmall_list.value, asr=self.asr, chneut=self.chneut,
                                       dipdip=self.dipdip, dipquad=self.dipquad, quadquad=self.quadquad,
@@ -325,10 +384,19 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         return col
 
+    def get_quadrupoles_view(self):
+        return pn.Row(
+            self.pws_col(["## Quadrupoles options",
+                          "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
+                          "plot_phbands_quad_btn",
+                          ]),
+            self.plot_phbands_quad
+        )
+
     @depends_on_btn_click('plot_phbands_quad_btn')
     def plot_phbands_quad(self):
         """
-        Compare phonon bands and DOSes computed with/without the inclusion
+        This Tab provides widgets to compare phonon bands and DOSes computed with/without the inclusion
         of the dipole-quadrupole and quadrupole-quadrupole terms in the dynamical matrix.
         Requires DDB file with eps_inf, BECS and dynamical quadrupoles.
         """
@@ -343,6 +411,14 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         ca(ply(plotter.combiplotly(show=False)))
 
         return col
+
+    def get_ifcs_view(self):
+        return pn.Row(
+                self.pws_col(["## IFCs options",
+                               "asr", "dipdip", "chneut", "ifc_yscale", "plot_ifc_btn",
+                             ]),
+                self.on_plot_ifc
+            )
 
     @depends_on_btn_click('plot_ifc_btn')
     def on_plot_ifc(self):
@@ -360,10 +436,18 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         ca(mpl(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", **kwds)))
         ca(mpl(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", **kwds)))
         ca(mpl(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", **kwds)))
-        ca("## Anaddb input file.")
+        ca("## Anaddb input file")
         ca(self.html_with_clipboard_btn(inp))
 
         return col
+
+    def get_elastic_view(self):
+        return pn.Row(
+            self.pws_col(["## Elastic options",
+                          "asr", "chneut", "compute_elastic_btn",
+                          ]),
+            self.on_compute_elastic_btn
+        )
 
     @depends_on_btn_click('compute_elastic_btn')
     def on_compute_elastic_btn(self):
@@ -393,7 +477,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         #html = edata.elastic_relaxed.get_elate_html(sysname="FooBar")
         #return pn.Template(html).show()
 
-        ca("## Anaddb input file.")
+        ca("## Anaddb input file")
         ca(self.html_with_clipboard_btn(inp))
 
         return col
@@ -408,75 +492,29 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         # Note how we build tabs according to the content of the DDB.
         if ddb.has_at_least_one_atomic_perturbation():
-            d["PH-bands"] = pn.Row(
-                self.pws_col(["## PH-bands options",
-                              "nqsmall", "ndivsm", "asr", "chneut",
-                              "dipdip", "dipquad", "quadquad",
-                              "lo_to_splitting", "dos_method", "stacked_pjdos", "temp_range", "plot_phbands_btn",
-                             ]),
-                self.on_plot_phbands_and_phdos
-            )
+            d["PH-bands"] = self.get_phbands_view()
+
         if ddb.has_bec_terms(select="at_least_one"):
-            d["BECs"] = pn.Row(
-                self.pws_col(["## Born effective charges options",
-                              "asr", "chneut", "dipdip", "eps0_gamma_ev", "get_epsinf_btn",
-                              ]),
-                self.get_epsinf
-            )
+            d["BECs"] = self.get_becs_view()
+
         if ddb.has_epsinf_terms(select="at_least_one_diagoterm"):
-            d["eps0"] = pn.Row(
-                self.pws_col(["## epsilon_0",
-                              "asr", "chneut", "dipdip", "eps0_gamma_ev", "eps0_wrange", "plot_eps0w_btn",
-                             ]),
-                self.plot_eps0w
-            )
+            d["eps0"] = self.get_eps0_view()
+
         if ddb.has_at_least_one_atomic_perturbation():
-            d["Speed of sound"] = pn.Row(
-                self.pws_col(["## Speed of sound options",
-                              "vsound_num_points", "vsound_qpt_norm",
-                              "asr", "chneut", "dipdip", "dipquad", "quadquad",
-                              "plot_vsound_btn",
-                              ]),
-                self.plot_vsound
-            )
+            d["Speed of sound"] = self.get_vsound_view()
 
             if ddb.has_lo_to_data():
-                d["ASR & DIPDIP"] = pn.Row(
-                    self.pws_col(["## ASR & DIPDIP options",
-                                  "nqsmall", "ndivsm", "dos_method", "plot_without_asr_dipdip_btn",
-                                 ]),
-                    self.plot_without_asr_dipdip
-                )
-            d["DOS vs q-mesh"] = pn.Row(
-                self.pws_col(["## DOS vs q-mesh options",
-                              "nqsmall_list", "temp_range", "dos_method",
-                              "asr", "chneut", "dipdip", "dipquad", "quadquad",
-                              "plot_dos_vs_qmesh_btn",
-                             ]),
-                self.plot_dos_vs_qmesh
-            )
+                d["ASR & DIPDIP"] = self.get_asr_dipdip_view()
+
+            d["DOS vs q-mesh"] = self.get_dos_vs_qmesh_view()
+
             if ddb.has_quadrupole_terms():
-                d["Quadrupoles"] = pn.Row(
-                    self.pws_col(["## Quadrupoles options",
-                                  "asr", "chneut", "dipdip", "lo_to_splitting", "ndivsm", "dos_method",
-                                  "plot_phbands_quad_btn",
-                                  ]),
-                    self.plot_phbands_quad
-                )
-            d["IFCs"] = pn.Row(
-                self.pws_col(["## IFCs options",
-                               "asr", "dipdip", "chneut", "ifc_yscale", "plot_ifc_btn",
-                             ]),
-                self.on_plot_ifc
-            )
+                d["Quadrupoles"] = self.get_quadrupoles_view()
+
+            d["IFCs"] = self.get_ifcs_view()
 
         if self.ddb.has_strain_terms():
-            d["Elastic"] = pn.Row(
-                self.pws_col(["## Elastic options",
-                              "asr", "chneut", "compute_elastic_btn",
-                              ]),
-                self.on_compute_elastic_btn
-            )
+            d["Elastic"] = self.get_elastic_view()
 
         d["Structure"] = self.get_structure_view()
         d["Global"] = pn.Row(
@@ -781,7 +819,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     #        ca(dfc(epsinf.get_dataframe(), **df_kwargs))
     #        ca("## Born effective charges in Cart. coords:")
     #        ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
-    #        ca("## Anaddb input file.")
+    #        ca("## Anaddb input file")
     #        ca(self.html_with_clipboard_btn(inp))
 
     #        return col
@@ -848,7 +886,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     #        #self.plot_phbands_btn.button_type = "primary"
 
     #        # Add HTML pane with input
-    #        ca("## Anaddb input file:")
+    #        ca("## Anaddb input file")
     #        ca(self.html_with_clipboard_btn(inp))
 
     #        return col
