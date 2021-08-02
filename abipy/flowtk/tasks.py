@@ -2668,7 +2668,8 @@ class Task(Node, metaclass=abc.ABCMeta):
 
     def get_dataframe(self, as_dict=False):
         """
-        Return pandas dataframe task info or dictionary if as_dict is True.
+        Return pandas dataframe with task info or dictionary if as_dict is True.
+        This function should be called after task.get_status to update the status.
         """
         from abipy.tools.duck import getattrd
         task_attrs = [

@@ -26,7 +26,6 @@ class FilePathSelect(pnw.Select):
             items = [t for t in items if filter_basename(t[0])]
 
         base2path = dict(items)
-        #base2path = {os.path.basename(p): p for p in filepaths}
         new = cls(options=list(base2path.keys()), **kwargs)
         new._base2path = base2path
 
@@ -85,9 +84,9 @@ class NodeParameterized(AbipyParameterized):
         self.vars_btn = pnw.Button(name="Show Variables", button_type='primary')
         #self.dims_btn = pnw.Button(name="Show Dimensions", button_type='primary')
 
-        self.workdir_fileselector = pn.widgets.FileSelector(node.workdir, only_files=True)
-        self.outdir_fileselector = pn.widgets.FileSelector(node.outdir.path)
-        self.indir_fileselector = pn.widgets.FileSelector(node.indir.path)
+        self.workdir_fileselector = pnw.FileSelector(node.workdir, only_files=True)
+        self.outdir_fileselector = pnw.FileSelector(node.outdir.path)
+        self.indir_fileselector = pnw.FileSelector(node.indir.path)
 
         # Create select widgets with the files in indir/outdir/workdir
         # Use basenames as items but remember that we need to abspath when opening the file.
@@ -126,20 +125,15 @@ class NodeParameterized(AbipyParameterized):
             return term
 
         # Here it's important to enforce verbose 1 else show_status
-        # does not analyze tasks that are completed.
+        # does not analyze the tasks that are completed.
         df = self.flow.show_status(nids=self.nids, stream=term, verbose=1, return_df=True) #self.verbose)
-
-        #simple_df = df.drop(columns=["node_id", "queue_id", "qname", "task_queue_time_s", "submission_datetime",
-        #                    "start_datetime", "end_datetime", "task_widx"]) # "work_idx",
-        #simple_df.set_index('name', inplace=False)
 
         return pn.Column(
                 StatusCards(df),
                 sizing_mode="stretch_width",
         )
 
-        #return StatusCards(df)
-
+        # Generate heatmap with plotly
         max_num_tasks = max(len(work) for work in self.flow)
         y = [f"w{i}" for i in range(len(self.flow))]
         x = [f"t{i}" for i in range(max_num_tasks)]
@@ -158,15 +152,6 @@ class NodeParameterized(AbipyParameterized):
                         ))
         fig.update_layout(title_text="Number of MPI procs", title_x=0.5)
         return ply(fig)
-
-
-        #import random
-        #rcolor = lambda: "#%06x" % random.randint(0, 0xFFFFFF)
-        ##box = pn.GridBox(*[pn.pane.HTML(background=rcolor(), width=50, height=50) for i in range(24)], ncols=6)
-        #box = pn.GridBox(*[pn.pane.HTML(object=repr(task),
-        #                 background=task.status.color_opts["color"],
-        #                 width=50, height=50) for i in range(24)], ncols=6)
-        #return box
 
     def get_history_view(self):
         return pn.Column(
@@ -232,6 +217,9 @@ class NodeParameterized(AbipyParameterized):
             sizing_mode='stretch_width',
             )
 
+        #d["Corrections"] = pn.Row(self.corrections_btn, self.on_corrections_btn)
+        #d["Handlers"] = pn.Row(self.handlers_btn, self.on_handlers_btn)
+
     @depends_on_btn_click("debug_btn")
     def on_debug_btn(self):
         term = pnw.Terminal(output="\n\n",
@@ -279,6 +267,11 @@ class NodeParameterized(AbipyParameterized):
         )
         self.flow.show_event_handlers(stream=term, verbose=self.verbose) #, nids=self.nids,  status=None,
         return term
+
+    def get_dims_and_vars_view(self):
+        row = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
+        return row
+        #d["Dims"] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)
 
     @depends_on_btn_click("vars_btn")
     def on_vars_btn(self):
@@ -369,11 +362,9 @@ class NodeParameterized(AbipyParameterized):
                 if view is not None: d[where.capitalize()] = view
 
         d["Debug"] = self.get_debug_view()
-        #d["Corrections"] = pn.Row(self.corrections_btn, self.on_corrections_btn)
-        #d["Handlers"] = pn.Row(self.handlers_btn, self.on_handlers_btn)
+
         if not self.node.is_task:
-            d["Abivars"] = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
-        #d["Dims"] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)
+            d["Dims & Vars"] = self.get_dims_and_vars_view()
         d["Graphviz"] = self.get_graphviz_view()
 
         if as_dict: return d
@@ -409,12 +400,14 @@ class StatusCards(param.Parameterized):
         # Show histogram with task status only if we have different status values.
 
         self.cards, self.done = {}, {}
-        for i, header in enumerate(header_list):
+        for header in header_list:
             card = pn.layout.Card(None, header=header, collapsed=True, sizing_mode="stretch_width")
+            # Compute stuff only when user opens the card.
             card.param.watch(self.update_card, ['collapsed'])
             self.cards[header] = card
             self.done[header] = False
 
+        # Compute this card
         self.cards["## Task status histogram"].collapsed = False
 
         open_btn = pnw.Button(name="Open all cards", button_type='primary')
@@ -449,15 +442,18 @@ class StatusCards(param.Parameterized):
         return fig
 
     def update_card(self, event):
+        """
+        This callback is triggered when the user opens/closes the card.
+        Here we compute and display the plot/table the first time the card is opened.
+        """
         header = event.obj.header
         if self.done[header]: return
-        #print(event, event.obj.header)
 
         card = self.cards[header]
         has_pane = False
+        import plotly.express as px
+        df = self.df
         with Loading(card):
-            import plotly.express as px
-            df = self.df
             if header == "## Task status histogram":
                 fig = px.histogram(df, x="status")
 
@@ -503,7 +499,7 @@ class StatusCards(param.Parameterized):
                 has_pane = True
 
             else:
-                raise ValueError(f"No action registered for: {header}")
+                raise ValueError(f"No action registered for: `{header}`")
 
         if not has_pane:
             pane = ply(fig, with_chart_studio=False, with_help=False, with_divider=False)

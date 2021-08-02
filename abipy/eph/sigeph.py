@@ -2192,12 +2192,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return fig
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the |SigEPhFile| either in a notebook or in panel app.
         """
         from abipy.panels.sigeph import SigEPhFilePanel
-        return SigEPhFilePanel(self).get_panel()
+        return SigEPhFilePanel(self).get_panel(**kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

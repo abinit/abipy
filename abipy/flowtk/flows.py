@@ -1168,6 +1168,10 @@ class Flow(Node, NodeContainer, MSONable):
         stream.write("\n")
 
     def get_dataframe(self, as_dict=False):
+        """
+        Return pandas dataframe task info or dictionary if as_dict is True.
+        This function should be called after flow.get_status to update the status.
+        """
         rows = []
         for work in self:
             dict_list = work.get_dataframe(as_dict=True)
@@ -1208,6 +1212,10 @@ class Flow(Node, NodeContainer, MSONable):
         has_colours = True
         red = "red" if has_colours else None
         data_task = {}
+
+        #items = enumerate(self)
+        #from panel.widgets import Tqdm
+        #items = Tqdm(items)
 
         for i, work in enumerate(self):
             if nids and work.node_id not in nids: continue

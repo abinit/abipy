@@ -863,6 +863,7 @@ class Work(BaseWork, NodeContainer):
     def get_dataframe(self, as_dict=False):
         """
         Return pandas dataframe task info or dictionary if as_dict is True.
+        This function should be called after work.get_status to update the status.
         """
         rows = []
         for task in self:

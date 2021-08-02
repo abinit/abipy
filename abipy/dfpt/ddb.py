@@ -1571,7 +1571,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return phbands_plotter
 
-    def anaget_epsinf_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0, return_input=False):
+    def anaget_epsinf_and_becs(self, chneut=1, mpi_procs=1, workdir=None,
+                               manager=None, verbose=0, return_input=False):
         """
         Call anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
         and the Born effective charges in Cartesian coordinates.
@@ -1615,7 +1616,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Execute anaddb to compute the interatomic forces.
 
         Args:
-            ifcout: Number of neighbouring atoms for which the ifc's will be output. If None all the atoms in the big box.
+            ifcout: Number of neighbouring atoms for which the ifc's will be output.
+                If None all the atoms in the big box.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
             mpi_procs: Number of MPI processes to use.

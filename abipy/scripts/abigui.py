@@ -28,6 +28,7 @@ def gui_app(port, address, show, num_procs, panel_template, has_remote_server, v
 
     from abipy.panels.core import abipanel, get_abinit_template_cls_kwds, AbipyParameterized
     import abipy.panels as mod
+    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
 
     # Load abipy/panel extensions and set the default template
     #tmpl_kwds.update(dict(
@@ -37,7 +38,6 @@ def gui_app(port, address, show, num_procs, panel_template, has_remote_server, v
     #))
     abipanel(panel_template=panel_template)
 
-    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
     print("has_remote_server:", has_remote_server)
     if has_remote_server:
         print("Enforcing limitations on what the user can do on the abinit server")
