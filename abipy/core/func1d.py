@@ -7,7 +7,8 @@ import numpy as np
 
 from io import StringIO
 from monty.functools import lazy_property
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, data_from_cplx_mode
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, data_from_cplx_mode,
+    add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
 from abipy.tools.derivatives import finite_diff
 
 __all__ = [
@@ -500,6 +501,29 @@ class Function1D(object):
 
         return lines
 
+    @add_fig_kwargs
+    def plot(self, ax=None, **kwargs):
+        """
+        Plot the function with matplotlib.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        ==============  ===============================================================
+        kwargs          Meaning
+        ==============  ===============================================================
+        exchange_xy     True to exchange x- and y-axis (default: False)
+        ==============  ===============================================================
+
+        Returns: |matplotlib-Figure|.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+        exchange_xy = kwargs.pop("exchange_xy", False)
+        self.plot_ax(ax, exchange_xy=exchange_xy, **kwargs)
+
+        return fig
+
     def plotly_traces(self, fig, rcd=None, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
         """
         Helper function to plot the function with plotly.
@@ -523,7 +547,6 @@ class Function1D(object):
                         Options can be concatenated with "-"
         ==============  ===============================================================
         """
-        from abipy.tools.plotting import PlotlyRowColDesc
         rcd = PlotlyRowColDesc.from_object(rcd)
         ply_row, ply_col = rcd.ply_row, rcd.ply_col
 
@@ -549,25 +572,23 @@ class Function1D(object):
             fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=showlegend, *args, **kwargs),
                               row=ply_row, col=ply_col)
 
-    @add_fig_kwargs
-    def plot(self, ax=None, **kwargs):
+    @add_plotly_fig_kwargs
+    def plotly(self, exchange_xy=False, fig=None, rcd=None, **kwargs):
         """
-        Plot the function with matplotlib.
+        Plot the function with plotly.
 
         Args:
-            ax: |matplotlib-Axes| or None if a new figure should be created.
+            exchange_xy:    True to exchange x- and y-axis (default: False)
+            fig: plotly figure or None if a new figure should be created.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
+                of the subplot in the grid.
 
-        ==============  ===============================================================
-        kwargs          Meaning
-        ==============  ===============================================================
-        exchange_xy     True to exchange x- and y-axis (default: False)
-        ==============  ===============================================================
-
-        Returns: |matplotlib-Figure|.
+        Returns: |plotly-Figure|.
         """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.grid(True)
-        exchange_xy = kwargs.pop("exchange_xy", False)
-        self.plot_ax(ax, exchange_xy=exchange_xy, **kwargs)
+        fig, _ = get_fig_plotly(fig=fig)
+        rcd = PlotlyRowColDesc.from_object(rcd)
+
+        #self.plot_ax(ax, exchange_xy=exchange_xy, **kwargs)
+        self.plotly_traces(fig, rcd=rcd, exchange_xy=exchange_xy, **kwargs)
 
         return fig

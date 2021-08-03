@@ -52,3 +52,15 @@ phbands.plotly_with_phdos(phdos, units="cm-1",
 
 phbands.plot_colored_matched(units="cm-1",
                              title="AlAs with different color for each line.")
+
+
+#%%
+# Use seaborn and matplotlib to draw a box plot showing the distribution
+# of the phonon frequencies with respect to the mode index.
+
+phbands.boxplot(units="meV")
+
+#%%
+# For the plotly version use:
+
+phbands.boxplotly(units="meV")

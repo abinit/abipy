@@ -130,6 +130,7 @@ class PhononBandsTest(AbipyTest):
         if self.has_plotly():
             assert phbands.plotly(units="cm-1", temp=300, show=False)
             #assert phbands.plotly_with_phdos(units="Thz", temp=300, show=False)
+            assert phbands.boxplotly(units="ev", mode_range=[2, 4], show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):

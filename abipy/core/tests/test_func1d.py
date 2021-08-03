@@ -88,11 +88,12 @@ class TestFunction1D(AbipyTest):
         #    imag_part = real_part.imag_from_kk(with_div=with_div)
 
         if self.has_matplotlib():
-            cosf.plot(show=False)
-            eix.plot(show=False)
-            eix.plot(cplx_mode="re", exchange_xy=True, xfactor=2, yfactor=3, show=False)
+            assert cosf.plot(show=False)
+            assert eix.plot(show=False)
+            assert eix.plot(cplx_mode="re", exchange_xy=True, xfactor=2, yfactor=3, show=False)
 
         if self.has_plotly():
+            assert cosf.plotly(show=False)
             from abipy.tools.plotting import get_fig_plotly
             fig, go = get_fig_plotly()
             eix.plotly_traces(fig, cplx_mode="re", exchange_xy=True, xfactor=2, yfactor=3)

@@ -2180,7 +2180,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return fig
 
-    def get_dataframe(self):
+    def get_dataframe(self, mode_range=None):
         """
         Return a |pandas-DataFrame| with the following columns:
 
@@ -2196,11 +2196,17 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         freq            Phonon frequency in eV.
         qpoint          |Kpoint| object
         ==============  ==========================
+
+        Args:
+            mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]`.
         """
         import pandas as pd
         rows = []
         for iq, qpoint in enumerate(self.qpoints):
             for nu in self.branches:
+                if mode_range is not None and (nu < mode_range[0] or nu >= mode_range[1]):
+                    continue
+
                 rows.append(OrderedDict([
                            ("qidx", iq),
                            ("mode", nu),
@@ -2208,12 +2214,14 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                            ("qpoint", self.qpoints[iq]),
                         ]))
 
-        return pd.DataFrame(rows, columns=list(rows[0].keys()))
+        df = pd.DataFrame(rows, columns=list(rows[0].keys()))
+        return df
 
     @add_fig_kwargs
     def boxplot(self, ax=None, units="eV", mode_range=None, swarm=False, **kwargs):
         """
-        Use seaborn_ to draw a box plot to show distributions of eigenvalues with respect to the mode index.
+        Use seaborn_ to draw a box plot showing the distribution of the phonon
+        frequencies with respect to the mode index.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -2222,24 +2230,59 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keyword arguments passed to seaborn boxplot.
+
+        Return: |matplotlib-Figure|
         """
-        # Get the dataframe and select bands
-        frame = self.get_dataframe()
-        if mode_range is not None:
-            frame = frame[(frame["mode"] >= mode_range[0]) & (frame["mode"] < mode_range[1])]
+        df = self.get_dataframe(mode_range=mode_range)
+        factor = abu.phfactor_ev2units(units)
+        yname = "freq %s" % abu.phunit_tag(units)
+        df[yname] = factor * df["freq"]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-
-        factor = abu.phfactor_ev2units(units)
-        yname = "freq %s" % abu.phunit_tag(units)
-        frame[yname] = factor * frame["freq"]
-
         import seaborn as sns
         hue = None
-        ax = sns.boxplot(x="mode", y=yname, data=frame, hue=hue, ax=ax, **kwargs)
+        ax = sns.boxplot(x="mode", y=yname, data=df, hue=hue, ax=ax, **kwargs)
         if swarm:
-            sns.swarmplot(x="mode", y=yname, data=frame, hue=hue, color=".25", ax=ax)
+            sns.swarmplot(x="mode", y=yname, data=df, hue=hue, color=".25", ax=ax)
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def boxplotly(self, units="eV", mode_range=None, swarm=False, fig=None, rcd=None, **kwargs):
+        """
+        Use plotly to draw a box plot to show the distribution of the phonon
+        frequencies with respect to the mode index.
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]` are included in the plot.
+            swarm: True to show the datapoints on top of the boxes
+            fig: plotly figure or None if a new figure should be created.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
+                of the subplot in the grid.
+            kwargs: Keyword arguments passed to plotly px.box.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        df = self.get_dataframe(mode_range=mode_range)
+        factor = abu.phfactor_ev2units(units)
+        yname = "freq %s" % abu.phunit_tag(units)
+        df[yname] = factor * df["freq"]
+
+        import plotly.express as px
+        hue = None
+        points = 'outliers' if not swarm else "all"
+        px_fig = px.box(df, x="mode", y=yname, color=hue, points=points, **kwargs)
+
+        if rcd is None: return px_fig
+
+        # Add px_fig traces to input fig with subplot.
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
+        for trace in px_fig.data:
+            fig.add_trace(trace, row=ply_row, col=ply_col)
 
         return fig
 
@@ -2952,10 +2995,10 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
         # Build the pandas Frame and add the q-point as attribute.
         import pandas as pd
-        frame = pd.DataFrame(d, columns=list(d.keys()))
-        frame.qpoint = qpoint
+        df = pd.DataFrame(d, columns=list(d.keys()))
+        df.qpoint = qpoint
 
-        return frame
+        return df
 
     def get_phmode(self, qpoint, branch):
         """
@@ -4588,7 +4631,7 @@ class PhononBandsPlotter(NotebookWriter):
     @add_fig_kwargs
     def boxplot(self, mode_range=None, units="eV", swarm=False, **kwargs):
         """
-        Use seaborn_ to draw a box plot to show distributions of eigenvalues with respect to the band index.
+        Use seaborn_ to draw a box plot to show distribution of eigenvalues with respect to the band index.
         Band structures are drawn on different subplots.
 
         Args:
@@ -4620,7 +4663,7 @@ class PhononBandsPlotter(NotebookWriter):
     @add_fig_kwargs
     def combiboxplot(self, mode_range=None, units="eV", swarm=False, ax=None, **kwargs):
         """
-        Use seaborn_ to draw a box plot comparing the distributions of the frequencies.
+        Use seaborn_ to draw a box plot comparing the distribution of the frequencies.
         Phonon Band structures are drawn on the same plot.
 
         Args:
@@ -4631,18 +4674,18 @@ class PhononBandsPlotter(NotebookWriter):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: Keyword arguments passed to seaborn_ boxplot.
         """
-        frames = []
+        df_list = []
         for label, phbands in self.phbands_dict.items():
             # Get the dataframe, select bands and add column with label
             frame = phbands.get_dataframe()
             if mode_range is not None:
                 frame = frame[(frame["mode"] >= mode_range[0]) & (frame["mode"] < mode_range[1])]
             frame["label"] = label
-            frames.append(frame)
+            df_list.append(frame)
 
-        # Merge frames ignoring index (not meaningful here)
+        # Merge df_list ignoring index (not meaningful here)
         import pandas as pd
-        data = pd.concat(frames, ignore_index=True)
+        data = pd.concat(df_list, ignore_index=True)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)

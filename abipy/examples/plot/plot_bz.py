@@ -20,5 +20,9 @@ structure = wfk_file.structure
 structure.plot_bz()
 
 #%%
+# For the plotly version, use:
+structure.plotly_bz()
+
+#%%
 # Remember to close the wfk file with:
 wfk_file.close()
