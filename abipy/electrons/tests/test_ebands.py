@@ -132,6 +132,9 @@ class ElectronBandsTest(AbipyTest):
         od = ni_ebands_kmesh.get_dict4pandas(with_spglib=False)
         assert od["nsppol"] == 2 and od["nspinor"] == 1 and od["nspden"] == 2
 
+        with self.assertRaises(ValueError):
+            ni_ebands_kpath.get_dataframe(brange=[1, 2], erange=[0, 10])
+
         df = ni_ebands_kpath.get_dataframe()
         ni_ebands_kpath.to_xmgrace(self.get_tmpname(text=True))
         ni_ebands_kpath.to_xmgrace(sys.stdout)
@@ -191,6 +194,10 @@ class ElectronBandsTest(AbipyTest):
 
             if self.has_seaborn():
                 assert ni_ebands_kmesh.boxplot(brange=[5, 10], show=False,
+                    title="Boxplot for up and down spin and 10 > band >= 5")
+
+            if self.has_plotly():
+                assert ni_ebands_kmesh.boxplotly(brange=[5, 10], show=False,
                     title="Boxplot for up and down spin and 10 > band >= 5")
 
         # Test Abipy --> Pymatgen converter.

@@ -1091,7 +1091,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
 class HueGroup(object):
     """
-    This small object is used by ``group_and_sortby`` to store information abouth the group.
+    This small object is used by ``group_and_sortby`` to store information about the group.
     """
 
     def __init__(self, hvalue, xvalues, abifiles, labels):

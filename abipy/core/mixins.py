@@ -202,13 +202,17 @@ class AbinitNcFile(BaseFile):
         Used to construct |pandas-DataFrames|.
         """
 
-    def get_dims_dataframe(self, path="/"):
+    def get_dims_dataframe(self, as_dict=False, path="/"):
         """
         Return: |pandas-Dataframe| with the dimensions defined in the `path` group.
+            or dict if as_dict is True.
         """
         grp = self.reader.rootgrp if path == "/" else self.path2group[path]
         d = {k: len(v) for k, v in grp.dimensions.items()}
-        # Since this is a Series but we want a dataframe to faciliate interoperability.
+
+        if as_dict: return d
+
+        # Since this is a Series but we want a dataframe to facilitate interoperability.
         # we have to call init with additional kwargs.
         import pandas as pd
         return pd.DataFrame.from_dict(d, orient='index', columns=['value'])

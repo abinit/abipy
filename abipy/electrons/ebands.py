@@ -1077,7 +1077,8 @@ class ElectronBands(Has_Structure):
 
         return dless_states
 
-    def get_dataframe(self, e0="fermie"):
+    #@memoized_method(maxsize=5, typed=False)
+    def get_dataframe(self, e0="fermie", brange=None, ene_range=None):
         """
         Return a |pandas-DataFrame| with the following columns:
 
@@ -1101,14 +1102,45 @@ class ElectronBands(Has_Structure):
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
-                The Fermi energy is saved in frame.fermie
+                The Fermi energy is saved in df.fermie
+            brange: If not None, only bands such as ``brange[0] <= band_index < brange[1]`` are included.
+            ene_range: If not None, only bands whose energy in inside [erange[0],  [erange[1]] are included.
+                brange and ene_range are mutually exclusive. Note that e0 is taken into account.
+                when computing the energy.
         """
-        rows = []
+        if brange and ene_range:
+            raise ValueError("brange and ene_range are mutually exclusive")
+
         e0 = self.get_e0(e0)
+
+        if ene_range:
+            # Compute brange from ene_range
+            min_band, max_band = self.mband, -1
+            for spin in self.spins:
+                for k, kpoint in enumerate(self.kpoints):
+                    e_ks = self.eigens[spin, k] - e0
+                    bands = np.where((e_ks >= ene_range[0]) & (e_ks <= ene_range[1]))[0]
+                    if bands.size:
+                        min_band = min(min_band, int(bands[0]))
+                        max_band = max(max_band, int(bands[-1]))
+                        #raise ValueError(f"No band found in ene_range: {ene_range} with e0: {e0}")
+
+            if max_band == min_band: max_band += 1
+            if min_band > max_band:
+                # Wrong interval provided by user --> Show everything
+                min_band, max_band = 0, self.mband
+
+            brange = (min_band, max_band)
+            #print(min_band, max_band)
+
+        rows = []
         for spin in self.spins:
             for k, kpoint in enumerate(self.kpoints):
-                for band in range(self.nband_sk[spin,k]):
-                    eig = self.eigens[spin,k,band] - e0
+                bands = range(self.nband_sk[spin, k]) if brange is None else \
+                        range(brange[0], brange[1])
+
+                for band in bands:
+                    eig = self.eigens[spin, k, band] - e0
                     rows.append(OrderedDict([
                                ("spin", spin),
                                ("kidx", k),
@@ -1118,14 +1150,16 @@ class ElectronBands(Has_Structure):
                                ("kpoint", self.kpoints[k]),
                             ]))
 
-        frame = pd.DataFrame(rows, columns=list(rows[0].keys()))
-        frame.fermie = e0
-        return frame
+        df = pd.DataFrame(rows, columns=list(rows[0].keys()))
+        df.fermie = e0
+
+        return df
 
     @add_fig_kwargs
-    def boxplot(self, ax=None, e0="fermie", brange=None, swarm=False, **kwargs):
+    def boxplot(self, ax=None, e0="fermie", brange=None, ene_range=None, swarm=False, **kwargs):
         """
-        Use seaborn_ to draw a box plot to show distributions of eigenvalues with respect to the band index.
+        Use seaborn to draw a box plot to show the distributions of the eigenvalues
+        with respect to the band index.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -1134,24 +1168,64 @@ class ElectronBands(Has_Structure):
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV.
                 -  None: Don't shift energies, equivalent to ``e0 = 0``.
             brange: Only bands such as ``brange[0] <= band_index < brange[1]`` are included in the plot.
-            swarm: True to show the datapoints on top of the boxes
+            ene_range: If not None, only bands whose energy in inside [erange[0],  [erange[1]] are included.
+                brange and ene_range are mutually exclusive. Note that e0 is taken into account.
+                when computing the energy window.
+            swarm: True to show the datapoints on top of the boxes.
             kwargs: Keyword arguments passed to seaborn boxplot.
 
         Return: |matplotlib-Figure|
         """
-        # Get the dataframe and select bands
-        frame = self.get_dataframe(e0=e0)
-        if brange is not None:
-            frame = frame[(frame["band"] >= brange[0]) & (frame["band"] < brange[1])]
+        df = self.get_dataframe(e0=e0, brange=brange, ene_range=ene_range)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
         import seaborn as sns
         hue = None if self.nsppol == 1 else "spin"
-        ax = sns.boxplot(x="band", y="eig", data=frame, hue=hue, ax=ax, **kwargs)
+        ax = sns.boxplot(x="band", y="eig", data=df, hue=hue, ax=ax, **kwargs)
         if swarm:
-            sns.swarmplot(x="band", y="eig", data=frame, hue=hue, color=".25", ax=ax)
+            sns.swarmplot(x="band", y="eig", data=df, hue=hue, color=".25", ax=ax)
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def boxplotly(self, e0="fermie", brange=None, ene_range=None, swarm=False, fig=None, rcd=None, **kwargs):
+        """
+        Use ployly to draw a box plot to show the distributions of the eigenvalues
+        with respect to the band index.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV.
+                -  None: Don't shift energies, equivalent to ``e0 = 0``.
+            brange: Only bands such as ``brange[0] <= band_index < brange[1]`` are included in the plot.
+            ene_range: If not None, only bands whose energy in inside [erange[0],  [erange[1]] are included.
+                brange and ene_range are mutually exclusive. Note that e0 is taken into account.
+                when computing the energy window.
+            swarm: True to show the datapoints on top of the boxes.
+            fig: plotly figure or None if a new figure should be created.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
+                of the subplot in the grid.
+            kwargs: Keyword arguments passed to plotly px.box.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        df = self.get_dataframe(e0=e0, brange=brange, ene_range=ene_range)
+
+        import plotly.express as px
+        hue = None if self.nsppol == 1 else "spin"
+        points = 'outliers' if not swarm else "all"
+        px_fig = px.box(df, x="band", y="eig", color=hue, points=points, **kwargs)
+
+        if rcd is None: return px_fig
+
+        # Add px_fig traces to input fig with subplot.
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
+        for trace in px_fig.data:
+            fig.add_trace(trace, row=ply_row, col=ply_col)
 
         return fig
 
@@ -2216,6 +2290,7 @@ class ElectronBands(Has_Structure):
                 else:
                     fig.layout.annotations[iax-1].text = gaps_string
                     fig.layout.annotations[iax-1].font.size = fontsize
+
         if max_phfreq is not None and (self.mband > self.nspinor * self.nelect // 2):
             # Add markers showing phonon absorption/emission processes.
             for spin in self.spins:
@@ -2240,6 +2315,9 @@ class ElectronBands(Has_Structure):
                                         marker=scatter_opts, showlegend=False, row=ply_row, col=ply_col)
 
         return fig
+
+
+    # TODO: Is this really useful?
 
     @add_fig_kwargs
     def plot_scatter3d(self, band, spin=0, e0="fermie", colormap="jet", ax=None, **kwargs):
@@ -2543,7 +2621,7 @@ class ElectronBands(Has_Structure):
 
     @add_plotly_fig_kwargs
     def plotly_with_edos(self, edos, klabels=None, fig=None, band_rcd=None, dos_rcd=None, e0="fermie", points=None,
-                       with_gaps=False, max_phfreq=None, ylims=None, width_ratios=(2, 1), **kwargs):
+                         with_gaps=False, max_phfreq=None, ylims=None, width_ratios=(2, 1), **kwargs):
         r"""
         Plot the band structure and the DOS with plotly.
 
@@ -2553,7 +2631,8 @@ class ElectronBands(Has_Structure):
                 The values are the labels. e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             fig: The |plotly.graph_objects.Figure| with two distinct plots for the bandstructure plot and the DOS plot.
                 If fig is None, a new figure is created.
-            band_rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the band subplot in the grid.
+            band_rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
+                of the band subplot in the grid.
             dos_rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the dos subplot in the grid.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
@@ -2745,15 +2824,15 @@ class ElectronBands(Has_Structure):
     @memoized_method(maxsize=5, typed=False)
     def get_ifermi_dense_bs(self, interpolation_factor, with_velocities):
         """
+        Use ifermi and BoltzTraP2 to interpolate KS energies (assumes ebands in the IBZ).
 
         Args:
             interpolation_factor:
-            with_velocities:
+            with_velocities: Interpolate velocities in the full BZ.
 
         .. note::
 
-            Use per-instance lru_cache so that each user has his/her own cache.
-            Cannot use lru_cache from stdlib because the cache would be global to the app.
+            Store results in per-instance cache via memoized_method.
         """
         err_msg = self.isnot_ibz_sampling()
         if err_msg:
@@ -2817,6 +2896,7 @@ class ElectronBands(Has_Structure):
         eref = eref.lower()
         if eref == "fermie":
             edge_state = None
+            abs_isoenergy = self.fermie
 
         elif eref in ("vbm", "cbm"):
 
@@ -2827,11 +2907,11 @@ class ElectronBands(Has_Structure):
 
             edge_state = self.get_edge_state(eref)
             mu = -self.fermie + edge_state.eig + mu
+            abs_isoenergy = edge_state.eig + mu
 
         else:
             raise ValueError(f"Invalid value for eref: {eref}")
 
-        #print("fermie", self.fermie, "edge_state:", edge_state, "mu:", mu)
         # generate the Fermi surface
         with Timer(f"Building Fermi surface with wigner_seitz: {wigner_seitz}, eref: {eref} and mu: {mu} (eV)"):
 
@@ -2848,7 +2928,7 @@ class ElectronBands(Has_Structure):
         fs_plotter = FermiSurfacePlotter(fs)
 
         return dict2namedtuple(fs=fs, fs_plotter=fs_plotter, dense_bs=r.dense_bs, velocities=r.velocities,
-                               interpolator=r.interpolator, edge_state=edge_state)
+                               interpolator=r.interpolator, edge_state=edge_state, abs_isoenergy=abs_isoenergy)
 
     #def get_ifermi_slices(self, interpolation_factor=5, mu=0, eref="cbm", wigner_seitz=True,
     #                      with_velocities=False):
@@ -3720,18 +3800,16 @@ class ElectronBandsPlotter(NotebookWriter):
             kwargs: Keyword arguments passed to seaborn boxplot.
         """
         spin_polarized = False
-        frames = []
+        df_list = []
         for label, ebands in self.ebands_dict.items():
             # Get the dataframe, select bands and add column with label
-            frame = ebands.get_dataframe(e0=e0)
-            if brange is not None:
-                frame = frame[(frame["band"] >= brange[0]) & (frame["band"] < brange[1])]
-            frame["label"] = label
-            frames.append(frame)
+            df = ebands.get_dataframe(e0=e0, brange=brange)
+            df["label"] = label
+            df_list.append(df)
             if ebands.nsppol == 2: spin_polarized = True
 
-        # Merge frames ignoring index (not meaningful)
-        data = pd.concat(frames, ignore_index=True)
+        # Merge dataframes ignoring index (not meaningful)
+        data = pd.concat(df_list, ignore_index=True)
 
         import seaborn as sns
         if not spin_polarized:
@@ -3756,7 +3834,8 @@ class ElectronBandsPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_band_edges(self, e0="fermie", epad_ev=1.0, set_fermie_to_vbm=True, colormap="viridis", fontsize=8, **kwargs):
+    def plot_band_edges(self, e0="fermie", epad_ev=1.0, set_fermie_to_vbm=True,
+                        colormap="viridis", fontsize=8, **kwargs):
         """
         Plot the band edges for electrons and holes on two separated plots for all ebands in ebands_dict.
         Useful for comparing band structures obtained with/without SOC or bands obtained with different settings.
@@ -3923,7 +4002,7 @@ class ElectronBandsPlotter(NotebookWriter):
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("plotter = abilab.ElectronBandsPlotter.pickle_load('%s')" % tmpfile),
             nbv.new_code_cell("print(plotter)"),
-            nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
+            nbv.new_code_cell("df = plotter.get_ebands_frame()\ndisplay(frame)"),
             nbv.new_code_cell("ylims = (None, None)"),
             nbv.new_code_cell("plotter.gridplot(ylims=ylims);"),
             nbv.new_code_cell("plotter.combiplot(ylims=ylims);"),

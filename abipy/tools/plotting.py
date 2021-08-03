@@ -1234,9 +1234,20 @@ def add_plotly_fig_kwargs(func):
 
         fig.layout.hovermode = hovermode
 
-
         if show: # and _PLOTLY_DEFAULT_SHOW:
-            fig.show(renderer=renderer, config=config)
+            my_config = dict(
+                responsive=True,
+                #showEditInChartStudio=True,
+                showLink=True,
+                plotlyServerURL="https://chart-studio.plotly.com",
+            )
+
+            if config is not None:
+                my_config.update(config)
+
+            #add_template_buttons(fig)
+
+            fig.show(renderer=renderer, config=my_config)
 
         if chart_studio:
             push_to_chart_studio(fig)
@@ -1756,7 +1767,7 @@ def plotly_wigner_seitz(lattice, fig=None, **kwargs):
 
 def plotly_lattice_vectors(lattice, fig=None, **kwargs):
     """
-    Adds the basis vectors of the lattice provided to a matplotlib Axes
+    Adds the basis vectors of the lattice provided to a plotly figure.
 
     Args:
         lattice: Lattice object
@@ -1764,11 +1775,9 @@ def plotly_lattice_vectors(lattice, fig=None, **kwargs):
         kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to green
             and linewidth to 3.
 
-    Returns:
-        matplotlib figure and matplotlib ax
+    Returns: plotly figure
     """
-    #ax, fig, plt = get_ax3d_fig_plt(ax)
-    fig, go = get_fig_plotly(fig=fig) #, **fig_kw)
+    fig, go = get_fig_plotly(fig=fig)
 
     if "line_color" not in kwargs:
         kwargs["line_color"] = "green"
@@ -1779,13 +1788,10 @@ def plotly_lattice_vectors(lattice, fig=None, **kwargs):
 
     vertex1 = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
     vertex2 = lattice.get_cartesian_coords([1.0, 0.0, 0.0])
-    #ax.plot(*zip(vertex1, vertex2), **kwargs)
     fig.add_trace(go_line(vertex1, vertex2, name="a", **kwargs))
     vertex2 = lattice.get_cartesian_coords([0.0, 1.0, 0.0])
-    #ax.plot(*zip(vertex1, vertex2), **kwargs)
     fig.add_trace(go_line(vertex1, vertex2, name="b", **kwargs))
     vertex2 = lattice.get_cartesian_coords([0.0, 0.0, 1.0])
-    #ax.plot(*zip(vertex1, vertex2), **kwargs)
     fig.add_trace(go_line(vertex1, vertex2, name="c", **kwargs))
 
     return fig
@@ -1793,7 +1799,7 @@ def plotly_lattice_vectors(lattice, fig=None, **kwargs):
 
 def plotly_path(line, lattice=None, coords_are_cartesian=False, fig=None, **kwargs):
     """
-    Adds a line passing through the coordinates listed in 'line' to a matplotlib Axes
+    Adds a line passing through the coordinates listed in 'line' to a plotly figure.
 
     Args:
         line: list of coordinates.
@@ -1805,12 +1811,10 @@ def plotly_path(line, lattice=None, coords_are_cartesian=False, fig=None, **kwar
         kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to red
             and linewidth to 3.
 
-    Returns:
-        matplotlib figure and matplotlib ax
+    Returns: plotly figure
     """
 
-    #ax, fig, plt = get_ax3d_fig_plt(ax)
-    fig, go = get_fig_plotly(fig=fig) #, **fig_kw)
+    fig, go = get_fig_plotly(fig=fig)
 
     if "line_color" not in kwargs:
         kwargs["line_color"] = "red"
@@ -1825,55 +1829,55 @@ def plotly_path(line, lattice=None, coords_are_cartesian=False, fig=None, **kwar
                 raise ValueError("coords_are_cartesian False requires the lattice")
             vertex1 = lattice.get_cartesian_coords(vertex1)
             vertex2 = lattice.get_cartesian_coords(vertex2)
-        #ax.plot(*zip(vertex1, vertex2), **kwargs)
+
         fig.add_trace(go_line(vertex1, vertex2, showlegend=False, **kwargs))
 
     return fig
 
 
-def plotly_labels(labels, lattice=None, coords_are_cartesian=False, ax=None, **kwargs):
-    """
-    Adds labels to a matplotlib Axes
-
-    Args:
-        labels: dict containing the label as a key and the coordinates as value.
-        lattice: Lattice object used to convert from reciprocal to cartesian coordinates
-        coords_are_cartesian: Set to True if you are providing.
-            coordinates in cartesian coordinates. Defaults to False.
-            Requires lattice if False.
-        ax: matplotlib :class:`Axes` or None if a new figure should be created.
-        kwargs: kwargs passed to the matplotlib function 'text'. Color defaults to blue
-            and size to 25.
-
-    Returns:
-        matplotlib figure and matplotlib ax
-    """
-    ax, fig, plt = get_ax3d_fig_plt(ax)
-
-    if "color" not in kwargs:
-        kwargs["color"] = "b"
-    if "size" not in kwargs:
-        kwargs["size"] = 25
-
-    for k, coords in labels.items():
-        label = k
-        if k.startswith("\\") or k.find("_") != -1:
-            label = "$" + k + "$"
-        off = 0.01
-        if coords_are_cartesian:
-            coords = np.array(coords)
-        else:
-            if lattice is None:
-                raise ValueError("coords_are_cartesian False requires the lattice")
-            coords = lattice.get_cartesian_coords(coords)
-        ax.text(*(coords + off), s=label, **kwargs)
-
-    return fig, ax
+#def plotly_labels(labels, lattice=None, coords_are_cartesian=False, ax=None, **kwargs):
+#    """
+#    Adds labels to a matplotlib Axes
+#
+#    Args:
+#        labels: dict containing the label as a key and the coordinates as value.
+#        lattice: Lattice object used to convert from reciprocal to cartesian coordinates
+#        coords_are_cartesian: Set to True if you are providing.
+#            coordinates in cartesian coordinates. Defaults to False.
+#            Requires lattice if False.
+#        ax: matplotlib :class:`Axes` or None if a new figure should be created.
+#        kwargs: kwargs passed to the matplotlib function 'text'. Color defaults to blue
+#            and size to 25.
+#
+#    Returns:
+#        matplotlib figure and matplotlib ax
+#    """
+#    ax, fig, plt = get_ax3d_fig_plt(ax)
+#
+#    if "color" not in kwargs:
+#        kwargs["color"] = "b"
+#    if "size" not in kwargs:
+#        kwargs["size"] = 25
+#
+#    for k, coords in labels.items():
+#        label = k
+#        if k.startswith("\\") or k.find("_") != -1:
+#            label = "$" + k + "$"
+#        off = 0.01
+#        if coords_are_cartesian:
+#            coords = np.array(coords)
+#        else:
+#            if lattice is None:
+#                raise ValueError("coords_are_cartesian False requires the lattice")
+#            coords = lattice.get_cartesian_coords(coords)
+#        ax.text(*(coords + off), s=label, **kwargs)
+#
+#    return fig, ax
 
 
 def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, labels=None, fig=None, **kwargs):
     """
-    Adds points to a matplotlib Axes
+    Adds points to a plotly figure.
 
     Args:
         points: list of coordinates
@@ -1886,10 +1890,8 @@ def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, 
         fig: plotly figure or None if a new figure should be created.
         kwargs: kwargs passed to the matplotlib function 'scatter'. Color defaults to blue
 
-    Returns:
-        matplotlib figure and matplotlib ax
+    Returns: plotly figure
     """
-    #ax, fig, plt = get_ax3d_fig_plt(ax)
     fig, go = get_fig_plotly(fig=fig) #, **fig_kw)
 
     if "marker_color" not in kwargs:
@@ -1909,7 +1911,6 @@ def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, 
             p = lattice.get_cartesian_coords(p)
 
         vecs.append(p)
-        #ax.scatter(*p, **kwargs)
 
     kws = dict(textposition="top right", showlegend=False) #, textfont=dict(color='#E58606'))
     kws.update(kwargs)
@@ -2004,5 +2005,81 @@ def plotly_brillouin_zone(
     #ax.set_zlim3d(-1, 1)
     # ax.set_aspect('equal')
     #ax.axis("off")
+
+    return fig
+
+
+def add_colorscale_dropwdowns(fig):
+    """
+    Add dropdown widgets to change/reverse the colorscale.
+    Based on: https://plotly.com/python/dropdowns/#update-several-data-attributes
+    """
+    button_layer_1_height = 1.30
+
+    # Create list of buttons
+    # A single button has the form:
+    #
+    #    dict(
+    #        args=["colorscale", "Viridis"],
+    #        label="Viridis",
+    #        method="restyle"
+    #    ),
+
+
+    colorscales = ["Viridis", "Cividis", "Blues", "Greens"]
+
+    colorscale_buttons = []
+    for cscale in colorscales:
+        colorscale_buttons.append(dict(
+                args=["colorscale", cscale],
+                label=cscale,
+                method="restyle",
+        ))
+
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                buttons=colorscale_buttons,
+                direction="down",
+                pad={"r": 10, "t": 10},
+                showactive=True,
+                x=0.1,
+                xanchor="left",
+                y=button_layer_1_height,
+                yanchor="top"
+            ),
+            dict(
+                buttons=list([
+                    dict(
+                        args=["reversescale", False],
+                        label="False",
+                        method="restyle"
+                    ),
+                    dict(
+                        args=["reversescale", True],
+                        label="True",
+                        method="restyle"
+                    )
+                ]),
+                direction="down",
+                pad={"r": 10, "t": 10},
+                showactive=True,
+                x=0.37,
+                xanchor="left",
+                y=button_layer_1_height,
+                yanchor="top"
+            ),
+        ]
+    )
+
+    y = button_layer_1_height - 0.02
+
+    fig.update_layout(
+        annotations=[
+            dict(text="colorscale", x=0, xref="paper", y=y, yref="paper",
+                 align="left", showarrow=False),
+            dict(text="Reverse<br>Colorscale", x=0.25, xref="paper", y=y,
+                 yref="paper", showarrow=False),
+    ])
 
     return fig

@@ -306,14 +306,22 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
     return col
 
 
-def ply(fig, sizing_mode='stretch_both', with_chart_studio=True, with_help=True,
+def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=False,
         with_divider=True, with_controls=False):
     """
     Helper function returning a panel Column with a plotly pane,  buttons to push the figure
     to plotly chart studio and, optionally, controls to customize the figure.
     """
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
-    plotly_pane = pn.pane.Plotly(fig, config={'responsive': True})
+
+    config = dict(
+      responsive=True,
+      #showEditInChartStudio=True,
+      showLink=True,
+      plotlyServerURL="https://chart-studio.plotly.com",
+      )
+
+    plotly_pane = pn.pane.Plotly(fig, config=config)
     ca(plotly_pane)
 
     if with_chart_studio:
@@ -1020,7 +1028,7 @@ def get_structure_info(structure):
     return col
 
 
-class NcFileViewer(param.Parameterized):
+class NcFileViewer(AbipyParameterized):
     """
     This class implements toool to inspect dimensions and variables stored in a netcdf file.
 
@@ -1032,8 +1040,20 @@ class NcFileViewer(param.Parameterized):
     def __init__(self, ncfile, **params):
         super().__init__(**params)
         self.ncfile = ncfile
+        self.netcdf_info_btn = pnw.Button(name="Show info", button_type='primary')
 
     def get_ncfile_view(self):
+        return pn.Column(
+                self.netcdf_info_btn,
+                self.on_netcdf_info_btn,
+                sizing_mode='stretch_width',
+        )
+
+    @depends_on_btn_click('netcdf_info_btn')
+    def on_netcdf_info_btn(self):
+        """
+        This Tab allows one to
+        """
         # TODO: Finalize the implementation.
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
@@ -1048,7 +1068,6 @@ class NcFileViewer(param.Parameterized):
         dims_df = self.ncfile.get_dims_dataframe(path=self.nc_path)
         ca(f"## Dimensions in nc group: {self.nc_path}")
         ca(dfc(dims_df))
-
         #ca(f"## Variables")
 
         return col
@@ -1139,7 +1158,6 @@ class PanelWithElectronBands(PanelWithStructure):
     @staticmethod
     def _get_ebands_from_bstring(bstring):
         from abipy.electrons import ElectronBands
-        #print("bstring", bstring)
         return ElectronBands.from_binary_string(bstring)
 
     @pn.depends("ebands_kpath_fileinput", watch=True)
@@ -1318,6 +1336,16 @@ class PanelWithElectronBands(PanelWithStructure):
         else:
             ca("## Energy isosurface in the reciprocal unit cell parallelepiped")
         ca(fig)
+
+        ene_range = [-3, 3]
+        fig = self.ebands.boxplotly(e0=r.abs_isoenergy, ene_range=ene_range, show=False)
+        ca(f"""
+## Energy boxplot:
+
+- Energy zero set at the absolute isoenergy: {r.abs_isoenergy:.3f} (eV)
+- Energy range around zero: {ene_range} (eV)
+""")
+        ca(ply(fig, sizing_mode="stretch_both"))
 
         # TODO: This requires more testing
         #ifermi_plane_normal = self.ifermi_plane_normal.value

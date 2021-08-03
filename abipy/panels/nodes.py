@@ -128,10 +128,10 @@ class NodeParameterized(AbipyParameterized):
         # does not analyze the tasks that are completed.
         df = self.flow.show_status(nids=self.nids, stream=term, verbose=1, return_df=True) #self.verbose)
 
-        return pn.Column(
-                StatusCards(df),
-                sizing_mode="stretch_width",
-        )
+        #return pn.Column(
+        #        StatusCards(df),
+        #        sizing_mode="stretch_width",
+        #)
 
         # Generate heatmap with plotly
         max_num_tasks = max(len(work) for work in self.flow)
@@ -151,6 +151,10 @@ class NodeParameterized(AbipyParameterized):
                         hoverongaps=False, transpose=False, colorscale="Viridis",
                         ))
         fig.update_layout(title_text="Number of MPI procs", title_x=0.5)
+
+        from abipy.tools.plotting import add_colorscale_dropwdowns
+        add_colorscale_dropwdowns(fig)
+
         return ply(fig)
 
     def get_history_view(self):

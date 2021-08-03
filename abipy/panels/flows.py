@@ -184,14 +184,14 @@ class FlowMultiPageApp():
 
     def handle_wt(self):
         # URL example: /w1/t5/w\d+/t\d+
-        print("in handle_wt with pn.state.app_url:", pn.state.app_url)
+        #print("in handle_wt with pn.state.app_url:", pn.state.app_url)
         tokens = pn.state.app_url.split("/")
         work_idx = int(tokens[1][1:])
         task_idx = None
         if tokens[2].startswith("t"):
             task_idx = int(tokens[2][1:])
-        print("got request with work_idx:", work_idx, "task_idx:", task_idx)
 
+        #print("got request with work_idx:", work_idx, "task_idx:", task_idx)
         #from abipy.panels.core import abipanel
         #abipanel()
 
