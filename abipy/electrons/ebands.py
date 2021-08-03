@@ -471,9 +471,15 @@ class ElectronBands(Has_Structure):
             pmgb = rest.get_bandstructure_by_material_id(material_id=material_id, line_mode=line_mode)
             if pmgb is None: return None
 
-            # Structure is set to None so we have to perform another request and patch the object.
-            structure = rest.get_structure_by_material_id(material_id, final=True)
-            if pmgb.structure is None: pmgb.structure = structure
+            if pmgb.structure is None:
+                # Structure is set to None so we have to perform another request and patch the object.
+                structure = rest.get_structure_by_material_id(material_id, final=True)
+                pmgb.structure = structure
+
+        #with open("mp-565814_pmg_magsemicond_bands.json", "wt") as fh:
+        #    fh.write(pmgb.to_json())
+
+        #fermie = pmgb.efermi
 
         if nelect is None:
             # Get nelect from valence band maximum index.
@@ -482,12 +488,18 @@ class ElectronBands(Has_Structure):
                 return None
             else:
                 d = pmgb.get_vbm()
+
                 iv_up = max(d["band_index"][PmgSpin.up])
                 nelect = (iv_up + 1) * 2
                 #print("iv_up", iv_up, "nelect: ", nelect)
                 if pmgb.is_spin_polarized:
-                    iv_down = max(d["band_index"][PmgSpin.down])
-                    assert iv_down == iv_up
+                    try:
+                        iv_down = max(d["band_index"][PmgSpin.down])
+                        assert iv_down == iv_up
+                    except Exception as exc:
+                        from pprint import pprint
+                        pprint(d)
+                        raise exc
 
         #ksampling = KSamplingInfo.from_kbounds(kbounds)
         return cls.from_pymatgen(pmgb, nelect, weights=None, has_timerev=has_timerev,
@@ -513,7 +525,7 @@ class ElectronBands(Has_Structure):
             nspinor: Number of spinor components
             nspden: Number of independent density components.
             nband_sk: Array-like object with the number of bands treated at each [spin,kpoint]
-                      If not given, nband_sk is initialized from eigens.
+                If not given, nband_sk is initialized from eigens.
             smearing: :class:`Smearing` object storing information on the smearing technique.
             linewidths: Array-like object with the linewidths (eV) stored as [s, k, b]
         """

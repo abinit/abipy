@@ -21,13 +21,16 @@ ddb = abilab.abiopen(filepath)
 # Default args are: asr=2, chneut=1, dipdip=1.
 ifc = ddb.anaget_ifc()
 
-# Plot the total longitudinal IFCs in local coordinates, filtered according to the optional arguments.
+# Plot the total longitudinal IFCs in local coordinates,
+# filtered according to the optional arguments.
 ifc.plot_longitudinal_ifc(title="Total Longitudinal IFCs")
 
-# Plots the short range longitudinal IFCs in local coordinates, filtered according to the optional arguments.
+# Plots the short range longitudinal IFCs in local coordinates,
+# filtered according to the optional arguments.
 ifc.plot_longitudinal_ifc_short_range(title="Longitudinal SR-IFCs")
 
-# Plots the Ewald part of the IFCs in local coordinates, filtered according to the optional arguments.
+# Plots the Ewald part of the IFCs in local coordinates,
+# filtered according to the optional arguments.
 ifc.plot_longitudinal_ifc_ewald(title="Longitudinal LR-IFCs")
 
 ddb.close()

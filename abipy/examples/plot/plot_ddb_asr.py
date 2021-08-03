@@ -18,6 +18,7 @@ Both matplotlib and plotly are supported.
 
 from abipy import abilab
 import abipy.data as abidata
+
 filepath = abidata.ref_file("mp-1009129-9x9x10q_ebecs_DDB")
 ddb = abilab.abiopen(filepath)
 

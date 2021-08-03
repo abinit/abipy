@@ -3459,7 +3459,7 @@ class PhononDos(Function1D):
             iax = iq + 1
             fig.layout['yaxis%u' % iax].title = {'text': _PLOTLY_THERMO_YLABELS[qname][units], 'font_size': fontsize}
 
-            if irow == nrows-1:
+            if irow == nrows - 1:
                 fig.layout['xaxis%u' % iax].title = {'text': 'T (K)', 'font_size': fontsize}
 
         return fig
@@ -5010,7 +5010,8 @@ class PhononDosPlotter(NotebookWriter):
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
                              quantities="all", fontsize=8, **kwargs):
         """
-        Plot thermodynamic properties from the phonon DOS within the harmonic approximation.
+        Plot thermodynamic properties from the phonon DOS within the harmonic approximation
+        for all the files in the plotter.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.

@@ -11,7 +11,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 class InteratomicForceConstants(Has_Structure):
     """
     The interatomic force constants calculated by anaddb.
-    Read from anaddb.nc
+    Read from the anaddb.nc file.
     """
 
     def __init__(self, structure, atoms_indices, neighbours_indices, ifc_cart_coord,

@@ -9,7 +9,6 @@ For a command line interface use:
 
     abiview.py ddb_vs input_DDB
 """
-from __future__ import print_function
 
 import os
 import abipy.data as abidata
@@ -27,4 +26,5 @@ abilab.print_dataframe(df)
 
 # Plot fit
 sv.plot()
+
 sv.plotly()

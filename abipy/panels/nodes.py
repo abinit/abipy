@@ -107,7 +107,7 @@ class NodeParameterized(AbipyParameterized):
             pn.layout.Divider(),
             self.on_status_btn,
             sizing_mode='stretch_width',
-            )
+        )
 
     @depends_on_btn_click("status_btn")
     def on_status_btn(self):
@@ -207,10 +207,11 @@ class NodeParameterized(AbipyParameterized):
         #self.flow.plot_networkx(mode="network", with_edge_labels=False, ax=None, arrows=False,
         #                        node_size="num_cores", node_label="name_class", layout_type="spring", **kwargs):
 
-        return pn.Column("## Dependency Graph:",
-                         pn.pane.SVG(graph),
-                         sizing_mode="stretch_width"
-                         )
+        return pn.Column(
+            "## Dependency Graph:",
+            pn.pane.SVG(graph),
+            sizing_mode="stretch_width"
+        )
 
     def get_debug_view(self):
         return pn.Column(
@@ -219,7 +220,7 @@ class NodeParameterized(AbipyParameterized):
             self.on_debug_btn,
             pn.layout.Divider(),
             sizing_mode='stretch_width',
-            )
+        )
 
         #d["Corrections"] = pn.Row(self.corrections_btn, self.on_corrections_btn)
         #d["Handlers"] = pn.Row(self.handlers_btn, self.on_handlers_btn)
@@ -240,7 +241,7 @@ class NodeParameterized(AbipyParameterized):
             self.on_events_btn,
             pn.layout.Divider(),
             sizing_mode='stretch_width',
-            )
+        )
 
     @depends_on_btn_click("events_btn")
     def on_events_btn(self):
@@ -324,11 +325,11 @@ class NodeParameterized(AbipyParameterized):
         btn.on_click(update_output_area)
 
         return pn.Column(
-                "## Select a file and click the button to analyze the data",
-                pn.WidgetBox(select, btn),
-                pn.layout.Divider(),
-                output_area,
-                sizing_mode="stretch_width"
+            "## Select a file and click the button to analyze the data",
+            pn.WidgetBox(select, btn),
+            pn.layout.Divider(),
+            output_area,
+            sizing_mode="stretch_width"
         )
 
     #def on_workdir_selector_btn(self, event):
@@ -437,7 +438,7 @@ class StatusCards(param.Parameterized):
 
     def add_vrect_to_fig(self, fig):
         """
-        Add vertical rectangles to the fig to group tasks belonging to the same Work.
+        Add vertical rectangles to the plotly fig in order to group tasks belonging to the same Work.
         """
         for w_idx, (x0, x1) in self.w_start_stop.items():
             fig.add_vrect(x0=x0, x1=x1,
@@ -457,7 +458,9 @@ class StatusCards(param.Parameterized):
         has_pane = False
         import plotly.express as px
         df = self.df
+
         with Loading(card):
+
             if header == "## Task status histogram":
                 fig = px.histogram(df, x="status")
 
@@ -465,6 +468,7 @@ class StatusCards(param.Parameterized):
                 fig = px.histogram(df, x="task_class", color="status")
 
             elif header == "## Runtime in seconds for each task in the flow (-1 if task is not running)":
+
                 fig = px.scatter(df, x=df.index, y="task_runtime_s", color="status", #, symbol="work_idx", #size=
                                  hover_data =["num_warnings", "num_comments", "work_idx", "task_class"],
                                  hover_name="name")
@@ -506,7 +510,7 @@ class StatusCards(param.Parameterized):
                 raise ValueError(f"No action registered for: `{header}`")
 
         if not has_pane:
-            pane = ply(fig, with_chart_studio=False, with_help=False, with_divider=False)
+            pane = ply(fig, with_divider=False)
 
         card.objects = [pane]
         self.done[header] = True

@@ -380,7 +380,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                                               units=self.units, **self.mpl_kwargs)))
         # TODO
         #ca(ply(r.plotter.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50,
-        #                                      units=self.units, show=False)))
+        #                                        units=self.units, show=False)))
 
         return col
 
