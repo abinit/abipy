@@ -133,7 +133,7 @@ class ElectronBandsTest(AbipyTest):
         assert od["nsppol"] == 2 and od["nspinor"] == 1 and od["nspden"] == 2
 
         with self.assertRaises(ValueError):
-            ni_ebands_kpath.get_dataframe(brange=[1, 2], erange=[0, 10])
+            ni_ebands_kpath.get_dataframe(brange=[1, 2], ene_range=[0, 10])
 
         df = ni_ebands_kpath.get_dataframe()
         ni_ebands_kpath.to_xmgrace(self.get_tmpname(text=True))
@@ -570,6 +570,24 @@ class ElectronBandsFromRestApi(AbipyTest):
         if self.has_matplotlib():
             # Plot bands + dos using interpolated energies.
             assert r.ebands_kpath.plot_with_edos(edos, show=False)
+
+
+    def test_ebands_from_mpid_magnetic_semiconductor_nelect_automatically_computed(self):
+        """https://github.com/abinit/abipy/issues/232"""
+        ebands = ElectronBands.from_mpid('mp-565814')
+
+        assert ebands.nsppol = 2
+        self.assert_almost_equal(ebands.direct_gaps[0].energy, 3.6776999999999997)
+        self.assert_almost_equal(ebands.direct_gaps[1].energy, 2.0054000000000003)
+        self.assert_almost_equal(ebands.nelect, 368.0)
+        self.assert_almost_equal(ebands.fermie, 3.1562566)
+        assert str(ebands.to_string(verbose=1))
+
+    #def test_ebands_from_mpid_metal(self):
+    #    # This is Al but it's disabled because it takes ~ 77s
+    #    # nsppol: 1, nkpt: 1016, mband: 96, nspinor: 1, nspden: 1
+    #    ebands = ElectronBands.from_mpid('mp-134', line_mode=True)
+    #    assert ebands.nelect == 3
 
 
 class ElectronBandsPlotterTest(AbipyTest):

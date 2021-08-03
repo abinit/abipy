@@ -457,6 +457,9 @@ class ElectronBands(Has_Structure):
                 Defaults to the standard Materials Project REST address, but
                 can be changed to other urls implementing a similar interface.
             nelect: Number of electrons in the unit cell.
+                If None, this value is automatically computed using the Fermi level (if metal)
+                or the VBM indices reported in the JSON document sent by the MP database.
+                It is recommended to pass nelect explictly if this quantity is known in the caller.
             nspinor: Number of spinor components.
             line_mode (bool): If True, fetch a BandStructureSymmLine object
                 (default). If False, return the uniform band structure.
@@ -475,31 +478,6 @@ class ElectronBands(Has_Structure):
                 # Structure is set to None so we have to perform another request and patch the object.
                 structure = rest.get_structure_by_material_id(material_id, final=True)
                 pmgb.structure = structure
-
-        #with open("mp-565814_pmg_magsemicond_bands.json", "wt") as fh:
-        #    fh.write(pmgb.to_json())
-
-        #fermie = pmgb.efermi
-
-        if nelect is None:
-            # Get nelect from valence band maximum index.
-            if pmgb.is_metal():
-                cprint("Nelect must be specified if metallic bands.", "red")
-                return None
-            else:
-                d = pmgb.get_vbm()
-
-                iv_up = max(d["band_index"][PmgSpin.up])
-                nelect = (iv_up + 1) * 2
-                #print("iv_up", iv_up, "nelect: ", nelect)
-                if pmgb.is_spin_polarized:
-                    try:
-                        iv_down = max(d["band_index"][PmgSpin.down])
-                        assert iv_down == iv_up
-                    except Exception as exc:
-                        from pprint import pprint
-                        pprint(d)
-                        raise exc
 
         #ksampling = KSamplingInfo.from_kbounds(kbounds)
         return cls.from_pymatgen(pmgb, nelect, weights=None, has_timerev=has_timerev,
@@ -1292,11 +1270,50 @@ class ElectronBands(Has_Structure):
         if nsppol == 2:
             abipy_eigens[1] = np.array(pmg_bands.bands[PmgSpin.down]).T.copy()
 
+        fermie = pmg_bands.efermi
+        #print("fermie energy from pymatgen bands:")
+
         # Compute occupation factors. Note that pmg bands don't have occfact so
         # I have to compute them from the eigens assuming T=0)
         atol = 1e-4
-        abipy_occfacts = np.where(abipy_eigens <= pmg_bands.efermi + atol, 1, 0)
+        abipy_occfacts = np.where(abipy_eigens <= fermie + atol, 1, 0)
         if nsppol == 1: abipy_occfacts *= 2
+
+        if nelect is None:
+
+            if pmg_bands.is_metal():
+                nelect = np.rint(abipy_occfacts.sum() / nkpt)
+                cprint(f"Using approximated method to get nelect in metals: {nelect}", color="yellow")
+                #raise ValueError("Nelect must be specified if metallic bands.")
+
+            else:
+                #
+                # Get nelect from valence band maximum index.
+                #
+                # - "band_index": A dict with spin keys pointing to a list of the
+                # indices of the band containing the VBM (please note that you
+                # can have several bands sharing the VBM) {Spin.up:[],
+                # Spin.down:[]}
+
+                d = pmg_bands.get_vbm()
+
+                iv_up = max(d["band_index"][PmgSpin.up])
+                homo_up = abipy_eigens[0, :, iv_up].max()
+                homo = homo_up
+
+                nelect = (iv_up + 1) * 2
+                #print("iv_up", iv_up, "nelect: ", nelect)
+
+                if pmg_bands.is_spin_polarized:
+                    vbands_down = d["band_index"][PmgSpin.down]
+                    iv_down = None
+                    if vbands_down:
+                        iv_down = max(vbands_down)
+                        homo_down = abipy_eigens[1, :, iv_down].max()
+                        homo = max(homo_up, homo_down)
+                    nelect = np.count_nonzero(abipy_eigens[:,0,:] <= homo)
+
+                    #cprint("Using approximated method to get nelect in metals: {nelect}", color="yellow")
 
         reciprocal_lattice = pmg_bands.structure.lattice.reciprocal_lattice
         frac_coords = np.array([k.frac_coords for k in pmg_bands.kpoints])
@@ -1316,7 +1333,7 @@ class ElectronBands(Has_Structure):
         for kpoint in abipy_kpoints:
             name = abipy_structure.findname_in_hsym_stars(kpoint)
 
-        return cls(abipy_structure, abipy_kpoints, abipy_eigens, pmg_bands.efermi, abipy_occfacts,
+        return cls(abipy_structure, abipy_kpoints, abipy_eigens, fermie, abipy_occfacts,
                    nelect, nspinor, nspden, smearing=smearing)
 
     def to_pymatgen(self):
@@ -1413,7 +1430,14 @@ class ElectronBands(Has_Structure):
             blist, enes = [], []
             for k in self.kidxs:
                 # Find rightmost value less than or equal to fermie.
-                b = find_le(self.eigens[spin,k,:], self.fermie + self.pad_fermie)
+                # Well, it's possible to have all eigens > fermie for particular k-points e.g. Al.
+                try:
+                    b = find_le(self.eigens[spin,k,:], self.fermie + self.pad_fermie)
+                except ValueError:
+                    #print("fermie + pad:", self.fermie + self.pad_fermie)
+                    #print("eigens[spin,k,:]", self.eigens[spin,k,:])
+                    continue
+
                 blist.append(b)
                 enes.append(self.eigens[spin,k,b])
 
@@ -1465,7 +1489,6 @@ class ElectronBands(Has_Structure):
     #    fun_gaps = self.fundamental_gaps
     #    for spin in self.spins:
     #       if abs(fun_gaps.ene) <  TOL_EGAP
-
 
     def get_edge_state(self, vbm_or_cbm, spin=None):
 
@@ -1552,7 +1575,7 @@ class ElectronBands(Has_Structure):
             else:
                 dgs = [t.energy for t in self.direct_gaps]
                 fgs = [t.energy for t in self.fundamental_gaps]
-                s = "%s: %s = %.2f (%.2f), %s = %.2f (%.2f) (eV)" % (
+                s = "%s: %s = %.2f spin ↑ (%.2f spin ↓), %s = %.2f spin ↑ (%.2f spin ↓) (eV)" % (
                     formula,
                     dg_name, dgs[0], dgs[1],
                     fg_name, fgs[0], fgs[1])
