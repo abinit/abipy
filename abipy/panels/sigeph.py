@@ -61,19 +61,20 @@ class SigEPhFilePanel(PanelWithElectronBands):
         #app(("e-Bands", pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)))
 
         # Build different tabs depending on the calculation type.
-        if self.sigeph.imag_only:
-            d["LWS"] = self.plot_lws
+        # TODO
+        #if self.sigeph.imag_only:
+        #    d["LWS"] = self.plot_lws
 
-        else:
-            d["QP-gaps"] = self.plot_qpgaps
-            d["QP_vs_e0"] = self.plot_qps_vs_e0
-            d["QPSolution"] = pn.Row(
-                pn.Column("## Quasiparticle solution",
-                          self.sigma_spin_select,
-                          self.sigma_kpoint_select,
-                          self.plot_qpsolution_btn),
-                self.on_plot_qpsolution_sk
-            )
+        #else:
+        #    d["QP-gaps"] = self.plot_qpgaps
+        #    d["QP_vs_e0"] = self.plot_qps_vs_e0
+        #    d["QPSolution"] = pn.Row(
+        #        pn.Column("## Quasiparticle solution",
+        #                  self.sigma_spin_select,
+        #                  self.sigma_kpoint_select,
+        #                  self.plot_qpsolution_btn),
+        #        self.on_plot_qpsolution_sk
+        #    )
 
         #d["Structure"] = self.get_structure_view()
         d["NcFile"] = self.sigeph.get_ncfile_view()

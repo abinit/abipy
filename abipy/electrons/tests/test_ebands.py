@@ -576,7 +576,7 @@ class ElectronBandsFromRestApi(AbipyTest):
         """https://github.com/abinit/abipy/issues/232"""
         ebands = ElectronBands.from_mpid('mp-565814')
 
-        assert ebands.nsppol = 2
+        assert ebands.nsppol == 2
         self.assert_almost_equal(ebands.direct_gaps[0].energy, 3.6776999999999997)
         self.assert_almost_equal(ebands.direct_gaps[1].energy, 2.0054000000000003)
         self.assert_almost_equal(ebands.nelect, 368.0)
@@ -628,11 +628,10 @@ class ElectronBandsPlotterTest(AbipyTest):
             assert plotter.combiplotly(title="Silicon band structure", show=False)
             # Alias for combiplot
             assert plotter.plotly(e0=2, width_ratios=(3, 1), fontsize=12, show=False)
-            #if self.has_seaborn():
-            #    plotter.combiboxplot(title="Silicon band structure", swarm=True, show=False)
+            #plotter.combiboxplotly(title="Silicon band structure", swarm=True, show=False)
             assert plotter.gridplotly(title="Silicon band structure", with_gaps=True, show=False)
-            #assert plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
-            #assert plotter.plot_band_edges(epad_ev=2.0, show=False)
+            #assert plotter.boxplotly(title="Silicon band structure", swarm=True, show=False)
+            #assert plotter.plotly_band_edges(epad_ev=2.0, show=False)
             #assert plotter.animate(show=False)
 
         if self.has_ipywidgets():

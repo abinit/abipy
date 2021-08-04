@@ -200,6 +200,10 @@ class DdbTest(AbipyTest):
                 title="Phonon bands and DOS of %s" % phbands.structure.formula)
             assert phbands_file.plot_phbands(show=False)
 
+        if self.has_plotly():
+            assert phbands.plotly_with_phdos(phdos, show=False,
+                title="Phonon bands and DOS of %s" % phbands.structure.formula)
+
         if self.has_panel():
             assert hasattr(ddb.get_panel(), "show")
 
@@ -339,20 +343,22 @@ class DdbTest(AbipyTest):
             assert ddb.has_epsinf_terms(select="at_least_one_diagoterm")
             assert ddb.has_bec_terms()
 
-            if self.has_matplotlib():
-                plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
-                    nqsmall=2, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
-                str(plotter)
-                assert plotter.combiplot(show=False)
+            plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
+                nqsmall=2, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
+            str(plotter)
 
-                # Test nqsmall == 0
-                plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
-                    nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
-                assert plotter.gridplot(show=False)
+            if self.has_matplotlib(): assert plotter.combiplot(show=False)
 
-                plotter = ddb.anacompare_dipdip(chneut_list=(0, 1), asr=1,
-                    nqsmall=0, ndivsm=5, dos_method="gaussian", ngqpt=None, verbose=2)
-                assert plotter.gridplot(show=False)
+            # Test nqsmall == 0
+            plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
+                nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
+
+            if self.has_matplotlib(): assert plotter.gridplot(show=False)
+
+            plotter = ddb.anacompare_dipdip(chneut_list=(0, 1), asr=1,
+                nqsmall=0, ndivsm=5, dos_method="gaussian", ngqpt=None, verbose=2)
+
+            if self.has_matplotlib(): assert plotter.gridplot(show=False)
 
     def test_mgb2_ddbs_ngkpt_tsmear(self):
         """Testing multiple DDB files and gridplot_with_hue."""

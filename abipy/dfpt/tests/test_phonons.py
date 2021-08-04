@@ -129,6 +129,8 @@ class PhononBandsTest(AbipyTest):
 
         if self.has_plotly():
             assert phbands.plotly(units="cm-1", temp=300, show=False)
+            assert phbands.plotly_fatbands(units="ha", qlabels=qlabels, show=False)
+            assert phbands.plotly_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             #assert phbands.plotly_with_phdos(units="Thz", temp=300, show=False)
             assert phbands.boxplotly(units="ev", mode_range=[2, 4], show=False)
 
