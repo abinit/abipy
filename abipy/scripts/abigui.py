@@ -56,10 +56,10 @@ def gui_app(port, address, show, num_procs, panel_template, has_remote_server, v
 
 # AbiPy Web App
 
-This web application exposes some of the capabilities of the [AbiPy package](https://github.com/abinit/abipy)
+This web application exposes some of the capabilities of the [AbiPy package](https://github.com/abinit/abipy).
 It consists of **multiple pages** each of which provides **specialized tools** to operate on a particular ABINIT file.
 To access one of these tools, click one of the links in the sidebar or, alternatively, use the links below.
-To open/close the sidebar, click on the Hamburger Menu Icon ☰ in the header.
+To **open/close** the sidebar, click on the Hamburger Menu Icon ☰ in the header.
 
 Note that the **file extension** matters as the GUI won't work properly if you upload files
 with extensions that are not recognized by AbiPy.

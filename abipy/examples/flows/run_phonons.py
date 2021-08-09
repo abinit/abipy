@@ -7,7 +7,7 @@ This example shows how to compute the phonon band structure of AlAs with AbiPy f
 Symmetries are taken into account: only q-points in the IBZ are generated and
 for each q-point only the independent atomic perturbations are computed.
 The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
-and saved in ``flow_phonons/outdata/``.
+and saved in ``flow_phonons/w1/outdata/``.
 """
 
 import sys
@@ -119,7 +119,7 @@ if __name__ == "__main__":
 #
 # Now open the final DDB file with:
 #
-#    abiopen.py flow_phonons/outdata/out_DDB
+#    abiopen.py flow_phonons/w1/outdata/out_DDB
 #
 # and invoke anaddb to compute the phonon band structure and the phonon DOS with:
 #

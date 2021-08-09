@@ -6,8 +6,8 @@ from monty.termcolor import cprint
 from pymatgen.io.abinit.abiobjects import *
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable, PseudoParser
 from pymatgen.io.abinit.netcdf import NetcdfReader
-from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, yaml_read_kpoints, yaml_read_irred_perts
 
+from .abiinspect import GroundStateScfCycle, D2DEScfCycle, yaml_read_kpoints, yaml_read_irred_perts
 from .launcher import PyFlowScheduler, PyLauncher
 from .qadapters import show_qparams, all_qtypes
 from .wrappers import Mrgscr, Mrgddb, Cut3D, Fold2Bloch

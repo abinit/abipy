@@ -66,6 +66,12 @@ extensions = [
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 import matplotlib
 
+# Use seaborn settings.
+#import seaborn as sns
+#sns.set(context=options.seaborn, style='darkgrid', palette='deep',
+#        font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
+
 extensions += [
     'IPython.sphinxext.ipython_directive',
     'IPython.sphinxext.ipython_console_highlighting',
@@ -73,10 +79,10 @@ extensions += [
 ]
 
 # Add local extensions (not available on PyPi)
-sys.path.insert(0, os.path.join(ABIPY_ROOT, "docs", "my_extensions"))
-extensions += [
-    'youtube',
-]
+#sys.path.insert(0, os.path.join(ABIPY_ROOT, "docs", "my_extensions"))
+#extensions += [
+#    'youtube',
+#]
 
 #########################
 # Spinx Gallery Settings
@@ -149,16 +155,16 @@ sphinx_gallery_conf = {
         'numpy': 'https://docs.scipy.org/doc/numpy/',
         'matplotlib': 'https://matplotlib.org',
         'pandas': "http://pandas-docs.github.io/pandas-docs-travis/",
-        "pymatgen": "http://pymatgen.org/",
+        "pymatgen": "https://pymatgen.org/",
     },
     #'image_scrapers': ('matplotlib',),
     #'image_scrapers': ('matplotlib', 'mayavi'),
     #'image_scrapers': ('matplotlib', PNGScraper()),
     #'image_scrapers': ('matplotlib', plotly),
 
-    # capture raw HTML or, if not present, __repr__ of last expression in
-    # each code block
-    'capture_repr': ('_repr_html_', '__repr__'),
+    # capture raw HTML or, if not present, __repr__ of last expression in each code block
+    'capture_repr': (),
+    #'capture_repr': ('_repr_html_', '__repr__'),
     #
     # https://sphinx-gallery.github.io/stable/configuration.html#binder-links
 
@@ -419,7 +425,7 @@ intersphinx_mapping = {
     'pandas': ("http://pandas-docs.github.io/pandas-docs-travis/", None),
     'matplotlib': ('https://matplotlib.org/', None),
     "monty": ("https://pythonhosted.org/monty/", None),
-    "pymatgen": ("http://pymatgen.org/", None),
+    "pymatgen": ("https://pymatgen.org/", None),
     'mayavi': ('http://docs.enthought.com/mayavi/mayavi', None),
 }
 

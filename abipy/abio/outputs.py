@@ -655,6 +655,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             cycle = self.next_gs_scf_cycle()
             if cycle is None: break
             cycles.append(cycle)
+
         self.seek(0)
         return cycles
 
@@ -694,10 +695,10 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         with_timer = kwargs.pop("with_timer", True)
 
         for icycle, cycle in enumerate(self.get_all_gs_scf_cycles()):
-            yield cycle.plot(title="SCF cycle #%d" % icycle, tight_layout=tight_layout, show=False)
+            yield cycle.plot(title=f"SCF cycle {icycle}", tight_layout=tight_layout, show=False)
 
         for icycle, cycle in enumerate(self.get_all_d2de_scf_cycles()):
-            yield cycle.plot(title="DFPT cycle #%d" % icycle, tight_layout=tight_layout, show=False)
+            yield cycle.plot(title=f"DFPT cycle {icycle}", tight_layout=tight_layout, show=False)
 
         if with_timer:
             self.seek(0)
@@ -705,6 +706,25 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
             except Exception:
                 print("Abinit output files does not contain timopt data")
+
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        """
+        with_timer = kwargs.pop("with_timer", True)
+
+        for icycle, cycle in enumerate(self.get_all_gs_scf_cycles()):
+            yield cycle.plotly(title=f"SCF cycle {icycle}", show=False)
+
+        for icycle, cycle in enumerate(self.get_all_d2de_scf_cycles()):
+            yield cycle.plotly(title=f"DFPT cycle {icycle}", show=False)
+
+        #if with_timer:
+        #    self.seek(0)
+        #    try:
+        #        yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
+        #    except Exception:
+        #        print("Abinit output files does not contain timopt data")
 
     def compare_gs_scf_cycles(self, others, show=True):
         """

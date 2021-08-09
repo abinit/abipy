@@ -1,4 +1,4 @@
-""""Panels for DDB files."""
+"""Panel objects to operate on DDB files."""
 import sys
 import param
 import panel as pn
@@ -19,20 +19,23 @@ See XXX
 
 By default, anaddb includes all the three different LR terms (DD, DQ, QQ)
 to improve the quality of the Fourier interpolation **under the assumption** that
-the DDB file contains the Born effective charges, the macroscopic dielectric tensor and the dynamical quadrupoles.
+the DDB file contains the Born effective charges, the macroscopic dielectric tensor
+and the dynamical quadrupoles.
 
 This means that, in the majority of the cases, there is no need to change the default value
-of [[dipdip@anaddb]], [[dipquad@anaddb]] and [[quadquad@anaddb]] unless you want to disable them for testing purposes.
+of [[dipdip@anaddb]], [[dipquad@anaddb]] and [[quadquad@anaddb]] unless
+you want to disable them for testing purposes.
 Note, however, that the fact these options are activated by default does not necessarily mean
 that anaddb can take advantage of them.
-Please look at the output in the **Summary** Tab to understand if your DDB file contains the required entries.
+Please look at the output in the **Summary** Tab to understand if your DDB file
+contains the required entries.
 
 """, indents=0)
 
 
 class PanelWithAnaddbParams(param.Parameterized):
     """
-    Mixin for panel classes requiring widgets to invoke Anaddb via AbiPy.
+    Base class providing widgets to invoke Anaddb via AbiPy.
     Used, for instance, by DdbFilePanel and DdbRobotPanel so that we don't have to
     repeat the same parameters over and over again.
     """
@@ -78,7 +81,7 @@ class PanelWithAnaddbParams(param.Parameterized):
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs):
         """
         Return the parameters required to invoke anaget_phbst_and_phdos_files
-        Additional kwargs can be specified if needed.
+        Additional kwargs can be specified in extra_kwargs if needed.
         """
         d = dict(nqsmall=self.nqsmall, qppa=None, ndivsm=self.ndivsm,
                  line_density=None, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
@@ -87,7 +90,6 @@ class PanelWithAnaddbParams(param.Parameterized):
                  verbose=self.verbose, mpi_procs=self.mpi_procs)
 
         if extra_kwargs: d.update(extra_kwargs)
-        #print(d)
 
         return d
 
@@ -281,7 +283,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                               "vsound_num_points", "vsound_qpt_norm",
                               "asr", "chneut", "dipdip", "dipquad", "quadquad",
                               "plot_vsound_btn",
-                              ]),
+                            ]),
                 self.plot_vsound
             )
 
@@ -502,12 +504,10 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         if ddb.has_at_least_one_atomic_perturbation():
             d["Speed of sound"] = self.get_vsound_view()
+            d["DOS vs q-mesh"] = self.get_dos_vs_qmesh_view()
 
             if ddb.has_lo_to_data():
                 d["ASR & DIPDIP"] = self.get_asr_dipdip_view()
-
-            d["DOS vs q-mesh"] = self.get_dos_vs_qmesh_view()
-
             if ddb.has_quadrupole_terms():
                 d["Quadrupoles"] = self.get_quadrupoles_view()
 
@@ -529,7 +529,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 class PanelWithFileInput(AbipyParameterized):
 
     info_str = """
-Post-process the data stored in one of the ABINIT output files.
+Post-process the data stored in one of the ABINIT output files (*GSR.nc*, *DDB*, *FATBANDS.nc*, etc)
 """
 
     def __init__(self, use_structure=False, **params):
@@ -1028,6 +1028,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         )
 
         if as_dict: return d
+
         return self.get_template_from_tabs(d, template=kwargs.get("template", None))
 
 

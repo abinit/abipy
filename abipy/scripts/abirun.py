@@ -1161,7 +1161,7 @@ def main():
 
     elif options.command == "cycles":
         # Print cycles.
-        from pymatgen.io.abinit.abiinspect import CyclesPlotter
+        from abipy.flowtk.abiinspect import CyclesPlotter
         cls2plotter = OrderedDict()
         for task, cycle in flow.get_task_scfcycles(nids=select_nids(flow, options),
                                                    exclude_ok_tasks=options.exclude_ok_tasks):

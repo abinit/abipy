@@ -9,24 +9,24 @@ and the total e-ph coupling strenght in metals.
 from abipy import abilab
 import abipy.data as abidata
 
-phdos_path = abidata.ref_file("al_161616q_PHDOS.nc")
+a2file = abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc"))
 
-ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc"))
-print(ncfile)
-
-#ncfile.phbands.plot()
-#ncfile.a2f_qintp.plot()
+#print(a2file)
+#a2file.phbands.plot()
+#a2file.a2f_qintp.plot()
 #with_lambda = False
-#fig = ncfile.a2f_qcoarse.plot_nuterms(with_lambda=with_lambda, show=False)
-#ncfile.a2f_qintp.plot_nuterms(axmat=fig.axes, with_lambda=with_lambda)
+#fig = a2file.a2f_qcoarse.plot_nuterms(with_lambda=with_lambda, show=False)
+#a2file.a2f_qintp.plot_nuterms(axmat=fig.axes, with_lambda=with_lambda)
 
-#ncfile.plot()
-ncfile.plot_with_a2f(phdos=phdos_path)
+#a2file.plot()
 
-ncfile.plot_eph_strength(what="gamma")
-#ncfile.plot_eph_strength(what="lambda")
+phdos_path = abidata.ref_file("al_161616q_PHDOS.nc")
+a2file.plot_with_a2f(phdos=phdos_path)
 
-ncfile.plot_a2f_interpol()
+a2file.plot_eph_strength(what="gamma")
+#a2file.plot_eph_strength(what="lambda")
+
+a2file.plot_a2f_interpol()
 
 # Grid with 3 plots (a2F, F, a2F) with F taken from PHDOS file.
-#ncfile.a2f_qintp.plot_a2(phdos_path)
+#a2file.a2f_qintp.plot_a2(phdos_path)

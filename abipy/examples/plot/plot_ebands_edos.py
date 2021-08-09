@@ -22,15 +22,15 @@ with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gs_file:
 #%%
 # Compute the DOS with the Gaussian method (use default values for
 # the broadening and the step of the linear mesh.
+
 edos = gs_ebands.get_edos()
 
 #%%
 # To plot bands and DOS with matplotlib use:
-nscf_ebands.plot_with_edos(edos, e0=None, with_gaps=True, title="Si Electron bands + DOS")
+
+nscf_ebands.plot_with_edos(edos, with_gaps=True, title="Si Electron bands + DOS")
 
 #%%
 # For the plotly version use:
-nscf_ebands.plotly_with_edos(edos, e0=None, with_gaps=True, title="Si Electron bands + DOS")
 
-print("nscf_ebands.efermi", nscf_ebands.fermie)
-print("gs_ebands.efermi", gs_ebands.fermie)
+nscf_ebands.plotly_with_edos(edos, with_gaps=True, title="Si Electron bands + DOS")

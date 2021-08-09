@@ -16,11 +16,10 @@ from monty.string import indent, is_string
 from monty.fnmatch import WildCard
 from monty.termcolor import colored
 from monty.inspect import all_subclasses
-from monty.json import MontyDecoder
-from pymatgen.core.structure import Structure
-from monty.json import MSONable
+from monty.json import MontyDecoder, MSONable
 from pymatgen.util.serialization import pmg_serialize
-from pymatgen.io.abinit.abiinspect import YamlTokenizer
+from pymatgen.core.structure import Structure
+from .abiinspect import YamlTokenizer
 
 logger = logging.getLogger(__name__)
 

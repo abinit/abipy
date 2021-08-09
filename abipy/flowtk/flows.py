@@ -3127,7 +3127,7 @@ def g0w0_flow(workdir, scf_input, nscf_input, scr_input, sigma_inputs, manager=N
     return flow
 
 
-# TODO: Deprecate PhononFlow, Use PhononWork
+# TODO: Move it to dfpt_works
 
 
 class PhononFlow(Flow):
@@ -3135,20 +3135,14 @@ class PhononFlow(Flow):
     This Flow provides a high-level interface to compute phonons with DFPT
     The flow consists of
 
-    1) One workflow for the GS run.
+    1) One workflow for the GS part.
 
-    2) nqpt works for phonon calculations. Each work contains
-       nirred tasks where nirred is the number of irreducible phonon perturbations
-       for that particular q-point.
-
-    .. note:
-
-        For a much more flexible interface, use the DFPT works defined in works.py
-        For instance, EPH calculations are much easier to implement by connecting a single
-        work that computes all the q-points with the EPH tasks instead of using PhononFlow.
+    2) A second workflow to compute phonons on the ph_ngqpt q-mesh. Each work contains
+       Only the irreducible phonon perturbations are espliclty computed.
     """
     @classmethod
-    def from_scf_input(cls, workdir, scf_input, ph_ngqpt, with_becs=True, manager=None, allocate=True):
+    def from_scf_input(cls, workdir, scf_input, ph_ngqpt, with_becs=True, with_quad=False, with_flexoe=False,
+                       manager=None, allocate=True):
         """
         Create a `PhononFlow` for phonon calculations from an `AbinitInput` defining a ground-state run.
 
@@ -3159,6 +3153,10 @@ class PhononFlow(Flow):
                 electrons. e.g if ngkpt = (8, 8, 8). ph_ngqpt = (4, 4, 4) is a valid choice
                 whereas ph_ngqpt = (3, 3, 3) is not!
             with_becs: True if Born effective charges are wanted.
+            with_quad: Activate calculation of dynamical quadrupoles.
+                Note that only selected features are compatible with dynamical quadrupoles.
+                Please consult <https://docs.abinit.org/topics/longwave/>
+            with_flexoe: True to activate computation of flexoelectric tensor.
             manager: |TaskManager| object. Read from `manager.yml` if None.
             allocate: True if the flow should be allocated before returning.
 
@@ -3177,17 +3175,9 @@ class PhononFlow(Flow):
         if any(scf_ngkpt % ph_ngqpt != 0):
             raise ValueError("ph_ngqpt %s should be a sub-mesh of scf_ngkpt %s" % (ph_ngqpt, scf_ngkpt))
 
-        # Get the q-points in the IBZ from Abinit
-        qpoints = scf_input.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0, 0, 0), kptopt=1).points
-
-        # Create a PhononWork for each q-point. Add DDK and E-field if q == Gamma and with_becs.
-        for qpt in qpoints:
-            if np.allclose(qpt, 0) and with_becs:
-                ph_work = BecWork.from_scf_task(scf_task)
-            else:
-                ph_work = PhononWork.from_scf_task(scf_task, qpoints=qpt)
-
-            flow.register_work(ph_work)
+        ph_work = PhononWork.from_scf_task(scf_task, ph_ngqpt, is_ngqpt=True, with_becs=with_becs,
+                                                 with_quad=with_quad, with_flexoe=with_flexoe)
+        flow.register_work(ph_work)
 
         if allocate: flow.allocate()
 
@@ -3200,7 +3190,8 @@ class PhononFlow(Flow):
         Return:
             :class:`DdbFile` object, None if file could not be found or file is not readable.
         """
-        ddb_path = self.outdir.has_abiext("DDB")
+        ph_work = self[1]
+        ddb_path = ph_work.outdir.has_abiext("DDB")
         if not ddb_path:
             if self.status == self.S_OK:
                 self.history.critical("%s reached S_OK but didn't produce a GSR file in %s" % (self, self.outdir))
@@ -3212,23 +3203,6 @@ class PhononFlow(Flow):
         except Exception as exc:
             self.history.critical("Exception while reading DDB file at %s:\n%s" % (ddb_path, str(exc)))
             return None
-
-    def finalize(self):
-        """This method is called when the flow is completed."""
-        # Merge all the out_DDB files found in work.outdir.
-        ddb_files = list(filter(None, [work.outdir.has_abiext("DDB") for work in self]))
-
-        # Final DDB file will be produced in the outdir of the work.
-        out_ddb = self.outdir.path_in("out_DDB")
-        desc = "DDB file merged by %s on %s" % (self.__class__.__name__, time.asctime())
-
-        mrgddb = wrappers.Mrgddb(manager=self.manager, verbose=0)
-        mrgddb.merge(self.outdir.path, ddb_files, out_ddb=out_ddb, description=desc)
-        print("Final DDB file available at %s" % out_ddb)
-
-        # Call the method of the super class.
-        retcode = super().finalize()
-        return retcode
 
 
 class NonLinearCoeffFlow(Flow):
@@ -3260,7 +3234,6 @@ class NonLinearCoeffFlow(Flow):
         scf_task = flow[0][0]
 
         nl_work = DteWork.from_scf_task(scf_task)
-
         flow.register_work(nl_work)
 
         if allocate: flow.allocate()

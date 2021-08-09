@@ -2299,6 +2299,7 @@ class ElectronBands(Has_Structure):
                                               name='', scale=1, arrow_scale=0.2, showlegend=False, hoverinfo='none',
                                               marker=arrow_opts, line=dict(width=2))
                         fig.add_trace(figcq.data[-1], row=ply_row, col=ply_col)
+
                 if d_gap != f_gap:
                     # Direct gap.
                     for ik1, ik2 in d_gap.all_kinds:
@@ -2339,7 +2340,7 @@ class ElectronBands(Has_Structure):
                     #   e_start = gap.out_state.eig
                     gap = getattr(self, gap_name)[spin]
                     e_start = getattr(gap, state_name).eig
-                    scatter_opts["color"] = i/len(items)
+                    scatter_opts["color"] = i / len(items)
                     scatter_opts["colorscale"] = "dense" if spin == 0 else "Burgyl"
 
                     for band in range(self.mband):
@@ -2700,6 +2701,7 @@ class ElectronBands(Has_Structure):
                                      horizontal_spacing=0.02, column_widths=width_ratios)
             band_rcd = PlotlyRowColDesc(0, 0, 1, 2)
             dos_rcd = PlotlyRowColDesc(0, 1, 1, 2)
+
         # Define the zero of energy.
         e0 = self.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
         #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
@@ -3508,11 +3510,9 @@ class ElectronBandsPlotter(NotebookWriter):
     # An alias for combiplot.
     plot = combiplot
 
-
-
     @add_plotly_fig_kwargs
     def combiplotly(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=12,
-                  linestyle_dict=None, **kwargs):
+                    linestyle_dict=None, **kwargs):
         """
         Plot the band structure and the DOS on the same figure with plotly.
         Use ``gridplotly`` to plot band structures on different figures.
