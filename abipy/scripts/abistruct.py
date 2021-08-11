@@ -505,10 +505,14 @@ Use:
 for port forwarding.
 """)
 
+    import abipy.panels as mod
+    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
+
     return dict(
         debug=options.verbose > 0,
         show=not options.no_browser,
         port=options.port,
+        static_dirs={"/assets": assets_path},
         #address=address,
         #websocket_origin="{address}:{port}",
     )

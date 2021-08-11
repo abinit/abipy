@@ -35,8 +35,8 @@ def set_abinit_template(template_name):
 def get_abinit_template_cls_kwds():
     cls =  get_template_cls_from_name(_ABINIT_TEMPLATE_NAME)
     kwds = dict(header_background="#ff8c00", # Dark orange
-                #favicon="assets/img/abinit_favicon.ico",
-                #logo="assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
+                favicon="/assets/img/abinit_favicon.ico",
+                logo="/assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
                 #sidebar_footer (str): Can be used to insert additional HTML.
                 #                      For example a menu, some additional info, links etc.
                 #enable_theme_toggle=False,  # If True a switch to toggle the Theme is shown. Default is True.
@@ -852,8 +852,8 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
             # A title to show in the header. Also added to the document head meta settings and as the browser tab title.
             title=self.__class__.__name__,
             header_background="#ff8c00", # Dark orange
-            #favicon="assets/img/abinit_favicon.ico",
-            #logo="assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
+            favicon="/assets/img/abinit_favicon.ico",
+            logo="/assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
             #sidebar_footer (str): Can be used to insert additional HTML. For example a menu, some additional info, links etc.
             #enable_theme_toggle=False,  # If True a switch to toggle the Theme is shown. Default is True.
         )

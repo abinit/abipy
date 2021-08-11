@@ -9,11 +9,10 @@ from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Mapping
 
 import numpy as np
+import ruamel.yaml as yaml
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from tabulate import tabulate
-
-from pymatgen.core import yaml
 from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt,
     get_figs_plotly, plotly_set_lims, add_plotly_fig_kwargs)
 
@@ -756,7 +755,6 @@ def yaml_read_irred_perts(filename, doc_tag="!IrredPerts"):
         d = yaml.safe_load(doc.text_notag)
 
         return [AttrDict(**pert) for pert in d["irred_perts"]]
-        # return d["irred_perts"]
 
 
 class YamlDoc:

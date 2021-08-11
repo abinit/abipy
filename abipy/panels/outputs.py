@@ -39,7 +39,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
         for icycle, cycle in enumerate(cycles):
             #box.append(mpl(cycle.plot(title="%s cycle #%d" % (what, icycle), **self.mpl_kwargs)))
-            f = ply(cycle.plotly(title="%s cycle #%d" % (what, icycle + 1), show=False)))
+            f = ply(cycle.plotly(title="%s cycle #%d" % (what, icycle + 1), show=False))
             box.append(f)
 
         return box
@@ -49,7 +49,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
         ca = col.append; cext = col.extend
 
         filepath = self.outfile.filepath
-        with open(filepath) as fh:
+        with open(filepath, "rt") as fh:
             text = fh.read()
 
         ace = pnw.Ace(value=text, language='text', readonly=True,
