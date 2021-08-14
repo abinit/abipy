@@ -7,7 +7,6 @@ import abipy.data as abidata
 from monty.functools import lazy_property
 from pymatgen.core.lattice import Lattice
 from abipy.core.structure import Structure
-from abipy.flowtk.launcher import BatchLauncher
 from abipy.flowtk.flows import *
 from abipy.flowtk.works import *
 from abipy.flowtk.tasks import *
@@ -390,55 +389,3 @@ class TestFlowInSpectatorMode(FlowUnitTest):
         #with self.assertRaises(task.SpectatorError): task._on_done()
         #with self.assertRaises(task.SpectatorError): task.on_ok()
         #with self.assertRaises(task.SpectatorError): task._on_ok()
-
-
-class TestBatchLauncher(FlowUnitTest):
-
-    def test_batchlauncher(self):
-        """Testing BatchLauncher methods."""
-        # Create the TaskManager.
-        manager = TaskManager.from_string(self.MANAGER)
-        str(manager.batch_adapter)
-        #print("batch_adapter", manager.batch_adapter)
-        assert manager.batch_adapter is not None
-
-        def build_flow_with_name(name):
-            """Build a flow with workdir None and the given name."""
-            flow = Flow(workdir=None, manager=self.manager)
-            flow.set_name(name)
-
-            flow.register_task(self.fake_input)
-            work = Work()
-            work.register_scf_task(self.fake_input)
-            flow.register_work(work)
-
-            return flow
-
-        tmpdir = tempfile.mkdtemp()
-        batch = BatchLauncher(workdir=tmpdir, manager=manager)
-        str(batch)
-
-        flow0 = build_flow_with_name("flow0")
-        flow1 = build_flow_with_name("flow1")
-        flow2_same_name = build_flow_with_name("flow1")
-
-        batch.add_flow(flow0)
-
-        # Cannot add the same flow twice.
-        with self.assertRaises(batch.Error):
-            batch.add_flow(flow0)
-
-        batch.add_flow(flow1)
-
-        # Cannot add two flows with the same name.
-        with self.assertRaises(batch.Error):
-            batch.add_flow(flow2_same_name)
-
-        batch.submit(dry_run=True)
-
-        for i, flow in enumerate([flow0, flow1]):
-            assert flow.workdir == os.path.join(batch.workdir, "flow%d" % i)
-
-        batch.pickle_dump()
-        batch_from_pickle = BatchLauncher.pickle_load(batch.workdir)
-        assert all(f1 == f2 for f1, f2 in zip(batch.flows, batch_from_pickle.flows))

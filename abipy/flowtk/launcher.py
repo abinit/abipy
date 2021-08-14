@@ -16,9 +16,10 @@ from monty.string import boxed, is_string
 from monty.os.path import which
 from monty.collections import AttrDict, dict2namedtuple
 from monty.termcolor import cprint
+from pymatgen.util.io_utils import ask_yesno
 from .utils import as_bool, File, Directory
 from . import qutils as qu
-from pymatgen.util.io_utils import ask_yesno
+
 
 try:
     import apscheduler
@@ -45,10 +46,6 @@ def straceback():
 
 def yaml_safe_load(string):
     return yaml.YAML(typ='safe', pure=True).load(string)
-
-
-#def yaml_unsafe_load(string):
-#    return yaml.YAML(typ='unsafe', pure=True).load(string)
 
 
 class ScriptEditor(object):
@@ -351,11 +348,6 @@ class PyFlowScheduler(object):
         self.rmflow = as_bool(kwargs.pop("rmflow", False))
         self.killjobs_if_errors = as_bool(kwargs.pop("killjobs_if_errors", True))
 
-        self.customer_service_dir = kwargs.pop("customer_service_dir", None)
-        if self.customer_service_dir is not None:
-            self.customer_service_dir = Directory(self.customer_service_dir)
-            self._validate_customer_service()
-
         if kwargs:
             raise self.Error("Unknown arguments %s" % kwargs)
 
@@ -481,52 +473,6 @@ class PyFlowScheduler(object):
         self._pid_file = flow.pid_file
         self._flow = flow
 
-    def _validate_customer_service(self):
-        """
-        Validate input parameters if customer service is on then
-        create directory for tarball files with correct premissions for user and group.
-        """
-        direc = self.customer_service_dir
-        if not direc.exists:
-            mode = 0o750
-            print("Creating customer_service_dir %s with mode %s" % (direc, mode))
-            direc.makedirs()
-            os.chmod(direc.path, mode)
-
-        if self.mailto is None:
-            raise RuntimeError("customer_service_dir requires mailto option in scheduler.yml")
-
-    def _do_customer_service(self):
-        """
-        This method is called before the shutdown of the scheduler.
-        If customer_service is on and the flow didn't completed successfully,
-        a lightweight tarball file with inputs and the most important output files
-        is created in customer_servide_dir.
-        """
-        if self.customer_service_dir is None: return
-        doit = self.exceptions or not self.flow.all_ok
-        doit = True
-        if not doit: return
-
-        prefix = os.path.basename(self.flow.workdir) + "_"
-
-        import tempfile, datetime
-        suffix = str(datetime.datetime.now()).replace(" ", "-")
-        # Remove milliseconds
-        i = suffix.index(".")
-        if i != -1: suffix = suffix[:i]
-        suffix += ".tar.gz"
-
-        #back = os.getcwd()
-        #os.chdir(self.customer_service_dir.path)
-
-        _, tmpname = tempfile.mkstemp(suffix="_" + suffix, prefix=prefix,
-                                      dir=self.customer_service_dir.path, text=False)
-
-        print("Dear customer,\n We are about to generate a tarball in\n  %s" % tmpname)
-        self.flow.make_light_tarfile(name=tmpname)
-        #os.chdir(back)
-
     def start(self):
         """
         Starts the scheduler in a new thread. Returns 0 if success.
@@ -548,7 +494,8 @@ class PyFlowScheduler(object):
             self.exceptions.append(errors)
             return 1
 
-        # Try to run the job immediately. If something goes wrong return without initializing the scheduler.
+        # Try to run the job immediately.
+        # If something goes wrong return without initializing the scheduler.
         self._runem_all()
 
         if self.exceptions:
@@ -579,7 +526,7 @@ class PyFlowScheduler(object):
 
         # Allow to change the manager at run-time
         if self.use_dynamic_manager:
-            from pymatgen.io.abinit.tasks import TaskManager
+            from .tasks import TaskManager
             new_manager = TaskManager.from_user_config()
             for work in flow:
                 work.set_manager(new_manager)
@@ -637,7 +584,7 @@ class PyFlowScheduler(object):
             except task.RestartError:
                 excs.append(straceback())
 
-        # Temporarily disable by MG because I don't know if fix_critical works after the
+        # Temporarily disabled by MG because I don't know if fix_critical works after the
         # introduction of the new qadapters
         # reenabled by MsS disable things that do not work at low level
         # fix only prepares for restarting, and sets to ready
@@ -828,8 +775,6 @@ class PyFlowScheduler(object):
             print("\n".join(lines))
             print("")
 
-            self._do_customer_service()
-
             if self.flow.all_ok:
                 print("Calling flow.finalize()...")
                 self.flow.finalize()
@@ -953,379 +898,3 @@ def __test_sendmail():
     retcode = sendmail("sendmail_test", text="hello\nworld", mailto="nobody@nowhere.com")
     print("Retcode", retcode)
     assert retcode == 0
-
-
-class BatchLauncherError(Exception):
-    """Exceptions raised by :class:`BatchLauncher`."""
-
-
-class BatchLauncher(object):
-    """
-    This object automates the execution of multiple flow. It generates a job script
-    that uses abirun.py to run each flow stored in self with a scheduler.
-    The execution of the flows is done in sequential but each scheduler will start
-    to submit the tasks of the flow in autoparal mode.
-
-    The `BatchLauncher` is pickleable, hence one can reload it, check if all flows are completed
-    and rerun only those that are not completed due to the timelimit.
-    """
-    PICKLE_FNAME = "__BatchLauncher__.pickle"
-
-    Error = BatchLauncherError
-
-    @classmethod
-    def from_dir(cls, top, workdir=None, name=None, manager=None, max_depth=2):
-        """
-        Find all flows located withing the directory `top` and build the `BatchLauncher`.
-
-        Args:
-            top: Top level directory or list of directories.
-            workdir: Batch workdir.
-            name:
-            manager: |TaskManager| object. If None, the manager is read from `manager.yml`
-                In this case the YAML file must provide the entry `batch_manager` that defined
-                the queue adapter used to submit the batch script.
-            max_depth: Search in directory only if it is N or fewer levels below top
-        """
-        from .flows import Flow
-
-        def find_pickles(dirtop):
-            # Walk through each directory inside path and find the pickle database.
-            paths = []
-            for dirpath, dirnames, filenames in os.walk(dirtop):
-                fnames = [f for f in filenames if f == Flow.PICKLE_FNAME]
-                paths.extend([os.path.join(dirpath, f) for f in fnames])
-            return paths
-
-        if is_string(top):
-            pickle_paths = find_pickles(top)
-        else:
-            # List of directories.
-            pickle_paths = []
-            for p in top:
-                pickle_paths.extend(find_pickles(p))
-
-        #workdir = os.path.join(top, "batch") if workdir is None else workdir
-        workdir = "batch" if workdir is None else workdir
-        new = cls(workdir, name=name, manager=manager)
-
-        for path in pickle_paths:
-            new.add_flow(path)
-
-        return new
-
-    @classmethod
-    def pickle_load(cls, filepath):
-        """
-        Loads the object from a pickle file.
-
-        Args:
-            filepath: Filename or directory name. It filepath is a directory, we
-                scan the directory tree starting from filepath and we
-                read the first pickle database. Raise RuntimeError if multiple
-                databases are found.
-        """
-        if os.path.isdir(filepath):
-            # Walk through each directory inside path and find the pickle database.
-            for dirpath, dirnames, filenames in os.walk(filepath):
-                fnames = [f for f in filenames if f == cls.PICKLE_FNAME]
-                if fnames:
-                    if len(fnames) == 1:
-                        filepath = os.path.join(dirpath, fnames[0])
-                        break  # Exit os.walk
-                    else:
-                        err_msg = "Found multiple databases:\n %s" % str(fnames)
-                        raise RuntimeError(err_msg)
-            else:
-                err_msg = "Cannot find %s inside directory %s" % (cls.PICKLE_FNAME, filepath)
-                raise ValueError(err_msg)
-
-        with open(filepath, "rb") as fh:
-            new = pickle.load(fh)
-
-        # new.flows is a list of strings with the workdir of the flows (see __getstate__).
-        # Here we read the Flow from the pickle file so that we have
-        # and up-to-date version and we set the flow in visitor_mode
-        from .flows import Flow
-        flow_workdirs, new.flows = new.flows, []
-        for flow in map(Flow.pickle_load, flow_workdirs):
-            new.add_flow(flow)
-
-        return new
-
-    def pickle_dump(self):
-        """Save the status of the object in pickle format."""
-        with open(os.path.join(self.workdir, self.PICKLE_FNAME), mode="wb") as fh:
-            pickle.dump(self, fh)
-
-    def __getstate__(self):
-        """
-        Return state is pickled as the contents for the instance.
-
-        Here we replace the flow objects with their workdir because we are observing
-        the flows and we want to have the updated version when we reload the `BatchLauncher` from pickle.
-        """
-        d = {k: v for k, v in self.__dict__.items() if k not in ["flows"]}
-        d["flows"] = [flow.workdir for flow in self.flows]
-        return d
-
-    def __init__(self, workdir, name=None, flows=None, manager=None, timelimit=None):
-        """
-        Args:
-            workdir: Working directory
-            name: Name assigned to the `BatchLauncher`.
-            flows:  List of |Flow| objects.
-            manager: |TaskManager| object responsible for the submission of the jobs.
-                     If manager is None, the object is initialized from the yaml file
-                     located either in the working directory or in the user configuration dir.
-            timelimit: Time limit (int with seconds or string with time given with
-                the slurm convention: "days-hours:minutes:seconds".
-                If timelimit is None, the default value specified in the `batch_adapter` is taken.
-        """
-        self.workdir = os.path.abspath(workdir)
-
-        if not os.path.exists(self.workdir):
-            os.makedirs(self.workdir)
-        else:
-            pass
-            #raise RuntimeError("Directory %s already exists. Use BatchLauncher.pickle_load()" % self.workdir)
-
-        self.name = os.path.basename(self.workdir) if name is None else name
-        self.script_file = File(os.path.join(self.workdir, "run.sh"))
-        self.qerr_file = File(os.path.join(self.workdir, "queue.qerr"))
-        self.qout_file = File(os.path.join(self.workdir, "queue.qout"))
-        self.log_file = File(os.path.join(self.workdir, "run.log"))
-        self.batch_pidfile = File(os.path.join(self.workdir, "batch.pid"))
-
-        from .tasks import TaskManager
-        manager = TaskManager.as_manager(manager)
-
-        # Extract the qadapater to be used for the batch script.
-        try:
-            self.qadapter = qad = manager.batch_adapter
-        except AttributeError:
-            raise RuntimeError("Your manager.yml file does not define an entry for the batch_adapter")
-
-        if qad is None:
-            raise RuntimeError("Your manager.yml file does not define an entry for the batch_adapter")
-
-        # Set mpi_procs to 1 just to be on the safe side
-        # Then allow the user to change the timelimit via __init__
-        qad.set_mpi_procs(1)
-        if timelimit is not None:
-            self.set_timelimit(timelimit)
-            # FIXME: Remove me!
-            self.set_timelimit(36000)
-
-        # Initialize list of flows.
-        if flows is None: flows = []
-        if not isinstance(flows, (list, tuple)): flows = [flows]
-        self.flows = flows
-
-    def set_timelimit(self, timelimit):
-        """
-        Set the timelimit of the batch launcher.
-
-        Args:
-            timelimit: Time limit (int with seconds or string with time given
-                with the slurm convention: "days-hours:minutes:seconds".
-        """
-        self.qad.set_timelimit(qu.timelimit_parser(timelimit))
-
-    def to_string(self, **kwargs):
-        lines = []
-        lines.extend(str(self.qadapter).splitlines())
-
-        for i, flow in enumerate(self.flows):
-            lines.append("Flow [%d] " % i + str(flow))
-
-        return "\n".join(lines)
-
-    def __str__(self):
-        return self.to_string()
-
-    def add_flow(self, flow):
-        """
-        Add a flow. Accept filepath or |Flow| object. Return 1 if flow was added else 0.
-        """
-        from .flows import Flow
-        flow = Flow.as_flow(flow)
-
-        if flow in self.flows:
-            raise self.Error("Cannot add same flow twice!")
-
-        if not flow.allocated:
-            # Set the workdir of the flow here. Create a dir in self.workdir with name flow.name
-            flow_workdir = os.path.join(self.workdir, os.path.basename(flow.name))
-            if flow_workdir in (flow.workdir for flow in self.flows):
-                raise self.Error("Two flows have the same name and hence the same workdir!")
-            flow.allocate(workdir=flow_workdir)
-
-        # Check if we are already using a scheduler to run this flow
-        flow.check_pid_file()
-        flow.set_spectator_mode(False)
-
-        flow.check_status(show=False)
-
-        #if flow.all_ok:
-        #    print("flow.all_ok: Ignoring %s" % flow)
-        #    return 0
-
-        self.flows.append(flow)
-        #print("Flow %s added to the BatchLauncher" % flow)
-
-        return 1
-
-    def submit(self, **kwargs):
-        """
-        Submit a job script that will run the schedulers with `abirun.py`.
-
-        Args:
-            verbose: Verbosity level
-            dry_run: Don't submit the script if dry_run. Default: False
-
-        Returns:
-            namedtuple with attributes:
-                retcode: Return code as returned by the submission script.
-                qjob: :class:`QueueJob` object.
-                num_flows_inbatch: Number of flows executed by the batch script
-
-            Return code of the job script submission.
-        """
-        verbose, dry_run = kwargs.pop("verbose", 0), kwargs.pop("dry_run", False)
-
-        if not self.flows:
-            print("Cannot submit an empty list of flows!")
-            return 0
-
-        if hasattr(self, "qjob"):
-            # This usually happens when we have loaded the object from pickle
-            # and we have already submitted to batch script to the queue.
-            # At this point we need to understand if the previous batch job
-            # is still running before trying to submit it again. There are three cases:
-            #
-            # 1) The batch script has completed withing timelimit and therefore
-            #    the pid_file has been removed by the script. In this case, we
-            #    should not try to submit it again.
-
-            # 2) The batch script has been killed due to timelimit (other reasons are possible
-            #    but we neglect them). In this case the pid_file exists but there's no job with
-            #    this pid runnig and we can resubmit it again.
-
-            # 3) The batch script is still running.
-            print("BatchLauncher has qjob %s" % self.qjob)
-
-            if not self.batch_pid_file.exists:
-                print("It seems that the batch script reached the end. Wont' try to submit it again")
-                return 0
-
-            msg = ("Here I have to understand if qjob is in the queue."
-                   " but I need an abstract API that can retrieve info from the queue id")
-            raise RuntimeError(msg)
-
-            # TODO: Temptative API
-            if self.qjob.in_status("Running|Queued"):
-                print("Job is still running. Cannot submit")
-            else:
-                del self.qjob
-
-        script, num_flows_inbatch = self._get_script_nflows()
-
-        if num_flows_inbatch == 0:
-            print("All flows have reached all_ok! Batch script won't be submitted")
-            return 0
-
-        if verbose:
-            print("*** submission script ***")
-            print(script)
-
-        # Write the script.
-        self.script_file.write(script)
-        self.script_file.chmod(0o740)
-
-        # Builf the flow.
-        for flow in self.flows:
-            flow.build_and_pickle_dump()
-
-        # Submit the task and save the queue id.
-        if dry_run: return -1
-
-        print("Will submit %s flows in batch script" % len(self.flows))
-        self.qjob, process = self.qadapter.submit_to_queue(self.script_file.path)
-
-        # Save the queue id in the pid file
-        # The file will be removed by the job script if execution is completed.
-        self.batch_pidfile.write(str(self.qjob.qid))
-
-        self.pickle_dump()
-        process.wait()
-
-        return dict2namedtuple(retcode=process.returncode, qjob=self.qjob,
-                               num_flows_inbatch=num_flows_inbatch)
-
-    def _get_script_nflows(self):
-        """
-        Write the submission script. Return (script, num_flows_in_batch)
-        """
-        flows_torun = [f for f in self.flows if not f.all_ok]
-        if not flows_torun:
-            return "", 0
-
-        executable = [
-            'export _LOG=%s' % self.log_file.path,
-            'date1=$(date +"%s")',
-            'echo Running abirun.py in batch mode > ${_LOG}',
-            " ",
-        ]
-        app = executable.append
-
-        # Build list of abirun commands and save the name of the log files.
-        self.sched_logs, num_flows = [], len(flows_torun)
-        for i, flow in enumerate(flows_torun):
-
-            logfile = os.path.join(self.workdir, "log_" + os.path.basename(flow.workdir))
-
-            app("echo Starting flow %d/%d on: `date` >> ${LOG}" % (i+1, num_flows))
-            app("\nabirun.py %s scheduler > %s" % (flow.workdir, logfile))
-            app("echo Returning from abirun on `date` with retcode $? >> ${_LOG}")
-
-            assert logfile not in self.sched_logs
-            self.sched_logs.append(logfile)
-
-        # Remove the batch pid_file and compute elapsed time.
-        executable.extend([
-            " ",
-            "# Remove batch pid file",
-            'rm %s' % self.batch_pidfile.path,
-            " ",
-            "# Compute elapsed time",
-            'date2=$(date +"%s")',
-            'diff=$(($date2-$date1))',
-            'echo $(($diff / 60)) minutes and $(($diff % 60)) seconds elapsed. >> ${_LOG}'
-        ])
-
-        return self.qadapter.get_script_str(
-            job_name=self.name,
-            launch_dir=self.workdir,
-            executable=executable,
-            qout_path=self.qout_file.path,
-            qerr_path=self.qerr_file.path,
-        ), num_flows
-
-    def show_summary(self, **kwargs):
-        """
-        Show a summary with the status of the flows.
-        """
-        for flow in self.flows:
-            flow.show_summary()
-
-    def show_status(self, **kwargs):
-        """
-        Report the status of the flows.
-
-        Args:
-            stream: File-like object, Default: sys.stdout
-            verbose: Verbosity level (default 0). > 0 to show only the works that are not finalized.
-        """
-        for flow in self.flows:
-            flow.show_status(**kwargs)

@@ -9,7 +9,7 @@ from abipy.flowtk.launcher import ScriptEditor
 class ScriptEditorTest(AbipyTest):
 
     def test_base(self):
-        "base test"
+        """base test for ScriptEditor"""
         se = ScriptEditor()
         se.shebang()
         se.declare_var("FOO", "BAR")
@@ -17,4 +17,5 @@ class ScriptEditorTest(AbipyTest):
         se.add_comment("This is a comment")
         se.declare_vars({"FOO1": "BAR1"})
         se.load_modules(["module1", "module2"])
-        print(se.get_script_str())
+        s = str(se.get_script_str())
+        assert "module load module1" in s

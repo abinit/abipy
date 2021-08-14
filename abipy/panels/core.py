@@ -104,6 +104,10 @@ def abipanel(panel_template="FastList"):
     #pn.extension(comms='ipywidgets')
     #pn.config.sizing_mode = "stretch_width"
 
+    #pn.config.css_files.extend([
+    #    "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css",
+    #])
+
     #css = """
     #    .pnx-file-upload-area input[type=file] {
     #        width: 100%;
@@ -843,6 +847,7 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
             tabs = pn.Tabs(*tabs.items(), **tabs_kwargs)
 
         if template is None or str(template) == "None":
+            #tabs.append(return_to_top_html())
             return tabs
 
         cls = get_template_cls_from_name(template)
@@ -861,6 +866,7 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
         template = cls(**kwargs)
         if hasattr(template.main, "append"):
             template.main.append(tabs)
+            #template.main.append(return_to_top_html())
         else:
             # Assume main area acts like a GridSpec
             template.main[:,:] = tabs
@@ -872,6 +878,88 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
         #template.main.append(out)
 
         return template
+
+
+def return_to_top_html():
+    print("In return to top")
+
+    #<a id="button"></a>
+
+    html = r"""
+<!--
+Back to top button
+https://codepen.io/matthewcain/pen/ZepbeR
+-->
+
+<style>
+#button {
+  display: inline-block;
+  background-color: #FF9800;
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  border-radius: 4px;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  transition: background-color .3s,
+    opacity .5s, visibility .5s;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 1000;
+}
+#button::after {
+  content: "\f077";
+  font-family: FontAwesome;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 2em;
+  line-height: 50px;
+  color: #fff;
+}
+#button:hover {
+  cursor: pointer;
+  background-color: #333;
+}
+#button:active {
+  background-color: #555;
+}
+#button.show {
+  opacity: 1;
+  visibility: visible;
+}
+</style>
+
+
+
+<script>
+
+// Code executed on page ready
+$(function() {
+
+    var btn = $('#button');
+    console.log("button", btn);
+
+    $(window).scroll(function() {
+      if ($(window).scrollTop() > 300) {
+        console.log("show");
+        btn.addClass('btn show');
+      } else {
+        btn.removeClass('show');
+        console.log("btn hide");
+      }
+    });
+
+    btn.on('click', function(e) {
+      e.preventDefault();
+      $('html, body').animate({scrollTop:0}, '300');
+    });
+
+})
+</script>
+"""
+
+    return pn.pane.HTML(html, width=0, height=0)
 
 
 class PanelWithStructure(AbipyParameterized):
