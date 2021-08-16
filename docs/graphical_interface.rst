@@ -79,9 +79,9 @@ with the ``panel`` infrastructure by executing:
 
 
 At this point, we can start to construct AbiPy objects.
-For our first example, we use the `abiopen` function to open a `GSR` file,
-then we call `get_panel` to build a set of widgets that allows us to interact
-with the `GsrFile`:
+For our first example, we use the abiopen function to open a ``GSR`` file,
+then we call ``get_panel`` to build a set of widgets that allows us to interact
+with the |GsrFile|:
 
 .. jupyter-execute::
 
@@ -93,7 +93,7 @@ with the `GsrFile`:
 
     gsr.get_panel()
 
-The **summary** tab provides a string representation of the file
+The **Summary** tab provides a string representation of the file
 but there is no widget to interact with it.
 If you select the **e-Bands** tab, you will see several widgets and a button
 that activates the visualization of the KS band energies.
@@ -155,7 +155,7 @@ by jupyter notebooks as you are mainly interested in the visualization of the re
 In this case, it is possible to use the command line interface to automatically generate
 a dashboard with widgets without having to start a notebook.
 
-To build a dashboard for a ``Structure`` object extracted from ``FILE``, use:
+To build a dashboard for a |Structure| object extracted from ``FILE``, use:
 
 .. code-block:: bash
 
@@ -199,7 +199,7 @@ are running on the same machine.
 In many cases, however, calculations are performed on clusters in which web browsers are
 not always available or, even if the browser is installed, the connection may be too slow..
 Obviously, one can always copy files from the remote cluster to the local machine with scp
-or mount the remote file system with sshfs but both approaches is far from optimal.
+or mount the remote file system with sshfs but both approaches are far from optimal.
 In principle, we would like to be able to execute AbiPy and Abinit on the remote cluster 
 and visualize the results directly in our local machine.
 
@@ -207,61 +207,54 @@ In this section, we discuss how to start a web server on the remote cluster and 
 to connect to it from our local machine.
 
 Before starting, let us introduce some notation. 
-Let us define the local user and host as localuser and localhost, respectively. 
-Similarly, let us define the remote user and remote host as remoteuser and remotehost. 
+Let us define the local user and host as ``localuser`` and ``localhost``, respectively. 
+Similarly, let us define the remote user and remote host as ``remoteuser`` and ``remotehost``. 
 Needless to say, make sure that Abipy and all its dependencies are installed on the remotehost,
 including the `taskmanager.yml` configuration file.
 
-Step 1: 
+Step 1: Start the server on the remote machine
 
-Run Jupyter Notebook from remote machine
-Log-in to your remote machine as usual via ssh.
-Once the console shows, type the following:
+Log-in to the remote machine via ssh as usual with ``ssh remoteuser@remotehost``.
+Now use:
 
 .. code-block:: bash
 
     abiopen.py FILE --panel --no-browser --port 49412
 
-jupyter notebook: simply fires up your notebook
-
---no-browser starts the notebook without opening the browser on the remote host
---port=XXXX sets the port for starting the web server.
-When it’s occupied, it finds the next available port.
+to start the server without opening the browser (``--no-browser`` option).
+The server will be listening on port 49412 of the remotehost 
+If the port is occupied, use another one but remember that ports below 1023 are 
+reserved.
 
 Step 2: 
 
 Forward port XXXX to YYYY and listen to it
-In your remote, the notebook is now running at the port XXXX that you specified. 
+In your remote host, the notebook is now running at the port XXXX that you specified. 
 What you’ll do next is forward this to port YYYY of your machine so that you can listen 
 and run it from your browser. 
 To achieve this, we use the following command:
 
-localuser@localhost: ssh -N -f -L localhost:YYYY:localhost:XXXX remoteuser@remotehost
+.. code-block:: bash
 
-ssh: your handy ssh command. See man page for more info
+    localuser@localhost: ssh -N -f -L localhost:YYYY:localhost:XXXX remoteuser@remotehost
 
--N: suppresses the execution of a remote command. Pretty much used in port forwarding.
--f: this requests the ssh command to go to background before execution.
+-N: Suppresses the execution of a remote command. Pretty much used in port forwarding.
+-f: Requests the ssh command to go to background before execution.
 -L: this argument requires an input in the form of local_socket:remote_socket. 
-Here, we’re specifying our port as YYYY which will be binded to the port XXXX from your remote connection.
+
+Here, we’re specifying our port as YYYY which will be binded to the port XXXX 
+from your remote connection.
 
 Step 3: Fire-up Jupyter Notebook
-To open up the Jupyter notebook from your remote machine, simply start your web browser on your local machine 
-and type the following in your address bar:
+To open up the Jupyter notebook from your remote machine, 
+At this point, you can simply start your web browser on your local machine 
+and type the following in the address bar::
 
-localhost:YYYY
-
-Again, the reason why we’re opening it at YYYY and not at XXXX is because the latter 
-is already being forwarded to the former. 
-XXXX and YYYY can be the “same” number (not the same port, technically) because they are from different machines.
+    localhost:YYYY
 
 If you’re successful, you should see the typical Jupyter Notebook home screen in the directory 
 where you ran the command in Step 1. At the same time, if you look in your remote terminal, 
 you should see some log actions happening as you perform some tasks.
-
-In your first connection, you may be prompted to enter an Access Token as typical to most Jupyter notebooks. 
-Normally, I’d just copy-paste it from my terminal, but to make things easier for you, 
-you can set-up your own notebook password.
 
 Closing all connections
 To close connections, I usually stop my notebook from remote via CTRL + C then Y, and kill the process on YYYY via:

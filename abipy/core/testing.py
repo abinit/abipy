@@ -699,17 +699,15 @@ def notebook_run(path):
     """
     Execute a notebook via nbconvert and collect output.
 
-    Taken from
-    https://blog.thedataincubator.com/2016/06/testing-jupyter-notebooks/
+    Taken from: https://blog.thedataincubator.com/2016/06/testing-jupyter-notebooks/
 
     Args:
         path (str): file path for the notebook object
 
     Returns: (parsed nb object, execution errors)
-
     """
     import nbformat
-    dirname, __ = os.path.split(path)
+    dirname, _ = os.path.split(path)
     os.chdir(dirname)
     with tempfile.NamedTemporaryFile(suffix=".ipynb") as fout:
         args = ["jupyter", "nbconvert", "--to", "notebook", "--execute",

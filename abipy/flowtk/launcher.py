@@ -7,6 +7,8 @@ import os
 import time
 import ruamel.yaml as yaml
 import pickle
+import apscheduler
+has_sched_v3 = apscheduler.version >= "3.0.0"
 
 from collections import deque
 from datetime import timedelta
@@ -20,16 +22,9 @@ from pymatgen.util.io_utils import ask_yesno
 from .utils import as_bool, File, Directory
 from . import qutils as qu
 
-
-try:
-    import apscheduler
-    has_apscheduler = True
-    has_sched_v3 = apscheduler.version >= "3.0.0"
-except ImportError:
-    has_apscheduler = False
-
 import logging
 logger = logging.getLogger(__name__)
+
 
 __all__ = [
     "ScriptEditor",
@@ -283,6 +278,7 @@ class PyFlowScheduler(object):
 
     @classmethod
     def autodoc(cls):
+        """Return String with scheduler options."""
         i = cls.__init__.__doc__.index("Args:")
         return cls.__init__.__doc__[i+5:]
 
@@ -318,14 +314,13 @@ class PyFlowScheduler(object):
             killjobs_if_errors: "yes" if the scheduler should try to kill all the runnnig jobs
                 before exiting due to an error. (DEFAULT: "yes")
         """
-        # Options passed to the scheduler.
+        # Options passed to the apscheduler scheduler.
         self.sched_options = AttrDict(
             weeks=kwargs.pop("weeks", 0),
             days=kwargs.pop("days", 0),
             hours=kwargs.pop("hours", 0),
             minutes=kwargs.pop("minutes", 0),
             seconds=kwargs.pop("seconds", 0),
-            #start_date=kwargs.pop("start_date", None),
         )
         if all(not v for v in self.sched_options.values()):
             raise self.Error("Wrong set of options passed to the scheduler.")
@@ -349,13 +344,10 @@ class PyFlowScheduler(object):
         self.killjobs_if_errors = as_bool(kwargs.pop("killjobs_if_errors", True))
 
         if kwargs:
-            raise self.Error("Unknown arguments %s" % kwargs)
-
-        if not has_apscheduler:
-            raise RuntimeError("Install apscheduler with pip")
+            raise self.Error("Unknown arguments `%s`" % str(kwargs))
 
         if has_sched_v3:
-            logger.warning("Using scheduler v>=3.0.0")
+            logger.warning("Using scheduler v >= 3.0.0")
             from apscheduler.schedulers.blocking import BlockingScheduler
             self.sched = BlockingScheduler()
         else:
@@ -395,13 +387,11 @@ class PyFlowScheduler(object):
         """
         # Try in the current directory.
         path = os.path.join(os.getcwd(), cls.YAML_FILE)
-
         if os.path.exists(path):
             return cls.from_file(path)
 
         # Try in the configuration directory.
         path = os.path.join(cls.USER_CONFIG_DIR, cls.YAML_FILE)
-
         if os.path.exists(path):
             return cls.from_file(path)
 
@@ -411,11 +401,7 @@ class PyFlowScheduler(object):
         """String representation."""
         lines = [self.__class__.__name__ + ", Pid: %d" % self.pid]
         app = lines.append
-        app("Scheduler options: %s" % str(self.sched_options))
-
-        if self.flow is not None:
-            app(80 * "=")
-            app(str(self.flow))
+        app("Scheduler options:\n%s" % str(self.sched_options))
 
         return "\n".join(lines)
 
@@ -481,15 +467,14 @@ class PyFlowScheduler(object):
         self.history.append("Started on %s" % time.asctime())
         self.start_time = time.time()
 
-        if not has_apscheduler:
-            raise RuntimeError("Install apscheduler with pip")
-
         if has_sched_v3:
             self.sched.add_job(self.callback, "interval", **self.sched_options)
         else:
             self.sched.add_interval_job(self.callback, **self.sched_options)
 
-        errors = self.flow.look_before_you_leap()
+        flow = self.flow
+
+        errors = flow.look_before_you_leap()
         if errors:
             self.exceptions.append(errors)
             return 1
@@ -510,16 +495,16 @@ class PyFlowScheduler(object):
         except KeyboardInterrupt:
             self.shutdown(msg="KeyboardInterrupt from user")
             if ask_yesno("Do you want to cancel all the jobs in the queue? [Y/n]"):
-                print("Number of jobs cancelled:", self.flow.cancel())
+                print("Number of jobs cancelled:", flow.cancel())
 
-            self.flow.pickle_dump()
+            flow.pickle_dump()
             return -1
 
     def _runem_all(self):
         """
         This function checks the status of all tasks,
         tries to fix tasks that went unconverged, abicritical, or queuecritical
-        and tries to run all the tasks that can be submitted.+
+        and tries to run all the tasks that can be submitted.
         """
         excs = []
         flow = self.flow
@@ -541,7 +526,7 @@ class PyFlowScheduler(object):
                     logger.warning('Cannot get njobs_inqueue')
         else:
             # Here we just count the number of tasks in the flow who are running.
-            # This logic breaks down if there are multiple schedulers runnig
+            # This logic breaks down if there are multiple schedulers running
             # but it's easy to implement without having to contact the resource manager.
             nqjobs = (len(list(flow.iflat_tasks(status=flow.S_RUN))) +
                       len(list(flow.iflat_tasks(status=flow.S_SUB))))
@@ -568,10 +553,9 @@ class PyFlowScheduler(object):
             return
 
         # Try to restart the unconverged tasks
-        # TODO: do not fire here but prepare for fireing in rapidfire
-        for task in self.flow.unconverged_tasks:
+        for task in flow.unconverged_tasks:
             try:
-                logger.info("Flow will try restart task %s" % task)
+                logger.info("Trying to restart task: `%s`" % repr(task))
                 fired = task.restart()
                 if fired:
                     self.nlaunch += 1
@@ -625,12 +609,13 @@ class PyFlowScheduler(object):
             self.exceptions.append(s)
 
             # This is useful when debugging
-            #try:
+            #if self.killjobs_if_errors:
             #    print("Exception in callback, will cancel all tasks")
-            #    for task in self.flow.iflat_tasks():
-            #        task.cancel()
-            #except Exception:
-            #    pass
+            #    try:
+            #        for task in self.flow.iflat_tasks():
+            #            task.cancel()
+            #    except Exception:
+            #        pass
 
             self.shutdown(msg="Exception raised in callback!\n" + s)
 
@@ -642,8 +627,8 @@ class PyFlowScheduler(object):
 
         self._runem_all()
 
-        all_ok = self.flow.all_ok
-        #if all_ok: all_ok = self.flow.on_all_ok()
+        flow = self.flow
+        all_ok = flow.all_ok
 
         # Mission accomplished. Shutdown the scheduler.
         if all_ok:
@@ -658,7 +643,7 @@ class PyFlowScheduler(object):
         if delta_etime.total_seconds() > self.num_reminders * self.remindme_s:
             self.num_reminders += 1
             msg = ("Just to remind you that the scheduler with pid %s, flow %s\n has been running for %s " %
-                  (self.pid, self.flow, delta_etime))
+                  (self.pid, flow, delta_etime))
             retcode = self.send_email(msg, tag="[REMINDER]")
 
             if retcode:
@@ -680,33 +665,32 @@ class PyFlowScheduler(object):
         # Paranoid check: disable the scheduler if we have submitted
         # too many jobs (it might be due to some bug or other external reasons
         # such as race conditions between difference callbacks!)
-        if self.nlaunch > self.safety_ratio * self.flow.num_tasks:
+        if self.nlaunch > self.safety_ratio * flow.num_tasks:
             msg = "Too many jobs launched %d. Total number of tasks = %s, Will shutdown the scheduler and exit" % (
-                self.nlaunch, self.flow.num_tasks)
+                self.nlaunch, flow.num_tasks)
             err_lines.append(boxed(msg))
 
         # Count the number of tasks with status == S_ERROR.
-        if self.flow.num_errored_tasks > self.max_num_abierrs:
+        if flow.num_errored_tasks > self.max_num_abierrs:
             msg = "Number of tasks with ERROR status %s > %s. Will shutdown the scheduler and exit" % (
-                self.flow.num_errored_tasks, self.max_num_abierrs)
+                flow.num_errored_tasks, self.max_num_abierrs)
             err_lines.append(boxed(msg))
 
-        # Test on the presence of deadlocks.
-        g = self.flow.find_deadlocks()
+        # Test for deadlocks.
+        g = flow.find_deadlocks()
         if g.deadlocked:
             # Check the flow again so that status are updated.
-            self.flow.check_status()
+            flow.check_status()
 
-            g = self.flow.find_deadlocks()
-            #print("deadlocked:\n", g.deadlocked, "\nrunnables:\n", g.runnables, "\nrunning\n", g.running)
+            g = flow.find_deadlocks()
             print("deadlocked:", len(g.deadlocked), ", runnables:", len(g.runnables), ", running:", len(g.running))
             if g.deadlocked and not g.runnables and not g.running:
                 err_lines.append("No runnable job with deadlocked tasks:\n%s." % str(g.deadlocked))
 
         if not g.runnables and not g.running:
             # Check the flow again so that status are updated.
-            self.flow.check_status()
-            g = self.flow.find_deadlocks()
+            flow.check_status()
+            g = flow.find_deadlocks()
             if not g.runnables and not g.running:
                 err_lines.append("No task is running and cannot find other tasks to submit.")
 
@@ -714,10 +698,10 @@ class PyFlowScheduler(object):
         if err_lines:
             # Cancel all jobs.
             if self.killjobs_if_errors:
-                cprint("killjobs_if_errors set to 'yes' in scheduler file. Will kill jobs before exiting.", "yellow")
+                cprint("killjobs_if_errors set to 'yes'. Killing jobs before exiting.", "yellow")
                 try:
                     num_cancelled = 0
-                    for task in self.flow.iflat_tasks():
+                    for task in flow.iflat_tasks():
                         num_cancelled += task.cancel()
                     cprint("Killed %d tasks" % num_cancelled, "yellow")
                 except Exception as exc:
@@ -739,6 +723,8 @@ class PyFlowScheduler(object):
 
     def shutdown(self, msg):
         """Shutdown the scheduler."""
+        flow = self.flow
+
         try:
             self.cleanup()
             self.history.append("Completed on: %s" % time.asctime())
@@ -753,7 +739,7 @@ class PyFlowScheduler(object):
 
             # Write file with the list of exceptions:
             if self.exceptions:
-                dump_file = os.path.join(self.flow.workdir, "_exceptions")
+                dump_file = os.path.join(flow.workdir, "_exceptions")
                 with open(dump_file, "wt") as fh:
                     fh.writelines(self.exceptions)
                     fh.write("Shutdown message:\n%s" % msg)
@@ -764,10 +750,10 @@ class PyFlowScheduler(object):
             app("Completed on: %s" % time.asctime())
             app("Elapsed time: %s" % str(self.get_delta_etime()))
 
-            if self.flow.all_ok:
+            if flow.all_ok:
                 app("Flow completed successfully")
             else:
-                app("Flow %s didn't complete successfully" % repr(self.flow.workdir))
+                app("Flow %s didn't complete successfully" % repr(flow.workdir))
                 app("use `abirun.py FLOWDIR debug` to analyze the problem.")
                 app("Shutdown message:\n%s" % msg)
 
@@ -775,14 +761,14 @@ class PyFlowScheduler(object):
             print("\n".join(lines))
             print("")
 
-            if self.flow.all_ok:
-                print("Calling flow.finalize()...")
-                self.flow.finalize()
+            if flow.all_ok:
+                print("Calling flow.finalize() ...")
+                flow.finalize()
                 #print("finalized:", self.flow.finalized)
                 if self.rmflow:
                     app("Flow directory will be removed...")
                     try:
-                        self.flow.rmtree()
+                        flow.rmtree()
                     except Exception:
                         logger.warning("Ignoring exception while trying to remove flow dir.")
 
@@ -820,27 +806,27 @@ class PyFlowScheduler(object):
 
         header = msg.splitlines()
         app = header.append
-
         app("Submitted on: %s" % time.ctime(self.start_time))
         app("Completed on: %s" % time.asctime())
         app("Elapsed time: %s" % str(self.get_delta_etime()))
-        app("Number of errored tasks: %d" % self.flow.num_errored_tasks)
-        app("Number of unconverged tasks: %d" % self.flow.num_unconverged_tasks)
 
-        strio = StringIO()
-        strio.writelines("\n".join(header) + 4 * "\n")
+        flow = self.flow
+        app("Number of errored tasks: %d" % flow.num_errored_tasks)
+        app("Number of unconverged tasks: %d" % flow.num_unconverged_tasks)
 
         # Add the status of the flow.
-        self.flow.show_status(stream=strio)
+        strio = StringIO()
+        strio.writelines("\n".join(header) + 4 * "\n")
+        flow.show_status(stream=strio)
 
         if self.exceptions:
             # Report the list of exceptions.
             strio.writelines(self.exceptions)
 
         if tag is None:
-            tag = " [ALL OK]" if self.flow.all_ok else " [WARNING]"
+            tag = " [ALL OK]" if flow.all_ok else " [WARNING]"
 
-        return sendmail(subject=self.flow.name + tag, text=strio.getvalue(), mailto=self.mailto)
+        return sendmail(subject=flow.name + tag, text=strio.getvalue(), mailto=self.mailto)
 
 
 def sendmail(subject, text, mailto, sender=None):
@@ -880,15 +866,11 @@ def sendmail(subject, text, mailto, sender=None):
     # sendmail works much better than the python interface.
     # Note that sendmail is available only on Unix-like OS.
     from subprocess import Popen, PIPE
-    import sys
 
     sendmail = which("sendmail")
     if sendmail is None: return -1
-    if sys.version_info[0] < 3:
-        p = Popen([sendmail, "-t"], stdin=PIPE, stderr=PIPE)
-    else:
-        # msg is string not bytes so must use universal_newlines
-        p = Popen([sendmail, "-t"], stdin=PIPE, stderr=PIPE, universal_newlines=True)
+    # msg is string not bytes so must use universal_newlines
+    p = Popen([sendmail, "-t"], stdin=PIPE, stderr=PIPE, universal_newlines=True)
 
     outdata, errdata = p.communicate(msg)
     return len(errdata)

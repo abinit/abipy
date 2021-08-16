@@ -297,6 +297,7 @@ class Flow(Node, NodeContainer, MSONable):
             remove_lock:
                 True to remove the file lock if any (use it carefully).
         """
+        filepath = os.path.expanduser(filepath)
         if os.path.isdir(filepath):
             # Walk through each directory inside path and find the pickle database.
             for dirpath, dirnames, filenames in os.walk(filepath):
@@ -476,7 +477,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     @property
     def all_ok(self):
-        """True if all the tasks in works have reached `S_OK`."""
+        """True if all the works in the flow have reached `S_OK`."""
         all_ok = all(work.all_ok for work in self)
         if all_ok:
             all_ok = self.on_all_ok()
@@ -2031,8 +2032,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         """
         strio = StringIO()
         pmg_pickle_dump(self, strio,
-                        protocol=self.pickle_protocol if protocol is None
-                        else protocol)
+                        protocol=self.pickle_protocol if protocol is None else protocol)
         return strio.getvalue()
 
     def register_task(self, input, deps=None, manager=None, task_class=None, append=False):
@@ -2504,24 +2504,6 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         sched.add_flow(self)
         return sched
-
-    def batch(self, timelimit=None):
-        """
-        Run the flow in batch mode, return exit status of the job script.
-        Requires a manager.yml file and a batch_adapter adapter.
-
-        Args:
-            timelimit: Time limit (int with seconds or string with time given with the slurm convention:
-            "days-hours:minutes:seconds"). If timelimit is None, the default value specified in the
-            `batch_adapter` entry of `manager.yml` is used.
-        """
-        from .launcher import BatchLauncher
-        # Create a batch dir from the flow.workdir.
-        prev_dir = os.path.join(*self.workdir.split(os.path.sep)[:-1])
-        prev_dir = os.path.join(os.path.sep, prev_dir)
-        workdir = os.path.join(prev_dir, os.path.basename(self.workdir) + "_batch")
-
-        return BatchLauncher(workdir=workdir, flows=self).submit(timelimit=timelimit)
 
     def make_light_tarfile(self, name=None):
         """Lightweight tarball file. Mainly used for debugging. Return the name of the tarball file."""
