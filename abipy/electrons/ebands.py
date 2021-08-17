@@ -4697,7 +4697,8 @@ class ElectronDosPlotter(NotebookWriter):
     def combiplot(self, what_list="dos", spin_mode="automatic", e0="fermie",
                   ax_list=None,  xlims=None, fontsize=8, **kwargs):
         """
-        Plot the the DOSes on the same figure. Use ``gridplot`` to plot DOSes on different figures.
+        Plot the the DOSes on the same figure with matplotlib.
+        Use ``gridplot`` to plot DOSes on different figures with matplotlib.
 
         Args:
             what_list: Selects quantities to plot e.g. ["dos", "idos"] to plot DOS and integrated DOS.
@@ -4712,7 +4713,7 @@ class ElectronDosPlotter(NotebookWriter):
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
-            fontsize (int): fontsize for titles and legend
+            fontsize (int): fontsize for legend
 
         Return: |matplotlib-Figure|
         """
@@ -4763,11 +4764,92 @@ class ElectronDosPlotter(NotebookWriter):
     # An alias for combiplot.
     plot = combiplot
 
+    @add_plotly_fig_kwargs
+    def combiplotly(self, what_list="dos", spin_mode="automatic", e0="fermie",
+                  ax_list=None,  xlims=None, fontsize=12, **kwargs):
+        """
+        Plot the the DOSes on the same figure with plotly.
+        Use ``gridplotly`` to plot DOSes on different figures with plotly.
+
+        Args:
+            what_list: Selects quantities to plot e.g. ["dos", "idos"] to plot DOS and integrated DOS.
+                "dos" for DOS only and "idos" for IDOS only
+            spin_mode: "total" for total (I)DOS, "resolved" for plotting individual contributions.
+                Meaningful only if nsppol == 2.
+                "automatic" to use "resolved" if at least one DOS is polarized.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+            fontsize (int): fontsize for legend
+
+        Return: |plotly.graph_objects.Figure|
+        """
+        if spin_mode == "automatic":
+            spin_mode = "resolved" if any(edos.nsppol == 2 for edos in self.edoses_dict.values()) else "total"
+
+        what_list = list_strings(what_list)
+        nrows, ncols = len(what_list), 1
+
+        import plotly.colors as pcolors
+        # l2color = pcolors.qualitative.Light24
+        # ten colors
+        l2color = pcolors.DEFAULT_PLOTLY_COLORS
+
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=[], sharex=True, sharey=False)
+
+        can_use_basename = self._can_use_basenames_as_labels()
+        for i, what in enumerate(what_list):
+            rcd = PlotlyRowColDesc(i, 0, nrows, ncols)
+            for j, (label, edos) in enumerate(self.edoses_dict.items()):
+                if can_use_basename:
+                    label = os.path.basename(label)
+                else:
+                    # Use relative paths if label is a file.
+                    if os.path.isfile(label): label = os.path.relpath(label)
+
+                # Note to have the same color of the same label.
+                opt = {"color": l2color[j]}
+
+                # Here I handle spin and spin_mode.
+                if edos.nsppol == 1 or spin_mode == "total":
+                    # Plot total values
+                    if i==0:
+                        edos.plotly_traces(fig, e0=e0, what=what, spin=None, rcd=rcd, trace_name=label, showlegend=True,
+                                           line_opts=opt)
+                    else:
+                        edos.plotly_traces(fig, e0=e0, what=what, spin=None, rcd=rcd, trace_name=label, line_opts=opt)
+                elif spin_mode == "resolved":
+                    # Plot spin resolved quantiies with sign.
+                    for spin in range(edos.nsppol):
+                        fact = 1 if spin == 0 else -1
+                        if (i == 0) & (spin==0) :
+                            edos.plotly_traces(fig, e0=e0, what=what, spin=spin, fact=fact, rcd=rcd,
+                                           trace_name=label, line_opts=opt, showlegend=True)
+                        else:
+                            edos.plotly_traces(fig, e0=e0, what=what, spin=spin, fact=fact, rcd=rcd,
+                                           trace_name=label, line_opts=opt)
+                else:
+                    raise ValueError("Wrong value for spin_mode: `%s`:" % str(spin_mode))
+
+            fig.layout.legend.font.size = fontsize
+            plotly_set_lims(fig, xlims, "x")
+            fig.layout['yaxis'+str(rcd.iax)].title = {'text': 'DOS (states/eV)' if what == "dos" else "IDOS"}
+            if i == len(what_list) - 1:
+                fig.layout['xaxis' + str(rcd.iax)].title = {'text': 'Energy (eV)'}
+
+        return fig
+
+    # An alias for combiplotly.
+    plotly = combiplotly
+
     @add_fig_kwargs
     def gridplot(self, what="dos", spin_mode="automatic", e0="fermie",
                  sharex=True, sharey=True, xlims=None, fontsize=8, **kwargs):
         """
-        Plot multiple DOSes on a grid.
+        Plot multiple DOSes on a grid with matplotlib.
 
         Args:
             what: "dos" to plot DOS, "idos" for integrated DOS.
@@ -4790,7 +4872,7 @@ class ElectronDosPlotter(NotebookWriter):
             sharex, sharey: True if x (y) axis should be shared.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
-            fontsize: Label and title fontsize.
+            fontsize: Axis_label and subtitle fontsize.
 
         Return: |matplotlib-Figure|
         """
@@ -4837,12 +4919,89 @@ class ElectronDosPlotter(NotebookWriter):
             ax.grid(True)
             ax.set_title(label, fontsize=fontsize)
             set_axlims(ax, xlims, "x")
-            if (irow, icol) == (0, 0):
-                ax.set_ylabel('DOS (states/eV)' if what == "dos" else "IDOS")
+            if icol == 0:
+                ax.set_ylabel('DOS (states/eV)' if what == "dos" else "IDOS", fontsize=fontsize)
             if irow == nrows - 1:
-                ax.set_xlabel("Energy (eV)")
+                ax.set_xlabel("Energy (eV)", fontsize=fontsize)
 
             #ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def gridplotly(self, what="dos", spin_mode="automatic", e0="fermie",
+                 sharex=True, sharey=True, xlims=None, fontsize=12, **kwargs):
+        """
+        Plot multiple DOSes on a grid with plotly.
+
+        Args:
+            what: "dos" to plot DOS, "idos" for integrated DOS.
+            spin_mode: "total" for total (I)DOS, "resolved" for plotting individual contributions.
+                Meaningful only if nsppol == 2.
+                "automatic" to use "resolved" if at least one DOS is polarized.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values::
+
+                - ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+                   Note that, by default, the Fermi energy is taken from the band structure object
+                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+                   This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
+                   can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
+                   the one used to compute the density. See ``edos_fermie``.
+                - ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                   Available only if edos_objects is not None
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``.
+
+            sharex, sharey: True if x (y) axis should be shared.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+            fontsize: Axis_label and subtitle fontsize.
+
+        Return: |plotly.graph_objects.Figure|
+        """
+        if spin_mode == "automatic":
+            spin_mode = "resolved" if any(edos.nsppol == 2 for edos in self.edoses_dict.values()) else "total"
+
+        titles = list(self.edoses_dict.keys())
+        edos_list = self.edos_list
+
+        nrows, ncols = 1, 1
+        numeb = len(edos_list)
+        if numeb > 1:
+            ncols = 2
+            nrows = numeb // ncols + numeb % ncols
+
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=titles, sharex=sharex, sharey=sharey)
+
+        import plotly.colors as pcolors
+        # ten colors
+        l2color = pcolors.DEFAULT_PLOTLY_COLORS
+
+        for i, (label, edos) in enumerate(self.edoses_dict.items()):
+            irow, icol = divmod(i, ncols)
+            rcd = PlotlyRowColDesc(irow, icol, nrows, ncols)
+
+            # Here I handle spin and spin_mode.
+            if edos.nsppol == 1 or spin_mode == "total":
+                opts = {"color": "black", "width": 1.0}
+                edos.plotly_traces(fig, e0=e0, what=what, spin=None, rcd=rcd, trace_name=label, line_opts=opts)
+
+            elif spin_mode == "resolved":
+                # Plot spin resolved quantiies with sign.
+                # Note to have the same color of the same label for both spins.
+                opts = {"color": l2color[i], "width": 1.0}
+                for spin in range(edos.nsppol):
+                    fact = 1 if spin == 0 else -1
+                    edos.plotly_traces(fig, e0=e0, what=what, spin=spin, rcd=rcd, trace_name=label, line_opts=opts)
+            else:
+                raise ValueError("Wrong value for spin_mode: `%s`:" % str(spin_mode))
+
+            fig.layout.annotations[rcd.iax-1].font.size = fontsize
+            plotly_set_lims(fig, xlims, "x")
+            if icol == 0:
+                fig.layout['yaxis'+str(rcd.iax)].title = {'text': 'DOS (states/eV)' if what == "dos" else "IDOS"
+                                                          , "font": {"size" : fontsize}}
+            if irow == nrows - 1:
+                fig.layout['xaxis' + str(rcd.iax)].title = {'text': 'Energy (eV)', "font": {"size" : fontsize}}
 
         return fig
 

@@ -4964,13 +4964,13 @@ class PhononDosPlotter(NotebookWriter):
     @add_fig_kwargs
     def gridplot(self, units="eV", xlims=None, ylims=None, fontsize=8, **kwargs):
         """
-        Plot multiple DOSes on a grid.
+        Plot multiple DOSes on a grid with matplotlib.
 
         Args:
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
-            fontsize: Legend and title fontsize.
+            fontsize: Axis_label and subtitle fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -5006,12 +5006,51 @@ class PhononDosPlotter(NotebookWriter):
 
         return fig
 
+    @add_plotly_fig_kwargs
+    def gridplotly(self, units="eV", xlims=None, ylims=None, fontsize=12, **kwargs):
+        """
+        Plot multiple DOSes on a grid with plotly.
+
+        Args:
+            units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+            fontsize: Axis_label and subtitle fontsize.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        titles = list(self._phdoses_dict.keys())
+        phdos_list = list(self._phdoses_dict.values())
+
+        nrows, ncols = 1, 1
+        numeb = len(phdos_list)
+        if numeb > 1:
+            ncols = 2
+            nrows = numeb // ncols + numeb % ncols
+
+        # Build Grid Fig
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=titles, sharex=True, sharey=True)
+
+        x_unit = abu.phunit_tag(units, unicode=True)
+        y_unit = abu.phdos_label_from_units(units, unicode=True)
+        for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
+            row, col = divmod(i, ncols)
+            rcd = PlotlyRowColDesc(row, col, nrows, ncols)
+            phdos.plotly_dos_idos(fig, rcd=rcd, units=units, trace_name=label, showlegend=False)
+            fig.layout['xaxis'+str(rcd.iax)].title = {'text': 'Energy %s' % x_unit, "font": {"size" : fontsize}}
+            if col%ncols==0:
+                fig.layout['yaxis'+str(rcd.iax)].title = {"text": 'DOS %s' % y_unit, "font": {"size" : fontsize}}
+            fig.layout.annotations[rcd.iax-1].font.size = fontsize
+            plotly_set_lims(fig, xlims, "x")
+            plotly_set_lims(fig, ylims, "y")
+
+        return fig
+
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
                              quantities="all", fontsize=8, **kwargs):
         """
         Plot thermodynamic properties from the phonon DOS within the harmonic approximation
-        for all the files in the plotter.
+        for all the files in the plotter with matplotlib.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -5022,7 +5061,7 @@ class PhononDosPlotter(NotebookWriter):
                 thermodynamic quantities will be given on a per-unit-cell basis.
             quantities: List of strings specifying the thermodynamic quantities to plot.
                 Possible values in ["internal_energy", "free_energy", "entropy", "c_v"].
-            fontsize: Legend and title fontsize.
+            fontsize: Legend, axis_label and subtitles fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -5056,6 +5095,68 @@ class PhononDosPlotter(NotebookWriter):
             ax.set_xlabel("T (K)", fontsize=fontsize)
             if iax == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
+                             quantities="all", fontsize=12, **kwargs):
+        """
+        Plot thermodynamic properties from the phonon DOS within the harmonic approximation
+        for all the files in the plotter with plotly.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num: int, optional Number of samples to generate. Default is 50.
+            units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
+            formula_units: the number of formula units per unit cell. If unspecified, the
+                thermodynamic quantities will be given on a per-unit-cell basis.
+            quantities: List of strings specifying the thermodynamic quantities to plot.
+                Possible values in ["internal_energy", "free_energy", "entropy", "c_v"].
+            fontsize: Legend, axis_label and subtitle fontsize.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        quantities = list_strings(quantities) if quantities != "all" else \
+            ["internal_energy", "free_energy", "entropy", "cv"]
+
+        # Build grid of plots.
+        ncols, nrows = 1, 1
+        num_plots = len(quantities)
+        if num_plots > 1:
+            ncols = 2
+            nrows = num_plots // ncols + num_plots % ncols
+
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=quantities, sharex=True, sharey=False)
+
+        import plotly.colors as pcolors
+        l2color = pcolors.DEFAULT_PLOTLY_COLORS
+
+        for iq, qname in enumerate(quantities):
+            irow, icol = divmod(iq, ncols)
+            for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
+                opt = {"color": l2color[i]}
+                # Compute thermodynamic quantity associated to qname.
+                f1d = getattr(phdos, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
+                ys = f1d.values
+                if formula_units != 1: ys /= formula_units
+                if units == "Jmol": ys = ys * abu.e_Cb * abu.Avogadro
+                if iq == 0:
+                    fig.add_scatter(x=f1d.mesh, y=ys, mode="lines", name=label, legendgroup=label, showlegend=True,
+                                    line=opt, row=irow + 1, col=icol + 1)
+                else:
+                    fig.add_scatter(x=f1d.mesh, y=ys, mode="lines", name=label, legendgroup=label, showlegend=False,
+                                    line=opt, row=irow + 1, col=icol + 1)
+
+            fig.layout.annotations[iq].font.size = fontsize
+            fig.layout.legend.font.size = fontsize
+
+            iax = iq + 1
+            fig.layout['yaxis%u' % iax].title = {'text': _PLOTLY_THERMO_YLABELS[qname][units], 'font_size': fontsize}
+
+            if irow == nrows - 1:
+                fig.layout['xaxis%u' % iax].title = {'text': 'T (K)', 'font_size': fontsize}
 
         return fig
 
