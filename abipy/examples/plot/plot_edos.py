@@ -18,7 +18,7 @@ with abiopen(abidata.ref_file("si_scf_WFK.nc")) as gs_wfk:
 edos = gs_ebands.get_edos(method="gaussian", step=0.01, width=0.1)
 
 #%%
-# To plot electron DOS and IDOS with matplotlib use:
+# To plot electron DOS with matplotlib use:
 edos.plot(title="Silicon DOS")
 
 #%%
