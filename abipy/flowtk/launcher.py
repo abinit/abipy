@@ -8,11 +8,12 @@ import os
 import time
 import ruamel.yaml as yaml
 import pickle
+import datetime
 import apscheduler
 has_sched_v3 = apscheduler.version >= "3.0.0"
 
 from collections import deque
-from datetime import timedelta
+
 from io import StringIO
 from queue import Queue, Empty
 from pprint import pprint
@@ -443,7 +444,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
 
     def get_delta_etime(self):
         """Returns a `timedelta` object representing with the elapsed time."""
-        return timedelta(seconds=(time.time() - self.start_time))
+        return datetime.timedelta(seconds=(time.time() - self.start_time))
 
     def cancel_jobs_if_requested(self, flow):
 
@@ -853,7 +854,7 @@ class PyFlowScheduler(BaseScheduler):
 
 class MultiFlowScheduler(BaseScheduler, MSONable):
 
-    def __init__(self, completed=None, errored=None, incoming=None, **kwargs):
+    def __init__(self, sqldb_path, completed=None, errored=None, incoming=None, **kwargs):
         super().__init__(**kwargs)
         self.flows = []
         self.completed = [] if completed is None else completed
@@ -870,7 +871,7 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
         #import threading
         #self._lock = threading.Lock()
 
-        self.sqldb_path = "example.db"
+        self.sqldb_path = sqldb_path
         self.create_sqldb()
 
     @classmethod
@@ -934,11 +935,6 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
     #def stop(self):
     #def restart(self):
 
-    @staticmethod
-    def _get_record(flow):
-        formula = flow[0][0].input.structure.formula
-        return (str(flow.status), formula, flow.workdir, os.path.basename(flow.pyfile), flow.node_id)
-
     def get_incoming_flows(self, reinsert=False):
         flows = []
         while True:
@@ -953,10 +949,15 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
                 self.incoming_flow_queue.put(flow)
 
         if flows:
+            def get_record(flow):
+                formula = flow[0][0].input.structure.formula
+                return (str(flow.status), formula, flow.workdir, os.path.basename(flow.pyfile),
+                        flow.node_id, datetime.datetime.now())
+
             with self.sql_connect() as con:
                 cur = con.cursor()
-                values = [self._get_record(flow) for flow in flows]
-                cur.executemany("INSERT INTO flows VALUES (?, ?, ?, ?, ?)", values)
+                values = [get_record(flow) for flow in flows]
+                cur.executemany("INSERT INTO flows VALUES (?, ?, ?, ?, ?, ?)", values)
             con.close()
 
         return flows
@@ -994,7 +995,8 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
 
     def sql_connect(self):
         import sqlite3
-        return sqlite3.connect(self.sqldb_path, check_same_thread=True)
+        return sqlite3.connect(self.sqldb_path, check_same_thread=True,
+                               detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 
     def create_sqldb(self):
         if os.path.exists(self.sqldb_path): return
@@ -1002,19 +1004,15 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
         with self.sql_connect() as con:
             # Create table
             cur = con.cursor()
-            cur.execute("""CREATE TABLE flows
-                        (status, formula, workdir, pyfile, node_id)
-                        PRIMARY KEY (node_id)
+            cur.execute("""CREATE TABLE flows (
+                        status TEXT NOT NULL,
+                        formula TEXT NOT NULL,
+                        workdir TEXT NOT NULL,
+                        pyfile TEXT NOT NULL,
+                        node_id PRIMARY KEY,
+                        upload_date timestamp
+                        );
                         """)
-        con.close()
-
-    def update_sqldb(self):
-
-        with self.sql_connect() as con:
-            cur = con.cursor()
-            query = "UPDATE flows SET status = ? WHERE node_id = ?"
-            values = [(str(flow.status), flow.node_id) for flow in flows]
-            cur.executemany(query, values)
         con.close()
 
     def callback(self):
@@ -1097,8 +1095,8 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
         self.finalize_flows()
 
     def finalize_flows(self):
-        #completed_flows = []
-        #errored_flows = []
+        completed_flows = []
+        errored_flows = []
 
         done = []
         for i, flow in enumerate(self.flows):
@@ -1109,6 +1107,7 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
         if done:
             for i in done:
                 flow = self.flows[i]
+                completed_flows.append(flow)
                 self.completed.append((flow.workdir, flow.node_id))
             self.flows = [self.flows[i] for i in range(len(self.flows)) if i not in set(done)]
 
@@ -1118,16 +1117,30 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
             if errs:
                 msg = "\n".join(errs)
                 locked.append(i)
-                #flow.set_status(flow.S_ERROR, msg)
+                flow.set_status(flow.S_ERROR, msg)
 
         if locked:
             for i in locked:
                 flow = self.flows[i]
+                errored_flows(flow)
                 self.errored.append((flow.workdir, flow.node_id))
 
             self.flows = [self.flows[i] for i in range(len(self.flows)) if i not in set(locked)]
 
         #pprint(self.as_dict())
+        with self.sql_connect() as con:
+            cur = con.cursor()
+            query = "UPDATE flows SET status = ? WHERE node_id = ?"
+            values = [(str(flow.S_RUN), flow.node_id) for flow in self.flows]
+            if completed_flows:
+               values.extend([(str(flow.status), flow.node_id) for flow in completed_flows])
+               #self.completed = []
+            if errored_flows:
+               values.extend([(str(flow.S_RUN), flow.node_id) for flow in errored_flows])
+               #self.errored = []
+            cur.executemany(query, values)
+        con.close()
+
 
 
 def sendmail(subject, text, mailto, sender=None):
