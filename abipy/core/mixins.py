@@ -447,7 +447,8 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         with_gaps = not self.ebands.has_metallic_scheme
         if self.ebands.kpoints.is_path:
             yield self.ebands.plot(with_gaps=with_gaps, show=False)
-            yield self.ebands.kpoints.plot(show=False)
+            if len(self.ebands.kpoints) > 1:
+                yield self.ebands.kpoints.plot(show=False)
         else:
             edos = self.ebands.get_edos()
             yield self.ebands.plot_with_edos(edos, with_gaps=with_gaps, show=False)
@@ -456,14 +457,14 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
     def yield_ebands_plotly_figs(self, **kwargs):
         """*Generates* a predefined list of plotly figures with minimal input from the user."""
         with_gaps = not self.ebands.has_metallic_scheme
+
         if self.ebands.kpoints.is_path:
             yield self.ebands.plotly(with_gaps=with_gaps, show=False)
-            yield self.ebands.kpoints.plotly(show=False)
-            yield self.ebands.kpoints.plot(show=False)
+            if len(self.ebands.kpoints) > 1:
+                yield self.ebands.kpoints.plotly(show=False)
         else:
             edos = self.ebands.get_edos()
-            # TODO
-            #yield self.ebands.plotly_with_edos(edos, with_gaps=with_gaps, show=False)
+            yield self.ebands.plotly_with_edos(edos, with_gaps=with_gaps, show=False)
             yield edos.plotly(show=False)
 
     def expose_ebands(self, slide_mode=False, slide_timeout=None, expose_web=False, **kwargs):

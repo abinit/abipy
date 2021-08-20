@@ -348,6 +348,12 @@ class Flow(Node, NodeContainer, MSONable):
         flow = pmg_pickle_load(strio)
         return flow
 
+    def change_manager(self, new_manager):
+        """Change the manager at runtime."""
+        for work in self:
+            work.set_manager(new_manager)
+        return new_manager
+
     def get_panel(self, **kwargs):
         """Build panel with widgets to interact with the |Flow| either in a notebook or in panel app."""
         from abipy.panels.flows import FlowPanel
@@ -537,16 +543,16 @@ class Flow(Node, NodeContainer, MSONable):
     @property
     def ncores_allocated(self):
         """
-        Returns the number of cores allocated in this moment.
+        Returns the number of cores allocated at this moment.
         A core is allocated if it's running a task or if we have
-        submitted a task to the queue manager but the job is still pending.
+        submitted a task to the queue manager but the job is still in pending state.
         """
         return sum(work.ncores_allocated for work in self)
 
     @property
     def ncores_used(self):
         """
-        Returns the number of cores used in this moment.
+        Returns the number of cores used at this moment.
         A core is used if there's a job that is running on it.
         """
         return sum(work.ncores_used for work in self)
@@ -2407,7 +2413,6 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     def disconnect_signals(self):
         """Disable the signals within the `Flow`."""
-        # Disconnect the signals inside each Work.
         for work in self:
             work.disconnect_signals()
 

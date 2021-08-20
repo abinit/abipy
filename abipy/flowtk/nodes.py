@@ -493,6 +493,7 @@ class Node(metaclass=abc.ABCMeta):
 
     def __init__(self):
         self._in_spectator_mode = False
+
         # Node identifier.
         self._node_id = get_newnode_id()
 
@@ -1338,6 +1339,9 @@ def get_newnode_id():
         The id is unique inside the same python process so be careful when
         Works and Tasks are constructed at run-time or when threads are used.
     """
+    #import uuid
+    #return uuid.uuid4()
+
     init_counter()
 
     global _COUNTER

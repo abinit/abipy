@@ -13,7 +13,7 @@ from abipy.core.release import version
 @click.command()
 @click.option('--port', default=5006, help="Port to listen on. Default: 5006")
 @click.option('--address', default=None, help="The address the server should listen on for HTTP requests.")
-@click.option('--show', default=True, help="Open server app(s) in a browser")
+@click.option('--show', default=True, help="Open server app(s) in the web browser")
 @click.option('--num_procs', default=1, help="Number of worker processes for the app. Defaults to 1")
 @click.option('--panel-template', "-pnt", default="FastList",
               help="Specify template for panel dasboard." +

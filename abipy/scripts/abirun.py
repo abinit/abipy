@@ -453,13 +453,6 @@ def get_parser(with_epilog=False):
     p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="Number of minutes to wait.")
     p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="Number of seconds to wait.")
 
-    # Subparser for batch command.
-    p_batch = subparsers.add_parser('batch', parents=[copts_parser], help="Run scheduler in batch script.")
-    p_batch.add_argument("-t", '--timelimit', default=None, help=("Time limit for batch script. "
-                         "Accept int with seconds or string with time given in the slurm convention: "
-                         "`days-hours:minutes:seconds`. If timelimit is None, the default value specified"
-                         " in the `batch_adapter` entry of `manager.yml` is used."))
-
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show status table.")
     p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int,
@@ -920,12 +913,10 @@ def main():
         pn = abilab.abipanel()
         serve_kwargs = serve_kwargs_from_options(options)
 
-        # TODO: Implement Multipage app for flow?
         if options.nids is None:
+            # Start Multipage app for this flow.
             from abipy.panels.flows import FlowMultiPageApp
             FlowMultiPageApp(flow, options.panel_template).serve(**serve_kwargs)
-            #app = flow.get_panel(template=options.panel_template)
-            #pn.serve(app, **serve_kwargs)
 
         else:
             node_list = list(flow.iflat_nodes(nids=select_nids(flow, options)))
@@ -982,9 +973,6 @@ def main():
 
         print(sched)
         return sched.start()
-
-    elif options.command == "batch":
-        return flow.batch(timelimit=options.timelimit)
 
     elif options.command == "status":
         # Select the method to call.

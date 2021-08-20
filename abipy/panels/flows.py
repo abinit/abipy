@@ -133,7 +133,11 @@ class JsPane(pn.pane.HTML):
 
 class FlowMultiPageApp():
 
-    def __init__(self, flow, template, **kwargs):
+    def __init__(self, flow, template, spectator_mode=True, **kwargs):
+
+        if spectator_mode:
+            # We are in read-only mode so we have to disable signals to avoid side effects and callbacks
+            flow._spectator_mode()
 
         self.flow = flow
         self.template = template
