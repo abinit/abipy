@@ -1207,7 +1207,7 @@ class Flow(Node, NodeContainer, MSONable):
         wslice = kwargs.pop("wslice", None)
         verbose = kwargs.pop("verbose", 0)
 
-        #return_df = True
+        #start_time = time.now()
 
         wlist = None
         if wslice is not None:
@@ -1218,10 +1218,6 @@ class Flow(Node, NodeContainer, MSONable):
         has_colours = True
         red = "red" if has_colours else None
         data_task = {}
-
-        #items = enumerate(self)
-        #from panel.widgets import Tqdm
-        #items = Tqdm(items)
 
         for i, work in enumerate(self):
             if nids and work.node_id not in nids: continue

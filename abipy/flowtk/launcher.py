@@ -853,54 +853,23 @@ class PyFlowScheduler(BaseScheduler):
 
 
 
-class MultiFlowScheduler(BaseScheduler, MSONable):
+class MultiFlowScheduler(BaseScheduler):
 
-    def __init__(self, sqldb_path, completed=None, errored=None, incoming=None, **kwargs):
+    def __init__(self, sqldb_path, **kwargs):
         super().__init__(**kwargs)
         self.flows = []
-        self.completed = [] if completed is None else completed
-        self.errored = [] if errored is None else errored
 
+        self.completed_flows = []
+        self.errored_flows = []
         self._errored_flow_ids = []
+
         self.incoming_flow_queue = Queue()
-        if incoming:
-            from abipy.flowtk.flows import Flow
-            for workdir in incoming:
-                if os.path.exists(workdir):
-                    self.flows.append(Flow.from_file(workdir))
 
         #import threading
         #self._lock = threading.Lock()
 
         self.sqldb_path = sqldb_path
         self.create_sqldb()
-
-    @classmethod
-    def from_dict(cls, d):
-        """
-        Makes the object obey the general json interface used in pymatgen for easier serialization.
-        """
-        new = cls(completed=d["completed"], errored=d["errored"], incoming=d["incoming"],
-                  **d["init_kwargs"])
-
-        from abipy.flowtk.flows import Flow
-        for workdir in d["running"]:
-            if os.path.exists(workdir):
-                self.flows.append(Flow.from_file(workdir))
-
-        return new
-
-    @pmg_serialize
-    def as_dict(self):
-        """
-        Makes the object obey the general json interface used in pymatgen for easier serialization.
-        """
-        return dict(init_kwargs=self.init_kwargs,
-                    completed=self.completed,
-                    errored=self.errored,
-                    running=[(flow.workdir, flow.node_id) for flow in self.flows],
-                    incoming=[flow.workdir for flow in self.get_incoming_flows(reinsert=True)]
-                    )
 
     def add_flow(self, flow, priority=None):
         """
@@ -919,7 +888,7 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
         if not self._errored_flow_ids: return
         for idx in self._errored_flow_ids:
             flow = self.flows[idx]
-            self.errored.append((flow.workdir, flow.node_id))
+            self.errored_flows.append(flow)
 
         self.flows = [flow for (idx, flow) in self.flows if idx not in set(self._errored_flow_ids)]
         self._errored_flow_ids = []
@@ -935,84 +904,6 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
 
     #def stop(self):
     #def restart(self):
-
-    def get_incoming_flows(self, reinsert=False):
-        flows = []
-        while True:
-            try:
-                flow = self.incoming_flow_queue.get_nowait()
-                flows.append(flow)
-            except Empty:
-                break
-
-        if reinsert and flows:
-            for flow in flows:
-                self.incoming_flow_queue.put(flow)
-
-        if flows:
-            def get_record(flow):
-                formula = flow[0][0].input.structure.formula
-                return (str(flow.status), formula, flow.workdir, os.path.basename(flow.pyfile),
-                        flow.node_id, datetime.datetime.now())
-
-            with self.sql_connect() as con:
-                cur = con.cursor()
-                values = [get_record(flow) for flow in flows]
-                cur.executemany("INSERT INTO flows VALUES (?, ?, ?, ?, ?, ?)", values)
-            con.close()
-
-        return flows
-
-    def get_dataframe(self):
-        import pandas as pd
-        with self.sql_connect() as con:
-            return pd.read_sql_query("SELECT * FROM flows", con)
-
-    def get_flow_status_by_id(self, node_id):
-        from abipy.flowtk.flows import Flow
-        #for flow in self.flows:
-        #    if flow.node_id == node_id: return (flow, "running")
-
-        #for status in ("errored", "completed"):
-        #    for (workdir, flow_id) in getattr(self, status):
-        #        if flow_id == node_id and os.path.exists(workdir):
-        #            return (Flow.from_file(workdir), status)
-
-        #return (None, None)
-
-        with self.sql_connect() as con:
-            cur = con.cursor()
-            cur.execute("SELECT workdir, status FROM flows WHERE flow_id = ?", [node_id])
-            row = cur.fetchone()
-        con.close()
-
-        return (Flow.from_file(row["workdir"]), row["status"]) if row else (None, None)
-
-    def groupby_status(self):
-        from collections import defaultdict
-        d = defaultdict(list)
-
-        #for flow in self.flows:
-        #    d["running"].append((flow.workdir, flow.node_id))
-
-        #for status in ("errored", "completed"):
-        #    for (workdir, flow_id) in getattr(self, status):
-        #        if not os.path.exists(workdir): continue
-        #        d[status].append((workdir, flow_id))
-
-        #return d
-
-        with self.sql_connect() as con:
-            cur = con.cursor()
-            cur.execute("SELECT * FROM flows")
-            rows = cur.fetchall()
-
-        con.close()
-
-        for row in rows:
-            d[row["status"]].append(row)
-
-        return d
 
     def sql_connect(self):
         import sqlite3
@@ -1038,6 +929,61 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
                         """)
         con.close()
 
+    def get_dataframe(self):
+        import pandas as pd
+        with self.sql_connect() as con:
+            return pd.read_sql_query("SELECT * FROM flows", con)
+
+    def get_flow_status_by_id(self, node_id):
+        from abipy.flowtk.flows import Flow
+
+        with self.sql_connect() as con:
+            cur = con.cursor()
+            cur.execute("SELECT workdir, status FROM flows WHERE flow_id = ?", [node_id])
+            row = cur.fetchone()
+        con.close()
+
+        return (Flow.from_file(row["workdir"]), row["status"]) if row else (None, None)
+
+    def groupby_status(self):
+        from collections import defaultdict
+        d = defaultdict(list)
+
+        with self.sql_connect() as con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM flows")
+            rows = cur.fetchall()
+
+        con.close()
+
+        for row in rows:
+            d[row["status"]].append(row)
+
+        return d
+
+    def get_incoming_flows(self):
+        flows = []
+        while True:
+            try:
+                flow = self.incoming_flow_queue.get_nowait()
+                flows.append(flow)
+            except Empty:
+                break
+
+        if flows:
+            def get_record(flow):
+                formula = flow[0][0].input.structure.formula
+                return (str(flow.status), formula, flow.workdir, os.path.basename(flow.pyfile),
+                        flow.node_id, datetime.datetime.now())
+
+            with self.sql_connect() as con:
+                cur = con.cursor()
+                values = [get_record(flow) for flow in flows]
+                cur.executemany("INSERT INTO flows VALUES (?, ?, ?, ?, ?, ?)", values)
+            con.close()
+
+        return flows
+
     def callback(self):
         """The function that will be executed by the scheduler."""
         #locked = self._lock.acquire(blocking=False, timeout=-1)
@@ -1050,6 +996,10 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
 
         if not self.flows: return
         excs = []
+
+        # check status.
+        for flow in self.flows:
+            flow.check_status(show=False)
 
         # Here we just count the number of tasks in the flow that are in RUNNING or SUBMITTED status.
         # This logic clearly breaks down if there are multiple schedulers running on the same machine
@@ -1068,10 +1018,6 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
 
         max_nlaunch = self.max_njobs_inqueue - nqjobs if self.max_nlaunches == -1 else \
                       min(self.max_njobs_inqueue - nqjobs, self.max_nlaunches)
-
-        # check status.
-        for flow in self.flows:
-            flow.check_status(show=False)
 
         # This check is not perfect, we should make a list of tasks to submit
         # and then select a subset so that we don't exceeed max_ncores_used
@@ -1115,11 +1061,9 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
 
         #if max_nlaunch <= 0: return
 
-        self.finalize_flows()
+        self.update_flows_and_db()
 
-    def finalize_flows(self):
-        completed_flows = []
-        errored_flows = []
+    def update_flows_and_db(self):
 
         done = []
         for i, flow in enumerate(self.flows):
@@ -1130,8 +1074,7 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
         if done:
             for i in done:
                 flow = self.flows[i]
-                completed_flows.append(flow)
-                self.completed.append((flow.workdir, flow.node_id))
+                self.completed_flows.append(flow)
             self.flows = [self.flows[i] for i in range(len(self.flows)) if i not in set(done)]
 
         locked = []
@@ -1145,22 +1088,21 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
         if locked:
             for i in locked:
                 flow = self.flows[i]
-                errored_flows(flow)
-                self.errored.append((flow.workdir, flow.node_id))
+                self.errored_flows.append(flow)
 
             self.flows = [self.flows[i] for i in range(len(self.flows)) if i not in set(locked)]
 
-        #pprint(self.as_dict())
         with self.sql_connect() as con:
             cur = con.cursor()
             query = "UPDATE flows SET status = ? WHERE flow_id = ?"
             values = [(str(flow.S_RUN), flow.node_id) for flow in self.flows]
-            if completed_flows:
-               values.extend([(str(flow.status), flow.node_id) for flow in completed_flows])
-               #self.completed = []
-            if errored_flows:
-               values.extend([(str(flow.S_RUN), flow.node_id) for flow in errored_flows])
-               #self.errored = []
+            if self.completed_flows:
+               values.extend([(str(flow.status), flow.node_id) for flow in self.completed_flows])
+               self.completed_flows = []
+            if self.errored_flows:
+               values.extend([(str(flow.S_ERROR), flow.node_id) for flow in self.errored_flows])
+               self.errored_flows = []
+
             cur.executemany(query, values)
         con.close()
 
