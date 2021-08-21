@@ -134,6 +134,9 @@ class WorkerServer(MSONable):
 
         self.sched_options = sched_options
         self.scratch_dir = scratch_dir
+        if not os.path.isdir( scratch_dir):
+            raise ValueError(f"Directory {scratch_dir} does not exist!")
+
         if flow_scheduler is None:
             sqldb_path = os.path.join(self.config_dir, "flows.db")
             self.flow_scheduler = MultiFlowScheduler(sqldb_path, **self.sched_options)
@@ -232,6 +235,7 @@ class WorkerClient(MSONable):
         self.server_address = server_address
         self.server_port = server_port
         self.server_url = f"http://{server_address}:{server_port}"
+        #self.server_url = "http://localhost:9000"
         self.timeout = timeout
         self.server_name = server_name
         self.priority = int(priority)
@@ -261,7 +265,7 @@ class WorkerClient(MSONable):
         Send a python script to the server in order to build a new Flow.
         """
         filepath = os.path.expanduser(filepath)
-        print(f"Sending {filepath} script to server: {self.server_name}")
+        print(f"Sending `{filepath}` script to server url: `{self.server_url}`...\n\n")
         with open(filepath, "rt") as fp:
             data = dict(
                 pyscript_basename=os.path.basename(filepath),

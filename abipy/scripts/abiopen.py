@@ -240,6 +240,9 @@ def main():
     if options.filepath.endswith(".json"):
         return handle_json(options)
 
+    if os.path.basename(options.filepath) == "flows.db":
+        return handle_flowsdb_file(options)
+
     if not options.notebook:
         abifile = abilab.abiopen(options.filepath)
 
@@ -365,6 +368,18 @@ def handle_json(options):
         IPython.embed(header="""
 The object initialized from JSON (MSONable) is associated to the `data` python variable.
 """)
+
+    return 0
+
+
+def handle_flowsdb_file(options):
+    """Handle flows.db file."""
+    import pandas as pd
+    import sqlite3
+    with sqlite3.connect(options.filepath) as con:
+        df = pd.read_sql_query("SELECT * FROM flows", con)
+        abilab.print_dataframe(df, title=options.filepath)
+    return 0
 
 
 if __name__ == "__main__":

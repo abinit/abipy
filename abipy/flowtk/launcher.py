@@ -139,6 +139,7 @@ class PyLauncherError(Exception):
 
 class PyLauncher(object):
     """This object handle the submission of the tasks contained in a |Flow|."""
+
     Error = PyLauncherError
 
     def __init__(self, flow, **kwargs):

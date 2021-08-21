@@ -3494,7 +3494,7 @@ class NscfTask(GsTask):
         # Print a warning if nbdbuf is not specified since Abinit default is usually too small.
         if "nbdbuf" not in self.input:
             msg = """
-nbdbuf is not specified in input, using `nbdbuf = 2*nspinor` that may be too small!"
+nbdbuf is not specified in input, using `nbdbuf = 2 * nspinor` that may be too small!"
 As a consequence, the NSCF cycle may have problems to converge the last bands within nstep iterations.
 To avoid this problem specify nbdbuf in the input file and adjust nband accordingly.
 """

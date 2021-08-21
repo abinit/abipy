@@ -207,7 +207,7 @@ if __name__ == "__main__":
     print("""
 Please read the following if you are about to use AbiPy for the first time:
 
-Abipy needs to know about the cluster/computer you are running on.
+AbiPy needs to know about the cluster/computer you are running on.
 This information is provided via two Yaml configuration files: manager.yml and scheduler.yml.
 These files must be located either in ~/.abinit/abipy or in the working directory in which you execute the flow.
 Examples are provided in abipy/data/managers.

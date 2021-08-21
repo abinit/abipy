@@ -90,7 +90,7 @@ def get_parser(with_epilog=False):
 
     # Parent parser for commands requiring a `worker_name` that defaults to None i.e. default worker.
     worker_selector_with_default = argparse.ArgumentParser(add_help=False)
-    worker_selector_with_default.add_argument("-n", '--worker-name', default=None,
+    worker_selector_with_default.add_argument("-w", '--worker-name', default=None,
                                 help="Select the worker by name. If not specified, the default worker is used.")
 
     # Parent parser for common options.
@@ -122,8 +122,8 @@ def get_parser(with_epilog=False):
     # Subparser for start command.
     p_start = subparsers.add_parser("start", parents=[copts_parser, worker_selector, serve_parser],
                                     help="Start worker.")
-    p_start.add_argument("-s", "--scratch-dir", type=str, default="/tmp",
-                         help="Scratch directory in which Flows will be generated. DEFAULT: /tmp")
+    p_start.add_argument("-s", "--scratch-dir", type=str, required=True,
+                         help="Scratch directory in which Flows will be generated")
 
     p_restart = subparsers.add_parser("restart", parents=[copts_parser, worker_selector, serve_parser],
                                       help="Restart worker.")
@@ -209,7 +209,7 @@ for port forwarding.
         port=options.port,
         static_dirs={"/assets": assets_path},
         address=options.address,
-        #websocket_origin="{address}:{port}",
+        websocket_origin="*",
     )
 
 
