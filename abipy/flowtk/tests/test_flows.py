@@ -93,6 +93,7 @@ class FlowTest(FlowUnitTest):
         assert flow.isinstance(Flow)
         assert not flow.isinstance(None)
         assert not flow.has_scheduler
+        assert flow._status is None
         assert flow.readme_md is None
         flow.set_readme("## hello flow")
         assert flow.readme_md == "## hello flow"
@@ -260,6 +261,10 @@ class FlowTest(FlowUnitTest):
             assert hasattr(flow.get_panel(), "show")
             assert hasattr(flow[0].get_panel(), "show")
             assert hasattr(flow[0][0].get_panel(), "show")
+
+        flow.set_status(flow.S_ERROR, "This is a errored flow")
+        assert flow._status == flow.S_ERROR
+        assert flow.status == flow.S_ERROR
 
 
     def test_workdir(self):

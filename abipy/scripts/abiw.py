@@ -21,7 +21,7 @@ from monty.functools import prof_main
 #from monty.termcolor import cprint, colored, get_terminal_size
 #from monty.string import boxed, make_banner
 #from abipy.tools import duck
-from abipy.flowtk.worker import WorkerClients, WorkerServer
+from abipy.flowtk.worker import WorkerClients, WorkerServer, list_workers_on_local_machine
 
 
 #def straceback():
@@ -48,7 +48,7 @@ Usage example:
 #db clean
 #
 abiw.py add name manager.yml scheduler
-abiw.py list  DONE
+abiw.py clients  DONE
 abiw.py disable name
 abiw.py set_default name
 abiw.py ping [names]
@@ -116,8 +116,12 @@ def get_parser(with_epilog=False):
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
-    # Subparser for list command.
-    p_list = subparsers.add_parser("list", parents=[copts_parser], help="List workers.")
+    # Subparser for clients command.
+    p_clients = subparsers.add_parser("clients", parents=[copts_parser], help="List clients available")
+
+    # Subparser for servers command.
+    p_servers = subparsers.add_parser("servers", parents=[copts_parser],
+                                      help="List servers available on the local machine")
 
     # Subparser for start command.
     p_start = subparsers.add_parser("start", parents=[copts_parser, worker_selector, serve_parser],
@@ -147,6 +151,9 @@ def get_parser(with_epilog=False):
     # Subparser for status command.
     p_all_status = subparsers.add_parser("all_status", parents=[copts_parser],
                                           help="Return status af all workers.")
+
+    p_discover = subparsers.add_parser("discover", parents=[copts_parser],
+                                       help="Discover AbiPy workers.")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser("gui", parents=[copts_parser, worker_selector_with_default],
@@ -204,7 +211,6 @@ for port forwarding.
 
     return dict(
         debug=options.verbose > 0,
-        #show=not options.no_browser,
         show=False,
         port=options.port,
         static_dirs={"/assets": assets_path},
@@ -273,13 +279,16 @@ def main():
         worker = WorkerServer.from_config_dir(options.worker_name)
         return serve(worker, options)
 
+    elif options.command == "servers":
+        return list_workers_on_local_machine()
+
     all_clients = WorkerClients.from_json_file()
 
     if options.command == "kill":
         client = all_clients.select_from_name(options.worker_name)
         client.send_kill_message()
 
-    elif options.command == "list":
+    elif options.command == "clients":
         print(all_clients)
 
     elif options.command == "send":
@@ -299,6 +308,30 @@ def main():
     elif options.command == "all_status":
         for client in all_clients:
             pprint(client.get_json_status())
+
+    elif options.command == "discover":
+        from fabric import Connection
+        hosts = ["nic5", "zenobe"]
+        for host in hosts:
+            print("For host:", host)
+            c = Connection(host)
+            try:
+                result = c.run("ls ~/.abinit/abipy")
+                files = result.stdout.split()
+                worker_dirs = [f for f in files if f.startswith("worker_")]
+                print("worker_dirs:", worker_dirs)
+                worker_dirs = [os.path.join("~/.abinit/abipy", b) for b in worker_dirs]
+            except Exception as exc:
+                print(exc)
+                continue
+
+            for w in worker_dirs:
+                path = os.path.join(w, "flows.db")
+                try:
+                    print(c.get(path))
+                except IOError as exc:
+                    print(f"Cannot find file: {host}@{path}. Ignoring error.")
+
 
     elif options.command == "gui":
         client = all_clients.select_from_name(options.worker_name)

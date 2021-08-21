@@ -235,6 +235,10 @@ class Flow(Node, NodeContainer, MSONable):
 
         self.on_all_ok_num_calls = 0
 
+        # The status of the flow is computed dynamically using the status of the nodes
+        # if _status is None unless one explicitly set this value with set_status.
+        self._status = None
+
     @pmg_serialize
     def as_dict(self, **kwargs):
         """
@@ -257,6 +261,18 @@ class Flow(Node, NodeContainer, MSONable):
         """Return a Flow in a temporary directory. Useful for unit tests."""
         workdir = get_workdir(workdir)
         return cls(workdir=workdir, manager=manager)
+
+    def set_status(self, status, msg):
+        """
+        Set and return the status of the flow
+
+        Args:
+            status: Status object or string representation of the status
+            msg: string with human-readable message used in the case of errors.
+        """
+        status = Status.as_status(status)
+        self._status = status
+        self.history.info(f"Status set to `{status}` due to: `{msg}`)")
 
     def set_workdir(self, workdir, chroot=False):
         """
@@ -803,28 +819,11 @@ class Flow(Node, NodeContainer, MSONable):
 
     @property
     def status(self):
-        """The status of the |Flow| i.e. the minimum of the status of its tasks and its works"""
-        return min(work.get_all_status(only_min=True) for work in self)
-
-    #def restart_unconverged_tasks(self, max_nlauch, excs):
-    #    nlaunch = 0
-    #    for task in self.unconverged_tasks:
-    #        try:
-    #            self.history.info("Flow will try restart task %s" % task)
-    #            fired = task.restart()
-    #            if fired:
-    #                nlaunch += 1
-    #                max_nlaunch -= 1
-
-    #                if max_nlaunch == 0:
-    #                    self.history.info("Restart: too many jobs in the queue, returning")
-    #                    self.pickle_dump()
-    #                    return nlaunch, max_nlaunch
-
-    #        except task.RestartError:
-    #            excs.append(straceback())
-
-    #    return nlaunch, max_nlaunch
+        """Gives the status of the task."""
+        if self._status is None:
+             # Take the minimum of the status of its tasks and its works
+             return min(work.get_all_status(only_min=True) for work in self)
+        return self._status
 
     def fix_abicritical(self):
         """

@@ -970,34 +970,56 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
 
     def get_flow_status_by_id(self, node_id):
         from abipy.flowtk.flows import Flow
-        for flow in self.flows:
-            if flow.node_id == node_id: return (flow, "running")
+        #for flow in self.flows:
+        #    if flow.node_id == node_id: return (flow, "running")
 
-        for status in ("errored", "completed"):
-            for (workdir, flow_id) in getattr(self, status):
-                if flow_id == node_id and os.path.exists(workdir):
-                    return (Flow.from_file(workdir), status)
+        #for status in ("errored", "completed"):
+        #    for (workdir, flow_id) in getattr(self, status):
+        #        if flow_id == node_id and os.path.exists(workdir):
+        #            return (Flow.from_file(workdir), status)
 
-        return (None, None)
+        #return (None, None)
+
+        with self.sql_connect() as con:
+            cur = con.cursor()
+            cur.execute("SELECT workdir, status FROM flows WHERE flow_id = ?", [node_id])
+            row = cur.fetchone()
+        con.close()
+
+        return (Flow.from_file(row["workdir"]), row["status"]) if row else (None, None)
 
     def groupby_status(self):
         from collections import defaultdict
         d = defaultdict(list)
 
-        for flow in self.flows:
-            d["running"].append((flow.workdir, flow.node_id))
+        #for flow in self.flows:
+        #    d["running"].append((flow.workdir, flow.node_id))
 
-        for status in ("errored", "completed"):
-            for (workdir, flow_id) in getattr(self, status):
-                if not os.path.exists(workdir): continue
-                d[status].append((workdir, flow_id))
+        #for status in ("errored", "completed"):
+        #    for (workdir, flow_id) in getattr(self, status):
+        #        if not os.path.exists(workdir): continue
+        #        d[status].append((workdir, flow_id))
+
+        #return d
+
+        with self.sql_connect() as con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM flows")
+            rows = cur.fetchall()
+
+        con.close()
+
+        for row in rows:
+            d[row["status"]].append(row)
 
         return d
 
     def sql_connect(self):
         import sqlite3
-        return sqlite3.connect(self.sqldb_path, check_same_thread=True,
+        con = sqlite3.connect(self.sqldb_path, check_same_thread=True,
                                detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+        con.row_factory = sqlite3.Row
+        return con
 
     def create_sqldb(self):
         if os.path.exists(self.sqldb_path): return
@@ -1010,7 +1032,7 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
                         formula TEXT NOT NULL,
                         workdir TEXT NOT NULL,
                         pyfile TEXT NOT NULL,
-                        node_id PRIMARY KEY,
+                        flow_id PRIMARY KEY,
                         upload_date timestamp
                         );
                         """)
@@ -1131,7 +1153,7 @@ class MultiFlowScheduler(BaseScheduler, MSONable):
         #pprint(self.as_dict())
         with self.sql_connect() as con:
             cur = con.cursor()
-            query = "UPDATE flows SET status = ? WHERE node_id = ?"
+            query = "UPDATE flows SET status = ? WHERE flow_id = ?"
             values = [(str(flow.S_RUN), flow.node_id) for flow in self.flows]
             if completed_flows:
                values.extend([(str(flow.status), flow.node_id) for flow in completed_flows])
