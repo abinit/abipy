@@ -13,7 +13,7 @@ import abipy.flowtk as flowtk
 #from abipy import abilab
 from abipy.core.release import __version__
 
-from pprint import pprint
+from pprint import pprint, pformat
 #from collections import defaultdict, OrderedDict
 #from socket import gethostname
 #from monty import termcolor
@@ -21,18 +21,13 @@ from monty.functools import prof_main
 #from monty.termcolor import cprint, colored, get_terminal_size
 #from monty.string import boxed, make_banner
 #from abipy.tools import duck
-from abipy.flowtk.worker import WorkerClients, WorkerServer, list_workers_on_local_machine
-
+from abipy.flowtk.worker import (WorkerClients, WorkerServer,
+        list_workers_on_localhost, create_new_worker, discover_local_workers, rdiscover)
 
 #def straceback():
 #    """Returns a string with the traceback."""
 #    import traceback
 #    return traceback.format_exc()
-
-
-#def parse_strings(s):
-#    """Parse comma separated values. Return None if s is None."""
-#    return s.split(",") if s is not None else s
 
 
 def get_epilog():
@@ -44,21 +39,18 @@ Usage example:
   abirun.py FLOWDIR scheduler             => Execute flow with the scheduler.
 
 
-#abidb init
-#db clean
-#
-abiw.py add name manager.yml scheduler
-abiw.py clients  DONE
-abiw.py disable name
-abiw.py set_default name
-abiw.py ping [names]
-abiw.py status [names | all]
-abiw.py start name DONE
-abiw.py restart name DONE TO_BE_TESTED
-abiw.py kill name DONE
-abiw.py send script.py DONE
-abiw.py gui
-abiw.py allgui
+  abiw.py add name manager.yml scheduler
+  abiw.py clients  DONE
+  abiw.py disable name
+  abiw.py set_default name
+  abiw.py ping [names]
+  abiw.py status [names | all]
+  abiw.py start name DONE
+  abiw.py restart name DONE TO_BE_TESTED
+  abiw.py kill name DONE
+  abiw.py send script.py DONE
+  abiw.py gui
+  abiw.py allgui
 """
 
     notes = """\
@@ -105,7 +97,8 @@ def get_parser(with_epilog=False):
 
     serve_parser = argparse.ArgumentParser(add_help=False)
     serve_parser.add_argument("-a", "--address", type=str, default="localhost", help="Adress")
-    serve_parser.add_argument("-p", "--port", type=int, default=60073, help="Port")
+    serve_parser.add_argument("-p", "--port", type=int, default=0,
+                               help="Port. Port 0 means to select an arbitrary unused port")
     serve_parser.add_argument("-d", "--daemonize", action="store_true", default=False, help="Demonize the serve")
 
     # Build the main parser.
@@ -119,18 +112,24 @@ def get_parser(with_epilog=False):
     # Subparser for clients command.
     p_clients = subparsers.add_parser("clients", parents=[copts_parser], help="List clients available")
 
-    # Subparser for servers command.
-    p_servers = subparsers.add_parser("servers", parents=[copts_parser],
-                                      help="List servers available on the local machine")
+    # Subparser for lworkers command.
+    p_servers = subparsers.add_parser("lworkers", parents=[copts_parser],
+                                      help="List AbiPy workers available on the local machine")
 
     # Subparser for start command.
     p_start = subparsers.add_parser("start", parents=[copts_parser, worker_selector, serve_parser],
                                     help="Start worker.")
-    p_start.add_argument("-s", "--scratch-dir", type=str, required=True,
-                         help="Scratch directory in which Flows will be generated")
+    ## FIXME ???
+    #p_start.add_argument("-s", "--scratch-dir", type=str, required=True,
+    #                     help="Scratch directory in which Flows will be generated")
 
     p_restart = subparsers.add_parser("restart", parents=[copts_parser, worker_selector, serve_parser],
                                       help="Restart worker.")
+
+    p_new_worker = subparsers.add_parser("new_worker", parents=[copts_parser, worker_selector],
+                                      help="Create new AbiPy worker.")
+    p_new_worker.add_argument("-s", "--scratch-dir", type=str, required=True,
+                              help="Scratch directory in which Flows will be generated")
 
     p_kill = subparsers.add_parser("kill", parents=[copts_parser], help="Kill worker.")
     p_kill.add_argument('worker_name', type=str, help="Name of the worker server.")
@@ -144,6 +143,10 @@ def get_parser(with_epilog=False):
     p_status = subparsers.add_parser("status", parents=[copts_parser, worker_selector_with_default],
                                      help="Return status of a single worker.")
 
+    # Subparser for .status command.
+    p_lstatus = subparsers.add_parser("lstatus", parents=[copts_parser],
+                                     help="Return status of all the local workers.")
+
     # Subparser for status command.
     p_set_default = subparsers.add_parser("set_default", parents=[copts_parser, worker_selector],
                                            help="Change the default worker.")
@@ -152,8 +155,11 @@ def get_parser(with_epilog=False):
     p_all_status = subparsers.add_parser("all_status", parents=[copts_parser],
                                           help="Return status af all workers.")
 
-    p_discover = subparsers.add_parser("discover", parents=[copts_parser],
-                                       help="Discover AbiPy workers.")
+    p_ldiscover = subparsers.add_parser("ldiscover", parents=[copts_parser],
+                                        help="Discover AbiPy workers on localhost.")
+
+    p_rdiscover = subparsers.add_parser("rdiscover", parents=[copts_parser],
+                                        help="Discover remote AbiPy workers.")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser("gui", parents=[copts_parser, worker_selector_with_default],
@@ -196,8 +202,6 @@ def get_parser(with_epilog=False):
 
 def serve_kwargs_from_options(options):
 
-    #address = "localhost"
-    #if options.no_browser:
     print("""
 Use:
 
@@ -209,7 +213,7 @@ for port forwarding.
     import abipy.panels as mod
     assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
 
-    return dict(
+    d =  dict(
         debug=options.verbose > 0,
         show=False,
         port=options.port,
@@ -217,6 +221,8 @@ for port forwarding.
         address=options.address,
         websocket_origin="*",
     )
+    print("serve_kwargs:\n", pformat(d), "\n")
+    return d
 
 
 def serve(worker, options):
@@ -267,20 +273,30 @@ def main():
         print(options)
 
     if options.command == "start":
-        # Port 0 means to select an arbitrary unused port
-        #host, port = "localhost", 60073
-        sched_options = {"seconds": 5}
-        worker = WorkerServer(options.worker_name, options.address, options.port,
-                              sched_options, options.scratch_dir)
-
+        worker = WorkerServer.init_from_config_dir(options.worker_name)
         return serve(worker, options)
 
     elif options.command == "restart":
-        worker = WorkerServer.from_config_dir(options.worker_name)
+        worker = WorkerServer.restart_from_config_dir(options.worker_name)
         return serve(worker, options)
 
-    elif options.command == "servers":
-        return list_workers_on_local_machine()
+    elif options.command == "new_worker":
+        return create_new_worker(options.worker_name, options.scratch_dir)
+
+    #if os.path.basename(options.filepath) == "flows.db":
+    #    from abipy.flowtk.launcher import print_flowsdb_file
+    #    return print_flowsdb_file(options.filepath)
+
+    elif options.command == "lworkers":
+        return list_workers_on_localhost()
+
+    elif options.command == "ldiscover":
+        return discover_local_workers()
+
+    elif options.command == "rdiscover":
+        #hostnames = ["nic5", "zenobe"]
+        hostnames = ["nic5"]
+        return rdiscover(hostnames)
 
     all_clients = WorkerClients.from_json_file()
 
@@ -299,7 +315,9 @@ def main():
 
     elif options.command == "status":
         client = all_clients.select_from_name(options.worker_name)
-        pprint(client.get_json_status())
+        pprint(client.get_json_state())
+
+    #elif options.command == "lstatus":
 
     elif options.command == "set_default":
         all_clients.set_default(options.worker_name)
@@ -307,30 +325,8 @@ def main():
 
     elif options.command == "all_status":
         for client in all_clients:
-            pprint(client.get_json_status())
+            pprint(client.get_json_state())
 
-    elif options.command == "discover":
-        from fabric import Connection
-        hosts = ["nic5", "zenobe"]
-        for host in hosts:
-            print("For host:", host)
-            c = Connection(host)
-            try:
-                result = c.run("ls ~/.abinit/abipy")
-                files = result.stdout.split()
-                worker_dirs = [f for f in files if f.startswith("worker_")]
-                print("worker_dirs:", worker_dirs)
-                worker_dirs = [os.path.join("~/.abinit/abipy", b) for b in worker_dirs]
-            except Exception as exc:
-                print(exc)
-                continue
-
-            for w in worker_dirs:
-                path = os.path.join(w, "flows.db")
-                try:
-                    print(c.get(path))
-                except IOError as exc:
-                    print(f"Cannot find file: {host}@{path}. Ignoring error.")
 
 
     elif options.command == "gui":

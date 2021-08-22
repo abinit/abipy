@@ -636,13 +636,14 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         return _USER_CONFIG_TASKMANAGER
 
     @classmethod
-    def from_file(cls, filename):
-        """Read the configuration parameters from the Yaml file filename."""
+    def from_file(cls, filepath):
+        """Read the configuration parameters from the Yaml file filepath."""
+        filepath = os.path.expanduser(filepath)
         try:
-            with open(filename, "rt") as fh:
+            with open(filepath, "rt") as fh:
                 return cls.from_dict(yaml_safe_load(fh))
         except Exception as exc:
-            print("Error while reading TaskManager parameters from %s\n" % filename)
+            print(f"Error while reading TaskManager parameters from {filepath}\n")
             raise
 
     @classmethod

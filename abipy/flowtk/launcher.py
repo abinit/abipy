@@ -6,7 +6,7 @@
 import abc
 import os
 import time
-import ruamel.yaml as yaml
+
 import pickle
 import datetime
 import apscheduler
@@ -48,6 +48,7 @@ def straceback():
 
 
 def yaml_safe_load(string):
+    import ruamel.yaml as yaml
     return yaml.YAML(typ='safe', pure=True).load(string)
 
 
@@ -855,6 +856,8 @@ class PyFlowScheduler(BaseScheduler):
 
 class MultiFlowScheduler(BaseScheduler):
 
+    # TODO: history, logging, better treatment of exceptions....
+
     def __init__(self, sqldb_path, **kwargs):
         super().__init__(**kwargs)
         self.flows = []
@@ -865,8 +868,8 @@ class MultiFlowScheduler(BaseScheduler):
 
         self.incoming_flow_queue = Queue()
 
-        #import threading
-        #self._lock = threading.Lock()
+        import threading
+        self._lock = threading.Lock()
 
         self.sqldb_path = sqldb_path
         self.create_sqldb()
@@ -915,7 +918,7 @@ class MultiFlowScheduler(BaseScheduler):
     def create_sqldb(self):
         if os.path.exists(self.sqldb_path): return
 
-        with self.sql_connect() as con:
+        with self._lock, self.sql_connect() as con:
             # Create table
             cur = con.cursor()
             cur.execute("""CREATE TABLE flows (
@@ -983,6 +986,28 @@ class MultiFlowScheduler(BaseScheduler):
             con.close()
 
         return flows
+
+    def remove_flows_with_status(self, status):
+        if status == "Running":
+           raise ValueError("You cannot remove a flow that is in `Running` mode!")
+
+        count = 0
+        with self._lock, self.sql_connect() as con:
+            cur = con.cursor()
+            cur.execute("DELETE FROM flows WHERE status = ?", [status])
+            rows = cur.fetchall()
+            if rows is None:
+                con.close()
+                return 0
+
+            for row in rows:
+                workdir = row["workdir"]
+                if not os.path.exists(workdir): continue
+                os.rmdir(workdir)
+                count += 1
+
+        con.close()
+        return count
 
     def callback(self):
         """The function that will be executed by the scheduler."""
@@ -1092,7 +1117,7 @@ class MultiFlowScheduler(BaseScheduler):
 
             self.flows = [self.flows[i] for i in range(len(self.flows)) if i not in set(locked)]
 
-        with self.sql_connect() as con:
+        with self._lock, self.sql_connect() as con:
             cur = con.cursor()
             query = "UPDATE flows SET status = ? WHERE flow_id = ?"
             values = [(str(flow.S_RUN), flow.node_id) for flow in self.flows]
@@ -1106,6 +1131,15 @@ class MultiFlowScheduler(BaseScheduler):
             cur.executemany(query, values)
         con.close()
 
+
+def print_flowsdb_file(filepath):
+    """Print flows.db file to terminal."""
+    import pandas as pd
+    import sqlite3
+    from abipy import abilab
+    with sqlite3.connect(options.filepath) as con:
+        df = pd.read_sql_query("SELECT * FROM flows", con)
+        abilab.print_dataframe(df, title=options.filepath)
 
 
 def sendmail(subject, text, mailto, sender=None):

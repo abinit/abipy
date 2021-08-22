@@ -241,7 +241,8 @@ def main():
         return handle_json(options)
 
     if os.path.basename(options.filepath) == "flows.db":
-        return handle_flowsdb_file(options)
+        from abipy.flowtk.launcher import print_flowsdb_file
+        return print_flowsdb_file(options.filepath)
 
     if not options.notebook:
         abifile = abilab.abiopen(options.filepath)
