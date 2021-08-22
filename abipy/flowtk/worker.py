@@ -15,8 +15,9 @@ import panel as pn
 from datetime import datetime
 from pprint import pprint #, pformat
 from queue import Queue, Empty
+from socket import gethostname
 from monty import termcolor
-#from monty.collections import AttrDict, dict2namedtuple
+from monty.collections import AttrDict #, dict2namedtuple
 from monty.json import MSONable
 from pymatgen.util.serialization import pmg_serialize
 from abipy.flowtk.flows import Flow
@@ -127,6 +128,30 @@ def find_free_port(address):
         return s.getsockname()[1]
 
 
+class WorkerState(AttrDict):
+
+    @classmethod
+    def new(cls, **kwargs):
+
+        import getpass
+        from socket import gethostname
+
+        new = dict(
+            name=None,
+            status="init",
+            pid=os.getpid(),
+            address="localhost",
+            port=0,
+            scratch_dir=None,
+            username=getpass.getuser(),
+            hostname=gethostname(),
+            version="0.1",
+        )
+
+        new.update(**kwargs)
+        return new
+
+
 class WorkerServer:
 
     def __init__(self, name: str, sched_options: dict, scratch_dir: str,
@@ -225,7 +250,8 @@ class WorkerServer:
         if filepath is None:
             filepath = os.path.join(self.config_dir, "state.json")
 
-        d = dict(
+        d = WorkerState.new(
+        #d = dict(
             name=self.name,
             status=status,
             pid=self.pid,
@@ -233,6 +259,7 @@ class WorkerServer:
             port=self.port,
             scratch_dir=self.scratch_dir,
         )
+
 
         with open(filepath, "wt") as fp:
             json.dump(d, fp, indent=2)
@@ -283,6 +310,8 @@ class WorkerServer:
         else:
             md_lines.append("## Empty Flow list!")
 
+        #import getpass
+        #username = getpass.getuser()
         #import platform
         #from socket import gethostname
         #system, node, release, version, machine, processor = platform.uname()
@@ -353,13 +382,14 @@ to update the list of local clients.
     copy(scheduler_path, config_dir)
     copy(manager_path, config_dir)
 
-    state_dict = dict(
-        name=worker_name,
-        status="init",
-        address="localhost",
-        port=0,
-        scratch_dir=scratch_dir,
-    )
+    #state_dict = dict(
+    #    name=worker_name,
+    #    status="init",
+    #    address="localhost",
+    #    port=0,
+    #    scratch_dir=scratch_dir,
+    #)
+    state_dict = WorkerState.new()
     with open(os.path.join(config_dir, "state.json"), "wt") as fp:
         json.dump(state_dict, fp, indent=2)
 
@@ -404,16 +434,15 @@ def rdiscover(hostnames):
     # For example, instead of saying get("~/tmp/archive.tgz"), say get("tmp/archive.tgz").
 
     from fabric import Connection
-    from io import StringIO, BytesIO
+    from io import BytesIO
     for host in hostnames:
-        print(f"For host {host}")
+        print(f"For host {host} ...")
         c = Connection(host)
         try:
             result = c.run("ls ~/.abinit/abipy")
             files = result.stdout.split()
             worker_dirs = [f for f in files if f.startswith("worker_")]
             #print("worker_dirs:", worker_dirs)
-            #worker_dirs = [os.path.join("~/.abinit/abipy", b) for b in worker_dirs]
             worker_dirs = [os.path.join(".abinit/abipy", b) for b in worker_dirs]
         except Exception as exc:
             print(exc)
@@ -423,12 +452,11 @@ def rdiscover(hostnames):
         for w in worker_dirs:
             path = os.path.join(w, "state.json")
             try:
-                #strio = StringIO()
                 strio = BytesIO()
                 c.get(path, local=strio)
                 json_bstring = strio.getvalue()
                 strio.close()
-                #print("json_bstring", json_bstring)
+                #print("got json_bstring", json_bstring)
                 worker_states.append(json.loads(json_bstring))
 
             except IOError as exc:
@@ -441,7 +469,6 @@ def rdiscover(hostnames):
 
 class WorkerClient(MSONable):
 
-    # TODO: Add server status?
 
     def __init__(self, server_name, server_address, server_port, default=False, timeout=None):
         self.server_name = server_name
@@ -451,14 +478,10 @@ class WorkerClient(MSONable):
         self.timeout = timeout
         self.default = bool(default)
 
-    #@classmethod
-    #def from_server_name(cls, name: str)
-    #    clients = WorkerClients.from_json_file()
-    #    return clients.get_client_name(name)
-
-    #@classmethod
-    #def from_dict(cls, d: dict):
-    #    return cls(**d)
+    # TODO: Add server status and ProxyJumpt support >
+    # I may passa Server_state directly
+    #def has_remote_server(self):
+    #    return self.server.hostname != gethostname()
 
     @pmg_serialize
     def as_dict(self) -> dict:
@@ -483,7 +506,6 @@ class WorkerClient(MSONable):
             )
 
         url=f"{self.server_url}/postflow"
-        #url = "http://localhost:60073/postflow"
         print(f"Sending `{filepath}` script to url: `{url}`...\n\n")
 
         r = requests.post(url=url, json=data, timeout=self.timeout)
@@ -499,7 +521,6 @@ class WorkerClient(MSONable):
 
     def get_json_state(self):
         url = f"{self.server_url}/json_state"
-        #url = "http://localhost:60073/json_state"
         print(f"Sending request to {url}")
         r = requests.get(url=url)
         print("ok:", r.ok, "status code:", r.status_code)
@@ -538,15 +559,15 @@ class WorkerClients(list, MSONable):
         app = err_lines.append
         from collections import Counter
 
-        # server_name must be unique.
-        for server_name, count in Counter((w.server_name for w in self)).items():
+        # worker_name must be unique.
+        for worker_name, count in Counter((w.worker_name for w in self)).items():
             if count > 1:
-                app(f"Server name: `{server_name}` appears: {count} times. This is forbidden!")
+                app(f"Server name: `{worker_name}` appears: {count} times. This is forbidden!")
 
         # Only one default server is allowed.
         count = sum(1 if w.default == True else 0 for w in self)
         if count != 1:
-            app(f"default=True appears `{count}` times. This is forbidden as only one default server_name is allowed!")
+            app(f"default=True appears `{count}` times. This is forbidden as only one default worker_name is allowed!")
 
         if err_lines:
             raise RuntimeError("\n".join(err_lines))
@@ -571,33 +592,33 @@ class WorkerClients(list, MSONable):
         print("in update clients with worker_states:", worker_states)
         for state in worker_states:
             print(state)
-            server_name = state["name"]
-            client = self.select_from_name(server_name, allow_none=True)
+            worker_name = state["name"]
+            client = self.select_from_worker_name(worker_name, allow_none=True)
             if client is not None:
                 client.server_address = state["address"]
                 client.server_port = state["port"]
             else:
-                new_client = WorkerClient(server_name, state["address"], state["port"])
+                new_client = WorkerClient(worker_name, state["address"], state["port"])
                 self.append(new_client)
 
         #print(self)
         self._validate()
         self.write_json_file()
 
-    def select_from_name(self, server_name, allow_none=False):
-        if server_name is None:
+    def select_from_worker_name(self, worker_name, allow_none=False):
+        if worker_name is None:
             for client in self:
                 if client.default: return client
             raise ValueError("Cannot find default worker in list!")
 
         for client in self:
-           if client.server_name == server_name: return client
+           if client.worker_name == worker_name: return client
 
         if allow_none: return None
-        raise ValueError(f"Cannot find client with name `{server_name}` in list!")
+        raise ValueError(f"Cannot find client with name `{worker_name}` in list!")
 
-    def set_default(self, server_name):
-        the_one = self.select_from_name(server_name)
+    def set_default(self, worker_name):
+        the_one = self.select_from_worker_name(worker_name)
         for client in self:
             client.default = False
         the_one.default = True

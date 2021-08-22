@@ -8,19 +8,13 @@ import os
 import argparse
 #import time
 #import platform
-#import tempfile
 import abipy.flowtk as flowtk
-#from abipy import abilab
 from abipy.core.release import __version__
 
 from pprint import pprint, pformat
-#from collections import defaultdict, OrderedDict
-#from socket import gethostname
-#from monty import termcolor
 from monty.functools import prof_main
 #from monty.termcolor import cprint, colored, get_terminal_size
 #from monty.string import boxed, make_banner
-#from abipy.tools import duck
 from abipy.flowtk.worker import (WorkerClients, WorkerServer,
         list_workers_on_localhost, create_new_worker, discover_local_workers, rdiscover)
 
@@ -175,6 +169,9 @@ def get_parser(with_epilog=False):
     p_rdiscover = subparsers.add_parser("rdiscover", parents=[copts_parser],
                                         help="Discover remote AbiPy workers.")
 
+    p_rdiscover.add_argument("-k", "--hostnames", nargs="+", required=True, type=str,
+        help="List of hostnames")
+
     # Subparser for gui command.
     p_gui = subparsers.add_parser("gui", parents=[copts_parser, worker_selector_with_default],
                                   help="Open GUI for the default worker.")
@@ -308,27 +305,25 @@ def main():
         return discover_local_workers()
 
     elif options.command == "rdiscover":
-        hostnames = ["nic5", "zenobe"]
-        #hostnames = ["nic5"]
-        return rdiscover(hostnames)
+        return rdiscover(options.hostnames)
 
     all_clients = WorkerClients.from_json_file()
 
     if options.command == "kill":
-        client = all_clients.select_from_name(options.worker_name)
+        client = all_clients.select_from_worker_name(options.worker_name)
         client.send_kill_message()
 
     elif options.command == "clients":
         print(all_clients)
 
     elif options.command == "send":
-        client = all_clients.select_from_name(options.worker_name)
+        client = all_clients.select_from_worker_name(options.worker_name)
         print(client)
         for path in options.py_paths:
             pprint(client.send_pyscript(path))
 
     elif options.command == "status":
-        client = all_clients.select_from_name(options.worker_name)
+        client = all_clients.select_from_worker_name(options.worker_name)
         pprint(client.get_json_state())
 
     #elif options.command == "lstatus":
@@ -342,7 +337,7 @@ def main():
             pprint(client.get_json_state())
 
     elif options.command == "gui":
-        client = all_clients.select_from_name(options.worker_name)
+        client = all_clients.select_from_worker_name(options.worker_name)
         print(client)
         client.open_webgui()
 
