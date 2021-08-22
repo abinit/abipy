@@ -1137,9 +1137,9 @@ def print_flowsdb_file(filepath):
     import pandas as pd
     import sqlite3
     from abipy import abilab
-    with sqlite3.connect(options.filepath) as con:
+    with sqlite3.connect(filepath) as con:
         df = pd.read_sql_query("SELECT * FROM flows", con)
-        abilab.print_dataframe(df, title=options.filepath)
+        abilab.print_dataframe(df, title=filepath)
 
 
 def sendmail(subject, text, mailto, sender=None):

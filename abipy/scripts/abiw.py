@@ -35,11 +35,7 @@ def get_epilog():
 
 Usage example:
 
-  abirun.py FLOWDIR rapid                 => Keep repeating, stop when no task can be executed.
-  abirun.py FLOWDIR scheduler             => Execute flow with the scheduler.
-
-
-  abiw.py add name manager.yml scheduler
+  abiw.py add name manager.yml scheduler  =>
   abiw.py clients  DONE
   abiw.py disable name
   abiw.py set_default name
@@ -57,9 +53,27 @@ Usage example:
 
 Notes:
 
-    If FLOWDIR is not given, abirun.py automatically selects the database located within
-    the working directory. An Exception is raised if multiple databases are found.
+    The standard procedure to create a new worker is as follows:
 
+        $ abiw.py new_worker WORKER_NAME --scratch-dir=/tmp
+
+    The new worker will create flows in `--scratch-dir`.
+    Note that WORKER_NAME must be unique.
+
+    Start the worker with:
+
+        $ abiw.py start WORKER_NAME
+
+    Open a new terminal and issue:
+
+        $ abiw.py ldiscover
+
+    to discover all the workers running on the localhost and generate
+    the clients.json file in ~/.abinit/abipy/
+
+    Finally, one can send python scripts to the worker with:
+
+        $ abiw.py send run_si_ebands.py -w WORKER_NAME
 """
 
     developers = """\
@@ -110,7 +124,7 @@ def get_parser(with_epilog=False):
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for clients command.
-    p_clients = subparsers.add_parser("clients", parents=[copts_parser], help="List clients available")
+    p_clients = subparsers.add_parser("clients", parents=[copts_parser], help="List available clients.")
 
     # Subparser for lworkers command.
     p_servers = subparsers.add_parser("lworkers", parents=[copts_parser],
@@ -294,8 +308,8 @@ def main():
         return discover_local_workers()
 
     elif options.command == "rdiscover":
-        #hostnames = ["nic5", "zenobe"]
-        hostnames = ["nic5"]
+        hostnames = ["nic5", "zenobe"]
+        #hostnames = ["nic5"]
         return rdiscover(hostnames)
 
     all_clients = WorkerClients.from_json_file()
@@ -327,10 +341,9 @@ def main():
         for client in all_clients:
             pprint(client.get_json_state())
 
-
-
     elif options.command == "gui":
         client = all_clients.select_from_name(options.worker_name)
+        print(client)
         client.open_webgui()
 
     #elif options.command == "all_gui":

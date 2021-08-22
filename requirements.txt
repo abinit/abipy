@@ -19,3 +19,4 @@ plotly
 ipython
 chart-studio
 click
+#python-daemon

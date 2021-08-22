@@ -16,7 +16,7 @@ from datetime import datetime
 from pprint import pprint #, pformat
 from queue import Queue, Empty
 from monty import termcolor
-from monty.collections import AttrDict, dict2namedtuple
+#from monty.collections import AttrDict, dict2namedtuple
 from monty.json import MSONable
 from pymatgen.util.serialization import pmg_serialize
 from abipy.flowtk.flows import Flow
@@ -374,7 +374,7 @@ def _get_worker_state_path_list():
     for workdir in worker_dirs:
         state_file = os.path.join(config_dir, workdir, "state.json")
         with open(state_file, "rt") as fp:
-            d = AttrDict(**json.load(fp))
+            d = json.load(fp)
             state_path_list.append((d, state_file))
 
     return state_path_list
@@ -396,7 +396,15 @@ def discover_local_workers():
 
 def rdiscover(hostnames):
 
+
+    # From https://docs.fabfile.org/en/2.6/api/transfer.html#fabric.transfer.Transfer
+    # Most SFTP servers set the remote working directory to the connecting user’s home directory,
+    # and (unlike most shells) do not expand tildes (~).
+    #
+    # For example, instead of saying get("~/tmp/archive.tgz"), say get("tmp/archive.tgz").
+
     from fabric import Connection
+    from io import StringIO, BytesIO
     for host in hostnames:
         print(f"For host {host}")
         c = Connection(host)
@@ -404,24 +412,36 @@ def rdiscover(hostnames):
             result = c.run("ls ~/.abinit/abipy")
             files = result.stdout.split()
             worker_dirs = [f for f in files if f.startswith("worker_")]
-            print("worker_dirs:", worker_dirs)
-            worker_dirs = [os.path.join("~/.abinit/abipy", b) for b in worker_dirs]
+            #print("worker_dirs:", worker_dirs)
+            #worker_dirs = [os.path.join("~/.abinit/abipy", b) for b in worker_dirs]
+            worker_dirs = [os.path.join(".abinit/abipy", b) for b in worker_dirs]
         except Exception as exc:
             print(exc)
             continue
 
+        worker_states = []
         for w in worker_dirs:
-            #path = os.path.join(w, "flows.db")
             path = os.path.join(w, "state.json")
             try:
-                json_string = c.get(path)
-                print(json_string)
+                #strio = StringIO()
+                strio = BytesIO()
+                c.get(path, local=strio)
+                json_bstring = strio.getvalue()
+                strio.close()
+                #print("json_bstring", json_bstring)
+                worker_states.append(json.loads(json_bstring))
+
             except IOError as exc:
                 print(f"Cannot find state.json file: {host}@{path}. Ignoring error.")
                 print(exc)
 
+        clients = WorkerClients.from_json_file(empty_if_not_file=True)
+        clients.update_from_worker_states(worker_states)
+
 
 class WorkerClient(MSONable):
+
+    # TODO: Add server status?
 
     def __init__(self, server_name, server_address, server_port, default=False, timeout=None):
         self.server_name = server_name
@@ -554,10 +574,10 @@ class WorkerClients(list, MSONable):
             server_name = state["name"]
             client = self.select_from_name(server_name, allow_none=True)
             if client is not None:
-                client.server_address = state.address
-                client.server_port = state.port
+                client.server_address = state["address"]
+                client.server_port = state["port"]
             else:
-                new_client = WorkerClient(server_name, state.address, state.port)
+                new_client = WorkerClient(server_name, state["address"], state["port"])
                 self.append(new_client)
 
         #print(self)
