@@ -16,7 +16,7 @@ from monty.functools import prof_main
 #from monty.termcolor import cprint, colored, get_terminal_size
 #from monty.string import boxed, make_banner
 from abipy.flowtk.worker import (WorkerClients, WorkerServer,
-        list_workers_on_localhost, create_new_worker, discover_local_workers, rdiscover)
+        list_localhost_workers, create_new_worker, discover_local_workers, rdiscover)
 
 #def straceback():
 #    """Returns a string with the traceback."""
@@ -169,8 +169,8 @@ def get_parser(with_epilog=False):
     p_rdiscover = subparsers.add_parser("rdiscover", parents=[copts_parser],
                                         help="Discover remote AbiPy workers.")
 
-    p_rdiscover.add_argument("-k", "--hostnames", nargs="+", required=True, type=str,
-        help="List of hostnames")
+    p_rdiscover.add_argument("hostnames", nargs="+", type=str,
+                              help="List of hostnames")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser("gui", parents=[copts_parser, worker_selector_with_default],
@@ -299,7 +299,7 @@ def main():
     #    return print_flowsdb_file(options.filepath)
 
     elif options.command == "lworkers":
-        return list_workers_on_localhost()
+        return list_localhost_workers()
 
     elif options.command == "ldiscover":
         return discover_local_workers()

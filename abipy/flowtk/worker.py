@@ -19,6 +19,7 @@ from socket import gethostname
 from monty import termcolor
 from monty.collections import AttrDict #, dict2namedtuple
 from monty.json import MSONable
+from monty.functools import lazy_property
 from pymatgen.util.serialization import pmg_serialize
 from abipy.flowtk.flows import Flow
 from abipy.flowtk.launcher import MultiFlowScheduler
@@ -119,7 +120,7 @@ class JsonStateHandler(_JsonHandler):
         self.write(json_data)
 
 
-def find_free_port(address):
+def find_free_port(address="localhost"):
     import socket
     from contextlib import closing
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
@@ -167,6 +168,10 @@ class WorkerState(AttrDict):
     def from_json_file(cls, filepath):
         with open(filepath, "rt") as fp:
             return cls(**json.load(fp))
+
+    @classmethod
+    def from_json(cls, json_string):
+        return cls(**json.loads(json_string))
 
 
 class WorkerServer:
@@ -216,7 +221,7 @@ class WorkerServer:
             with open(state_file, "rt") as fp:
                 d = json.load(fp)
             if d["status"] == "serving":
-                raise RuntimeError(f"There's already a Worker serving on this machine with pid: {d['pid']}")
+                raise RuntimeError(f"There's already an AbiPy Worker serving on this machine with pid: {d['pid']}")
 
         # Register function atexit
         import atexit
@@ -418,7 +423,7 @@ def _get_worker_state_path_list():
     return state_path_list
 
 
-def list_workers_on_localhost():
+def list_localhost_workers():
 
     for (worker_state, filepath) in _get_worker_state_path_list():
         print(f"In state_file: `{filepath}`")
@@ -437,6 +442,7 @@ def rdiscover(hostnames):
 
 
     # From https://docs.fabfile.org/en/2.6/api/transfer.html#fabric.transfer.Transfer
+    #
     # Most SFTP servers set the remote working directory to the connecting user’s home directory,
     # and (unlike most shells) do not expand tildes (~).
     #
@@ -465,8 +471,7 @@ def rdiscover(hostnames):
                 c.get(path, local=strio)
                 json_bstring = strio.getvalue()
                 strio.close()
-                #print("got json_bstring", json_bstring)
-                worker_states.append(json.loads(json_bstring))
+                worker_states.append(WorkerState.from_json(json_bstring))
 
             except IOError as exc:
                 print(f"Cannot find state.json file: {host}@{path}. Ignoring error.")
@@ -487,26 +492,25 @@ class WorkerClient(MSONable):
         self.default = bool(default)
         #self.server_url = f"http://{self.worker_state.address}:{self.worker_state.port}"
 
-    @property
+    @lazy_property
     def server_url(self):
 
         need_port_forwarding = self.worker_state.hostname != gethostname()
         if not need_port_forwarding:
-            server_url = f"http://{self.worker_state.address}:{self.worker_state.port}"
-        else:
-            username = self.worker_state.username
-            remote_hostname = self.worker_state.hostname
-            remote_port = self.worker_state.port
-            local_port = find_free_port()
-            cmd = f"ssh -N -f -L localhost:{local_port}:localhost:{remote_port} {username}@{remote_hostname}"
-            print(f"In port_forwarding with command: {cmd}")
-            p = subprocess.run(cmd, shell=True)
-            if p.returncode != 0:
-                print("WARNING: {cmd}")
-            #p.pid
-            server_url = f"http://localhost:{local_port}"
+            return f"http://{self.worker_state.address}:{self.worker_state.port}"
 
-        return server_url
+        username = self.worker_state.username
+        remote_hostname = self.worker_state.hostname
+        remote_port = self.worker_state.port
+        local_port = find_free_port()
+        cmd = f"ssh -N -f -L localhost:{local_port}:localhost:{remote_port} {username}@{remote_hostname}"
+        print(f"Executing ssh port-forwarding with: {cmd}")
+        p = subprocess.run(cmd, shell=True)
+        if p.returncode != 0:
+            print(f"WARNING: {cmd}")
+        #p.pid
+
+        return f"http://localhost:{local_port}"
 
     def update_state(self, worker_state):
         self.worker_state = worker_state.copy()
