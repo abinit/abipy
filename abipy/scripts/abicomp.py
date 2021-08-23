@@ -1143,7 +1143,7 @@ def serve_kwargs_from_options(options):
         print("""
 Use:
 
-    ssh -N -f -L localhost:{port}:localhost:{port} username@you_remote_cluster
+    ssh -N -f -L localhost:{port}:localhost:{port} username@your_remote_cluster
 
 for port forwarding.
 """)

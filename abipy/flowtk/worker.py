@@ -13,7 +13,7 @@ import requests
 import panel as pn
 
 from datetime import datetime
-from pprint import pprint #, pformat
+from pprint import pprint, pformat
 from queue import Queue, Empty
 from socket import gethostname
 from monty import termcolor
@@ -136,7 +136,7 @@ class WorkerState(AttrDict):
         import getpass
         from socket import gethostname
 
-        new = dict(
+        new = cls(
             name=None,
             status="init",
             pid=os.getpid(),
@@ -149,7 +149,24 @@ class WorkerState(AttrDict):
         )
 
         new.update(**kwargs)
+        print(type(new))
         return new
+
+    #@classmethod
+    #def from_dict(cls, d):
+    #    return cls(**d)
+
+    def __str__(self):
+        return self.__class__.__name__ + "\n" + pformat(self, indent=2) + "\n"
+
+    def json_write(self, filepath):
+        with open(filepath, "wt") as fp:
+            json.dump(self, fp, indent=2)
+
+    @classmethod
+    def from_json_file(cls, filepath):
+        with open(filepath, "rt") as fp:
+            return cls(**json.load(fp))
 
 
 class WorkerServer:
@@ -250,8 +267,7 @@ class WorkerServer:
         if filepath is None:
             filepath = os.path.join(self.config_dir, "state.json")
 
-        d = WorkerState.new(
-        #d = dict(
+        state = WorkerState.new(
             name=self.name,
             status=status,
             pid=self.pid,
@@ -260,9 +276,7 @@ class WorkerServer:
             scratch_dir=self.scratch_dir,
         )
 
-
-        with open(filepath, "wt") as fp:
-            json.dump(d, fp, indent=2)
+        state.json_write(filepath)
 
     def serve(self, **serve_kwargs):
         from abipy.panels.core import abipanel
@@ -310,8 +324,6 @@ class WorkerServer:
         else:
             md_lines.append("## Empty Flow list!")
 
-        #import getpass
-        #username = getpass.getuser()
         #import platform
         #from socket import gethostname
         #system, node, release, version, machine, processor = platform.uname()
@@ -382,16 +394,13 @@ to update the list of local clients.
     copy(scheduler_path, config_dir)
     copy(manager_path, config_dir)
 
-    #state_dict = dict(
-    #    name=worker_name,
-    #    status="init",
-    #    address="localhost",
-    #    port=0,
-    #    scratch_dir=scratch_dir,
-    #)
-    state_dict = WorkerState.new()
+    worker_state = WorkerState.new(
+            name=worker_name,
+            scratch_dir=scratch_dir,
+            )
+
     with open(os.path.join(config_dir, "state.json"), "wt") as fp:
-        json.dump(state_dict, fp, indent=2)
+        json.dump(worker_state, fp, indent=2)
 
     return 0
 
@@ -403,18 +412,17 @@ def _get_worker_state_path_list():
     worker_dirs = [dirname for dirname in os.listdir(config_dir) if dirname.startswith("worker_")]
     for workdir in worker_dirs:
         state_file = os.path.join(config_dir, workdir, "state.json")
-        with open(state_file, "rt") as fp:
-            d = json.load(fp)
-            state_path_list.append((d, state_file))
+        state = WorkerState.from_json_file(state_file)
+        state_path_list.append((state, state_file))
 
     return state_path_list
 
 
 def list_workers_on_localhost():
 
-    for (state, filepath) in _get_worker_state_path_list():
+    for (worker_state, filepath) in _get_worker_state_path_list():
         print(f"In state_file: `{filepath}`")
-        pprint(state)
+        pprint(worker_state)
         print(2 * "\n")
 
 
@@ -422,6 +430,7 @@ def discover_local_workers():
     worker_states = [state for  (state, _) in _get_worker_state_path_list()]
     clients = WorkerClients.from_json_file(empty_if_not_file=True)
     clients.update_from_worker_states(worker_states)
+    return clients
 
 
 def rdiscover(hostnames):
@@ -465,30 +474,50 @@ def rdiscover(hostnames):
 
         clients = WorkerClients.from_json_file(empty_if_not_file=True)
         clients.update_from_worker_states(worker_states)
+        return clients
 
 
 class WorkerClient(MSONable):
 
 
-    def __init__(self, server_name, server_address, server_port, default=False, timeout=None):
-        self.server_name = server_name
-        self.server_address = server_address
-        self.server_port = server_port
-        self.server_url = f"http://{server_address}:{server_port}"
+    def __init__(self, worker_state, default=False, timeout=None):
+        self.worker_state = WorkerState(**worker_state.copy())
+
         self.timeout = timeout
         self.default = bool(default)
+        #self.server_url = f"http://{self.worker_state.address}:{self.worker_state.port}"
 
-    # TODO: Add server status and ProxyJumpt support >
-    # I may passa Server_state directly
-    #def has_remote_server(self):
-    #    return self.server.hostname != gethostname()
+    @property
+    def server_url(self):
+
+        need_port_forwarding = self.worker_state.hostname != gethostname()
+        if not need_port_forwarding:
+            server_url = f"http://{self.worker_state.address}:{self.worker_state.port}"
+        else:
+            username = self.worker_state.username
+            remote_hostname = self.worker_state.hostname
+            remote_port = self.worker_state.port
+            local_port = find_free_port()
+            cmd = f"ssh -N -f -L localhost:{local_port}:localhost:{remote_port} {username}@{remote_hostname}"
+            print(f"In port_forwarding with command: {cmd}")
+            p = subprocess.run(cmd, shell=True)
+            if p.returncode != 0:
+                print("WARNING: {cmd}")
+            #p.pid
+            server_url = f"http://localhost:{local_port}"
+
+        return server_url
+
+    def update_state(self, worker_state):
+        self.worker_state = worker_state.copy()
 
     @pmg_serialize
     def as_dict(self) -> dict:
-        return {k: getattr(self, k) for k in [
-                "server_name", "server_address", "server_port",
-                "default", "timeout"
-                ]}
+        return dict(
+                worker_state=self.worker_state,
+                default=self.default,
+                timeout=self.timeout,
+        )
 
     def __str__(self):
         return self.to_json()
@@ -560,14 +589,14 @@ class WorkerClients(list, MSONable):
         from collections import Counter
 
         # worker_name must be unique.
-        for worker_name, count in Counter((w.worker_name for w in self)).items():
+        for worker_name, count in Counter((w.worker_state.name for w in self)).items():
             if count > 1:
                 app(f"Server name: `{worker_name}` appears: {count} times. This is forbidden!")
 
-        # Only one default server is allowed.
+        # Only zero or one default server is allowed.
         count = sum(1 if w.default == True else 0 for w in self)
-        if count != 1:
-            app(f"default=True appears `{count}` times. This is forbidden as only one default worker_name is allowed!")
+        if count not in (0, 1):
+            app(f"default=True appears `{count}` times. This is forbidden as only one default worker is allowed!")
 
         if err_lines:
             raise RuntimeError("\n".join(err_lines))
@@ -589,19 +618,15 @@ class WorkerClients(list, MSONable):
            json.dump(self.as_dict(), fp, indent=2)
 
     def update_from_worker_states(self, worker_states):
-        print("in update clients with worker_states:", worker_states)
         for state in worker_states:
             print(state)
-            worker_name = state["name"]
+            worker_name = state.name
             client = self.select_from_worker_name(worker_name, allow_none=True)
             if client is not None:
-                client.server_address = state["address"]
-                client.server_port = state["port"]
+                client.update_state(state)
             else:
-                new_client = WorkerClient(worker_name, state["address"], state["port"])
-                self.append(new_client)
+                self.append(WorkerClient(state))
 
-        #print(self)
         self._validate()
         self.write_json_file()
 
@@ -609,10 +634,10 @@ class WorkerClients(list, MSONable):
         if worker_name is None:
             for client in self:
                 if client.default: return client
-            raise ValueError("Cannot find default worker in list!")
+            raise ValueError("Cannot find default worker in list! Use `abiw.py set_default WORKER_NAME`")
 
         for client in self:
-           if client.worker_name == worker_name: return client
+           if client.worker_state.name == worker_name: return client
 
         if allow_none: return None
         raise ValueError(f"Cannot find client with name `{worker_name}` in list!")
