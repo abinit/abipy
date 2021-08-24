@@ -29,7 +29,7 @@ def get_epilog():
 
 Usage example:
 
-  abiw.py add name manager.yml scheduler  =>
+  abiw.py new_manager.py
   abiw.py clients  DONE
   abiw.py disable name
   abiw.py set_default name
@@ -38,6 +38,7 @@ Usage example:
   abiw.py start name DONE
   abiw.py restart name DONE TO_BE_TESTED
   abiw.py kill name DONE
+  abiw.py ladd_flows
   abiw.py send script.py DONE
   abiw.py gui
   abiw.py allgui
@@ -147,13 +148,17 @@ def get_parser(with_epilog=False):
                                    help="Send script to the worker.")
     p_send.add_argument("py_paths", nargs="+", help="Python script(s)")
 
+    # Subparser for ladd command.
+    p_lsend_flows = subparsers.add_parser("lsend_flows", parents=[copts_parser, worker_selector_with_default])
+    p_lsend_flows.add_argument("flow_dirs", nargs="+", help="List of flow directories.")
+
     # Subparser for status command.
     p_status = subparsers.add_parser("status", parents=[copts_parser, worker_selector_with_default],
                                      help="Return status of a single worker.")
 
     # Subparser for .status command.
     p_lstatus = subparsers.add_parser("lstatus", parents=[copts_parser],
-                                     help="Return status of all the local workers.")
+                                      help="Return status of all the local workers.")
 
     # Subparser for status command.
     p_set_default = subparsers.add_parser("set_default", parents=[copts_parser, worker_selector],
@@ -318,9 +323,12 @@ def main():
 
     elif options.command == "send":
         client = all_clients.select_from_worker_name(options.worker_name)
-        print(client)
         for path in options.py_paths:
             pprint(client.send_pyscript(path))
+
+    elif options.command == "lsend_flows":
+        client = all_clients.select_from_worker_name(options.worker_name)
+        client.send_flow_dirs(options.flow_dirs)
 
     elif options.command == "status":
         client = all_clients.select_from_worker_name(options.worker_name)

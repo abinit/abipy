@@ -18,6 +18,7 @@ from queue import Queue, Empty
 from socket import gethostname
 from monty import termcolor
 from monty.collections import AttrDict #, dict2namedtuple
+from monty.string import list_strings #, marquee
 from monty.json import MSONable
 from monty.functools import lazy_property
 from pymatgen.util.serialization import pmg_serialize
@@ -120,6 +121,27 @@ class JsonStateHandler(_JsonHandler):
         self.write(json_data)
 
 
+class FlowDirsPostHandler(BaseHandler):
+
+    def post(self):
+        data = self.get_json_from_body()
+
+        errors = []
+        for flow_dir in data["flow_dirs"]:
+            try:
+                flow = Flow.from_file(flow_dir)
+                self.worker.flow_scheduler.add_flow(flow)
+            except Exception as exc:
+                errors.append(str(exc))
+
+        reply = dict(
+            returncode=len(errors),
+            errors=errors,
+        )
+
+        self.write(reply)
+
+
 def find_free_port(address="localhost"):
     import socket
     from contextlib import closing
@@ -150,7 +172,6 @@ class WorkerState(AttrDict):
         )
 
         new.update(**kwargs)
-        print(type(new))
         return new
 
     #@classmethod
@@ -201,7 +222,8 @@ class WorkerServer:
 
         # url --> tornado handler
         self.extra_patterns = [
-            ("/postflow", PostFlowHandler, dict(worker=self)),
+            ("/post_flow_script", PostFlowHandler, dict(worker=self)),
+            ("/post_flow_dirs", FlowDirsPostHandler, dict(worker=self)),
             ("/json_state", JsonStateHandler, dict(worker=self)),
             ("/action", ActionHandler, dict(worker=self)),
         ]
@@ -290,7 +312,7 @@ class WorkerServer:
         thread.start()
         #termcolor.enable(False)
 
-        print("serve_kwargs:", serve_kwargs)
+        #print("serve_kwargs:", serve_kwargs)
 
         self.address = serve_kwargs.pop("address", self.address)
         self.port = serve_kwargs.pop("port", self.port)
@@ -402,7 +424,7 @@ to update the list of local clients.
     worker_state = WorkerState.new(
             name=worker_name,
             scratch_dir=scratch_dir,
-            )
+    )
 
     with open(os.path.join(config_dir, "state.json"), "wt") as fp:
         json.dump(worker_state, fp, indent=2)
@@ -427,7 +449,7 @@ def list_localhost_workers():
 
     for (worker_state, filepath) in _get_worker_state_path_list():
         print(f"In state_file: `{filepath}`")
-        pprint(worker_state)
+        pprint(worker_state, indent=2)
         print(2 * "\n")
 
 
@@ -439,8 +461,7 @@ def discover_local_workers():
 
 
 def rdiscover(hostnames):
-
-
+    #
     # From https://docs.fabfile.org/en/2.6/api/transfer.html#fabric.transfer.Transfer
     #
     # Most SFTP servers set the remote working directory to the connecting user’s home directory,
@@ -451,30 +472,29 @@ def rdiscover(hostnames):
     from fabric import Connection
     from io import BytesIO
     for host in hostnames:
-        print(f"For host {host} ...")
+        print(f"Contacting host {host}. It may take some time ...")
         c = Connection(host)
         try:
             result = c.run("ls ~/.abinit/abipy")
             files = result.stdout.split()
             worker_dirs = [f for f in files if f.startswith("worker_")]
-            #print("worker_dirs:", worker_dirs)
-            worker_dirs = [os.path.join(".abinit/abipy", b) for b in worker_dirs]
+            worker_dirs = [os.path.join(".abinit/abipy", d) for d in worker_dirs]
         except Exception as exc:
             print(exc)
             continue
 
         worker_states = []
         for w in worker_dirs:
-            path = os.path.join(w, "state.json")
+            state_path = os.path.join(w, "state.json")
             try:
                 strio = BytesIO()
-                c.get(path, local=strio)
+                c.get(state_path, local=strio)
                 json_bstring = strio.getvalue()
                 strio.close()
                 worker_states.append(WorkerState.from_json(json_bstring))
 
             except IOError as exc:
-                print(f"Cannot find state.json file: {host}@{path}. Ignoring error.")
+                print(f"Cannot find state.json file: {host}@{state_path}. Ignoring error.")
                 print(exc)
 
         clients = WorkerClients.from_json_file(empty_if_not_file=True)
@@ -482,38 +502,68 @@ def rdiscover(hostnames):
         return clients
 
 
+class _PortForwarder:
+
+    def __init__(self, remote_port, local_port=None, destination=None, kill_ssh=True):
+        self.destination = destination
+        self.pid = None
+
+        if local_port == ":automatic:" or local_port is None:
+            # Need ssh port-forwarding.
+            self.local_port = find_free_port()
+            self.kill_ssh = kill_ssh
+
+            ssh_cmd = f"ssh -N -f -L localhost:{self.local_port}:localhost:{remote_port} {destination}"
+            print(f"Executing ssh port-forwarding with: `{ssh_cmd}`")
+            p = subprocess.run(ssh_cmd, shell=True)
+            if p.returncode != 0:
+                print(f"WARNING: {ssh_cmd} returned {p.returncode}")
+            self.pid = p.pid
+            self.url = f"http://localhost:{self.local_port}"
+
+        else:
+            # Running locally without ssh port forwarding.
+            self.local_port = int(local_port)
+            self.kill_ssh = False
+            assert kill_ssh == False
+            self.url = f"http://localhost:{self.local_port}"
+
+    @classmethod
+    def from_local_port(cls, local_port):
+        return cls(remote_port=local_port, local_port=local_port, kill_ssh=False)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        if self.pid is not None and self.kill_ssh:
+            import signal
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except:
+                os.kill(pid, signal.SIGKILL) # kill -9
+            finally:
+                pass
+
+
 class WorkerClient(MSONable):
 
+    def __init__(self, worker_state, default=False, timeout=None,
+                 is_local_worker=None, ssh_destination=":automatic:", ssh_local_port=":automatic:"):
 
-    def __init__(self, worker_state, default=False, timeout=None):
         self.worker_state = WorkerState(**worker_state.copy())
 
-        self.timeout = timeout
         self.default = bool(default)
-        #self.server_url = f"http://{self.worker_state.address}:{self.worker_state.port}"
+        self.timeout = timeout
 
-    @lazy_property
-    def server_url(self):
+        if is_local_worker is None:
+            # Well, this is not perfect as one may have a laptop with the same hostname as the remote cluster.
+            self.is_local_worker = self.worker_state.hostname == gethostname()
+        else:
+            self.is_local_worker = bool(is_local_worker)
 
-        need_port_forwarding = self.worker_state.hostname != gethostname()
-        if not need_port_forwarding:
-            return f"http://{self.worker_state.address}:{self.worker_state.port}"
-
-        username = self.worker_state.username
-        remote_hostname = self.worker_state.hostname
-        remote_port = self.worker_state.port
-        local_port = find_free_port()
-        cmd = f"ssh -N -f -L localhost:{local_port}:localhost:{remote_port} {username}@{remote_hostname}"
-        print(f"Executing ssh port-forwarding with: {cmd}")
-        p = subprocess.run(cmd, shell=True)
-        if p.returncode != 0:
-            print(f"WARNING: {cmd}")
-        #p.pid
-
-        return f"http://localhost:{local_port}"
-
-    def update_state(self, worker_state):
-        self.worker_state = worker_state.copy()
+        self.ssh_destination = ssh_destination
+        self.ssh_local_port = ssh_local_port
 
     @pmg_serialize
     def as_dict(self) -> dict:
@@ -521,48 +571,115 @@ class WorkerClient(MSONable):
                 worker_state=self.worker_state,
                 default=self.default,
                 timeout=self.timeout,
+                is_local_worker=self.is_local_worker,
+                ssh_destination=self.ssh_destination,
+                ssh_local_port=self.ssh_local_port,
         )
+
+    def port_forwarder(self, kill_ssh=True):
+
+        if not self.worker_state.status != "running":
+            raise RuntimeError(f"Server status is `{self.worker_state.status} while it should be `running``")
+
+        if self.is_local_worker:
+            return _PortForwarder.from_local_port(self.worker_state.port)
+
+        # Need ssh port-forwarding.
+        #url = "http://localhost:{local_port}"
+
+        if self.ssh_destination == ":automatic:":
+            destination = "{self.worker_state.username}@{self.worker_state.remote_hostname}"
+        else:
+            destination = self.destination
+
+        #if self.ssh_local_port == ":automatic:":
+        #    local_port = find_free_port()
+        #else:
+        #    local_port = int(self.ssh_local_port)
+
+        #ssh_cmd = f"ssh -N -f -L localhost:{local_port}:localhost:{self.worker_state.remote_port} {destination}"
+        #print(f"Executing ssh port-forwarding with: `{ssh_cmd}`")
+        #p = subprocess.run(ssh_cmd, shell=True)
+        #if p.returncode != 0:
+        #    print(f"WARNING: {ssh_cmd} returned {p.returncode}")
+        # TODO: Should we kill the process?
+        #p.pid
+
+        return _PortForwarder(remote_port=self.worker_state.remote_port,
+                              local_port=self.ssh_local_port,
+                              destination=destination, kill_ssh=kill_ssh)
+
+    #@lazy_property
+    #def server_url(self):
+
+    def update_state(self, worker_state):
+        self.worker_state = worker_state.copy()
 
     def __str__(self):
         return self.to_json()
+
+    def to_json(self) -> str:
+        """
+        Returns a json string representation of the MSONable object.
+        """
+        # TODO: monty.to_json should accept **kwargs
+        from monty.json import MontyEncoder
+        return json.dumps(self, cls=MontyEncoder, indent=2)
 
     def send_pyscript(self, filepath: str):
         """
         Send a python script to the server in order to build a new Flow.
         """
         filepath = os.path.expanduser(filepath)
-
         with open(filepath, "rt") as fp:
             data = dict(
                 pyscript_basename=os.path.basename(filepath),
                 pyscript_string=fp.read(),
             )
 
-        url=f"{self.server_url}/postflow"
-        print(f"Sending `{filepath}` script to url: `{url}`...\n\n")
+        with self.port_forwarder() as pf:
+            url = f"{pf.url}/post_flow_script"
+            print(f"Sending `{filepath}` script to url: `{url}` ...\n")
 
-        r = requests.post(url=url, json=data, timeout=self.timeout)
-        print("ok:", r.ok, "status code:", r.status_code)
-        return r.json()
+            r = requests.post(url=url, json=data, timeout=self.timeout)
+            print("ok:", r.ok, "status code:", r.status_code)
+            return r.json()
+
+    def send_flow_dirs(self, flow_dirs):
+        if not self.is_local_worker:
+            raise RuntimeError("You cannot add a Flow to the remote worker {self.worker_state.name}")
+
+        with self.port_forwarder() as pf:
+            url = f"{pf.url}/post_flow_dirs"
+            print(f"Sending `{flow_dirs}` directories to url: `{url}` ...\n")
+
+            r = requests.post(url=url, json=dict(flow_dirs=list_strings(flow_dirs),
+                              timeout=self.timeout))
+            print("ok:", r.ok, "status code:", r.status_code)
+            return r.json()
 
     def send_kill_message(self):
-        print(f"Sending kill message to server: {self.server_url}")
-        data = dict(action="kill")
-        r = requests.post(url=f"{self.server_url}/action", json=data, timeout=self.timeout)
-        print(r.text)
-        return r.json()
+
+        with self.port_forwarder() as pf:
+            print(f"Sending kill message to: {furl} ...\n")
+            r = requests.post(url=f"{pf.url}/action", json=dict(action="kill"), timeout=self.timeout)
+            print(r.text)
+            return r.json()
 
     def get_json_state(self):
-        url = f"{self.server_url}/json_state"
-        print(f"Sending request to {url}")
-        r = requests.get(url=url)
-        print("ok:", r.ok, "status code:", r.status_code)
-        print(r.text)
-        return r.json()
+        with self.port_forwarder() as pf:
+            url = f"{pf.url}/json_state"
+            print(f"Sending request to {url} ...\n")
+            r = requests.get(url=url)
+            print("ok:", r.ok, "status code:", r.status_code)
+            print(r.text)
+            return r.json()
 
     def open_webgui(self):
-        import webbrowser
-        webbrowser.open_new_tab(self.server_url)
+        with self.port_forwarder(kill_ssh=False) as pf:
+            print(self.worker_state)
+            import webbrowser
+            webbrowser.open_new_tab(pf.url)
 
 
 class WorkerClients(list, MSONable):
@@ -580,9 +697,8 @@ class WorkerClients(list, MSONable):
 
         with open(filepath, "rt") as fp:
             d = json.load(fp)
-
-        for w in d["clients"]:
-            new.append(WorkerClient.from_dict(w))
+            for w in d["clients"]:
+                new.append(WorkerClient.from_dict(w))
 
         new._validate()
         return new
@@ -623,9 +739,7 @@ class WorkerClients(list, MSONable):
 
     def update_from_worker_states(self, worker_states):
         for state in worker_states:
-            print(state)
-            worker_name = state.name
-            client = self.select_from_worker_name(worker_name, allow_none=True)
+            client = self.select_from_worker_name(state.name, allow_none=True)
             if client is not None:
                 client.update_state(state)
             else:

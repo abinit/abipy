@@ -878,6 +878,7 @@ class MultiFlowScheduler(BaseScheduler):
         """
         Add a flow to the scheduler.
         """
+        # TODO: Should check the pid file
         self._accept_flow(flow)
         self.incoming_flow_queue.put(flow)
 
