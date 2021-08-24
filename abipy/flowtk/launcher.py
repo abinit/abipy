@@ -9,6 +9,7 @@ import time
 
 import pickle
 import datetime
+import pandas as pd
 import apscheduler
 has_sched_v3 = apscheduler.version >= "3.0.0"
 
@@ -934,9 +935,15 @@ class MultiFlowScheduler(BaseScheduler):
         con.close()
 
     def get_dataframe(self):
-        import pandas as pd
         with self.sql_connect() as con:
             return pd.read_sql_query("SELECT * FROM flows", con)
+
+    def get_json_status(self):
+        # https://stackoverflow.com/questions/25455067/pandas-dataframe-datetime-index-doesnt-survive-json-conversion-and-reconversion
+        status = dict(
+            dataframe=self.get_dataframe().to_json(date_unit='ns'),
+        )
+        return status
 
     def get_flow_status_by_id(self, node_id):
         from abipy.flowtk.flows import Flow
@@ -1135,12 +1142,11 @@ class MultiFlowScheduler(BaseScheduler):
 
 def print_flowsdb_file(filepath):
     """Print flows.db file to terminal."""
-    import pandas as pd
     import sqlite3
-    from abipy import abilab
+    from abipy.tools.printing import print_dataframe
     with sqlite3.connect(filepath) as con:
         df = pd.read_sql_query("SELECT * FROM flows", con)
-        abilab.print_dataframe(df, title=filepath)
+        print_dataframe(df, title=filepath)
 
 
 def sendmail(subject, text, mailto, sender=None):

@@ -4,6 +4,7 @@ import sys
 import os
 import threading
 import json
+import socket
 import time
 import subprocess
 import tempfile
@@ -16,7 +17,7 @@ import panel as pn
 from datetime import datetime
 from pprint import pprint, pformat
 from queue import Queue, Empty
-from socket import gethostname
+from contextlib import closing
 from monty import termcolor
 from monty.collections import AttrDict #, dict2namedtuple
 from monty.string import list_strings #, marquee
@@ -24,8 +25,13 @@ from monty.json import MSONable
 from monty.functools import lazy_property
 from pymatgen.util.serialization import pmg_serialize
 from abipy.tools.printing import print_dataframe
+from abipy.tools import duck
 from abipy.flowtk.flows import Flow
 from abipy.flowtk.launcher import MultiFlowScheduler
+
+
+# This should become a global variable used in all the other modules to faciliate unit tests.
+_ABIPY_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
 
 
 def yaml_safe_load_path(path):
@@ -46,6 +52,24 @@ class BaseHandler(tornado.web.RequestHandler):
         except ValueError:
             # TODO: handle the error
             raise
+
+    #def write_error(self, status_code, **kwargs):
+    #    # https://stackoverflow.com/questions/26371051/better-way-to-handle-errors-in-tornado-request-handler
+    #   import traceback, logging
+    #   if status_code == 500:
+    #      excp = kwargs['exc_info'][1]
+    #      tb   = kwargs['exc_info'][2]
+    #      stack = traceback.extract_tb(tb)
+    #      clean_stack = [i for i in stack if i[0][-6:] != 'gen.py' and i[0][-13:] != 'concurrent.py']
+    #      error_msg = '{}\n  Exception: {}'.format(''.join(traceback.format_list(clean_stack)),excp)
+
+    #      # do something with this error now... e.g., send it to yourself
+    #      # on slack, or log it.
+    #      logging.error(error_msg)  # do something with your error...
+
+    #   # don't forget to show a user friendly error page!
+    #   self.render("oops.html")
+
 
 
 class ActionHandler(BaseHandler):
@@ -115,13 +139,13 @@ class _JsonHandler(BaseHandler):
         self.set_header(name="Content-Type", value="application/json")
 
 
-class JsonStateHandler(_JsonHandler):
+class JsonStatusHandler(_JsonHandler):
 
     def get(self):
         # FIXME: This is broken now
-        json_data = self.worker.flow_scheduler.to_json()
-        print("json_data", json_data)
-        self.write(json_data)
+        json_status = self.worker.flow_scheduler.get_json_status()
+        print("json_status", json_status)
+        self.write(json_status)
 
 
 class FlowDirsPostHandler(BaseHandler):
@@ -146,12 +170,17 @@ class FlowDirsPostHandler(BaseHandler):
 
 
 def find_free_port(address="localhost"):
-    import socket
-    from contextlib import closing
+
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind((address, 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         return s.getsockname()[1]
+
+
+def port_is_open(port, address="localhost"):
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        if sock.connect_ex((address, port)) == 0: return True
+        return False
 
 
 class WorkerState(AttrDict):
@@ -160,7 +189,6 @@ class WorkerState(AttrDict):
     def new(cls, **kwargs):
 
         import getpass
-        from socket import gethostname
 
         new = cls(
             name=None,
@@ -170,7 +198,7 @@ class WorkerState(AttrDict):
             port=0,
             scratch_dir=None,
             username=getpass.getuser(),
-            hostname=gethostname(),
+            hostname=socket.gethostname(),
             version="0.1",
         )
 
@@ -197,7 +225,6 @@ class WorkerState(AttrDict):
     def from_json(cls, json_string):
         return cls(**json.loads(json_string))
 
-    #def get_dataframe(self):
 
 
 class WorkerServer:
@@ -229,10 +256,10 @@ class WorkerServer:
         self.extra_patterns = [
             ("/post_flow_script", PostFlowHandler, dict(worker=self)),
             ("/post_flow_dirs", FlowDirsPostHandler, dict(worker=self)),
-            ("/json_state", JsonStateHandler, dict(worker=self)),
+            ("/json_status", JsonStatusHandler, dict(worker=self)),
             ("/action", ActionHandler, dict(worker=self)),
         ]
-        self.config_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", f"worker_{self.name}")
+        self.config_dir = os.path.join(_ABIPY_DIR, f"worker_{self.name}")
         if not os.path.exists(self.config_dir):
             os.mkdir(self.config_dir)
 
@@ -256,7 +283,7 @@ class WorkerServer:
 
     @classmethod
     def _get_state_path(cls, name):
-        config_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", f"worker_{name}")
+        config_dir = os.path.join(_ABIPY_DIR, f"worker_{name}")
         state_filepath = os.path.join(config_dir, "state.json")
         if not os.path.exists(state_filepath):
             raise RuntimeError(f"Cannot find state file: `{state_filepath}`")
@@ -284,10 +311,13 @@ class WorkerServer:
         d, path = cls._get_state_path(name)
 
         #if d["status"] != "dead":
+        # TODO: status can be set to serving if the worker has been killed by kill -9
+        # should implement a restart_hard option and perhaps make a bkp of the database!
         if d["status"] == "serving":
             raise RuntimeError(f"There's already a worker serving on this machine with pid: {d['pid']}")
 
         # TODO: Problem with the default manager when creating the flow.
+        # Replace node_id with uuid4
         #from abipy.flowtk.tasks import TaskManager
         #manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml")
         config_dir = os.path.dirname(path)
@@ -322,7 +352,7 @@ class WorkerServer:
         self.address = serve_kwargs.pop("address", self.address)
         self.port = serve_kwargs.pop("port", self.port)
         if self.port == 0:
-            self.port = find_free_port(self.address)
+            self.port = find_free_port(address=self.address)
 
         # Now write state.json with the actual port.
         self.write_state_file(status="serving")
@@ -363,7 +393,7 @@ class WorkerServer:
         #      gethostname(), system, ncpus_detected, platform.python_version(), _my_name),
         #      'green', attrs=['underline'])
 
-        from abipy.panels.viewers import JSONViewer
+        #from abipy.panels.viewers import JSONViewer
         return pn.Column(
                 "# AbiPy Worker Homepage",
                 pn.pane.Markdown("\n".join(md_lines)),
@@ -384,16 +414,15 @@ class WorkerServer:
 
 def create_new_worker(worker_name: str, scratch_dir: str):
 
-    abipy_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
-    config_dir = os.path.join(abipy_dir, f"worker_{worker_name}")
+    config_dir = os.path.join(_ABIPY_DIR, f"worker_{worker_name}")
     errors = []
     eapp = errors.append
 
     if os.path.exists(config_dir):
         eapp(f"Directory `{config_dir}` already exists!")
 
-    scheduler_path = os.path.join(abipy_dir, "scheduler.yml")
-    manager_path = os.path.join(abipy_dir, "manager.yml")
+    scheduler_path = os.path.join(_ABIPY_DIR, "scheduler.yml")
+    manager_path = os.path.join(_ABIPY_DIR, "manager.yml")
     if not os.path.exists(scheduler_path):
         eapp("Cannot find scheduler file at `{scheduler_path}` to initialize the worker!")
     if not os.path.exists(manager_path):
@@ -410,12 +439,13 @@ def create_new_worker(worker_name: str, scratch_dir: str):
     print(f"""
 Creating new worker directory `{config_dir}.`
 Copying manager.yml and scheduler.yml files into it.
-Now you can use:
+You may want to customize these files before running calculations.
+
+After this step, one can use:
 
     abiw.py start {worker_name}
 
-to start the AbiPy worker.
-Then use:
+to start the AbiPy worker. Then use:
 
     abiw.py ldiscover
 
@@ -440,10 +470,9 @@ to update the list of local clients.
 def _get_local_worker_state_path_list():
     state_path_list = []
 
-    config_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
-    worker_dirs = [dirname for dirname in os.listdir(config_dir) if dirname.startswith("worker_")]
+    worker_dirs = [dirname for dirname in os.listdir(_ABIPY_DIR) if dirname.startswith("worker_")]
     for workdir in worker_dirs:
-        state_file = os.path.join(config_dir, workdir, "state.json")
+        state_file = os.path.join(_ABIPY_DIR, workdir, "state.json")
         state = WorkerState.from_json_file(state_file)
         state_path_list.append((state, state_file))
 
@@ -463,7 +492,7 @@ def print_local_workers():
 def discover_local_workers(printout=True):
     worker_states = [state for  (state, _) in _get_local_worker_state_path_list()]
     clients = WorkerClients.from_json_file(empty_if_not_file=True)
-    clients.update_from_worker_states(worker_states)
+    clients.update_from_worker_states(worker_states, write_json=True)
     if printout:
         df = clients.get_dataframe()
         df = df[df["is_local_worker"] == True]
@@ -482,6 +511,7 @@ def rdiscover(hostnames, printout=True):
 
     from fabric import Connection
     from io import BytesIO
+    print("Make sure the hosts are listed in your ~/.ssh/config file and that ProxyJump is activated if needed")
     for host in hostnames:
         print(f"Contacting {host} host. It may take some time ...")
         c = Connection(host)
@@ -509,17 +539,37 @@ def rdiscover(hostnames, printout=True):
                 print(exc)
 
         clients = WorkerClients.from_json_file(empty_if_not_file=True)
-        clients.update_from_worker_states(worker_states)
+        clients.update_from_worker_states(worker_states, write_json=False)
+        #for client in clients:
+        #    client.setup_ssh_port_forwarding()
+        clients.write_json_file()
 
         if printout:
             df = clients.get_dataframe()
             df = df[df["is_local_worker"] == False]
             print_dataframe(df, title="Remote Workers")
-
-        #for client in clients:
-        #    client.setup_ssh_port_forwarding()
+            print(f"Found {len(clients)} clients")
+            # Make sure that hostnnme is listed in your ~/.ssh/config file!
+            # Change it accordingly
 
         return clients
+
+
+def get_ssh_config():
+    # For the API, see http://docs.paramiko.org/en/stable/api/config.html#config-module-api-documentation
+    from paramiko import SSHConfig
+    user_config = os.path.expanduser("~/.ssh/config")
+    if not  os.path.exists(user_config):
+        raise RuntimeError(f"Cannot find ssh configuration file at {user_config}")
+    ssh_config = SSHConfig.from_path(user_config)
+    print(ssh_config)
+    return ssh_config
+
+    # Return the set of literal hostnames defined in the SSH config
+    # (both explicit hostnames and wildcard entries).
+    #ssh_config.get_hostnames()
+
+    #host_conf = ssh_config.lookup(self.hostname)
 
 
 class _PortForwarder:
@@ -585,7 +635,7 @@ class _PortForwarder:
 class WorkerClient(MSONable):
 
     def __init__(self, worker_state, is_default_worker=False, timeout=None,
-                 is_local_worker=None, ssh_destination=":automatic:", ssh_local_port=":automatic:"):
+                 is_local_worker=None, ssh_destination=None, ssh_local_port=None):
 
         self.worker_state = WorkerState(**worker_state.copy())
 
@@ -594,12 +644,15 @@ class WorkerClient(MSONable):
 
         if is_local_worker is None:
             # Well, this is not perfect as one may have a laptop with the same hostname as the remote cluster.
-            self.is_local_worker = self.worker_state.hostname == gethostname()
+            self.is_local_worker = self.worker_state.hostname == socket.gethostname()
         else:
             self.is_local_worker = bool(is_local_worker)
 
-        self.ssh_destination = ssh_destination
-        #destination = f"{self.worker_state.username}@{self.worker_state.hostname}"
+        if ssh_destination is None:
+            self.ssh_destination = f"{self.worker_state.username}@{self.worker_state.hostname}"
+        else:
+            self.ssh_destination = str(ssh_destination)
+
         self.ssh_local_port = ssh_local_port
 
     @pmg_serialize
@@ -615,16 +668,16 @@ class WorkerClient(MSONable):
 
     def setup_ssh_port_forwarding(self):
         # Return immediately if port forwarding is not needed.
-        if self.is_local_worker or self.worker_state.status != "running":
+        print("in setup_ssh_port_forwarding")
+        if self.is_local_worker or self.worker_state.status != "serving":
             return
 
         # Need ssh port-forwarding.
-        if self.ssh_destination == ":automatic:":
-            destination = f"{self.worker_state.username}@{self.worker_state.hostname}"
-        else:
-            destination = self.destination
+        if self.ssh_local_port is None:
+            self.ssh_local_port = find_free_port()
 
-        ssh_cmd = f"ssh -N -f -L localhost:{self.ssh_local_port}:localhost:{self.worker_state.port} {destination}"
+        ssh_cmd = f"ssh -N -f -L localhost:{self.ssh_local_port}:localhost:{self.worker_state.port} {self.ssh_destination}"
+        print(f"executing {ssh_cmd}")
         subprocess.run(ssh_cmd, shell=True)
 
     def port_forwarder(self, kill_ssh=True):
@@ -639,7 +692,7 @@ class WorkerClient(MSONable):
         if self.ssh_destination == ":automatic:":
             destination = f"{self.worker_state.username}@{self.worker_state.hostname}"
         else:
-            destination = self.destination
+            destination = self.ssh_destination
 
         return _PortForwarder(remote_port=self.worker_state.port,
                               local_port=self.ssh_local_port,
@@ -672,7 +725,7 @@ class WorkerClient(MSONable):
 
         with self.port_forwarder() as pf:
             url = f"{pf.url}/post_flow_script"
-            print(f"Sending `{filepath}` script to url: `{url}` ...\n")
+            print(f"Sending `{filepath} script to worker {self.worker_state.name} at url: {url} ...\n")
 
             r = requests.post(url=url, json=data, timeout=self.timeout)
             print("ok:", r.ok, "status code:", r.status_code)
@@ -680,11 +733,15 @@ class WorkerClient(MSONable):
 
     def send_flow_dirs(self, flow_dirs):
         if not self.is_local_worker:
-            raise RuntimeError("You cannot add a Flow to the remote worker {self.worker_state.name}")
+            raise RuntimeError(f"You cannot add a Flow to the remote worker {self.worker_state.name}")
+
+        for fdir in flow_dirs:
+            if not os.path.isdir(fdir):
+                raise RuntimeError(f"Cannot find flow directory: {fdir}")
 
         with self.port_forwarder() as pf:
             url = f"{pf.url}/post_flow_dirs"
-            print(f"Sending `{flow_dirs}` directories to url: `{url}` ...\n")
+            print(f"Sending `{flow_dirs} directories to worker {self.worker_state.name} at url: {url} ...\n")
 
             r = requests.post(url=url, json=dict(flow_dirs=list_strings(flow_dirs),
                               timeout=self.timeout))
@@ -694,23 +751,29 @@ class WorkerClient(MSONable):
     def send_kill_message(self):
 
         with self.port_forwarder() as pf:
-            print(f"Sending kill message to: {pf.url} ...\n")
-            r = requests.post(url=f"{pf.url}/action", json=dict(action="kill"), timeout=self.timeout)
+            url = f"{pf.url}/action",
+            print(f"Sending kill message to worker {self.worker_state.name} at url: {url} ...\n")
+            r = requests.post(url=url, json=dict(action="kill"), timeout=self.timeout)
             print(r.text)
             return r.json()
 
-    def get_json_state(self):
+    def get_json_status(self):
         with self.port_forwarder() as pf:
-            url = f"{pf.url}/json_state"
-            print(f"Sending request to {url} ...\n")
+            url = f"{pf.url}/json_status"
+            print(f"Sending request for worker {self.worker_state.name} to {url} ...\n")
             r = requests.get(url=url)
             print("ok:", r.ok, "status code:", r.status_code)
-            print(r.text)
-            return r.json()
+            #print(r.text)
+            json_status = r.json()
+            #from pandas.io.json import read_json
+            #json_status["dataframe"] = read_json(json_status["dataframe"])
+            #print_dataframe(json_status["dataframe"], title="\nWorker Status:\n")
+            return json_status
 
     def open_webgui(self):
         with self.port_forwarder(kill_ssh=False) as pf:
-            print(self.worker_state)
+            print(f"Sending request for worker {self.worker_state.name} to {pf.url} ...\n")
+            #print(self.worker_state)
             import webbrowser
             webbrowser.open_new_tab(pf.url)
 
@@ -720,7 +783,7 @@ class WorkerClients(list, MSONable):
     @classmethod
     def from_json_file(cls, empty_if_not_file=False, filepath=None):
         if filepath is None:
-            filepath = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "clients.json")
+            filepath = os.path.join(_ABIPY_DIR, "clients.json")
         else:
             filepath = os.path.expanduser(filepath)
 
@@ -751,6 +814,12 @@ class WorkerClients(list, MSONable):
         if count not in (0, 1):
             app(f"is_default_worker=True appears `{count}` times. This is forbidden as only one default worker is allowed!")
 
+        for client in self:
+            #print(client.ssh_local_port, "\n", client)
+            if duck.is_intlike(client.ssh_local_port):
+                if not port_is_open(client.ssh_local_port, address="localhost"):
+                    print(f"WARNING: Nobody is listening to local_port `{client.ssh_local_port}`")
+
         if err_lines:
             raise RuntimeError("\n".join(err_lines))
 
@@ -763,14 +832,18 @@ class WorkerClients(list, MSONable):
 
     def write_json_file(self, filepath=None) -> None:
         if filepath is None:
-            filepath = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "clients.json")
+            filepath = os.path.join(_ABIPY_DIR, "clients.json")
         else:
             filepath = os.path.expanduser(filepath)
+
+        # TODO: Compare old with new. return diff
+        old_clients = self.__class__.from_json_file(empty_if_not_file=True)
+        if old_clients is None
 
         with open(filepath, "wt") as fp:
            json.dump(self.as_dict(), fp, indent=2)
 
-    def update_from_worker_states(self, worker_states):
+    def update_from_worker_states(self, worker_states, write_json=True):
         for state in worker_states:
             client = self.select_from_worker_name(state.name, allow_none=True)
             if client is not None:
@@ -779,7 +852,7 @@ class WorkerClients(list, MSONable):
                 self.append(WorkerClient(state))
 
         self._validate()
-        self.write_json_file()
+        if write_json: self.write_json_file()
 
     def get_dataframe(self):
         rows = []
@@ -791,7 +864,8 @@ class WorkerClients(list, MSONable):
             rows.append(d)
 
         df = pd.DataFrame(rows)
-        return df.set_index("name")
+        #return df.set_index("name")
+        return df
 
     def print_dataframe(self):
         print_dataframe(self.get_dataframe(), title="\nAbiPy Worker Clients:\n")

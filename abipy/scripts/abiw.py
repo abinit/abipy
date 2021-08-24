@@ -9,12 +9,13 @@ import argparse
 #import time
 #import platform
 import abipy.flowtk as flowtk
-from abipy.core.release import __version__
 
 from pprint import pprint, pformat
 from monty.functools import prof_main
 #from monty.termcolor import cprint, colored, get_terminal_size
 #from monty.string import boxed, make_banner
+from abipy.core.release import __version__
+from abipy.tools.printing import print_dataframe
 from abipy.flowtk.worker import (WorkerClients, WorkerServer,
         print_local_workers, create_new_worker, discover_local_workers, rdiscover)
 
@@ -157,8 +158,8 @@ def get_parser(with_epilog=False):
                                      help="Return status of a single worker.")
 
     # Subparser for .status command.
-    p_lstatus = subparsers.add_parser("lstatus", parents=[copts_parser],
-                                      help="Return status of all the local workers.")
+    #p_lstatus = subparsers.add_parser("lstatus", parents=[copts_parser],
+    #                                  help="Return status of all the local workers.")
 
     # Subparser for status command.
     p_set_default = subparsers.add_parser("set_default", parents=[copts_parser, worker_selector],
@@ -249,7 +250,7 @@ def serve(worker, options):
     if not options.daemonize:
         worker.serve(**serve_kwargs)
     else:
-        print("Running server {worker.name} in demon mode...")
+        print(f"Running server {worker.name} in demon mode...")
         import daemon
         with daemon.DaemonContext():
             worker.serve(**serve_kwargs)
@@ -299,7 +300,7 @@ def main():
 
     elif options.command == "new_worker":
         create_new_worker(options.worker_name, options.scratch_dir)
-        discover_local_workers()
+        #discover_local_workers()
         return 0
 
     #if os.path.basename(options.filepath) == "flows.db":
@@ -318,15 +319,24 @@ def main():
         rdiscover(options.hostnames)
         return 0
 
+    #elif options.command == "rupdate":
+    #    rdiscover()
+    #    return 0
+
     all_clients = WorkerClients.from_json_file()
 
     if options.command == "kill":
         client = all_clients.select_from_worker_name(options.worker_name)
         client.send_kill_message()
 
+    #if options.command == "remove":
+    #    client = all_clients.select_from_worker_name(options.worker_name)
+    #    client.send_kill_message()
+
     elif options.command == "clients":
         all_clients.print_dataframe()
         #print(all_clients)
+        print("\nTIP: Remember to execute `ldiscover` or `rdiscover` to discover new AbiPy workers")
 
     elif options.command == "send":
         client = all_clients.select_from_worker_name(options.worker_name)
@@ -337,19 +347,26 @@ def main():
         client = all_clients.select_from_worker_name(options.worker_name)
         client.send_flow_dirs(options.flow_dirs)
 
+    #elif options.command == "lstatus":
     elif options.command == "status":
         client = all_clients.select_from_worker_name(options.worker_name)
-        pprint(client.get_json_state())
+        json_status = client.get_json_status()
 
-    #elif options.command == "lstatus":
+        from pandas.io.json import read_json
+        json_status["dataframe"] = read_json(json_status["dataframe"])
+        print_dataframe(json_status["dataframe"], title="\nWorker Status:\n")
 
-    elif options.command == "set_default":
-        all_clients.set_default(options.worker_name)
-        print(all_clients)
+
+
+
 
     elif options.command == "all_status":
         for client in all_clients:
             pprint(client.get_json_state())
+
+    elif options.command == "set_default":
+        all_clients.set_default(options.worker_name)
+        print(all_clients)
 
     elif options.command == "gui":
         client = all_clients.select_from_worker_name(options.worker_name)
