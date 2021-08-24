@@ -16,7 +16,7 @@ from monty.functools import prof_main
 #from monty.termcolor import cprint, colored, get_terminal_size
 #from monty.string import boxed, make_banner
 from abipy.flowtk.worker import (WorkerClients, WorkerServer,
-        list_localhost_workers, create_new_worker, discover_local_workers, rdiscover)
+        print_local_workers, create_new_worker, discover_local_workers, rdiscover)
 
 #def straceback():
 #    """Returns a string with the traceback."""
@@ -294,23 +294,29 @@ def main():
 
     elif options.command == "restart":
         worker = WorkerServer.restart_from_config_dir(options.worker_name)
+        discover_local_workers()
         return serve(worker, options)
 
     elif options.command == "new_worker":
-        return create_new_worker(options.worker_name, options.scratch_dir)
+        create_new_worker(options.worker_name, options.scratch_dir)
+        discover_local_workers()
+        return 0
 
     #if os.path.basename(options.filepath) == "flows.db":
     #    from abipy.flowtk.launcher import print_flowsdb_file
     #    return print_flowsdb_file(options.filepath)
 
     elif options.command == "lworkers":
-        return list_localhost_workers()
+        print_local_workers()
+        return 0
 
     elif options.command == "ldiscover":
-        return discover_local_workers()
+        discover_local_workers()
+        return 0
 
     elif options.command == "rdiscover":
-        return rdiscover(options.hostnames)
+        rdiscover(options.hostnames)
+        return 0
 
     all_clients = WorkerClients.from_json_file()
 
@@ -319,7 +325,8 @@ def main():
         client.send_kill_message()
 
     elif options.command == "clients":
-        print(all_clients)
+        all_clients.print_dataframe()
+        #print(all_clients)
 
     elif options.command == "send":
         client = all_clients.select_from_worker_name(options.worker_name)

@@ -8,6 +8,7 @@ import time
 import subprocess
 import tempfile
 import tornado.web
+import pandas as pd
 import tornado.escape
 import requests
 import panel as pn
@@ -22,6 +23,7 @@ from monty.string import list_strings #, marquee
 from monty.json import MSONable
 from monty.functools import lazy_property
 from pymatgen.util.serialization import pmg_serialize
+from abipy.tools.printing import print_dataframe
 from abipy.flowtk.flows import Flow
 from abipy.flowtk.launcher import MultiFlowScheduler
 
@@ -88,7 +90,8 @@ class PostFlowHandler(BaseHandler):
         workdir = tempfile.mkdtemp(prefix=f"Flow-{now}", dir=scratch_dir)
 
         # FIXME: problem with manager and possible collisions in filepath
-        p = subprocess.Popen(f"python {filepath} -w {workdir}", stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(f"python {filepath} -w {workdir}",
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         out, err = p.communicate()
 
         reply = dict(
@@ -193,6 +196,8 @@ class WorkerState(AttrDict):
     @classmethod
     def from_json(cls, json_string):
         return cls(**json.loads(json_string))
+
+    #def get_dataframe(self):
 
 
 class WorkerServer:
@@ -432,7 +437,7 @@ to update the list of local clients.
     return 0
 
 
-def _get_worker_state_path_list():
+def _get_local_worker_state_path_list():
     state_path_list = []
 
     config_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
@@ -445,22 +450,28 @@ def _get_worker_state_path_list():
     return state_path_list
 
 
-def list_localhost_workers():
+def print_local_workers():
 
-    for (worker_state, filepath) in _get_worker_state_path_list():
-        print(f"In state_file: `{filepath}`")
-        pprint(worker_state, indent=2)
-        print(2 * "\n")
+    rows = []
+    for (worker_state, filepath) in _get_local_worker_state_path_list():
+        rows.append(worker_state)
+
+    df = pd.DataFrame(rows)
+    print_dataframe(df, title="\nLocal AbiPy Workers:\n")
 
 
-def discover_local_workers():
-    worker_states = [state for  (state, _) in _get_worker_state_path_list()]
+def discover_local_workers(printout=True):
+    worker_states = [state for  (state, _) in _get_local_worker_state_path_list()]
     clients = WorkerClients.from_json_file(empty_if_not_file=True)
     clients.update_from_worker_states(worker_states)
+    if printout:
+        df = clients.get_dataframe()
+        df = df[df["is_local_worker"] == True]
+        print_dataframe(df, title="Local Workers")
     return clients
 
 
-def rdiscover(hostnames):
+def rdiscover(hostnames, printout=True):
     #
     # From https://docs.fabfile.org/en/2.6/api/transfer.html#fabric.transfer.Transfer
     #
@@ -472,7 +483,7 @@ def rdiscover(hostnames):
     from fabric import Connection
     from io import BytesIO
     for host in hostnames:
-        print(f"Contacting host {host}. It may take some time ...")
+        print(f"Contacting {host} host. It may take some time ...")
         c = Connection(host)
         try:
             result = c.run("ls ~/.abinit/abipy")
@@ -499,6 +510,15 @@ def rdiscover(hostnames):
 
         clients = WorkerClients.from_json_file(empty_if_not_file=True)
         clients.update_from_worker_states(worker_states)
+
+        if printout:
+            df = clients.get_dataframe()
+            df = df[df["is_local_worker"] == False]
+            print_dataframe(df, title="Remote Workers")
+
+        #for client in clients:
+        #    client.setup_ssh_port_forwarding()
+
         return clients
 
 
@@ -506,19 +526,35 @@ class _PortForwarder:
 
     def __init__(self, remote_port, local_port=None, destination=None, kill_ssh=True):
         self.destination = destination
-        self.pid = None
+        self.ssh_process = None
 
         if local_port == ":automatic:" or local_port is None:
             # Need ssh port-forwarding.
             self.local_port = find_free_port()
             self.kill_ssh = kill_ssh
 
+            import shlex
             ssh_cmd = f"ssh -N -f -L localhost:{self.local_port}:localhost:{remote_port} {destination}"
             print(f"Executing ssh port-forwarding with: `{ssh_cmd}`")
-            p = subprocess.run(ssh_cmd, shell=True)
-            if p.returncode != 0:
-                print(f"WARNING: {ssh_cmd} returned {p.returncode}")
-            self.pid = p.pid
+            #ssh_cmd = f"ssh -N -L localhost:{self.local_port}:localhost:{remote_port} {destination}"
+            ssh_cmd = shlex.split(ssh_cmd)
+            #ssh_cmd = f"ssh -N -L localhost:{self.local_port}:localhost:{remote_port} {destination}"
+            self.ssh_process = subprocess.Popen(ssh_cmd, close_fds=False) #stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+            #self.ssh_process = subprocess.Popen(ssh_cmd, shell=False)
+            print(self.ssh_process)
+            #self.ssh_process = subprocess.run(ssh_cmd, shell=True)
+            if self.ssh_process.returncode != 0:
+                print(f"WARNING: {ssh_cmd} returned {self.ssh_process.returncode}")
+            print("pid", self.ssh_process.pid)
+            #self.pid = p.pid
+
+            #out, err = self.ssh_process.communicate()
+            #if self.ssh_process.returncode != 0:
+            #    print(err)
+            #    print(out)
+            #    #raise
+            #    raise RuntimeError(f"{ssh_cmd} returned {self.ssh_process.returncode}")
+
             self.url = f"http://localhost:{self.local_port}"
 
         else:
@@ -536,24 +572,24 @@ class _PortForwarder:
         return self
 
     def __exit__(self, type, value, traceback):
-        if self.pid is not None and self.kill_ssh:
-            import signal
+        if self.ssh_process is not None and self.kill_ssh:
+            #import signal
             try:
-                os.kill(pid, signal.SIGTERM)
+                self.ssh_process.terminate()
             except:
-                os.kill(pid, signal.SIGKILL) # kill -9
+                self.ssh_process.kill()
             finally:
                 pass
 
 
 class WorkerClient(MSONable):
 
-    def __init__(self, worker_state, default=False, timeout=None,
+    def __init__(self, worker_state, is_default_worker=False, timeout=None,
                  is_local_worker=None, ssh_destination=":automatic:", ssh_local_port=":automatic:"):
 
         self.worker_state = WorkerState(**worker_state.copy())
 
-        self.default = bool(default)
+        self.is_default_worker = bool(is_default_worker)
         self.timeout = timeout
 
         if is_local_worker is None:
@@ -563,18 +599,33 @@ class WorkerClient(MSONable):
             self.is_local_worker = bool(is_local_worker)
 
         self.ssh_destination = ssh_destination
+        #destination = f"{self.worker_state.username}@{self.worker_state.hostname}"
         self.ssh_local_port = ssh_local_port
 
     @pmg_serialize
     def as_dict(self) -> dict:
         return dict(
                 worker_state=self.worker_state,
-                default=self.default,
+                is_default_worker=self.is_default_worker,
                 timeout=self.timeout,
                 is_local_worker=self.is_local_worker,
                 ssh_destination=self.ssh_destination,
                 ssh_local_port=self.ssh_local_port,
         )
+
+    def setup_ssh_port_forwarding(self):
+        # Return immediately if port forwarding is not needed.
+        if self.is_local_worker or self.worker_state.status != "running":
+            return
+
+        # Need ssh port-forwarding.
+        if self.ssh_destination == ":automatic:":
+            destination = f"{self.worker_state.username}@{self.worker_state.hostname}"
+        else:
+            destination = self.destination
+
+        ssh_cmd = f"ssh -N -f -L localhost:{self.ssh_local_port}:localhost:{self.worker_state.port} {destination}"
+        subprocess.run(ssh_cmd, shell=True)
 
     def port_forwarder(self, kill_ssh=True):
 
@@ -585,32 +636,14 @@ class WorkerClient(MSONable):
             return _PortForwarder.from_local_port(self.worker_state.port)
 
         # Need ssh port-forwarding.
-        #url = "http://localhost:{local_port}"
-
         if self.ssh_destination == ":automatic:":
-            destination = "{self.worker_state.username}@{self.worker_state.remote_hostname}"
+            destination = f"{self.worker_state.username}@{self.worker_state.hostname}"
         else:
             destination = self.destination
 
-        #if self.ssh_local_port == ":automatic:":
-        #    local_port = find_free_port()
-        #else:
-        #    local_port = int(self.ssh_local_port)
-
-        #ssh_cmd = f"ssh -N -f -L localhost:{local_port}:localhost:{self.worker_state.remote_port} {destination}"
-        #print(f"Executing ssh port-forwarding with: `{ssh_cmd}`")
-        #p = subprocess.run(ssh_cmd, shell=True)
-        #if p.returncode != 0:
-        #    print(f"WARNING: {ssh_cmd} returned {p.returncode}")
-        # TODO: Should we kill the process?
-        #p.pid
-
-        return _PortForwarder(remote_port=self.worker_state.remote_port,
+        return _PortForwarder(remote_port=self.worker_state.port,
                               local_port=self.ssh_local_port,
                               destination=destination, kill_ssh=kill_ssh)
-
-    #@lazy_property
-    #def server_url(self):
 
     def update_state(self, worker_state):
         self.worker_state = worker_state.copy()
@@ -661,7 +694,7 @@ class WorkerClient(MSONable):
     def send_kill_message(self):
 
         with self.port_forwarder() as pf:
-            print(f"Sending kill message to: {furl} ...\n")
+            print(f"Sending kill message to: {pf.url} ...\n")
             r = requests.post(url=f"{pf.url}/action", json=dict(action="kill"), timeout=self.timeout)
             print(r.text)
             return r.json()
@@ -714,9 +747,9 @@ class WorkerClients(list, MSONable):
                 app(f"Server name: `{worker_name}` appears: {count} times. This is forbidden!")
 
         # Only zero or one default server is allowed.
-        count = sum(1 if w.default == True else 0 for w in self)
+        count = sum(1 if w.is_default_worker == True else 0 for w in self)
         if count not in (0, 1):
-            app(f"default=True appears `{count}` times. This is forbidden as only one default worker is allowed!")
+            app(f"is_default_worker=True appears `{count}` times. This is forbidden as only one default worker is allowed!")
 
         if err_lines:
             raise RuntimeError("\n".join(err_lines))
@@ -748,10 +781,25 @@ class WorkerClients(list, MSONable):
         self._validate()
         self.write_json_file()
 
+    def get_dataframe(self):
+        rows = []
+        for client in self:
+            d = client.as_dict()
+            d = {k: v for k, v in d.items() if not k.startswith("@")}
+            state = d.pop("worker_state")
+            d.update(**state)
+            rows.append(d)
+
+        df = pd.DataFrame(rows)
+        return df.set_index("name")
+
+    def print_dataframe(self):
+        print_dataframe(self.get_dataframe(), title="\nAbiPy Worker Clients:\n")
+
     def select_from_worker_name(self, worker_name, allow_none=False):
         if worker_name is None:
             for client in self:
-                if client.default: return client
+                if client.is_default_worker: return client
             raise ValueError("Cannot find default worker in list! Use `abiw.py set_default WORKER_NAME`")
 
         for client in self:
@@ -763,8 +811,8 @@ class WorkerClients(list, MSONable):
     def set_default(self, worker_name):
         the_one = self.select_from_worker_name(worker_name)
         for client in self:
-            client.default = False
-        the_one.default = True
+            client.is_default_worker = False
+        the_one.is_default_worker = True
 
         self._validate()
         self.write_json_file()
