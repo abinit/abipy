@@ -175,8 +175,7 @@ def get_parser(with_epilog=False):
     p_rdiscover = subparsers.add_parser("rdiscover", parents=[copts_parser],
                                         help="Discover remote AbiPy workers.")
 
-    p_rdiscover.add_argument("hostnames", nargs="+", type=str,
-                              help="List of hostnames")
+    p_rdiscover.add_argument("hostnames", nargs="+", type=str, help="List of hostnames")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser("gui", parents=[copts_parser, worker_selector_with_default],
@@ -334,7 +333,8 @@ def main():
     #    client.send_kill_message()
 
     elif options.command == "clients":
-        all_clients.print_dataframe()
+        #all_clients.print_dataframe()
+        all_clients.refresh()
         #print(all_clients)
         print("\nTIP: Remember to execute `ldiscover` or `rdiscover` to discover new AbiPy workers")
 

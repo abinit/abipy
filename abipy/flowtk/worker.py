@@ -189,6 +189,7 @@ class WorkerState(AttrDict):
     def new(cls, **kwargs):
 
         import getpass
+        import uuid
 
         new = cls(
             name=None,
@@ -199,7 +200,8 @@ class WorkerState(AttrDict):
             scratch_dir=None,
             username=getpass.getuser(),
             hostname=socket.gethostname(),
-            version="0.1",
+            uuid=str(uuid.uuid4()),
+            #version="0.1",
         )
 
         new.update(**kwargs)
@@ -467,30 +469,29 @@ to update the list of local clients.
     return 0
 
 
-def _get_local_worker_state_path_list():
-    state_path_list = []
+def _get_all_local_worker_states(as_dict=False):
+    states, paths = [], []
 
     worker_dirs = [dirname for dirname in os.listdir(_ABIPY_DIR) if dirname.startswith("worker_")]
     for workdir in worker_dirs:
         state_file = os.path.join(_ABIPY_DIR, workdir, "state.json")
         state = WorkerState.from_json_file(state_file)
-        state_path_list.append((state, state_file))
+        states.append(state)
+        paths.append(state_file)
 
-    return state_path_list
+    if as_dict:
+        states = {state.name: state for state in states}
+
+    return states
 
 
 def print_local_workers():
-
-    rows = []
-    for (worker_state, filepath) in _get_local_worker_state_path_list():
-        rows.append(worker_state)
-
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(_get_all_local_worker_states())
     print_dataframe(df, title="\nLocal AbiPy Workers:\n")
 
 
 def discover_local_workers(printout=True):
-    worker_states = [state for  (state, _) in _get_local_worker_state_path_list()]
+    worker_states = _get_all_local_worker_states()
     clients = WorkerClients.from_json_file(empty_if_not_file=True)
     clients.update_from_worker_states(worker_states, write_json=True)
     if printout:
@@ -512,10 +513,11 @@ def rdiscover(hostnames, printout=True):
     from fabric import Connection
     from io import BytesIO
     print("Make sure the hosts are listed in your ~/.ssh/config file and that ProxyJump is activated if needed")
+    worker_states = []
     for host in hostnames:
         print(f"Contacting {host} host. It may take some time ...")
-        c = Connection(host)
         try:
+            c = Connection(host)
             result = c.run("ls ~/.abinit/abipy")
             files = result.stdout.split()
             worker_dirs = [f for f in files if f.startswith("worker_")]
@@ -524,7 +526,7 @@ def rdiscover(hostnames, printout=True):
             print(exc)
             continue
 
-        worker_states = []
+        # Now get the state.json via sfpt.
         for w in worker_dirs:
             state_path = os.path.join(w, "state.json")
             try:
@@ -538,104 +540,50 @@ def rdiscover(hostnames, printout=True):
                 print(f"Cannot find state.json file: {host}@{state_path}. Ignoring error.")
                 print(exc)
 
-        clients = WorkerClients.from_json_file(empty_if_not_file=True)
-        clients.update_from_worker_states(worker_states, write_json=False)
-        #for client in clients:
-        #    client.setup_ssh_port_forwarding()
-        clients.write_json_file()
+    clients = WorkerClients.from_json_file(empty_if_not_file=True)
+    clients.update_from_worker_states(worker_states, write_json=False)
+    for client in clients:
+        client.setup_ssh_port_forwarding()
 
-        if printout:
-            df = clients.get_dataframe()
-            df = df[df["is_local_worker"] == False]
-            print_dataframe(df, title="Remote Workers")
-            print(f"Found {len(clients)} clients")
-            # Make sure that hostnnme is listed in your ~/.ssh/config file!
-            # Change it accordingly
+    clients.write_json_file()
 
-        return clients
+    if printout:
+        df = clients.get_dataframe()
+        df = df[df["is_local_worker"] == False]
+        print_dataframe(df, title="Remote Workers")
+        print(f"Found {len(clients)} clients")
+        # Make sure that hostnnme is listed in your ~/.ssh/config file!
+        # Change it accordingly
+
+    return clients
 
 
-def get_ssh_config():
-    # For the API, see http://docs.paramiko.org/en/stable/api/config.html#config-module-api-documentation
-    from paramiko import SSHConfig
-    user_config = os.path.expanduser("~/.ssh/config")
-    if not  os.path.exists(user_config):
-        raise RuntimeError(f"Cannot find ssh configuration file at {user_config}")
-    ssh_config = SSHConfig.from_path(user_config)
-    print(ssh_config)
-    return ssh_config
+_SSH_CONFIG = None
+
+def _get_ssh_config():
+    global _SSH_CONFIG
+
+    if _SSH_CONFIG is None:
+        # For the API, see http://docs.paramiko.org/en/stable/api/config.html#config-module-api-documentation
+        from paramiko import SSHConfig
+        user_config = os.path.expanduser("~/.ssh/config")
+        if not os.path.exists(user_config):
+            raise RuntimeError(f"Cannot find ssh configuration file at {user_config}")
+        _SSH_CONFIG = SSHConfig.from_path(user_config)
+        print(_SSH_CONFIG)
+
+    return _SSH_CONFIG
 
     # Return the set of literal hostnames defined in the SSH config
     # (both explicit hostnames and wildcard entries).
     #ssh_config.get_hostnames()
-
     #host_conf = ssh_config.lookup(self.hostname)
-
-
-class _PortForwarder:
-
-    def __init__(self, remote_port, local_port=None, destination=None, kill_ssh=True):
-        self.destination = destination
-        self.ssh_process = None
-
-        if local_port == ":automatic:" or local_port is None:
-            # Need ssh port-forwarding.
-            self.local_port = find_free_port()
-            self.kill_ssh = kill_ssh
-
-            import shlex
-            ssh_cmd = f"ssh -N -f -L localhost:{self.local_port}:localhost:{remote_port} {destination}"
-            print(f"Executing ssh port-forwarding with: `{ssh_cmd}`")
-            #ssh_cmd = f"ssh -N -L localhost:{self.local_port}:localhost:{remote_port} {destination}"
-            ssh_cmd = shlex.split(ssh_cmd)
-            #ssh_cmd = f"ssh -N -L localhost:{self.local_port}:localhost:{remote_port} {destination}"
-            self.ssh_process = subprocess.Popen(ssh_cmd, close_fds=False) #stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-            #self.ssh_process = subprocess.Popen(ssh_cmd, shell=False)
-            print(self.ssh_process)
-            #self.ssh_process = subprocess.run(ssh_cmd, shell=True)
-            if self.ssh_process.returncode != 0:
-                print(f"WARNING: {ssh_cmd} returned {self.ssh_process.returncode}")
-            print("pid", self.ssh_process.pid)
-            #self.pid = p.pid
-
-            #out, err = self.ssh_process.communicate()
-            #if self.ssh_process.returncode != 0:
-            #    print(err)
-            #    print(out)
-            #    #raise
-            #    raise RuntimeError(f"{ssh_cmd} returned {self.ssh_process.returncode}")
-
-            self.url = f"http://localhost:{self.local_port}"
-
-        else:
-            # Running locally without ssh port forwarding.
-            self.local_port = int(local_port)
-            self.kill_ssh = False
-            assert kill_ssh == False
-            self.url = f"http://localhost:{self.local_port}"
-
-    @classmethod
-    def from_local_port(cls, local_port):
-        return cls(remote_port=local_port, local_port=local_port, kill_ssh=False)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        if self.ssh_process is not None and self.kill_ssh:
-            #import signal
-            try:
-                self.ssh_process.terminate()
-            except:
-                self.ssh_process.kill()
-            finally:
-                pass
 
 
 class WorkerClient(MSONable):
 
     def __init__(self, worker_state, is_default_worker=False, timeout=None,
-                 is_local_worker=None, ssh_destination=None, ssh_local_port=None):
+                 is_local_worker=None, ssh_destination=None, local_port=None):
 
         self.worker_state = WorkerState(**worker_state.copy())
 
@@ -649,11 +597,32 @@ class WorkerClient(MSONable):
             self.is_local_worker = bool(is_local_worker)
 
         if ssh_destination is None:
-            self.ssh_destination = f"{self.worker_state.username}@{self.worker_state.hostname}"
+            if self.is_local_worker:
+                self.ssh_destination = ""
+            else:
+                self.ssh_destination = f"{self.worker_state.username}@{self.worker_state.hostname}"
+                hostnames = _get_ssh_config().get_hostnames()
+                if self.worker_state.hostname not in hostnames:
+                    print(f"WARNING: Cannot find `{self.worker_state.hostname}` in `{hostnames}`")
         else:
             self.ssh_destination = str(ssh_destination)
 
-        self.ssh_local_port = ssh_local_port
+        if local_port is not None:
+            self.local_port = int(local_port)
+            self.server_url = f"http://localhost:{self.local_port}"
+
+        else:
+            if self.is_local_worker:
+                self.local_port = self.worker_state.port
+                if self.local_port is None:
+                    raise ValueError("If local worker, local_port cannot be None")
+                self.server_url = f"http://localhost:{self.local_port}"
+            else:
+                self.local_port = local_port
+                if self.local_port is not None:
+                    self.server_url = f"http://localhost:{self.local_port}"
+                else:
+                    self.server_url = None
 
     @pmg_serialize
     def as_dict(self) -> dict:
@@ -663,43 +632,43 @@ class WorkerClient(MSONable):
                 timeout=self.timeout,
                 is_local_worker=self.is_local_worker,
                 ssh_destination=self.ssh_destination,
-                ssh_local_port=self.ssh_local_port,
+                local_port=self.local_port,
         )
 
+    def refresh(self):
+        pass
+
     def setup_ssh_port_forwarding(self):
+        info = []
         # Return immediately if port forwarding is not needed.
-        print("in setup_ssh_port_forwarding")
+
         if self.is_local_worker or self.worker_state.status != "serving":
             return
 
-        # Need ssh port-forwarding.
-        if self.ssh_local_port is None:
-            self.ssh_local_port = find_free_port()
+        print("in setup_ssh_port_forwarding")
 
-        ssh_cmd = f"ssh -N -f -L localhost:{self.ssh_local_port}:localhost:{self.worker_state.port} {self.ssh_destination}"
-        print(f"executing {ssh_cmd}")
+        # Need ssh port-forwarding.
+        if self.local_port is None:
+            self.local_port = find_free_port()
+        else:
+            if not port_is_open(self.local_port):
+                self.local_port = find_free_port()
+            else:
+                info.append("port self.local_port is already opened")
+                return
+
+        ssh_cmd = f"ssh -N -f -L localhost:{self.local_port}:localhost:{self.worker_state.port} {self.ssh_destination}"
+        print(f"executing: `{ssh_cmd}`")
         subprocess.run(ssh_cmd, shell=True)
 
-    def port_forwarder(self, kill_ssh=True):
-
-        if not self.worker_state.status != "running":
-            raise RuntimeError(f"Server status is `{self.worker_state.status} while it should be `running``")
-
-        if self.is_local_worker:
-            return _PortForwarder.from_local_port(self.worker_state.port)
-
-        # Need ssh port-forwarding.
-        if self.ssh_destination == ":automatic:":
-            destination = f"{self.worker_state.username}@{self.worker_state.hostname}"
-        else:
-            destination = self.ssh_destination
-
-        return _PortForwarder(remote_port=self.worker_state.port,
-                              local_port=self.ssh_local_port,
-                              destination=destination, kill_ssh=kill_ssh)
+        #return info
 
     def update_state(self, worker_state):
+        prev_hostname = self.worker_state["hostname"]
         self.worker_state = worker_state.copy()
+        # This is needed to preserve the changes done by the user in clients.json
+        # if the hostname differs from the one used in the ~/.ssh/config file.
+        self.worker_state["hostname"] = prev_hostname
 
     def __str__(self):
         return self.to_json()
@@ -723,13 +692,12 @@ class WorkerClient(MSONable):
                 pyscript_string=fp.read(),
             )
 
-        with self.port_forwarder() as pf:
-            url = f"{pf.url}/post_flow_script"
-            print(f"Sending `{filepath} script to worker {self.worker_state.name} at url: {url} ...\n")
+        url = f"{self.server_url}/post_flow_script"
+        print(f"Sending `{filepath} script to worker {self.worker_state.name} at url: {url} ...\n")
 
-            r = requests.post(url=url, json=data, timeout=self.timeout)
-            print("ok:", r.ok, "status code:", r.status_code)
-            return r.json()
+        r = requests.post(url=url, json=data, timeout=self.timeout)
+        print("ok:", r.ok, "status code:", r.status_code)
+        return r.json()
 
     def send_flow_dirs(self, flow_dirs):
         if not self.is_local_worker:
@@ -739,43 +707,40 @@ class WorkerClient(MSONable):
             if not os.path.isdir(fdir):
                 raise RuntimeError(f"Cannot find flow directory: {fdir}")
 
-        with self.port_forwarder() as pf:
-            url = f"{pf.url}/post_flow_dirs"
-            print(f"Sending `{flow_dirs} directories to worker {self.worker_state.name} at url: {url} ...\n")
+        url = f"{self.server_url}/post_flow_dirs"
+        print(f"Sending `{flow_dirs} directories to worker {self.worker_state.name} at url: {url} ...\n")
 
-            r = requests.post(url=url, json=dict(flow_dirs=list_strings(flow_dirs),
-                              timeout=self.timeout))
-            print("ok:", r.ok, "status code:", r.status_code)
-            return r.json()
+        r = requests.post(url=url, json=dict(flow_dirs=list_strings(flow_dirs),
+                          timeout=self.timeout))
+        print("ok:", r.ok, "status code:", r.status_code)
+        return r.json()
 
     def send_kill_message(self):
 
-        with self.port_forwarder() as pf:
-            url = f"{pf.url}/action",
-            print(f"Sending kill message to worker {self.worker_state.name} at url: {url} ...\n")
-            r = requests.post(url=url, json=dict(action="kill"), timeout=self.timeout)
-            print(r.text)
-            return r.json()
+        url = f"{self.server_url}/action",
+        print(f"Sending kill message to worker {self.worker_state.name} at url: {url} ...\n")
+        r = requests.post(url=url, json=dict(action="kill"), timeout=self.timeout)
+        print(r.text)
+        return r.json()
 
     def get_json_status(self):
-        with self.port_forwarder() as pf:
-            url = f"{pf.url}/json_status"
-            print(f"Sending request for worker {self.worker_state.name} to {url} ...\n")
-            r = requests.get(url=url)
-            print("ok:", r.ok, "status code:", r.status_code)
-            #print(r.text)
-            json_status = r.json()
-            #from pandas.io.json import read_json
-            #json_status["dataframe"] = read_json(json_status["dataframe"])
-            #print_dataframe(json_status["dataframe"], title="\nWorker Status:\n")
-            return json_status
+        url = f"{self.server_url}/json_status"
+        print(f"Sending request for worker {self.worker_state.name} to {url} ...\n")
+        r = requests.get(url=url)
+        print("ok:", r.ok, "status code:", r.status_code)
+        #print(r.text)
+        json_status = r.json()
+        #from pandas.io.json import read_json
+        #json_status["dataframe"] = read_json(json_status["dataframe"])
+        #print_dataframe(json_status["dataframe"], title="\nWorker Status:\n")
+        return json_status
 
     def open_webgui(self):
-        with self.port_forwarder(kill_ssh=False) as pf:
-            print(f"Sending request for worker {self.worker_state.name} to {pf.url} ...\n")
-            #print(self.worker_state)
-            import webbrowser
-            webbrowser.open_new_tab(pf.url)
+        url = self.server_url
+        print(f"Sending request for worker {self.worker_state.name} to {url} ...\n")
+        #print(self.worker_state)
+        import webbrowser
+        webbrowser.open_new_tab(url)
 
 
 class WorkerClients(list, MSONable):
@@ -799,6 +764,15 @@ class WorkerClients(list, MSONable):
         new._validate()
         return new
 
+    #def check_local_port(self):
+    #    for client in self:
+    #        #print(client.local_port, "\n", client)
+    #        if duck.is_intlike(client.local_port):
+    #            address = "localhost"
+    #            if not port_is_open(client.local_port, address=address):
+    #                print(f"WARNING: Nobody is listening to `{address}:{client.local_port}`")
+    #                client.local_port = None
+
     def _validate(self):
         err_lines = []
         app = err_lines.append
@@ -814,11 +788,15 @@ class WorkerClients(list, MSONable):
         if count not in (0, 1):
             app(f"is_default_worker=True appears `{count}` times. This is forbidden as only one default worker is allowed!")
 
+        #self.check_local_port()
+
         for client in self:
-            #print(client.ssh_local_port, "\n", client)
-            if duck.is_intlike(client.ssh_local_port):
-                if not port_is_open(client.ssh_local_port, address="localhost"):
-                    print(f"WARNING: Nobody is listening to local_port `{client.ssh_local_port}`")
+            #print(client.local_port, "\n", client)
+            if duck.is_intlike(client.local_port):
+                address = "localhost"
+                if not port_is_open(client.local_port, address=address):
+                    print(f"WARNING: Nobody is listening to `{address}:{client.local_port}`")
+                    client.local_port = None
 
         if err_lines:
             raise RuntimeError("\n".join(err_lines))
@@ -837,8 +815,8 @@ class WorkerClients(list, MSONable):
             filepath = os.path.expanduser(filepath)
 
         # TODO: Compare old with new. return diff
-        old_clients = self.__class__.from_json_file(empty_if_not_file=True)
-        if old_clients is None
+        #old_clients = self.__class__.from_json_file(empty_if_not_file=True)
+        #if old_clients is None:
 
         with open(filepath, "wt") as fp:
            json.dump(self.as_dict(), fp, indent=2)
@@ -853,6 +831,25 @@ class WorkerClients(list, MSONable):
 
         self._validate()
         if write_json: self.write_json_file()
+
+    #def refresh(self):
+    #    wnames = set([c.worker_state.name for c in self if c.is_default_worker])
+    #    all_lworker_states = _get_all_local_worker_states(as_dict=True)
+    #    lworker_states = [s for s in all_lworker_states if s.name is wnames]
+    #    self.update_from_worker_states(lworker_states)
+
+    #    remote_hostnames = [client.worker_state.hostname for client in self]
+    #    rdiscover(remote_hostnames, printout=False)
+
+    #    for client in self:
+    #        old_d = client.as_dict()
+    #        client.refresh()
+    #        new_d = client.as_dict()
+    #        print("old_d:\n", pformat(old_d))
+    #        print("new_d:\n", pformat(new_d))
+
+    #    self._validate()
+    #    self.write_json_file()
 
     def get_dataframe(self):
         rows = []
