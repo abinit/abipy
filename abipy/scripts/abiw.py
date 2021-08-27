@@ -149,11 +149,15 @@ def get_parser(with_epilog=False):
     # Subparser for send command.
     p_send = subparsers.add_parser("send", parents=[copts_parser, worker_selector_with_default],
                                    help="Send script to the worker.")
-    p_send.add_argument("py_paths", nargs="+", help="Python script(s)")
+    p_send.add_argument("py_path", type=str, help="Python script")
+    p_send.add_argument("-m", "--message", default="", type=str,
+                        help="Message associated to the submission.")
 
     # Subparser for ladd command.
     p_lsend_flows = subparsers.add_parser("lsend_flows", parents=[copts_parser, worker_selector_with_default])
-    p_lsend_flows.add_argument("flow_dirs", nargs="+", help="List of flow directories.")
+    p_lsend_flows.add_argument("flow_dir", type=str, help="Flow directory.")
+    p_lsend_flows.add_argument("-m", "--message", default="", type=str,
+                               help="Message associated to the submission")
 
     # Subparser for status command.
     p_status = subparsers.add_parser("status", parents=[copts_parser, worker_selector_with_default],
@@ -346,12 +350,11 @@ def main():
 
     elif options.command == "send":
         client = all_clients.select_from_worker_name(options.worker_name)
-        for path in options.py_paths:
-            pprint(client.send_pyscript(path))
+        pprint(client.send_pyscript(options.py_path, user_message=options.message))
 
     elif options.command == "lsend_flows":
         client = all_clients.select_from_worker_name(options.worker_name)
-        client.send_flow_dirs(options.flow_dirs)
+        client.send_flow_dir(options.flow_dir, user_message=options.message)
 
     #elif options.command == "lstatus":
     elif options.command == "status":
@@ -359,7 +362,7 @@ def main():
         json_status = client.get_json_status()
 
         from pandas.io.json import read_json
-        json_status["dataframe"] = read_json(json_status["dataframe"])
+        json_status["dataframe"] = read_json(json_status["dataframe"]) #, date_format='iso')  #, date_unit="ns")
         print_dataframe(json_status["dataframe"], title="\nWorker Status:\n")
 
     elif options.command == "all_status":

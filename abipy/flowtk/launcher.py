@@ -630,7 +630,8 @@ class PyFlowScheduler(BaseScheduler):
                   len(list(flow.iflat_tasks(status=flow.S_SUB))))
 
         if nqjobs >= self.max_njobs_inqueue:
-            print(f"Too many jobs in the queue: {nqjobs}. No job will be submitted.")
+            print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}.\n",
+                  "No job will be submitted.")
             flow.check_status(show=False)
             return
 
@@ -875,12 +876,13 @@ class MultiFlowScheduler(BaseScheduler):
         self.sqldb_path = sqldb_path
         self.create_sqldb()
 
-    def add_flow(self, flow, priority=None):
+    def add_flow(self, flow, user_message, priority=None):
         """
         Add a flow to the scheduler.
         """
         # TODO: Should check the pid file
         self._accept_flow(flow)
+        flow.set_user_message(user_message)
         self.incoming_flow_queue.put(flow)
 
     def register_flow_exception(self, flow_idx, exc):
@@ -929,19 +931,46 @@ class MultiFlowScheduler(BaseScheduler):
                         workdir TEXT NOT NULL,
                         pyfile TEXT NOT NULL,
                         flow_id PRIMARY KEY,
-                        upload_date timestamp
+                        upload_date TIMESTAMP,
+                        end_date TIMESTAMP DEFAULT NULL,
+                        user_message TEXT NOT NULL
                         );
                         """)
         con.close()
 
+    def get_incoming_flows(self):
+        flows = []
+        while True:
+            try:
+                flow = self.incoming_flow_queue.get_nowait()
+                flows.append(flow)
+            except Empty:
+                break
+
+        if flows:
+            def get_record(flow):
+                formula = flow[0][0].input.structure.formula
+                return (str(flow.status), formula, flow.workdir, os.path.basename(flow.pyfile),
+                        flow.node_id, datetime.datetime.now(), None, flow.user_message)
+
+            with self.sql_connect() as con:
+                cur = con.cursor()
+                values = [get_record(flow) for flow in flows]
+                cur.executemany("INSERT INTO flows VALUES (?, ?, ?, ?, ?, ?, ?, ?)", values)
+            con.close()
+
+        return flows
+
     def get_dataframe(self):
         with self.sql_connect() as con:
-            return pd.read_sql_query("SELECT * FROM flows", con)
+            df = pd.read_sql_query("SELECT * FROM flows", con)
+            print("dtype", df["upload_data"].dtype)
+            return df
 
     def get_json_status(self):
         # https://stackoverflow.com/questions/25455067/pandas-dataframe-datetime-index-doesnt-survive-json-conversion-and-reconversion
         status = dict(
-            dataframe=self.get_dataframe().to_json(date_unit='ns'),
+            dataframe=self.get_dataframe().to_json() #, date_format='iso'#date_unit='ns'),
         )
         return status
 
@@ -971,29 +1000,6 @@ class MultiFlowScheduler(BaseScheduler):
             d[row["status"]].append(row)
 
         return d
-
-    def get_incoming_flows(self):
-        flows = []
-        while True:
-            try:
-                flow = self.incoming_flow_queue.get_nowait()
-                flows.append(flow)
-            except Empty:
-                break
-
-        if flows:
-            def get_record(flow):
-                formula = flow[0][0].input.structure.formula
-                return (str(flow.status), formula, flow.workdir, os.path.basename(flow.pyfile),
-                        flow.node_id, datetime.datetime.now())
-
-            with self.sql_connect() as con:
-                cur = con.cursor()
-                values = [get_record(flow) for flow in flows]
-                cur.executemany("INSERT INTO flows VALUES (?, ?, ?, ?, ?, ?)", values)
-            con.close()
-
-        return flows
 
     def remove_flows_with_status(self, status):
         if status == "Running":
@@ -1044,7 +1050,8 @@ class MultiFlowScheduler(BaseScheduler):
                        len(list(flow.iflat_tasks(status=flow.S_SUB))))
 
         if nqjobs >= self.max_njobs_inqueue:
-            print(f"Too many jobs in the queue: {nqjobs}. No job will be submitted.")
+            print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}.\n",
+                  "No job will be submitted.")
             for flow in self.flows:
                 flow.check_status(show=False)
             return
@@ -1094,9 +1101,9 @@ class MultiFlowScheduler(BaseScheduler):
 
         #if max_nlaunch <= 0: return
 
-        self.update_flows_and_db()
+        self.update_flows_and_slqdb()
 
-    def update_flows_and_db(self):
+    def update_flows_and_slqdb(self):
 
         done = []
         for i, flow in enumerate(self.flows):
@@ -1126,14 +1133,18 @@ class MultiFlowScheduler(BaseScheduler):
             self.flows = [self.flows[i] for i in range(len(self.flows)) if i not in set(locked)]
 
         with self._lock, self.sql_connect() as con:
+            now = datetime.datetime.now()
             cur = con.cursor()
-            query = "UPDATE flows SET status = ? WHERE flow_id = ?"
-            values = [(str(flow.S_RUN), flow.node_id) for flow in self.flows]
+            query = "UPDATE flows SET status = ?, end_date = ? WHERE flow_id = ?"
+
+            values = [(str(flow.S_RUN), now, flow.node_id) for flow in self.flows]
+
             if self.completed_flows:
-               values.extend([(str(flow.status), flow.node_id) for flow in self.completed_flows])
+               values.extend([(str(flow.status), now, flow.node_id) for flow in self.completed_flows])
                self.completed_flows = []
+
             if self.errored_flows:
-               values.extend([(str(flow.S_ERROR), flow.node_id) for flow in self.errored_flows])
+               values.extend([(str(flow.S_ERROR), now, flow.node_id) for flow in self.errored_flows])
                self.errored_flows = []
 
             cur.executemany(query, values)
@@ -1146,6 +1157,7 @@ def print_flowsdb_file(filepath):
     from abipy.tools.printing import print_dataframe
     with sqlite3.connect(filepath) as con:
         df = pd.read_sql_query("SELECT * FROM flows", con)
+        #print(type(df["upload_date"]))
         print_dataframe(df, title=filepath)
 
 
@@ -1194,7 +1206,7 @@ def sendmail(subject, text, mailto, sender=None):
     return len(errdata)
 
 
-def __test_sendmail():
-    retcode = sendmail("sendmail_test", text="hello\nworld", mailto="nobody@nowhere.com")
-    print("Retcode", retcode)
-    assert retcode == 0
+#def __test_sendmail():
+#    retcode = sendmail("sendmail_test", text="hello\nworld", mailto="nobody@nowhere.com")
+#    print("Retcode", retcode)
+#    assert retcode == 0

@@ -94,6 +94,11 @@ class FlowTest(FlowUnitTest):
         assert not flow.isinstance(None)
         assert not flow.has_scheduler
         assert flow._status is None
+
+        assert not flow.user_message
+        message = "My message"
+        flow.set_user_message(message)
+        assert flow.message == message
         assert flow.readme_md is None
         flow.set_readme("## hello flow")
         assert flow.readme_md == "## hello flow"

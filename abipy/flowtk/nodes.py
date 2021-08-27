@@ -513,6 +513,11 @@ class Node(metaclass=abc.ABCMeta):
         # If set, a README.md file will be produced in the working directory of the node.
         self.readme_md = None
 
+        # A string with a message that may be set by the user
+        # Mainly used for building a columns in the SQLite Table when using AbiPy workers.
+        # Use set_user_message to set this variable.
+        self._user_message = ""
+
         # This object can be used to store metadata about the node
         # The content will be saved in json format in the working directory of the node.
         self.abipy_meta_json = None
@@ -637,6 +642,16 @@ class Node(metaclass=abc.ABCMeta):
         self.abipy_meta_json = jsanitize(data, strict=False)
         if not isinstance(self.abipy_meta_json, dict):
             raise TypeError(f"abipy_meta_json should be a dict but got {type(self.abipy_meta_json)}")
+
+    def set_user_message(self, user_message):
+        """
+        Set the value of readme_md.
+        """
+        self._user_message = str(user_message)
+
+    @property
+    def user_message(self):
+        return self._user_message
 
     @check_spectator
     def set_node_id(self, node_id):

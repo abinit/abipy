@@ -17,7 +17,7 @@ from pymatgen.core.units import ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
-from abipy.tools.tensors import Stress
+
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
@@ -392,6 +392,7 @@ class GsrReader(ElectronsReader):
                 tensor[j, i] = c[3 + p]
             tensor *= abu.HaBohr3_GPa
 
+        from abipy.tools.tensors import Stress
         return Stress(tensor)
 
     def read_energy_terms(self, unit="eV"):
