@@ -54,8 +54,10 @@ class JSONViewer(Viewer):
 
         self.controls = pn.Card(self.json.param.depth,
                                 self.json.param.hover_preview,
-                                self.json.param.theme, self.json.param.visible,
-                                title="JSON controls", collapsed=True,
+                                self.json.param.theme,
+                                self.json.param.visible,
+                                title="JSON controls",
+                                collapsed=True,
                                 #header_color="black",
                                 #header_background="CornflowerBlue",
                                 )
@@ -64,7 +66,6 @@ class JSONViewer(Viewer):
 
         self.layout = pn.Column(self.controls,
                                 self.json,
-                                pn.layout.Divider(),
                                 sizing_mode="stretch_width")
 
     def __panel__(self):

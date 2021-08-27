@@ -685,7 +685,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         Args:
             policy:None
             qadapters: List of qadapters in YAML format
-            db_connector:Dictionary with data used to connect to the database (optional)
+            db_connector: Dictionary with data used to connect to the database (optional)
         """
         # Keep a copy of kwargs
         self._kwargs = copy.deepcopy(kwargs)

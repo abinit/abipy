@@ -16,7 +16,7 @@ from monty.functools import prof_main
 #from monty.string import boxed, make_banner
 from abipy.core.release import __version__
 from abipy.tools.printing import print_dataframe
-from abipy.flowtk.worker import (WorkerClients, WorkerServer,
+from abipy.flowtk.worker import (WorkerClients, AbipyWorker,
         print_local_workers, create_new_worker, discover_local_workers, rdiscover)
 
 #def straceback():
@@ -135,6 +135,8 @@ def get_parser(with_epilog=False):
 
     p_restart = subparsers.add_parser("restart", parents=[copts_parser, worker_selector, serve_parser],
                                       help="Restart worker.")
+    p_restart.add_argument("-f", "--force", action='store_true', default=False,
+                           help="Force restart even if worker status is found to be `running`.")
 
     p_new_worker = subparsers.add_parser("new_worker", parents=[copts_parser, worker_selector],
                                       help="Create new AbiPy worker.")
@@ -231,13 +233,14 @@ for port forwarding.
 
     d =  dict(
         debug=options.verbose > 0,
-        show=False,
+        #show=False,
         port=options.port,
-        static_dirs={"/assets": assets_path},
+        #static_dirs={"/assets": assets_path},
         address=options.address,
-        websocket_origin="*",
+        #websocket_origin="*",
+        panel_template="FastList",
     )
-    print("serve_kwargs:\n", pformat(d), "\n")
+    #print("serve_kwargs:\n", pformat(d), "\n")
     return d
 
 
@@ -289,12 +292,11 @@ def main():
         print(options)
 
     if options.command == "start":
-        worker = WorkerServer.init_from_config_dir(options.worker_name)
+        worker = AbipyWorker.init_from_config_dir(options.worker_name)
         return serve(worker, options)
 
     elif options.command == "restart":
-        worker = WorkerServer.restart_from_config_dir(options.worker_name)
-        discover_local_workers()
+        worker = AbipyWorker.restart_from_config_dir(options.worker_name, force=options.force)
         return serve(worker, options)
 
     elif options.command == "new_worker":
@@ -322,19 +324,23 @@ def main():
     #    rdiscover()
     #    return 0
 
+    discover_local_workers()
     all_clients = WorkerClients.from_json_file()
 
     if options.command == "kill":
         client = all_clients.select_from_worker_name(options.worker_name)
         client.send_kill_message()
+        print("Calling discover_local_workers after kill")
+        discover_local_workers()
 
     #if options.command == "remove":
     #    client = all_clients.select_from_worker_name(options.worker_name)
     #    client.send_kill_message()
 
     elif options.command == "clients":
-        #all_clients.print_dataframe()
-        all_clients.refresh()
+        all_clients.print_dataframe()
+        #if options.refresh:
+        #all_clients.refresh()
         #print(all_clients)
         print("\nTIP: Remember to execute `ldiscover` or `rdiscover` to discover new AbiPy workers")
 
@@ -355,10 +361,6 @@ def main():
         from pandas.io.json import read_json
         json_status["dataframe"] = read_json(json_status["dataframe"])
         print_dataframe(json_status["dataframe"], title="\nWorker Status:\n")
-
-
-
-
 
     elif options.command == "all_status":
         for client in all_clients:
