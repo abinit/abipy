@@ -17,7 +17,7 @@ from monty.functools import prof_main
 from abipy.core.release import __version__
 from abipy.tools.printing import print_dataframe
 from abipy.flowtk.worker import (WorkerClients, AbipyWorker,
-        print_local_workers, create_new_worker, discover_local_workers, rdiscover)
+        print_local_workers, discover_local_workers, rdiscover)
 
 #def straceback():
 #    """Returns a string with the traceback."""
@@ -296,15 +296,16 @@ def main():
         print(options)
 
     if options.command == "start":
-        worker = AbipyWorker.init_from_config_dir(options.worker_name)
+        worker = AbipyWorker.init_from_dirname(options.worker_name)
         return serve(worker, options)
 
     elif options.command == "restart":
-        worker = AbipyWorker.restart_from_config_dir(options.worker_name, force=options.force)
+        worker = AbipyWorker.restart_from_dirname(options.worker_name, force=options.force)
         return serve(worker, options)
 
     elif options.command == "new_worker":
-        create_new_worker(options.worker_name, options.scratch_dir)
+        worker = AbipyWorker.new_with_name(options.worker_name, options.scratch_dir)
+        #create_new_worker(options.worker_name, options.scratch_dir)
         #discover_local_workers()
         return 0
 

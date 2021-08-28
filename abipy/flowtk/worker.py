@@ -325,6 +325,8 @@ class AbipyWorker:
                 # FIXME This does not work in demon mode!
                 print(f"Status 'serving' but pid {pid} does not exist!")
 
+        #self.write_state_file(status="init")
+
     @classmethod
     def _get_state_path(cls, name):
         config_dir = os.path.join(_ABIPY_DIR, f"worker_{name}")
@@ -336,7 +338,7 @@ class AbipyWorker:
             return (json.load(fp), state_filepath)
 
     @classmethod
-    def init_from_config_dir(cls, name):
+    def init_from_dirname(cls, name):
         d, path = cls._get_state_path(name)
 
         if d["status"] != "init":
@@ -345,13 +347,72 @@ class AbipyWorker:
         config_dir = os.path.dirname(path)
         sched_options = yaml_safe_load_path(os.path.join(config_dir, "scheduler.yml"))
         #manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml")
-        print("sched_options", sched_options)
+        #print("sched_options", sched_options)
 
         return cls(d["name"], sched_options, d["scratch_dir"],
                    address=d["address"], port=d["port"])
 
     @classmethod
-    def restart_from_config_dir(cls, name, force=False):
+    def new_with_name(cls, worker_name: str, scratch_dir: str,
+                      scheduler_path=None, manager_path=None, verbose=1):
+
+        config_dir = os.path.join(_ABIPY_DIR, f"worker_{worker_name}")
+        errors = []
+        eapp = errors.append
+
+        if os.path.exists(config_dir):
+            eapp(f"Directory `{config_dir}` already exists!")
+
+        scheduler_path = scheduler_parser or os.path.join(_ABIPY_DIR, "scheduler.yml")
+        manager_path = manager_path or os.path.join(_ABIPY_DIR, "manager.yml")
+
+        if not os.path.exists(scheduler_path):
+            eapp("Cannot find scheduler file at `{scheduler_path}` to initialize the worker!")
+        if not os.path.exists(manager_path):
+            eapp("Cannot find manager file at `{manager_path}` to initialize the worker!")
+        if not os.path.isdir(scratch_dir):
+            eapp("scratch_dir: `{scratch_dir}` is not a directory!")
+
+        if errors:
+            print("The following problems have been detected:")
+            for i, err in enumerate(errors):
+                print(f"\t [{i+1}] {err}")
+            return 1
+
+        if verbose:
+            print(f"""
+Creating new worker directory `{config_dir}`
+Copying manager.yml and scheduler.yml files into it.
+You may want to customize these files before running calculations.
+
+After this step, use:
+
+    abiw.py start {worker_name}
+
+to start the AbiPy worker, and:
+
+    abiw.py ldiscover
+
+to update the list of local clients.
+""")
+
+        os.mkdir(config_dir)
+        from shutil import copy
+        copy(scheduler_path, config_dir)
+        copy(manager_path, config_dir)
+
+        worker_state = WorkerState.new(
+                name=worker_name,
+                scratch_dir=scratch_dir,
+        )
+
+        with open(os.path.join(config_dir, "state.json"), "wt") as fp:
+            json.dump(worker_state, fp, indent=2)
+
+        return cls.init_from_dirname(worker_name)
+
+    @classmethod
+    def restart_from_dirname(cls, name, force=False):
         d, path = cls._get_state_path(name)
         pid = d["pid"]
 
@@ -495,61 +556,6 @@ Running on {gethostname()} -- system {system} -- Python {platform.python_version
                         extra_patterns=self.extra_patterns, **serve_kwargs)
 
 
-def create_new_worker(worker_name: str, scratch_dir: str):
-
-    config_dir = os.path.join(_ABIPY_DIR, f"worker_{worker_name}")
-    errors = []
-    eapp = errors.append
-
-    if os.path.exists(config_dir):
-        eapp(f"Directory `{config_dir}` already exists!")
-
-    scheduler_path = os.path.join(_ABIPY_DIR, "scheduler.yml")
-    manager_path = os.path.join(_ABIPY_DIR, "manager.yml")
-    if not os.path.exists(scheduler_path):
-        eapp("Cannot find scheduler file at `{scheduler_path}` to initialize the worker!")
-    if not os.path.exists(manager_path):
-        eapp("Cannot find manager file at `{manager_path}` to initialize the worker!")
-    if not os.path.isdir(scratch_dir):
-        eapp("scratch_dir at `{scratch_dir}` is not a directory!")
-
-    if errors:
-        print("The following problems have been detected:")
-        for i, err in enumerate(errors):
-            print(f"\t [{i+1}] {err}")
-        return 1
-
-    print(f"""
-Creating new worker directory `{config_dir}`
-Copying manager.yml and scheduler.yml files into it.
-You may want to customize these files before running calculations.
-
-After this step, one can use:
-
-    abiw.py start {worker_name}
-
-to start the AbiPy worker. Then use:
-
-    abiw.py ldiscover
-
-to update the list of local clients.
-""")
-    os.mkdir(config_dir)
-    from shutil import copy
-    copy(scheduler_path, config_dir)
-    copy(manager_path, config_dir)
-
-    worker_state = WorkerState.new(
-            name=worker_name,
-            scratch_dir=scratch_dir,
-    )
-
-    with open(os.path.join(config_dir, "state.json"), "wt") as fp:
-        json.dump(worker_state, fp, indent=2)
-
-    return 0
-
-
 def _get_all_local_worker_states(as_dict=False):
     states, paths = [], []
 
@@ -561,7 +567,7 @@ def _get_all_local_worker_states(as_dict=False):
         paths.append(state_file)
 
     if as_dict:
-        states = {state.name: state for state in states}
+        return {state.name: state for state in states}
 
     return states
 
@@ -651,7 +657,7 @@ def _get_ssh_config():
         if not os.path.exists(user_config):
             raise RuntimeError(f"Cannot find ssh configuration file at {user_config}")
         _SSH_CONFIG = SSHConfig.from_path(user_config)
-        print(_SSH_CONFIG)
+        #print(_SSH_CONFIG)
 
     return _SSH_CONFIG
 
@@ -798,20 +804,25 @@ class WorkerClient(MSONable):
         if not port_is_open(self.local_port):
             raise ClientError("port {local_port} is not open")
 
-    def set_db_connector(self, db_connector):
-        self.db_connector = db_connector
+    #def set_db_specs(self, db_specs):
+    #    self._db_connector = db_connector
 
-        #with self.db_connector.get_collection() as col:
-        # Pipelines?
-        #cur = col.find_one(flowspec_status="init")
+    #def build_flow_from_db(self):
 
-        #myquery = { "address": { "$gt": "S" } }
-        #doc = col.find(myquery)
-        #flow_kwargs
-        #workdir = ??
-        #flow = flow_class(workdir, **flow_kwargs)
-        #flow.set_workdir(workdir)
-        #self.flow_scheduler.add_flow(flow, user_message="")
+    #    # Pipelines?
+    #    col = self.db_connector.get_collection()
+    #    cur = col.find_one(flow_status="init")
+
+    #    #myquery = { "address": { "$gt": "S" } }
+    #    #doc = col.find(myquery)
+    #    #flow_kwargs
+    #    #workdir = ??
+    #    #flow = flow_class(workdir, **flow_kwargs)
+    #    #flow.set_workdir(workdir)
+    #    #self.flow_scheduler.add_flow(flow, user_message="")
+
+    #    class MyAbipyWorker(AbipyWorker):
+    #        _db_connector = {}
 
     @need_serving_worker
     def send_pyscript(self, filepath, user_message="", end_point="post_flow_script"):
@@ -831,7 +842,6 @@ class WorkerClient(MSONable):
         self.check_server_url()
 
         r = requests.post(url=url, json=data, timeout=self.timeout)
-
         if r.status_code == 200:
             return r.json()
 
@@ -852,7 +862,6 @@ class WorkerClient(MSONable):
         data = dict(flow_dir=flow_dir, user_message=user_message)
 
         r = requests.post(url=url, json=data, timeout=self.timeout)
-
         if r.status_code == 200:
             return r.json()
 
@@ -865,7 +874,6 @@ class WorkerClient(MSONable):
         self.check_server_url()
 
         r = requests.post(url=url, json=dict(action="kill"), timeout=self.timeout)
-
         if r.status_code == 200:
             return r.json()
 
@@ -1079,3 +1087,116 @@ to create it""")
 
         self._validate()
         self.write_json_file()
+
+
+from pydantic import BaseModel, Field
+from abipy.core import Structure
+from monty.json import MontyEncoder, MontyDecoder
+
+
+def monty_json_dumps(self, **kwargs):
+    return json.dumps(self, cls=MontyEncoder, **kwargs)
+
+
+def monty_json_loads(string, **kwargs):
+    return json.loads(string, cls=MontyDecoder, **kwargs)
+
+
+class FlowBaseModel(BaseModel):
+
+    flow_status: int = 4
+
+    #material_id: str = Field(
+    #    ...,
+    #    description="The ID of this material, used as a universal reference across property documents."
+    #                "This comes in the form: mp-******",
+    #)
+
+    #created_at: datetime = Field(
+    #    description="Timestamp for when this material document was first created",
+    #    default_factory=datetime.utcnow,
+    #)
+    #
+    #last_updated: datetime = Field(
+    #    description="Timestamp for the most recent calculation update for this property",
+    #    default_factory=datetime.utcnow,
+    #)
+
+    structure: Structure = Field(
+        ..., description="The relaxed structure for the phonon calculation."
+    )
+
+    class Config:
+        json_encoders = {
+            Structure: lambda s: s.to_json(),
+            #datetime: lambda v: v.timestamp(),
+            #timedelta: timedelta_isoformat,
+        }
+
+        #json_loads = monty_json_loads
+        #json_dumps = monty_json_dumps
+
+    #def insert(self, db):
+    #    res = db.insert_one(self.mongo())
+    #    #assert res.inserted_id == body.id
+    #    return res.inserted_id
+
+    def build_flow(self, workdir):
+        """
+        Build Flow using the data available in the model and return it.
+        """
+        self.structure
+        return flow
+
+    def postprocess_flow(self, flow):
+        self.results = 1
+        return self
+
+
+if __name__ == "__main__":
+    import abipy.data as abidata
+
+    structure = Structure.from_file(abidata.ref_file("refs/si_ebands/run.abi"))
+
+    doc = FlowBaseModel(flow_status=2, structure=structure, hello=2)
+    #doc.hello = 2
+    #print(doc)
+
+    d = doc.dict()
+    #print(f"dict: {type(d)}\n", d)
+    print(type(d["structure"]))
+
+    json_str = doc.json()
+    from pprint import pprint
+    pprint(json_str)
+
+    #same = monty_json_loads(json_str)
+    #same = FlowBaseModel.from_json(json_str)
+
+    same = FlowBaseModel(**d)
+
+    assert doc.structure == same.structure
+    assert doc.structure.formula == same.structure.formula
+
+    #worker = AbipyWorker.new_with_name, scratch_dir="/tmp/")
+
+    #db_specs = dict(
+    #    database="abinit",
+    #    collection=None,
+    #    port=None,
+    #    host=None,
+    #    user=None,
+    #    password=None,
+    #}
+    #worker.set_db_connector()
+
+    #from pymongo import MongoClient
+    #client = MongoClient("mongodb://localhost:27017")
+    #db = client["testdb"]
+    #mycollection = db["mydb"]
+
+    #import datetime
+    #post1 = {"author": "Mike", "text": "My first blog post!", "tags": ["mongodb", "python", "pymongo"],
+    #         "date": datetime.datetime.utcnow()}
+
+    #doc_id = mycollection.insert(post1)
