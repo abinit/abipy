@@ -98,7 +98,7 @@ class FlowTest(FlowUnitTest):
         assert not flow.user_message
         message = "My message"
         flow.set_user_message(message)
-        assert flow.message == message
+        assert flow.user_message == message
         assert flow.readme_md is None
         flow.set_readme("## hello flow")
         assert flow.readme_md == "## hello flow"
@@ -124,7 +124,6 @@ class FlowTest(FlowUnitTest):
         str(task0_w0.status.colored)
         assert len(flow) == 1
         assert flow.num_tasks == 1
-        assert flow.has_db
 
         #print(task0_w0.input_structure)
         str(task0_w0.make_input)

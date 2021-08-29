@@ -26,7 +26,6 @@ from abipy.core.globals import get_workdir
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
 from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
 from . import qutils as qu
-from .db import DBConnector
 from .nodes import Status, Node, NodeError, NodeResults, FileNode #, check_spectator
 from . import abiinspect
 from . import events
@@ -536,7 +535,7 @@ class TaskManager(MSONable):
     YAML_FILE = "manager.yml"
     USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
 
-    ENTRIES = {"policy", "qadapters", "db_connector", "batch_adapter"}
+    ENTRIES = {"policy", "qadapters"}
 
     @classmethod
     def autodoc(cls):
@@ -551,11 +550,6 @@ qadapters:
     -  # qadapter_1
     -  # qadapter_2
 
-db_connector:
-    # Connection to MongoDB database (optional)
-
-batch_adapter:
-    # Adapter used to submit flows with batch script. (optional)
 
 ##########################################
 # Individual entries are documented below:
@@ -685,7 +679,6 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         Args:
             policy:None
             qadapters: List of qadapters in YAML format
-            db_connector: Dictionary with data used to connect to the database (optional)
         """
         # Keep a copy of kwargs
         self._kwargs = copy.deepcopy(kwargs)
@@ -693,7 +686,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         self.policy = TaskPolicy.as_policy(kwargs.pop("policy", None))
 
         # Initialize database connector (if specified)
-        self.db_connector = DBConnector(**kwargs.pop("db_connector", {}))
+        #self.db_connector = DBConnector(**kwargs.pop("db_connector", {}))
 
         # Build list of QAdapters. Neglect entry if priority == 0 or `enabled: no"
         qads = []
@@ -717,12 +710,6 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise ValueError("Two or more qadapters have same priority. This is not allowed. Check taskmanager.yml")
 
         self._qads, self._qadpos = tuple(qads), 0
-
-        # Initialize the qadapter for batch script submission.
-        d = kwargs.pop("batch_adapter", None)
-        self.batch_adapter = None
-        if d: self.batch_adapter = make_qadapter(**d)
-        #print("batch_adapter", self.batch_adapter)
 
         if kwargs:
             raise ValueError("Found invalid keywords in the taskmanager file:\n %s" % str(list(kwargs.keys())))
@@ -879,16 +866,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             app("[Qadapter %d]\n%s" % (i, str(qad)))
         app("Qadapter selected: %d" % self._qadpos)
 
-        if self.has_db:
-            app("[MongoDB database]:")
-            app(str(self.db_connector))
-
         return "\n".join(lines)
-
-    @property
-    def has_db(self):
-        """True if we are using MongoDB database"""
-        return bool(self.db_connector)
 
     @property
     def has_omp(self):
@@ -1024,10 +1002,6 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             # 4) Relaunch
             task.set_status(task.S_ERROR, msg="max_num_launches reached: %s" % str(exc))
             raise
-
-    def get_collection(self, **kwargs):
-        """Return the MongoDB collection used to store the results."""
-        return self.db_connector.get_collection(**kwargs)
 
     def increase_mem(self):
         # OLD

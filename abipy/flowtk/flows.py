@@ -1615,54 +1615,49 @@ class Flow(Node, NodeContainer, MSONable):
         except self.Error as exc:
             errors.append(str(exc))
 
-        if self.has_db:
-            try:
-                self.manager.db_connector.get_collection()
-            except Exception as exc:
-                errors.append("""
-                    ERROR while trying to connect to the MongoDB database:
-                        Exception:
-                            %s
-                        Connector:
-                            %s
-                    """ % (exc, self.manager.db_connector))
+        #if self.has_db:
+        #    try:
+        #        self.manager.db_connector.get_collection()
+        #    except Exception as exc:
+        #        errors.append("""
+        #            ERROR while trying to connect to the MongoDB database:
+        #                Exception:
+        #                    %s
+        #                Connector:
+        #                    %s
+        #            """ % (exc, self.manager.db_connector))
 
         return "\n".join(errors)
 
-    @property
-    def has_db(self):
-        """True if flow uses `MongoDB` to store the results."""
-        return self.manager.has_db
+    #def db_insert(self):
+    #    """
+    #    Insert results in the `MongDB` database.
+    #    """
+    #    assert self.has_db
+    #    # Connect to MongoDb and get the collection.
+    #    coll = self.manager.db_connector.get_collection()
+    #    print("Mongodb collection %s with count %d", coll, coll.count())
 
-    def db_insert(self):
-        """
-        Insert results in the `MongDB` database.
-        """
-        assert self.has_db
-        # Connect to MongoDb and get the collection.
-        coll = self.manager.db_connector.get_collection()
-        print("Mongodb collection %s with count %d", coll, coll.count())
+    #    start = time.time()
+    #    for work in self:
+    #        for task in work:
+    #            results = task.get_results()
+    #            pprint(results)
+    #            results.update_collection(coll)
+    #        results = work.get_results()
+    #        pprint(results)
+    #        results.update_collection(coll)
+    #    print("MongoDb update done in %s [s]" % time.time() - start)
 
-        start = time.time()
-        for work in self:
-            for task in work:
-                results = task.get_results()
-                pprint(results)
-                results.update_collection(coll)
-            results = work.get_results()
-            pprint(results)
-            results.update_collection(coll)
-        print("MongoDb update done in %s [s]" % time.time() - start)
+    #    results = self.get_results()
+    #    pprint(results)
+    #    results.update_collection(coll)
 
-        results = self.get_results()
-        pprint(results)
-        results.update_collection(coll)
+    #    # Update the pickle file to save the mongo ids.
+    #    self.pickle_dump()
 
-        # Update the pickle file to save the mongo ids.
-        self.pickle_dump()
-
-        for d in coll.find():
-            pprint(d)
+    #    for d in coll.find():
+    #        pprint(d)
 
     def tasks_from_nids(self, nids):
         """
@@ -2327,14 +2322,14 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         self.finalized = True
 
-        if self.has_db:
-            self.history.info("Saving results in database.")
-            try:
-                self.flow.db_insert()
-                self.finalized = True
-            except Exception:
-                self.history.critical("MongoDb insertion failed.")
-                return 2
+        #if self.has_db:
+        #    self.history.info("Saving results in database.")
+        #    try:
+        #        self.flow.db_insert()
+        #        self.finalized = True
+        #    except Exception:
+        #        self.history.critical("MongoDb insertion failed.")
+        #        return 2
 
         # Here we remove the big output files if we have the garbage collector
         # and the policy is set to "flow."

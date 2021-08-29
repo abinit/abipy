@@ -49,7 +49,7 @@ class PyFlowSchedulerTest(AbipyTest):
 
     def test_multiflowscheduler_api(self):
 
-        sched = MultiFlowScheduler(seconds=2)
+        sched = MultiFlowScheduler(seconds=2, sqldb_path="foobar.db")
         assert str(sched)
         assert sched.sched_options.seconds == 2
         assert not sched.get_incoming_flows()

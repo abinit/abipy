@@ -1178,8 +1178,6 @@ if __name__ == "__main__":
     assert doc.structure == same.structure
     assert doc.structure.formula == same.structure.formula
 
-    #worker = AbipyWorker.new_with_name, scratch_dir="/tmp/")
-
     #db_specs = dict(
     #    database="abinit",
     #    collection=None,
@@ -1189,6 +1187,8 @@ if __name__ == "__main__":
     #    password=None,
     #}
     #worker.set_db_connector()
+
+    #worker = AbipyWorker.new_with_name(name, scratch_dir="/tmp/", db_specs=db_specs)
 
     #from pymongo import MongoClient
     #client = MongoClient("mongodb://localhost:27017")

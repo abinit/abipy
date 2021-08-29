@@ -54,23 +54,21 @@ db_connector:
         Simple unit tests for Qadapter subclasses.
         A more complete coverage would require integration testing.
         """
-        aequal, atrue, afalse = self.assertEqual, self.assertTrue, self.assertFalse
         # Initialize the object from YAML file.
         slurm_manager = TaskManager.from_string(self.MANAGER)
 
         repr(slurm_manager); str(slurm_manager)
-        aequal(slurm_manager.num_cores, 4)
-        aequal(slurm_manager.mpi_procs, 4)
-        aequal(slurm_manager.omp_threads, 1)
-        afalse(slurm_manager.has_db)
+        assert slurm_manager.num_cores == 4
+        assert slurm_manager.mpi_procs == 4
+        assert slurm_manager.omp_threads == 1
 
         # Make a simple shell manager that will inherit the initial configuration.
         shell_manager = slurm_manager.to_shell_manager(mpi_procs=1)
-        aequal(shell_manager.mpi_procs, 1)
-        aequal(shell_manager.num_cores, 1)
+        assert shell_manager.mpi_procs == 1
+        assert shell_manager.num_cores == 1
 
         # check that the initial slurm_manger has not been modified
-        aequal(slurm_manager.num_cores, 4)
+        assert slurm_manager.num_cores == 4
 
         # Test pickle
         self.serialize_with_pickle(slurm_manager, test_eq=False)
@@ -120,15 +118,14 @@ configurations:
 ...
 """
         tmpfile = self.tmpfile_write(s)
-        aequal = self.assertEqual
 
         # Parse the file with the configurations.
         confs = ParalHintsParser().parse(tmpfile)
-        print("all_confs:\n", confs)
-        aequal(confs.max_cores, 4)
-        aequal(confs.max_mem_per_proc, 15.77)
-        aequal(confs.max_speedup, 3.333333332)
-        aequal(confs.max_efficiency, 1.0)
+        str(confs)
+        assert confs.max_cores == 4
+        assert confs.max_mem_per_proc == 15.77
+        assert confs.max_speedup == 3.333333332
+        assert confs.max_efficiency == 1.0
         # Test as_dict, from_dict
         ParalHints.from_dict(confs.as_dict())
 
