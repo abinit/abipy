@@ -29,7 +29,6 @@ from abipy.tools.printing import print_dataframe
 from abipy.tools import duck
 from abipy.flowtk.flows import Flow
 from abipy.flowtk.launcher import MultiFlowScheduler
-#from .db import DBConnector
 
 
 # This should become a global variable used in all the other modules to facilitate unit tests.
@@ -219,6 +218,7 @@ def pid_exists(pid):
     else:
         return True
 
+
 class WorkerState(AttrDict):
     """
 
@@ -249,10 +249,6 @@ class WorkerState(AttrDict):
 
         return new
 
-    #@classmethod
-    #def from_dict(cls, d):
-    #    return cls(**d)
-
     def __str__(self):
         return self.__class__.__name__ + "\n" + pformat(self, indent=2) + "\n"
 
@@ -275,6 +271,7 @@ class AbipyWorker:
 
     def __init__(self, name: str, sched_options: dict, scratch_dir: str,
                  address="localhost", port=0):
+                 #manager=None, mongo_connector=None, flow_model=None)
         """
         Args:
             name: The name of the Worker. Must be unique.
@@ -327,6 +324,36 @@ class AbipyWorker:
 
         #self.write_state_file(status="init")
 
+        #self.mongo_connector = mongo_connector
+        #self.flow_model = flow_model
+        #self.manager = manager
+
+    def build_flow_from_mongodb(self):
+        # TODO: Implement Pipelines?
+        collection = self.mongo_connector.get_collection()
+        oid_model_list = self.flow_model.find_runnable_oid_models(collection, limit=5)
+        if oid_model_list is None: return
+
+        for (oid, model) in oid_model_list:
+
+            now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            workdir = tempfile.mkdtemp(prefix=f"Flow-{now}", dir=self.scratch_dir)
+            #manager = self.manager ??
+            #pseudos = model.pseudo_specs.get_pseudos(db)
+
+            flow = model.build_flow(workdir, manager)
+            model.full_update_oid(oid, collection)
+            self.flow_scheduler.add_flow(flow, user_message="") # m.user_message ?
+
+            #self.oid_models.append((oid, model))
+
+        #collection = self.mongo_connector.get_collection()
+        #done = []
+        #for i, (oid, model) in enumerate(self.oid_models):
+            #model.postprocess_flow(flow)
+            #model.full_update_oid(oid, collection)
+            #done.append(i)
+
     @classmethod
     def _get_state_path(cls, name):
         config_dir = os.path.join(_ABIPY_DIR, f"worker_{name}")
@@ -363,7 +390,7 @@ class AbipyWorker:
         if os.path.exists(config_dir):
             eapp(f"Directory `{config_dir}` already exists!")
 
-        scheduler_path = scheduler_parser or os.path.join(_ABIPY_DIR, "scheduler.yml")
+        scheduler_path = scheduler_path or os.path.join(_ABIPY_DIR, "scheduler.yml")
         manager_path = manager_path or os.path.join(_ABIPY_DIR, "manager.yml")
 
         if not os.path.exists(scheduler_path):
@@ -459,14 +486,6 @@ to update the list of local clients.
         )
 
         state.json_write(filepath)
-
-    #def __str__(self):
-    #    lines = []
-    #    app = lines.append
-    #    app("pid %d" % self.pid)
-    #    app(str(self.flow_scheduler))
-
-    #    return "\n".join(lines)
 
     #def remove_flows(self):
     #    """This requires locking the SQLite database."""
@@ -684,7 +703,6 @@ def need_serving_worker(method):
     return decorated
 
 
-
 class WorkerClient(MSONable):
 
     def __init__(self, worker_state, is_default_worker=False, timeout=240,
@@ -731,7 +749,6 @@ class WorkerClient(MSONable):
                     self.server_url = None
 
         self.saved_uuid = saved_uuid if saved_uuid else self.worker_state.uuid
-        #self.db_connector = db_connector
 
     @pmg_serialize
     def as_dict(self) -> dict:
@@ -747,8 +764,8 @@ class WorkerClient(MSONable):
 
     def setup_ssh_port_forwarding(self):
         info = []
-        # Return immediately if port forwarding is not needed.
 
+        # Return immediately if port forwarding is not needed.
         if self.is_local_worker or self.worker_state.status != "serving":
             return
 
@@ -796,33 +813,13 @@ class WorkerClient(MSONable):
         from monty.json import MontyEncoder
         return json.dumps(self, cls=MontyEncoder, indent=2)
 
-    def check_server_url(self):
+    def check_server_url(self) -> None:
         if self.server_url is None:
             raise ClientError("server_url cannot be None")
         if self.local_port is None:
             raise ClientError("localport cannot be None")
         if not port_is_open(self.local_port):
             raise ClientError("port {local_port} is not open")
-
-    #def set_db_specs(self, db_specs):
-    #    self._db_connector = db_connector
-
-    #def build_flow_from_db(self):
-
-    #    # Pipelines?
-    #    col = self.db_connector.get_collection()
-    #    cur = col.find_one(flow_status="init")
-
-    #    #myquery = { "address": { "$gt": "S" } }
-    #    #doc = col.find(myquery)
-    #    #flow_kwargs
-    #    #workdir = ??
-    #    #flow = flow_class(workdir, **flow_kwargs)
-    #    #flow.set_workdir(workdir)
-    #    #self.flow_scheduler.add_flow(flow, user_message="")
-
-    #    class MyAbipyWorker(AbipyWorker):
-    #        _db_connector = {}
 
     @need_serving_worker
     def send_pyscript(self, filepath, user_message="", end_point="post_flow_script"):
@@ -896,7 +893,7 @@ class WorkerClient(MSONable):
             #from pandas.io.json import read_json
             #json_status["dataframe"] = read_json(json_status["dataframe"])
             #print_dataframe(json_status["dataframe"], title="\nWorker Status:\n")
-            return json_status
+            #return json_status
 
         raise ClientError(f"\nServer returned status code: {r.status_code}\nwith text:\n{r.text}\n")
 
@@ -966,7 +963,8 @@ to create it""")
         # Only zero or one default server is allowed.
         count = sum(1 if w.is_default_worker == True else 0 for w in self)
         if count not in (0, 1):
-            app(f"is_default_worker=True appears `{count}` times. This is forbidden as only one default worker is allowed!")
+            app(f"is_default_worker=True appears `{count}` times." +
+                "This is forbidden as only one default worker is allowed!")
 
         #self.check_local_port()
 
@@ -1080,123 +1078,10 @@ to create it""")
                          f"\t{self.get_all_worker_names()}\n")
 
     def set_default(self, worker_name):
-        the_one = self.select_from_worker_name(worker_name)
+        the_one = self.select_from_worker_name(worker_name, allow_none=False)
         for client in self:
             client.is_default_worker = False
         the_one.is_default_worker = True
 
         self._validate()
         self.write_json_file()
-
-
-from pydantic import BaseModel, Field
-from abipy.core import Structure
-from monty.json import MontyEncoder, MontyDecoder
-
-
-def monty_json_dumps(self, **kwargs):
-    return json.dumps(self, cls=MontyEncoder, **kwargs)
-
-
-def monty_json_loads(string, **kwargs):
-    return json.loads(string, cls=MontyDecoder, **kwargs)
-
-
-class FlowBaseModel(BaseModel):
-
-    flow_status: int = 4
-
-    #material_id: str = Field(
-    #    ...,
-    #    description="The ID of this material, used as a universal reference across property documents."
-    #                "This comes in the form: mp-******",
-    #)
-
-    #created_at: datetime = Field(
-    #    description="Timestamp for when this material document was first created",
-    #    default_factory=datetime.utcnow,
-    #)
-    #
-    #last_updated: datetime = Field(
-    #    description="Timestamp for the most recent calculation update for this property",
-    #    default_factory=datetime.utcnow,
-    #)
-
-    structure: Structure = Field(
-        ..., description="The relaxed structure for the phonon calculation."
-    )
-
-    class Config:
-        json_encoders = {
-            Structure: lambda s: s.to_json(),
-            #datetime: lambda v: v.timestamp(),
-            #timedelta: timedelta_isoformat,
-        }
-
-        #json_loads = monty_json_loads
-        #json_dumps = monty_json_dumps
-
-    #def insert(self, db):
-    #    res = db.insert_one(self.mongo())
-    #    #assert res.inserted_id == body.id
-    #    return res.inserted_id
-
-    def build_flow(self, workdir):
-        """
-        Build Flow using the data available in the model and return it.
-        """
-        self.structure
-        return flow
-
-    def postprocess_flow(self, flow):
-        self.results = 1
-        return self
-
-
-if __name__ == "__main__":
-    import abipy.data as abidata
-
-    structure = Structure.from_file(abidata.ref_file("refs/si_ebands/run.abi"))
-
-    doc = FlowBaseModel(flow_status=2, structure=structure, hello=2)
-    #doc.hello = 2
-    #print(doc)
-
-    d = doc.dict()
-    #print(f"dict: {type(d)}\n", d)
-    print(type(d["structure"]))
-
-    json_str = doc.json()
-    from pprint import pprint
-    pprint(json_str)
-
-    #same = monty_json_loads(json_str)
-    #same = FlowBaseModel.from_json(json_str)
-
-    same = FlowBaseModel(**d)
-
-    assert doc.structure == same.structure
-    assert doc.structure.formula == same.structure.formula
-
-    #db_specs = dict(
-    #    database="abinit",
-    #    collection=None,
-    #    port=None,
-    #    host=None,
-    #    user=None,
-    #    password=None,
-    #}
-    #worker.set_db_connector()
-
-    #worker = AbipyWorker.new_with_name(name, scratch_dir="/tmp/", db_specs=db_specs)
-
-    #from pymongo import MongoClient
-    #client = MongoClient("mongodb://localhost:27017")
-    #db = client["testdb"]
-    #mycollection = db["mydb"]
-
-    #import datetime
-    #post1 = {"author": "Mike", "text": "My first blog post!", "tags": ["mongodb", "python", "pymongo"],
-    #         "date": datetime.datetime.utcnow()}
-
-    #doc_id = mycollection.insert(post1)

@@ -379,8 +379,9 @@ class ElectronBands(Has_Structure):
     @pmg_serialize
     def as_dict(self):
         """Return dictionary with JSON serialization."""
+        #print("in ebands.as_dict")
         linewidths = None if not self.has_linewidths else self.linewidths.tolist()
-        return dict(
+        d = dict(
             structure=self.structure.as_dict(),
             kpoints=self.kpoints.as_dict(),
             eigens=self.eigens.tolist(),
@@ -393,6 +394,8 @@ class ElectronBands(Has_Structure):
             smearing=self.smearing.as_dict(),
             linewidths=linewidths,
         )
+        #for k, v in d.items(): print(k, type(v))
+        return d
 
     @classmethod
     def as_ebands(cls, obj):
