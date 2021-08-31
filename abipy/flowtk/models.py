@@ -31,7 +31,8 @@ def monty_trick(obj):
 
 class MongoConnector(BaseModel):
     """
-    Stores the parameters used to connect to the MongoDB server and the name of the collection
+    Model with the parameters used to connect to the MongoDB server and the name of
+    the (default) collection used to perform CRUD operations.
     """
 
     host: str = Field(..., description="Host address e.g. 'localhost'")
@@ -84,52 +85,50 @@ class MongoConnector(BaseModel):
         return db[collection_name]
 
 
-class MSONableModel(BaseModel):
+class MongoModel(BaseModel):
+    """
+    Base class providing tools to serialize Abipy/Pymatgen objects
+    supporting the MSONable protocol.
+    It also provide tiny wrappers around the MongoDB API.
+    """
 
     class Config:
 
+        # Here we register specialized encoders
+        # to convert MSONable objects to JSON string.
+        # subclasses will inherit these encoders.
         json_encoders = {
-            #Structure: lambda o: o.as_dict(),
-            #ElectronBands: lambda o: o.as_dict(),
             Structure: lambda o: monty_trick(o),
             ElectronBands: lambda o: monty_trick(o),
         }
 
+        # This is needed to be able to use MSONable AbiPy objects
+        # such as ElectronBands that do not inherit from BaseModel
         arbitrary_types_allowed = True
 
         #json_loads = monty_json_loads
         #json_dumps = monty_json_dumps
 
-    #def json(self, **kwargs):
-    #    s = super().json(encoder=MontyEncoder, **kwargs)
-    #    print(s)
-    #    return s
-
     @classmethod
     def from_mongo_oid(cls, oid, collection):
+        """Return a model instance for the ObjectId oid and the collection."""
         oid = ObjectId(oid)
         data = collection.find_one({'_id': oid})
         if data is None: return data
-        #print("from_id_data with keys:", data.keys())
         data.pop("_id")
-        #s = monty_json_dumps(data)
-        #data = monty_json_loads(s)
         data = MontyDecoder().process_decoded(data)
-        #data["structure"] = monty_json_loads(s)
-        #print("structure:", data["structure"])
-        #print("scf_data:", data["scf_data"])
-        #data["scf_data"]["ebands"] = ElectronBands.from_dict(data["scf_data"]["ebands"])
 
         return cls(**data)
         #return cls(**dict(data, id=id))
 
     def mongo_insert(self, collection):
+        """Insert the model in collection. Return ObjectId."""
         doc = json.loads(self.json())
-        #doc = self.dict()
         #print("inserting doc:", doc)
         return collection.insert_one(doc).inserted_id
 
     def mongo_full_update_oid(self, oid, collection):
+        """Perform a full update of the model given the ObjectId in the collection."""
         oid = ObjectId(oid)
         old_doc = collection.find_one({'_id': oid})
         if old_doc is None:
@@ -143,6 +142,9 @@ class MSONableModel(BaseModel):
 
 
 class PseudoDojoSpecs(BaseModel):
+    """
+    WIP: Model with the parameters needed to retrieve a PseudoDojo Table
+    """
 
     name: str = Field(..., description="Name of the table")
 
@@ -161,15 +163,18 @@ class PseudoDojoSpecs(BaseModel):
     #    return PseudoTable
 
 
-class FlowModel(MSONableModel):
+class FlowModel(MongoModel):
+    """
+    This model
+    """
 
     flow_status: int = 0
 
     workdir: str = None
 
-    pseudos_specs: PseudoDojoSpecs = Field(
-        ..., description="The input structure."
-    )
+    pseudos_specs: PseudoDojoSpecs = Field(..., description="The input structure.")
+
+    #flow_params: dict
 
     #flow_created_at: datetime = Field(
     #    description="Timestamp for when this material document was first created",
@@ -183,6 +188,7 @@ class FlowModel(MSONableModel):
 
     @classmethod
     def find_runnable_oid_models(cls, collection, limit=0):
+        """Return list of models that are ready to run."""
         cursor = collection.find({"flow_status": 0}, limit=limit)
         if cursor is None: return None
         items = []
@@ -193,32 +199,35 @@ class FlowModel(MSONableModel):
         return items
 
     def build_flow(self, workdir, manager):
+        """
+        API used by the AbiPy Worker to build a Flow from the model.
+        Wraps _build_flow implented in the subclass.
+        """
         flow = self._build_flow(workdir, manager)
         # Set the workdir of the Flow in the model.
         self.workdir = workdir
         return flow
 
     def postprocess_flow(self, flow):
+        """
+        API used by the AbiPy Worker to postprocess a Flow from the model.
+        Wraps _postprocess_flow implented in the subclass.
+        """
         self._postprocess_flow(flow)
         #self.flow_completed_at
 
 
 
-class GsData(MSONableModel):
+class GsData(MongoModel):
     """GS SCF results: energy, forces, stresses fermi level, gaps"""
 
     ebands: ElectronBands = Field(
         ..., description="GS SCF results: energy, forces, stresses."
     )
 
-    #material_id: str = Field(
-    #    ...,
-    #    description="The ID of this material, used as a universal reference across property documents."
-    #                "This comes in the form: mp-******",
-    #)
-
     @classmethod
     def from_gsr_filepath(cls, gsr_filepath: str):
+        """File the model from the GSR filepath."""
         from abipy.electrons.gsr import GsrFile
         with GsrFile(gsr_filepath) as gsr:
             return cls.from_gsr(gsr)
@@ -233,6 +242,24 @@ class GsData(MSONableModel):
 
 
 class BandStructureFlowModel(FlowModel):
+    """
+    This model defines the input arguments used to build a Flow for band structure calculations
+    as well as the submodels used to store the final results.
+
+    Users are supposed to use this model to initialize a MongoDB collection with all
+    the input arguments that will be used to generate the flow and provide a concrete
+    implementation of:
+
+        - _build_flow.
+        - _postprocess_flow
+
+    The first method receinves the input arguments from the MongoDB database
+    and use these values to build a flow.
+
+    The second method is invoked by the AbiPy worker when the calculation is completed.
+    The function uses the Flow API to fill the ouput part of the model that
+    will be then stored in the database collection.
+    """
 
     ########
     # Input
@@ -302,15 +329,6 @@ if __name__ == "__main__":
     #    print(model_cls.schema_json(indent=2))
     #sys.exit(1)
 
-    # To "serialize" the class:
-    #qualname = cls.__qualname__
-    #modname = cls.__module__
-
-    # Then
-
-    #mod = __import__(modname, globals(), locals(), [qualname], 0)
-    #cls = getattr(mod, qualname)
-
     structures = [si]
     for structure in structures:
         model = BandStructureFlowModel(structure=structure, pseudos_specs=pseudos_specs)
@@ -335,7 +353,9 @@ if __name__ == "__main__":
         assert isinstance(same_model.nscf_data.ebands, ElectronBands)
         print(same_model.scf_data.ebands.structure)
 
+    #from abipy.flowtk.worker import AbipyWorker
     #worker = AbipyWorker.new_with_name("ebands_worker", scratch_dir="/tmp/",
+    #                                   manager=manager.
     #                                   mongo_connector=mongo_connector,
     #                                   flow_model=BandStructureFlowModel)
 

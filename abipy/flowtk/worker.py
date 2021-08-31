@@ -28,6 +28,7 @@ from pymatgen.util.serialization import pmg_serialize
 from abipy.tools.printing import print_dataframe
 from abipy.tools import duck
 from abipy.flowtk.flows import Flow
+from abipy.flowtk.tasks import TaskManager
 from abipy.flowtk.launcher import MultiFlowScheduler
 
 
@@ -270,8 +271,8 @@ class WorkerState(AttrDict):
 class AbipyWorker:
 
     def __init__(self, name: str, sched_options: dict, scratch_dir: str,
-                 address="localhost", port=0):
-                 #manager=None, mongo_connector=None, flow_model=None)
+                 address="localhost", port=0,
+                 manager=None, mongo_connector=None, flow_model=None)
         """
         Args:
             name: The name of the Worker. Must be unique.
@@ -300,6 +301,7 @@ class AbipyWorker:
             ("/json_status", JsonStatusHandler, dict(worker=self)),
             ("/action", ActionHandler, dict(worker=self)),
         ]
+
         self.config_dir = os.path.join(_ABIPY_DIR, f"worker_{self.name}")
         if not os.path.exists(self.config_dir):
             os.mkdir(self.config_dir)
@@ -324,9 +326,14 @@ class AbipyWorker:
 
         #self.write_state_file(status="init")
 
-        #self.mongo_connector = mongo_connector
-        #self.flow_model = flow_model
-        #self.manager = manager
+        self.manager = manager
+        self.mongo_connector = mongo_connector
+        self.flow_model = flow_model
+
+        if flow_model:
+            if self.mongo_connector is None:
+                raise ValueError("mong_connector is required when flow_mode is not None!")
+            # Register periodic callback.
 
     def build_flow_from_mongodb(self):
         # TODO: Implement Pipelines?
@@ -341,7 +348,7 @@ class AbipyWorker:
             #manager = self.manager ??
             #pseudos = model.pseudo_specs.get_pseudos(db)
 
-            flow = model.build_flow(workdir, manager)
+            flow = model.build_flow(workdir, self.manager)
             model.full_update_oid(oid, collection)
             self.flow_scheduler.add_flow(flow, user_message="") # m.user_message ?
 
@@ -366,6 +373,7 @@ class AbipyWorker:
 
     @classmethod
     def init_from_dirname(cls, name):
+        # TODO: manager, mongo_connector, flow_model
         d, path = cls._get_state_path(name)
 
         if d["status"] != "init":
@@ -373,15 +381,17 @@ class AbipyWorker:
 
         config_dir = os.path.dirname(path)
         sched_options = yaml_safe_load_path(os.path.join(config_dir, "scheduler.yml"))
-        #manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml")
+        #from abipy.flowtk.tasks import TaskManager
+        manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml")
         #print("sched_options", sched_options)
 
         return cls(d["name"], sched_options, d["scratch_dir"],
-                   address=d["address"], port=d["port"])
+                   address=d["address"], port=d["port"], manager=manager)
 
     @classmethod
     def new_with_name(cls, worker_name: str, scratch_dir: str,
-                      scheduler_path=None, manager_path=None, verbose=1):
+                      scheduler_path=None, manager_path=None,
+                      mongo_connector=None, flow_model=None, verbose=1):
 
         config_dir = os.path.join(_ABIPY_DIR, f"worker_{worker_name}")
         errors = []
@@ -431,6 +441,9 @@ to update the list of local clients.
         worker_state = WorkerState.new(
                 name=worker_name,
                 scratch_dir=scratch_dir,
+                #manager=
+                #mongo_connector=
+                #flow_mode=
         )
 
         with open(os.path.join(config_dir, "state.json"), "wt") as fp:
@@ -464,11 +477,15 @@ to update the list of local clients.
         # TODO: Problem with the default manager when creating the flow.
         # Replace node_id with uuid4
         #from abipy.flowtk.tasks import TaskManager
-        #manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml")
         config_dir = os.path.dirname(path)
         sched_options = yaml_safe_load_path(os.path.join(config_dir, "scheduler.yml"))
+        manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml")
 
+        # TODO: manager, mongo_connector, flow_model
+        # Should be stored in state.json so that we can restart.
         new = cls(d["name"], sched_options, d["scratch_dir"], address=d["address"], port=d["port"])
+                  manager=manager, mongo_connector=None, flow_model=None)
+
         print("Remember to execute ldiscover or rdiscover...")
         return new
 
@@ -483,7 +500,19 @@ to update the list of local clients.
             address=self.address,
             port=self.port,
             scratch_dir=self.scratch_dir,
+            #manager=
+            #mongo_connector=
+            #flow_mode=
         )
+
+        # To "serialize" the class:
+        #qualname = cls.__qualname__
+        #modname = cls.__module__
+
+        # Then
+
+        #mod = __import__(modname, globals(), locals(), [qualname], 0)
+        #cls = getattr(mod, qualname)
 
         state.json_write(filepath)
 
