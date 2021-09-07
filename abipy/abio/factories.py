@@ -1321,7 +1321,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     "scf", "ddk", "dde", "nscf", "ph_q_pert", "strain", "dte", "dfpt".
 
     N.B. Currently (version 8.8.3) anaddb does not support a DDB containing both 2nd order derivatives with qpoints
-    different from gamma AND  3rd oreder derivatives. The calculations could be run, but the global DDB will not
+    different from gamma AND 3rd order derivatives. The calculations could be run, but the global DDB will not
     be directly usable as is.
 
     Args:

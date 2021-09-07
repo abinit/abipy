@@ -370,9 +370,15 @@ class ElectronBands(Has_Structure):
         # Needed to support old dictionaries
         if "nspden" not in d: d["nspden"] = 1
         if "nspinor" not in d: d["nspinor"] = 1
+
+        smearing = d['smearing']
+        if smearing is not None:
+            # Handle metallic occupation scheme
+            smearing = Smearing.from_dict(smearing)
+
         return cls(Structure.from_dict(d["structure"]), kpoints,
                    d["eigens"], d["fermie"], d["occfacts"], d["nelect"], d["nspinor"], d["nspden"],
-                   nband_sk=d["nband_sk"], smearing=d["smearing"],
+                   nband_sk=d["nband_sk"], smearing=smearing,
                    linewidths=d.get("linewidths", None)
                    )
 

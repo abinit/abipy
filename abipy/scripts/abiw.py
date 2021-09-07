@@ -6,23 +6,14 @@ It provides a command line interface as well as a graphical interface based on w
 import sys
 import os
 import argparse
-#import time
-#import platform
 import abipy.flowtk as flowtk
 
 from pprint import pprint, pformat
 from monty.functools import prof_main
-#from monty.termcolor import cprint, colored, get_terminal_size
-#from monty.string import boxed, make_banner
 from abipy.core.release import __version__
 from abipy.tools.printing import print_dataframe
 from abipy.flowtk.worker import (WorkerClients, AbipyWorker,
-        print_local_workers, discover_local_workers, rdiscover)
-
-#def straceback():
-#    """Returns a string with the traceback."""
-#    import traceback
-#    return traceback.format_exc()
+        print_local_workers, rdiscover)
 
 
 def get_epilog():
@@ -306,7 +297,7 @@ def main():
     elif options.command == "new_worker":
         worker = AbipyWorker.new_with_name(options.worker_name, options.scratch_dir)
         #create_new_worker(options.worker_name, options.scratch_dir)
-        #discover_local_workers()
+        WorkerClients.local_discover()
         return 0
 
     #if os.path.basename(options.filepath) == "flows.db":
@@ -318,25 +309,26 @@ def main():
         return 0
 
     elif options.command == "ldiscover":
-        discover_local_workers()
+        WorkerClients.local_discover()
         return 0
 
     elif options.command == "rdiscover":
         rdiscover(options.hostnames)
+        #WorkerClients.remote_discover()
         return 0
 
     #elif options.command == "rupdate":
     #    rdiscover()
     #    return 0
 
-    discover_local_workers()
+    local_clients = WorkerClients.local_discover()
     all_clients = WorkerClients.from_json_file()
 
     if options.command == "kill":
         client = all_clients.select_from_worker_name(options.worker_name)
         client.send_kill_message()
-        print("Calling discover_local_workers after kill")
-        discover_local_workers()
+        print("Calling local_discover after kill")
+        WorkerClients.local_discover()
 
     #if options.command == "remove":
     #    client = all_clients.select_from_worker_name(options.worker_name)
@@ -376,7 +368,6 @@ def main():
 
     elif options.command == "gui":
         client = all_clients.select_from_worker_name(options.worker_name)
-        print(client)
         client.open_webgui()
 
     #elif options.command == "all_gui":

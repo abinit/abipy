@@ -129,6 +129,17 @@ class ElectronBandsTest(AbipyTest):
         self.assertMSONable(ni_ebands_kpath, test_if_subclass=False)
         assert len(ni_ebands_kpath.to_json())
 
+        self.assertMSONable(ni_ebands_kmesh, test_if_subclass=False)
+        #d = ni_ebands_kmesh.as_dict()
+        from monty.json import MontyDecoder #, MSONable
+        import json
+        assert ni_ebands_kmesh.smearing is not None
+        new = json.loads(ni_ebands_kmesh.to_json(), cls=MontyDecoder)
+        assert new.smearing is not None
+        assert new.smearing.has_metallic_scheme
+        assert new.smearing.occopt == ni_ebands_kmesh.smearing.occopt
+        str(new)
+
         od = ni_ebands_kmesh.get_dict4pandas(with_spglib=False)
         assert od["nsppol"] == 2 and od["nspinor"] == 1 and od["nspden"] == 2
 

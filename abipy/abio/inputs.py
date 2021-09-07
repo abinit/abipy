@@ -529,6 +529,10 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         """
         JSON interface used in pymatgen for easier serialization.
         """
+        # TODO: We may replace abi_args with abi_kwargs to faciliate MongoDB queries
+        # and rendere the document more readable. At the time, we decided to use abi_args
+        # because the order is preserved but with py2.7 there's no need for this.
+        # Similar changes may be done in AnaddbInput.
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
         dec = MontyDecoder()
         return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),

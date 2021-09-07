@@ -3153,7 +3153,7 @@ class PhononFlow(Flow):
             raise ValueError("ph_ngqpt %s should be a sub-mesh of scf_ngkpt %s" % (ph_ngqpt, scf_ngkpt))
 
         ph_work = PhononWork.from_scf_task(scf_task, ph_ngqpt, is_ngqpt=True, with_becs=with_becs,
-                                                 with_quad=with_quad, with_flexoe=with_flexoe)
+                                           with_quad=with_quad, with_flexoe=with_flexoe)
         flow.register_work(ph_work)
 
         if allocate: flow.allocate()

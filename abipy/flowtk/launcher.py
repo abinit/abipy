@@ -974,16 +974,27 @@ class MultiFlowScheduler(BaseScheduler):
         )
         return status
 
-    def get_flow_status_by_id(self, node_id):
+    def get_flow_and_status_by_nodeid(self, node_id):
         from abipy.flowtk.flows import Flow
-
         with self.sql_connect() as con:
             cur = con.cursor()
             cur.execute("SELECT workdir, status FROM flows WHERE flow_id = ?", [node_id])
             row = cur.fetchone()
         con.close()
 
-        return (Flow.from_file(row["workdir"]), row["status"]) if row else (None, None)
+        if row and os.path.exists(row["workdir"]):
+            return (Flow.from_file(row["workdir"]), row["status"])
+        else:
+            return (None, None)
+
+    def get_sql_rows_with_node_ids(self, node_id_list):
+        with self.sql_connect() as con:
+            cur = con.cursor()
+            query = "SELECT * FROM flows WHERE flow_id IN (%s)" % ','.join('?' * len(node_id_list))
+            cur.execute(query, node_id_list)
+            rows = cur.fetchall()
+        con.close()
+        return rows
 
     def groupby_status(self):
         from collections import defaultdict
@@ -1148,11 +1159,14 @@ class MultiFlowScheduler(BaseScheduler):
                self.errored_flows = []
 
             cur.executemany(query, values)
+
         con.close()
 
 
 def print_flowsdb_file(filepath):
-    """Print flows.db file to terminal."""
+    """
+    Print flows.db file to terminal.
+    """
     import sqlite3
     from abipy.tools.printing import print_dataframe
     with sqlite3.connect(filepath) as con:

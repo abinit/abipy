@@ -8,32 +8,41 @@ import socket
 import time
 import subprocess
 import tempfile
+import getpass
 import functools
+import tornado
 import tornado.web
-import pandas as pd
 import tornado.escape
+import pandas as pd
 import requests
 import panel as pn
 
 from datetime import datetime
+from uuid import UUID, uuid4
 from pprint import pprint, pformat
 from queue import Queue, Empty
 from contextlib import closing
+from typing import Optional, Type
+from enum import Enum #, IntEnum
 from monty import termcolor
-from monty.collections import AttrDict #, dict2namedtuple
-from monty.string import list_strings #, marquee
-from monty.json import MSONable
+from monty.collections import AttrDict
+from monty.json import MSONable #, MontyEncoder
 from monty.functools import lazy_property
+from tqdm import tqdm
+
 from pymatgen.util.serialization import pmg_serialize
 from abipy.tools.printing import print_dataframe
 from abipy.tools import duck
 from abipy.flowtk.flows import Flow
 from abipy.flowtk.tasks import TaskManager
 from abipy.flowtk.launcher import MultiFlowScheduler
+from abipy.flowtk.models import AbipyBaseModel, Field, MongoConnector, FlowModel, AbipyDecoder, AbipyEncoder
+#, ModelMetaclass  #, BaseConfig, PrivateAttr
+from pydantic.main import ModelMetaclass
 
 
 # This should become a global variable used in all the other modules to facilitate unit tests.
-_ABIPY_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
+_ABIPY_DIRPATH = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
 
 
 def yaml_safe_load_path(path):
@@ -102,6 +111,7 @@ class ActionHandler(BaseHandler):
 class PostFlowHandler(BaseHandler):
 
     def post(self):
+        #if self.worker.flow_model is not None: raise RuntimeError("Cannot send stuff in flow_model is ON")
         data = self.get_json_from_body()
 
         pyscript_basename = data["pyscript_basename"]
@@ -154,6 +164,7 @@ class JsonStatusHandler(_JsonHandler):
 class FlowDirsPostHandler(BaseHandler):
 
     def post(self):
+        #if self.worker.flow_model is not None: raise RuntimeError("Cannot send stuff in flow_model is ON")
         data = self.get_json_from_body()
         user_message = data["user_message"]
         flow_dir = data["flow_dir"]
@@ -173,21 +184,21 @@ class FlowDirsPostHandler(BaseHandler):
         self.write(reply)
 
 
-def find_free_port(address="localhost"):
-
+def find_free_port(address: str = "localhost") -> int:
+    """Retur free port"""
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind((address, 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         return s.getsockname()[1]
 
 
-def port_is_open(port, address="localhost"):
+def port_is_open(port: int, address: str = "localhost") -> bool:
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
         if sock.connect_ex((address, port)) == 0: return True
         return False
 
 
-def pid_exists(pid):
+def pid_exists(pid: int) -> bool:
     """
     Check whether pid exists in the current process table. UNIX only.
 
@@ -220,59 +231,48 @@ def pid_exists(pid):
         return True
 
 
-class WorkerState(AttrDict):
-    """
+class WorkerStatusEnum(str, Enum):
+    """Possible status of the Worker."""
+    init = "init"
+    serving = "serving"
+    dead = "dead"
 
-        status is one of the following: "init", "serving", "dead".
-    """
 
-    @classmethod
-    def new(cls, **kwargs):
 
-        import getpass
-        import uuid
+class WorkerState(AbipyBaseModel):
 
-        new = cls(
-            name=None,
-            status="init",
-            pid=os.getpid(),
-            address="localhost",
-            port=0,
-            scratch_dir=None,
-            username=getpass.getuser(),
-            hostname=socket.gethostname(),
-            uuid=str(uuid.uuid4()),
-        )
-        new.update(**kwargs)
+    name: str = Field(..., description="Name of the worker")
 
-        if "uuid" not in new:
-            new["uuid"] = str(uuid.uuid4())
+    status: WorkerStatusEnum = Field(WorkerStatusEnum.init, description="Status of the worker.")
 
-        return new
+    pid: int = Field(default_factory=os.getpid, description="Process identifier.")
 
-    def __str__(self):
-        return self.__class__.__name__ + "\n" + pformat(self, indent=2) + "\n"
+    address: str = Field("localhost", description="Server address.")
 
-    def json_write(self, filepath):
-        with open(filepath, "wt") as fp:
-            json.dump(self, fp, indent=2)
+    port : int = Field(0, description="Server port.")
 
-    @classmethod
-    def from_json_file(cls, filepath):
-        with open(filepath, "rt") as fp:
-            return cls(**json.load(fp))
+    scratch_dir: str = Field(..., description="Scratch directory.")
 
-    @classmethod
-    def from_json(cls, json_string):
-        return cls(**json.loads(json_string))
+    username: str = Field(default_factory=getpass.getuser,
+                          description="User name.")
 
+    hostname: str = Field(default_factory=socket.gethostname,
+                          description="Host name.")
+
+    #uuid: UUID = Field(default_factory=uuid4)
+    def str_uuid(): return str(uuid4())
+    uuid: str = Field(default_factory=str_uuid)
+
+    mongo_connector: MongoConnector = Field(None, description="MongoDB connector")
+
+    #flow_model: ModelMetaclass = Field(None, description="Flow model")
 
 
 class AbipyWorker:
 
     def __init__(self, name: str, sched_options: dict, scratch_dir: str,
-                 address="localhost", port=0,
-                 manager=None, mongo_connector=None, flow_model=None)
+                 address: str = "localhost", port: int = 0,
+                 manager=None, mongo_connector=None):
         """
         Args:
             name: The name of the Worker. Must be unique.
@@ -302,7 +302,7 @@ class AbipyWorker:
             ("/action", ActionHandler, dict(worker=self)),
         ]
 
-        self.config_dir = os.path.join(_ABIPY_DIR, f"worker_{self.name}")
+        self.config_dir = os.path.join(_ABIPY_DIRPATH, f"worker_{self.name}")
         if not os.path.exists(self.config_dir):
             os.mkdir(self.config_dir)
 
@@ -315,93 +315,108 @@ class AbipyWorker:
 
         state_file = os.path.join(self.config_dir, "state.json")
         if os.path.exists(state_file):
-            with open(state_file, "rt") as fp:
-                d = json.load(fp)
-            if d["status"] == "serving":
-                pid = d["pid"]
+            state = WorkerState.from_json_file(state_file)
+            if state.status == state.status.serving:
+                pid = state.pid
                 if pid_exists(pid):
                     raise RuntimeError(f"There's already an AbiPy Worker serving on this machine with pid: {pid}")
                 # FIXME This does not work in demon mode!
                 print(f"Status 'serving' but pid {pid} does not exist!")
 
-        #self.write_state_file(status="init")
-
         self.manager = manager
         self.mongo_connector = mongo_connector
-        self.flow_model = flow_model
+        self.flow_model = None
 
-        if flow_model:
-            if self.mongo_connector is None:
-                raise ValueError("mong_connector is required when flow_mode is not None!")
-            # Register periodic callback.
+        if self.mongo_connector:
+            collection = self.mongo_connector.get_collection()
+            self.flow_model = FlowModel.get_subclass_from_collection(collection)
+            self.flowid2_oid_model = {}
+
+        #self.write_state_file(status="init")
+
+    #@tornado.concurrent.run_on_executor
+    #def refresh():
+    #    do_something_that_takes_a_while()
+    #    tornado.ioloop.IOLoop.instance().add_callback(self.refresh)
+
+    #def mkworkdir(self):
+    #    now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    #    workdir = tempfile.mkdtemp(prefix=f"Flow-{now}", dir=self.scratch_dir)
 
     def build_flow_from_mongodb(self):
-        # TODO: Implement Pipelines?
+        # TODO: Improve error handling.
         collection = self.mongo_connector.get_collection()
-        oid_model_list = self.flow_model.find_runnable_oid_models(collection, limit=5)
-        if oid_model_list is None: return
 
-        for (oid, model) in oid_model_list:
+        if self.flowid2_oid_model:
+            node_ids = list(self.flowid2_oid_model.keys())
+            rows = self.flow_scheduler.get_sql_rows_with_node_ids(node_ids)
+            print("rows", rows)
 
+            for row in rows:
+                flow_id = row["flow_id"]
+                if row["status"] == "Completed":
+                    print("In completed")
+                    flow = Flow.from_file(row["workdir"])
+                    oid, model = self.flowid2_oid_model[flow_id]
+                    model.postprocess_flow_and_update_collection(flow, oid, collection)
+                    self.flowid2_oid_model.pop(flow_id)
+                else:
+                    print("Should handle row with status", row["status"])
+
+        # TODO: Implement Pipelines?
+        oid_flowmodel_list = self.flow_model.find_runnable_oid_models(collection, limit=5)
+        if not oid_flowmodel_list: return
+        print("in build_flow_from_mongodb, found", len(oid_flowmodel_list), "flows in database")
+
+        for oid, model in oid_flowmodel_list:
+            print("Running model:", model)
             now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             workdir = tempfile.mkdtemp(prefix=f"Flow-{now}", dir=self.scratch_dir)
-            #manager = self.manager ??
-            #pseudos = model.pseudo_specs.get_pseudos(db)
 
-            flow = model.build_flow(workdir, self.manager)
-            model.full_update_oid(oid, collection)
+            flow = model.build_flow_and_update_collection(workdir, oid, collection, self)
+            if flow is None: continue
             self.flow_scheduler.add_flow(flow, user_message="") # m.user_message ?
-
-            #self.oid_models.append((oid, model))
-
-        #collection = self.mongo_connector.get_collection()
-        #done = []
-        #for i, (oid, model) in enumerate(self.oid_models):
-            #model.postprocess_flow(flow)
-            #model.full_update_oid(oid, collection)
-            #done.append(i)
+            self.flowid2_oid_model[flow.node_id] = (oid, model)
 
     @classmethod
     def _get_state_path(cls, name):
-        config_dir = os.path.join(_ABIPY_DIR, f"worker_{name}")
+        config_dir = os.path.join(_ABIPY_DIRPATH, f"worker_{name}")
         state_filepath = os.path.join(config_dir, "state.json")
-        if not os.path.exists(state_filepath):
-            raise RuntimeError(f"Cannot find state file: `{state_filepath}`")
 
-        with open(state_filepath, "rt") as fp:
-            return (json.load(fp), state_filepath)
+        return (WorkerState.from_json_file(state_filepath), state_filepath)
 
     @classmethod
-    def init_from_dirname(cls, name):
-        # TODO: manager, mongo_connector, flow_model
-        d, path = cls._get_state_path(name)
+    def init_from_dirname(cls, name: str) -> "AbipyWorker":
+        state, path = cls._get_state_path(name)
 
-        if d["status"] != "init":
-            raise RuntimeError(f"`status` entry in json file `{path}`\n should be `init` while it is `{d['status']}`")
+        if state.status != state.status.init:
+            raise RuntimeError(f"`status` entry in json file `{path}`\n should be `init` while it is `{state.status}`")
 
         config_dir = os.path.dirname(path)
         sched_options = yaml_safe_load_path(os.path.join(config_dir, "scheduler.yml"))
-        #from abipy.flowtk.tasks import TaskManager
-        manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml")
+        manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml"))
         #print("sched_options", sched_options)
 
-        return cls(d["name"], sched_options, d["scratch_dir"],
-                   address=d["address"], port=d["port"], manager=manager)
+        # TODO: mongo_connector, flow_model
+        return cls(state.name, sched_options, state.scratch_dir,
+                   address=state.address, port=state.port, manager=manager,
+                   mongo_connector=state.mongo_connector)
 
     @classmethod
     def new_with_name(cls, worker_name: str, scratch_dir: str,
-                      scheduler_path=None, manager_path=None,
-                      mongo_connector=None, flow_model=None, verbose=1):
+                      scheduler_path: Optional[str] = None,
+                      manager_path: Optional[str] = None,
+                      mongo_connector=None, verbose=1) -> "AbipyWorker":
 
-        config_dir = os.path.join(_ABIPY_DIR, f"worker_{worker_name}")
+        config_dir = os.path.join(_ABIPY_DIRPATH, f"worker_{worker_name}")
         errors = []
         eapp = errors.append
 
         if os.path.exists(config_dir):
             eapp(f"Directory `{config_dir}` already exists!")
 
-        scheduler_path = scheduler_path or os.path.join(_ABIPY_DIR, "scheduler.yml")
-        manager_path = manager_path or os.path.join(_ABIPY_DIR, "manager.yml")
+        scheduler_path = scheduler_path or os.path.join(_ABIPY_DIRPATH, "scheduler.yml")
+        manager_path = manager_path or os.path.join(_ABIPY_DIRPATH, "manager.yml")
 
         if not os.path.exists(scheduler_path):
             eapp("Cannot find scheduler file at `{scheduler_path}` to initialize the worker!")
@@ -411,15 +426,16 @@ class AbipyWorker:
             eapp("scratch_dir: `{scratch_dir}` is not a directory!")
 
         if errors:
-            print("The following problems have been detected:")
+            lines = ["The following problems have been detected:"]
             for i, err in enumerate(errors):
-                print(f"\t [{i+1}] {err}")
-            return 1
+                lines.append(f"\t [{i+1}] {err}")
+            raise RuntimeError("\n".join(lines))
 
         if verbose:
             print(f"""
 Creating new worker directory `{config_dir}`
 Copying manager.yml and scheduler.yml files into it.
+These are the configuration files used by the Worker to submit and schedule tasks.
 You may want to customize these files before running calculations.
 
 After this step, use:
@@ -438,28 +454,26 @@ to update the list of local clients.
         copy(scheduler_path, config_dir)
         copy(manager_path, config_dir)
 
-        worker_state = WorkerState.new(
+        worker_state = WorkerState(
                 name=worker_name,
+                status="init",
                 scratch_dir=scratch_dir,
-                #manager=
-                #mongo_connector=
-                #flow_mode=
+                mongo_connector=mongo_connector,
         )
 
-        with open(os.path.join(config_dir, "state.json"), "wt") as fp:
-            json.dump(worker_state, fp, indent=2)
+        worker_state.json_write(os.path.join(config_dir, "state.json"), indent=2)
 
         return cls.init_from_dirname(worker_name)
 
     @classmethod
     def restart_from_dirname(cls, name, force=False):
-        d, path = cls._get_state_path(name)
-        pid = d["pid"]
+        state, path = cls._get_state_path(name)
+        pid = state.pid
 
-        #if d["status"] != "dead":
+        #if state.status != "dead":
         # TODO: status can be set to serving if the worker has been killed by kill -9
         # should implement a restart_hard option and perhaps make a bkp of the database!
-        if d["status"] == "serving":
+        if state.status == state.status.serving:
             e_pid = pid_exists(pid)
 
             msg = f"It seems there's already a worker serving on this machine with pid: {pid}"
@@ -476,15 +490,14 @@ to update the list of local clients.
 
         # TODO: Problem with the default manager when creating the flow.
         # Replace node_id with uuid4
-        #from abipy.flowtk.tasks import TaskManager
         config_dir = os.path.dirname(path)
         sched_options = yaml_safe_load_path(os.path.join(config_dir, "scheduler.yml"))
-        manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml")
+        manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml"))
 
         # TODO: manager, mongo_connector, flow_model
         # Should be stored in state.json so that we can restart.
-        new = cls(d["name"], sched_options, d["scratch_dir"], address=d["address"], port=d["port"])
-                  manager=manager, mongo_connector=None, flow_model=None)
+        new = cls(state.name, sched_options, state.scratch_dir, address=state.address, port=state.port,
+                  manager=manager, mongo_connector=state.mongo_connector)
 
         print("Remember to execute ldiscover or rdiscover...")
         return new
@@ -493,26 +506,15 @@ to update the list of local clients.
         if filepath is None:
             filepath = os.path.join(self.config_dir, "state.json")
 
-        state = WorkerState.new(
+        state = WorkerState(
             name=self.name,
             status=status,
             pid=self.pid,
             address=self.address,
             port=self.port,
             scratch_dir=self.scratch_dir,
-            #manager=
-            #mongo_connector=
-            #flow_mode=
+            mongo_connector=self.mongo_connector,
         )
-
-        # To "serialize" the class:
-        #qualname = cls.__qualname__
-        #modname = cls.__module__
-
-        # Then
-
-        #mod = __import__(modname, globals(), locals(), [qualname], 0)
-        #cls = getattr(mod, qualname)
 
         state.json_write(filepath)
 
@@ -521,8 +523,8 @@ to update the list of local clients.
 
     def serve_homepage(self):
 
-        from socket import gethostname
         import platform
+        from socket import gethostname
         system, node, release, version, machine, processor = platform.uname()
 
         header = pn.pane.Markdown(f"""
@@ -534,9 +536,9 @@ Running on {gethostname()} -- system {system} -- Python {platform.python_version
         d = self.flow_scheduler.groupby_status()
         md_lines = ["Refresh the page to update the list of Flow."]
         if d:
-            for status, values in d.items():
-                if status == "error": status = "Errored"
-                md_lines.append(f"## {status.capitalize()} Flows:\n")
+            for flow_status, values in d.items():
+                if flow_status == "error": flow_status = "Errored"
+                md_lines.append(f"## {flow_status.capitalize()} Flows:\n")
                 for row in values:
                     workdir, flow_id = row["workdir"], row["flow_id"]
                     md_lines.append(f"- [flow_id: {flow_id}, workdir: {workdir}](/flow/{flow_id})\n")
@@ -564,7 +566,7 @@ Running on {gethostname()} -- system {system} -- Python {platform.python_version
         tokens = pn.state.app_url.split("/")
         #print("In serve_panel_flow with app_url", pn.state.app_url, "tokens:", tokens)
         flow_id = int(tokens[2])
-        flow, status = self.flow_scheduler.get_flow_status_by_id(flow_id)
+        flow, flow_status = self.flow_scheduler.get_flow_and_status_by_nodeid(flow_id)
         if flow is not None:
             return flow.get_panel(template=self.panel_template)
 
@@ -583,10 +585,6 @@ Running on {gethostname()} -- system {system} -- Python {platform.python_version
             websocket_origin="*",
         )
 
-        thread = threading.Thread(target=self.flow_scheduler.start, name="flow_scheduler", daemon=True)
-        thread.start()
-        #termcolor.enable(False)
-
         #print("serve_kwargs:", serve_kwargs)
         self.address = serve_kwargs.pop("address", self.address)
         self.port = serve_kwargs.pop("port", self.port)
@@ -596,20 +594,40 @@ Running on {gethostname()} -- system {system} -- Python {platform.python_version
         # Now write state.json with the actual port.
         self.write_state_file(status="serving")
 
-        # Register function atexit
+        # Start the secondary thread for the MultiFlowScheduler.
+        thread = threading.Thread(target=self.flow_scheduler.start, name="flow_scheduler", daemon=True)
+        thread.start()
+        #termcolor.enable(False)
+
+        # Register function atexit to update the state.js if the worker gets killed.
+        # Note that the callback wont' be executed if we receive SIGKILL (kill -9)
+        # or if an exception is raised in write_state_file or in other registered callbacks.
         import atexit
         atexit.register(self.write_state_file)
 
-        return pn.serve(self.routes, port=self.port, address=self.address,
-                        extra_patterns=self.extra_patterns, **serve_kwargs)
+        if self.flow_model is not None:
+            time_ms = 7000
+            print("registering periodic callback every", time_ms, "ms")
+            #from tornado.ioloop import IOLoop
+            #ioloop = IOLoop.current()
+            from tornado.ioloop import PeriodicCallback
+            periodic = PeriodicCallback(self.build_flow_from_mongodb, time_ms)
+            periodic.start()
+
+        server = pn.serve(self.routes, port=self.port, address=self.address,
+                          extra_patterns=self.extra_patterns, start=True, **serve_kwargs)
+
+        #return server.start()
 
 
-def _get_all_local_worker_states(as_dict=False):
+def _get_all_local_worker_states(as_dict=False, dirpath=None):
     states, paths = [], []
 
-    worker_dirs = [dirname for dirname in os.listdir(_ABIPY_DIR) if dirname.startswith("worker_")]
+    dirpath = _ABIPY_DIRPATH if not dirpath else dirpath
+
+    worker_dirs = [dirname for dirname in os.listdir(dirpath) if dirname.startswith("worker_")]
     for workdir in worker_dirs:
-        state_file = os.path.join(_ABIPY_DIR, workdir, "state.json")
+        state_file = os.path.join(dirpath, workdir, "state.json")
         state = WorkerState.from_json_file(state_file)
         states.append(state)
         paths.append(state_file)
@@ -620,20 +638,9 @@ def _get_all_local_worker_states(as_dict=False):
     return states
 
 
-def print_local_workers():
-    df = pd.DataFrame(_get_all_local_worker_states())
+def print_local_workers(dirpath=None) -> None:
+    df = pd.DataFrame(_get_all_local_worker_states(dirpath=dirpath))
     print_dataframe(df, title="\nLocal AbiPy Workers:\n")
-
-
-def discover_local_workers(printout=True):
-    worker_states = _get_all_local_worker_states()
-    clients = WorkerClients.from_json_file(empty_if_not_file=True)
-    clients.update_from_worker_states(worker_states, write_json=True)
-    if printout:
-        df = clients.get_dataframe()
-        df = df[df["is_local_worker"] == True]
-        print_dataframe(df, title="Local Workers")
-    return clients
 
 
 def rdiscover(hostnames, printout=True):
@@ -649,7 +656,7 @@ def rdiscover(hostnames, printout=True):
     from io import BytesIO
     print("Make sure the hosts are listed in your ~/.ssh/config file and that ProxyJump is activated if needed")
     worker_states = []
-    for host in hostnames:
+    for host in tqdm(hostnames):
         print(f"Contacting {host}. It may take some time ...")
         try:
             c = Connection(host)
@@ -695,7 +702,7 @@ def rdiscover(hostnames, printout=True):
 
 _SSH_CONFIG = None
 
-def _get_ssh_config():
+def get_ssh_config():
     global _SSH_CONFIG
 
     if _SSH_CONFIG is None:
@@ -718,13 +725,17 @@ def _get_ssh_config():
 class ClientError(Exception):
     """Exceptions raised by WorkerClient"""
 
+    @classmethod
+    def from_response(cls, response):
+        raise cls(f"\nServer returned status code: {response.status_code}\nwith text:\n{response.text}\n")
+
 
 def need_serving_worker(method):
 
     @functools.wraps(method)
     def decorated(*args, **kwargs):
         self = args[0]
-        if self.worker_state.status != "serving":
+        if self.worker_state.status != self.worker_state.status.serving:
             raise ClientError(f"Status of {self.worker_state.name} worker is `{self.worker_state.status}`")
 
         return method(*args, **kwargs)
@@ -737,7 +748,10 @@ class WorkerClient(MSONable):
     def __init__(self, worker_state, is_default_worker=False, timeout=240,
                  is_local_worker=None, ssh_destination=None, local_port=None, saved_uuid=None):
 
-        self.worker_state = WorkerState(**worker_state.copy())
+        if not isinstance(worker_state, WorkerState):
+            self.worker_state = WorkerState(**worker_state)
+        else:
+            self.worker_state = worker_state
 
         self.is_default_worker = bool(is_default_worker)
         self.timeout = timeout
@@ -752,7 +766,7 @@ class WorkerClient(MSONable):
             if self.is_local_worker:
                 self.ssh_destination = ""
             else:
-                hostnames = _get_ssh_config().get_hostnames()
+                hostnames = get_ssh_config().get_hostnames()
                 if self.worker_state.hostname not in hostnames:
                     print(f"WARNING: Cannot find `{self.worker_state.hostname}` in `{hostnames}`")
 
@@ -779,10 +793,13 @@ class WorkerClient(MSONable):
 
         self.saved_uuid = saved_uuid if saved_uuid else self.worker_state.uuid
 
+    def is_remote_worker(self):
+        return not self.is_local_worker
+
     @pmg_serialize
     def as_dict(self) -> dict:
         return dict(
-                worker_state=self.worker_state,
+                worker_state=self.worker_state.dict(),
                 is_default_worker=self.is_default_worker,
                 timeout=self.timeout,
                 is_local_worker=self.is_local_worker,
@@ -795,7 +812,7 @@ class WorkerClient(MSONable):
         info = []
 
         # Return immediately if port forwarding is not needed.
-        if self.is_local_worker or self.worker_state.status != "serving":
+        if self.is_local_worker or self.worker_state.status != self.worker_state.status.serving:
             return
 
         print("in setup_ssh_port_forwarding")
@@ -817,11 +834,11 @@ class WorkerClient(MSONable):
         #return info
 
     def update_state(self, worker_state):
-        prev_hostname = self.worker_state["hostname"]
+        prev_hostname = self.worker_state.hostname
         self.worker_state = worker_state.copy()
         # This is needed to preserve the changes done by the user in clients.json
         # if the hostname differs from the one used in the ~/.ssh/config file.
-        self.worker_state["hostname"] = prev_hostname
+        self.worker_state.hostname = prev_hostname
 
         if self.saved_uuid != worker_state.uuid:
             print("Detected change in worker_state.uuid!")
@@ -839,16 +856,21 @@ class WorkerClient(MSONable):
         Returns a json string representation of the MSONable object.
         """
         # TODO: monty.to_json should accept **kwargs
-        from monty.json import MontyEncoder
-        return json.dumps(self, cls=MontyEncoder, indent=2)
+        return json.dumps(self, cls=AbipyEncoder, indent=2)
 
     def check_server_url(self) -> None:
         if self.server_url is None:
-            raise ClientError("server_url cannot be None")
+            raise ClientError("server_url cannot be None.")
         if self.local_port is None:
-            raise ClientError("localport cannot be None")
+            raise ClientError("localport cannot be None.")
         if not port_is_open(self.local_port):
-            raise ClientError("port {local_port} is not open")
+            raise ClientError("port {local_port} is not open.")
+
+    def _get_url(self, end_point: str, action: str) -> str:
+        url = f"{self.server_url}/{end_point}"
+        print(f"{action} to {self.worker_state.name} worker at url: {url} ...\n")
+        self.check_server_url()
+        return url
 
     @need_serving_worker
     def send_pyscript(self, filepath, user_message="", end_point="post_flow_script"):
@@ -863,88 +885,93 @@ class WorkerClient(MSONable):
                 user_message=user_message,
             )
 
-        url = f"{self.server_url}/{end_point}"
-        print(f"Sending `{filepath}` script to {self.worker_state.name} worker at url: {url} ...\n")
-        self.check_server_url()
-
+        url = self._get_url(end_point, f"Sending `{filepath}` script")
         r = requests.post(url=url, json=data, timeout=self.timeout)
         if r.status_code == 200:
             return r.json()
 
-        raise ClientError(f"\nServer returned status code: {r.status_code}\nwith text:\n{r.text}\n")
+        raise ClientError.from_response(r)
 
     @need_serving_worker
     def send_flow_dir(self, flow_dir, user_message="", end_point="post_flow_dirs"):
         if not self.is_local_worker:
-            raise RuntimeError(f"You cannot add a Flow to the remote worker {self.worker_state.name}")
+            raise RuntimeError(f"You cannot add a Flow to the remote worker: {self.worker_state.name}")
 
         if not os.path.isdir(flow_dir):
             raise RuntimeError(f"Cannot find flow directory: {flow_dir}")
 
-        url = f"{self.server_url}/{end_point}"
-        print(f"Sending `{flow_dir} directory to {self.worker_state.name} worker at url: {url} ...\n")
-        self.check_server_url()
-
+        url = self._get_url(end_point, f"Sending `{flow_dir}` directory")
         data = dict(flow_dir=flow_dir, user_message=user_message)
 
         r = requests.post(url=url, json=data, timeout=self.timeout)
         if r.status_code == 200:
             return r.json()
 
-        raise ClientError(f"\nServer returned status code: {r.status_code}\nwith text:\n{r.text}\n")
+        raise ClientError.from_response(r)
 
     @need_serving_worker
     def send_kill_message(self, end_point="action"):
-        url = f"{self.server_url}/{end_point}"
-        print(f"Sending kill message to {self.worker_state.name} worker at url: {url} ...\n")
-        self.check_server_url()
-
+        url = self._get_url(end_point, "Sending kill message")
         r = requests.post(url=url, json=dict(action="kill"), timeout=self.timeout)
         if r.status_code == 200:
             return r.json()
 
-        raise ClientError(f"\nServer returned status code: {r.status_code}\nwith text:\n{r.text}\n")
+        raise ClientError.from_response(r)
 
     @need_serving_worker
     def get_json_status(self, end_point="json_status"):
-        url = f"{self.server_url}/{end_point}"
-        print(f"Sending status request to {self.worker_state.name} worker at url: {url} ...\n")
-        self.check_server_url()
-
+        url = self._get_url(end_point, "Sending status request")
         r = requests.get(url=url, timeout=self.timeout)
-        #print("ok:", r.ok, "status code:", r.status_code)
-        #print(r.text)
 
         if r.status_code == 200:
-            #print(r.text)
             return r.json()
+            #print(r.text)
             #json_status = r.json()
             #from pandas.io.json import read_json
             #json_status["dataframe"] = read_json(json_status["dataframe"])
             #print_dataframe(json_status["dataframe"], title="\nWorker Status:\n")
             #return json_status
 
-        raise ClientError(f"\nServer returned status code: {r.status_code}\nwith text:\n{r.text}\n")
+        raise ClientError.from_response(r)
 
     @need_serving_worker
     def open_webgui(self):
-        url = self.server_url
-        print(f"Contacting {self.worker_state.name} worker at url: {url} ...\n")
-        self.check_server_url()
-
-        #print(self.worker_state)
+        end_point = ""
+        url = self._get_url(end_point, f"Contacting {self.worker_state.name} worker")
+        print(self)
         import webbrowser
         webbrowser.open_new_tab(url)
+
+    #def open_mongo_gui(self):
+    #    mongo_connector = self.worker_state.mongo_connector
+    #    if mongo_connector is None:
+    #        raise ValueError("Abipy Worker {self.name} has no MongoDB connector.")
+    #    if self.is_remote_worker and mongo_connector.host == "localhost":
+    #        raise ValueError("Remote AbiPy worker with localhost as MongoDB server.")
+    #    collection = mongo_connector.get_collection()
+
+    #    app = mongo_gui(mongo_connector, self.worker_state.flow_model)
+    #    app.serve()
 
 
 class WorkerClients(list, MSONable):
 
     @classmethod
+    def local_discover(cls, printout=True, dirpath=None):
+
+        worker_states = _get_all_local_worker_states(dirpath)
+        clients = cls.from_json_file(empty_if_not_file=True)
+        clients.update_from_worker_states(worker_states, write_json=True)
+        if printout:
+            df = clients.get_dataframe()
+            df = df[df["is_local_worker"] == True]
+            print_dataframe(df, title="Local Workers")
+
+        return clients
+
+    @classmethod
     def from_json_file(cls, empty_if_not_file=False, filepath=None):
-        if filepath is None:
-            filepath = os.path.join(_ABIPY_DIR, "clients.json")
-        else:
-            filepath = os.path.expanduser(filepath)
+        filepath = os.path.expanduser(filepath) if filepath else os.path.join(_ABIPY_DIRPATH, "clients.json")
 
         new = cls()
         if empty_if_not_file and not os.path.exists(filepath):
@@ -969,15 +996,6 @@ to create it""")
 
         new._validate()
         return new
-
-    #def check_local_port(self):
-    #    for client in self:
-    #        #print(client.local_port, "\n", client)
-    #        if duck.is_intlike(client.local_port):
-    #            address = "localhost"
-    #            if not port_is_open(client.local_port, address=address):
-    #                print(f"WARNING: Nobody is listening to `{address}:{client.local_port}`")
-    #                client.local_port = None
 
     def _validate(self):
         err_lines = []
@@ -1004,6 +1022,8 @@ to create it""")
                 if not port_is_open(client.local_port, address=address):
                     print(f"WARNING: Nobody is listening to `{address}:{client.local_port}`")
                     client.local_port = None
+                else:
+                    print(f"{client.worker_state.name} listening to `{address}:{client.local_port}`")
 
         if err_lines:
             raise RuntimeError("\n".join(err_lines))
@@ -1015,11 +1035,12 @@ to create it""")
     def as_dict(self):
         return {"clients": [w.as_dict() for w in self]}
 
+    def dict(self):
+        return {"clients": [w.dict() for w in self]}
+
     def write_json_file(self, filepath=None) -> None:
-        if filepath is None:
-            filepath = os.path.join(_ABIPY_DIR, "clients.json")
-        else:
-            filepath = os.path.expanduser(filepath)
+
+        filepath = os.path.join(_ABIPY_DIRPATH, "clients.json") if not filepath else os.path.expanduser(filepath)
 
         # TODO: Compare old with new. return diff
         #old_clients = self.__class__.from_json_file(empty_if_not_file=True)

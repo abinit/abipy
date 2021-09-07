@@ -14,7 +14,6 @@ import bokeh.models.widgets as bkw
 import panel as pn
 import panel.widgets as pnw
 
-
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core import abinit_units as abu

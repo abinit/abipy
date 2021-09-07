@@ -41,12 +41,12 @@ class AceViewer(Viewer):
 
 class JSONViewer(Viewer):
 
-    def __init__(self, dictionary, theme="dark", hover_preview=True, **params):
+    def __init__(self, dictionary, theme="dark", hover_preview=True, depth=2, **params):
 
         super().__init__(**params)
 
         self.json = pn.pane.JSON(dictionary,
-                                 depth=2, # -1 for full expansion
+                                 depth=depth, # -1 for full expansion
                                  hover_preview=hover_preview,
                                  theme=theme,
                                  sizing_mode="stretch_width",

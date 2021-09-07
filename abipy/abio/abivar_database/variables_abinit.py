@@ -3673,7 +3673,7 @@ Variable(
     abivarname="ecutwfn",
     varset="gw",
     vartype="real",
-    topics=['Susceptibility_basic', 'SelfEnergy_basic'],
+    topics=['Susceptibility_expert', 'SelfEnergy_expert'],
     dimensions="scalar",
     defaultval=ValueWithConditions({'[[optdriver]] in [3, 4]': '[[ecut]]', 'defaultval': 0.0}),
     mnemonics="Energy CUT-off for WaveFunctioNs",
@@ -3685,10 +3685,15 @@ Variable(
 represent the wavefunctions in the formula that generates the independent-
 particle susceptibility $\chi^{0}_{KS}$ (for [[optdriver]] = 3), or the self-
 energy (for [[optdriver]] = 4).
-Usually, [[ecutwfn]] is smaller than [[ecut]], so that the wavefunctions are
+
+Although this is not recommended, one is allowed to set [[ecutwfn]] smaller than [[ecut]], so that the wavefunctions are
 filtered, and some components are ignored. As a side effect, the wavefunctions
-are no more normalized, and also, no more orthogonal. Also, the set of plane
-waves can be much smaller for [[optdriver]] = 3, than for [[optdriver]] = 4,
+are no more normalized, and also, no more orthogonal. This also means
+that the q=0, Q=0 or q=0, Q'=0 matrix elements of the susceptibility are not zero
+as they should, which might be a problem in some cases depending on the intended usage of the
+susceptibility matrix beyond standard GW and BSE calculations.
+
+Anyhow, the set of plane waves can be much smaller for [[optdriver]] = 3, than for [[optdriver]] = 4,
 although a convergence study is needed to choose correctly both values.
 
 The size of this set of planewaves is [[npwwfn]].
@@ -4218,6 +4223,7 @@ The choice is among:
 * 7 --> Compute phonon limited transport in semiconductors using lifetimes taken from SIGEPH.nc file. See [[cite:Brunin2020b]].
 * 8 --> Compute phonon limited transport by solving the (linearized) IBTE using collision terms taken from SIGEPH.nc file.
         Requires [[ibte_prep]] = 1 when computing the imaginary part of the e-ph self-energy with [[eph_task == -4.
+* 10 --> Compute polaron effective mass along the 3 crystallographic directions: (100), (110) and (111); in the triply-degenerate VB or CB cubic case.
 * 15, -15 --> Write the average in r-space of the DFPT potentials to the V1QAVG.nc file.
               In the first case (+15) the q-points are specified via [[ph_nqpath]] and [[ph_qpath]]. The code assumes the
               input DVDB contains q-points in the IBZ and the potentials along the path are interpolated with Fourier transform.
@@ -6187,8 +6193,7 @@ the particular run-level (see discussion below).
 [[gw_nqlwl]] defines the number of directions in reciprocal space used to
 describe the non-analytical behaviour of the heads ($G = G'=0$) and the wings
 ($G=0$ or $G'=0$) of the dielectric matrix in the optical limit (i.e. for $q$
-tending to zero). The number of directions is specified by the additional
-variable [[gw_qlwl]].
+tending to zero). The number of directions is specified by the additional variable [[gw_qlwl]].
 
 When [[optdriver]] = 3, [[gw_nqlwl]] and **gw_qlwl** define the set of "small" $q$
 that will be calculated and stored in the final SCR file. Therefore, the two
@@ -6261,14 +6266,14 @@ value). This variable simplifies the specification of the list of kpoints and
 of the bands to be used for the computation of the quasi-particle corrections.
 The possible values are:
 
-  * 0 --> Compute the QP corrections only for the fundamental and the optical gap
+  * 0 --> Compute the QP corrections only for the fundamental and the direct gap
   * +num --> Compute the QP corrections for all the k-points in the irreducible zone,
      and include `num` bands above and below the Fermi level.
   * -num --> Compute the QP corrections for all the k-points in the irreducible zone.
      Include all occupied states and `num` empty states.
 
 The default value is 0 and is very handy for one-shot calculations. It is
-important to stress, however, that the position of the optical/fundamental
+important to stress, however, that the position of the direct/fundamental
 gaps is deduced from the energies computed on the k-mesh used for the WFK
 file. Therefore the computed gaps might differ from the correct ones that can
 only be obtained with an appropriate sampling of the irreducible zone.
@@ -10679,6 +10684,17 @@ Variable(
 [[nband]] bands, are to be considered as part of a buffer.
 A negative value is interpreted as percentage of [[nband]] (added in v9).
 
+
+!!! important
+
+    The default value is usually too small, especially when performing GS NSCF calculations.
+    In this case, it is strongly recommended to specify nbdbuf in the input and increase [[nband]] accordingly.
+    For small systems (e.g. Silicon), nbdbuf = 4 is OK so using `nband 12 and nbdbuf = 4`
+    will give a band structure with the first 8 bands converged within [[tolwfr]].
+    For more complex systems and/or GS NSCF calculations with many empty states, one usually needs
+    to increase [[nbdbuf]], let's say 10% of [[nband]].
+
+
 This concept is useful in three situations: in non-self-consistent calculations, for the
 determination of the convergence tolerance; for response functions of metals,
 to avoid instabilities, and also when finite electric fields or non-linear
@@ -12049,8 +12065,7 @@ Variable(
 This parameter is used in connection to the parallelization over
 perturbations (see [[paral_rf]] ), for a linear response calculation.
 [[nppert]] gives the number of processors among which the work load over the
-perturbation level is shared. It can even be specified separately for each
-dataset.
+perturbation level is shared. It can even be specified separately for each dataset.
 """,
 ),
 
@@ -17408,6 +17423,20 @@ See the possible restrictions on the use of strain perturbations, in the [[help:
 ),
 
 Variable(
+    abivarname="rfstrs_ref",
+    varset="dfpt",
+    vartype="integer",
+    topics=['longwave_useful'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="Response Function with respect to STRainS with the energy REFerence at the average electrostatic potential",
+    added_in_version="v9",
+    text=r"""
+If equal to 1 and [[rfstrs]] /= 0 the strain response-function calculations are performed with the reference energy placed at the average electrostatic potential. The later is the reference adopted in the longwave driver. First-order energies calculated with [[rfstrs_ref]] = 1 are useful, for instance, in the calculation of absolute deformation potentials [[cite:Stengel2015]].
+""",
+),
+
+Variable(
     abivarname="rfuser",
     varset="dfpt",
     vartype="integer",
@@ -21373,7 +21402,8 @@ produced at the end of the ground-state calculation. Remember to set [[iomode]] 
 
 The form factors are needed to compute the matrix elements of the commutator [Vnl, r]
 of the non-local part of the (NC) pseudopotentials.
-This WFK file can therefore be used to perform optical and/or many-body calculations with external codes such as DP/EXC and Yambo.
+This WFK file can therefore be used to perform optical and/or many-body calculations with external
+codes such as DP/EXC and Yambo.
 The option is ignored if PAW.
 
 !!! important
@@ -21779,24 +21809,39 @@ Variable(
     added_in_version="9.0.0",
     text=r"""
 This flag is used in the Fourier interpolation in q-space of the DFPT potentials.
+This option is similar to [[dipdip]] but it acts on the DFPT potentials instead of the dynamical matrix.
+
 In polar materials there is a long range (LR) component in the first-order variation
 of the KS potential that can be modeled in terms of the Born effective charges and
-the macroscopic dielectric tensor [[cite:Verdi2015]], [[cite:Giustino2017]].
-Possible values are [0, -1, 1].
-
-Setting this flag to 0 deactivates the treatment of the LR contribution (not recommended in polar materials).
+the macroscopic dielectric tensor [[cite:Verdi2015]], [[cite:Giustino2017]] (dipolar part)
+and two additional terms of quadrupolar character related to the dynamical quadrupoles and
+the response to the electric field ([[cite:Brunin2020]], [[cite:Brunin2020b]].
 
 If *dvdb_add_lr* is set to 1, the LR part is removed when computing the real-space representation
 of the DFPT potentials so that the potential in real space is short-ranged and amenable to Fourier interpolation.
 The long-range contribution is then added back when interpolating the DFPT potentials at arbitrary q-points
+This is the default behaviour that relies on a DDB file with all the entries required to build the LR mode.
+
+Setting this flag to 0 deactivates the treatment of the LR contribution.
+This is just for testing purposes and it is not recommended in polar materials.
 
 If *dvdb_add_lr* is set to -1, the LR part is removed before computing the real-space representation
 but the LR term is **not** reintroduced during the interpolation in $\qq$-space.
 This option is mainly used for debugging purposes.
 
-By default, the code will always treat the LR term if the DDB file contains the Born effective charges
-and the macroscopic dielectric tensor.
-This option is similar to [[dipdip]] but it acts on the DFPT potentials instead of the dynamical matrix.
+Other options (again for testing purposes):
+
+    0: --> No treatment
+    1: --> Remove LR model when building W(R,r). Add it back after W(R,r) --> v(q) Fourier interpolation
+           This is the standard approach for polar materials.
+    -1:  --> Remove LR model when building W(R,r). DO NOT reintroduce it after the Fourier interpolation.
+    2:   --> Similar to 1 but include only the dipole part. Q* are set to zero even if the DDB file contains them.
+    4, 5, 6: --> Use model for the LR part only:
+
+           4: --> Use dipole + quadrupole part
+           5: --> Use dipole part only.
+           6: --> Use quadrupole part only.
+
 """,
 ),
 

@@ -99,8 +99,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """True if the GSR has been produced by a SCF run."""
         # NOTE: We use kptopt to understand if we have a SCF/NSCF run
         # In principle one should use iscf but it's not available in the GSR.
-        #return int(self.reader.read_value("kptopt")) >= 0
-        return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
+        if "kptopt" in self.reader.rootgrp.variables:
+            return int(self.reader.read_value("kptopt")) >= 0
+        else:
+            return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
 
     @lazy_property
     def ecut(self):
@@ -129,50 +131,73 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def cart_forces(self):
-        """Cartesian forces in eV / Ang"""
-        return self.reader.read_cart_forces()
+        """
+        Cartesian forces in eV / Ang. None if forces are not available.
+        """
+        if self.is_scf_run:
+            return self.reader.read_cart_forces()
+        return None
 
     @lazy_property
     def max_force(self):
-        """Max cart force in eV / Ang"""
-        fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
+        """
+        Max cartesian force in eV/Ang. None if forces are not available.
+        """
+        cart_forces = self.cart_forces
+        if cart_forces is None: return None
+
+        fmods = np.sqrt([np.dot(force, force) for force in cart_forces])
         return fmods.max()
 
     def force_stats(self, **kwargs):
         """
         Return a string with information on the forces.
+        Return None if forces are not available.
         """
-        fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
+        cart_forces = self.cart_forces
+        if cart_forces is None: return None
+
+        fmods = np.sqrt([np.dot(force, force) for force in cart_forces])
         imin, imax = fmods.argmin(), fmods.argmax()
 
         s = "\n".join([
-            "fsum: %s" % self.cart_forces.sum(axis=0),
+            "fsum: %s" % cart_forces.sum(axis=0),
             "mean: %s, std %s" % (fmods.mean(), fmods.std()),
-            "minimum at site %s, cart force: %s" % (self.structure.sites[imin], self.cart_forces[imin]),
-            "maximum at site %s, cart force: %s" % (self.structure.sites[imax], self.cart_forces[imax]),
+            "minimum at site %s, cart force: %s" % (self.structure.sites[imin], cart_forces[imin]),
+            "maximum at site %s, cart force: %s" % (self.structure.sites[imax], cart_forces[imax]),
         ])
 
         table = [["Site", "Cartesian Force", "Length"]]
         for i, fmod in enumerate(fmods):
-            table.append([self.structure.sites[i], self.cart_forces[i], fmod])
+            table.append([self.structure.sites[i], cart_forces[i], fmod])
         s += "\n" + tabulate(table)
 
         return s
 
     @lazy_property
     def cart_stress_tensor(self):
-        """Stress tensor in GPa."""
-        return self.reader.read_cart_stress_tensor()
+        """
+        Stress tensor in GPa. Return None if not available e.g. if NSCF run.
+        """
+        if self.is_scf_run:
+            return self.reader.read_cart_stress_tensor()
+        return None
 
     @lazy_property
     def pressure(self):
-        """Pressure in GPa."""
-        pressure = - self.cart_stress_tensor.trace() / 3
-        return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
+        """
+        Pressure in GPa. Return None if not available e.g. if NSCF run.
+        """
+        if self.is_scf_run:
+            pressure = - self.cart_stress_tensor.trace() / 3
+            return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
+        return None
 
     @lazy_property
     def residm(self):
-        """Maximum of the residuals"""
+        """
+        Maximum of the residuals
+        """
         return self.reader.read_value("residm")
 
     @lazy_property
