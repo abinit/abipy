@@ -1,39 +1,31 @@
 # coding: utf-8
-# Copyright (c) Pymatgen Development Team.
-# Distributed under the terms of the MIT License.
 """Tools for the submission of Tasks."""
+from __future__ import annotations
 
 import abc
 import os
 import time
-
-import pickle
 import datetime
 import pandas as pd
 import apscheduler
-has_sched_v3 = apscheduler.version >= "3.0.0"
 
 from collections import deque
-
 from io import StringIO
 from queue import Queue, Empty
-from pprint import pprint
+from typing import List, Optional
 from monty.io import get_open_fds
 from monty.string import boxed, is_string
 from monty.os.path import which
-from monty.collections import AttrDict, dict2namedtuple
+from monty.collections import AttrDict #, dict2namedtuple
 from monty.termcolor import cprint
 from monty.functools import lazy_property
-from monty.json import MSONable
 from pymatgen.util.io_utils import ask_yesno
-from pymatgen.util.serialization import pmg_serialize
-from .utils import as_bool, File, Directory
-
-from . import qutils as qu
+from .utils import as_bool
 
 import logging
 logger = logging.getLogger(__name__)
 
+has_sched_v3 = apscheduler.version >= "3.0.0"
 
 __all__ = [
     "ScriptEditor",
@@ -54,7 +46,10 @@ def yaml_safe_load(string):
 
 
 class ScriptEditor(object):
-    """Simple editor that simplifies the writing of shell scripts"""
+    """
+    Simple editor to simplify the writing of shell scripts
+    """
+
     _shell = '/bin/bash'
 
     def __init__(self):
@@ -140,7 +135,9 @@ class PyLauncherError(Exception):
 
 
 class PyLauncher(object):
-    """This object handle the submission of the tasks contained in a |Flow|."""
+    """
+    This object handle the submission of the tasks contained in a |Flow|.
+    """
 
     Error = PyLauncherError
 
@@ -286,7 +283,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
     Error = PyFlowSchedulerError
 
     @classmethod
-    def autodoc(cls):
+    def autodoc(cls) -> str:
         """Return String with scheduler options."""
         i = cls.__init__.__doc__.index("Args:")
         return cls.__init__.__doc__[i+5:]
@@ -378,20 +375,20 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         self.history = deque(maxlen=200)
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> BaseScheduler:
         """Read the configuration parameters from a Yaml file."""
         with open(filepath, "rt") as fh:
             return cls(**yaml_safe_load(fh))
 
     @classmethod
-    def from_string(cls, s):
+    def from_string(cls, s: str) -> BaseScheduler:
         """Create an istance from string s containing a YAML dictionary."""
         stream = StringIO(s)
         stream.seek(0)
         return cls(**yaml_safe_load(stream))
 
     @classmethod
-    def from_user_config(cls):
+    def from_user_config(cls) -> BaseScheduler:
         """
         Initialize the :class:`PyFlowScheduler` from the YAML file 'scheduler.yml'.
         Search first in the working directory and then in the configuration directory of abipy.
@@ -420,13 +417,13 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         return "\n".join(lines)
 
     @abc.abstractmethod
-    def add_flow(self, flow, **kwargs):
+    def add_flow(self, flow, **kwargs) -> None:
         """
         Add a flow to the scheduler.
         """
 
     @abc.abstractmethod
-    def start(self):
+    def start(self) -> int:
         """
         Starts the scheduler. Returns 0 if success.
         """
@@ -436,12 +433,12 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         """The function that will be executed by the scheduler."""
 
     @lazy_property
-    def pid(self):
+    def pid(self) -> int:
         """The pid of the process associated to the scheduler."""
         return os.getpid()
 
     @property
-    def num_excs(self):
+    def num_excs(self) -> int:
         """Number of exceptions raised so far."""
         return len(self.exceptions)
 
@@ -461,7 +458,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         except Exception as exc:
             cprint("Exception while trying to kill jobs:\n%s" % str(exc), "red")
 
-    def _accept_flow(self, flow):
+    def _accept_flow(self, flow) -> None:
 
         # Check if we are already using a scheduler to run this flow
         flow.check_pid_file()
@@ -507,8 +504,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         nfixed = flow.fix_abicritical()
         if nfixed: print("Fixed %d AbiCritical error(s)" % nfixed)
 
-
-    def check_deadlocks(self, flow):
+    def check_deadlocks(self, flow) -> List[str]:
         err_lines = []
 
         g = flow.find_deadlocks()
@@ -530,7 +526,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
 
         return err_lines
 
-    def send_email(self, msg, tag=None):
+    def send_email(self, msg, tag=None) -> int:
         """
         Send an e-mail before completing the shutdown.
         Returns 0 if success. Relies on _send_email method provided by subclass.
@@ -545,7 +541,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
 class PyFlowScheduler(BaseScheduler):
 
     @property
-    def pid_file(self):
+    def pid_file(self) -> str:
         """
         Absolute path of the file with the pid.
         The file is located in the workdir of the flow
@@ -575,7 +571,7 @@ class PyFlowScheduler(BaseScheduler):
         self._pid_file = flow.pid_file
         self._flow = flow
 
-    def start(self):
+    def start(self) -> int:
         """
         Starts the scheduler. Returns 0 if success.
         This method blocks until the flow is completed or some exception is raised.
@@ -761,7 +757,7 @@ class PyFlowScheduler(BaseScheduler):
 
         return len(self.exceptions)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Cleanup routine: remove the pid file and save the pickle database"""
         try:
             os.remove(self.pid_file)
@@ -771,7 +767,7 @@ class PyFlowScheduler(BaseScheduler):
         # Save the final status of the flow.
         self.flow.pickle_dump()
 
-    def shutdown(self, msg):
+    def shutdown(self, msg: str) -> None:
         """Shutdown the scheduler."""
         flow = self.flow
         all_ok = flow.all_ok
@@ -854,8 +850,6 @@ class PyFlowScheduler(BaseScheduler):
 
         return sendmail(subject=flow.name + tag, text=strio.getvalue(), mailto=self.mailto)
 
-
-
 class MultiFlowScheduler(BaseScheduler):
 
     # TODO: history, logging, better treatment of exceptions....
@@ -885,7 +879,7 @@ class MultiFlowScheduler(BaseScheduler):
         flow.set_user_message(user_message)
         self.incoming_flow_queue.put(flow)
 
-    def register_flow_exception(self, flow_idx, exc):
+    def register_flow_exception(self, flow_idx, exc) -> None:
         flow = self.flows[flow_idx]
         self.history.append(f"Exception for {repr(flow)}")
         self.history.append(straceback())
@@ -900,7 +894,7 @@ class MultiFlowScheduler(BaseScheduler):
         self.flows = [flow for (idx, flow) in self.flows if idx not in set(self._errored_flow_ids)]
         self._errored_flow_ids = []
 
-    def start(self):
+    def start(self) -> int:
         """
         Starts the scheduler. Returns 0 if success.
         This method blocks until the flow is completed or some exception is raised.
@@ -915,12 +909,13 @@ class MultiFlowScheduler(BaseScheduler):
     def sql_connect(self):
         import sqlite3
         con = sqlite3.connect(self.sqldb_path, check_same_thread=True,
-                               detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+                              detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         con.row_factory = sqlite3.Row
         return con
 
-    def create_sqldb(self):
-        if os.path.exists(self.sqldb_path): return
+    def create_sqldb(self) -> None:
+        if os.path.exists(self.sqldb_path):
+            return
 
         with self._lock, self.sql_connect() as con:
             # Create table
@@ -938,12 +933,12 @@ class MultiFlowScheduler(BaseScheduler):
                         """)
         con.close()
 
-    def get_incoming_flows(self):
+    def get_incoming_flows(self) -> List:
         flows = []
         while True:
             try:
-                flow = self.incoming_flow_queue.get_nowait()
-                flows.append(flow)
+                in_flow = self.incoming_flow_queue.get_nowait()
+                flows.append(in_flow)
             except Empty:
                 break
 
@@ -983,9 +978,9 @@ class MultiFlowScheduler(BaseScheduler):
         con.close()
 
         if row and os.path.exists(row["workdir"]):
-            return (Flow.from_file(row["workdir"]), row["status"])
+            return Flow.from_file(row["workdir"]), row["status"]
         else:
-            return (None, None)
+            return None, None
 
     def get_sql_rows_with_node_ids(self, node_id_list):
         with self.sql_connect() as con:
@@ -1163,7 +1158,7 @@ class MultiFlowScheduler(BaseScheduler):
         con.close()
 
 
-def print_flowsdb_file(filepath):
+def print_flowsdb_file(filepath: str):
     """
     Print flows.db file to terminal.
     """
@@ -1175,7 +1170,8 @@ def print_flowsdb_file(filepath):
         print_dataframe(df, title=filepath)
 
 
-def sendmail(subject, text, mailto, sender=None):
+def sendmail(subject: str, text: str, mailto: str,
+             sender: Optional[str] = None) -> int:
     """
     Sends an e-mail with unix sendmail.
 
@@ -1211,10 +1207,10 @@ def sendmail(subject, text, mailto, sender=None):
     # Note that sendmail is available only on Unix-like OS.
     from subprocess import Popen, PIPE
 
-    sendmail = which("sendmail")
-    if sendmail is None: return -1
+    _sendmail = which("sendmail")
+    if _sendmail is None: return -1
     # msg is string not bytes so must use universal_newlines
-    p = Popen([sendmail, "-t"], stdin=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen([_sendmail, "-t"], stdin=PIPE, stderr=PIPE, universal_newlines=True)
 
     outdata, errdata = p.communicate(msg)
     return len(errdata)

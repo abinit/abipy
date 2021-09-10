@@ -1,11 +1,12 @@
 """Context managers"""
+from __future__ import annotations
 
 import time
 
 from contextlib import contextmanager
 
 
-class Timer():
+class Timer:
     """
     Context manager to time code section.
 
@@ -15,13 +16,13 @@ class Timer():
             do_stuff()
     """
 
-    def __init__(self, description):
+    def __init__(self, description: str):
         self.description = description
 
     def __enter__(self):
         self.start = time.time()
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, value, traceback):
         self.end = time.time()
         print(f"{self.description}.\n\tCompleted in {self.end - self.start:.4f} seconds\n")
 

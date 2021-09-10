@@ -1,15 +1,20 @@
 # coding: utf-8
 """History file with structural relaxation results."""
+from __future__ import annotations
+
 import os
 import numpy as np
+import pandas as pd
 import pymatgen.core.units as units
 
 from collections import OrderedDict
+from typing import List, Tuple
 from monty.functools import lazy_property
 from monty.collections import AttrDict
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
 from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
+from pymatgen.io.vasp.outputs import Xdatcar
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, get_figs_plotly, \
     get_fig_plotly, add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc, plotly_set_lims, \
     latex_greek_2unicode
@@ -18,6 +23,7 @@ from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 import abipy.core.abinit_units as abu
+from abipy.core.structure import Structure
 
 
 class HistFile(AbinitNcFile, NotebookWriter):
@@ -35,20 +41,20 @@ class HistFile(AbinitNcFile, NotebookWriter):
     .. inheritance-diagram:: HistFile
     """
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> HistFile:
         """Initialize the object from a netcdf_ file"""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = HistReader(filepath)
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         return {}
 
@@ -72,12 +78,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
     #    return self.reader.read_dimvalue("nspinor")
 
     @lazy_property
-    def final_energy(self):
+    def final_energy(self) -> float:
         """Total energy in eV of the last iteration."""
         return self.etotals[-1]
 
     @lazy_property
-    def final_pressure(self):
+    def final_pressure(self) -> float:
         """Final pressure in Gpa."""
         cart_stress_tensors, pressures = self.reader.read_cart_stress_tensors()
         return pressures[-1]
@@ -85,7 +91,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
     #@lazy_property
     #def final_max_force(self):
 
-    def get_fstats_dict(self, step):
+    def get_fstats_dict(self, step) -> AttrDict:
         """
         Return |AttrDict| with stats on the forces at the given ``step``.
         """
@@ -102,7 +108,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             drift=np.linalg.norm(forces.sum(axis=0)),
         )
 
-    def to_string(self, verbose=0, title=None):
+    def to_string(self, verbose=0, title=None) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -131,42 +137,42 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return "\n".join(lines)
 
     @property
-    def num_steps(self):
+    def num_steps(self) -> int:
         """Number of iterations performed."""
         return self.reader.num_steps
 
     @lazy_property
-    def steps(self):
+    def steps(self) -> list:
         """Step indices."""
         return list(range(self.num_steps))
 
     @property
-    def initial_structure(self):
+    def initial_structure(self) -> Structure:
         """The initial |Structure|."""
         return self.structures[0]
 
     @property
-    def final_structure(self):
+    def final_structure(self) -> Structure:
         """The |Structure| of the last iteration."""
         return self.structures[-1]
 
     @lazy_property
-    def structures(self):
+    def structures(self) -> List[Structure]:
         """List of |Structure| objects at the different steps."""
         return self.reader.read_all_structures()
 
     @lazy_property
-    def etotals(self):
+    def etotals(self) -> np.ndarray:
         """|numpy-array| with total energies in eV at the different steps."""
         return self.reader.read_eterms().etotals
 
-    def get_relaxation_analyzer(self):
+    def get_relaxation_analyzer(self) -> RelaxationAnalyzer:
         """
         Return a pymatgen :class:`RelaxationAnalyzer` object to analyze the relaxation in a calculation.
         """
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
 
-    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs):
+    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs) -> Xdatcar:
         """
         Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.
 
@@ -176,10 +182,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type,
                                       to_unit_cell=to_unit_cell, overwrite=True)
-        from pymatgen.io.vasp.outputs import Xdatcar
+
         return Xdatcar(filepath, **kwargs)
 
-    def write_xdatcar(self, filepath="XDATCAR", groupby_type=True, overwrite=False, to_unit_cell=False):
+    def write_xdatcar(self, filepath="XDATCAR", groupby_type=True, overwrite=False, to_unit_cell=False) -> str:
         """
         Write Xdatcar file with unit cell and atomic positions to file ``filepath``.
 
@@ -707,7 +713,7 @@ class HistRobot(Robot):
     """
     EXT = "HIST"
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level ``verbose``."""
         s = ""
         if verbose:
@@ -719,7 +725,8 @@ class HistRobot(Robot):
         else:
             return str(s_df)
 
-    def get_dataframe(self, with_geo=True, index=None, abspath=False, with_spglib=True, funcs=None, **kwargs):
+    def get_dataframe(self, with_geo=True, index=None, abspath=False,
+                      with_spglib=True, funcs=None, **kwargs) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the most important final results and the filenames as index.
 
@@ -771,13 +778,12 @@ class HistRobot(Robot):
             if funcs is not None: d.update(self._exec_funcs(funcs, hist))
             rows.append(d)
 
-        import pandas as pd
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         index = row_names if index is None else index
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
     @property
-    def what_list(self):
+    def what_list(self) -> List[str]:
         """List with all quantities that can be plotted (what_list)."""
         return ["energy", "abc", "angles", "volume", "pressure", "forces"]
 
@@ -900,16 +906,16 @@ class HistReader(ETSF_Reader):
     """
 
     @lazy_property
-    def num_steps(self):
+    def num_steps(self) -> int:
         """Number of iterations present in the HIST.nc_ file."""
         return self.read_dimvalue("time")
 
     @lazy_property
-    def natom(self):
+    def natom(self) -> int:
         """Number of atoms un the unit cell."""
         return self.read_dimvalue("natom")
 
-    def read_all_structures(self):
+    def read_all_structures(self) -> List[Structure]:
         """Return the list of structures at the different iteration steps."""
         rprimd_list = self.read_value("rprimd")
         xred_list = self.read_value("xred")
@@ -940,7 +946,7 @@ class HistReader(ETSF_Reader):
 
         return structures
 
-    def read_eterms(self, unit="eV"):
+    def read_eterms(self, unit: str = "eV") -> AttrDict:
         """|AttrDict| with the decomposition of the total energy in units ``unit``"""
         return AttrDict(
             etotals=units.EnergyArray(self.read_value("etotal"), "Ha").to(unit),
@@ -948,21 +954,21 @@ class HistReader(ETSF_Reader):
             entropies=units.EnergyArray(self.read_value("entropy"), "Ha").to(unit),
         )
 
-    def read_cart_forces(self, unit="eV ang^-1"):
+    def read_cart_forces(self, unit: str = "eV ang^-1") -> np.ndarray:
         """
         Read and return a |numpy-array| with the cartesian forces in unit ``unit``.
         Shape (num_steps, natom, 3)
         """
         return units.ArrayWithUnit(self.read_value("fcart"), "Ha bohr^-1").to(unit)
 
-    def read_reduced_forces(self):
+    def read_reduced_forces(self) -> np.ndarray:
         """
         Read and return a |numpy-array| with the forces in reduced coordinates
         Shape (num_steps, natom, 3)
         """
         return self.read_value("fred")
 
-    def read_cart_stress_tensors(self):
+    def read_cart_stress_tensors(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (GPa)
         and the list of pressures in GPa unit.
@@ -973,10 +979,10 @@ class HistReader(ETSF_Reader):
         tensors = np.empty((self.num_steps, 3, 3), dtype=float)
 
         for step in range(self.num_steps):
-            for i in range(3): tensors[step, i,i] = c[step, i]
-            for p, (i, j) in enumerate(((2,1), (2,0), (1,0))):
-                tensors[step, i,j] = c[step, 3+p]
-                tensors[step, j,i] = c[step, 3+p]
+            for i in range(3): tensors[step, i, i] = c[step, i]
+            for p, (i, j) in enumerate(((2, 1), (2, 0), (1, 0))):
+                tensors[step, i, j] = c[step, 3+p]
+                tensors[step, j, i] = c[step, 3+p]
 
         tensors *= abu.HaBohr3_GPa
         pressures = np.empty(self.num_steps)

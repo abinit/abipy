@@ -2,6 +2,8 @@
 """
 Python API for the DDB file containing the derivatives of the total Energy wrt different perturbations.
 """
+from __future__ import annotations
+
 import sys
 import os
 import tempfile
@@ -12,6 +14,7 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from functools import lru_cache
+from typing import Any, Union, Tuple #, List, Optional
 from monty.string import marquee, list_strings
 from monty.json import MSONable
 from monty.collections import AttrDict, dict2namedtuple
@@ -105,15 +108,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     .. inheritance-diagram:: DdbFile
     """
     Error = DdbError
+
     AnaddbError = AnaddbError
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath) -> DdbFile:
         """Needed for the :class:`TextFile` abstract interface."""
         return cls(filepath)
 
     @classmethod
-    def from_string(cls, string):
+    def from_string(cls, string: str) -> DdbFile:
         """Build object from string using temporary file."""
         fd, tmp_filepath = tempfile.mkstemp(text=True, prefix="_DDB")
         with open(tmp_filepath, "wt") as fh:
@@ -122,7 +126,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return cls(tmp_filepath)
 
     @classmethod
-    def from_mpid(cls, material_id, api_key=None, endpoint=None):
+    def from_mpid(cls, material_id, api_key=None, endpoint=None) -> DdbFile:
         """
         Fetch DDB file corresponding to a materials project ``material_id``,
         save it to temporary file and return new DdbFile object.
@@ -151,14 +155,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return cls(tmpfile)
 
     @classmethod
-    def as_ddb(cls, obj):
+    def as_ddb(cls, obj: Any) -> DdbFile:
         """
         Return an instance of |DdbFile| from a generic object `obj`.
         Accepts: DdbFile or filepath
         """
         return obj if isinstance(obj, cls) else cls.from_file(obj)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
 
         self._header = self._parse_header()
@@ -176,11 +180,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         frac_coords = self._read_qpoints()
         self._qpoints = KpointList(self.structure.lattice.reciprocal_lattice, frac_coords, weights=None, names=None)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []
         app, extend = lines.append, lines.extend
@@ -235,23 +239,23 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    def get_string(self):
+    def get_string(self) -> str:
         """Return string with DDB content."""
         with open(self.filepath, "rt") as fh:
             return fh.read()
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
     @property
-    def natom(self):
+    def natom(self) -> int:
         """Number of atoms in structure."""
         return len(self.structure)
 
     @property
-    def version(self):
+    def version(self) -> str:
         """DDB Version number (integer)."""
         return self.header["version"]
 
@@ -504,7 +508,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """|KpointList| object with the list of q-points in reduced coordinates."""
         return self._qpoints
 
-    def has_qpoint(self, qpoint):
+    def has_qpoint(self, qpoint) -> bool:
         """True if the DDB file contains this q-point."""
         #qpoint = Kpoint.as_kpoint(qpoint, self.structure.reciprocal_lattice)
         try:
@@ -513,7 +517,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         except ValueError:
             return False
 
-    def qindex(self, qpoint):
+    def qindex(self, qpoint) -> int:
         """
         The index of the q-point in the internal list of q-points.
         Accepts: |Kpoint| instance or integer.
@@ -563,7 +567,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return np.array(ngqpt, dtype=int)
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         names = ("nkpt", "nsppol", "ecut", "tsmear", "occopt", "ixc", "nband", "usepaw")
         od = OrderedDict()
@@ -653,14 +657,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return None
 
-    def has_lo_to_data(self, select="at_least_one"):
+    def has_lo_to_data(self, select: str ="at_least_one") -> bool:
         """
         True if the DDB file contains the data required to compute the LO-TO splitting.
         """
         return self.has_epsinf_terms(select=select) and self.has_bec_terms(select=select)
 
     @lru_cache(typed=True)
-    def has_at_least_one_atomic_perturbation(self, qpt=None):
+    def has_at_least_one_atomic_perturbation(self, qpt=None) -> bool:
         """
         True if the DDB file contains info on (at least one) atomic perturbation.
         If the coordinates of a q point are provided only the specified qpt will be considered.
@@ -680,7 +684,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return False
 
     @lru_cache(typed=True)
-    def has_epsinf_terms(self, select="at_least_one"):
+    def has_epsinf_terms(self, select="at_least_one") -> bool:
         """
         True if the DDB file contains info on the electric-field perturbation.
 
@@ -718,7 +722,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return False if select in ("at_least_one", "at_least_one_diagoterm") else True
 
     @lru_cache(typed=True)
-    def has_bec_terms(self, select="at_least_one"):
+    def has_bec_terms(self, select: str = "at_least_one") -> bool:
         """
         True if the DDB file contains info on the Born effective charges.
 
@@ -769,7 +773,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return False if select == "at_least_one" else not_all_zero
 
     @lru_cache(typed=True)
-    def has_strain_terms(self, select="all"):
+    def has_strain_terms(self, select: str = "all") -> bool:
         """
         True if the DDB file contains info on the (clamped-ion) strain perturbation
         (i.e. 2nd order derivatives wrt strain)
@@ -809,7 +813,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return False if select == "at_least_one" else True
 
     @lru_cache(typed=True)
-    def has_internalstrain_terms(self, select="all"):
+    def has_internalstrain_terms(self, select: str = "all") -> bool:
         """
         True if the DDB file contains internal strain terms
         i.e "off-diagonal" 2nd order derivatives wrt (strain, atomic displacement)
@@ -850,7 +854,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return False if select == "at_least_one" else True
 
     @lru_cache(typed=True)
-    def has_piezoelectric_terms(self, select="all"):
+    def has_piezoelectric_terms(self, select: str = "all") -> bool:
         """
         True if the DDB file contains piezoelectric terms
         i.e "off-diagonal" 2nd order derivatives wrt (electric_field, strain)
@@ -888,7 +892,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False if select == "at_least_one" else True
 
-    def get_quadrupole_raw_dataframe(self, with_index_list=False):
+    def get_quadrupole_raw_dataframe(self, with_index_list: bool = False):
         """
         Return pandas Dataframe with the dynamical quadrupoles.
         In with_index_list is True, the list of with the 3 (idir, ipert) tuples is returned.
@@ -944,7 +948,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return (df, index_list) if with_index_list else df
 
     @lru_cache(typed=True)
-    def has_quadrupole_terms(self, select="all"):
+    def has_quadrupole_terms(self, select: str ="all") -> bool:
         """
         True if the DDB file contains dynamical quadrupoles
         i.e the 3rd order derivatives wrt (electric_field, atomic_perturbation_gamma, q-wavevector)
@@ -1233,7 +1237,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return exit_stack
 
-    def get_coarse(self, ngqpt_coarse, filepath=None):
+    def get_coarse(self, ngqpt_coarse, filepath=None) -> DdbFile:
         """
         Get a version of this file on a coarse mesh
 
@@ -1253,10 +1257,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         # Generate the points of the coarse mesh
         map_fine_to_coarse = []
-        nx,ny,nz = ngqpt_coarse
-        for i,j,k in itertools.product(range(-int(nx/2), int(nx/2) + 1),
-                                       range(-int(ny/2), int(ny/2) + 1),
-                                       range(-int(nz/2), int(nz/2) + 1)):
+        nx, ny, nz = ngqpt_coarse
+        for i, j, k in itertools.product(range(-int(nx/2), int(nx/2) + 1),
+                                         range(-int(ny/2), int(ny/2) + 1),
+                                        range(-int(nz/2), int(nz/2) + 1)):
             coarse_qpt = np.array([i, j, k]) / np.array(ngqpt_coarse)
             for n,fine_qpt in enumerate(fine_qpoints):
                 if np.allclose(coarse_qpt, fine_qpt):
@@ -1272,7 +1276,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1, dipquad=1, quadquad=1,
                        lo_to_splitting="automatic",
                        nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
-                       verbose=0, mpi_procs=1, pre_label=None):
+                       verbose=0, mpi_procs=1, pre_label=None) -> PhononBandsPlotter:
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
         values of the ``asr`` input variable (acoustic sum rule treatment).
@@ -1329,7 +1333,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anacompare_dipdip(self, chneut_list=(1,), asr=2, dipquad=1, quadquad=1,
                           lo_to_splitting="automatic", nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
-                          verbose=0, mpi_procs=1, pre_label=None):
+                          verbose=0, mpi_procs=1, pre_label=None) -> PhononDosPlotter:
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
         values of the ``dipdip`` input variable (dipole-dipole treatment).
@@ -1473,7 +1477,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return dict2namedtuple(phdoses=phdoses, plotter=plotter)
 
     def anacompare_rifcsph(self, rifcsph_list, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
-                           lo_to_splitting="automatic", ndivsm=20, ngqpt=None, verbose=0, mpi_procs=1):
+                           lo_to_splitting="automatic", ndivsm=20,
+                           ngqpt=None, verbose=0, mpi_procs=1) -> PhononBandsPlotter:
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
         values of the ``asr`` input variable (acoustic sum rule treatment).
@@ -1515,7 +1520,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anacompare_quad(self, asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
                         nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
-                        verbose=0, mpi_procs=1):
+                        verbose=0, mpi_procs=1) -> PhononBandsPlotter:
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS by including
         dipole-quadrupole and quadrupole-quadrupole terms in the dynamical matrix
@@ -1611,7 +1616,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 return dict2namedtuple(epsinf=epsinf, becs=becs)
 
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
-                   mpi_procs=1, workdir=None, manager=None, verbose=0, anaddb_kwargs=None, return_input=False):
+                   mpi_procs=1, workdir=None, manager=None, verbose=0,  anaddb_kwargs=None, return_input=False
+                   ) -> Union[InteratomicForceConstants, Tuple[InteratomicForceConstants, AnaddbInput]]:
         """
         Execute anaddb to compute the interatomic forces.
 

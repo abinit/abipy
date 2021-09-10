@@ -6,18 +6,22 @@ Utilities for generating matplotlib plots.
 
     Avoid importing matplotlib or plotly in the module namespace otherwise startup is very slow.
 """
+from __future__ import annotations
+
 import os
 import time
 import itertools
 import numpy as np
 
 from collections import OrderedDict, namedtuple
+from typing import Any, List
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
 from .numtools import data_from_cplx_mode
 
 
 __all__ = [
     "set_axlims",
+    "add_fig_kwargs",
     "get_ax_fig_plt",
     "get_ax3d_fig_plt",
     "plot_array",
@@ -27,6 +31,9 @@ __all__ = [
     "plot_unit_cell",
     "GenericDataFilePlotter",
     "GenericDataFilesPlotter",
+    "add_plotly_fig_kwargs",
+    "get_fig_plotly",
+    "get_figs_plotly",
 ]
 
 
@@ -55,13 +62,13 @@ linestyles = OrderedDict(
 # Matplotlib tools
 ###################
 
-def is_mpl_figure(obj):
+def is_mpl_figure(obj: Any) -> bool:
     """Return True if obj is a matplotlib Figure."""
     from matplotlib import pyplot as plt
     return isinstance(obj, plt.Figure)
 
 
-def ax_append_title(ax, title, loc="center", fontsize=None):
+def ax_append_title(ax, title, loc="center", fontsize=None) -> str:
     """Add title to previous ax.title. Return new title."""
     prev_title = ax.get_title(loc=loc)
     new_title = prev_title + title
@@ -69,7 +76,7 @@ def ax_append_title(ax, title, loc="center", fontsize=None):
     return new_title
 
 
-def ax_share(xy_string, *ax_list):
+def ax_share(xy_string: str, *ax_list) -> None:
     """
     Share x- or y-axis of two or more subplots after they are created
 
@@ -93,15 +100,7 @@ def ax_share(xy_string, *ax_list):
             ax.get_shared_y_axes().join(*others)
 
 
-#def set_grid(fig, boolean):
-#    if hasattr(fig, "axes"):
-#        for ax in fig.axes:
-#            if ax.grid: ax.grid.set_visible(boolean)
-#    else:
-#            if ax.grid: ax.grid.set_visible(boolean)
-
-
-def set_axlims(ax, lims, axname):
+def set_axlims(ax, lims, axname: str) -> tuple:
     """
     Set the data limits for the axis ax.
 
@@ -112,7 +111,7 @@ def set_axlims(ax, lims, axname):
     Return: (left, right)
     """
     left, right = None, None
-    if lims is None: return (left, right)
+    if lims is None: return left, right
 
     len_lims = None
     try:
@@ -134,7 +133,7 @@ def set_axlims(ax, lims, axname):
     return left, right
 
 
-def set_ax_xylabels(ax, xlabel, ylabel, exchange_xy):
+def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool) -> None:
     """
     Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy
     """
@@ -143,7 +142,7 @@ def set_ax_xylabels(ax, xlabel, ylabel, exchange_xy):
     ax.set_ylabel(ylabel)
 
 
-def set_visible(ax, boolean, *args):
+def set_visible(ax, boolean: bool, *args) -> None:
     """
     Hide/Show the artists of axis ax listed in args.
     """
@@ -163,7 +162,7 @@ def set_visible(ax, boolean, *args):
             label.set_visible(boolean)
 
 
-def rotate_ticklabels(ax, rotation, axname="x"):
+def rotate_ticklabels(ax, rotation: float, axname: str ="x") -> None:
     """Rotate the ticklables of axis ``ax``"""
     if "x" in axname:
         for tick in ax.get_xticklabels():
@@ -187,7 +186,7 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
         hue: Variable that define subsets of the data, which will be drawn on separate lines
         decimals: Number of decimal places to round `hue` columns. Ignore if None
         ax: |matplotlib-Axes| or None if a new figure should be created.
-        xlims ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
+        xlims, ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
             or scalar e.g. `left`. If left (right) is None, default values are used
         fontsize: Legend fontsize.
         kwargs: Keywork arguments are passed to ax.plot method.
@@ -289,7 +288,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
     return fig
 
 
-class ArrayPlotter(object):
+class ArrayPlotter:
 
     def __init__(self, *labels_and_arrays):
         """
@@ -460,7 +459,7 @@ class Marker(namedtuple("Marker", "x y s")):
         return self.__class__(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
 
 
-class MplExpose(object): # pragma: no cover
+class MplExpose: # pragma: no cover
     """
     Context manager used to produce several matplotlib figures and then show
     all them at the end so that the user does not need to close the window to
@@ -544,7 +543,7 @@ class MplExpose(object): # pragma: no cover
                 fig.clear()
 
 
-class PanelExpose(object): # pragma: no cover
+class PanelExpose:  # pragma: no cover
     """
     Context manager used to produce several matplotlib/plotly figures and then show
     all them inside the Browser using a panel template.
@@ -809,7 +808,7 @@ class GenericDataFilePlotter(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         lines = []
         for key, arr in self.od.items():
@@ -852,10 +851,10 @@ class GenericDataFilePlotter(object):
         return fig
 
 
-class GenericDataFilesPlotter(object):
+class GenericDataFilesPlotter:
 
     @classmethod
-    def from_files(cls, filepaths):
+    def from_files(cls, filepaths: List[str]) -> GenericDataFilesPlotter:
         """
         Build object from a list of `filenames`.
         """
@@ -871,7 +870,7 @@ class GenericDataFilesPlotter(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         lines = []
         app = lines.append
         for od, filepath in zip(self.odlist, self.filepaths):
@@ -881,7 +880,7 @@ class GenericDataFilesPlotter(object):
 
         return "\n".join(lines)
 
-    def add_file(self, filepath):
+    def add_file(self, filepath: str) -> None:
         """Add data from `filepath`"""
         with open(filepath, "rt") as fh:
             self.odlist.append(_generic_parser_fh(fh))
@@ -1008,7 +1007,7 @@ _LATEX_GREEK_TO_UNICODE = dict(
 _LATEX_GREEK_TO_UNICODE["lambda"] = "λ"
 
 
-def latex_greek_2unicode(latex):
+def latex_greek_2unicode(latex: str) -> str:
     """
     Convert a single greek letter in latex notation into unicode
     """
@@ -1016,14 +1015,14 @@ def latex_greek_2unicode(latex):
     return _LATEX_GREEK_TO_UNICODE[s]
 
 
-def is_plotly_figure(obj):
+def is_plotly_figure(obj: Any) -> bool:
     """Return True if obj is a plotly Figure."""
     import plotly.graph_objs as go
     return isinstance(obj, go.Figure)
     #return isinstance(obj, (go.Figure, go.FigureWidget))
 
 
-class PlotlyRowColDesc(object):
+class PlotlyRowColDesc:
     """
     This object specifies the position of a plotly subplot inside a grid.
 
@@ -1031,7 +1030,7 @@ class PlotlyRowColDesc(object):
     """
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj: Any) -> PlotlyRowColDesc:
         """
         Build an instance for a generic object.
         If oject is None, a simple descriptor corresponding to a (1,1) grid is returned.
@@ -1045,7 +1044,7 @@ class PlotlyRowColDesc(object):
         except Exception as exc:
             raise TypeError(f"Dont know how to convert `{type(obj)}` into `{cls}`")
 
-    def __init__(self, py_row, py_col, nrows, ncols):
+    def __init__(self, py_row: int, py_col: int, nrows: int, ncols: int):
         """
         Args:
             py_row, py_col: python index of the subplot in the grid (starts from 0)
@@ -1060,7 +1059,7 @@ class PlotlyRowColDesc(object):
         else:
             self.ply_row, self.ply_col = (self.py_row + 1, self.py_col + 1)
 
-    def __str__(self):
+    def __str__(self) -> str:
         lines = []
         app = lines.append
         app("py_rowcol: (%d, %d) in grid: (%d, %d)" % (self.py_row, self.py_col, self.nrows, self.ncols))
@@ -1114,6 +1113,7 @@ def plotly_set_lims(fig, lims, axname, iax=None):
     Set the data limits for the axis ax.
 
     Args:
+        fig: Plotly Figure.
         lims: tuple(2) for (left, right), if tuple(1) or scalar for left only, none is set.
         axname: "x" for x-axis, "y" for y-axis.
         iax: An int, use iax=n to decorate the nth axis when the fig has subplots.
@@ -1161,7 +1161,7 @@ def plotly_set_lims(fig, lims, axname, iax=None):
 _PLOTLY_DEFAULT_SHOW = [True]
 
 
-def set_plotly_default_show(true_or_false):
+def set_plotly_default_show(true_or_false: bool) -> None:
     """
     Set the default value of show in the add_plotly_fig_kwargs decorator.
     Usefule for instance when generating the sphinx gallery of plotly plots.
@@ -1209,7 +1209,7 @@ def add_plotly_fig_kwargs(func):
 
         if savefig:
             # https://plotly.github.io/plotly.py-docs/generated/plotly.io.write_image.html
-            if savefig.endswith("html") in filename:
+            if savefig.endswith("html"):
                 from plotly.offline import plot as show_plotly
                 show_plotly(fig, include_mathjax="cdn", filename=savefig, auto_open=False)
 
@@ -1429,7 +1429,7 @@ def push_to_chart_studio(figs):
 ####################################################
 # This code is shamelessy taken from Adam's package
 ####################################################
-import plotly.graph_objects as go
+#import plotly.graph_objects as go
 
 
 def go_points(points, size=4, color="black", labels=None, **kwargs):
@@ -1442,6 +1442,7 @@ def go_points(points, size=4, color="black", labels=None, **kwargs):
     if labels is not None:
         labels = plotly_klabels(labels, allow_dupes=True)
 
+    import plotly.graph_objects as go
     return go.Scatter3d(
         x=[v[0] for v in points],
         y=[v[1] for v in points],
@@ -1463,6 +1464,7 @@ def go_line(v1, v2, color="black", width=2, mode="lines", **kwargs):
     _add_if_not_in(kwargs, "line_color", "black")
     _add_if_not_in(kwargs, "line_width", 2)
 
+    import plotly.graph_objects as go
     return go.Scatter3d(
         mode=mode,
         x=[v1[0], v2[0]],
@@ -1474,6 +1476,7 @@ def go_line(v1, v2, color="black", width=2, mode="lines", **kwargs):
 
 
 def go_lines(V, name=None, color="black", width=2, **kwargs):
+    import plotly.graph_objects as go
     gen = ((v1, v2) for (v1, v2) in V)
     v1, v2 = next(gen)
     out = [
@@ -1567,6 +1570,7 @@ def plot_fcc_conv():
         legendgroup="atoms",
     )
 
+    import plotly.graph_objects as go
     fig = go.Figure(data=[*fcc_box, *fcc_vectors, atoms])
     return fig
 
@@ -1590,6 +1594,7 @@ def plot_fcc_prim():
     fcc_conv = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     fcc_conv_box = get_box(fcc_conv, name="conv lattice")
 
+    import plotly.graph_objects as go
     fig = go.Figure(data=[*fcc_prim_box, *fcc_prim_vectors, *fcc_conv_box, atoms])
 
     return fig
@@ -1709,7 +1714,7 @@ def plotly_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
     #)
 
     # The definition of sizes is not optimal because matplotlib uses points
-    # wherease we would like something that depends on the radius (5000 seems to give reasonable plots)
+    # whereas we would like something that depends on the radius (5000 seems to give reasonable plots)
     # For possibile approaches, see
     # https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352
     # https://gist.github.com/syrte/592a062c562cd2a98a83
@@ -1722,6 +1727,7 @@ def plotly_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
     #ax.set_axis_off()
 
     #fig = go.Figure(data=[*box, *vectors, atoms])
+    import plotly.graph_objects as go
     fig = go.Figure(data=[*box, atoms])
     return fig
 
@@ -1813,7 +1819,6 @@ def plotly_path(line, lattice=None, coords_are_cartesian=False, fig=None, **kwar
 
     Returns: plotly figure
     """
-
     fig, go = get_fig_plotly(fig=fig)
 
     if "line_color" not in kwargs:
@@ -2024,7 +2029,6 @@ def add_colorscale_dropwdowns(fig):
     #        label="Viridis",
     #        method="restyle"
     #    ),
-
 
     colorscales = ["Viridis", "Cividis", "Blues", "Greens"]
 

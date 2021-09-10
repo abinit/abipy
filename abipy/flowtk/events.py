@@ -3,6 +3,8 @@
 This module defines the events signaled by abinit during the execution. It also
 provides a parser to extract these events form the main output file and the log file.
 """
+from __future__ import annotations
+
 import sys
 import os.path
 import datetime
@@ -12,6 +14,7 @@ import abc
 import logging
 import numpy as np
 
+from typing import List, Union
 from monty.string import indent, is_string
 from monty.fnmatch import WildCard
 from monty.termcolor import colored
@@ -86,14 +89,14 @@ class AbinitEvent(yaml.YAMLObject):
     """
     color = None
 
-    def __init__(self, src_file, src_line, message):
+    def __init__(self, src_file: str, src_line: int, message: str):
         """
         Basic constructor for :class:`AbinitEvent`.
 
         Args:
-            message: String with human-readable message providing info on the event.
             src_file: String with the name of the Fortran file where the event is raised.
             src_line Integer giving the line number in src_file.
+            message: String with human-readable message providing info on the event.
         """
         #print("src_file", src_file, "src_line", src_line)
         self.message = message
@@ -101,19 +104,19 @@ class AbinitEvent(yaml.YAMLObject):
         self.src_line = src_line
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         # This is needed because the events printed in the main output file do not define scr_file and src_line
         src_file = getattr(self, "src_file", "Unknown")
         src_line = getattr(self, "src_line", 0)
         return dict(message=self.message, src_file=src_file, src_line=src_line, yaml_tag=self.yaml_tag)
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> AbinitEvent:
         cls = as_event_class(d.get("yaml_tag"))
         return cls(**{k: v for k, v in d.items() if k != "yaml_tag" and not k.startswith("@")})
 
     @property
-    def header(self):
+    def header(self) -> str:
         try:
             return "<%s at %s:%s>" % (self.name, self.src_file, self.src_line)
         except AttributeError:
@@ -134,7 +137,7 @@ class AbinitEvent(yaml.YAMLObject):
         return not self.__eq__(other)
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Name of the event (class name)"""
         return self.__class__.__name__
 
@@ -261,7 +264,7 @@ class EventReport(collections.abc.Iterable, MSONable):
 
         stat: information about a file as returned by os.stat
     """
-    def __init__(self, filename, events=None):
+    def __init__(self, filename: str, events=None):
         """
         List of ABINIT events.
 
@@ -309,7 +312,7 @@ class EventReport(collections.abc.Iterable, MSONable):
 
         return "\n".join(lines)
 
-    def append(self, event):
+    def append(self, event: AbinitEvent) -> None:
         """Add an event to the list."""
         self._events.append(event)
         self._events_by_baseclass[event.baseclass].append(event)
@@ -338,7 +341,7 @@ class EventReport(collections.abc.Iterable, MSONable):
         return self.end_datetime - self.start_datetime
 
     @property
-    def run_completed(self):
+    def run_completed(self) -> bool:
         """True if the calculation terminated."""
         try:
             return self._run_completed
@@ -346,32 +349,32 @@ class EventReport(collections.abc.Iterable, MSONable):
             return False
 
     @property
-    def comments(self):
+    def comments(self) -> List[AbinitComment]:
         """List of comments found."""
         return self.select(AbinitComment)
 
     @property
-    def errors(self):
+    def errors(self) -> List[Union[AbinitError, AbinitBug]]:
         """List of errors + bugs found."""
         return self.select(AbinitError) + self.select(AbinitBug)
 
     @property
-    def warnings(self):
+    def warnings(self) -> List[AbinitWarning]:
         """List of warnings found."""
         return self.select(AbinitWarning)
 
     @property
-    def num_warnings(self):
+    def num_warnings(self) -> int:
         """Number of warnings reported."""
         return len(self.warnings)
 
     @property
-    def num_errors(self):
+    def num_errors(self) -> int:
         """Number of errors reported."""
         return len(self.errors)
 
     @property
-    def num_comments(self):
+    def num_comments(self) -> int:
         """Number of comments reported."""
         return len(self.comments)
 
@@ -392,11 +395,11 @@ class EventReport(collections.abc.Iterable, MSONable):
         return [ev for ev in self if type(ev) == event_class]
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return dict(filename=self.filename, events=[e.as_dict() for e in self._events])
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> EventReport:
         return cls(filename=d["filename"], events=[AbinitEvent.from_dict(e) for e in d["events"]])
 
 
@@ -404,13 +407,13 @@ class EventsParserError(Exception):
     """Base class for the exceptions raised by :class:`EventsParser`."""
 
 
-class EventsParser(object):
+class EventsParser:
     """
     Parses the output or the log file produced by ABINIT and extract the list of events.
     """
     Error = EventsParserError
 
-    def parse(self, filename, verbose=0):
+    def parse(self, filename: str, verbose: int = 0) -> EventReport:
         """
         Parse the given file. Return :class:`EventReport`.
         """
@@ -461,7 +464,7 @@ class EventsParser(object):
         report.set_run_completed(run_completed, start_datetime, end_datetime)
         return report
 
-    def report_exception(self, filename, exc):
+    def report_exception(self, filename, exc) -> EventReport:
         """
         This method is used when self.parser raises an Exception so that
         we can report a customized :class:`EventReport` object with info the exception.
@@ -519,7 +522,7 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
         return super().__init__()
 
     @classmethod
-    def cls2str(cls):
+    def cls2str(cls) -> str:
         lines = []
         app = lines.append
 
@@ -535,13 +538,13 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
     def __str__(self):
         return "<%s>" % self.__class__.__name__
 
-    def can_handle(self, event):
+    def can_handle(self, event: AbinitEvent) -> bool:
         """True if this handler is associated to the given :class:`AbinitEvent`"""
         return self.event_class == event.__class__
 
     # TODO: defined CorrectionRecord object and provide helper functions to build it
 
-    def count(self, task):
+    def count(self, task) -> int:
         """
         Return the number of times the event associated to this handler
         has been already fixed in the :class:`Task`.
@@ -549,7 +552,7 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
         return len([c for c in task.corrections if c["event"]["@class"] == self.event_class])
 
     @abc.abstractmethod
-    def handle_task_event(self, task, event):
+    def handle_task_event(self, task, event: AbinitEvent) -> int:
         """
         Method to handle Abinit events.
 
@@ -562,16 +565,15 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
         """
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         """
         Basic implementation of as_dict if __init__ has no arguments. Subclasses may need to overwrite.
         """
-
         d = {}
         return d
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict):
         """
         Basic implementation of from_dict if __init__ has no arguments. Subclasses may need to overwrite.
         """
@@ -628,11 +630,11 @@ class Correction(MSONable):
         self.reset = reset
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return dict(handler=self.handler.as_dict(), actions=self.actions, event=self.event.as_dict(), reset=self.reset)
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> Correction:
         dec = MontyDecoder()
         return cls(handler=dec.process_decoded(d['handler']), actions=d['actions'],
                    event=dec.process_decoded(d['event']), reset=d['reset'])
@@ -645,7 +647,6 @@ class Correction(MSONable):
 #class BugHandler(EventHandler):
 #    """Base class for handlers associated to ABINIT bugs."""
 #    event_class = AbinitBug
-
 
 class ErrorHandler(EventHandler):
     """Base class for handlers associated to ABINIT errors."""
@@ -721,11 +722,11 @@ class DilatmxErrorHandler(ErrorHandler):
         self.max_dilatmx = max_dilatmx
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return {'max_dilatmx': self.max_dilatmx}
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> DilatmxErrorHandler:
         return cls(max_dilatmx=d['max_dilatmx'])
 
     def handle_task_event(self, task, event):
@@ -785,11 +786,11 @@ class TolSymErrorHandler(ErrorHandler):
         self.max_nfixes = max_nfixes
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return {'max_nfixes': self.max_nfixes}
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> TolSymErrorHandler:
         return cls(max_nfixes=d['max_nfixes'])
 
     def handle_task_event(self, task, event):

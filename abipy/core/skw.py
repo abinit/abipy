@@ -3,6 +3,8 @@
 Shankland-Koelling-Wood Fourier interpolation scheme.
 For the theoretical background see :cite:`Euwema1969,Koelling1986,Pickett1988,Madsen2006`.
 """
+from __future__ import annotations
+
 import abc
 import itertools
 import pickle
@@ -11,6 +13,7 @@ import scipy
 import time
 
 from collections import deque, OrderedDict
+#from typing import
 from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
@@ -36,12 +39,12 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     use_cache = True
 
     @classmethod
-    def pickle_load(cls, filepath):
+    def pickle_load(cls, filepath: str):
         """Loads the object from a pickle file."""
         with open(filepath, "rb") as fh:
             return pickle.load(fh)
 
-    def pickle_dump(self, filepath):
+    def pickle_dump(self, filepath: str):
         """Save the status of the object in pickle format."""
         with open(filepath, "wb") as fh:
             pickle.dump(self, fh)
@@ -897,7 +900,7 @@ class SkwInterpolator(ElectronInterpolator):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -1128,7 +1131,7 @@ class SkwInterpolator(ElectronInterpolator):
         shlim[0] = 0
         r2_prev = 0.0
         for ir in range(1, msize):
-            if (abs(r2tmp[ir] - r2_prev) > r2tmp[ir] * 1e-8):
+            if abs(r2tmp[ir] - r2_prev) > r2tmp[ir] * 1e-8:
                 r2_prev = r2tmp[ir]
                 shlim[nsh] = ir
                 nsh += 1

@@ -1,8 +1,12 @@
 # coding: utf-8
 """The interatomic force constants calculated by anaddb."""
+from __future__ import annotations
+
 import numpy as np
 
+from typing import Union
 from monty.functools import lazy_property
+from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
@@ -20,8 +24,8 @@ class InteratomicForceConstants(Has_Structure):
         """
         Args:
             structure: |Structure| object.
-            atoms_index: List of integers representing the indices in the structure of the analyzed atoms.
-            neighbours_index: List of integers representing the indices in the structure of the neighbour atoms.
+            atoms_indices: List of integers representing the indices in the structure of the analyzed atoms.
+            neighbours_indices: List of integers representing the indices in the structure of the neighbour atoms.
             ifc_cart_coord: ifc in Cartesian coordinates
             ifc_cart_coord_short_range: short range part of the ifc in Cartesian coordinates
             local_vectors: local basis used to determine the ifc_local_coord
@@ -40,12 +44,12 @@ class InteratomicForceConstants(Has_Structure):
         self.ifc_weights = ifc_weights
 
     @property
-    def number_of_atoms(self):
-        """Number of atoms is structure."""
+    def number_of_atoms(self) -> int:
+        """Number of atoms in the structure."""
         return len(self.structure)
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> InteratomicForceConstants:
         """Create the object from a netcdf file."""
         #
         # Netcdf arrays on disk (NB: Fortran conventions)
@@ -87,14 +91,14 @@ class InteratomicForceConstants(Has_Structure):
                        distances=distances, atoms_cart_coord=atoms_cart_coord, ifc_weights=ifc_weights)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
@@ -103,12 +107,12 @@ class InteratomicForceConstants(Has_Structure):
         return "\n".join(lines)
 
     @property
-    def number_of_neighbours(self):
+    def number_of_neighbours(self) -> int:
         """Number of neighbouring atoms for which the ifc are present. ifcout in anaddb."""
         return np.shape(self.neighbours_indices)[1]
 
     @lazy_property
-    def ifc_cart_coord_ewald(self):
+    def ifc_cart_coord_ewald(self) -> Union[None, np.ndarray]:
         """Ewald part of the IFCs in cartesian coordinates."""
         if self.ifc_cart_coord_short_range is None:
             return None
@@ -116,7 +120,7 @@ class InteratomicForceConstants(Has_Structure):
             return self.ifc_cart_coord - self.ifc_cart_coord_short_range
 
     @lazy_property
-    def ifc_local_coord(self):
+    def ifc_local_coord(self) -> Union[None, np.ndarray]:
         """IFCs in local coordinates."""
         if self.local_vectors is None:
             return None
@@ -124,7 +128,7 @@ class InteratomicForceConstants(Has_Structure):
             return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord, self.local_vectors)
 
     @lazy_property
-    def ifc_local_coord_short_range(self):
+    def ifc_local_coord_short_range(self) -> Union[None, np.ndarray]:
         """Short range part of the IFCs in cartesian coordinates."""
         if self.local_vectors is None:
             return None
@@ -132,7 +136,7 @@ class InteratomicForceConstants(Has_Structure):
             return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord_short_range, self.local_vectors)
 
     @lazy_property
-    def ifc_local_coord_ewald(self):
+    def ifc_local_coord_ewald(self) -> np.ndarray:
         """Ewald part of the IFCs in local coordinates."""
         return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord_ewald, self.local_vectors)
 
@@ -306,7 +310,7 @@ class InteratomicForceConstants(Has_Structure):
             raise ValueError("Local coordinates are missing. Run anaddb with ifcana = 1")
 
         if self.ifc_local_coord_short_range is None:
-            raise ValueError("Ewald contribution is missing, Run anaddb with dipdip=1")
+            raise ValueError("Ewald contribution is missing, Run anaddb with dipdip = 1")
 
         return self.get_plot_ifc(self.ifc_local_coord_short_range[:, :, 0, 0], atom_indices=atom_indices,
                                  atom_element=atom_element, neighbour_element=neighbour_element, min_dist=min_dist,
@@ -335,7 +339,7 @@ class InteratomicForceConstants(Has_Structure):
             raise ValueError("Local coordinates are missing. Run anaddb with ifcana = 1")
 
         if self.ifc_local_coord_ewald is None:
-            raise ValueError("Ewald contribution is missing, Run anaddb with dipdip=1")
+            raise ValueError("Ewald contribution is missing, Run anaddb with dipdip = 1")
 
         return self.get_plot_ifc(self.ifc_local_coord_ewald[:, :, 0, 0], atom_indices=atom_indices,
                                  atom_element=atom_element, neighbour_element=neighbour_element, min_dist=min_dist,

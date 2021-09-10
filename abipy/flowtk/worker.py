@@ -1,5 +1,6 @@
 """[summary]
 """
+from __future__ import annotations
 import sys
 import os
 import threading
@@ -22,7 +23,7 @@ from uuid import UUID, uuid4
 from pprint import pprint, pformat
 from queue import Queue, Empty
 from contextlib import closing
-from typing import Optional, Type
+from typing import List, Optional, Type
 from enum import Enum #, IntEnum
 from monty import termcolor
 from monty.collections import AttrDict
@@ -80,7 +81,6 @@ class BaseHandler(tornado.web.RequestHandler):
 
     #   # don't forget to show a user friendly error page!
     #   self.render("oops.html")
-
 
 
 class ActionHandler(BaseHandler):
@@ -238,7 +238,6 @@ class WorkerStatusEnum(str, Enum):
     dead = "dead"
 
 
-
 class WorkerState(AbipyBaseModel):
 
     name: str = Field(..., description="Name of the worker")
@@ -249,7 +248,7 @@ class WorkerState(AbipyBaseModel):
 
     address: str = Field("localhost", description="Server address.")
 
-    port : int = Field(0, description="Server port.")
+    port: int = Field(0, description="Server port.")
 
     scratch_dir: str = Field(..., description="Scratch directory.")
 
@@ -265,14 +264,13 @@ class WorkerState(AbipyBaseModel):
 
     mongo_connector: MongoConnector = Field(None, description="MongoDB connector")
 
-    #flow_model: ModelMetaclass = Field(None, description="Flow model")
-
 
 class AbipyWorker:
 
     def __init__(self, name: str, sched_options: dict, scratch_dir: str,
                  address: str = "localhost", port: int = 0,
-                 manager=None, mongo_connector=None):
+                 manager=None,
+                 mongo_connector: Optional[MongoConnector] = None):
         """
         Args:
             name: The name of the Worker. Must be unique.
@@ -379,14 +377,14 @@ class AbipyWorker:
             self.flowid2_oid_model[flow.node_id] = (oid, model)
 
     @classmethod
-    def _get_state_path(cls, name):
+    def _get_state_path(cls, name: str) -> WorkerState:
         config_dir = os.path.join(_ABIPY_DIRPATH, f"worker_{name}")
         state_filepath = os.path.join(config_dir, "state.json")
 
-        return (WorkerState.from_json_file(state_filepath), state_filepath)
+        return WorkerState.from_json_file(state_filepath), state_filepath
 
     @classmethod
-    def init_from_dirname(cls, name: str) -> "AbipyWorker":
+    def init_from_dirname(cls, name: str) -> AbipyWorker:
         state, path = cls._get_state_path(name)
 
         if state.status != state.status.init:
@@ -406,7 +404,7 @@ class AbipyWorker:
     def new_with_name(cls, worker_name: str, scratch_dir: str,
                       scheduler_path: Optional[str] = None,
                       manager_path: Optional[str] = None,
-                      mongo_connector=None, verbose=1) -> "AbipyWorker":
+                      mongo_connector=None, verbose=1) -> AbipyWorker:
 
         config_dir = os.path.join(_ABIPY_DIRPATH, f"worker_{worker_name}")
         errors = []
@@ -466,7 +464,7 @@ to update the list of local clients.
         return cls.init_from_dirname(worker_name)
 
     @classmethod
-    def restart_from_dirname(cls, name, force=False):
+    def restart_from_dirname(cls, name: str, force: bool = False):
         state, path = cls._get_state_path(name)
         pid = state.pid
 
@@ -502,7 +500,7 @@ to update the list of local clients.
         print("Remember to execute ldiscover or rdiscover...")
         return new
 
-    def write_state_file(self, status="dead", filepath=None) -> None:
+    def write_state_file(self, status: str = "dead", filepath=None) -> None:
         if filepath is None:
             filepath = os.path.join(self.config_dir, "state.json")
 
@@ -643,7 +641,7 @@ def print_local_workers(dirpath=None) -> None:
     print_dataframe(df, title="\nLocal AbiPy Workers:\n")
 
 
-def rdiscover(hostnames, printout=True):
+def rdiscover(hostnames: List[str], printout: bool = True):
     #
     # From https://docs.fabfile.org/en/2.6/api/transfer.html#fabric.transfer.Transfer
     #
@@ -701,6 +699,7 @@ def rdiscover(hostnames, printout=True):
 
 
 _SSH_CONFIG = None
+
 
 def get_ssh_config():
     global _SSH_CONFIG
@@ -793,7 +792,7 @@ class WorkerClient(MSONable):
 
         self.saved_uuid = saved_uuid if saved_uuid else self.worker_state.uuid
 
-    def is_remote_worker(self):
+    def is_remote_worker(self) -> bool:
         return not self.is_local_worker
 
     @pmg_serialize
@@ -808,7 +807,7 @@ class WorkerClient(MSONable):
                 saved_uuid=self.saved_uuid,
         )
 
-    def setup_ssh_port_forwarding(self):
+    def setup_ssh_port_forwarding(self) -> None:
         info = []
 
         # Return immediately if port forwarding is not needed.
@@ -893,7 +892,7 @@ class WorkerClient(MSONable):
         raise ClientError.from_response(r)
 
     @need_serving_worker
-    def send_flow_dir(self, flow_dir, user_message="", end_point="post_flow_dirs"):
+    def send_flow_dir(self, flow_dir: str, user_message: str = "", end_point="post_flow_dirs"):
         if not self.is_local_worker:
             raise RuntimeError(f"You cannot add a Flow to the remote worker: {self.worker_state.name}")
 
@@ -957,7 +956,7 @@ class WorkerClient(MSONable):
 class WorkerClients(list, MSONable):
 
     @classmethod
-    def local_discover(cls, printout=True, dirpath=None):
+    def local_discover(cls, printout: bool = True, dirpath=None):
 
         worker_states = _get_all_local_worker_states(dirpath)
         clients = cls.from_json_file(empty_if_not_file=True)
@@ -997,7 +996,7 @@ to create it""")
         new._validate()
         return new
 
-    def _validate(self):
+    def _validate(self) -> None:
         err_lines = []
         app = err_lines.append
         from collections import Counter
@@ -1032,10 +1031,10 @@ to create it""")
         lines = [str(w) for w in self]
         return (2 * "\n").join(lines)
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return {"clients": [w.as_dict() for w in self]}
 
-    def dict(self):
+    def dict(self) -> dict:
         return {"clients": [w.dict() for w in self]}
 
     def write_json_file(self, filepath=None) -> None:
@@ -1083,7 +1082,7 @@ to create it""")
     #    self._validate()
     #    self.write_json_file()
 
-    def get_dataframe(self):
+    def get_dataframe(self) -> pd.DataFrame:
 
         #keys = ["is_default_worker", "timeout", "is_local_worker", "ssh_destination",
         #         "local_port", "name",  "status", "pid", "address",  "port scratch_dir",
@@ -1102,13 +1101,13 @@ to create it""")
         #return df.set_index("name")
         return df
 
-    def print_dataframe(self):
+    def print_dataframe(self) -> None:
         print_dataframe(self.get_dataframe(), title="\nAbiPy Worker Clients:\n")
 
-    def get_all_worker_names(self):
+    def get_all_worker_names(self) -> List[str]:
         return [client.worker_state.name for client in self]
 
-    def select_from_worker_name(self, worker_name, allow_none=False):
+    def select_from_worker_name(self, worker_name: str, allow_none=False):
         if worker_name is None:
             # If there are n > 1 workers, a default must be set by the user.
             for client in self:
@@ -1121,13 +1120,13 @@ to create it""")
                              "Use:\n\tabiw.py set_default WORKER_NAME")
 
         for client in self:
-           if client.worker_state.name == worker_name: return client
+            if client.worker_state.name == worker_name: return client
 
         if allow_none: return None
         raise ValueError(f"Cannot find worker with name `{worker_name}` in list:\n" +
                          f"\t{self.get_all_worker_names()}\n")
 
-    def set_default(self, worker_name):
+    def set_default(self, worker_name: str):
         the_one = self.select_from_worker_name(worker_name, allow_none=False)
         for client in self:
             client.is_default_worker = False

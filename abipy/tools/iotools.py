@@ -41,7 +41,7 @@ class ExitStackWithFiles(ExitStack):
         return self.files.__getitem__(slice)
 
 
-def ask_yes_no(prompt, default=None):  # pragma: no cover
+def ask_yes_no(prompt: str, default=None):  # pragma: no cover
     """
     Ask a question and return a boolean (y/n) answer.
 
@@ -54,16 +54,11 @@ def ask_yes_no(prompt, default=None):  # pragma: no cover
     Valid answers are: y/yes/n/no (match is not case sensitive).
     """
     # Fixes py2.x
-    try:
-        my_input = raw_input
-    except NameError:
-        my_input = input
-
     answers = {'y': True, 'n': False, 'yes': True, 'no': False}
     ans = None
     while ans not in answers.keys():
         try:
-            ans = my_input(prompt + ' ').lower()
+            ans = input(prompt + ' ').lower()
             if not ans:
                 # response was an empty string
                 ans = default
@@ -80,14 +75,8 @@ def ask_yes_no(prompt, default=None):  # pragma: no cover
 
 
 def _user_wants_to_exit(): # pragma: no cover
-    # Fixes py2.x
     try:
-        my_input = raw_input
-    except NameError:
-        my_input = input
-
-    try:
-        answer = my_input("Do you want to continue [Y/n]")
+        answer = input("Do you want to continue [Y/n]")
     except EOFError:
         return True
 
@@ -137,5 +126,5 @@ def input_from_editor(message=None):  # pragma: no cover
     fd, fname = mkstemp(text=True)
 
     Editor().edit_file(fname)
-    with open(fname) as fileobj:
+    with open(fname, "rt") as fileobj:
         return fileobj.read()

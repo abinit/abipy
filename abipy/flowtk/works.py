@@ -2,6 +2,7 @@
 """
 Works for Abinit
 """
+from __future__ import annotations
 
 import os
 import shutil
@@ -9,7 +10,9 @@ import time
 import abc
 import collections
 import numpy as np
+import pandas as pd
 
+#from typying import List, Any
 from monty.collections import AttrDict
 from monty.itertools import chunks
 from monty.functools import lazy_property
@@ -18,7 +21,7 @@ from monty.dev import deprecated
 from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
 from . import wrappers
-from .nodes import Dependency, Node, NodeError, NodeResults, FileNode #, check_spectator
+from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status #, check_spectator
 from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
                     DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask,
                     EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, TaskManager,
@@ -121,7 +124,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         return [task.returncode for task in self]
 
     @property
-    def ncores_reserved(self):
+    def ncores_reserved(self) -> int:
         """
         Returns the number of cores reserved in this moment.
         A core is reserved if it's still not running but
@@ -130,7 +133,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         return sum(task.manager.num_cores for task in self if task.status == task.S_SUB)
 
     @property
-    def ncores_allocated(self):
+    def ncores_allocated(self) -> int:
         """
         Returns the number of CPUs allocated in this moment.
         A core is allocated if it's running a task or if we have
@@ -139,7 +142,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         return sum(task.manager.num_cores for task in self if task.status in [task.S_SUB, task.S_RUN])
 
     @property
-    def ncores_used(self):
+    def ncores_used(self) -> int:
         """
         Returns the number of cores used in this moment.
         A core is used if there's a job that is running on it.
@@ -182,7 +185,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
     def _setup(self, *args, **kwargs):
         self.setup(*args, **kwargs)
 
-    def connect_signals(self):
+    def connect_signals(self) -> None:
         """
         Connect the signals within the work.
         The |Work| is responsible for catching the important signals raised from
@@ -191,9 +194,10 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         for task in self:
             dispatcher.connect(self.on_ok, signal=task.S_OK, sender=task)
 
-    def disconnect_signals(self):
+    def disconnect_signals(self) -> None:
         """
-        Disable the signals within the work. This function reverses the process of `connect_signals`
+        Disable the signals within the work.
+        This function reverses the process of `connect_signals`
         """
         for task in self:
             try:
@@ -202,7 +206,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
                 self.history.debug(str(exc))
 
     @property
-    def all_ok(self):
+    def all_ok(self) -> bool:
         return all(task.status == task.S_OK for task in self)
 
     #@check_spectator
@@ -371,8 +375,8 @@ class NodeContainer(metaclass=abc.ABCMeta):
         # TODO: shall flow.register_task return a Task or a Work?
 
     # Helper functions to register Task subclasses.
-    def register_scf_task(self, *args, **kwargs):
-        """Register a Scf task."""
+    def register_scf_task(self, *args, **kwargs) -> ScfTask:
+        """Register a SCF task."""
         kwargs["task_class"] = ScfTask
         return self.register_task(*args, **kwargs)
 
@@ -381,12 +385,12 @@ class NodeContainer(metaclass=abc.ABCMeta):
         kwargs["task_class"] = CollinearThenNonCollinearScfTask
         return self.register_task(*args, **kwargs)
 
-    def register_nscf_task(self, *args, **kwargs):
-        """Register a nscf task."""
+    def register_nscf_task(self, *args, **kwargs) -> NscfTask:
+        """Register a NSCF task."""
         kwargs["task_class"] = NscfTask
         task = self.register_task(*args, **kwargs)
 
-        # Make sure parent producing DEN file is given
+        # Make sure the parent producing the DEN file is given.
         if task.is_work: task = task[-1]
         den_parent = task.find_parent_with_ext("DEN")
         if den_parent is None:
@@ -394,7 +398,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
 
         if task.input.get("usekden", 0) == 1:
             # Meta-GGA calculation --> Add KDEN if not explicitly given.
-            # Assuming prtkden already set to 1
+            # Assuming prtkden is already set to 1
             # TODO: Abinit should automatically set it to 1 if usekden --> I'm not gonna fix the input at this level
             kden_parent = task.find_parent_with_ext("KDEN")
             if kden_parent is None:
@@ -402,108 +406,110 @@ class NodeContainer(metaclass=abc.ABCMeta):
 
         return task
 
-    def register_relax_task(self, *args, **kwargs):
+    def register_relax_task(self, *args, **kwargs) -> RelaxTask:
         """Register a task for structural optimization."""
         kwargs["task_class"] = RelaxTask
         return self.register_task(*args, **kwargs)
 
-    def register_phonon_task(self, *args, **kwargs):
+    def register_phonon_task(self, *args, **kwargs) -> PhononTask:
         """Register a phonon task."""
         kwargs["task_class"] = PhononTask
         return self.register_task(*args, **kwargs)
 
-    def register_elastic_task(self, *args, **kwargs):
+    def register_elastic_task(self, *args, **kwargs) -> ElasticTask:
         """Register an elastic task."""
         kwargs["task_class"] = ElasticTask
         return self.register_task(*args, **kwargs)
 
-    def register_ddk_task(self, *args, **kwargs):
+    def register_ddk_task(self, *args, **kwargs) -> DdkTask:
         """Register a DDK task."""
         kwargs["task_class"] = DdkTask
         return self.register_task(*args, **kwargs)
 
-    def register_dkdk_task(self, *args, **kwargs):
+    def register_dkdk_task(self, *args, **kwargs) -> DkdkTask:
         """Register a DkdkTask task."""
         kwargs["task_class"] = DkdkTask
         return self.register_task(*args, **kwargs)
 
-    def register_quad_task(self, *args, **kwargs):
+    def register_quad_task(self, *args, **kwargs) -> QuadTask:
         """Register a QuadTask task."""
         kwargs["task_class"] = QuadTask
         return self.register_task(*args, **kwargs)
 
-    def register_flexoe_task(self, *args, **kwargs):
+    def register_flexoe_task(self, *args, **kwargs) -> FlexoETask:
         """Register a FlexETask task."""
         kwargs["task_class"] = FlexoETask
         return self.register_task(*args, **kwargs)
 
-    def register_effmass_task(self, *args, **kwargs):
+    def register_effmass_task(self, *args, **kwargs) -> EffMassTask:
         """Register a effective mass task."""
         kwargs["task_class"] = EffMassTask
         # FIXME: Hack to run it in sequential because effmass task does not support parallelism.
         kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
         return self.register_task(*args, **kwargs)
 
-    def register_scr_task(self, *args, **kwargs):
+    def register_scr_task(self, *args, **kwargs) -> ScrTask:
         """Register a screening task."""
         kwargs["task_class"] = ScrTask
         return self.register_task(*args, **kwargs)
 
-    def register_sigma_task(self, *args, **kwargs):
+    def register_sigma_task(self, *args, **kwargs) -> SigmaTask:
         """Register a sigma task."""
         kwargs["task_class"] = SigmaTask
         return self.register_task(*args, **kwargs)
 
-    def register_dde_task(self, *args, **kwargs):
+    def register_dde_task(self, *args, **kwargs) -> DdeTask:
         """Register a Dde task."""
         kwargs["task_class"] = DdeTask
         return self.register_task(*args, **kwargs)
 
-    def register_dte_task(self, *args, **kwargs):
+    def register_dte_task(self, *args, **kwargs) -> DteTask:
         """Register a Dte task."""
         kwargs["task_class"] = DteTask
         return self.register_task(*args, **kwargs)
 
-    def register_bec_task(self, *args, **kwargs):
+    def register_bec_task(self, *args, **kwargs) -> BecTask:
         """Register a BEC task."""
         kwargs["task_class"] = BecTask
         return self.register_task(*args, **kwargs)
 
-    def register_bse_task(self, *args, **kwargs):
+    def register_bse_task(self, *args, **kwargs) -> BseTask:
         """Register a Bethe-Salpeter task."""
         kwargs["task_class"] = BseTask
         return self.register_task(*args, **kwargs)
 
-    def register_eph_task(self, *args, **kwargs):
+    def register_eph_task(self, *args, **kwargs) -> EphTask:
         """Register an electron-phonon task."""
         kwargs["task_class"] = EphTask
         eph_inp = args[0]
         if eph_inp.get("eph_frohlichm", 0) != 0 or abs(eph_inp.get("eph_task", 0)) == 15:
-            # FIXME: Hack to run task in sequential since this  calculation does
+            # FIXME: Hack to run task in sequential since this calculation does
             # not support MPI with nprocs > 1.
             seq_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)
             kwargs.update({"manager": seq_manager})
 
-        if eph_inp.get("eph_task",0) == -4:
-            max_cores = TaskManager.from_user_config().qadapter.max_cores
-            min_cores = TaskManager.from_user_config().qadapter.min_cores
+        if eph_inp.get("eph_task", 0) == -4:
+            manager = TaskManager.from_user_config()
+            max_cores = manager.qadapter.max_cores
+            min_cores = manager.qadapter.min_cores
             natom3 = 3 * len(eph_inp.structure)
             nprocs = max(max_cores - max_cores % natom3, min_cores)
-            new_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(nprocs, 1)
+            new_manager = manager.new_with_fixed_mpi_omp(nprocs, 1)
             kwargs.update({"manager": new_manager})
 
-        if eph_inp.get("eph_task",0) == 9:
+        if eph_inp.get("eph_task", 0) == 9:
             nkptgw = eph_inp.vars["nkptgw"]
-            max_cores = TaskManager.from_user_config().qadapter.max_cores
+            manager = TaskManager.from_user_config()
+            max_cores = manager.qadapter.max_cores
             nprocs = max_cores
             if max_cores > nkptgw:
                 nprocs = nkptgw
-            new_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(nprocs, 1)
+            new_manager = manager.new_with_fixed_mpi_omp(nprocs, 1)
             kwargs.update({"manager": new_manager})
 
         return self.register_task(*args, **kwargs)
 
-    def register_kerange_task(self, *args, **kwargs):
+    def register_kerange_task(self, *args, **kwargs) -> KerangeTask:
         """ Register a kerange task."""
         kwargs["task_class"] = KerangeTask
         seq_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)
@@ -564,7 +570,7 @@ class Work(BaseWork, NodeContainer):
         if manager is not None:
             self.set_manager(manager)
 
-    def set_manager(self, manager):
+    def set_manager(self, manager: TaskManager):
         """Set the |TaskManager| to use to launch the |Task|."""
         self.manager = manager.deepcopy()
         for task in self:
@@ -575,7 +581,7 @@ class Work(BaseWork, NodeContainer):
         """The flow containing this |Work|."""
         return self._flow
 
-    def set_flow(self, flow):
+    def set_flow(self, flow) -> None:
         """Set the flow associated to this |Work|."""
         if not hasattr(self, "_flow"):
             self._flow = flow
@@ -592,11 +598,11 @@ class Work(BaseWork, NodeContainer):
         raise ValueError("Cannot find the position of %s in flow %s" % (self, self.flow))
 
     @property
-    def pos_str(self):
+    def pos_str(self) -> str:
         """String representation of self.pos"""
         return "w" + str(self.pos)
 
-    def set_workdir(self, workdir, chroot=False):
+    def set_workdir(self, workdir: str, chroot=False) -> None:
         """Set the working directory. Cannot be set more than once unless chroot is True"""
         if not chroot and hasattr(self, "workdir") and self.workdir != workdir:
             raise ValueError("self.workdir != workdir: %s, %s" % (self.workdir,  workdir))
@@ -612,7 +618,7 @@ class Work(BaseWork, NodeContainer):
         self.tmpdir = Directory(os.path.join(self.workdir, "tmpdata"))
         self.wdir = Directory(self.workdir)
 
-    def chroot(self, new_workdir):
+    def chroot(self, new_workdir: str) -> None:
         self.set_workdir(new_workdir, chroot=True)
 
         for i, task in enumerate(self):
@@ -665,17 +671,17 @@ class Work(BaseWork, NodeContainer):
         return [task.process for task in self]
 
     @property
-    def all_done(self):
+    def all_done(self) -> bool:
         """True if all the |Task| objects in the |Work| are done."""
         return all(task.status >= task.S_DONE for task in self)
 
     @property
-    def isnc(self):
+    def isnc(self) -> bool:
         """True if norm-conserving calculation."""
         return all(task.isnc for task in self)
 
     @property
-    def ispaw(self):
+    def ispaw(self) -> bool:
         """True if PAW calculation."""
         return all(task.ispaw for task in self)
 
@@ -809,7 +815,7 @@ class Work(BaseWork, NodeContainer):
         self.connect_signals()
 
     @property
-    def status(self):
+    def status(self) -> Status:
         """
         Returns the status of the work i.e. the minimum of the status of the tasks.
         """
@@ -860,7 +866,7 @@ class Work(BaseWork, NodeContainer):
         from abipy.panels.works import WorkPanel
         return WorkPanel(work=self).get_panel(**kwargs)
 
-    def get_dataframe(self, as_dict=False):
+    def get_dataframe(self, as_dict=False) -> pd.DataFrame:
         """
         Return pandas dataframe task info or dictionary if as_dict is True.
         This function should be called after work.get_status to update the status.
@@ -872,10 +878,9 @@ class Work(BaseWork, NodeContainer):
 
         if as_dict: return rows
 
-        import pandas as pd
         return pd.DataFrame(rows)
 
-    def rmtree(self, exclude_wildcard=""):
+    def rmtree(self, exclude_wildcard: str = "") -> None:
         """
         Remove all files and directories in the working directory
 
@@ -896,22 +901,22 @@ class Work(BaseWork, NodeContainer):
                     if not w.match(fname):
                         os.remove(path)
 
-    def rm_indatadir(self):
+    def rm_indatadir(self) -> None:
         """Remove all the indata directories."""
         for task in self:
             task.rm_indatadir()
 
-    def rm_outdatadir(self):
+    def rm_outdatadir(self) -> None:
         """Remove all the indata directories."""
         for task in self:
             task.rm_outatadir()
 
-    def rm_tmpdatadir(self):
+    def rm_tmpdatadir(self) -> None:
         """Remove all the tmpdata directories."""
         for task in self:
             task.rm_tmpdatadir()
 
-    def move(self, dest, isabspath=False):
+    def move(self, dest, isabspath=False) -> None:
         """
         Recursively move self.workdir to another location. This is similar to the Unix "mv" command.
         The destination path must not already exist. If the destination already exists
@@ -1306,7 +1311,7 @@ class BseMdfWork(Work):
 
     def get_mdf_robot(self):
         """Builds and returns a :class:`MdfRobot` for analyzing the results in the MDF files."""
-        from abilab.robots import MdfRobot
+        from abipy.electrons.bse import MdfRobot
         robot = MdfRobot()
         for task in self[2:]:
             mdf_path = task.outdir.has_abiext(robot.EXT)
@@ -1479,14 +1484,9 @@ class MergeDdb(object):
                     lw_flexo=1,
                     kptopt=2,
                     useylm=1,
-                    #get1wf5   4
-                    #get1den5  4
-                    #getddk5   2
-                    #getdkdk5  3
                 )
 
-                flexoe_task = self.register_flexoe_task(flexoe_inp, deps=quad_deps)
-
+                self.register_flexoe_task(flexoe_inp, deps=quad_deps)
 
     def merge_ddb_files(self, delete_source_ddbs=False, only_dfpt_tasks=True,
                         exclude_tasks=None, include_tasks=None):
@@ -1601,7 +1601,8 @@ class PhononWork(Work, MergeDdb):
     @classmethod
     def from_scf_task(cls, scf_task, qpoints, is_ngqpt=False, with_becs=False,
                       with_quad=False, with_flexoe=False, with_dvdb=True,
-                      tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
+                      tolerance=None, ddk_tolerance=None,
+                      prtwf=-1, manager=None) -> PhononWork:
         """
         Construct a `PhononWork` from a |ScfTask| object.
         The input file for phonons is automatically generated from the input of the ScfTask.
@@ -1662,7 +1663,8 @@ class PhononWork(Work, MergeDdb):
     @classmethod
     def from_scf_input(cls, scf_input, qpoints, is_ngqpt=False, with_becs=False,
                        with_quad=False, with_flexoe=False,
-                       with_dvdb=True, tolerance=None, ddk_tolerance=None, prtwf=-1, manager=None):
+                       with_dvdb=True, tolerance=None,
+                       ddk_tolerance=None, prtwf=-1, manager=None) -> PhononWork:
         """
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation. A new |ScfTask| is created and added to the Work.
@@ -1731,7 +1733,8 @@ class PhononWfkqWork(Work, MergeDdb):
     @classmethod
     def from_scf_task(cls, scf_task, ngqpt, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
                       with_becs=False, with_quad=False, ddk_tolerance=None, shiftq=(0, 0, 0),
-                      is_ngqpt=True, remove_wfkq=True, prepgkk=0, manager=None):
+                      is_ngqpt=True, remove_wfkq=True,
+                      prepgkk=0, manager=None) -> PhononWfkqWork:
         """
         Construct a `PhononWfkqWork` from a |ScfTask| object.
         The input files for WFQ and phonons are automatically generated from the input of the ScfTask.
@@ -1919,7 +1922,7 @@ class GKKPWork(Work):
             fbz_nscf_inp = inp.new_with_vars(optdriver=8)
             fbz_nscf_inp.set_spell_check(False)
             fbz_nscf_inp.set_vars(wfk_task="wfk_fullbz")
-            tm_serial = manager.new_with_fixed_mpi_omp(1,1)
+            tm_serial = manager.new_with_fixed_mpi_omp(1, 1)
             wfk_task = new.register_nscf_task(fbz_nscf_inp, deps={wfk_task: "WFK", den_file: "DEN"},
                                               manager=tm_serial)
             new.wfkq_tasks.append(wfk_task)
@@ -1927,7 +1930,7 @@ class GKKPWork(Work):
 
         if with_ddk:
             kptopt = 3 if expand else 1
-            ddk_inp = inp.new_with_vars(optdriver=8,kptopt=kptopt)
+            ddk_inp = inp.new_with_vars(optdriver=8, kptopt=kptopt)
             ddk_inp.set_spell_check(False)
             ddk_inp.set_vars(wfk_task="wfk_ddk")
             ddk_task = new.register_nscf_task(ddk_inp, deps={wfk_task: "WFK", den_file: "DEN"}, manager=tm)
@@ -2092,7 +2095,7 @@ class DteWork(Work, MergeDdb):
     .. inheritance-diagram:: DteWork
     """
     @classmethod
-    def from_scf_task(cls, scf_task, ddk_tolerance=None, manager=None):
+    def from_scf_task(cls, scf_task, ddk_tolerance=None, manager=None) -> DteWork:
         """
         Build a DteWork from a ground-state task.
 
@@ -2172,7 +2175,7 @@ class ConducWork(Work):
 
     @classmethod
     def from_phwork(cls, phwork, multi, nbr_proc=None, flow=None, with_kerange=False,
-                    omp_nbr_thread=1, manager=None):
+                    omp_nbr_thread=1, manager=None) -> ConducWork:
         """
         Construct a ConducWork from a |PhononWork| and |MultiDataset|.
 
@@ -2210,7 +2213,7 @@ class ConducWork(Work):
         new.register_task(multi[1], deps={new[0]: "DEN"})
         taskNumber = 2 # To keep track of the task in new and multi
 
-        if(with_kerange): # Using Kerange
+        if with_kerange:  # Using Kerange
             new.register_task(multi[2], deps={new[1]: "WFK"})
             new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
             taskNumber = 4 # We have 2 more dataset

@@ -3,9 +3,12 @@
 Function1D describes a function of a single variable and provides an easy-to-use API
 for performing common tasks such as algebraic operations, integrations, differentiations, plots ...
 """
+from __future__ import annotations
+
 import numpy as np
 
 from io import StringIO
+from typing import Tuple, Union
 from monty.functools import lazy_property
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, data_from_cplx_mode,
     add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
@@ -20,7 +23,7 @@ class Function1D(object):
     """Immutable object representing a (real|complex) function of real variable."""
 
     @classmethod
-    def from_constant(cls, mesh, const):
+    def from_constant(cls, mesh, const) -> Function1D:
         """Build a constant function from the mesh and the scalar ``const``"""
         mesh = np.ascontiguousarray(mesh)
         return cls(mesh, np.ones(mesh.shape) * const)
@@ -37,12 +40,12 @@ class Function1D(object):
         assert len(self.mesh) == len(self.values)
 
     @property
-    def mesh(self):
+    def mesh(self) -> np.ndarray:
         """|numpy-array| with the mesh points"""
         return self._mesh
 
     @property
-    def values(self):
+    def values(self) -> np.ndarray:
         """Values of the functions."""
         return self._values
 
@@ -52,36 +55,36 @@ class Function1D(object):
     def __iter__(self):
         return zip(self.mesh, self.values)
 
-    def __getitem__(self, slice):
+    def __getitem__(self, slice) -> Tuple(float, float):
         return self.mesh[slice], self.values[slice]
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if other is None: return False
         return (self.has_same_mesh(other) and
                 np.allclose(self.values, other.values))
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not (self == other)
 
-    def __neg__(self):
+    def __neg__(self) -> Function1D:
         return self.__class__(self.mesh, -self.values)
 
-    def __pos__(self):
+    def __pos__(self) -> Function1D:
         return self
 
-    def __abs__(self):
+    def __abs__(self) -> Function1D:
         return self.__class__(self.mesh, np.abs(self.values))
 
-    def __add__(self, other):
+    def __add__(self, other) -> Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
             return cls(self.mesh, self.values+other.values)
         else:
-            return cls(self.mesh, self.values+np.array(other))
+            return cls(self.mesh, self.values + np.array(other))
     __radd__ = __add__
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
@@ -89,28 +92,30 @@ class Function1D(object):
         else:
             return cls(self.mesh, self.values-np.array(other))
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> Function1D:
         return -self + other
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
             return cls(self.mesh, self.values*other.values)
         else:
             return cls(self.mesh, self.values*other)
+
     __rmul__ = __mul__
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
             return cls(self.mesh, self.values/other.values)
         else:
             return cls(self.mesh, self.values/other)
+
     __rtruediv__ = __truediv__
 
-    def __pow__(self, other):
+    def __pow__(self, other) -> Function1D:
         return self.__class__(self.mesh, self.values**other)
 
     def _repr_html_(self):
@@ -118,16 +123,16 @@ class Function1D(object):
         return self.plot(show=False)
 
     @property
-    def real(self):
+    def real(self) -> Function1D:
         """Return new :class:`Function1D` with the real part of self."""
         return self.__class__(self.mesh, self.values.real)
 
     @property
-    def imag(self):
+    def imag(self) -> Function1D:
         """Return new :class:`Function1D` with the imaginary part of self."""
         return self.__class__(self.mesh, self.values.real)
 
-    def conjugate(self):
+    def conjugate(self) -> Function1D:
         """Return new :class:`Function1D` with the complex conjugate."""
         return self.__class__(self.mesh, self.values.conjugate)
 
@@ -136,7 +141,7 @@ class Function1D(object):
         return self.__class__(self.mesh, np.abs(self.values))
 
     @classmethod
-    def from_func(cls, func, mesh):
+    def from_func(cls, func, mesh) -> Function1D:
         """
         Initialize the object from a callable.
 
@@ -147,7 +152,7 @@ class Function1D(object):
         return cls(mesh, np.vectorize(func)(mesh))
 
     @classmethod
-    def from_file(cls, path, comments="#", delimiter=None, usecols=(0, 1)):
+    def from_file(cls, path, comments="#", delimiter=None, usecols=(0, 1)) -> Function1D:
         """
         Initialize an instance by reading data from path (txt format)
         see also :func:`np.loadtxt`
@@ -163,7 +168,7 @@ class Function1D(object):
                                   usecols=usecols, unpack=True)
         return cls(mesh, values)
 
-    def to_file(self, path, fmt='%.18e', header=''):
+    def to_file(self, path, fmt='%.18e', header='') -> None:
         """
         Save data in a text file. Use format fmr. A header is added at the beginning.
         """
@@ -182,7 +187,7 @@ class Function1D(object):
             stream.write("%.18e %.18e\n" % (x, y))
         return "".join(stream.getvalue())
 
-    def has_same_mesh(self, other):
+    def has_same_mesh(self, other: Function1D) -> bool:
         """True if self and other have the same mesh."""
         if self.h is None and other.h is None:
             # Generic meshes.
@@ -192,12 +197,12 @@ class Function1D(object):
             return len(self.mesh) == len(other.mesh) and self.h == other.h
 
     @property
-    def bma(self):
+    def bma(self) -> float:
         """Return b-a. f(x) is defined in [a,b]"""
         return self.mesh[-1] - self.mesh[0]
 
     @property
-    def max(self):
+    def max(self) -> float:
         """Max of f(x) if f is real, max of :math:`|f(x)|` if complex."""
         if not self.iscomplexobj:
             return self.values.max()
@@ -206,7 +211,7 @@ class Function1D(object):
             return np.max(np.abs(self.values))
 
     @property
-    def min(self):
+    def min(self) -> float:
         """Min of f(x) if f is real, min of :math:`|f(x)|` if complex."""
         if not self.iscomplexobj:
             return self.values.min()
@@ -214,7 +219,7 @@ class Function1D(object):
             return np.max(np.abs(self.values))
 
     @property
-    def iscomplexobj(self):
+    def iscomplexobj(self) -> bool:
         """
         Check if values is array of complex numbers.
         The type of the input is checked, not the value. Even if the input
@@ -223,12 +228,12 @@ class Function1D(object):
         return np.iscomplexobj(self.values)
 
     @lazy_property
-    def h(self):
+    def h(self) -> Union[float, None]:
         """The spacing of the mesh. None if mesh is not homogeneous."""
         return self.dx[0] if np.allclose(self.dx[0], self.dx) else None
 
     @lazy_property
-    def dx(self):
+    def dx(self) -> np.ndarray:
         """
         |numpy-array| of len(self) - 1 elements giving the distance between two
         consecutive points of the mesh, i.e. dx[i] = ||x[i+1] - x[i]||.
@@ -238,7 +243,7 @@ class Function1D(object):
             dx[i] = self.mesh[i+1] - x
         return dx
 
-    def find_mesh_index(self, value):
+    def find_mesh_index(self, value) -> int:
         """
         Return the index of the first point in the mesh whose value is >= value
         -1 if not found
@@ -248,7 +253,7 @@ class Function1D(object):
                 return i
         return -1
 
-    def finite_diff(self, order=1, acc=4):
+    def finite_diff(self, order: int = 1, acc: int = 4) -> Function1D:
         """
         Compute the derivatives by finite differences.
 
@@ -264,7 +269,7 @@ class Function1D(object):
 
         return self.__class__(self.mesh, finite_diff(self.values, self.h, order=order, acc=acc))
 
-    def integral(self, start=0, stop=None):
+    def integral(self, start=0, stop=None) -> Function1D:
         r"""
         Cumulatively integrate y(x) from start to stop using the composite trapezoidal rule.
 
@@ -291,7 +296,7 @@ class Function1D(object):
         """Zeros of the spline."""
         return self.spline.roots()
 
-    def spline_on_mesh(self, mesh):
+    def spline_on_mesh(self, mesh) -> Function1D:
         """Spline the function on the given mesh, returns :class:`Function1D` object."""
         return self.__class__(mesh, self.spline(mesh))
 
@@ -317,16 +322,16 @@ class Function1D(object):
         return self.integral()[-1][1]
 
     @lazy_property
-    def l1_norm(self):
+    def l1_norm(self) -> float:
         r"""Compute :math:`\int |f(x)| dx`."""
         return abs(self).integral()[-1][1]
 
     @lazy_property
-    def l2_norm(self):
+    def l2_norm(self) -> float:
         r"""Compute :math:`\sqrt{\int |f(x)|^2 dx}`."""
         return np.sqrt((abs(self)**2).integral()[-1][1])
 
-    def fft(self):
+    def fft(self) -> Function1D:
         """Compute the FFT transform (negative sign)."""
         # Compute FFT and frequencies.
         from scipy import fftpack
@@ -340,7 +345,7 @@ class Function1D(object):
 
         return self.__class__(freqs, fft_vals)
 
-    def ifft(self, x0=None):
+    def ifft(self, x0=None) -> Function1D:
         r"""Compute the FFT transform :math:`\int e+i`"""
         # Rearrange values in the standard order then perform IFFT.
         from scipy import fftpack
@@ -578,7 +583,7 @@ class Function1D(object):
         Plot the function with plotly.
 
         Args:
-            exchange_xy:    True to exchange x- and y-axis (default: False)
+            exchange_xy: True to exchange x- and y-axis (default: False)
             fig: plotly figure or None if a new figure should be created.
             rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
                 of the subplot in the grid.

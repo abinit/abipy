@@ -3,10 +3,12 @@
 This module provides objects to inspect the status of the Abinit tasks at run-time.
 by extracting information from the main output file (text format).
 """
+from __future__ import annotations
 
 import os
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Mapping
+from typing import List, Union
 
 import numpy as np
 import ruamel.yaml as yaml
@@ -401,7 +403,7 @@ class Relaxation(Iterable):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -413,13 +415,13 @@ class Relaxation(Iterable):
         return "\n".join(lines)
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> Union[Relaxation, None]:
         """Initialize the object from the Abinit main output file."""
         with open(filepath, "rt") as stream:
             return cls.from_stream(stream)
 
     @classmethod
-    def from_stream(cls, stream):
+    def from_stream(cls, stream) -> Union[Relaxation, None]:
         """
         Extract data from stream. Returns None if some error occurred.
         """
@@ -433,7 +435,7 @@ class Relaxation(Iterable):
         return cls(cycles) if cycles else None
 
     @lazy_property
-    def history(self):
+    def history(self) -> dict:
         """
         Ordered Dictionary of lists with the evolution of
         the data as function of the relaxation step.
@@ -590,7 +592,7 @@ class YamlTokenizer(Iterator):
 
     Error = YamlTokenizerError
 
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         """
         Args:
             filename: Filename
@@ -623,7 +625,7 @@ class YamlTokenizer(Iterator):
     def __del__(self):
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         """Close the stream."""
         try:
             self.stream.close()
@@ -740,12 +742,12 @@ class YamlTokenizer(Iterator):
         return docs
 
 
-def yaml_safe_load(string):
+def yaml_safe_load(string: str):
     return yaml.YAML(typ='safe', pure=True).load(string)
 
 
-def yaml_read_kpoints(filename, doc_tag="!Kpoints"):
-    """Read the K-points from file."""
+def yaml_read_kpoints(filename: str, doc_tag: str = "!Kpoints") -> np.ndarray:
+    """Read the K-points from file. Return numpy array"""
     with YamlTokenizer(filename) as r:
         doc = r.next_doc_with_tag(doc_tag)
         d = yaml_safe_load(doc.text_notag)
@@ -753,7 +755,7 @@ def yaml_read_kpoints(filename, doc_tag="!Kpoints"):
         return np.array(d["reduced_coordinates_of_qpoints"])
 
 
-def yaml_read_irred_perts(filename, doc_tag="!IrredPerts"):
+def yaml_read_irred_perts(filename: str, doc_tag="!IrredPerts") -> List[AttrDict]:
     """Read the list of irreducible perturbations from file."""
     with YamlTokenizer(filename) as r:
         doc = r.next_doc_with_tag(doc_tag)
@@ -774,7 +776,7 @@ class YamlDoc:
         "tag",
     ]
 
-    def __init__(self, text, lineno, tag=None):
+    def __init__(self, text: str, lineno: int, tag=None):
         """
         Args:
             text: String with the YAML document.
@@ -800,7 +802,7 @@ class YamlDoc:
         return self.text == other.text and self.lineno == other.lineno and self.tag == other.tag
 
     def __ne__(self, other):
-        return not self == other
+        return not (self == other)
 
     @property
     def text_notag(self):
@@ -813,6 +815,6 @@ class YamlDoc:
             return self.text.replace(self.tag, "")
         return self.text
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         """Use Yaml to parse the text (without the tag) and returns a dictionary."""
         return yaml_safe_load(self.text_notag)

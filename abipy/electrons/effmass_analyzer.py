@@ -2,16 +2,20 @@
 """
 Objects to compute electronic effective masses via finite differences starting from an |ElectronBands| object.
 """
+from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
 
 from collections import OrderedDict
+#from typing import List
 from monty.termcolor import cprint
+from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure, Has_ElectronBands
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.printing import print_dataframe
+from abipy.electrons.ebands import ElectronBands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
 
 
@@ -35,13 +39,13 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
     """
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> EffMassAnalyzer:
         """Initialize the object from a netcdf file with an ebands object."""
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
             return cls(ncfile.ebands, copy=False)
 
-    def __init__(self, ebands, copy=True):
+    def __init__(self, ebands: ElectronBands, copy: bool = True):
         """Initialize the object from an ebands object with k-points along a path."""
         if not ebands.kpoints.is_path:
             raise ValueError("EffmassAnalyzer requires k-points along a path. Got:\n %s" % repr(ebands.kpoints))
@@ -59,7 +63,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         """Invoked by str"""
         return self.ebands.to_string()
 
-    def to_string(self, verbose):
+    def to_string(self, verbose: int = 0) -> str:
         """
         Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
 
@@ -158,12 +162,12 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             self.segments.append(Segment(ik, spin, line, bids, self.ebands))
 
     @property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self._ebands
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
@@ -294,7 +298,7 @@ class Segment:
     def __repr__(self):
         return "k0: %s, kdir: %s, dk: %.3f (Ang-1)" % (repr(self.k0), repr(self.kdir), self.dk)
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
         app("k-point: %s, nband: %s, spin: %d" % (self.k0.to_string(verbose=verbose), self.nb, self.spin))
@@ -308,7 +312,7 @@ class Segment:
         emass = 1. / (d2.value * (units.eV_to_Ha / units.bohr_to_ang ** 2))
         return emass, d2
 
-    def get_dataframe_with_accuracies(self, acc_list=(2, 4, 6, 8)):
+    def get_dataframe_with_accuracies(self, acc_list=(2, 4, 6, 8)) -> pd.DataFrame:
         """
         Build and return a |pandas-Dataframe| with effective masses computed with different accuracies (npts)
         """

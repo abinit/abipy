@@ -1,5 +1,6 @@
 # coding: utf-8
 """This module provides functions and classes related to Task objects."""
+from __future__ import annotations
 
 import os
 import time
@@ -14,6 +15,7 @@ import numpy as np
 
 from pprint import pprint
 from itertools import product
+from typing import List, Any
 from monty.string import is_string, list_strings
 from monty.termcolor import colored, cprint
 from monty.collections import AttrDict
@@ -21,6 +23,7 @@ from monty.functools import lazy_property, return_none_if_raise
 from monty.json import MSONable
 from monty.fnmatch import WildCard
 from pymatgen.core.units import Memory
+from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.util.serialization import json_pretty_dump, pmg_serialize
 from abipy.core.globals import get_workdir
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
@@ -179,28 +182,28 @@ class ParalConf(AttrDict):
         return stream.getvalue()
 
     @property
-    def num_cores(self):
+    def num_cores(self) -> int:
         return self.mpi_procs * self.omp_threads
 
     @property
-    def mem_per_proc(self):
+    def mem_per_proc(self) -> float:
         return self.mem_per_cpu
 
     @property
-    def mpi_procs(self):
+    def mpi_procs(self) -> int:
         return self.mpi_ncpus
 
     @property
-    def omp_threads(self):
+    def omp_threads(self) -> int:
         return self.omp_ncpus
 
     @property
-    def speedup(self):
+    def speedup(self) -> float:
         """Estimated speedup reported by ABINIT."""
         return self.efficiency * self.num_cores
 
     @property
-    def tot_mem(self):
+    def tot_mem(self) -> float:
         """Estimated total memory in Mbs (computed from mem_per_proc)"""
         return self.mem_per_proc * self.mpi_procs
 
@@ -217,10 +220,10 @@ class ParalHintsParser(object):
         # Used to push error strings.
         self._errors = collections.deque(maxlen=100)
 
-    def add_error(self, errmsg):
+    def add_error(self, errmsg: str) -> None:
         self._errors.append(errmsg)
 
-    def parse(self, filename):
+    def parse(self, filename: str) -> ParalHints:
         """
         Read the `AutoParal` section (YAML format) from filename.
         Assumes the file contains only one section.
@@ -279,38 +282,38 @@ class ParalHints(collections.abc.Iterable):
         return repr(self)
 
     @lazy_property
-    def max_cores(self):
+    def max_cores(self) -> int:
         """Maximum number of cores."""
         return max(c.mpi_procs * c.omp_threads for c in self)
 
     @lazy_property
-    def max_mem_per_proc(self):
+    def max_mem_per_proc(self) -> float:
         """Maximum memory per MPI process."""
         return max(c.mem_per_proc for c in self)
 
     @lazy_property
-    def max_speedup(self):
+    def max_speedup(self) -> float:
         """Maximum speedup."""
         return max(c.speedup for c in self)
 
     @lazy_property
-    def max_efficiency(self):
+    def max_efficiency(self) -> float:
         """Maximum parallel efficiency."""
         return max(c.efficiency for c in self)
 
     @pmg_serialize
-    def as_dict(self, **kwargs):
+    def as_dict(self, **kwargs) -> dict:
         return {"info": self.info, "confs": self._confs}
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> ParalHints:
         return cls(info=d["info"], confs=d["confs"])
 
-    def copy(self):
+    def copy(self) -> ParalHints:
         """Shallow copy of self."""
         return copy.copy(self)
 
-    def select_with_condition(self, condition, key=None):
+    def select_with_condition(self, condition, key=None) -> None:
         """
         Remove all the configurations that do not satisfy the given condition.
 
@@ -331,17 +334,17 @@ class ParalHints(collections.abc.Iterable):
 
         self._confs = new_confs
 
-    def sort_by_efficiency(self, reverse=True):
+    def sort_by_efficiency(self, reverse=True) -> ParalHints:
         """Sort the configurations in place. items with highest efficiency come first"""
         self._confs.sort(key=lambda c: c.efficiency, reverse=reverse)
         return self
 
-    def sort_by_speedup(self, reverse=True):
+    def sort_by_speedup(self, reverse=True) -> ParalHints:
         """Sort the configurations in place. items with highest speedup come first"""
         self._confs.sort(key=lambda c: c.speedup, reverse=reverse)
         return self
 
-    def sort_by_mem_per_proc(self, reverse=False):
+    def sort_by_mem_per_proc(self, reverse=False) -> ParalHints:
         """Sort the configurations in place. items with lowest memory per proc come first."""
         # Avoid sorting if mem_per_cpu is not available.
         if any(c.mem_per_proc > 0.0 for c in self):
@@ -379,7 +382,7 @@ class ParalHints(collections.abc.Iterable):
     #    new_confs = [pconf for pconf in self if qadapter.can_run_pconf(pconf)]
     #    return self.__class__(info=self.info, confs=new_confs)
 
-    def get_ordered_with_policy(self, policy, max_ncpus):
+    def get_ordered_with_policy(self, policy, max_ncpus) -> ParalHints:
         """
         Sort and return a new list of configurations ordered according to the :class:`TaskPolicy` policy.
         """
@@ -438,7 +441,7 @@ class TaskPolicy(object):
     and the conditions used to select the optimal configuration for the parallel run
     """
     @classmethod
-    def as_policy(cls, obj):
+    def as_policy(cls, obj: Any) -> TaskPolicy:
         """
         Converts an object obj into a `:class:`TaskPolicy. Accepts:
 
@@ -458,7 +461,7 @@ class TaskPolicy(object):
                 raise TypeError("Don't know how to convert type %s to %s" % (type(obj), cls))
 
     @classmethod
-    def autodoc(cls):
+    def autodoc(cls) -> str:
         return """
     autoparal:                # (integer). 0 to disable the autoparal feature (DEFAULT: 1 i.e. autoparal is on)
     condition:                # condition used to filter the autoparal configurations (Mongodb-like syntax).
@@ -517,7 +520,7 @@ class FixQueueCriticalError(Exception):
 _USER_CONFIG_TASKMANAGER = None
 
 
-def set_user_config_taskmanager(manager):
+def set_user_config_taskmanager(manager: TaskManager) -> None:
     """Change the default manager returned by TaskManager.from_user_config."""
     global _USER_CONFIG_TASKMANAGER
     _USER_CONFIG_TASKMANAGER = manager
@@ -533,12 +536,13 @@ class TaskManager(MSONable):
     Ideally, the TaskManager should be the **main entry point** used by the task to deal with job submission/optimization
     """
     YAML_FILE = "manager.yml"
+
     USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
 
     ENTRIES = {"policy", "qadapters"}
 
     @classmethod
-    def autodoc(cls):
+    def autodoc(cls) -> str:
         s = """
 # TaskManager configuration file (YAML Format)
 
@@ -561,7 +565,7 @@ qadapters:
         return s
 
     @classmethod
-    def get_simple_manager(cls):
+    def get_simple_manager(cls) -> str:
 
         return """
 qadapters:
@@ -589,7 +593,7 @@ qadapters:
 """
 
     @classmethod
-    def from_user_config(cls):
+    def from_user_config(cls) -> TaskManager:
         """
         Initialize the |TaskManager| from the YAML file 'manager.yaml'.
         Search first in the working directory and then in the AbiPy configuration directory.
@@ -630,7 +634,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         return _USER_CONFIG_TASKMANAGER
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> TaskManager:
         """Read the configuration parameters from the Yaml file filepath."""
         filepath = os.path.expanduser(filepath)
         try:
@@ -641,12 +645,12 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise
 
     @classmethod
-    def from_string(cls, s):
+    def from_string(cls, s: str) -> TaskManager:
         """Create an instance from string s containing a YAML dictionary."""
         return cls.from_dict(yaml_safe_load(s))
 
     @classmethod
-    def as_manager(cls, obj):
+    def as_manager(cls, obj: Any) -> TaskManager:
         """
         Convert obj into TaskManager instance. Accepts string, filepath, dictionary, `TaskManager` object.
         If obj is None, the manager is initialized from the user config file.
@@ -666,12 +670,12 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise TypeError("Don't know how to convert type %s to TaskManager" % type(obj))
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> TaskManager:
         """Create an instance from a dictionary."""
         return cls(**{k: v for k, v in d.items() if k in cls.ENTRIES})
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return copy.deepcopy(self._kwargs)
 
     def __init__(self, **kwargs):
@@ -715,11 +719,11 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise ValueError("Found invalid keywords in the taskmanager file:\n %s" % str(list(kwargs.keys())))
 
     @lazy_property
-    def abinit_build(self):
+    def abinit_build(self) -> AbinitBuild:
         """:class:`AbinitBuild` object with Abinit version and options used to build the code"""
         return AbinitBuild(manager=self)
 
-    def to_shell_manager(self, mpi_procs=1):
+    def to_shell_manager(self, mpi_procs: int = 1) -> TaskManager:
         """
         Returns a new |TaskManager| with the same parameters as self but replace the :class:`QueueAdapter`
         with a :class:`ShellAdapter` with mpi_procs so that we can submit the job without passing through the queue.
@@ -764,7 +768,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
         return new
 
-    def new_with_fixed_mpi_omp(self, mpi_procs, omp_threads):
+    def new_with_fixed_mpi_omp(self, mpi_procs: int, omp_threads: int) -> TaskManager:
         """
         Return a new `TaskManager` in which autoparal has been disabled.
         The jobs will be executed with `mpi_procs` MPI processes and `omp_threads` OpenMP threads.
@@ -777,17 +781,17 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         return new
 
     @property
-    def has_queue(self):
+    def has_queue(self) -> bool:
         """True if we are submitting jobs via a queue manager."""
         return self.qadapter.QTYPE.lower() != "shell"
 
     @property
-    def qads(self):
+    def qads(self) -> List[QueueAdapter]:
         """List of :class:`QueueAdapter` objects sorted according to priorities (highest comes first)"""
         return self._qads
 
     @property
-    def qadapter(self):
+    def qadapter(self) -> QueueAdapter:
         """The qadapter used to submit jobs."""
         return self._qads[self._qadpos]
 
@@ -869,48 +873,48 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         return "\n".join(lines)
 
     @property
-    def has_omp(self):
+    def has_omp(self) -> bool:
         """True if we are using OpenMP parallelization."""
         return self.qadapter.has_omp
 
     @property
-    def num_cores(self):
+    def num_cores(self) -> int:
         """Total number of CPUs used to run the task."""
         return self.qadapter.num_cores
 
     @property
-    def mpi_procs(self):
+    def mpi_procs(self) -> int:
         """Number of MPI processes."""
         return self.qadapter.mpi_procs
 
     @property
-    def mem_per_proc(self):
+    def mem_per_proc(self) -> float:
         """Memory per MPI process."""
         return self.qadapter.mem_per_proc
 
     @property
-    def omp_threads(self):
+    def omp_threads(self) -> int:
         """Number of OpenMP threads"""
         return self.qadapter.omp_threads
 
-    def deepcopy(self):
+    def deepcopy(self) -> TaskManager:
         """Deep copy of self."""
         return copy.deepcopy(self)
 
-    def set_mpi_procs(self, mpi_procs):
+    def set_mpi_procs(self, mpi_procs: int) -> None:
         """Set the number of MPI processes to use."""
         self.qadapter.set_mpi_procs(mpi_procs)
 
-    def set_omp_threads(self, omp_threads):
+    def set_omp_threads(self, omp_threads: int) -> None:
         """Set the number of OpenMp threads to use."""
         self.qadapter.set_omp_threads(omp_threads)
 
-    def set_mem_per_proc(self, mem_mb):
+    def set_mem_per_proc(self, mem_mb: float) -> None:
         """Set the memory (in Megabytes) per CPU."""
         self.qadapter.set_mem_per_proc(mem_mb)
 
     @property
-    def max_cores(self):
+    def max_cores(self) -> int:
         """
         Maximum number of cores that can be used.
         This value is mainly used in the autoparal part to get the list of possible configurations.
@@ -931,7 +935,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         """Cancel the job. Returns exit status."""
         return self.qadapter.cancel(job_id)
 
-    def write_jobfile(self, task, **kwargs):
+    def write_jobfile(self, task: Task, **kwargs) -> str:
         """
         Write the submission script. Return the path of the script
 
@@ -961,7 +965,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             task.job_file.chmod(0o740)
             return task.job_file.path
 
-    def launch(self, task, **kwargs):
+    def launch(self, task: Task, **kwargs):
         """
         Build the input files and submit the task via the :class:`Qadapter`
 
@@ -1448,7 +1452,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.qerr_file = File(os.path.join(self.workdir, "queue.qerr"))
         self.qout_file = File(os.path.join(self.workdir, "queue.qout"))
 
-    def set_manager(self, manager):
+    def set_manager(self, manager: TaskManager) -> None:
         """Set the |TaskManager| used to launch the Task."""
         self.manager = manager.deepcopy()
 
@@ -1484,7 +1488,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         return "w" + str(self.pos[0]) + "_t" + str(self.pos[1])
 
     @property
-    def num_launches(self):
+    def num_launches(self) -> int:
         """
         Number of launches performed. This number includes both possible ABINIT restarts
         as well as possible launches done due to errors encountered with the resource manager
@@ -1540,12 +1544,12 @@ class Task(Node, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def executable(self):
+    def executable(self) -> str:
         """
         Path to the executable associated to the task (internally stored in self._executable).
         """
 
-    def set_executable(self, executable):
+    def set_executable(self, executable: str) -> None:
         """Set the executable associate to this task."""
         self._executable = executable
 
@@ -1558,22 +1562,22 @@ class Task(Node, metaclass=abc.ABCMeta):
             return FakeProcess()
 
     @property
-    def is_abinit_task(self):
+    def is_abinit_task(self) -> bool:
         """True if this task is a subclass of AbinitTask."""
         return isinstance(self, AbinitTask)
 
     @property
-    def is_anaddb_task(self):
+    def is_anaddb_task(self) -> bool:
         """True if this task is a subclass of OpticTask."""
         return isinstance(self, AnaddbTask)
 
     @property
-    def is_optic_task(self):
+    def is_optic_task(self) -> bool:
         """True if this task is a subclass of OpticTask."""
         return isinstance(self, OpticTask)
 
     @property
-    def is_completed(self):
+    def is_completed(self) -> bool:
         """True if the task has been executed."""
         return self.status >= self.S_DONE
 
@@ -2692,7 +2696,7 @@ class AbinitTask(Task):
     Results = TaskResults
 
     @classmethod
-    def from_input(cls, input, workdir=None, manager=None):
+    def from_input(cls, input, workdir=None, manager=None) -> AbinitTask:
         """
         Create an instance of `AbinitTask` from an ABINIT input.
 
@@ -2704,7 +2708,7 @@ class AbinitTask(Task):
         return cls(input, workdir=workdir, manager=manager)
 
     @classmethod
-    def temp_shell_task(cls, inp, mpi_procs=1, workdir=None, manager=None):
+    def temp_shell_task(cls, inp, mpi_procs=1, workdir=None, manager=None) -> AbinitTask:
         """
         Build a Task with a temporary workdir. The task is executed via the shell with 1 MPI proc.
         Mainly used for invoking Abinit to get important parameters needed to prepare the real task.
@@ -2748,7 +2752,7 @@ class AbinitTask(Task):
             self.history.info("\n".join(logs))
 
     @property
-    def executable(self):
+    def executable(self) -> str:
         """Path to the executable required for running the Task."""
         try:
             return self._executable
@@ -2761,22 +2765,22 @@ class AbinitTask(Task):
         return self.input.pseudos
 
     @property
-    def isnc(self):
+    def isnc(self) -> bool:
         """True if norm-conserving calculation."""
         return self.input.isnc
 
     @property
-    def ispaw(self):
+    def ispaw(self) -> bool:
         """True if PAW calculation"""
         return self.input.ispaw
 
     @property
-    def is_gs_task(self):
+    def is_gs_task(self) -> bool:
         """True if task is GsTask subclass."""
         return isinstance(self, GsTask)
 
     @property
-    def is_dfpt_task(self):
+    def is_dfpt_task(self) -> bool:
         """True if task is a DftpTask subclass."""
         return isinstance(self, DfptTask)
 
@@ -2793,7 +2797,7 @@ class AbinitTask(Task):
         return None
 
     @property
-    def filesfile_string(self):
+    def filesfile_string(self) -> str:
         """String with the list of files and prefixes needed to execute ABINIT."""
         lines = []
         app = lines.append
@@ -2843,7 +2847,6 @@ class AbinitTask(Task):
         # paral_kgb is used only in the GS part.
         return paral_kgb == value and isinstance(self, GsTask)
 
-
     def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the Task either in a notebook or in panel app.
@@ -2888,7 +2891,7 @@ class AbinitTask(Task):
         self.input.set_structure(new_structure)
         #assert self.input.structure == new_structure
 
-    def autoparal_run(self):
+    def autoparal_run(self) -> int:
         """
         Find an optimal set of parameters for the execution of the task
         This method can change the ABINIT input variables and/or the
@@ -3030,7 +3033,7 @@ class AbinitTask(Task):
 
         return selected
 
-    def restart(self):
+    def restart(self) -> None:
         """
         general restart used when scheduler problems have been taken care of
         """
@@ -3274,7 +3277,7 @@ class AbinitTask(Task):
 
 class ProduceHist(object):
     """
-    Mixin class for a |Task| producing a HIST file.
+    Mixin class for a |Task| producing HIST files.
     Provide the method `open_hist` that reads and return a HIST file.
     """
     @property
@@ -3538,7 +3541,7 @@ class RelaxTask(GsTask, ProduceHist):
 
     color_rgb = np.array((255, 61, 255)) / 255
 
-    def get_final_structure(self):
+    def get_final_structure(self) -> pmg_Structure:
         """Read the final structure from the GSR file."""
         try:
             with self.open_gsr() as gsr:
@@ -3700,39 +3703,8 @@ class DfptTask(AbinitTask):
         events.ScfConvergenceWarning,
     ]
 
-    #def __repr__(self):
-    #    # Get info about DFT perturbation from input file.
-    #    qpt = self.input.get("qpt", [0, 0, 0])
-    #    rfphon = self.input.get("rfphon", 0)
-    #    rfatpol = self.input.get("rfatpol", [1, 1])
-    #    rfelfd = self.input.get("rfelfd", 0)
-    #    rfstrs = self.input.get("rfstrs", 0)
-    #    rfdir = self.input.get("rfdir", [0, 0, 0])
-    #    irdddk = self.input.get("irdddk", 0)
-
-    #    dfpt_info = ""
-    #    if rfphon != 0:
-    #        dfpt_info = "qpt: {}, rfphon: {}, rfatpol: {}, rfdir: {}, irdddk: {}".format(
-    #                qpt, rfphon, rfatpol, rfdir, irdddk)
-
-    #    elif rfelfd != 0:
-    #        dfpt_info = "qpt: {}, rfelfd: {} rfdir: {}, irdddk: {}".format(
-    #                qpt, rfelfd, rfdir, irdddk)
-
-    #    elif rfstrs != 0:
-    #        dfpt_info = "qpt: {}, rfstrs: {}, rfdir: {}, irdddk: {}".format(
-    #                qpt, rfstrs, rfdir, irdddk)
-
-    #    try:
-    #        return "<%s, node_id=%s, workdir=%s, %s>" % (
-    #            self.__class__.__name__, self.node_id, self.relworkdir, dfpt_info)
-    #    except AttributeError:
-    #        # this usually happens when workdir has not been initialized
-    #        return "<%s, node_id=%s, workdir=None, %s>" % (
-    #            self.__class__.__name__, self.node_id, dfpt_info)
-
     @property
-    def ddb_path(self):
+    def ddb_path(self) -> str:
         """Absolute path of the DDB file. Empty string if file is not present."""
         # Lazy property to avoid multiple calls to has_abiext.
         try:
@@ -4391,7 +4363,7 @@ class OpticTask(Task):
         if "max_ncpus" in kwargs: self.input.set_vars(max_ncpus=kwargs["max_ncpus"])
 
     @property
-    def executable(self):
+    def executable(self) -> str:
         """Path to the executable required for running the :class:`OpticTask`."""
         try:
             return self._executable
@@ -4540,8 +4512,8 @@ class OpticTask(Task):
 
                 elif isinstance(error, MemoryCancelError):
                     # ask the qadapter to provide more resources, i.e. more cpu's so more total memory if the code
-                    # scales this should fix the memeory problem
-                    # increase both max and min ncpu of the autoparalel and rerun autoparalel
+                    # scales this should fix the memory problem
+                    # increase both max and min ncpu of the autoparal and rerun autoparal
                     if self.mem_scales:
                         try:
                             self.manager.increase_ncpus()
@@ -4745,7 +4717,8 @@ class AnaddbTask(Task):
 
     @classmethod
     def temp_shell_task(cls, inp, ddb_node, mpi_procs=1,
-                        gkk_node=None, md_node=None, ddk_node=None, workdir=None, manager=None):
+                        gkk_node=None, md_node=None, ddk_node=None,
+                        workdir=None, manager=None) -> AnaddbTask:
         """
         Build a |AnaddbTask| with a temporary workdir. The task is executed via
         the shell with 1 MPI proc. Mainly used for post-processing the DDB files.
@@ -4767,7 +4740,7 @@ class AnaddbTask(Task):
                    workdir=workdir, manager=manager.to_shell_manager(mpi_procs=mpi_procs))
 
     @property
-    def executable(self):
+    def executable(self) -> str:
         """Path to the executable required for running the |AnaddbTask|."""
         try:
             return self._executable
@@ -4775,7 +4748,7 @@ class AnaddbTask(Task):
             return "anaddb"
 
     @property
-    def filesfile_string(self):
+    def filesfile_string(self) -> str:
         """String with the list of files and prefixes needed to execute ABINIT."""
         lines = []
         app = lines.append
@@ -4791,7 +4764,7 @@ class AnaddbTask(Task):
         return "\n".join(lines)
 
     @property
-    def ddb_filepath(self):
+    def ddb_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input DDB file."""
         # This is not very elegant! A possible approach could to be path self.ddb_node.outdir!
         if isinstance(self.ddb_node, FileNode): return self.ddb_node.filepath
@@ -4799,7 +4772,7 @@ class AnaddbTask(Task):
         return path if path else "DDB_FILE_DOES_NOT_EXIST"
 
     @property
-    def md_filepath(self):
+    def md_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input MD file."""
         if self.md_node is None: return "MD_FILE_DOES_NOT_EXIST"
         if isinstance(self.md_node, FileNode): return self.md_node.filepath
@@ -4808,7 +4781,7 @@ class AnaddbTask(Task):
         return path if path else "MD_FILE_DOES_NOT_EXIST"
 
     @property
-    def gkk_filepath(self):
+    def gkk_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input GKK file."""
         if self.gkk_node is None: return "GKK_FILE_DOES_NOT_EXIST"
         if isinstance(self.gkk_node, FileNode): return self.gkk_node.filepath
@@ -4817,7 +4790,7 @@ class AnaddbTask(Task):
         return path if path else "GKK_FILE_DOES_NOT_EXIST"
 
     @property
-    def ddk_filepath(self):
+    def ddk_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input DKK file."""
         if self.ddk_node is None: return "DDK_FILE_DOES_NOT_EXIST"
         if isinstance(self.ddk_node, FileNode): return self.ddk_node.filepath

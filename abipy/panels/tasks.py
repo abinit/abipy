@@ -1,11 +1,13 @@
 """Panels to interact with the AbiPy tasks."""
+from __future__ import annotations
 
 import panel as pn
-import panel.widgets as pnw
+#import panel.widgets as pnw
 
 from abipy.panels.viewers import AceViewer
-from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click, Loading
+#from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click, Loading
 from abipy.panels.nodes import NodeParameterized
+from abipy.flowtk.tasks import AbinitTask
 
 
 class TaskPanel(NodeParameterized):
@@ -13,7 +15,7 @@ class TaskPanel(NodeParameterized):
     Provides widgets to interact with an AbiPy Task.
     """
 
-    def __init__(self, task, **params):
+    def __init__(self, task: AbinitTask, **params):
         NodeParameterized.__init__(self, node=task, **params)
         self.task = task
 
@@ -100,7 +102,7 @@ class TaskPanel(NodeParameterized):
 
     def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the flow."""
-        d = {}
+        d = dict()
 
         # This stuff is computed lazyly when the tab is activated.
         d["Inputs"] = self.get_inputs_view()
@@ -110,7 +112,6 @@ class TaskPanel(NodeParameterized):
 
         super_d =  super().get_panel(as_dict=True)
         d.update(super_d)
-
         ##d["Structures"] = pn.Row(pn.Column(self.structures_io_checkbox, self.structures_btn), self
 
         if as_dict: return d

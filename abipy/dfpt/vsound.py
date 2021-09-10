@@ -1,16 +1,20 @@
 # coding: utf-8
 """Tools to compute speed of sound."""
+from __future__ import annotations
+
 import math
 import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
+from typing import List
+from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvectors
 from abipy.abio.inputs import AnaddbInput
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible, get_fig_plotly, get_figs_plotly, \
-    add_plotly_fig_kwargs, plotlyfigs_to_browser, PlotlyRowColDesc
+    add_plotly_fig_kwargs, PlotlyRowColDesc
 from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
 
 
@@ -45,12 +49,12 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         self._structure = structure
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object"""
         return self._structure
 
     @property
-    def n_directions(self):
+    def n_directions(self) -> int:
         """Number of directions."""
         return len(self.directions)
 
@@ -151,7 +155,9 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             return new if not return_input else (new, inp)
 
     @classmethod
-    def from_phbst(cls, phbst_path, ignore_neg_freqs=True, labels=None):
+    def from_phbst(cls, phbst_path: str,
+                   ignore_neg_freqs: bool = True,
+                   labels: List[str] = None) -> SoundVelocity:
         """
         Creates an instance of the object starting interpolating the acoustic frequencies
         from a PHBST netcdf file.
@@ -271,7 +277,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         return cls(directions=directions, sound_velocities=sound_velocities, mode_types=mode_types,
                    structure=structure, labels=labels, phfreqs=all_acoustic_freqs, qpts=all_qpts)
 
-    def get_dataframe(self):
+    def get_dataframe(self) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the data of the speed of sound.
         """

@@ -2,6 +2,7 @@
 """
 This module defines basic objects representing the crystalline structure.
 """
+from __future__ import annotations
 import sys
 import os
 import collections
@@ -12,6 +13,7 @@ import pymatgen.core.units as pmg_units
 
 from pprint import pformat
 from collections import OrderedDict
+from typing import Any
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import is_string, marquee, list_strings
@@ -157,7 +159,7 @@ class Structure(pmg_Structure, NotebookWriter):
     .. inheritance-diagram:: Structure
     """
     @classmethod
-    def as_structure(cls, obj):
+    def as_structure(cls, obj: Any) -> Structure:
         """
         Convert obj into a |Structure|. Accepts:
 
@@ -189,7 +191,7 @@ class Structure(pmg_Structure, NotebookWriter):
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 
     @classmethod
-    def from_file(cls, filepath, primitive=False, sort=False):
+    def from_file(cls, filepath: str, primitive: bool = False, sort: bool = False) -> Structure:
         """
         Reads a structure from a file. For example, anything ending in
         a "cif" is assumed to be a Crystallographic Information Format file.
@@ -243,7 +245,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         elif filepath.endswith(".abo") or filepath.endswith(".out"):
             # Abinit output file. We can have multi-datasets and multiple initial/final structures!
-            # By desing, we return the last structure if out is completed else the initial one.
+            # By design, we return the last structure if out is completed else the initial one.
             # None is returned if the structures are different.
             from abipy.abio.outputs import AbinitOutputFile
             with AbinitOutputFile(filepath) as out:
@@ -286,7 +288,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return new
 
     @classmethod
-    def from_mpid(cls, material_id, final=True, api_key=None, endpoint=None):
+    def from_mpid(cls, material_id: str, final=True, api_key=None, endpoint=None) -> Structure:
         """
         Get a Structure corresponding to a material_id.
 
@@ -317,13 +319,14 @@ class Structure(pmg_Structure, NotebookWriter):
             return cls.as_structure(new)
 
     @classmethod
-    def from_cod_id(cls, cod_id, primitive=False, **kwargs):
+    def from_cod_id(cls, cod_id: int, primitive: bool = False, **kwargs) -> Structure:
         """
-        Queries the COD_ for a structure by id. Returns |Structure| object.
+        Queries the COD_ database for a structure by id. Returns |Structure| object.
 
         Args:
             cod_id (int): COD id.
-            primitive (bool): True if primitive structures are wanted. Note that many COD structures are not primitive.
+            primitive (bool): True if primitive structures are wanted.
+                Note that many COD structures are not primitive.
             kwargs: Arguments passed to ``get_structure_by_id``
 
         Returns: |Structure| object.
@@ -334,7 +337,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return cls.as_structure(new)
 
     @classmethod
-    def from_ase_atoms(cls, atoms):
+    def from_ase_atoms(cls, atoms) -> Structure:
         """
         Returns structure from ASE Atoms.
 
@@ -355,7 +358,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return aio.AseAtomsAdaptor.get_atoms(self)
 
     @classmethod
-    def boxed_molecule(cls, pseudos, cart_coords, acell=3*(10,)):
+    def boxed_molecule(cls, pseudos, cart_coords, acell=3*(10,)) -> Structure:
         """
         Creates a molecule in a periodic box of lengths acell [Bohr]
 
@@ -373,7 +376,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return cls.as_structure(new)
 
     @classmethod
-    def boxed_atom(cls, pseudo, cart_coords=3*(0,), acell=3*(10,)):
+    def boxed_atom(cls, pseudo, cart_coords=3*(0,), acell=3*(10,)) -> Structure:
         """
         Creates an atom in a periodic box of lengths acell [Bohr]
 
@@ -385,7 +388,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return cls.boxed_molecule([pseudo], cart_coords, acell=acell)
 
     @classmethod
-    def bcc(cls, a, species, primitive=True, units="ang", **kwargs):
+    def bcc(cls, a, species, primitive=True, units="ang", **kwargs) -> Structure:
         """
         Build a primitive or a conventional bcc crystal structure.
 
@@ -414,7 +417,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return cls(lattice, species, coords=coords,  **kwargs)
 
     @classmethod
-    def fcc(cls, a, species, primitive=True, units="ang", **kwargs):
+    def fcc(cls, a: float, species, primitive=True, units="ang", **kwargs) -> Structure:
         """
         Build a primitive or a conventional fcc crystal structure.
 
@@ -443,7 +446,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return cls(lattice, species, coords=coords, **kwargs)
 
     @classmethod
-    def zincblende(cls, a, species, units="ang", **kwargs):
+    def zincblende(cls, a, species, units="ang", **kwargs) -> Structure:
         """
         Build a primitive zincblende crystal structure.
 
@@ -468,7 +471,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @classmethod
-    def rocksalt(cls, a, species, units="ang", **kwargs):
+    def rocksalt(cls, a, species, units="ang", **kwargs) -> Structure:
         """
         Build a primitive fcc crystal structure.
 
@@ -493,7 +496,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @classmethod
-    def ABO3(cls, a, species, units="ang", **kwargs):
+    def ABO3(cls, a, species, units="ang", **kwargs) -> Structure:
         """
         Peroviskite structures.
 
@@ -516,7 +519,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @classmethod
-    def from_abistring(cls, string):
+    def from_abistring(cls, string: str) -> Structure:
         """
         Initialize Structure from string with Abinit input variables.
         """
@@ -529,7 +532,7 @@ class Structure(pmg_Structure, NotebookWriter):
             return structure_from_abistruct_fmt(string)
 
     @classmethod
-    def from_abivars(cls, *args, **kwargs):
+    def from_abivars(cls, *args, **kwargs) -> Structure:
         """
         Build a |Structure| object from a dictionary with ABINIT variables.
 
@@ -571,7 +574,7 @@ class Structure(pmg_Structure, NotebookWriter):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, title=None, verbose=0):
+    def to_string(self, title=None, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -613,7 +616,8 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         return mp_match_structure(self, **kwargs)
 
-    def write_cif_with_spglib_symms(self, filename, symprec=1e-3, angle_tolerance=5.0, significant_figures=8,
+    def write_cif_with_spglib_symms(self, filename, symprec=1e-3, angle_tolerance=5.0,
+                                    significant_figures=8,
                                     ret_string=False):
         """
         Args:
@@ -625,6 +629,7 @@ class Structure(pmg_Structure, NotebookWriter):
             angle_tolerance (float): Angle tolerance for symmetry finding. Passes
                 angle_tolerance to the SpacegroupAnalyzer. Used only if symprec
                 is not None.
+            ret_string: True to return string
         """
         from pymatgen.io.cif import CifWriter
         cif_str = str(CifWriter(self,
@@ -637,7 +642,7 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             return cif_str
 
-    def __mul__(self, scaling_matrix):
+    def __mul__(self, scaling_matrix) -> Structure:
         """
         Makes a supercell. Allowing to have sites outside the unit cell
         See pymatgen for docs.
@@ -649,7 +654,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     __rmul__ = __mul__
 
-    def to_abivars(self, enforce_znucl=None, enforce_typat=None, **kwargs):
+    def to_abivars(self, enforce_znucl=None, enforce_typat=None, **kwargs) -> dict:
         """
         Returns a dictionary with the ABINIT variables.
 
@@ -660,22 +665,22 @@ class Structure(pmg_Structure, NotebookWriter):
         return structure_to_abivars(self, enforce_znucl=enforce_znucl, enforce_typat=enforce_typat, **kwargs)
 
     @property
-    def latex_formula(self):
+    def latex_formula(self) -> str:
         """LaTeX formatted formula. E.g., Fe2O3 is transformed to Fe$_{2}$O$_{3}$."""
         from pymatgen.util.string import latexify
         return latexify(self.formula)
 
     @property
-    def poscar_string(self):
+    def poscar_string(self) -> str:
         """String with the  structure in POSCAR format."""
         return self.to(fmt="POSCAR")
 
     @property
-    def abi_string(self):
+    def abi_string(self) -> str:
         """String with the ABINIT input associated to this structure."""
         return self.get_abi_string(fmt="abinit_input")
 
-    def get_abi_string(self, fmt="abinit_input"):
+    def get_abi_string(self, fmt: str = "abinit_input") -> str:
         """
         Return a string with the ABINIT input associated to this structure. Two formats are available.
         fmt="abinit_input" corresponds to the standard format with `typat`, `znucl`.
@@ -692,7 +697,7 @@ class Structure(pmg_Structure, NotebookWriter):
             for varname, value in abivars.items():
                 app(str(InputVariable(varname, value)))
 
-            return("\n".join(lines))
+            return "\n".join(lines)
 
         if fmt == "abicell":
             # # MgB2 lattice structure.
@@ -748,7 +753,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return StructurePanel(structure=self).get_panel(with_inputs=with_inputs, **kwargs)
 
     def get_conventional_standard_structure(self, international_monoclinic=True,
-                                           symprec=1e-3, angle_tolerance=5):
+                                           symprec=1e-3, angle_tolerance=5) -> Structure:
         """
         Gives a structure with a conventional cell according to certain
         standards. The standards are defined in :cite:`Setyawan2010`
@@ -760,7 +765,7 @@ class Structure(pmg_Structure, NotebookWriter):
         new = spga.get_conventional_standard_structure(international_monoclinic=international_monoclinic)
         return self.__class__.as_structure(new)
 
-    def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0):
+    def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0) -> Structure:
         #TODO: this should be moved to pymatgen in the get_refined_structure or so ...
         # to be considered in February 2016
         import spglib
@@ -780,7 +785,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return self.__class__.as_structure(standardized_structure)
 
-    def refine(self, symprec=1e-3, angle_tolerance=5):
+    def refine(self, symprec=1e-3, angle_tolerance=5) -> Structure:
         """
         Get the refined structure based on detected symmetry. The refined
         structure is a *conventional* cell setting with atoms moved to the
@@ -792,7 +797,8 @@ class Structure(pmg_Structure, NotebookWriter):
         new = sym_finder.get_refined_structure()
         return self.__class__.as_structure(new)
 
-    def abi_sanitize(self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False):
+    def abi_sanitize(self, symprec=1e-3, angle_tolerance=5,
+                     primitive=True, primitive_standard=False) -> Structure:
         """
         Returns a new structure in which:
 
@@ -843,7 +849,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return self.__class__.as_structure(structure)
 
-    def get_oxi_state_decorated(self, **kwargs):
+    def get_oxi_state_decorated(self, **kwargs) -> Structure:
         """
         Use :class:`pymatgen.analysis.bond_valence.BVAnalyzer` to estimate oxidation states
         Return oxidation state decorated structure.
@@ -885,7 +891,7 @@ class Structure(pmg_Structure, NotebookWriter):
             return self.lattice.reciprocal_lattice.matrix
         raise ValueError("Wrong value for space: %s " % str(space))
 
-    def spget_lattice_type(self, symprec=1e-3, angle_tolerance=5):
+    def spget_lattice_type(self, symprec=1e-3, angle_tolerance=5) -> str:
         """
         Call spglib to get the lattice for the structure, e.g., (triclinic,
         orthorhombic, cubic, etc.).This is the same than the
@@ -1049,7 +1055,7 @@ class Structure(pmg_Structure, NotebookWriter):
         self._abi_spacegroup = spacegroup
 
     @property
-    def has_abi_spacegroup(self):
+    def has_abi_spacegroup(self) -> bool:
         """True is the structure contains info on the spacegroup."""
         return self.abi_spacegroup is not None
 
@@ -1140,7 +1146,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return sitesym_labels
 
-    def abiget_spginfo(self, tolsym=None, pre=None):
+    def abiget_spginfo(self, tolsym=None, pre=None) -> dict:
         """
         Call Abinit to get spacegroup information.
         Return dictionary with e.g.
@@ -1158,7 +1164,7 @@ class Structure(pmg_Structure, NotebookWriter):
         if pre: d = {pre + k: v for k, v in d.items()}
         return d
 
-    def print_neighbors(self, radius=2.0):
+    def print_neighbors(self, radius=2.0) -> None:
         """
         Get neighbors for each atom in the unit cell, out to a distance ``radius`` in Angstrom
         Print results.
@@ -1251,7 +1257,7 @@ class Structure(pmg_Structure, NotebookWriter):
     #    #for k in kstar:
     #    #    print(4 * " ", repr(k))
 
-    def get_sorted_structure_z(self):
+    def get_sorted_structure_z(self) -> Structure:
         """Order the structure according to increasing Z of the elements"""
         return self.__class__.from_sites(sorted(self.sites, key=lambda site: site.specie.Z))
 
@@ -1339,7 +1345,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         return np.sqrt(self.dot(coords, coords, space=space, frac_coords=frac_coords))
 
-    def scale_lattice(self, new_volume):
+    def scale_lattice(self, new_volume) -> Structure:
         """
         Return a new |Structure| with volume new_volume by performing a
         scaling of the lattice vectors so that length proportions and angles are preserved.
@@ -1347,7 +1353,7 @@ class Structure(pmg_Structure, NotebookWriter):
         new_lattice = self.lattice.scale(new_volume)
         return self.__class__(new_lattice, self.species, self.frac_coords)
 
-    def get_dict4pandas(self, symprec=1e-2, angle_tolerance=5.0, with_spglib=True):
+    def get_dict4pandas(self, symprec=1e-2, angle_tolerance=5.0, with_spglib=True) -> dict:
         """
         Return a :class:`OrderedDict` with the most important structural parameters:
 
@@ -1393,7 +1399,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return od
 
-    def get_symb2coords_dataframe(self, with_cart_coords=False):
+    def get_symb2coords_dataframe(self, with_cart_coords=False) -> dict:
         """
         Return dictionary mapping element symbol to DataFrame with atomic positions
         in cartesian coordinates.
@@ -1717,7 +1723,7 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             raise visu.Error("Don't know how to export data for %s" % appname)
 
-    def convert(self, fmt="cif", **kwargs):
+    def convert(self, fmt: str = "cif", **kwargs) -> str:
         """
         Return string with the structure in the given format `fmt`
         Options include "abivars", "cif", "xsf", "poscar", "siesta", "wannier90", "cssr", "json".
@@ -2100,7 +2106,7 @@ class Structure(pmg_Structure, NotebookWriter):
         kptbounds = [k.frac_coords for k in self.hsym_kpoints]
         return np.reshape(kptbounds, (-1, 3))
 
-    def get_kpath_input_string(self, fmt="abinit", line_density=10):
+    def get_kpath_input_string(self, fmt: str = "abinit", line_density: int = 10) -> str:
         """
         Return string with input variables for band-structure calculations
         in the format used by code `fmt`.
@@ -2275,7 +2281,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return np.reshape(shiftk, (-1, 3))
 
-    def num_valence_electrons(self, pseudos):
+    def num_valence_electrons(self, pseudos) -> float:
         """
         Returns the number of valence electrons.
 
@@ -2442,7 +2448,7 @@ class StructureModifier(object):
 
         return news
 
-    def make_supercell(self, scaling_matrix):
+    def make_supercell(self, scaling_matrix) -> Structure:
         """
         Create a supercell.
 

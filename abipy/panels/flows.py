@@ -1,20 +1,23 @@
 """"Panels to interact with AbiPy flows."""
+from __future__ import annotations
+
 import param
 import panel as pn
 import panel.widgets as pnw
-import bokeh.models.widgets as bkw
+#import bokeh.models.widgets as bkw
 
 from panel.viewable import Viewer
 from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click
 from abipy.panels.nodes import NodeParameterized
-from abipy import flowtk
+from abipy.flowtk.tasks import AbinitTask
+from abipy.flowtk.flows import Flow
 
 
 class WorkTaskSelector(Viewer):
 
-    task = param.ClassSelector(class_=flowtk.AbinitTask, doc="Task object")
+    task = param.ClassSelector(class_=AbinitTask, doc="Task object")
 
-    def __init__(self, flow, **params):
+    def __init__(self, flow: Flow, **params):
         self._wstr2work = {f"w{i} ({work.__class__.__name__}, len: {len(work)})": work
                            for (i, work) in enumerate(flow.works)}
         options = list(self._wstr2work.keys())
@@ -51,7 +54,7 @@ class FlowPanel(NodeParameterized):
     Provides widgets and callbacks to interact with an AbiPy Flow.
     """
 
-    def __init__(self, flow, **params):
+    def __init__(self, flow: Flow, **params):
         NodeParameterized.__init__(self, node=flow, **params)
 
         self.structures_btn = pnw.Button(name="Show Structures", button_type='primary')
@@ -116,16 +119,14 @@ class FlowPanel(NodeParameterized):
         return self.get_template_from_tabs(d, template=kwargs.get("template", None), closable=False)
 
 
-
 class JsPane(pn.pane.HTML):
     """
     Based on: https://discourse.holoviz.org/t/how-to-make-a-dynamic-link-in-panel/2137
     """
-
     def __init__(self):
         super().__init__(width=0, height=0, margin=0, sizing_mode="fixed")
 
-    def execute_js(self, script):
+    def execute_js(self, script: str):
         script = f'<script type="text/javascript">{script}</script>'
         self.object = script
         self.object = ""
@@ -133,11 +134,11 @@ class JsPane(pn.pane.HTML):
 
 class FlowMultiPageApp():
 
-    def __init__(self, flow, template, spectator_mode=True, **kwargs):
+    def __init__(self, flow: Flow, template, spectator_mode=True, **kwargs):
 
         if spectator_mode:
             # We are in read-only mode so we have to disable signals to avoid side effects and callbacks
-            flow._spectator_mode()
+            flow.set_spectator_mode()
 
         self.flow = flow
         self.template = template

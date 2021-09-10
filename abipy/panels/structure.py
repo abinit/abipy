@@ -2,7 +2,7 @@
 
 import os
 import io
-import param
+#import param
 import panel as pn
 import numpy as np
 import panel.widgets as pnw
@@ -46,7 +46,7 @@ class StructurePanel(PanelWithStructure):
     Panel with widgets to interact with an AbiPy Structure
     """
 
-    def __init__(self, structure, with_inputs=True, **params):
+    def __init__(self, structure: Structure, with_inputs=True, **params):
         """
         Args:
             structure: |Structure| object.
@@ -207,7 +207,7 @@ class StructurePanel(PanelWithStructure):
 
     def _finalize(self, inp_or_multi, header=None, validate=False):
 
-        # TODO ckksymbreak should be set to 0 else Abinit may stop.
+        # TODO chksymbreak should be set to 0 else Abinit may stop.
         if validate:
             if inp_or_multi.is_input:
                 this = inp_or_multi.deepcopy()
@@ -386,10 +386,10 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
             is_gamma = np.sum(qpt ** 2) < 1e-12
             #if with_becs and is_gamma: continue
             ph_input.set_vars(
-                    kptopt=2 if is_gamma else 3, # use time-reversal if Gamma
-                    rfphon=1,                    # Will consider phonon-type perturbation
-                    nqpt=1,                      # One wavevector is to be considered
-                    qpt=qpt,                     # q-wavevector.
+                    kptopt=2 if is_gamma else 3,  # use time-reversal if Gamma
+                    rfphon=1,                     # Will consider phonon-type perturbation
+                    nqpt=1,                       # One wavevector is to be considered
+                    qpt=qpt,                      # q-wavevector.
                     rfatpol=[1, len(gs_inp.structure)],
                     rfdir=[1, 1, 1],
                     getwfk=1,
@@ -456,7 +456,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         Args:
             with_inputs: True if tabs for generating input files should be shown.
         """
-        d = {}
+        d = dict()
 
         d["Summary"] = self.get_summary_view_for_abiobj(self.structure)
         d["Spglib"] = pn.Row(

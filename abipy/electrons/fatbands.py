@@ -1,17 +1,20 @@
 # coding: utf-8
 """Classes for the analysis of electronic fatbands and projected DOSes."""
+from __future__ import annotations
 
 import traceback
 import numpy as np
 
 from collections import OrderedDict, defaultdict
+#from typing import List
 from tabulate import tabulate
 from monty.termcolor import cprint
 from monty.functools import lazy_property
 from monty.string import marquee
 from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.electrons.ebands import ElectronsReader
+from abipy.core.structure import Structure
+from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.tools.numtools import gaussian
 from abipy.tools.plotting import (set_axlims, get_axarray_fig_plt, add_fig_kwargs, get_figs_plotly,
     add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_set_lims)
@@ -85,11 +88,11 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #klabel_size = None
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> FatBandsFile:
         """Initialize the object from a netcdf_ file"""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = r = ElectronsReader(filepath)
 
@@ -116,7 +119,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             self.xredsph_extra = r.read_value("xredsph_extra")
         if self.natsph_extra != 0:
             raise NotImplementedError("natsph_extra is not implemented, "
-              "but it's just a matter of using natom + natsph_extra")
+                                      "but it's just a matter of using natom + natsph_extra")
 
         # This is a tricky part. Note the following:
         # If usepaw == 0, lmax_type gives the max l included in the non-local part of Vnl
@@ -201,7 +204,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             wal_sbk = np.reshape(self.reader.read_value(key), wshape)
 
         else:
-            # Need to tranfer data. Note np.zeros.
+            # Need to transfer data. Note np.zeros.
             wal_sbk = np.zeros(wshape)
             if self.natsph == self.natom and np.any(self.iatsph != np.arange(self.natom)):
                 print("Will rearrange filedata since iatsp != [1, 2, ...])")
@@ -248,7 +251,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             walm_sbk = np.reshape(self.reader.read_value(key), wshape)
 
         else:
-            # Need to tranfer data. Note np.zeros.
+            # Need to transfer data. Note np.zeros.
             walm_sbk = np.zeros(wshape)
             if self.natsph == self.natom and np.any(self.iatsph != np.arange(self.natom)):
                 print("Will rearrange filedata since iatsp != [1, 2, ...])")
@@ -273,22 +276,22 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return walm_sbk
 
     @property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self._ebands
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
-    def close(self):
+    def close(self) -> None:
         """Called at the end of the ``with`` context manager."""
         return self.reader.close()
 
@@ -296,7 +299,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """String representation"""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -1922,8 +1925,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             self.plotly_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, fig=fig, ylims=ylims,
                                        fontsize=fontsize, band_and_dos=1, show=False)
             pjdosfile.plotly_pjdos_lview(e0=e0, lmax=lmax, fig=fig, exchange_xy=True, stacked=stacked,
-                                       combined_spins=False, fontsize=fontsize, with_info=False,
-                                        with_spin_sign=False, ylims=ylims, band_and_dos=1, show=False, **edos_kwargs)
+                                         combined_spins=False, fontsize=fontsize, with_info=False,
+                                         with_spin_sign=False, ylims=ylims, band_and_dos=1, show=False, **edos_kwargs)
 
         elif view == "type":
             self.plotly_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, fig=fig, ylims=ylims,

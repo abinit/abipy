@@ -4,6 +4,8 @@ A Flow is a container for Works, and works consist of tasks.
 Flows are the final objects that can be dumped directly to a pickle file on disk
 Flows are executed using abirun (abipy).
 """
+from __future__ import annotations
+
 import os
 import sys
 import time
@@ -15,6 +17,7 @@ import numpy as np
 
 from io import StringIO
 from pprint import pprint
+from typing import Any, Union, List
 from tabulate import tabulate
 from pydispatch import dispatcher
 from collections import OrderedDict
@@ -34,7 +37,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.printing import print_dataframe
 from abipy.flowtk import wrappers
 from .nodes import Status, Node, NodeError, NodeResults, Dependency, GarbageCollector, check_spectator
-from .tasks import ScfTask, TaskManager, FixQueueCriticalError
+from .tasks import Task, ScfTask, TaskManager, FixQueueCriticalError
 from .utils import File, Directory, Editor
 from .works import NodeContainer, Work, BandStructureWork, PhononWork, BecWork, G0W0Work, QptdmWork, DteWork
 from .events import EventsParser
@@ -53,7 +56,7 @@ __all__ = [
 ]
 
 
-def as_set(obj):
+def as_set(obj: Any) -> set:
     """
     Convert obj into a set, returns None if obj is None.
 
@@ -114,6 +117,7 @@ class Flow(Node, NodeContainer, MSONable):
         build_and_pickle_dump:
     """
     VERSION = "0.1"
+
     PICKLE_FNAME = "__AbinitFlow__.pickle"
 
     Error = FlowError
@@ -122,7 +126,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     @classmethod
     def from_inputs(cls, workdir, inputs, manager=None, pickle_protocol=-1, task_class=ScfTask,
-                    work_class=Work, remove=False):
+                    work_class=Work, remove=False) -> Flow:
 
         """
         Construct a simple flow from a list of inputs. The flow contains a single Work with
@@ -155,7 +159,7 @@ class Flow(Node, NodeContainer, MSONable):
         return flow.allocate()
 
     @classmethod
-    def as_flow(cls, obj):
+    def as_flow(cls, obj: Any) -> Flow:
         """Convert obj into a Flow. Accepts filepath, dict, or Flow object."""
         if isinstance(obj, cls): return obj
         if is_string(obj):
@@ -240,7 +244,7 @@ class Flow(Node, NodeContainer, MSONable):
         self._status = None
 
     @pmg_serialize
-    def as_dict(self, **kwargs):
+    def as_dict(self, **kwargs) -> dict:
         """
         JSON serialization, note that we only need to save
         a string with the working directory since the object will be
@@ -252,17 +256,17 @@ class Flow(Node, NodeContainer, MSONable):
     to_dict = as_dict
 
     @classmethod
-    def from_dict(cls, d, **kwargs):
+    def from_dict(cls, d: dict, **kwargs) -> Flow:
         """Reconstruct the flow from the pickle file."""
         return cls.pickle_load(d["workdir"], **kwargs)
 
     @classmethod
-    def temporary_flow(cls, manager=None, workdir=None):
+    def temporary_flow(cls, manager=None, workdir=None) -> Flow:
         """Return a Flow in a temporary directory. Useful for unit tests."""
         workdir = get_workdir(workdir)
         return cls(workdir=workdir, manager=manager)
 
-    def set_status(self, status, msg):
+    def set_status(self, status, msg: str) -> None:
         """
         Set and return the status of the flow
 
@@ -274,7 +278,7 @@ class Flow(Node, NodeContainer, MSONable):
         self._status = status
         self.history.info(f"Status set to `{status}` due to: `{msg}`)")
 
-    def set_workdir(self, workdir, chroot=False):
+    def set_workdir(self, workdir: str, chroot=False) -> None:
         """
         Set the working directory. Cannot be set more than once unless chroot is True
         """
@@ -288,7 +292,7 @@ class Flow(Node, NodeContainer, MSONable):
         self.tmpdir = Directory(os.path.join(self.workdir, "tmpdata"))
         self.wdir = Directory(self.workdir)
 
-    def reload(self):
+    def reload(self) -> None:
         """
         Reload the flow from the pickle file. Used when we are monitoring the flow
         executed by the scheduler. In this case, indeed, the flow might have been changed
@@ -298,7 +302,7 @@ class Flow(Node, NodeContainer, MSONable):
         self = new
 
     @classmethod
-    def pickle_load(cls, filepath, spectator_mode=True, remove_lock=False):
+    def pickle_load(cls, filepath: str, spectator_mode=True, remove_lock=False) -> Flow:
         """
         Loads the object from a pickle file and performs initial setup.
 
@@ -356,7 +360,7 @@ class Flow(Node, NodeContainer, MSONable):
     from_file = pickle_load
 
     @classmethod
-    def pickle_loads(cls, s):
+    def pickle_loads(cls, s: str) -> Flow:
         """Reconstruct the flow from a string."""
         strio = StringIO()
         strio.write(s)
@@ -364,7 +368,7 @@ class Flow(Node, NodeContainer, MSONable):
         flow = pmg_pickle_load(strio)
         return flow
 
-    def change_manager(self, new_manager):
+    def change_manager(self, new_manager: Any) -> TaskManager:
         """Change the manager at runtime."""
         for work in self:
             work.set_manager(new_manager)
@@ -384,7 +388,7 @@ class Flow(Node, NodeContainer, MSONable):
     def __getitem__(self, slice):
         return self.works[slice]
 
-    def set_pyfile(self, pyfile):
+    def set_pyfile(self, pyfile: str) -> None:
         """
         Set the path of the python script used to generate the flow.
 
@@ -397,9 +401,10 @@ class Flow(Node, NodeContainer, MSONable):
         self._pyfile = os.path.abspath(pyfile)
 
     @property
-    def pyfile(self):
+    def pyfile(self) -> Union[str, None]:
         """
-        Absolute path of the python script used to generate the flow. Set by `set_pyfile`
+        Absolute path of the python script used to generate the flow.
+        None if unset. Set by `set_pyfile`
         """
         try:
             return self._pyfile
@@ -407,16 +412,16 @@ class Flow(Node, NodeContainer, MSONable):
             return None
 
     @property
-    def pid_file(self):
+    def pid_file(self) -> str:
         """The path of the pid file created by PyFlowScheduler."""
         return os.path.join(self.workdir, "_PyFlowScheduler.pid")
 
     @property
-    def has_scheduler(self):
+    def has_scheduler(self) -> bool:
         """True if there's a scheduler running the flow."""
         return os.path.exists(self.pid_file)
 
-    def check_pid_file(self):
+    def check_pid_file(self) -> int:
         """
         This function checks if we are already running the |Flow| with a :class:`PyFlowScheduler`.
         Raises: Flow.Error if the pid file of the scheduler exists.
@@ -443,7 +448,7 @@ class Flow(Node, NodeContainer, MSONable):
             Exiting""" % self.pid_file)
 
     @property
-    def pickle_file(self):
+    def pickle_file(self) -> str:
         """The path of the pickle file."""
         return os.path.join(self.workdir, self.PICKLE_FNAME)
 
@@ -456,10 +461,6 @@ class Flow(Node, NodeContainer, MSONable):
         if self.mongo_id is not None:
             raise RuntimeError("Cannot change mongo_id %s" % self.mongo_id)
         self._mongo_id = value
-
-    #def mongodb_upload(self, **kwargs):
-    #    from abiflows.core.scheduler import FlowUploader
-    #    FlowUploader().upload(self, **kwargs)
 
     def validate_json_schema(self):
         """Validate the JSON schema. Return list of errors."""
@@ -493,12 +494,12 @@ class Flow(Node, NodeContainer, MSONable):
         return {}
 
     @property
-    def works(self):
+    def works(self) -> List[Work]:
         """List of |Work| objects contained in self.."""
         return self._works
 
     @property
-    def all_ok(self):
+    def all_ok(self) -> bool:
         """True if all the works in the flow have reached `S_OK`."""
         all_ok = all(work.all_ok for work in self)
         if all_ok:
@@ -506,12 +507,12 @@ class Flow(Node, NodeContainer, MSONable):
         return all_ok
 
     @property
-    def num_tasks(self):
+    def num_tasks(self) -> int:
         """Total number of tasks"""
         return len(list(self.iflat_tasks()))
 
     @property
-    def errored_tasks(self):
+    def errored_tasks(self) -> List[Task]:
         """List of errored tasks."""
         etasks = []
         for status in [self.S_ERROR, self.S_QCRITICAL, self.S_ABICRITICAL]:
@@ -520,17 +521,17 @@ class Flow(Node, NodeContainer, MSONable):
         return set(etasks)
 
     @property
-    def num_errored_tasks(self):
+    def num_errored_tasks(self) -> int:
         """The number of tasks whose status is `S_ERROR`."""
         return len(self.errored_tasks)
 
     @property
-    def unconverged_tasks(self):
+    def unconverged_tasks(self) -> int:
         """List of unconverged tasks."""
         return list(self.iflat_tasks(status=self.S_UNCONVERGED))
 
     @property
-    def num_unconverged_tasks(self):
+    def num_unconverged_tasks(self) -> int:
         """The number of tasks whose status is `S_UNCONVERGED`."""
         return len(self.unconverged_tasks)
 
@@ -548,7 +549,7 @@ class Flow(Node, NodeContainer, MSONable):
         return counter
 
     @property
-    def ncores_reserved(self):
+    def ncores_reserved(self) -> int:
         """
         Returns the number of cores reserved in this moment.
         A core is reserved if the task is not running but
@@ -557,7 +558,7 @@ class Flow(Node, NodeContainer, MSONable):
         return sum(work.ncores_reserved for work in self)
 
     @property
-    def ncores_allocated(self):
+    def ncores_allocated(self) -> int:
         """
         Returns the number of cores allocated at this moment.
         A core is allocated if it's running a task or if we have
@@ -566,7 +567,7 @@ class Flow(Node, NodeContainer, MSONable):
         return sum(work.ncores_allocated for work in self)
 
     @property
-    def ncores_used(self):
+    def ncores_used(self) -> int:
         """
         Returns the number of cores used at this moment.
         A core is used if there's a job that is running on it.
@@ -574,7 +575,7 @@ class Flow(Node, NodeContainer, MSONable):
         return sum(work.ncores_used for work in self)
 
     @property
-    def has_chrooted(self):
+    def has_chrooted(self) -> str:
         """
         Returns a string that evaluates to True if we have changed
         the workdir for visualization purposes e.g. we are using sshfs.
@@ -763,8 +764,10 @@ class Flow(Node, NodeContainer, MSONable):
 
         return isok, tuples
 
-    def check_dependencies(self):
-        """Test the dependencies of the nodes for possible deadlocks."""
+    def check_dependencies(self) -> None:
+        """
+        Test the dependencies of the nodes for possible deadlocks and raise RuntimeError
+        """
         deadlocks = []
 
         for task in self.iflat_tasks():
@@ -803,7 +806,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         return dict2namedtuple(deadlocked=deadlocked, runnables=runnables, running=running)
 
-    def check_status(self, **kwargs):
+    def check_status(self, **kwargs) -> None:
         """
         Check the status of the works in self.
 
@@ -818,14 +821,15 @@ class Flow(Node, NodeContainer, MSONable):
             self.show_status(**kwargs)
 
     @property
-    def status(self):
-        """Gives the status of the task."""
+    def status(self) -> Status:
+        """Gives the status of the Flow."""
         if self._status is None:
-             # Take the minimum of the status of its tasks and its works
-             return min(work.get_all_status(only_min=True) for work in self)
+            # Take the minimum of the status of its tasks and its works
+            return min(work.get_all_status(only_min=True) for work in self)
+
         return self._status
 
-    def fix_abicritical(self):
+    def fix_abicritical(self) -> int:
         """
         This function tries to fix critical events originating from ABINIT.
         Returns the number of tasks that have been fixed.
@@ -836,7 +840,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         return count
 
-    def fix_queue_critical(self):
+    def fix_queue_critical(self) -> int:
         """
         This function tries to fix critical events originating from the queue submission system.
 
@@ -853,7 +857,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         return count
 
-    def show_info(self, **kwargs):
+    def show_info(self, **kwargs) -> None:
         """
         Print info on the flow i.e. total number of tasks, works, tasks grouped by class.
 
@@ -1149,7 +1153,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         return df, robot
 
-    def show_summary(self, **kwargs):
+    def show_summary(self, **kwargs) -> None:
         """
         Print a short summary with the status of the flow and a counter task_status --> number_of_tasks
 
@@ -1187,7 +1191,6 @@ class Flow(Node, NodeContainer, MSONable):
 
         import pandas as pd
         return pd.DataFrame(rows)
-
 
     def show_status(self, return_df=False, **kwargs):
         """
@@ -1328,7 +1331,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         return data_task
 
-    def show_corrections(self, status=None, nids=None, stream=sys.stdout):
+    def show_corrections(self, status=None, nids=None, stream=sys.stdout) -> int:
         """
         Show the corrections applied to the flow at run-time.
 
@@ -1456,7 +1459,7 @@ class Flow(Node, NodeContainer, MSONable):
         else:
             print("No output file with extension %s has been produced by the flow" % ext, file=stream)
 
-    def select_tasks(self, nids=None, wslice=None, task_class=None):
+    def select_tasks(self, nids=None, wslice=None, task_class=None) -> List[Task]:
         """
         Return a list with a subset of tasks.
 
@@ -1506,7 +1509,7 @@ class Flow(Node, NodeContainer, MSONable):
         tasks_cycles = []
 
         for task in self.select_tasks(nids=nids, wslice=wslice):
-            # Fileter
+            # Filter
             if task.status not in select_status or task.cycle_class is None:
                 continue
             if task_class is not None and not task.isinstance(task_class):
@@ -1615,51 +1618,9 @@ class Flow(Node, NodeContainer, MSONable):
         except self.Error as exc:
             errors.append(str(exc))
 
-        #if self.has_db:
-        #    try:
-        #        self.manager.db_connector.get_collection()
-        #    except Exception as exc:
-        #        errors.append("""
-        #            ERROR while trying to connect to the MongoDB database:
-        #                Exception:
-        #                    %s
-        #                Connector:
-        #                    %s
-        #            """ % (exc, self.manager.db_connector))
-
         return "\n".join(errors)
 
-    #def db_insert(self):
-    #    """
-    #    Insert results in the `MongDB` database.
-    #    """
-    #    assert self.has_db
-    #    # Connect to MongoDb and get the collection.
-    #    coll = self.manager.db_connector.get_collection()
-    #    print("Mongodb collection %s with count %d", coll, coll.count())
-
-    #    start = time.time()
-    #    for work in self:
-    #        for task in work:
-    #            results = task.get_results()
-    #            pprint(results)
-    #            results.update_collection(coll)
-    #        results = work.get_results()
-    #        pprint(results)
-    #        results.update_collection(coll)
-    #    print("MongoDb update done in %s [s]" % time.time() - start)
-
-    #    results = self.get_results()
-    #    pprint(results)
-    #    results.update_collection(coll)
-
-    #    # Update the pickle file to save the mongo ids.
-    #    self.pickle_dump()
-
-    #    for d in coll.find():
-    #        pprint(d)
-
-    def tasks_from_nids(self, nids):
+    def tasks_from_nids(self, nids) -> List[Task]:
         """
         Return the list of tasks associated to the given list of node identifiers (nids).
 
@@ -1672,7 +1633,7 @@ class Flow(Node, NodeContainer, MSONable):
         n2task = {task.node_id: task for task in self.iflat_tasks()}
         return [n2task[n] for n in nids if n in n2task]
 
-    def wti_from_nids(self, nids):
+    def wti_from_nids(self, nids) -> List[Task]:
         """Return the list of (w, t) indices from the list of node identifiers nids."""
         return [task.pos for task in self.tasks_from_nids(nids)]
 
@@ -2063,7 +2024,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         return work
 
-    def new_work(self, deps=None, manager=None, workdir=None):
+    def new_work(self, deps=None, manager=None, workdir=None) -> Work:
         """
         Helper function to add a new empty |Work| and add it to the internal list.
         Client code is responsible for filling the new work.
@@ -2081,7 +2042,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         work = Work()
         return self.register_work(work, deps=deps, manager=manager, workdir=workdir)
 
-    def register_work(self, work, deps=None, manager=None, workdir=None):
+    def register_work(self, work, deps=None, manager=None, workdir=None) -> Work:
         """
         Register a new |Work| and add it to the internal list, taking into account
         possible dependencies.
@@ -2098,7 +2059,6 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         """
         if getattr(self, "workdir", None) is not None:
             # The flow has a directory, build the name of the directory of the work.
-            work_workdir = None
             if workdir is None:
                 work_workdir = os.path.join(self.workdir, "w" + str(len(self)))
             else:
@@ -2246,7 +2206,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         return self
 
-    def show_dependencies(self, stream=sys.stdout):
+    def show_dependencies(self, stream=sys.stdout) -> None:
         """
         Writes to the given stream the ASCII representation of the dependency tree.
         """
@@ -2601,7 +2561,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         from graphviz import Digraph
         fg = Digraph("flow", #filename="flow_%s.gv" % os.path.basename(self.relworkdir),
-            engine="fdp" if engine == "automatic" else engine)
+                      engine="fdp" if engine == "automatic" else engine)
 
         # Set graph attributes. https://www.graphviz.org/doc/info/
         fg.attr(label=repr(self))
@@ -2828,7 +2788,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         ax.axis("off")
         return fig
 
-    def write_open_notebook(flow, foreground):
+    def write_open_notebook(self, foreground):
         """
         Generate an ipython notebook and open it in the browser.
         Return system exit code.
@@ -2857,7 +2817,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
     abilab.enable_notebook(with_seaborn=True)
     """),
 
-            nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
+            nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % self.workdir),
             nbf.new_code_cell("if flow.num_errored_tasks: flow.debug()"),
             nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
             nbf.new_code_cell("flow.show_dependencies()"),
@@ -3118,8 +3078,9 @@ class PhononFlow(Flow):
        Only the irreducible phonon perturbations are espliclty computed.
     """
     @classmethod
-    def from_scf_input(cls, workdir, scf_input, ph_ngqpt, with_becs=True, with_quad=False, with_flexoe=False,
-                       manager=None, allocate=True):
+    def from_scf_input(cls, workdir, scf_input, ph_ngqpt,
+                       with_becs=True, with_quad=False, with_flexoe=False,
+                       manager=None, allocate=True) -> PhononFlow:
         """
         Create a `PhononFlow` for phonon calculations from an `AbinitInput` defining a ground-state run.
 
@@ -3191,7 +3152,8 @@ class NonLinearCoeffFlow(Flow):
        for that particular q-point.
     """
     @classmethod
-    def from_scf_input(cls, workdir, scf_input, manager=None, allocate=True):
+    def from_scf_input(cls, workdir, scf_input,
+                       manager=None, allocate=True) -> NonLinearCoeffFlow:
         """
         Create a `NonlinearFlow` for second order susceptibility calculations from
         an `AbinitInput` defining a ground-state run.

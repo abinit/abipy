@@ -41,7 +41,6 @@ def get_mprester(api_key=None, endpoint=None):
     if api_key is None:
         try:
             from pymatgen.core import SETTINGS
-            #from pymatgen.settings import SETTINGS
         except ImportError:
             from pymatgen import SETTINGS
 

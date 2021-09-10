@@ -1,10 +1,13 @@
 # coding: utf-8
 """Factory functions for Abinit input files """
+from __future__ import annotations
+
 import numpy as np
 import pymatgen.io.abinit.abiobjects as aobj
 import abipy.abio.input_tags as atags
 
 from enum import Enum
+from typing import Any
 from collections import namedtuple
 from monty.collections import AttrDict
 from monty.string import is_string
@@ -30,7 +33,7 @@ __all__ = [
     "scf_for_phonons",
     "dte_from_gsinput",
     "dfpt_from_gsinput",
-    "minimal_scf_input"
+    "minimal_scf_input",
 ]
 
 
@@ -76,7 +79,7 @@ class ShiftMode(Enum):
     OneSymmetric = 'O'
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj: Any) -> ShiftMode:
         """
         Returns an instance of ShiftMode based on the type of object passed. Converts strings to ShiftMode depending
         on the iniital letter of the string. G for GammaCenterd, M for MonkhorstPack, S for Symmetric, O for OneSymmetric.
@@ -99,6 +102,7 @@ def _stopping_criterion(runlevel, accuracy):
 def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy):
     """Return a |AttrDict| with the value of ``ecut`` and ``pawecutdg``."""
     # Get ecut and pawecutdg from the pseudo hints.
+    has_hints = False
     if ecut is None or (pawecutdg is None and any(p.ispaw for p in pseudos)):
         has_hints = all(p.has_hints for p in pseudos)
 
@@ -179,11 +183,11 @@ def _get_shifts(shift_mode, structure):
         raise ValueError("invalid shift_mode: `%s`" % str(shift_mode))
 
 
-def gs_input(structure, pseudos,
+def gs_input(structure: Structure, pseudos,
              kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
-             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None) -> AbinitInput:
     """
-    Returns a |AbinitInput| for ground-state calculation.
+    Returns an |AbinitInput| for ground-state calculation.
 
     Args:
         structure: |Structure| object.
@@ -201,17 +205,19 @@ def gs_input(structure, pseudos,
         scf_algorithm: Algorithm used for solving of the SCF cycle.
     """
     multi = ebands_input(structure, pseudos,
-                 kppa=kppa, ndivsm=0,
-                 ecut=ecut, pawecutdg=pawecutdg, scf_nband=scf_nband, accuracy=accuracy, spin_mode=spin_mode,
-                 smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)
+                         kppa=kppa, ndivsm=0,
+                         ecut=ecut, pawecutdg=pawecutdg, scf_nband=scf_nband,
+                         accuracy=accuracy, spin_mode=spin_mode,
+                         smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)
 
     return multi[0]
 
 
-def ebands_input(structure, pseudos,
+def ebands_input(structure: Structure, pseudos,
                  kppa=None, nscf_nband=None, ndivsm=15,
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
-                 smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, dos_kppa=None):
+                 smearing="fermi_dirac:0.1 eV", charge=0.0,
+                 scf_algorithm=None, dos_kppa=None) -> MultiDataset:
     """
     Returns a |MultiDataset| object for band structure calculations.
 
@@ -290,7 +296,8 @@ def ebands_input(structure, pseudos,
 def ion_ioncell_relax_input(structure, pseudos,
                             kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, shift_mode='Monkhorst-pack'):
+                            smearing="fermi_dirac:0.1 eV", charge=0.0,
+                            scf_algorithm=None, shift_mode='Monkhorst-pack') -> MultiDataset:
     """
     Returns a |MultiDataset| for a structural relaxation. The first dataset optmizes the
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
@@ -344,8 +351,9 @@ def ion_ioncell_relax_input(structure, pseudos,
 
 def ion_ioncell_relax_and_ebands_input(structure, pseudos,
                                        kppa=None, nband=None,
-                                       ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+                                       ecut=None, pawecutdg=None, accuracy="normal",
+                                       spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
+                                       charge=0.0, scf_algorithm=None) -> MultiDataset:
     """
     Returns a |MultiDataset| for a structural relaxation followed by a band structure run.
     The first dataset optimizes the atomic positions at fixed unit cell.
@@ -390,7 +398,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
                              ecut=None, pawecutdg=None, shifts=(0.0, 0.0, 0.0),
                              accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
                              ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
-                             sigma_nband=None, gw_qprange=1):
+                             sigma_nband=None, gw_qprange=1) -> MultiDataset:
     """
     Returns a |MultiDataset| object that performs G0W0 calculations with the plasmon pole approximation.
 
@@ -478,7 +486,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
 def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, ecut,
                             accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
                             response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2,
-                            gw_qprange=1, gamma=True, nksmall=None, extra_abivars=None):
+                            gw_qprange=1, gamma=True, nksmall=None, extra_abivars=None) -> MultiDataset:
     """
     Returns a |MultiDataset| object to generate a G0W0 work for the given the material.
     See also :cite:`Setten2017`.
@@ -669,12 +677,12 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     return scf_inputs, nscf_inputs, scr_inputs, sigma_inputs
 
 
-def bse_with_mdf_inputs(structure, pseudos,
+def bse_with_mdf_inputs(structure: Structure, pseudos,
                         scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
                         ecuteps, bs_loband, bs_nband, mbpt_sciss, mdf_epsinf,
                         ecut=None, pawecutdg=None,
                         exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
-                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None) -> MultiDataset:
     """
     Returns a |MultiDataset| object that performs a GS + NSCF + Bethe-Salpeter calculation.
     The self-energy corrections are approximated with the scissors operator.
@@ -957,7 +965,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
 
 
 def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False,
-                                      manager=None):
+                                      manager=None) -> MultiDataset:
     """
     Returns a |MultiDataset| for performing elastic and piezoelectric constants calculations.
     GS input + the input files for the elastic and piezoelectric constants calculation.
@@ -1045,7 +1053,7 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
 def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None, scf_nband=None,
                              accuracy="normal", spin_mode="polarized",
                              smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                             ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
+                             ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False) -> MultiDataset:
 
     """
     Returns a |MultiDataset| for performing elastic and piezoelectric constants calculations.
@@ -1090,7 +1098,7 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
 
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
               spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-              shift_mode="Monkhorst-Pack"):
+              shift_mode="Monkhorst-Pack") -> AbinitInput:
     """
     Returns an |AbinitInput| object for standard GS calculations.
     """
@@ -1123,7 +1131,7 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
     return abinit_input
 
 
-def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
+def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal") -> AbinitInput:
     """
     Return an |AbinitInput| object to compute a band structure from a GS SCF input.
 
@@ -1534,7 +1542,7 @@ def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqp
     return multi
 
 
-def minimal_scf_input(structure, pseudos):
+def minimal_scf_input(structure: Structure, pseudos) -> AbinitInput:
     """
     Provides an input for a calculation with the minimum possible requirements.
     Can be used to execute abinit with minimal requirements when needing files
@@ -1547,6 +1555,8 @@ def minimal_scf_input(structure, pseudos):
     Args:
         structure: |Structure| object.
         pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
+
+    Returns: |AbinitInput|
     """
 
     inp = scf_input(structure, pseudos, smearing=None, spin_mode="unpolarized")

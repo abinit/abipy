@@ -1,5 +1,7 @@
 # coding: utf-8
 """Classes to analyse electronic structures."""
+from __future__ import annotations
+
 import os
 import copy
 import itertools
@@ -13,6 +15,7 @@ import pymatgen.core.units as units
 
 from collections import OrderedDict, namedtuple
 from collections.abc import Iterable
+from typing import List, Any
 from monty.string import is_string, list_strings, marquee
 from monty.termcolor import cprint
 from monty.json import MontyEncoder
@@ -332,7 +335,7 @@ class ElectronBands(Has_Structure):
     # because the CBM obtained with the NSCF band structure run will be likely above the Ef computed previously.
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> ElectronBands:
         """
         Initialize an instance of |ElectronBands| from the netCDF file ``filepath``.
         """
@@ -346,7 +349,7 @@ class ElectronBands(Has_Structure):
         return new
 
     @classmethod
-    def from_binary_string(cls, bstring):
+    def from_binary_string(cls, bstring) -> ElectronBands:
         """
         Build object from a binary string with the netcdf data.
         Useful for implementing GUIs in which widgets returns binary data.
@@ -358,7 +361,7 @@ class ElectronBands(Has_Structure):
             return cls.from_file(tmp_path)
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> ElectronBands:
         """Reconstruct object from the dictionary in MSONable format produced by as_dict."""
         d = d.copy()
         kd = d["kpoints"].copy()
@@ -383,11 +386,10 @@ class ElectronBands(Has_Structure):
                    )
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         """Return dictionary with JSON serialization."""
-        #print("in ebands.as_dict")
         linewidths = None if not self.has_linewidths else self.linewidths.tolist()
-        d = dict(
+        return dict(
             structure=self.structure.as_dict(),
             kpoints=self.kpoints.as_dict(),
             eigens=self.eigens.tolist(),
@@ -400,11 +402,9 @@ class ElectronBands(Has_Structure):
             smearing=self.smearing.as_dict(),
             linewidths=linewidths,
         )
-        #for k, v in d.items(): print(k, type(v))
-        return d
 
     @classmethod
-    def as_ebands(cls, obj):
+    def as_ebands(cls, obj: Any) -> ElectronBands:
         """
         Return an instance of |ElectronBands| from a generic object `obj`.
         Supports:
@@ -448,7 +448,8 @@ class ElectronBands(Has_Structure):
 
     @classmethod
     def from_mpid(cls, material_id, api_key=None, endpoint=None,
-                  nelect=None, has_timerev=True, nspinor=1, nspden=None, line_mode=True):
+                  nelect=None, has_timerev=True,
+                  nspinor=1, nspden=None, line_mode=True) -> ElectronBands:
         """
         Read bandstructure data corresponding to a materials project ``material_id``.
         and return Abipy ElectronBands object. Return None if bands are not available.
@@ -492,7 +493,7 @@ class ElectronBands(Has_Structure):
         return cls.from_pymatgen(pmgb, nelect, weights=None, has_timerev=has_timerev,
                                  ksampling=None, smearing=None, nspinor=nspinor, nspden=nspden)
 
-    def to_json(self):
+    def to_json(self) -> str:
         """
         Returns a JSON string representation of the MSONable object.
         """
@@ -544,7 +545,7 @@ class ElectronBands(Has_Structure):
         self.fermie = float(fermie)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
@@ -813,7 +814,9 @@ class ElectronBands(Has_Structure):
 
     @classmethod
     def empty_with_ibz(cls, ngkpt, structure, fermie, nelect, nsppol, nspinor, nspden, mband,
-                       shiftk=(0, 0, 0), kptopt=1, smearing=None, linewidths=None):
+                       shiftk=(0, 0, 0), kptopt=1,
+                       smearing=None, linewidths=None) -> ElectronBands:
+
         from abipy.abio.factories import gs_input
         from abipy.data.hgh_pseudos import HGH_TABLE
         gsinp = gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
@@ -830,7 +833,7 @@ class ElectronBands(Has_Structure):
                    nelect, nspinor, nspden,
                    smearing=smearing, linewidths=linewidths)
 
-    def get_dict4pandas(self, with_geo=True, with_spglib=True):
+    def get_dict4pandas(self, with_geo=True, with_spglib=True) -> dict:
         """
         Return a :class:`OrderedDict` with the most important parameters:
 
@@ -888,17 +891,17 @@ class ElectronBands(Has_Structure):
         return odict
 
     @lazy_property
-    def has_bzmesh(self):
+    def has_bzmesh(self) -> bool:
         """True if the k-point sampling is homogeneous."""
         return isinstance(self.kpoints, IrredZone)
 
     @lazy_property
-    def has_bzpath(self):
+    def has_bzpath(self) -> bool:
         """True if the bands are computed on a k-path."""
         return isinstance(self.kpoints, Kpath)
 
     @lazy_property
-    def kptopt(self):
+    def kptopt(self) -> int:
         """The value of the kptopt input variable."""
         try:
             return self.kpoints.ksampling.kptopt
@@ -907,7 +910,7 @@ class ElectronBands(Has_Structure):
             return 1
 
     @lazy_property
-    def has_timrev(self):
+    def has_timrev(self) -> bool:
         """True if time-reversal symmetry is used in the BZ sampling."""
         return has_timrev_from_kptopt(self.kptopt)
 
@@ -1077,7 +1080,7 @@ class ElectronBands(Has_Structure):
         return dless_states
 
     #@memoized_method(maxsize=5, typed=False)
-    def get_dataframe(self, e0="fermie", brange=None, ene_range=None):
+    def get_dataframe(self, e0="fermie", brange=None, ene_range=None) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the following columns:
 
@@ -1230,7 +1233,7 @@ class ElectronBands(Has_Structure):
 
     @classmethod
     def from_pymatgen(cls, pmg_bands, nelect, weights=None, has_timerev=True,
-                      ksampling=None, smearing=None, nspinor=1, nspden=None):
+                      ksampling=None, smearing=None, nspinor=1, nspden=None) -> ElectronBands:
         """
         Convert a pymatgen bandstructure object to an Abipy |ElectronBands| object.
 
@@ -1552,7 +1555,7 @@ class ElectronBands(Has_Structure):
 
         return dirgaps
 
-    def get_gaps_string(self, with_latex=True, unicode=False):
+    def get_gaps_string(self, with_latex=True, unicode=False) -> str:
         """
         Return string with info about fundamental and direct gap (if not metallic scheme)
 
@@ -1687,7 +1690,7 @@ class ElectronBands(Has_Structure):
 
         return "\n".join(lines)
 
-    def new_with_irred_kpoints(self, prune_step=None):
+    def new_with_irred_kpoints(self, prune_step=None) -> ElectronBands:
         """
         Return a new |ElectronBands| object in which only the irreducible k-points are kept.
         This method is mainly used to prepare the band structure interpolation as the interpolator
@@ -1765,7 +1768,7 @@ class ElectronBands(Has_Structure):
                 width=ipw.FloatSlider(value=0.2, min=1e-6, max=1, step=0.05, description="Gaussian broadening (eV)"),
             )
 
-    def get_edos(self, method="gaussian", step=0.1, width=0.2):
+    def get_edos(self, method="gaussian", step=0.1, width=0.2) -> ElectronDos:
         """
         Compute the electronic DOS on a linear mesh.
 
@@ -1807,7 +1810,7 @@ class ElectronBands(Has_Structure):
         #print("ebands.fermie", self.fermie, "edos.fermie", edos.fermie)
         return edos
 
-    def compare_gauss_edos(self, widths, step=0.1):
+    def compare_gauss_edos(self, widths, step=0.1) -> ElectronDosPlotter:
         """
         Compute the electronic DOS with the Gaussian method for different values
         of the broadening. Return plotter object.
@@ -1889,7 +1892,8 @@ class ElectronBands(Has_Structure):
                         ax.add_patch(p)
         return fig
 
-    def get_ejdos(self, spin, valence, conduction, method="gaussian", step=0.1, width=0.2, mesh=None):
+    def get_ejdos(self, spin, valence, conduction,
+                  method="gaussian", step=0.1, width=0.2, mesh=None) -> Function1D:
         r"""
         Compute the join density of states at q == 0.
 
@@ -2403,7 +2407,7 @@ class ElectronBands(Has_Structure):
 
         return fig
 
-    def decorate_ax(self, ax, **kwargs):
+    def decorate_ax(self, ax, **kwargs) -> None:
         """
         Add k-labels, title and unit name to axis ax.
 
@@ -2434,7 +2438,7 @@ class ElectronBands(Has_Structure):
             #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
 
-    def decorate_plotly(self, fig, **kwargs):
+    def decorate_plotly(self, fig, **kwargs) -> None:
         """
         Add q-labels and unit name to figure ``fig``.
         Use units="" to add k-labels without unit name.
@@ -2788,7 +2792,7 @@ class ElectronBands(Has_Structure):
 
         return fig
 
-    def to_xmgrace(self, filepath):
+    def to_xmgrace(self, filepath: str) -> None:
         """
         Write xmgrace_ file with band structure energies and labels for high-symmetry k-points.
 
@@ -3241,7 +3245,7 @@ class ElectronBands(Has_Structure):
             return rhoup - rhoudown
 
 
-def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True):
+def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True) -> pd.DataFrame:
     """
     Build a pandas dataframe with the most important results available in a list of band structures.
 
@@ -3319,7 +3323,7 @@ class ElectronBandsPlotter(NotebookWriter):
     def __len__(self):
         return len(self.ebands_dict)
 
-    def add_plotter(self, other):
+    def add_plotter(self, other) -> ElectronBandsPlotter:
         """Merge two plotters, return new plotter."""
         if not isinstance(other, self.__class__):
             raise TypeError("Don't know to add %s to %s" % (other.__class__, self.__class__))
@@ -3351,12 +3355,12 @@ class ElectronBandsPlotter(NotebookWriter):
                                      index=list(self.ebands_dict.keys()), with_spglib=with_spglib)
 
     @property
-    def ebands_list(self):
+    def ebands_list(self) -> List[ElectronBands]:
         """"List of |ElectronBands| objects."""
         return list(self.ebands_dict.values())
 
     @property
-    def edoses_list(self):
+    def edoses_list(self) -> List[ElectronDos]:
         """"List of |ElectronDos| objects."""
         return list(self.edoses_dict.values())
 
@@ -3370,7 +3374,7 @@ class ElectronBandsPlotter(NotebookWriter):
         for o in itertools.product(self._LINE_WIDTHS,  self._LINE_STYLES_PLOTLY, self._LINE_COLORS):
             yield {"line_width": o[0], "line_dash": o[1], "line_color": o[2]}
 
-    def add_ebands(self, label, bands, edos=None, edos_kwargs=None):
+    def add_ebands(self, label, bands, edos=None, edos_kwargs=None) -> None:
         """
         Adds a band structure and optionally an edos to the plotter.
 
@@ -3780,7 +3784,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 # Define the zero of energy and plot
                 mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
                 ebands.plotly_with_edos(edos, fig=fig, band_rcd=band_rcd, dos_rcd=dos_rcd, e0=mye0, with_gaps=with_gaps,
-                                      max_phfreq=max_phfreq, show=False)
+                                        max_phfreq=max_phfreq, show=False)
 
                 # This to handle with_gaps = True
                 if not with_gaps:
@@ -3920,7 +3924,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 else:
                     raise ValueError("Wrong ix: %s" % ix)
 
-                # Defin ylims and energy shift.
+                # Define ylims and energy shift.
                 this_e0 = ebands.get_e0(e0)
                 ylims = (ymin - this_e0, ymax - this_e0)
                 ebands.plot(ax=ax, e0=e0, color=cmap(float(iband) / nb), ylims=ylims,
@@ -4074,7 +4078,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ElectronReader
     """
-    def read_ebands(self):
+    def read_ebands(self) -> ElectronBands:
         """
         Returns an instance of |ElectronBands|. Main entry point for client code
         """
@@ -4104,20 +4108,20 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         """|numpy-array| with the number of bands indexed by [s, k]."""
         return self.read_value("number_of_states")
 
-    def read_nspinor(self):
+    def read_nspinor(self) -> int:
         """Number of spinors."""
         return self.read_dimvalue("number_of_spinor_components")
 
-    def read_nsppol(self):
+    def read_nsppol(self) -> int:
         """Number of independent spins (collinear case)."""
         return self.read_dimvalue("number_of_spins")
 
-    def read_nspden(self):
+    def read_nspden(self) -> int:
         """Number of spin-density components"""
         # FIXME: default 1 is needed for SIGRES files (abinit8)
         return self.read_dimvalue("number_of_components", default=1)
 
-    def read_tsmear(self):
+    def read_tsmear(self) -> float:
         return self.read_value("smearing_width")
 
     def read_eigenvalues(self):
@@ -4232,7 +4236,7 @@ class ElectronDos(object):
         return "\n".join(lines)
 
     @classmethod
-    def as_edos(cls, obj, edos_kwargs):
+    def as_edos(cls, obj: Any, edos_kwargs: dict) -> ElectronDos:
         """
         Return an instance of |ElectronDos| from a generic object ``obj``.
         Supports:
@@ -4571,7 +4575,7 @@ class ElectronDos(object):
         """
         if fig is None:
             fig, _ = get_figs_plotly(nrows=2, ncols=1, sharex=True, sharey=False,
-                                    vertical_spacing=0.05, row_heights=height_ratios)
+                                     vertical_spacing=0.05, row_heights=height_ratios)
             plotly_set_lims(fig, xlims, "x")
             fig.layout['yaxis1'].title = {'text': "TOT IDOS"}
             fig.layout['yaxis2'].title = {'text': "TOT DOS"}
@@ -4684,11 +4688,11 @@ class ElectronDosPlotter(NotebookWriter):
         return len(self.edoses_dict)
 
     @property
-    def edos_list(self):
+    def edos_list(self) -> List[ElectronDos]:
         """List of DOSes"""
         return list(self.edoses_dict.values())
 
-    def add_edos(self, label, edos, edos_kwargs=None):
+    def add_edos(self, label, edos, edos_kwargs=None) -> None:
         """
         Adds a DOS for plotting.
 
@@ -4775,7 +4779,7 @@ class ElectronDosPlotter(NotebookWriter):
 
     @add_plotly_fig_kwargs
     def combiplotly(self, what_list="dos", spin_mode="automatic", e0="fermie",
-                  ax_list=None,  xlims=None, fontsize=12, **kwargs):
+                    ax_list=None,  xlims=None, fontsize=12, **kwargs):
         """
         Plot the the DOSes on the same figure with plotly.
         Use ``gridplotly`` to plot DOSes on different figures with plotly.
@@ -4939,7 +4943,7 @@ class ElectronDosPlotter(NotebookWriter):
 
     @add_plotly_fig_kwargs
     def gridplotly(self, what="dos", spin_mode="automatic", e0="fermie",
-                 sharex=True, sharey=True, xlims=None, fontsize=12, **kwargs):
+                  sharex=True, sharey=True, xlims=None, fontsize=12, **kwargs):
         """
         Plot multiple DOSes on a grid with plotly.
 
@@ -5545,7 +5549,8 @@ class RobotWithEbands(object):
     #    """Wraps gridplotly method of |ElectronDosPlotter|. kwargs passed to gridplotly."""
     #    return self.get_edos_plotter().gridplotly(**kwargs)
 
-    def get_ebands_plotter(self, kselect=None, filter_abifile=None, cls=None):
+    def get_ebands_plotter(self, kselect=None,
+                           filter_abifile=None, cls=None) -> ElectronBandsPlotter:
         """
         Build and return an instance of |ElectronBandsPlotter| or a subclass if ``cls`` is not None.
 
@@ -5568,7 +5573,7 @@ class RobotWithEbands(object):
 
         return plotter
 
-    def get_edos_plotter(self, cls=None, filter_abifile=None, **kwargs):
+    def get_edos_plotter(self, cls=None, filter_abifile=None, **kwargs) -> ElectronDosPlotter:
         """
         Build and return an instance of |ElectronDosPlotter| or a subclass is cls is not None.
 

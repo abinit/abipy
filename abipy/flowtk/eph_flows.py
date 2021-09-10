@@ -2,6 +2,7 @@
 """
 Flows for electron-phonon calculations (high-level interface)
 """
+from __future__ import annotations
 import numpy as np
 
 from abipy.core.kpoints import kpath_from_bounds_and_ndivsm
@@ -26,7 +27,7 @@ class EphPotFlow(Flow):
     def from_scf_input(cls, workdir, scf_input, ngqpt, qbounds,
                        ndivsm=5, with_becs=True, with_quad=True, dvdb_add_lr_list=(0, 1, 2),
                        ddb_filepath=None, dvdb_filepath=None,
-                       ddk_tolerance=None, prepgkk=0, manager=None):
+                       ddk_tolerance=None, prepgkk=0, manager=None) -> EphPotFlow:
         """
         Build the flow from an input file representing a GS calculation.
 
@@ -141,7 +142,7 @@ class GkqPathFlow(Flow):
     def from_scf_input(cls, workdir, scf_input, ngqpt, qbounds,
                        ndivsm=5, with_becs=True, with_quad=True, dvdb_add_lr_list=(0, 1, 2),
                        ddb_filepath=None, dvdb_filepath=None,
-                       ddk_tolerance=None, test_ft_interpolation=False, prepgkk=0, manager=None):
+                       ddk_tolerance=None, test_ft_interpolation=False, prepgkk=0, manager=None) -> GkqPathFlow:
         """
         Build the flow from an input file representing a GS calculation.
 

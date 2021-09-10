@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 import functools
 import numpy as np
 import itertools
@@ -6,9 +8,11 @@ import pickle
 import os
 import json
 import warnings
+import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
+from typing import Any, List
 from monty.string import is_string, list_strings, marquee
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
@@ -43,7 +47,7 @@ __all__ = [
 
 
 @functools.total_ordering
-class PhononMode(object):
+class PhononMode:
     """
     A phonon mode has a q-point, a frequency, a cartesian displacement and a |Structure|.
     """
@@ -55,12 +59,12 @@ class PhononMode(object):
         "structure"
     ]
 
-    def __init__(self, qpoint, freq, displ_cart, structure):
+    def __init__(self, qpoint, freq, displ_cart, structure: Structure) -> None:
         """
         Args:
             qpoint: qpoint in reduced coordinates.
             freq: Phonon frequency in eV.
-            displ: Displacement (Cartesian coordinates in Angstrom)
+            displ_cart: Displacement (Cartesian coordinates in Angstrom)
             structure: |Structure| object.
         """
         self.qpoint = Kpoint.as_kpoint(qpoint, structure.reciprocal_lattice)
@@ -79,7 +83,7 @@ class PhononMode(object):
     def __str__(self):
         return self.to_string(with_displ=False)
 
-    def to_string(self, with_displ=True, verbose=0):
+    def to_string(self, with_displ=True, verbose=0) -> str:
         """
         String representation
 
@@ -105,7 +109,7 @@ class PhononMode(object):
     #def build_supercell(self):
 
 
-class PhononBands(object):
+class PhononBands:
     """
     Container object storing the phonon band structure.
 
@@ -113,8 +117,9 @@ class PhononBands(object):
 
         Frequencies are in eV. Cartesian displacements are in Angstrom.
     """
+
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> PhononBands:
         """Create the object from a netcdf_ file."""
         with PHBST_Reader(filepath) as r:
             structure = r.read_structure()
@@ -159,7 +164,7 @@ class PhononBands(object):
                        )
 
     @classmethod
-    def as_phbands(cls, obj):
+    def as_phbands(cls, obj: Any) -> PhononBands:
         """
         Return an instance of |PhononBands| from a generic object ``obj``.
         Supports:
@@ -188,13 +193,13 @@ class PhononBands(object):
         raise TypeError("Don't know how to extract a PhononBands from type %s" % type(obj))
 
     @staticmethod
-    def phfactor_ev2units(units):
+    def phfactor_ev2units(units: str) -> float:
         """
         Return conversion factor eV --> units (case-insensitive)
         """
         return abu.phfactor_ev2units(units)
 
-    def read_non_anal_from_file(self, filepath):
+    def read_non_anal_from_file(self, filepath: str) -> None:
         """
         Reads the non analytical directions, frequencies and displacements from the anaddb.nc file
         specified and adds them to the object.
@@ -293,7 +298,7 @@ class PhononBands(object):
 
     # TODO: Replace num_qpoints with nqpt, deprecate num_qpoints
     @property
-    def nqpt(self):
+    def nqpt(self) -> int:
         """An alias for num_qpoints."""
         return self.num_qpoints
 
@@ -305,7 +310,7 @@ class PhononBands(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, title=None, with_structure=True, with_qpoints=False, verbose=0):
+    def to_string(self, title=None, with_structure=True, with_qpoints=False, verbose=0) -> str:
         """
         Human-readable string with useful information such as structure, q-points, ...
 
@@ -335,7 +340,7 @@ class PhononBands(object):
 
         return "\n".join(lines)
 
-    def __add__(self, other):
+    def __add__(self, other: PhononBands) -> PhononBandsPlotter:
         """self + other returns a |PhononBandsPlotter| object."""
         if not isinstance(other, (PhononBands, PhononBandsPlotter)):
             raise TypeError("Cannot add %s to %s" % (type(self), type(other)))
@@ -385,12 +390,12 @@ class PhononBands(object):
         return self.phdispl_cart.shape
 
     @property
-    def minfreq(self):
+    def minfreq(self) -> float:
         """Minimum phonon frequency."""
         return self.get_minfreq_mode()
 
     @property
-    def maxfreq(self):
+    def maxfreq(self) -> float:
         """Maximum phonon frequency in eV."""
         return self.get_maxfreq_mode()
 
@@ -426,7 +431,7 @@ class PhononBands(object):
         self._linewidths = linewidths
 
     @property
-    def has_linewidths(self):
+    def has_linewidths(self) -> bool:
         """True if bands with linewidths."""
         return getattr(self, "_linewidths", None) is not None
 
@@ -470,7 +475,7 @@ class PhononBands(object):
         else:
             return None
 
-    def to_xmgrace(self, filepath, units="meV"):
+    def to_xmgrace(self, filepath: str, units: str = "meV") -> str:
         """
         Write xmgrace_ file with phonon band structure energies and labels for high-symmetry q-points.
 
@@ -559,7 +564,7 @@ class PhononBands(object):
     #    has_timrev, fermie = True, 0.0
     #    return PhononBands3D(self.structure, self.qpoints, has_timrev, self.phfreqs, fermie)
 
-    def qindex(self, qpoint):
+    def qindex(self, qpoint) -> int:
         """Returns the index of the qpoint. Accepts integer or reduced coordinates."""
         if duck.is_intlike(qpoint):
             return int(qpoint)
@@ -626,7 +631,7 @@ class PhononBands(object):
     #    """
     #    qindex, qpoint = self.qindex_qpoint(qpoint)
 
-    def get_dict4pandas(self, with_spglib=True):
+    def get_dict4pandas(self, with_spglib=True) -> dict:
         """
         Return a :class:`OrderedDict` with the most important parameters:
 
@@ -650,7 +655,7 @@ class PhononBands(object):
 
         return odict
 
-    def get_phdos(self, method="gaussian", step=1.e-4, width=4.e-4):
+    def get_phdos(self, method: str = "gaussian", step: float = 1.e-4, width: float = 4.e-4) -> PhononDos:
         """
         Compute the phonon DOS on a linear mesh.
 
@@ -1001,7 +1006,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return workdir
 
-    def decorate_ax(self, ax, units='eV', **kwargs):
+    def decorate_ax(self, ax, units: str = 'eV', **kwargs) -> None:
         """
         Add q-labels, title and unit name to axis ax.
         Use units="" to add k-labels without unit name.
@@ -1034,7 +1039,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
 
-    def decorate_plotly(self, fig, units='eV', **kwargs):
+    def decorate_plotly(self, fig, units: str = 'eV', **kwargs) -> None:
         """
         Add q-labels and unit name to figure ``fig``.
         Use units="" to add k-labels without unit name.
@@ -1710,8 +1715,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     # TODO: fatbands along x, y, z
     @add_plotly_fig_kwargs
     def plotly_fatbands(self, use_eigvec=True, units="eV", colormap="G10", phdos_file=None,
-                       alpha=0.6, max_stripe_width_mev=5.0, width_ratios=(2, 1),
-                       qlabels=None, ylims=None, fontsize=16, **kwargs):
+                        alpha=0.6, max_stripe_width_mev=5.0, width_ratios=(2, 1),
+                        qlabels=None, ylims=None, fontsize=16, **kwargs):
         r"""
         Plot phonon fatbands and, optionally, atom-projected phonon DOSes with plotly.
         The width of the band is given by ||v_{type}||
@@ -1761,8 +1766,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         import plotly.express as px
         color_l = getattr(px.colors.qualitative, colormap)
         if len(color_l) < len(self.structure.symbol_set):
-            raise ValueError("Colormap %s is not enough, please provide one has more than %n colors"
-                             % colormap, len(self.structure.symbol_set))
+            raise ValueError(f"Colormap {colormap} is not enough, please provide more than %d colors"
+                             % len(self.structure.symbol_set))
         qq = list(range(self.num_qpoints))
 
         # phonon_displacements are in cartesian coordinates and stored in an array with shape
@@ -1801,7 +1806,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             for nu in self.branches:
                 yy_qq = self.phfreqs[:, nu] * factor
 
-                # Exctract the sub-vector associated to this atom type (eigvec or diplacement).
+                # Ectract the sub-vector associated to this atom type (eigvec or displacement).
                 if use_eigvec:
                     v_type = self.dyn_mat_eigenvect[:, nu, dir_indices]
                 else:
@@ -2180,7 +2185,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return fig
 
-    def get_dataframe(self, mode_range=None):
+    def get_dataframe(self, mode_range=None) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the following columns:
 
@@ -2200,7 +2205,6 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         Args:
             mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]`.
         """
-        import pandas as pd
         rows = []
         for iq, qpoint in enumerate(self.qpoints):
             for nu in self.branches:
@@ -2286,7 +2290,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return fig
 
-    def to_pymatgen(self, qlabels=None):
+    def to_pymatgen(self, qlabels=None) -> PhononBandStructureSymmLine:
         r"""
         Creates a pymatgen :class:`PhononBandStructureSymmLine` object.
 
@@ -2334,16 +2338,14 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                                            labels_dict=labels_dict, structure=self.structure)
 
     @classmethod
-    def from_pmg_bs(cls, pmg_bs, structure=None):
+    def from_pmg_bs(cls, pmg_bs: PhononBandStructureSymmLine, structure=None) -> PhononBands:
         """
         Creates an instance of the object from a :class:`PhononBandStructureSymmLine` object.
 
         Args:
             pmg_bs: the instance of PhononBandStructureSymmLine.
-            structure: a |Structure| object. Should be present if the structure attribute is
-                not set in pmg_bs.
+            structure: a |Structure| object. Should be present if the structure attribute is not set in pmg_bs.
         """
-
         structure = structure or pmg_bs.structure
         if not structure:
             raise ValueError("The structure is needed to create the abipy object.")
@@ -2902,7 +2904,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
     .. inheritance-diagram:: PhbstFile
     """
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         """
         Args:
             path: path to the file
@@ -2916,7 +2918,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """
         String representation
 
@@ -2934,7 +2936,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         return "\n".join(lines)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object"""
         return self.phbands.structure
 
@@ -2944,16 +2946,16 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         return self.phbands.qpoints
 
     @property
-    def phbands(self):
+    def phbands(self) -> PhononBands:
         """|PhononBands| object"""
         return self._phbands
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_phbands_params()
         return od
@@ -2994,7 +2996,6 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
             d.update(self.structure.get_dict4pandas(with_spglib=True))
 
         # Build the pandas Frame and add the q-point as attribute.
-        import pandas as pd
         df = pd.DataFrame(d, columns=list(d.keys()))
         df.qpoint = qpoint
 
@@ -3076,7 +3077,7 @@ class PhononDos(Function1D):
     """
 
     @classmethod
-    def as_phdos(cls, obj, phdos_kwargs=None):
+    def as_phdos(cls, obj: Any, phdos_kwargs=None) -> PhononDos:
         """
         Return an instance of |PhononDos| from a generic obj. Supports::
 
@@ -3121,7 +3122,7 @@ class PhononDos(Function1D):
         raise TypeError("Don't know how to create PhononDos object from type: `%s`" % type(obj))
 
     @lazy_property
-    def iw0(self):
+    def iw0(self) -> int:
         """
         Index of the first point in the mesh whose value is >= 0
         """
@@ -3260,7 +3261,7 @@ class PhononDos(Function1D):
 
         return fig
 
-    def get_internal_energy(self, tstart=5, tstop=300, num=50):
+    def get_internal_energy(self, tstart=5, tstop=300, num=50) -> Function1D:
         """
         Returns the internal energy, in eV, in the harmonic approximation for different temperatures
         Zero point energy is included.
@@ -3289,7 +3290,7 @@ class PhononDos(Function1D):
 
         return Function1D(tmesh, vals)
 
-    def get_entropy(self, tstart=5, tstop=300, num=50):
+    def get_entropy(self, tstart=5, tstop=300, num=50) -> Function1D:
         """
         Returns the entropy, in eV/K, in the harmonic approximation for different temperatures
 
@@ -3316,7 +3317,7 @@ class PhononDos(Function1D):
 
         return Function1D(tmesh, abu.kb_eVK * vals)
 
-    def get_free_energy(self, tstart=5, tstop=300, num=50):
+    def get_free_energy(self, tstart=5, tstop=300, num=50) -> Function1D:
         """
         Returns the free energy, in eV, in the harmonic approximation for different temperatures
         Zero point energy is included.
@@ -3333,7 +3334,7 @@ class PhononDos(Function1D):
 
         return Function1D(uz.mesh, uz.values - s.mesh * s.values)
 
-    def get_cv(self, tstart=5, tstop=300, num=50):
+    def get_cv(self, tstart=5, tstop=300, num=50) -> Function1D:
         """
         Returns the constant-volume specific heat, in eV/K, in the harmonic approximation
         for different temperatures
@@ -3464,7 +3465,7 @@ class PhononDos(Function1D):
 
         return fig
 
-    def to_pymatgen(self):
+    def to_pymatgen(self) -> PmgPhononDos:
         """
         Creates a pymatgen :class:`PmgPhononDos` object
         """
@@ -3473,23 +3474,23 @@ class PhononDos(Function1D):
         return PmgPhononDos(self.mesh * factor, self.values / factor)
 
     @property
-    def debye_temp(self):
+    def debye_temp(self) -> float:
         """
         Debye temperature in K.
         """
         integrals = (self * self.mesh ** 2).spline_integral() / self.spline_integral()
-        t_d = np.sqrt(5/3*integrals)/abu.kb_eVK
+        t_d = np.sqrt(5 / 3 * integrals) / abu.kb_eVK
 
         return t_d
 
-    def get_acoustic_debye_temp(self, nsites):
+    def get_acoustic_debye_temp(self, nsites) -> float:
         """
         Acoustic Debye temperature in K, i.e. the Debye temperature divided by nsites**(1/3).
 
         Args:
             nsites: the number of sites in the cell.
         """
-        return self.debye_temp / nsites**(1/3)
+        return self.debye_temp / nsites ** (1 / 3)
 
 
 class PhdosReader(ETSF_Reader):
@@ -3520,7 +3521,7 @@ class PhdosReader(ETSF_Reader):
         """
         return self.read_value("pjdos")
 
-    def read_phdos(self):
+    def read_phdos(self) -> PhononDos:
         """Return |PhononDos| object with the total phonon DOS"""
         return PhononDos(self.wmesh, self.read_value("phdos"))
 
@@ -3588,19 +3589,19 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     .. inheritance-diagram:: PhdosFile
     """
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         # Open the file, read data and create objects.
         super().__init__(filepath)
 
         self.reader = r = PhdosReader(filepath)
         self.wmesh = r.wmesh
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """
         :class:`OrderedDict` with the convergence parameters
         Used to construct |pandas-DataFrames|.
@@ -3615,7 +3616,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Invoked by str"""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """
         Human-readable string with useful information such as structure...
 
@@ -3633,12 +3634,12 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     @lazy_property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.reader.structure
 
     @lazy_property
-    def phdos(self):
+    def phdos(self) -> PhononDos:
         """|PhononDos| object."""
         return self.reader.read_phdos()
 
@@ -3768,11 +3769,11 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             else:
                 if not exchange_xy:
                     fig.add_scatter(x=x, y=cumulative + y, mode='lines', name=symbol,
-                                             line=dict(width=lw), fill='tonextx')
+                                    line=dict(width=lw), fill='tonextx')
                     cumulative += y
                 else:
                     fig.add_scatter(x=cumulative + x, y=y, mode='lines', name=symbol,
-                                             line=dict(width=lw), fill='tonexty')
+                                    line=dict(width=lw), fill='tonexty')
                     cumulative += x
 
         # Total PHDOS
@@ -3980,7 +3981,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return self._write_nb_nbpath(nb, nbpath)
 
-    def to_pymatgen(self):
+    def to_pymatgen(self) -> PmgCompletePhononDos:
         """
         Creates a pymatgen :class:`PmgCompletePhononDos` object.
         """
@@ -4075,7 +4076,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
     return fig
 
 
-def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
+def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True) -> pd.DataFrame:
     """
     Build pandas dataframe with the most important results available in a list of band structures.
 
@@ -4092,7 +4093,6 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
     # Use OrderedDict to have columns ordered nicely.
     odict_list = [(phbands.get_dict4pandas(with_spglib=with_spglib)) for phbands in phbands_list]
 
-    import pandas as pd
     return pd.DataFrame(odict_list, index=index,
                         columns=list(odict_list[0].keys()) if odict_list else None)
 
@@ -4155,7 +4155,7 @@ class PhononBandsPlotter(NotebookWriter):
             phdos = self._phdoses_dict.get(label, None)
             self.add_phbands(label, phbands, phdos=phdos)
 
-    def add_plotter(self, other):
+    def add_plotter(self, other: PhononBandsPlotter) -> PhononBandsPlotter:
         """Merge two plotters, return new plotter."""
         if not isinstance(other, self.__class__):
             raise TypeError("Don't know to to add %s to %s" % (other.__class__, self.__class__))
@@ -4165,7 +4165,7 @@ class PhononBandsPlotter(NotebookWriter):
 
         return self.__class__(key_phbands=key_phbands, key_phdos=key_phdos)
 
-    def to_string(self, func=str, verbose=0):
+    def to_string(self, func=str, verbose: int = 0) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -4178,7 +4178,7 @@ class PhononBandsPlotter(NotebookWriter):
 
         return "\n".join(lines)
 
-    def has_same_formula(self):
+    def has_same_formula(self) -> bool:
         """
         True of plotter contains structures with same chemical formula.
         """
@@ -4186,7 +4186,7 @@ class PhononBandsPlotter(NotebookWriter):
         if structures and any(s.formula != structures[0].formula for s in structures): return False
         return True
 
-    def get_phbands_frame(self, with_spglib=True):
+    def get_phbands_frame(self, with_spglib=True) -> pd.DataFrame:
         """
         Build a |pandas-DataFrame| with the most important results available in the band structures.
         """
@@ -4194,7 +4194,7 @@ class PhononBandsPlotter(NotebookWriter):
                                       index=list(self.phbands_dict.keys()), with_spglib=with_spglib)
 
     @property
-    def phbands_dict(self):
+    def phbands_dict(self) -> dict:
         """Dictionary with the mapping label --> phbands."""
         return self._bands_dict
 
@@ -4202,17 +4202,17 @@ class PhononBandsPlotter(NotebookWriter):
     bands_dict = phbands_dict
 
     @property
-    def phdoses_dict(self):
+    def phdoses_dict(self) -> dict:
         """Dictionary with the mapping label --> phdos."""
         return self._phdoses_dict
 
     @property
-    def phbands_list(self):
+    def phbands_list(self) -> List[PhononBands]:
         """"List of |PhononBands| objects."""
         return list(self._bands_dict.values())
 
     @property
-    def phdoses_list(self):
+    def phdoses_list(self) -> List[PhononDos]:
         """"List of |PhononDos|."""
         return list(self._phdoses_dict.values())
 
@@ -4226,7 +4226,7 @@ class PhononBandsPlotter(NotebookWriter):
         for o in itertools.product(self._LINE_WIDTHS,  self._LINE_STYLES_PLOTLY, self._LINE_COLORS):
             yield {"line_width": o[0], "line_dash": o[1], "line_color": o[2]}
 
-    def add_phbands(self, label, bands, phdos=None, dos=None, phdos_kwargs=None):
+    def add_phbands(self, label, bands, phdos=None, dos=None, phdos_kwargs=None) -> None:
         """
         Adds a band structure for plotting.
 
@@ -4357,7 +4357,7 @@ class PhononBandsPlotter(NotebookWriter):
         if self.phdoses_dict:
             nrows, ncols = (1, 2)
             fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=[], sharex=False, sharey=True,
-                                      horizontal_spacing=0.02, column_widths=width_ratios)
+                                     horizontal_spacing=0.02, column_widths=width_ratios)
         else:
             nrows, ncols = (1, 1)
             fig, _ = get_fig_plotly()
@@ -4684,7 +4684,6 @@ class PhononBandsPlotter(NotebookWriter):
             df_list.append(frame)
 
         # Merge df_list ignoring index (not meaningful here)
-        import pandas as pd
         data = pd.concat(df_list, ignore_index=True)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -4866,11 +4865,11 @@ class PhononDosPlotter(NotebookWriter):
             self.add_phdos(label, phdos, phdos_kwargs=phdos_kwargs)
 
     @property
-    def phdos_list(self):
+    def phdos_list(self) -> List[PhononDos]:
         """List of phonon DOSes"""
         return list(self._phdoses_dict.values())
 
-    def add_phdos(self, label, phdos, phdos_kwargs=None):
+    def add_phdos(self, label, phdos, phdos_kwargs=None) -> None:
         """
         Adds a DOS for plotting.
 
@@ -5255,7 +5254,7 @@ class RobotWithPhbands(object):
     #    """Wraps gridplot method of |ElectronDosPlotter|. kwargs passed to gridplot."""
     #    return self.get_phdos_plotter().gridplot(**kwargs)
 
-    def get_phbands_plotter(self, filter_abifile=None, cls=None):
+    def get_phbands_plotter(self, filter_abifile=None, cls=None) -> PhononBandsPlotter:
         """
         Build and return an instance of |PhononBandsPlotter| or a subclass is cls is not None.
 
@@ -5272,7 +5271,7 @@ class RobotWithPhbands(object):
 
         return plotter
 
-    def get_phbands_dataframe(self, with_spglib=True):
+    def get_phbands_dataframe(self, with_spglib=True) -> pd.DataFrame:
         """
         Build a |pandas-dataframe| with the most important results available in the band structures.
         """

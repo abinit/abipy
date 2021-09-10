@@ -136,6 +136,36 @@ def has_phonopy(version=None, op=">="):
     return cmp_version(phonopy.__version__, version, op=op)
 
 
+#TESTDB_NAME = "abipy_unittest"
+#
+#def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None, password=None):
+#    try:
+#        from pymongo import MongoClient
+#        connection = MongoClient(host, port, j=True)
+#        db = connection[name]
+#        if username:
+#            db.authenticate(username, password)
+#
+#        return True
+#    except Exception:
+#        return False
+#
+#@classmethod
+#def setup_mongoengine(cls):
+#    try:
+#        cls._connection = connect(db=TESTDB_NAME)
+#        cls._connection.drop_database(TESTDB_NAME)
+#        cls.db = get_db()
+#    except Exception:
+#        cls.db = None
+#        cls._connection = None
+#
+#@classmethod
+#def teardown_mongoengine(cls):
+#    if cls._connection:
+#        cls._connection.drop_database(TESTDB_NAME)
+
+
 def get_mock_module():
     """Return mock module for testing. Raises ImportError if not found."""
     try:

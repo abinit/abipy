@@ -1,12 +1,17 @@
 """"Panels to interact with AbiPy flows."""
+from __future__ import annotations
+
 import textwrap
 import traceback
+
+import pandas as pd
 import param
 import bokeh.models.widgets as bkw
 import panel as pn
 import panel.widgets as pnw
 
 from abipy.panels.core import AbipyParameterized, Loading, ButtonContext, depends_on_btn_click, dfc, ply
+from abipy.flowtk.nodes import Node
 #from abipy import flowtk
 
 
@@ -38,14 +43,12 @@ class FilePathSelect(pnw.Select):
     def __bool__(self):
         return bool(self._base2path)
 
-
-
 class NodeParameterized(AbipyParameterized):
     """
 
     """
 
-    def __init__(self, node, **params):
+    def __init__(self, node: Node, **params):
         super().__init__(**params)
         self.node = node
 
@@ -80,7 +83,7 @@ class NodeParameterized(AbipyParameterized):
         self.corrections_btn = pnw.Button(name="Show Corrections", button_type='primary')
         self.handlers_btn = pnw.Button(name="Show Handlers", button_type='primary')
         self.vars_text = pnw.TextInput(name='Abivars',
-                placeholder='Enter list of variables separated by comma e.g. `ecut, natom`')
+                                       placeholder='Enter list of variables separated by comma e.g. `ecut, natom`')
         self.vars_btn = pnw.Button(name="Show Variables", button_type='primary')
         #self.dims_btn = pnw.Button(name="Show Dimensions", button_type='primary')
 
@@ -128,11 +131,12 @@ class NodeParameterized(AbipyParameterized):
         # does not analyze the tasks that are completed.
         df = self.flow.show_status(nids=self.nids, stream=term, verbose=1, return_df=True) #self.verbose)
 
-        #return pn.Column(
-        #        StatusCards(df),
-        #        sizing_mode="stretch_width",
-        #)
+        return pn.Column(
+                StatusCards(df),
+                sizing_mode="stretch_width",
+        )
 
+        # TODO: Finalize the implementation.
         # Generate heatmap with plotly
         max_num_tasks = max(len(work) for work in self.flow)
         y = [f"w{i}" for i in range(len(self.flow))]
@@ -377,10 +381,9 @@ class NodeParameterized(AbipyParameterized):
         return self.get_template_from_tabs(d, template=kwargs.get("template", None), closable=False)
 
 
-
 class StatusCards(param.Parameterized):
 
-    def __init__(self, df, **params):
+    def __init__(self, df: pd.DataFrame, **params):
         self.df = df
         super().__init__(**params)
 
@@ -460,7 +463,6 @@ class StatusCards(param.Parameterized):
         df = self.df
 
         with Loading(card):
-
             if header == "## Task status histogram":
                 fig = px.histogram(df, x="status")
 

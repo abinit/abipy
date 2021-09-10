@@ -2,6 +2,8 @@
 """
 Interface to the GSR.nc_ file storing the Ground-state results and the electron band structure.
 """
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
@@ -16,10 +18,10 @@ from monty.functools import lazy_property
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
-
 from abipy.abio.robots import Robot
-from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
+from abipy.electrons.ebands import ElectronsReader, RobotWithEbands, ElectronBands
 
 
 __all__ = [
@@ -44,12 +46,13 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GsrFile
     """
+
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> GsrFile:
         """Initialize the object from a netcdf_ file."""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = r = GsrReader(filepath)
 
@@ -64,7 +67,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -90,12 +93,12 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return "\n".join(lines)
 
     @property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self._ebands
 
     @lazy_property
-    def is_scf_run(self):
+    def is_scf_run(self) -> bool:
         """True if the GSR has been produced by a SCF run."""
         # NOTE: We use kptopt to understand if we have a SCF/NSCF run
         # In principle one should use iscf but it's not available in the GSR.
@@ -115,7 +118,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return units.Energy(self.reader.read_value("pawecutdg"), "Ha")
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
@@ -141,7 +144,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     @lazy_property
     def max_force(self):
         """
-        Max cartesian force in eV/Ang. None if forces are not available.
+        Max absolute cartesian force in eV/Ang. None if forces are not available.
         """
         cart_forces = self.cart_forces
         if cart_forces is None: return None
@@ -222,7 +225,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         #    od["pawecutdg"] = float(self.pawecutdg)
         return od
 
-    def close(self):
+    def close(self) -> None:
         self.reader.close()
 
     # FIXME: This is deprecated. Must keep it to avoid breaking ScfTask.get_results
@@ -445,7 +448,7 @@ class GsrRobot(Robot, RobotWithEbands):
     """
     EXT = "GSR"
 
-    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs):
+    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the most important GS results.
         and the filenames as index.

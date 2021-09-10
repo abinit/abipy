@@ -493,3 +493,11 @@ class TestAbiView(ScriptTest):
         #ncpath = abidata.ref_file("si_nscf_GSR.nc")
         #r = env.run(self.script, "denpot", ncpath, "chgcar", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
         #r = env.run(self.script, "denpot", ncpath, "cube", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
+
+class TestAbiw(ScriptTest):
+    script = os.path.join(script_dir, "abiw.py")
+
+    def test_abiw(self):
+        """Testing abiw.py script"""
+        env = self.get_env()

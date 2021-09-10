@@ -2,13 +2,17 @@
 """
 Objects related to the computation of Debye-Waller tensors from the generalized phonon DOS.
 """
+from __future__ import annotations
+
 import numpy as np
+import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from monty.string import list_strings, marquee
 from monty.collections import dict2namedtuple
 from monty.termcolor import cprint
+from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.tools.plotting import add_fig_kwargs, set_axlims, get_axarray_fig_plt, set_visible
 from abipy.tools.printing import print_dataframe
@@ -62,6 +66,7 @@ class MsqDos(Has_Structure):
     See also http://atztogo.github.io/phonopy/formulation.html#thermal-displacement
     """
     C = _Component
+
     ALL_COMPS = OrderedDict([
         ("trace", C(name="trace", ij=None, color="k")),
         ("xx", C(name="xx", ij=(0, 0), color="r", ls="-")),
@@ -93,7 +98,7 @@ class MsqDos(Has_Structure):
         assert len(self.values) == len(self.structure)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
@@ -101,7 +106,7 @@ class MsqDos(Has_Structure):
         """Invoked by str"""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """
         Human-readable string with useful information on the object.
 
@@ -136,7 +141,7 @@ class MsqDos(Has_Structure):
 
         return "\n".join(lines)
 
-    def get_json_doc(self, tstart=0, tstop=600, num=11):
+    def get_json_doc(self, tstart=0, tstop=600, num=11) -> dict:
         """
         Return dictionary with results. Used by emmet builder.
 
@@ -272,7 +277,7 @@ class MsqDos(Has_Structure):
         raise ValueError("Invalid format: `%s`" % str(fmt))
 
     def get_dataframe(self, temp=300, fmt="cartesian", view="inequivalent", what="displ", decimals=4,
-                      select_symbols=None, verbose=0):
+                      select_symbols=None, verbose=0) -> pd.DataFrame:
         """
         Return |pandas-DataFrame| with cartesian tensor components as columns and (inequivalent) sites along the rows.
 
@@ -318,10 +323,9 @@ class MsqDos(Has_Structure):
                 d[col] = values[iatom, ind[0], ind[1]]
             rows.append(d)
 
-        import pandas as pd
         return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
-    def write_cif_file(self, filepath, temp=300, symprec=None):
+    def write_cif_file(self, filepath, temp=300, symprec=None) -> str:
         """
         Write CIF file with structure and anisotropic U tensor in CIF format.
 
@@ -380,7 +384,7 @@ class MsqDos(Has_Structure):
 
         return visu(filepath)()
 
-    def get_cif_string(self, temp=300, symprec=None):
+    def get_cif_string(self, temp=300, symprec=None) -> str:
         """
         Return string with structure and anisotropic U tensor in CIF format at temperature `temp` in Kelvin
 
@@ -674,7 +678,7 @@ _atom_site_aniso_U_12""".splitlines()
                     raise ValueError("Invalid ix index: `%s" % ix)
 
                 ax.plot(msq.tmesh, ys, label=site_label if ix == 0 else None,
-                        color=color) #, marker="o")
+                        color=color)  #, marker="o")
                 if ix == 0:
                     ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

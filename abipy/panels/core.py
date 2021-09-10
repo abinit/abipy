@@ -1,4 +1,5 @@
 """"Basic tools and mixin classes for AbiPy panels."""
+from __future__ import annotations
 
 import io
 import tempfile
@@ -19,7 +20,7 @@ from monty.termcolor import cprint
 from abipy.core import abinit_units as abu
 from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
-from abipy.tools.context_managers import Timer
+#from abipy.tools.context_managers import Timer
 from abipy.tools.decorators import Appender
 
 
@@ -44,7 +45,7 @@ def get_abinit_template_cls_kwds():
     return cls, kwds
 
 
-def open_html(html_string, browser=None):
+def open_html(html_string: str, browser=None):
     """
     Open a string with an HTML document in browser.
     """
@@ -125,7 +126,7 @@ def abipanel(panel_template="FastList"):
     return pn
 
 
-def gen_id(n=1, pre="uuid-"):
+def gen_id(n: int = 1, pre: str = "uuid-"):
     """
     Generate ``n`` universally unique identifiers prepended with ``pre`` string.
     Return string if n == 1 or list of strings if n > 1
@@ -142,7 +143,7 @@ def gen_id(n=1, pre="uuid-"):
         raise ValueError("n must be > 0 but got %s" % str(n))
 
 
-def get_template_cls_from_name(name):
+def get_template_cls_from_name(name: str):
     """
     Return panel template from string.
     Support name in the form `FastList` as well as `FastListTemplate`.
@@ -171,7 +172,10 @@ then be called without any arguments.
 """, indents=0)
 
 
-def depends_on_btn_click(btn_name, show_doc=True, show_shared_wdg_warning=True, show_exc=True):
+def depends_on_btn_click(btn_name: str,
+                         show_doc: bool = True,
+                         show_shared_wdg_warning: bool = True,
+                         show_exc: bool = True):
     """
     This decorator is used for callbacks triggered by a button of name `btn_name`
 
@@ -372,9 +376,9 @@ If everything is properly configured, a new window is automatically created in y
     return col
 
 
-def dfc(df,
-        wdg_type="dataframe",
-        #wdg_type="tabulator",  # More recent version. Still problematic
+def dfc(df: pd.DataFrame,
+        wdg_type: str = "dataframe",
+        #wdg_type: str ="tabulator",  # More recent version. Still problematic
         with_export_btn=True, with_controls=False, with_divider=True, transpose=False, **kwargs):
     """
     Helper function returning a panel Column with a DataFrame or Tabulator widget followed by
@@ -467,7 +471,7 @@ def dfc(df,
     return col
 
 
-def my_md(string, **kwargs):
+def my_md(string: str, **kwargs) -> pn.pane.Markdown:
     """
     Return a Markdown pane from `string`.
     Extra kwargs are passed to pane.Markdown.
@@ -530,7 +534,7 @@ class ButtonContext():
     of the button and use the string representation of the exception as button name.
     """
 
-    def __init__(self, btn):
+    def __init__(self, btn: pnw.Button):
         self.btn = btn
         self.prev_name, self.prev_type = btn.name, btn.button_type
 
@@ -686,17 +690,17 @@ class AbipyParameterized(param.Parameterized):
         pio.templates.default = self.plotly_template
 
     @lazy_property
-    def mpl_kwargs(self):
+    def mpl_kwargs(self) -> dict:
         """Default arguments passed to AbiPy matplotlib plot methods."""
         return dict(show=False, fig_close=True)
 
-    def pws_col(self, keys, **kwargs):
+    def pws_col(self, keys, **kwargs) -> pn.Column:
         return pn.Column(*self.pws(keys), **kwargs)
 
-    def pws_row(self, keys, **kwargs):
+    def pws_row(self, keys, **kwargs) -> pn.Row:
         return pn.Row(*self.pws(keys), **kwargs)
 
-    def wdg_box(self, keys, **kwargs):
+    def wdg_box(self, keys, **kwargs) -> pn.WidgetBox:
         return pn.WidgetBox(*self.pws(keys), **kwargs)
 
     def pws(self, keys):
@@ -753,7 +757,7 @@ class AbipyParameterized(param.Parameterized):
         return HTMLwithClipboardBtn(html_str, **kwargs)
 
     @staticmethod
-    def get_software_stack():
+    def get_software_stack() -> pn.Column:
         """Return column with version of python packages in tabular format."""
         from abipy.abilab import software_stack
         return pn.Column("## Software stack:",
@@ -763,7 +767,7 @@ class AbipyParameterized(param.Parameterized):
                          )
 
     @staticmethod
-    def get_fileinput_section(file_input):
+    def get_fileinput_section(file_input) -> pn.Column:
 
         # All credits go to:
         # https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/styling/fileinput_area.py
@@ -815,7 +819,7 @@ class AbipyParameterized(param.Parameterized):
         return ebands
 
     @staticmethod
-    def get_alert_data_transfer():
+    def get_alert_data_transfer() -> pn.pane.Alert:
         # https://discourse.holoviz.org/t/max-upload-size/2121/5
         return pn.pane.Alert("""
 Please note that this web interface is not designed to handle **large data transfer**.
@@ -970,7 +974,7 @@ class PanelWithStructure(AbipyParameterized):
                                             objects=["jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
                                                      "matplotlib", "plotly", "ase_atoms", "mayavi"])
 
-    def __init__(self, structure, **params):
+    def __init__(self, structure: Structure, **params):
 
         super().__init__(**params)
         self.structure = structure
@@ -1055,7 +1059,7 @@ class PanelWithStructure(AbipyParameterized):
 
         return self.structure.visualize(appname=self.structure_viewer)
 
-    def get_structure_view(self):
+    def get_structure_view(self) -> pn.Row:
         """
         Return tab entry to visualize the structure.
         """
@@ -1067,14 +1071,14 @@ class PanelWithStructure(AbipyParameterized):
             pn.Column(self.on_view_structure, self.get_structure_info())
         )
 
-    def get_structure_info(self):
+    def get_structure_info(self) -> pn.Column:
         """
         Return Column with lattice parameters, angles and atomic positions grouped by type.
         """
         return get_structure_info(self.structure)
 
 
-def get_structure_info(structure):
+def get_structure_info(structure: Structure) -> pn.Column:
     """
     Return Column with lattice parameters, angles and atomic positions grouped by type.
     """
@@ -1207,7 +1211,6 @@ class PanelWithElectronBands(PanelWithStructure):
     ifermi_offset_eV = param.Number(default=0.0, label="Energy offset (eV) from energy reference",
                                     doc="Energy offset from the Fermi energy at which the isosurface is calculated.")
     ifermi_plot_type = param.ObjectSelector(default="plotly", label="Plot type", objects=["plotly", "matplotlib"])
-
 
     # These are used to implement plots in which we need to upload an additional file
     # For instance bands + edos.
@@ -1493,7 +1496,6 @@ class PanelWithElectronBands(PanelWithStructure):
     #        self.on_plot_fs_viewer_btn)
 
 
-
 class BaseRobotPanel(AbipyParameterized):
     """
     Base class for panels with AbiPy robot.
@@ -1598,7 +1600,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
         return pn.Row(pn.Column(mpl(fig)), sizing_mode='scale_width')
 
 
-def jsmol_html(structure, width=700, height=700, color="black", spin="false"):
+def jsmol_html(structure, width=700, height=700, color="black", spin="false") -> pn.Column:
 
     cif_str = structure.write_cif_with_spglib_symms(None, ret_string=True) #, symprec=symprec
 
