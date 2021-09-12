@@ -6,14 +6,13 @@ It provides a command line interface as well as a graphical interface based on w
 import sys
 import os
 import argparse
-import abipy.flowtk as flowtk
+#import abipy.flowtk as flowtk
 
-from pprint import pprint, pformat
+from pprint import pprint #, pformat
 from monty.functools import prof_main
 from abipy.core.release import __version__
 from abipy.tools.printing import print_dataframe
-from abipy.flowtk.worker import (WorkerClients, AbipyWorker,
-        print_local_workers, rdiscover)
+from abipy.htc.worker import (WorkerClients, AbipyWorker, print_local_workers, rdiscover)
 
 
 def get_epilog():
@@ -21,7 +20,7 @@ def get_epilog():
 
 Usage example:
 
-  abiw.py new_manager.py
+  abiw.py new_worker
   abiw.py clients  DONE
   abiw.py disable name
   abiw.py set_default name
@@ -72,7 +71,7 @@ Notes:
     abirun.py prof ABIRUN_ARGS               => to profile abirun.py
     abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python"""
 
-    return notes + usage # + developers
+    return notes + usage  # + developers
 
 
 def get_parser(with_epilog=False):
@@ -220,13 +219,13 @@ Use:
 
     ssh -N -f -L localhost:{port}:localhost:{port} username@your_remote_cluster
 
-for port forwarding.
+to activate port forwarding.
 """)
 
     import abipy.panels as mod
     assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
 
-    d =  dict(
+    d = dict(
         debug=options.verbose > 0,
         #show=False,
         port=options.port,

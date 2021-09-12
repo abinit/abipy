@@ -576,7 +576,8 @@ class ElectronBands(Has_Structure):
 
     def __repr__(self):
         """String representation (short version)"""
-        return "<%s, nk=%d, %s, id=%s>" % (self.__class__.__name__, self.nkpt, self.structure.formula, id(self))
+        #return "<%s, nk=%d, %s, id=%s>" % (self.__class__.__name__, self.nkpt, self.structure.formula, id(self))
+        return "<%s, nk=%d, %s>" % (self.__class__.__name__, self.nkpt, self.structure.formula)
 
     def __str__(self):
         """String representation"""

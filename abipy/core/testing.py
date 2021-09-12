@@ -12,6 +12,9 @@ import subprocess
 import json
 import tempfile
 import unittest
+import time
+import atexit
+import shutil
 try:
     import numpy.testing as nptu
 except ImportError:
@@ -22,9 +25,6 @@ from functools import wraps
 from monty.os.path import which
 from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
-
-import logging
-logger = logging.getLogger(__file__)
 
 root = os.path.dirname(__file__)
 
@@ -134,36 +134,6 @@ def has_phonopy(version=None, op=">="):
 
     if version is None: return True
     return cmp_version(phonopy.__version__, version, op=op)
-
-
-#TESTDB_NAME = "abipy_unittest"
-#
-#def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None, password=None):
-#    try:
-#        from pymongo import MongoClient
-#        connection = MongoClient(host, port, j=True)
-#        db = connection[name]
-#        if username:
-#            db.authenticate(username, password)
-#
-#        return True
-#    except Exception:
-#        return False
-#
-#@classmethod
-#def setup_mongoengine(cls):
-#    try:
-#        cls._connection = connect(db=TESTDB_NAME)
-#        cls._connection.drop_database(TESTDB_NAME)
-#        cls.db = get_db()
-#    except Exception:
-#        cls.db = None
-#        cls._connection = None
-#
-#@classmethod
-#def teardown_mongoengine(cls):
-#    if cls._connection:
-#        cls._connection.drop_database(TESTDB_NAME)
 
 
 def get_mock_module():
@@ -725,31 +695,137 @@ class AbipyTest(PymatgenTest):
         return get_gsinput_alas_ngkpt(*args, **kwargs)
 
 
-def notebook_run(path):
-    """
-    Execute a notebook via nbconvert and collect output.
 
-    Taken from: https://blog.thedataincubator.com/2016/06/testing-jupyter-notebooks/
+ABIPY_TESTDB_NAME = "abipy_unit_tests"
 
-    Args:
-        path (str): file path for the notebook object
 
-    Returns: (parsed nb object, execution errors)
-    """
-    import nbformat
-    dirname, _ = os.path.split(path)
-    os.chdir(dirname)
-    with tempfile.NamedTemporaryFile(suffix=".ipynb") as fout:
-        args = ["jupyter", "nbconvert", "--to", "notebook", "--execute",
-                "--ExecutePreprocessor.timeout=300",
-                "--ExecutePreprocessor.allow_errors=True",
-                "--output", fout.name, path]
-        subprocess.check_call(args)
+def abipy_has_mongodb(host='localhost', port=27017, name=ABIPY_TESTDB_NAME, username=None, password=None):
+    try:
+        from pymongo import MongoClient
+        connection = MongoClient(host, port, j=True)
+        db = connection[name]
+        if username:
+            db.authenticate(username, password)
+        return True
+    except Exception:
+        return False
 
-        fout.seek(0)
-        nb = nbformat.read(fout, nbformat.current_nbformat)
 
-    errors = [output for cell in nb.cells if "outputs" in cell
-              for output in cell["outputs"] if output.output_type == "error"]
 
-    return nb, errors
+class AbipyTestWithMongoDb(AbipyTest):
+    """A suite of tests requiring a MongoDB database."""
+
+
+    #def has_mongodb(self):
+    #    """True if mongodb server is reachable."""
+    #    return abipy_has_mongodb()
+
+    #@classmethod
+    #def setUpClass(cls):
+
+    #@classmethod
+    #def tearDownClass(cls):
+
+    #@classmethod
+    #def setup_mongodb(cls):
+    #    try:
+    #        cls._connection = connect(db=TESTDB_NAME)
+    #        cls._connection.drop_database(TESTDB_NAME)
+    #        cls.db = get_db()
+    #    except Exception:
+    #        cls.db = None
+    #        cls._connection = None
+    #
+    #@classmethod
+    #def teardown_mongodb(cls):
+    #    if cls._connection:
+    #        cls._connection.drop_database(TESTDB_NAME)
+
+
+
+#class MongoTemporaryInstance:
+#    """Singleton to manage a temporary MongoDB instance
+#
+#    Use this for testing purpose only. The instance is automatically destroyed
+#    at the end of the program.
+#
+#    """
+#    _instance = None
+#
+#    @classmethod
+#    def get_instance(cls):
+#        if cls._instance is None:
+#            cls._instance = cls()
+#            atexit.register(cls._instance.shutdown)
+#        return cls._instance
+#
+#    def __init__(self):
+#        self._tmpdir = tempfile.mkdtemp()
+#        self._process = subprocess.Popen(['mongod', '--bind_ip', 'localhost',
+#                                          '--port', str(MONGODB_TEST_PORT),
+#                                          '--dbpath', self._tmpdir,
+#                                          '--nojournal', '--nohttpinterface',
+#                                          '--noauth', '--smallfiles',
+#                                          '--syncdelay', '0',
+#                                          '--maxConns', '10',
+#                                          '--nssize', '1', ],
+#                                         stdout=open(os.devnull, 'wb'),
+#                                         stderr=subprocess.STDOUT)
+#
+#        # wait for the instance to be ready
+#        # Mongo is ready in a glance, we just wait to be able to open a
+#        # Connection.
+#        import pymongo
+#        for i in range(3):
+#            time.sleep(0.1)
+#            try:
+#                self._conn = pymongo.Connection('localhost', MONGODB_TEST_PORT)
+#            except pymongo.errors.ConnectionFailure:
+#                continue
+#            else:
+#                break
+#        else:
+#            self.shutdown()
+#            assert False, 'Cannot connect to the mongodb test instance'
+#
+#    @property
+#    def conn(self):
+#        return self._conn
+#
+#    def shutdown(self):
+#        if self._process:
+#            self._process.terminate()
+#            self._process.wait()
+#            self._process = None
+#            shutil.rmtree(self._tmpdir, ignore_errors=True)
+
+
+
+#def notebook_run(path):
+#    """
+#    Execute a notebook via nbconvert and collect output.
+#
+#    Taken from: https://blog.thedataincubator.com/2016/06/testing-jupyter-notebooks/
+#
+#    Args:
+#        path (str): file path for the notebook object
+#
+#    Returns: (parsed nb object, execution errors)
+#    """
+#    import nbformat
+#    dirname, _ = os.path.split(path)
+#    os.chdir(dirname)
+#    with tempfile.NamedTemporaryFile(suffix=".ipynb") as fout:
+#        args = ["jupyter", "nbconvert", "--to", "notebook", "--execute",
+#                "--ExecutePreprocessor.timeout=300",
+#                "--ExecutePreprocessor.allow_errors=True",
+#                "--output", fout.name, path]
+#        subprocess.check_call(args)
+#
+#        fout.seek(0)
+#        nb = nbformat.read(fout, nbformat.current_nbformat)
+#
+#    errors = [output for cell in nb.cells if "outputs" in cell
+#              for output in cell["outputs"] if output.output_type == "error"]
+#
+#    return nb, errors

@@ -1,6 +1,7 @@
 """[summary]
 """
 from __future__ import annotations
+
 import sys
 import os
 import threading
@@ -20,15 +21,11 @@ import panel as pn
 
 from datetime import datetime
 from uuid import UUID, uuid4
-from pprint import pprint, pformat
-from queue import Queue, Empty
-from contextlib import closing
-from typing import List, Optional, Type
-from enum import Enum #, IntEnum
-from monty import termcolor
-from monty.collections import AttrDict
-from monty.json import MSONable #, MontyEncoder
-from monty.functools import lazy_property
+#from queue import Queue, Empty
+from typing import List, Union, Optional, Tuple
+from enum import Enum
+from monty.json import MSONable
+#from monty.functools import lazy_property
 from tqdm import tqdm
 
 from pymatgen.util.serialization import pmg_serialize
@@ -37,16 +34,15 @@ from abipy.tools import duck
 from abipy.flowtk.flows import Flow
 from abipy.flowtk.tasks import TaskManager
 from abipy.flowtk.launcher import MultiFlowScheduler
-from abipy.flowtk.models import AbipyBaseModel, Field, MongoConnector, FlowModel, AbipyDecoder, AbipyEncoder
-#, ModelMetaclass  #, BaseConfig, PrivateAttr
-from pydantic.main import ModelMetaclass
-
+from .tools import pid_exists, port_is_open, find_free_port
+from .base_models import AbipyBaseModel, Field, MongoConnector, AbipyDecoder, AbipyEncoder
+from .flow_models import FlowModel
 
 # This should become a global variable used in all the other modules to facilitate unit tests.
-_ABIPY_DIRPATH = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
+ABIPY_DIRPATH = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
 
 
-def yaml_safe_load_path(path):
+def yaml_safe_load_path(path: str):
     import ruamel.yaml as yaml
     with open(path, "rt") as fh:
         return yaml.YAML(typ='safe', pure=True).load(fh.read())
@@ -54,7 +50,7 @@ def yaml_safe_load_path(path):
 
 class BaseHandler(tornado.web.RequestHandler):
 
-    def initialize(self, worker):
+    def initialize(self, worker: AbipyWorker):
         self.worker = worker
 
     def get_json_from_body(self):
@@ -81,7 +77,6 @@ class BaseHandler(tornado.web.RequestHandler):
 
     #   # don't forget to show a user friendly error page!
     #   self.render("oops.html")
-
 
 class ActionHandler(BaseHandler):
 
@@ -183,59 +178,15 @@ class FlowDirsPostHandler(BaseHandler):
 
         self.write(reply)
 
-
-def find_free_port(address: str = "localhost") -> int:
-    """Retur free port"""
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind((address, 0))
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        return s.getsockname()[1]
-
-
-def port_is_open(port: int, address: str = "localhost") -> bool:
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-        if sock.connect_ex((address, port)) == 0: return True
-        return False
-
-
-def pid_exists(pid: int) -> bool:
-    """
-    Check whether pid exists in the current process table. UNIX only.
-
-    https://stackoverflow.com/questions/568271/how-to-check-if-there-exists-a-process-with-a-given-pid-in-python/6940314#6940314
-    """
-    # import os
-    import errno
-    if pid < 0:
-        return False
-    if pid == 0:
-        # According to "man 2 kill" PID 0 refers to every process
-        # in the process group of the calling process.
-        # On certain systems 0 is a valid PID but we have no way
-        # to know that in a portable fashion.
-        raise ValueError('invalid PID 0')
-    try:
-        os.kill(pid, 0)
-    except OSError as err:
-        if err.errno == errno.ESRCH:
-            # ESRCH == No such process
-            return False
-        elif err.errno == errno.EPERM:
-            # EPERM clearly means there's a process to deny access to
-            return True
-        else:
-            # According to "man 2 kill" possible error values are
-            # (EINVAL, EPERM, ESRCH)
-            raise
-    else:
-        return True
-
-
 class WorkerStatusEnum(str, Enum):
     """Possible status of the Worker."""
     init = "init"
     serving = "serving"
     dead = "dead"
+
+
+def _str_uuid():
+    return str(uuid4())
 
 
 class WorkerState(AbipyBaseModel):
@@ -259,8 +210,7 @@ class WorkerState(AbipyBaseModel):
                           description="Host name.")
 
     #uuid: UUID = Field(default_factory=uuid4)
-    def str_uuid(): return str(uuid4())
-    uuid: str = Field(default_factory=str_uuid)
+    uuid: str = Field(default_factory=_str_uuid)
 
     mongo_connector: MongoConnector = Field(None, description="MongoDB connector")
 
@@ -269,7 +219,7 @@ class AbipyWorker:
 
     def __init__(self, name: str, sched_options: dict, scratch_dir: str,
                  address: str = "localhost", port: int = 0,
-                 manager=None,
+                 manager: Optional[TaskManager] = None,
                  mongo_connector: Optional[MongoConnector] = None):
         """
         Args:
@@ -300,7 +250,7 @@ class AbipyWorker:
             ("/action", ActionHandler, dict(worker=self)),
         ]
 
-        self.config_dir = os.path.join(_ABIPY_DIRPATH, f"worker_{self.name}")
+        self.config_dir = os.path.join(ABIPY_DIRPATH, f"worker_{self.name}")
         if not os.path.exists(self.config_dir):
             os.mkdir(self.config_dir)
 
@@ -348,7 +298,7 @@ class AbipyWorker:
         if self.flowid2_oid_model:
             node_ids = list(self.flowid2_oid_model.keys())
             rows = self.flow_scheduler.get_sql_rows_with_node_ids(node_ids)
-            print("rows", rows)
+            print("Found rows", rows)
 
             for row in rows:
                 flow_id = row["flow_id"]
@@ -377,8 +327,8 @@ class AbipyWorker:
             self.flowid2_oid_model[flow.node_id] = (oid, model)
 
     @classmethod
-    def _get_state_path(cls, name: str) -> WorkerState:
-        config_dir = os.path.join(_ABIPY_DIRPATH, f"worker_{name}")
+    def _get_state_path(cls, name: str) -> Tuple[WorkerState, str]:
+        config_dir = os.path.join(ABIPY_DIRPATH, f"worker_{name}")
         state_filepath = os.path.join(config_dir, "state.json")
 
         return WorkerState.from_json_file(state_filepath), state_filepath
@@ -406,15 +356,15 @@ class AbipyWorker:
                       manager_path: Optional[str] = None,
                       mongo_connector=None, verbose=1) -> AbipyWorker:
 
-        config_dir = os.path.join(_ABIPY_DIRPATH, f"worker_{worker_name}")
+        config_dir = os.path.join(ABIPY_DIRPATH, f"worker_{worker_name}")
         errors = []
         eapp = errors.append
 
         if os.path.exists(config_dir):
             eapp(f"Directory `{config_dir}` already exists!")
 
-        scheduler_path = scheduler_path or os.path.join(_ABIPY_DIRPATH, "scheduler.yml")
-        manager_path = manager_path or os.path.join(_ABIPY_DIRPATH, "manager.yml")
+        scheduler_path = scheduler_path or os.path.join(ABIPY_DIRPATH, "scheduler.yml")
+        manager_path = manager_path or os.path.join(ABIPY_DIRPATH, "manager.yml")
 
         if not os.path.exists(scheduler_path):
             eapp("Cannot find scheduler file at `{scheduler_path}` to initialize the worker!")
@@ -464,7 +414,7 @@ to update the list of local clients.
         return cls.init_from_dirname(worker_name)
 
     @classmethod
-    def restart_from_dirname(cls, name: str, force: bool = False):
+    def restart_from_dirname(cls, name: str, force: bool = False) -> AbipyWorker:
         state, path = cls._get_state_path(name)
         pid = state.pid
 
@@ -500,7 +450,7 @@ to update the list of local clients.
         print("Remember to execute ldiscover or rdiscover...")
         return new
 
-    def write_state_file(self, status: str = "dead", filepath=None) -> None:
+    def write_state_file(self, status: str = "dead", filepath=None) -> str:
         if filepath is None:
             filepath = os.path.join(self.config_dir, "state.json")
 
@@ -515,6 +465,7 @@ to update the list of local clients.
         )
 
         state.json_write(filepath)
+        return filepath
 
     #def remove_flows(self):
     #    """This requires locking the SQLite database."""
@@ -522,13 +473,12 @@ to update the list of local clients.
     def serve_homepage(self):
 
         import platform
-        from socket import gethostname
         system, node, release, version, machine, processor = platform.uname()
 
         header = pn.pane.Markdown(f"""
 # Homepage of **{self.name}** {self.__class__.__name__}
 
-Running on {gethostname()} -- system {system} -- Python {platform.python_version()}
+Running on {socket.gethostname()} -- system {system} -- Python {platform.python_version()}
 """, sizing_mode="stretch_width")
 
         d = self.flow_scheduler.groupby_status()
@@ -621,7 +571,7 @@ Running on {gethostname()} -- system {system} -- Python {platform.python_version
 def _get_all_local_worker_states(as_dict=False, dirpath=None):
     states, paths = [], []
 
-    dirpath = _ABIPY_DIRPATH if not dirpath else dirpath
+    dirpath = ABIPY_DIRPATH if not dirpath else dirpath
 
     worker_dirs = [dirname for dirname in os.listdir(dirpath) if dirname.startswith("worker_")]
     for workdir in worker_dirs:
@@ -666,7 +616,7 @@ def rdiscover(hostnames: List[str], printout: bool = True):
             print(exc)
             continue
 
-        # Now get the state.json via sfpt.
+        # Now get the state.json via sftp.
         for w in worker_dirs:
             state_path = os.path.join(w, "state.json")
             try:
@@ -792,6 +742,7 @@ class WorkerClient(MSONable):
 
         self.saved_uuid = saved_uuid if saved_uuid else self.worker_state.uuid
 
+    @property
     def is_remote_worker(self) -> bool:
         return not self.is_local_worker
 
@@ -832,7 +783,7 @@ class WorkerClient(MSONable):
 
         #return info
 
-    def update_state(self, worker_state):
+    def update_state(self, worker_state: WorkerState) -> None:
         prev_hostname = self.worker_state.hostname
         self.worker_state = worker_state.copy()
         # This is needed to preserve the changes done by the user in clients.json
@@ -937,7 +888,7 @@ class WorkerClient(MSONable):
     def open_webgui(self):
         end_point = ""
         url = self._get_url(end_point, f"Contacting {self.worker_state.name} worker")
-        print(self)
+        #print(self)
         import webbrowser
         webbrowser.open_new_tab(url)
 
@@ -956,7 +907,7 @@ class WorkerClient(MSONable):
 class WorkerClients(list, MSONable):
 
     @classmethod
-    def local_discover(cls, printout: bool = True, dirpath=None):
+    def local_discover(cls, printout: bool = True, dirpath=None) -> WorkerClients:
 
         worker_states = _get_all_local_worker_states(dirpath)
         clients = cls.from_json_file(empty_if_not_file=True)
@@ -969,8 +920,8 @@ class WorkerClients(list, MSONable):
         return clients
 
     @classmethod
-    def from_json_file(cls, empty_if_not_file=False, filepath=None):
-        filepath = os.path.expanduser(filepath) if filepath else os.path.join(_ABIPY_DIRPATH, "clients.json")
+    def from_json_file(cls, empty_if_not_file=False, filepath=None) -> WorkerClients:
+        filepath = os.path.expanduser(filepath) if filepath else os.path.join(ABIPY_DIRPATH, "clients.json")
 
         new = cls()
         if empty_if_not_file and not os.path.exists(filepath):
@@ -1039,14 +990,14 @@ to create it""")
 
     def write_json_file(self, filepath=None) -> None:
 
-        filepath = os.path.join(_ABIPY_DIRPATH, "clients.json") if not filepath else os.path.expanduser(filepath)
+        filepath = os.path.join(ABIPY_DIRPATH, "clients.json") if not filepath else os.path.expanduser(filepath)
 
         # TODO: Compare old with new. return diff
         #old_clients = self.__class__.from_json_file(empty_if_not_file=True)
         #if old_clients is None:
 
         with open(filepath, "wt") as fp:
-           json.dump(self.as_dict(), fp, indent=2)
+            json.dump(self.as_dict(), fp, indent=2)
 
     def update_from_worker_states(self, worker_states, write_json=True):
         for state in worker_states:
@@ -1107,7 +1058,8 @@ to create it""")
     def get_all_worker_names(self) -> List[str]:
         return [client.worker_state.name for client in self]
 
-    def select_from_worker_name(self, worker_name: str, allow_none=False):
+    def select_from_worker_name(self, worker_name: str,
+                                allow_none=False) -> Union[WorkerClient, None]:
         if worker_name is None:
             # If there are n > 1 workers, a default must be set by the user.
             for client in self:
@@ -1126,7 +1078,7 @@ to create it""")
         raise ValueError(f"Cannot find worker with name `{worker_name}` in list:\n" +
                          f"\t{self.get_all_worker_names()}\n")
 
-    def set_default(self, worker_name: str):
+    def set_default(self, worker_name: str) -> None:
         the_one = self.select_from_worker_name(worker_name, allow_none=False)
         for client in self:
             client.is_default_worker = False
