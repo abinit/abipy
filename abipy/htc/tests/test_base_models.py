@@ -1,50 +1,46 @@
-import numpy as np
-
-from pprint import pprint
+#from pprint import pprint
 from typing import List
 from pydantic.main import ModelMetaclass
 from pymatgen.core.structure import Structure as pmg_Structure
 from abipy.core.testing import AbipyTest
 from abipy.core.structure import Structure as abi_Structure
-from abipy.htc.base_models import AbipyBaseModel, MongoConnector
+from abipy.abio.inputs import AbinitInput
+from abipy.htc.base_models import AbipyModel, MongoConnector, QueryResults
 
 
 class TestAbipyBaseModels(AbipyTest):
 
     def test_base_models(self):
 
-        class SubModel(AbipyBaseModel):
+        class SubModel(AbipyModel):
             abi_structure: abi_Structure
 
-        class TopModel(AbipyBaseModel):
+        class TopModel(AbipyModel):
             pmg_structure: pmg_Structure
             submodel: SubModel
             class_type: ModelMetaclass = SubModel
             items: List[int] = [1, 2, 3]
-            #items: np.ndarray = np.array([1, 2, 3])
+            abinit_input: AbinitInput
 
-        # This is a pymatgen structure.
-        pmg_structure = self.get_structure("Si")
-        # This is an Abipy structure.
-        abi_structure = abi_Structure.as_structure(self.get_structure("Si"))
+        pmg_structure = self.get_structure("Si")  # This is a pymatgen structure.
+        abi_structure = abi_Structure.as_structure(self.get_structure("Si"))  # This is an Abipy structure.
 
         sub_model = SubModel(abi_structure=abi_structure)
-        top_model = TopModel(pmg_structure=pmg_structure, submodel=sub_model)
+        abinit_input = self.get_gsinput_si()
+        top_model = TopModel(pmg_structure=pmg_structure, submodel=sub_model, abinit_input=abinit_input)
 
         # Test pydantic API
         pydantic_json_string = top_model.json()
         assert "TopModel" not in pydantic_json_string
 
         monty_json_string = top_model.to_json()
-        print(monty_json_string)
         assert "TopModel" in monty_json_string
-        #assert 0
 
         monty_dict = top_model.as_dict()
-        pprint(monty_dict)
         same_top_model = TopModel.from_dict(monty_dict)
 
         assert same_top_model.class_type is SubModel
+        assert same_top_model.abinit_input == abinit_input
         assert isinstance(pmg_structure, pmg_Structure)
         assert same_top_model.pmg_structure == pmg_structure
         assert isinstance(same_top_model.submodel.abi_structure, abi_Structure)
@@ -53,15 +49,20 @@ class TestAbipyBaseModels(AbipyTest):
         #assert 0
 
     def test_mongo_connector(self):
-        c = MongoConnector(host="localhost", port=27017, collection_name="collection_name")
-        assert c.host == "localhost"
-        assert str(c.port) in c._repr_markdown_()
+        connector = MongoConnector(host="example.com", port=27017, collection_name="collection_name")
+        assert connector.host == "example.com"
+        assert str(connector.port) in connector._repr_markdown_()
 
-        c = MongoConnector.for_localhost(collection_name="foobar")
-        assert "foobar" in c._repr_markdown_()
-        self.assertMSONable(c, test_if_subclass=True)
+        connector = MongoConnector.for_localhost(collection_name="foobar")
+        assert "foobar" in connector._repr_markdown_()
+        self.assertMSONable(connector, test_if_subclass=True)
 
-        #collection = mongo_connector.get_collection()
-        #mongo_connector.open_mongoflow_gui(**serve_kwargs)
-        #client = c.get_client()
-        #client = c.get_collection()
+        #collection = connector.get_collection()
+        #connector.open_mongoflow_gui(**serve_kwargs)
+
+    def test_query_results_api(self):
+        query = {"_id": "foo"}
+        qr = QueryResults.empty_from_query(query)
+        assert qr.query == query
+        assert not qr
+        assert len(qr) == 0

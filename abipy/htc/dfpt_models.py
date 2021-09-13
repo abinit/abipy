@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 from pydantic import Field
-from .base_models import AbipyBaseModel
+from .base_models import AbipyModel
 from abipy.dfpt.ddb import DdbFile
 
 
-class PhononData(AbipyBaseModel):
+class PhononData(AbipyModel):
 
     ddb_string: str = Field(..., description="DDB string")
 

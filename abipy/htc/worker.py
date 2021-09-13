@@ -35,7 +35,7 @@ from abipy.flowtk.flows import Flow
 from abipy.flowtk.tasks import TaskManager
 from abipy.flowtk.launcher import MultiFlowScheduler
 from .tools import pid_exists, port_is_open, find_free_port
-from .base_models import AbipyBaseModel, Field, MongoConnector, AbipyDecoder, AbipyEncoder
+from .base_models import AbipyModel, Field, MongoConnector, AbipyDecoder, AbipyEncoder
 from .flow_models import FlowModel
 
 # This should become a global variable used in all the other modules to facilitate unit tests.
@@ -49,6 +49,10 @@ def yaml_safe_load_path(path: str):
 
 
 class BaseHandler(tornado.web.RequestHandler):
+    """
+    Our base class for RequestHandler used by AbipyWorker
+    Each handler has a reference to the worker set by initialize.
+    """
 
     def initialize(self, worker: AbipyWorker):
         self.worker = worker
@@ -78,7 +82,10 @@ class BaseHandler(tornado.web.RequestHandler):
     #   # don't forget to show a user friendly error page!
     #   self.render("oops.html")
 
+
 class ActionHandler(BaseHandler):
+
+    SUPPORTED_METHODS = ("POST",)
 
     def post(self):
         data = self.get_json_from_body()
@@ -104,6 +111,8 @@ class ActionHandler(BaseHandler):
 
 
 class PostFlowHandler(BaseHandler):
+
+    SUPPORTED_METHODS = ("POST",)
 
     def post(self):
         #if self.worker.flow_model is not None: raise RuntimeError("Cannot send stuff in flow_model is ON")
@@ -149,6 +158,8 @@ class _JsonHandler(BaseHandler):
 
 class JsonStatusHandler(_JsonHandler):
 
+    SUPPORTED_METHODS = ("GET",)
+
     def get(self):
         # FIXME: This is broken now
         json_status = self.worker.flow_scheduler.get_json_status()
@@ -157,6 +168,8 @@ class JsonStatusHandler(_JsonHandler):
 
 
 class FlowDirsPostHandler(BaseHandler):
+
+    SUPPORTED_METHODS = ("POST",)
 
     def post(self):
         #if self.worker.flow_model is not None: raise RuntimeError("Cannot send stuff in flow_model is ON")
@@ -178,6 +191,7 @@ class FlowDirsPostHandler(BaseHandler):
 
         self.write(reply)
 
+
 class WorkerStatusEnum(str, Enum):
     """Possible status of the Worker."""
     init = "init"
@@ -189,7 +203,7 @@ def _str_uuid():
     return str(uuid4())
 
 
-class WorkerState(AbipyBaseModel):
+class WorkerState(AbipyModel):
 
     name: str = Field(..., description="Name of the worker")
 
@@ -216,9 +230,17 @@ class WorkerState(AbipyBaseModel):
 
 
 class AbipyWorker:
+    """
+    An AbipyWorker is a web-server running on the same machine where Abipy Flows are executed.
+    A Worker has a name that is supposed to be unique.
+    Flows are scheduler according to the `sched_options` and executed inside scratch_dir`
+
+    A command line interface to create/start/restart Abipy Workers is provided by abiw.py
+    """
 
     def __init__(self, name: str, sched_options: dict, scratch_dir: str,
-                 address: str = "localhost", port: int = 0,
+                 address: str = "localhost",
+                 port: int = 0,
                  manager: Optional[TaskManager] = None,
                  mongo_connector: Optional[MongoConnector] = None):
         """
@@ -231,6 +253,8 @@ class AbipyWorker:
             port:
                  Allows specifying a specific port
                  Port 0 means to select an arbitrary unused port
+            manager:
+            mongo_connector:
         """
         self.name = name
         self.address, self.port = address, port
@@ -343,7 +367,6 @@ class AbipyWorker:
         config_dir = os.path.dirname(path)
         sched_options = yaml_safe_load_path(os.path.join(config_dir, "scheduler.yml"))
         manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml"))
-        #print("sched_options", sched_options)
 
         # TODO: mongo_connector, flow_model
         return cls(state.name, sched_options, state.scratch_dir,
@@ -355,7 +378,18 @@ class AbipyWorker:
                       scheduler_path: Optional[str] = None,
                       manager_path: Optional[str] = None,
                       mongo_connector=None, verbose=1) -> AbipyWorker:
+        """
+        Create a new AbiPyWorker.
 
+        Args:
+
+            worker_name:
+            scratch_dir:
+            scheduler_path:
+            manager_path:
+            mongo_connector:
+            verbose:
+        """
         config_dir = os.path.join(ABIPY_DIRPATH, f"worker_{worker_name}")
         errors = []
         eapp = errors.append
@@ -415,6 +449,7 @@ to update the list of local clients.
 
     @classmethod
     def restart_from_dirname(cls, name: str, force: bool = False) -> AbipyWorker:
+        """Restart the Worker given the configuration directory."""
         state, path = cls._get_state_path(name)
         pid = state.pid
 
@@ -451,6 +486,7 @@ to update the list of local clients.
         return new
 
     def write_state_file(self, status: str = "dead", filepath=None) -> str:
+        """Write/update the state.json file."""
         if filepath is None:
             filepath = os.path.join(self.config_dir, "state.json")
 
@@ -521,6 +557,7 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         return pn.pane.Alert(f"Cannot find Flow with node ID: {flow_id}", alert_type="danger")
 
     def serve(self, **serve_kwargs):
+        """Start the webserver."""
         from abipy.panels.core import abipanel #, get_abinit_template_cls_kwds, AbipyParameterized
         self.panel_template = serve_kwargs.pop("panel_template", "FastList")
         abipanel(panel_template=self.panel_template)
@@ -548,7 +585,7 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         #termcolor.enable(False)
 
         # Register function atexit to update the state.js if the worker gets killed.
-        # Note that the callback wont' be executed if we receive SIGKILL (kill -9)
+        # Note that the callback won't be executed if we receive SIGKILL (kill -9)
         # or if an exception is raised in write_state_file or in other registered callbacks.
         import atexit
         atexit.register(self.write_state_file)
@@ -892,17 +929,6 @@ class WorkerClient(MSONable):
         import webbrowser
         webbrowser.open_new_tab(url)
 
-    #def open_mongo_gui(self):
-    #    mongo_connector = self.worker_state.mongo_connector
-    #    if mongo_connector is None:
-    #        raise ValueError("Abipy Worker {self.name} has no MongoDB connector.")
-    #    if self.is_remote_worker and mongo_connector.host == "localhost":
-    #        raise ValueError("Remote AbiPy worker with localhost as MongoDB server.")
-    #    collection = mongo_connector.get_collection()
-
-    #    app = mongo_gui(mongo_connector, self.worker_state.flow_model)
-    #    app.serve()
-
 
 class WorkerClients(list, MSONable):
 
@@ -1034,6 +1060,9 @@ to create it""")
     #    self.write_json_file()
 
     def get_dataframe(self) -> pd.DataFrame:
+        """
+        Return Dataframe with Worker states.
+        """
 
         #keys = ["is_default_worker", "timeout", "is_local_worker", "ssh_destination",
         #         "local_port", "name",  "status", "pid", "address",  "port scratch_dir",
@@ -1056,10 +1085,15 @@ to create it""")
         print_dataframe(self.get_dataframe(), title="\nAbiPy Worker Clients:\n")
 
     def get_all_worker_names(self) -> List[str]:
+        """List of worker names"""
         return [client.worker_state.name for client in self]
 
     def select_from_worker_name(self, worker_name: str,
                                 allow_none=False) -> Union[WorkerClient, None]:
+        """
+        Select and return a WorkerClient from its name.
+        Return None if name is not found and allow_none is True else raises ValueError.
+        """
         if worker_name is None:
             # If there are n > 1 workers, a default must be set by the user.
             for client in self:
@@ -1079,6 +1113,9 @@ to create it""")
                          f"\t{self.get_all_worker_names()}\n")
 
     def set_default(self, worker_name: str) -> None:
+        """
+        Set the Client with `worker_name` as the default one.
+        """
         the_one = self.select_from_worker_name(worker_name, allow_none=False)
         for client in self:
             client.is_default_worker = False

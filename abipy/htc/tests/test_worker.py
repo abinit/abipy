@@ -19,7 +19,8 @@ class TestWorker(AbipyTest):
                                            scratch_dir="/tmp",
                                            scheduler_path=None,
                                            manager_path=None,
-                                           mongo_connector=None, verbose=1)
+                                           mongo_connector=None,
+                                           verbose=1)
         assert repr(worker)
         assert str(worker)
         assert isinstance(worker.manager, TaskManager)

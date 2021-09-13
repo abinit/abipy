@@ -4,10 +4,10 @@ from __future__ import annotations
 from pydantic import Field
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.ebands import ElectronBands
-from .base_models import AbipyBaseModel
+from .base_models import AbipyModel
 
 
-class GsData(AbipyBaseModel):
+class GsData(AbipyModel):
     """
     Ground-state results: energy, forces, stress tensor, Fermi level, band gaps.
     """

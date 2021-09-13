@@ -1,4 +1,6 @@
-"""Tests for abipy.htc.tools module"""
+"""
+Tests for abipy.htc.tools module
+"""
 
 from abipy.core.testing import AbipyTest
 from abipy.htc.tools import find_free_port, port_is_open, pid_exists
@@ -6,11 +8,11 @@ from abipy.htc.tools import find_free_port, port_is_open, pid_exists
 
 class TestTools(AbipyTest):
 
-    #def test_port_tools(self):
-    #    """Testing port tools."""
-    #    free_port = find_free_port()
-    #    assert free_port > 0
-    #    assert port_is_open(free_port)
+    def test_port_tools(self):
+        """Testing port tools."""
+        free_port = find_free_port()
+        assert free_port > 0
+        assert not port_is_open(free_port)
 
     def test_pid_tools(self):
         """Testing pid tools."""
@@ -21,6 +23,3 @@ class TestTools(AbipyTest):
         #process.kill()
         process.wait()
         assert not pid_exists(process.pid)
-
-    #def test_abipy_worker(self):
-    #    worker = AbipyWorker("foobar_worker", sched_options, scratch_dir="/tmp/")

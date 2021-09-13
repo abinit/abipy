@@ -6,7 +6,7 @@ import panel as pn
 from datetime import datetime
 from enum import Enum
 from abc import ABC, abstractmethod
-from typing import List, Tuple, ClassVar #, Dict, Optional, Any, Type,
+from typing import List, Tuple, ClassVar, Union #, Dict, Optional, Any, Type,
 from pydantic import Field
 from bson.objectid import ObjectId
 from pymongo.collection import Collection
@@ -15,8 +15,8 @@ from pymongo.collection import Collection
 from abipy.abio.inputs import AbinitInput
 from abipy.panels.core import ply
 from abipy.panels.viewers import JSONViewer
-from abipy.flowtk.flows import Flow
-from .base_models import AbipyBaseModel, MongoModel, cls2dict, AbipyDecoder, QueryResults #, AbipyEncoder
+from abipy.flowtk import TaskManager, Flow, PhononFlow
+from .base_models import AbipyModel, MongoModel, cls2dict, AbipyDecoder, QueryResults #, AbipyEncoder
 from .structure_models import StructureData
 from .pseudos_models import PseudoDojoSpecs
 from .gs_models import GsData
@@ -32,7 +32,7 @@ class ExecStatus(str, Enum):
     completed = "Completed"
 
 
-class FlowData(AbipyBaseModel):
+class FlowData(AbipyModel):
 
     exec_status: ExecStatus = ExecStatus.init
 
@@ -76,7 +76,7 @@ class FlowModel(MongoModel, ABC):
     def init_collection(cls, collection: Collection) -> ObjectId:
         new_dict = cls2dict(cls)
 
-        cnt = 0
+        cnt, oid = 0, None
         for doc in collection.find({cls._magic_key: {"$exists": True}}):
             oid = doc.pop("_id")
             old_dict = doc.get(cls._magic_key)
@@ -113,7 +113,7 @@ class FlowModel(MongoModel, ABC):
 
     @classmethod
     def get_subclass_from_collection(cls, collection: Collection) -> FlowModel:
-        cnt = 0
+        cnt, data = 0, None
         for doc in collection.find({cls._magic_key: {"$exists": True}}):
             _ = doc.pop("_id")
             data = doc.get(cls._magic_key)
@@ -128,7 +128,7 @@ class FlowModel(MongoModel, ABC):
         return sub_class
 
     @abstractmethod
-    def build_flow(self, workdir: str, manager):
+    def build_flow(self, workdir: str, manager: TaskManager) -> Flow:
         """
         Return Flow. Must be provided by the subclass
         """
@@ -136,7 +136,7 @@ class FlowModel(MongoModel, ABC):
     def build_flow_and_update_collection(self, workdir: str,
                                          oid: ObjectId,
                                          collection: Collection,
-                                         abipy_worker) -> Flow:
+                                         abipy_worker) -> Union[Flow, None]:
         """
         API used by the AbiPy Worker to build a Flow from the model.
         Wraps build_flow implemented by the subclass.
@@ -165,7 +165,7 @@ class FlowModel(MongoModel, ABC):
             self.mongo_full_update_oid(oid, collection)
 
     @abstractmethod
-    def postprocess_flow(self, flow):
+    def postprocess_flow(self, flow: Flow) -> None:
         """
         Postprocess the Flow. Must be provided by the subclass.
         """
@@ -194,7 +194,7 @@ class FlowModel(MongoModel, ABC):
     def find(cls, query: dict, collection: Collection, **kwargs) -> QueryResults:
         cursor = collection.find(query, **kwargs)
         if cursor is None:
-            return QueryResults.empty_from_query(query, collection)
+            return QueryResults.empty_from_query(query)
 
         oids, models = [], []
         decoder = AbipyDecoder()
@@ -204,7 +204,7 @@ class FlowModel(MongoModel, ABC):
             models.append(cls(**doc))
             oids.append(oid)
 
-        return QueryResults(oids, models, query, collection)
+        return QueryResults(oids, models, query)
 
     @classmethod
     def find_by_spg_number(cls, spg_number: int, collection, **kwargs) -> QueryResults:
@@ -217,7 +217,7 @@ class FlowModel(MongoModel, ABC):
         return cls.find(query, collection, **kwargs)
 
     #@abstractmethod
-    #def get_common_queries(self): -> list:
+    #def get_common_queries(self): -> List[dict]:
     #    """
     #    Return list of MongoDB queries Flow. Used by the GUI
     #    """
@@ -279,7 +279,7 @@ class EbandsFlowModel(FlowModel):
 
     nscf_kmesh_data: GsData = Field(None, description="Results produced by the GS NSCF run.")
 
-    def build_flow(self, workdir: str, manager):
+    def build_flow(self, workdir: str, manager: TaskManager) -> Flow:
         """
         Build an AbiPy Flow using the input data available in the model and return it.
 
@@ -309,7 +309,7 @@ class EbandsFlowModel(FlowModel):
         # TODO: Dos!
         return bandstructure_flow(workdir, self.scf_input, nscf_input, manager=manager)
 
-    def postprocess_flow(self, flow):
+    def postprocess_flow(self, flow: Flow) -> None:
         """
         Analyze the flow and fills the model with output results.
         This function is called by the worker if the flow completed succesfully.
@@ -355,7 +355,7 @@ class EbandsFlowModel(FlowModel):
     #def get_dataframe(self, **kwargs):
 
     @classmethod
-    def get_common_queries(cls) -> list:
+    def get_common_queries(cls) -> List[dict]:
         return [
             {"$and": [
                 {"scf_data.abs_pressure_gpa:": {"$gt": 2}},
@@ -413,7 +413,7 @@ class PhononFlowModel(FlowModel):
 
     phonon_data: PhononData = Field(None, description="Results produced by the GS SCF run.")
 
-    def build_flow(self, workdir, manager):
+    def build_flow(self, workdir, manager: TaskManager) -> PhononFlow:
         """
         Build an AbiPy Flow using the input data available in the model and return it.
 
@@ -438,7 +438,7 @@ class PhononFlowModel(FlowModel):
         # Create flow to compute all the independent atomic perturbations
         # corresponding to a [4, 4, 4] q-mesh.
         # Electric field and Born effective charges are also computed.
-        from abipy.flowtk import PhononFlow
+
         flow = PhononFlow.from_scf_input(workdir, self.scf_input,
                                          ph_ngqpt=(2, 2, 2),
                                          #ph_ngqpt=(4, 4, 4),
@@ -446,7 +446,7 @@ class PhononFlowModel(FlowModel):
                                          with_flexoe=self.with_flexoe, manager=manager)
         return flow
 
-    def postprocess_flow(self, flow):
+    def postprocess_flow(self, flow: PhononFlow) -> None:
         """
         Analyze the flow and fills the model with output results.
         This function is called by the worker if the flow completed succesfully.
@@ -458,7 +458,7 @@ class PhononFlowModel(FlowModel):
             self.phonon_data = PhononData.from_ddb(ddb)
 
     #@classmethod
-    #def get_common_queries(cls) -> list:
+    #def get_common_queries(cls) -> List[dict]:
     #    return [
     #        {"$and": [
     #            {"scf_data.abs_pressure_gpa:": {"$gt": 2}},

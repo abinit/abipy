@@ -340,7 +340,7 @@ class PhononDosTest(AbipyTest):
         phdos = PhononDos(mesh=[1, 2, 3], values=[4, 5, 6])
         assert phdos.mesh.tolist() == [1, 2, 3] and phdos.h == 1 and phdos.values.tolist() == [4, 5, 6]
         repr(phdos); str(phdos)
-        phdos.idos
+        assert phdos.idos
         with self.assertRaises(TypeError):
             PhononDos.as_phdos({}, {})
 
@@ -352,7 +352,7 @@ class PhononDosTest(AbipyTest):
         with open(tmp_path, "wb") as fh:
             pickle.dump(phdos, fh)
         same_phdos = PhononDos.as_phdos(tmp_path)
-        same_phdos == phdos
+        assert same_phdos == phdos
 
         phdos.to_pymatgen()
 

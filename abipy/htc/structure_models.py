@@ -12,7 +12,7 @@ from pydantic import Field
 from pymatgen.core.composition import Composition
 #from pymatgen.core.periodic_table import Element
 from abipy.core.structure import Structure
-from abipy.htc.base_models import AbipyBaseModel
+from abipy.htc.base_models import AbipyModel
 
 
 class CrystalSystem(str, Enum):
@@ -28,7 +28,7 @@ class CrystalSystem(str, Enum):
     cubic = "Cubic"
 
 
-class StructureData(AbipyBaseModel):
+class StructureData(AbipyModel):
     """
     Store structural info set and symmetry metadata.
     """

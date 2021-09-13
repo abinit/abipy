@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import json
 import inspect
-import panel as pn
 
 from typing import List, Any, Type, TypeVar
 from pprint import pprint
@@ -27,7 +26,9 @@ from abipy.electrons.ebands import ElectronBands
 
 
 class AbipyDecoder(MontyDecoder):
-    """Extends MontyDecoder to add support for class decoding."""
+    """
+    Extends MontyDecoder adding support for class decoding.
+    """
 
     def process_decoded(self, d):
 
@@ -41,7 +42,9 @@ class AbipyDecoder(MontyDecoder):
 
 
 class AbipyEncoder(MontyEncoder):
-    """Extends MontyEncoder to add support for class encoding."""
+    """
+    Extends MontyEncoder to add support for class encoding.
+    """
 
     def default(self, o) -> dict:  # pylint: disable=E0202
         if inspect.isclass(o):
@@ -78,13 +81,10 @@ def cls2dict(cls) -> dict:
     return {"@qualname": cls.__qualname__, "@module": cls.__module__}
 
 
-M = TypeVar('M', bound='AbipyBaseModel')
+M = TypeVar('M', bound='AbipyModel')
 
-#from datetime import datetime, timedelta
-#v = datetime.now()
-#s = v.timestamp()
 
-class AbipyBaseModel(BaseModel, MSONable):
+class AbipyModel(BaseModel, MSONable):
     """
     Base class providing tools to serialize Abipy/Pymatgen objects supporting the MSONable protocol.
     """
@@ -152,7 +152,7 @@ class AbipyBaseModel(BaseModel, MSONable):
             fp.write(self.to_json(**kwargs))
 
 
-class MongoConnector(AbipyBaseModel):
+class MongoConnector(AbipyModel):
     """
     Stores the parameters used to connect to the MongoDB server and the name of
     the (default) collection used to perform CRUD operations.
@@ -164,17 +164,20 @@ class MongoConnector(AbipyBaseModel):
 
     db_name: str = Field("abipy", description="Name of the MongoDB database")
 
-    collection_name: str = Field(..., description="Name of the collection")
+    collection_name: str = Field(..., description="Name of the MongoDB collection")
 
-    user: str = Field(None, description="User name for authentication. Default: None")
+    user: str = Field(None, description="User name for authentication")
 
-    password: str = Field(None, description="Password for authentication. Default: None")
+    password: str = Field(None, description="Password for authentication")
 
     # Private attributes
     _client: Any = PrivateAttr(None)
 
     @classmethod
     def for_localhost(cls, collection_name: str, port: int = 27017) -> MongoConnector:
+        """
+        Build connector assuming a MongoDB server running on localhost listening on the default port
+        """
         return cls(host="localhost", port=port, collection_name=collection_name)
 
     def _repr_markdown_(self) -> str:
@@ -235,10 +238,11 @@ class MongoConnector(AbipyBaseModel):
         from abipy.panels.mongo_gui import MongoGui
         abipanel()
         app = MongoGui(self, flow_model).get_app()
+        import panel as pn
         pn.serve(app, **serve_kwargs)
 
 
-class MongoModel(AbipyBaseModel):
+class MongoModel(AbipyModel):
     """
     Provides tiny wrappers around the MongoDB API.
     """
@@ -273,7 +277,7 @@ class MongoModel(AbipyBaseModel):
 
         cursor = collection.find(query, **kwargs)
         if cursor is None:
-            return QueryResults.empty_from_query(query, collection)
+            return QueryResults.empty_from_query(query)
 
         oids, models = [], []
         decoder = AbipyDecoder()
@@ -282,7 +286,7 @@ class MongoModel(AbipyBaseModel):
             data = decoder.process_decoded(data)
             models.append(cls(**data))
 
-        return QueryResults(oids, models, query, collection)
+        return QueryResults(oids, models, query)
 
     def mongo_insert(self, collection: Collection) -> ObjectId:
         """
@@ -342,19 +346,26 @@ def mongo_insert_models(models: List[MongoModel], collection: Collection) -> Lis
 
 class QueryResults:
     """
-    This object performs MongoDB queries in collection, convert dict to models
-    and store the results
+    Stores the results of a MongoDB query.
     """
 
-    def __init__(self, oids, models, query, collection):
+    def __init__(self, oids: List[ObjectId], models: List[AbipyModel], query: dict) -> None:
+        """
+        Args:
+            oids:
+            models:
+            query:
+        """
         self.oids = oids
         self.models = models
         self.query = query
-        self.collection = collection
 
     @classmethod
-    def empty_from_query(cls, query, collection) -> QueryResults:
-        return cls(oids=(), models=(), query=query, collection=collection)
+    def empty_from_query(cls, query: dict) -> QueryResults:
+        """
+        Return an empty QueryResults produced by query.
+        """
+        return cls(oids=[], models=[], query=query)
 
     def __len__(self) -> int:
         return len(self.oids)
