@@ -6,6 +6,7 @@ import os
 import collections
 
 from itertools import chain
+from typing import ClassVar, Optional, List, Union
 from tabulate import tabulate
 
 ####################
@@ -199,7 +200,7 @@ def abipanel(**kwargs):
         raise exc
 
 
-def abifile_subclass_from_filename(filename):
+def abifile_subclass_from_filename(filename: str) -> ClassVar:
     """
     Returns the appropriate class associated to the given filename.
     """
@@ -227,7 +228,7 @@ This is the list of file extensions supported by abiopen:\n\n
     raise ValueError(msg)
 
 
-def dir2abifiles(top, recurse=True):
+def dir2abifiles(top: str, recurse: bool = True) -> dict:
     """
     Analyze the filesystem starting from directory `top` and
     return an ordered dictionary mapping the directory name to the list
@@ -251,7 +252,7 @@ def dir2abifiles(top, recurse=True):
     return collections.OrderedDict([(k, dl[k]) for k in sorted(dl.keys())])
 
 
-def isabifile(filepath):
+def isabifile(filepath: str) -> bool:
     """
     Return True if `filepath` can be opened with ``abiopen``.
     """
@@ -262,7 +263,7 @@ def isabifile(filepath):
         return False
 
 
-def abiopen(filepath):
+def abiopen(filepath: str):
     """
     Factory function that opens any file supported by abipy.
     File type is detected from the extension
@@ -303,7 +304,7 @@ def abiopen(filepath):
     return cls.from_file(filepath)
 
 
-def abirobot(filepaths):
+def abirobot(filepaths: Union[str, List[str]]):
     """
     Factory function to create and return a Robot subclass from a list of filenames
     The Robot subclass is detected from the extension of the first file hence
@@ -348,7 +349,7 @@ def display_structure(obj, **kwargs):
     return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
 
 
-def mjson_load(filepath, **kwargs):
+def mjson_load(filepath: str, **kwargs) -> dict:
     """
     Read JSON file in MSONable format with MontyDecoder. Return dict with python objects.
     """
@@ -358,7 +359,7 @@ def mjson_load(filepath, **kwargs):
         return json.load(fh, cls=MontyDecoder, **kwargs)
 
 
-def mjson_loads(string, **kwargs):
+def mjson_loads(string: str, **kwargs) -> dict:
     """
     Read JSON string in MSONable format with MontyDecoder. Return dict with python objects.
     """
@@ -377,7 +378,7 @@ def mjson_write(d, filepath, **kwargs):
         json.dump(d, fh, cls=MontyEncoder, **kwargs)
 
 
-def software_stack(as_dataframe=False):
+def software_stack(as_dataframe: bool = False):
     """
     Import all the hard dependencies and some optional packages.
     Returns ordered dict: package --> string with version info or pandas dataframe if as_dataframe.
@@ -388,6 +389,7 @@ def software_stack(as_dataframe=False):
     import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml, plotly
 
     from importlib import import_module
+
     def get_version(pkg_name):
         """Return version of package from string."""
         try:
@@ -426,7 +428,7 @@ def software_stack(as_dataframe=False):
     return pd.Series(data=d, name="version").to_frame().rename_axis("Package")
 
 
-def abicheck(verbose=0):
+def abicheck(verbose: int = 0) -> str:
     """
     This function tests if the most important ABINIT executables
     can be found in $PATH and whether the python modules needed
@@ -474,7 +476,7 @@ def abicheck(verbose=0):
     return "\n".join(err_lines)
 
 
-def install_config_files(workdir=None, force_reinstall=False):
+def install_config_files(workdir: Optional[str] = None, force_reinstall: Optional[bool] = False):
     """
     Install pre-defined configuration files for the TaskManager and the Scheduler
     in the workdir directory.

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+#from typing import List
+
 from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field
+
+from pymatgen.io.abinit.pseudos import Pseudo
 
 
 class _PseudosProvider(BaseModel, ABC):
@@ -30,9 +34,7 @@ class PseudoDojoSpecs(_PseudosProvider):
     name: str = Field(..., description="Name of the table")
 
     #version: str = Field(..., description="Version of the table")
-
     #soc_type: str = Field(..., description="Scalar-relativistic or fully-relativistic.")
-
     #xc_type: str
 
     @classmethod

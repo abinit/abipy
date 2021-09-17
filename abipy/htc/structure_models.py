@@ -1,13 +1,12 @@
 """
-Pydantic models storing Structure objects and metadata
+Pydantic models storing Structure objects and associated metadata
 
-Some of these models are inspired to emmet
-or we use names and models that should be compatible.
+Some of these models are inspired to emmet or we try to field names and models that should be compatible.
 """
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Dict, Any
+from typing import Dict, Any  # List,
 from pydantic import Field
 from pymatgen.core.composition import Composition
 #from pymatgen.core.periodic_table import Element
@@ -33,7 +32,14 @@ class StructureData(AbipyModel):
     Store structural info set and symmetry metadata.
     """
 
-    #mpid ? # Optional
+    #mpid: str = Field(None, description="MP identifier")
+    # Optional or in CustomDict?
+
+    #source_id: str  = Field(..., "Identifier e.g. mp-123")
+    #source_type: str = Field(..., "source type e.g. MP for the materials project")
+    #meta: Dict[str, Any] = Field(None)
+
+    #hall:
 
     crystal_system: CrystalSystem = Field(
         None, title="Crystal System", description="The crystal system for this lattice"
@@ -104,8 +110,13 @@ class StructureData(AbipyModel):
 
     structure: Structure = Field(..., description="Abipy Structure object.")
 
+    #custom_dict: Dict[str, Any] = Field(None, description="")
+
     @classmethod
     def from_structure(cls, structure: Structure) -> StructureData:
+        """
+        Initialize the model from a Structure.
+        """
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer, spglib
 
         #symprec = SETTINGS.SYMPREC
@@ -146,14 +157,15 @@ class StructureData(AbipyModel):
             #"symmetry": symmetry,
         }
 
-        structure = Structure.as_structure(structure) #.copy()
+        structure = Structure.as_structure(structure)  #.copy()
         symmetry.update(data)
 
         return cls(structure=structure, **symmetry)
 
     def get_title(self) -> str:
+        """Return string with metadata. Useful when creating views"""
         return f"Structure: {self.formula_pretty}, {self.spg_symbol} ({self.spg_number}), " + \
                f"{self.crystal_system}, natom: {self.nsites}"
 
-    #def get_view(self):
+    #def get_panel_view(self):
     #    return

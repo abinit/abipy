@@ -4,6 +4,7 @@ Base pydantic models used by Abipy.
 from __future__ import annotations
 
 import json
+import os
 import inspect
 
 from typing import List, Any, Type, TypeVar
@@ -48,7 +49,6 @@ class AbipyEncoder(MontyEncoder):
 
     def default(self, o) -> dict:  # pylint: disable=E0202
         if inspect.isclass(o):
-            #print("isclass", o)
             return cls2dict(o)
 
         return super().default(o)
@@ -151,6 +151,10 @@ class AbipyModel(BaseModel, MSONable):
             #fp.write(self.json(**kwargs))
             fp.write(self.to_json(**kwargs))
 
+    #@abstractmethod
+    #def get_panel_view(self):
+    #    """Return panel object with a view of the model"""
+
 
 class MongoConnector(AbipyModel):
     """
@@ -181,6 +185,7 @@ class MongoConnector(AbipyModel):
         return cls(host="localhost", port=port, collection_name=collection_name)
 
     def _repr_markdown_(self) -> str:
+        """Markdown representation."""
         return f"""
 
 ## MongoConnector
@@ -192,6 +197,10 @@ class MongoConnector(AbipyModel):
 - User: {self.user}
 
 """
+
+    #def get_panel_view(self):
+    #    import panel as pn
+    #    return pn.pane.HTML(self._repr_markdown_())
 
     def get_client(self) -> MongoClient:
         """
@@ -219,7 +228,7 @@ class MongoConnector(AbipyModel):
 
     def get_collection(self, collection_name: str = None) -> Collection:
         """
-        Returns MongoDB collection
+        Returns MongoDB collection from its name.
         """
         client = self.get_client()
         db = client[self.db_name]
@@ -273,8 +282,10 @@ class MongoModel(AbipyModel):
         return cls(**data)
 
     @classmethod
-    def mongo_find(cls, query: dict, collection: Collection, **kwargs):
-
+    def mongo_find(cls, query: dict, collection: Collection, **kwargs) -> QueryResults:
+        """
+        Find the models in the collection matching the mongodb query.
+        """
         cursor = collection.find(query, **kwargs)
         if cursor is None:
             return QueryResults.empty_from_query(query)
@@ -298,8 +309,9 @@ class MongoModel(AbipyModel):
 
     def mongo_full_update_oid(self, oid: ObjectId, collection: Collection) -> None:
         """
-        Perform a full update of the model given the ObjectId in the collection.
+        Perform a full update of the document given the ObjectId in the collection.
         """
+        # TODO: Implement Atomic transaction
         old_doc = collection.find_one({'_id': oid})
         if old_doc is None:
             raise RuntimeError(f"Cannot find document with ObjectId: {oid}")
@@ -324,24 +336,34 @@ class MongoModel(AbipyModel):
         #    upsert=False
         # )
 
-    #def write_backup_oid_collection_name(self, oid, collection_name):
-    #    bkp_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "bkk_models")
-    #    if not os.path.isdir(bkp_dir): os.mkdir(bkp_dir)
-    #    filename = f"{collection_name}_{str(oid)}"
-    #    with open(os.path.join(bkp_dir, filename), "wt") as fp:
-    #        fp.write(self.json())
+    def backup_oid_collection_name(self, oid: ObjectId, collection_name: str) -> str:
+        """
+        Write a backup file in the abipy HOME directory. Return path to the file.
 
-    #@classmethod
-    #def read_backup_oid_collection_name(cls, oid, collection_name):
-    #    bkp_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "bkk_models")
-    #    filepath = os.path.join(bkp_dir, f"{collection_name}_{str(oid)}")
-    #    return cls.from_json_file(filepath), filepath
+        Useful if the MongoDB server goes down and the AbipyWorker needs
+        to save the results somewhere on the filesystem.
+        """
+        bkp_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "bkk_models")
+        if not os.path.isdir(bkp_dir): os.mkdir(bkp_dir)
+        filename = f"{collection_name}_{str(oid)}"
+        filepath = os.path.join(bkp_dir, filename)
+        with open(filepath, "wt") as fp:
+            fp.write(self.json())
+            return filepath
+
+#def read_backup_oid_collection_name(cls, oid, collection_name):
+#    bkp_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "bkk_models")
+#    filepath = os.path.join(bkp_dir, f"{collection_name}_{str(oid)}")
+#    if not os.path.exists(filepath):
+#    return cls.from_json_file(filepath)
 
 
 def mongo_insert_models(models: List[MongoModel], collection: Collection) -> List[ObjectId]:
+    """
+    Insert list of models in a collection. Return list of objectid
+    """
     docs = [json.loads(model.json()) for model in models]
-    r = collection.insert_many(docs)
-    return r.inserted_ids
+    return collection.insert_many(docs).inserted_ids
 
 
 class QueryResults:

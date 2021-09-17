@@ -2,22 +2,25 @@
 from __future__ import annotations
 
 from pydantic import Field
-from .base_models import AbipyModel
 from abipy.dfpt.ddb import DdbFile
+from .base_models import AbipyModel
 
 
 class PhononData(AbipyModel):
 
-    ddb_string: str = Field(..., description="DDB string")
+    ddb_string: str = Field(..., description="String with the content of the DDB file")
 
-    #min_phfreq_ev: float = Field(..., description="DDB string")
-    #max_phfreq_ev: float = Field(..., description="DDB string")
+    #min_phfreq_ev: float = Field(..., description="Minimum phonon frequency in eV. Includes 'negative' values")
+    #max_phfreq_ev: float = Field(..., description="Maximum phonon frequency in eV.")
 
     #phbands: PhononBands = Field(..., description="DDB string")
     #phdos: PhononDos = Field(..., description="DDB string")
 
     @classmethod
     def from_ddb(cls, ddb: DdbFile) -> PhononData:
+        """
+        Build the model from a DdbFile.
+        """
         kwargs = dict(
             ddb_string=ddb.get_string(),
         )

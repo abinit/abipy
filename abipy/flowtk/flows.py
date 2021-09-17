@@ -1588,20 +1588,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     def get_results(self, **kwargs):
         results = self.Results.from_node(self)
-        results.update(self.get_dict_for_mongodb_queries())
         return results
-
-    def get_dict_for_mongodb_queries(self):
-        """
-        This function returns a dictionary with the attributes that will be
-        put in the mongodb document to facilitate the query.
-        Subclasses may want to replace or extend the default behaviour.
-        """
-        d = {}
-        return d
-        # TODO
-        all_structures = [task.input.structure for task in self.iflat_tasks()]
-        all_pseudos = [task.input.pseudos for task in self.iflat_tasks()]
 
     def look_before_you_leap(self):
         """
@@ -1807,7 +1794,7 @@ class Flow(Node, NodeContainer, MSONable):
             except Exception as exc:
                 s = str(exc)
 
-            count = 0 # count > 0 means we found some useful info that could explain the failures.
+            count = 0  # count > 0 means we found some useful info that could explain the failures.
             if s is not None:
                 cprint(s, color="red", file=stream)
                 count += 1
@@ -2281,15 +2268,6 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             return 1
 
         self.finalized = True
-
-        #if self.has_db:
-        #    self.history.info("Saving results in database.")
-        #    try:
-        #        self.flow.db_insert()
-        #        self.finalized = True
-        #    except Exception:
-        #        self.history.critical("MongoDb insertion failed.")
-        #        return 2
 
         # Here we remove the big output files if we have the garbage collector
         # and the policy is set to "flow."

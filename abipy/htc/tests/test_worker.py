@@ -5,6 +5,7 @@ from abipy.core.testing import AbipyTest
 from abipy.flowtk import TaskManager
 from abipy.htc.worker import AbipyWorker, WorkerState, WorkerClient, WorkerClients, ABIPY_DIRPATH
 
+
 class TestWorker(AbipyTest):
 
     def test_worker_api(self):
@@ -52,3 +53,6 @@ class TestWorker(AbipyTest):
         same_c = WorkerClient.from_dict(d)
         assert same_c.worker_state.name == c.worker_state.name
         c.check_server_url()
+
+        #c.get_json_status()
+        #assert c.ssh_destination == ""
