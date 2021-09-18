@@ -9,14 +9,13 @@ import abc
 import warnings
 import json
 import posixpath
-from urllib.parse import urlsplit
 import urllib.request
 import tempfile
 import shutil
 import hashlib
-#from pprint import pprint #, pformat
 
 from typing import List
+from urllib.parse import urlsplit
 
 
 #__version__ = "0.4.0"
@@ -127,38 +126,33 @@ def pprint_rows(rows: list, out=sys.stdout, rstrip: bool = False) -> None:
         out.write("\n")
 
 
-NC_TYPES = {"ONCVPSP"}
+class Repo(abc.ABC):
 
-PAW_TYPES = {"ATOMPAW"}
-
-
-class Table(abc.ABC):
-
-    def __init__(self, pp_gen: str, xc_name: str, relativity_type: str, table_name: str,
-                 version: str, tid: int, url: str):
+    def __init__(self, pp_generator: str, xc_name: str, relativity_type: str, project_name: str,
+                 version: str, rid: int, url: str):
 
         if relativity_type not in {"SR", "FR"}:
             raise ValueError(f"Invalid relativity_type: {relativity_type}")
 
-        self.pp_gen = pp_gen
+        self.pp_generator = pp_generator
         self.xc_name = xc_name
         self.version = version
-        self.table_name = table_name
+        self.project_name = project_name
         self.relativity_type = relativity_type
-        self.tid = tid
+        self.rid = rid
         self.url = url
 
     def to_rowdict(self, abipp_home: str, verbose: int = 0) -> dict:
         row = dict(
-            pp_gen=self.pp_gen,
+            pp_generator=self.pp_generator,
             pp_type=self.pp_type,
             xc_name=self.xc_name,
             relativity_type=self.relativity_type,
-            table_name=self.table_name,
+            project_name=self.project_name,
             version=self.version,
             installed=str(self.is_installed(abipp_home)),
             dirname=self.dirname,
-            table_id=str(self.tid),
+            repo_id=str(self.rid),
         )
 
         if verbose:
@@ -171,20 +165,20 @@ class Table(abc.ABC):
         if self.isnc:
             # ONCVPSP-PBEsol-PDv0.4/
             # ONCVPSP-PBE-FR-PDv0.4/
-            return f"{self.pp_gen}-{self.xc_name}-{self.relativity_type}-{self.table_name}v{self.version}"
+            return f"{self.pp_generator}-{self.xc_name}-{self.relativity_type}-{self.project_name}v{self.version}"
         elif self.ispaw:
             # ATOMPAW-LDA-JTHv0.4
-            return f"{self.pp_gen}-{self.xc_name}-{self.table_name}v{self.version}"
+            return f"{self.pp_generator}-{self.xc_name}-{self.project_name}v{self.version}"
         else:
-            raise ValueError(f"Invalid pp_gen: {self.pp_gen}")
+            raise ValueError(f"Invalid pp_generator: {self.pp_generator}")
 
     @classmethod
-    def from_dirpath(cls, dirpath: str) -> Table:
+    def from_dirpath(cls, dirpath: str) -> Repo:
+        """Return a Repo for the installation directory."""
         dirname = os.path.basename(dirpath)
-
-        for table in ALL_TABLES:
-            if table.dirname == dirname:
-                return table
+        for repo in ALL_REPOS:
+            if repo.dirname == dirname:
+                return repo
 
         raise ValueError(f"Cannot find `{dirname}` in the list of registered Tables!")
 
@@ -201,25 +195,25 @@ class Table(abc.ABC):
 
     @property
     def isnc(self) -> bool:
-        """True if norm-conserving table."""
+        """True if norm-conserving repo."""
         return self.pp_type == "NC"
 
     @property
     def ispaw(self) -> bool:
-        """True if PAW table."""
+        """True if PAW repo."""
         return self.pp_type == "PAW"
 
     def is_installed(self, abipp_home: str) -> bool:
-        """True if the table is already installed in abipp_home."""
+        """True if the repo is already installed in abipp_home."""
         return os.path.exists(os.path.join(abipp_home, self.dirname))
 
     def install(self, abipp_home: str, verbose: int) -> None:
         """
-        Install the table in the standard location relative to the `abipp_home` directory.
+        Install the repo in the standard location relative to the `abipp_home` directory.
         """
         save_dirpath = os.path.join(abipp_home, self.dirname)
         print(f"Installing {repr(self)} in {save_dirpath} directory")
-        print(f"Downloading table from: {self.url} ...")
+        print(f"Downloading repo from: {self.url} ...")
         start = time.time()
         download_url(self.url, save_dirpath, verbose=verbose)
         self.validate_checksums(abipp_home, verbose)
@@ -234,24 +228,28 @@ class Table(abc.ABC):
     def pp_type(self) -> str:
         """Pseudopotential type e.g. NC or PAW"""
 
+    #@abc.abstractmethod
+    #def build_pseudotable(self, accuracy: str):
 
-class OncvpspTable(Table):
+
+
+class OncvpspRepo(Repo):
 
     @classmethod
-    def from_github(cls, xc_name: str, relativity_type: str, tid: int, version: str) -> OncvpspTable:
-        pp_gen, table_name = "ONCVPSP", "PD"
+    def from_github(cls, xc_name: str, relativity_type: str, rid: int, version: str) -> OncvpspRepo:
+        pp_generator, project_name = "ONCVPSP", "PD"
 
         if relativity_type == "FR":
             # https://github.com/PseudoDojo/ONCVPSP-PBE-FR-PDv0.4/archive/refs/heads/master.zip
-            repo_name = f"{pp_gen}-{xc_name}-FR-{table_name}v{version}"
+            sub_url = f"{pp_generator}-{xc_name}-FR-{project_name}v{version}"
         elif relativity_type == "SR":
             # https://github.com/PseudoDojo/ONCVPSP-PBE-PDv0.4/archive/refs/heads/master.zip
-            repo_name = f"{pp_gen}-{xc_name}-{table_name}v{version}"
+            sub_url = f"{pp_generator}-{xc_name}-{project_name}v{version}"
         else:
             raise ValueError(f"Invalid relativity_type {relativity_type}")
 
-        url = f"https://github.com/PseudoDojo/{repo_name}/archive/refs/heads/master.zip"
-        return cls(pp_gen, xc_name, relativity_type, table_name, version, tid, url)
+        url = f"https://github.com/PseudoDojo/{sub_url}/archive/refs/heads/master.zip"
+        return cls(pp_generator, xc_name, relativity_type, project_name, version, rid, url)
 
     @property
     def pp_type(self) -> str:
@@ -264,16 +262,16 @@ class OncvpspTable(Table):
 
         seen = set()
         errors = []
-        for path in djson_paths:
-            with open(path, "rt") as fh:
+        for djson_path in djson_paths:
+            with open(djson_path, "rt") as fh:
                 djson = json.load(fh)
 
             for symbol, d in djson["pseudos_metadata"].items():
-                pname = d["basename"]
-                if pname in seen: continue
-                seen.add(pname)
+                bname = d["basename"]
+                if bname in seen: continue
+                seen.add(bname)
                 ref_md5 = d["md5"]
-                this_path = os.path.join(dirpath, symbol, pname)
+                this_path = os.path.join(dirpath, symbol, bname)
                 this_md5 = md5_for_filepath(this_path)
                 if ref_md5 != this_md5:
                     errors.append(f"Different md5 checksums for {this_path}")
@@ -289,16 +287,29 @@ class OncvpspTable(Table):
         else:
             print("Checksum test: OK")
 
+    def build_pseudotable(self, abipp_home: str, accuracy: str):
+        from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
+        dirpath = os.path.join(abipp_home, self.dirname)
+        djson_path = os.path.join(dirpath, f"{accuracy}.djson")
+        with open(djson_path, "rt") as fh:
+            djson = json.load(fh)
+            for symbol, d in djson["pseudos_metadata"].items():
+                bname = d["basename"]
+                pseudo_path = os.path.join(dirpath, symbol, bname)
+                pseudo = Pseudo.from_file(pseudo_path)
 
-class JthTable(Table):
+        #return PseudoTable
+
+
+class JthRepo(Repo):
 
     @classmethod
-    def from_abinit_website(cls, xc_name: str, relativity_type: str, tid: int, version: str) -> JthTable:
-        pp_gen, table_name = "ATOMPAW", "JTH"
+    def from_abinit_website(cls, xc_name: str, relativity_type: str, rid: int, version: str) -> JthRepo:
+        pp_generator, project_name = "ATOMPAW", "JTH"
         # https://www.abinit.org/ATOMICDATA/JTH-LDA-atomicdata.tar.gz
         # ATOMPAW-LDA-JTHv0.4
         url = f"https://www.abinit.org/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
-        return cls(pp_gen, xc_name, relativity_type, table_name, version, tid, url)
+        return cls(pp_generator, xc_name, relativity_type, project_name, version, rid, url)
 
     @property
     def pp_type(self) -> str:
@@ -306,19 +317,24 @@ class JthTable(Table):
 
     def validate_checksums(self, abipp_home: str, verbose: int) -> None:
         print(f"\nValidating checksums of {repr(self)} ...")
-        print("WARNING: JTH-PAW table does not support md5 checksums!!!!!!!!!!")
+        print("WARNING: JTH-PAW repo does not support md5 checksums!!!!!!!!!!")
 
 
-def table_from_id_list(id_list: list) -> List[Table]:
+def repos_from_id_list(id_list: list) -> List[Repo]:
+    """
+    Return list of PP Repos from list of table identifiers.
+    """
     ids = sorted(set([int(i) for i in id_list]))
-    return [table for table in ALL_TABLES if table.tid in ids]
+    id2repo = {repo.rid: repo for repo in ALL_REPOS}
+    return [id2repo[rid] for rid in ids]   # This will fail if we have received an invalid id.
 
 
-def pprint_tables(tables: List[Table], abipp_home: str, out=sys.stdout, rstrip: bool = False, verbose: int = 0) -> None:
+def pprint_repos(repos: List[Repo], abipp_home: str, out=sys.stdout,
+                 rstrip: bool = False, verbose: int = 0) -> None:
 
     rows = None
-    for i, table in enumerate(tables):
-        d = table.to_rowdict(abipp_home, verbose=verbose)
+    for i, repo in enumerate(repos):
+        d = repo.to_rowdict(abipp_home, verbose=verbose)
         if i == 0:
             rows = [list(d.keys())]
         rows.append(list(d.values()))
@@ -326,28 +342,28 @@ def pprint_tables(tables: List[Table], abipp_home: str, out=sys.stdout, rstrip: 
     pprint_rows(rows, out=out, rstrip=rstrip)
 
 
-mk_onct = OncvpspTable.from_github
+mk_onc = OncvpspRepo.from_github
 
-ONCVPSP_TABLES = [
-    mk_onct(xc_name="PBEsol", relativity_type="SR", version="0.4", tid=1),
-    mk_onct(xc_name="PBEsol", relativity_type="FR", version="0.4", tid=2),
-    mk_onct(xc_name="PBE", relativity_type="SR", version="0.4", tid=3),
-    mk_onct(xc_name="PBE", relativity_type="FR", version="0.4", tid=4),
+ONCVPSP_REPOS = [
+    mk_onc(xc_name="PBEsol", relativity_type="SR", version="0.4", rid=1),
+    mk_onc(xc_name="PBEsol", relativity_type="FR", version="0.4", rid=2),
+    mk_onc(xc_name="PBE", relativity_type="SR", version="0.4", rid=3),
+    #mk_onc(xc_name="PBE", relativity_type="FR", version="0.4", rid=4),  FIXME: checksum fails
 ]
 
-mk_jth = JthTable.from_abinit_website
+mk_jth = JthRepo.from_abinit_website
 
-PAW_TABLES = [
-    mk_jth(xc_name="LDA", relativity_type="SR", version="1.1", tid=21),
-    mk_jth(xc_name="PBE", relativity_type="SR", version="1.1", tid=22),
+PAW_REPOS = [
+    mk_jth(xc_name="LDA", relativity_type="SR", version="1.1", rid=21),
+    mk_jth(xc_name="PBE", relativity_type="SR", version="1.1", rid=22),
 ]
 
-ALL_TABLES = ONCVPSP_TABLES + PAW_TABLES
+ALL_REPOS = ONCVPSP_REPOS + PAW_REPOS
 
-# Check for possible mistakes in the IDs.
-_ids = [_table.tid for _table in ALL_TABLES]
+# Check for possible duplications in the IDs.
+_ids = [_repo.rid for _repo in ALL_REPOS]
 if len(set(_ids)) != len(_ids):
-    raise RuntimeError(f"Found duplicated ids in ALL_TABLES:\nids: {_ids}")
+    raise RuntimeError(f"Found duplicated ids in ALL_REPOS:\nids: {_ids}")
 
 
 def get_abipp_home(options) -> str:
@@ -364,29 +380,29 @@ def get_abipp_home(options) -> str:
 
 def abipp_list(options):
     """
-    List installed tables.
+    List all installed pseudopotential repos.
     """
     abipp_home = get_abipp_home(options)
     dirpaths = [os.path.join(abipp_home, name) for name in os.listdir(abipp_home) if
                 os.path.isdir(os.path.join(abipp_home, name))]
 
     if not dirpaths:
-        print("Could not find any table installed in:", abipp_home)
+        print("Could not find any pseudopotential repository installed in:", abipp_home)
         return 0
 
-    print(f"The following tables are installed in {abipp_home}:\n")
-    tables = [Table.from_dirpath(dirpath) for dirpath in dirpaths]
+    print(f"The following repositories are installed in {abipp_home}:\n")
+    repos = [Repo.from_dirpath(dirpath) for dirpath in dirpaths]
     # Keep the list sorted by ID.
-    tables = sorted(tables, key=lambda table: table.tid)
-    pprint_tables(tables, abipp_home=abipp_home)
+    repos = sorted(repos, key=lambda repo: repo.rid)
+    pprint_repos(repos, abipp_home=abipp_home)
 
     if not options.checksums:
         return 0
 
     exc_list = []
-    for table in tables:
+    for repo in repos:
         try:
-            table.validate_checksums(abipp_home, options.verbose)
+            repo.validate_checksums(abipp_home, options.verbose)
         except Exception as exc:
             exc_list.append(exc)
 
@@ -400,31 +416,31 @@ def abipp_list(options):
 
 def abipp_avail(options):
     """
-    Show available tables.
+    Show available repos.
     """
-    print("List of available pseudopotential tables:\n")
+    print("List of available pseudopotential repositories:\n")
     abipp_home = get_abipp_home(options)
-    pprint_tables(ALL_TABLES, abipp_home)
+    pprint_repos(ALL_REPOS, abipp_home)
 
 
 def abipp_nc_get(options):
     """
-    Get NC table. Can choose among three formats: psp8, upf2 and psml.
+    Get NC repo. Can choose among three formats: psp8, upf2 and psml.
     By default we fetch all formats.
     """
     abipp_home = get_abipp_home(options)
-    tables = [table for table in ALL_TABLES if table.isnc and not table.is_installed(abipp_home)]
-    if not tables:
-        print(f"All registered NC tables are already installed in {abipp_home}. Returning")
+    repos = [repo for repo in ALL_REPOS if repo.isnc and not repo.is_installed(abipp_home)]
+    if not repos:
+        print(f"All registered NC repositories are already installed in {abipp_home}. Returning")
         return 0
 
-    print("The following NC tables will be installed:\n")
-    pprint_tables(tables, abipp_home=abipp_home)
+    print("The following NC repositories will be installed:\n")
+    pprint_repos(repos, abipp_home=abipp_home)
     if not options.yes and user_wants_to_abort(): return 2
 
-    print("Fetching NC tables ...")
-    for table in tables:
-        table.install(abipp_home, options.verbose)
+    print("Fetching NC repositories. It may take some time ...")
+    for repo in repos:
+        repo.install(abipp_home, options.verbose)
 
     abipp_list(options)
     return 0
@@ -432,22 +448,21 @@ def abipp_nc_get(options):
 
 def abipp_paw_get(options):
     """
-    Get PAW tables in PAWXML format.
+    Get PAW repositories in PAWXML format.
     """
     abipp_home = get_abipp_home(options)
-    tables = [table for table in ALL_TABLES if table.ispaw and not table.is_installed(abipp_home)]
-    if not tables:
-        print(f"All registered PAW tables are already installed in {abipp_home}. Returning")
+    repos = [repo for repo in ALL_REPOS if repo.ispaw and not repo.is_installed(abipp_home)]
+    if not repos:
+        print(f"All registered PAW repositories are already installed in {abipp_home}. Returning")
         return 0
 
-    print("The following PAW tables will be installed:")
-    pprint_tables(tables, abipp_home=abipp_home)
+    print("The following PAW repositories will be installed:")
+    pprint_repos(repos, abipp_home=abipp_home)
     if not options.yes and user_wants_to_abort(): return 2
 
-    print("Fetching PAW tables ...")
-
-    for table in tables:
-        table.install(abipp_home, options.verbose)
+    print("Fetching PAW repositories. It may take some time ...")
+    for repo in repos:
+        repo.install(abipp_home, options.verbose)
 
     abipp_list(options)
     return 0
@@ -455,24 +470,24 @@ def abipp_paw_get(options):
 
 def abipp_get_byid(options):
     """
-    Get list of tables by their IDs.
-    Use the `avail` command to get the table ID.
+    Get list of repos by their IDs.
+    Use the `avail` command to get the repo ID.
     """
     abipp_home = get_abipp_home(options)
-    tables = table_from_id_list(options.id_list)
-    tables = [table for table in tables if not table.is_installed(abipp_home)]
+    repos = repos_from_id_list(options.id_list)
+    repos = [repo for repo in repos if not repo.is_installed(abipp_home)]
 
-    if not tables:
+    if not repos:
         print("Tables are already installed!")
         abipp_list(options)
         return 1
 
-    print("The following tables will be installed:")
-    pprint_tables(tables, abipp_home=abipp_home)
+    print("The following repositories will be installed:")
+    pprint_repos(repos, abipp_home=abipp_home)
     if not options.yes and user_wants_to_abort(): return 2
 
-    for table in tables:
-        table.install(abipp_home, options.verbose)
+    for repo in repos:
+        repo.install(abipp_home, options.verbose)
 
     abipp_list(options)
     return 0
@@ -486,12 +501,12 @@ def get_epilog():
 
 Usage example:
 
-  abipp.py avail                          --> Show registered tables and the associated IDs.
-  abipp.py list                           --> List installed tables.
-  abipp get_byid 1 3                      --> Download tables by ID(s).          
-  abipp.py nc_get                         --> Get all NC tables (most recent version)
+  abipp.py avail                          --> Show registered repositories and the associated IDs.
+  abipp.py list                           --> List installed repositories.
+  abipp.py get_byid 1 3                   --> Download repositories by ID(s).          
+  abipp.py nc_get                         --> Get all NC repositories (most recent version)
   abipp.py nc_get -xc PBE -fr -sr --version 0.4 
-  abipp.py paw_get                        --> Get all PAW tables (most recent version)
+  abipp.py paw_get                        --> Get all PAW repositories (most recent version)
 """
 
 
@@ -507,7 +522,7 @@ def get_parser(with_epilog=False):
                               help='Installation directory. Default: $HOME/.abinit/pseudos')
 
     copts_parser.add_argument('-y', "--yes", action="store_true", default=False,
-                              help="Do not ask for confirmation when installing tables.")
+                              help="Do not ask for confirmation when installing repositories.")
 
     copts_parser.add_argument("-c", "--checksums", action="store_true", default=False,
                               help="Validate checksums")
@@ -534,7 +549,7 @@ def get_parser(with_epilog=False):
 
     # Subparser for get_byid command.
     p_get_byid = subparsers.add_parser("get_byid", parents=[copts_parser], help=abipp_get_byid.__doc__)
-    p_get_byid.add_argument("id_list", type=int, nargs="+", help="List of Table IDs to download.")
+    p_get_byid.add_argument("id_list", type=int, nargs="+", help="List of PseudoPotential Repo IDs to download.")
 
     return parser
 
@@ -554,9 +569,6 @@ def main():
         options = parser.parse_args()
     except Exception as exc:
         show_examples_and_exit(error_code=1)
-
-    if options.verbose > 2:
-        print(options)
 
     return globals()[f"abipp_{options.command}"](options)
 

@@ -3,9 +3,8 @@ from __future__ import annotations
 #from typing import List
 
 from abc import ABC, abstractmethod
-from pydantic import BaseModel, Field
-
-from pymatgen.io.abinit.pseudos import Pseudo
+from pydantic import BaseModel, Field, validator
+from pymatgen.io.abinit.pseudos import PseudoTable
 
 
 class _PseudosProvider(BaseModel, ABC):
@@ -15,40 +14,58 @@ class _PseudosProvider(BaseModel, ABC):
         """Return PseudoPotential Table."""
 
 
-#class PseudosFromMongoCollection(_PseudosProvider):
-#
-#    #collection_name: str = Field(..., description="Name of the MongoDB collection")
-#    mongo_connector: MongoConnector = Field(..., description="Name of the MongoDB collection")
-#
-#    md5_list = List[str]
-#
-#    def get_pseudos(self):
-#        collection = self.mongo_connector.get_collection()
-#
+#_PSEUDOTABLES_CACHE = {}
+
 
 class PseudoDojoSpecs(_PseudosProvider):
     """
     WIP: Model with the parameters needed to retrieve a PseudoDojo Table
     """
 
-    name: str = Field(..., description="Name of the table")
+    #name: str = Field(..., description="Name of the table")
 
-    #version: str = Field(..., description="Version of the table")
-    #soc_type: str = Field(..., description="Scalar-relativistic or fully-relativistic.")
-    #xc_type: str
+    #abipp_dirname = Field(..., description="Pseudopotential type e.g NC or PAW.")
+
+    #pp_type: str = Field(..., description="Pseudopotential type e.g NC or PAW.")
+    #project_name: str = Field(..., description="Pseudopotential provider e.g. PD for PseudoDojo.")
+    #xc_name: str = Field(..., description="XC name e.g. LDA, PBE, PBEsol...")
+    #relativity_type: str = Field(..., description="Scalar-relativistic (SR) or fully-relativistic (FR)")
+    #accuracy: str = Field(..., description="Accuracy of the table: normal or stringent")
+    #version: str = Field(..., description="Version of the table.")
 
     @classmethod
-    def from_table_name(cls, table_name: str) -> PseudoDojoSpecs:
-        return cls(name=table_name)
+    def from_abipp_dirname(cls, abipp_dirname: str, accuracy: str = "standard") -> PseudoDojoSpecs:
 
-    #from pydantic import ValidationError, validator
-    #@validator('name')
-    #def name_must_contain_space(cls, v):
-    #    if ' ' not in v:
-    #        raise ValueError('must contain a space')
-    #    return v.title()
+        #from repo in ALL_REPOS:
+        #    if repo.dirname == abipp_dirname: break
+        #else:
+        #    raise ValueError(f"Couldn't find {abipp_dirname} in the list of registered repos")
+
+        data = dict()
+        return cls(**data)
+
+    #@validator('accuracy')
+    #def validate_accuracy(cls, value):
+    #    known_accuracies = ("standard", "stringent")
+    #    if value not in known_accuracies:
+    #        raise ValueError(f"{value} not in {known_accuracies}")
+    #    return value
 
     def get_pseudos(self):
         raise NotImplementedError("get_pseudos")
-        #from pseudodojo import ...
-        #return PseudoTable
+        #_PSEUDOTABLES_CACHE = {}
+        #key = (self.abipp_name, self.accuracy)
+        #if  key in _PSEUDOTABLES_CACHE:
+        #    return _PSEUDOTABLES_CACHE[key]
+
+        #repo = Repo.from_dirname(self.abipp_dirname)
+        #if not repo.is_installed(abipp_home):
+        #    repo.install(self.abipp_home, verbose=0)
+
+        #pseudos = repo.build_pseudotable(accuracy=self.accuracy)
+
+        # Build PseudoTable and cache it.
+        #PseudoTable.from_abipp_dirname(self.abipp_dirname)
+        #_PSEUDOTABLES_CACHE[key] = pseudos
+        #return pseudos
+
