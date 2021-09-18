@@ -24,7 +24,7 @@ class PseudoDojoSpecs(_PseudosProvider):
 
     #name: str = Field(..., description="Name of the table")
 
-    #abipp_dirname = Field(..., description="Pseudopotential type e.g NC or PAW.")
+    #abips_dirname = Field(..., description="Pseudopotential type e.g NC or PAW.")
 
     #pp_type: str = Field(..., description="Pseudopotential type e.g NC or PAW.")
     #project_name: str = Field(..., description="Pseudopotential provider e.g. PD for PseudoDojo.")
@@ -34,12 +34,12 @@ class PseudoDojoSpecs(_PseudosProvider):
     #version: str = Field(..., description="Version of the table.")
 
     @classmethod
-    def from_abipp_dirname(cls, abipp_dirname: str, accuracy: str = "standard") -> PseudoDojoSpecs:
+    def from_abips_dirname(cls, abips_dirname: str, accuracy: str = "standard") -> PseudoDojoSpecs:
 
         #from repo in ALL_REPOS:
-        #    if repo.dirname == abipp_dirname: break
+        #    if repo.dirname == abips_dirname: break
         #else:
-        #    raise ValueError(f"Couldn't find {abipp_dirname} in the list of registered repos")
+        #    raise ValueError(f"Couldn't find {abips_dirname} in the list of registered repos")
 
         data = dict()
         return cls(**data)
@@ -54,18 +54,18 @@ class PseudoDojoSpecs(_PseudosProvider):
     def get_pseudos(self):
         raise NotImplementedError("get_pseudos")
         #_PSEUDOTABLES_CACHE = {}
-        #key = (self.abipp_name, self.accuracy)
+        #key = (self.abips_name, self.accuracy)
         #if  key in _PSEUDOTABLES_CACHE:
         #    return _PSEUDOTABLES_CACHE[key]
 
-        #repo = Repo.from_dirname(self.abipp_dirname)
-        #if not repo.is_installed(abipp_home):
-        #    repo.install(self.abipp_home, verbose=0)
+        #repo = Repo.from_dirname(self.abips_dirname)
+        #if not repo.is_installed(abips_home):
+        #    repo.install(self.abips_home, verbose=0)
 
         #pseudos = repo.build_pseudotable(accuracy=self.accuracy)
 
         # Build PseudoTable and cache it.
-        #PseudoTable.from_abipp_dirname(self.abipp_dirname)
+        #PseudoTable.from_abips_dirname(self.abips_dirname)
         #_PSEUDOTABLES_CACHE[key] = pseudos
         #return pseudos
 

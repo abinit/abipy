@@ -6,10 +6,8 @@ import os
 import argparse
 import time
 import abc
-import warnings
 import json
 import posixpath
-import urllib.request
 import tempfile
 import shutil
 import hashlib
@@ -21,56 +19,36 @@ from urllib.parse import urlsplit
 #__version__ = "0.4.0"
 
 # https://stackoverflow.com/questions/9419162/download-returned-zip-file-from-url
-try:
+def download_url(url: str, save_dirpath: str, chunk_size: int = 128, verbose: int = 0) -> None:
+
     import requests
+    path = urlsplit(url).path
+    filename = posixpath.basename(path)
+    #print(path, filename)
 
-    def download_url(url: str, save_dirpath: str, chunk_size: int = 128, verbose: int = 0) -> None:
+    # stream = true is required by the iter_content below
+    with requests.get(url, stream=True) as r:
+        tmp_dir = tempfile.mkdtemp()
+        #with tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None) as tmp_dir:
+        tmp_filepath = os.path.join(tmp_dir, filename)
+        if verbose:
+            print("Writing temporary file:", tmp_filepath)
 
-        path = urlsplit(url).path
-        filename = posixpath.basename(path)
-        #print(path, filename)
+        with open(tmp_filepath, 'wb') as fd:
+            for chunk in r.iter_content(chunk_size=chunk_size):
+                fd.write(chunk)
 
-        # stream = true is required by the iter_content below
-        with requests.get(url, stream=True) as r:
-            tmp_dir = tempfile.mkdtemp()
-            #with tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None) as tmp_dir:
-            tmp_filepath = os.path.join(tmp_dir, filename)
-            if verbose:
-                print("Writing temporary file:", tmp_filepath)
+        shutil.unpack_archive(tmp_filepath, extract_dir=tmp_dir)
 
-            with open(tmp_filepath, 'wb') as fd:
-                for chunk in r.iter_content(chunk_size=chunk_size):
-                    fd.write(chunk)
+        dirpaths = [os.path.join(tmp_dir, basen) for basen in os.listdir(tmp_dir) if basen != filename]
+        if len(dirpaths) != 1:
+            raise RuntimeError(f"Expecting single directory, got {dirpaths}")
+        if not os.path.isdir(dirpaths[0]):
+            raise RuntimeError(f"Expecting single directory, got {dirpaths}")
 
-            shutil.unpack_archive(tmp_filepath, extract_dir=tmp_dir)
-
-            dirpaths = [os.path.join(tmp_dir, basen) for basen in os.listdir(tmp_dir) if basen != filename]
-            if len(dirpaths) != 1:
-                raise RuntimeError(f"Expecting single directory, got {dirpaths}")
-            if not os.path.isdir(dirpaths[0]):
-                raise RuntimeError(f"Expecting single directory, got {dirpaths}")
-
-            if verbose:
-                print(f"Moving {dirpaths[0]} to {save_dirpath}")
-            shutil.move(dirpaths[0], save_dirpath)
-
-
-except ImportError:
-    warnings.warn("""
-Cannot import requests package.
-For performance and reliabilty reasons, it is highly recommended to install the package with e.g.:
-
-    pip install requests --user
-    
-Continuing with urllib.request from python stdlib.
-""")
-
-    import urllib.request
-
-    def download_url(url: str, save_dirpath: str, chunk_size: int = 128, verbose: int = 0) -> None:
-        with urllib.request.urlopen(url) as dl_file:
-            with open(save_dirpath, 'wb') as out_file:
-                out_file.write(dl_file.read())
+        if verbose:
+            print(f"Moving {dirpaths[0]} to {save_dirpath}")
+        shutil.move(dirpaths[0], save_dirpath)
 
 
 def user_wants_to_abort():
@@ -126,15 +104,15 @@ def pprint_rows(rows: list, out=sys.stdout, rstrip: bool = False) -> None:
         out.write("\n")
 
 
-class Repo(abc.ABC):
+class PseudosRepo(abc.ABC):
 
-    def __init__(self, pp_generator: str, xc_name: str, relativity_type: str, project_name: str,
+    def __init__(self, ps_generator: str, xc_name: str, relativity_type: str, project_name: str,
                  version: str, rid: int, url: str):
 
         if relativity_type not in {"SR", "FR"}:
             raise ValueError(f"Invalid relativity_type: {relativity_type}")
 
-        self.pp_generator = pp_generator
+        self.ps_generator = ps_generator
         self.xc_name = xc_name
         self.version = version
         self.project_name = project_name
@@ -142,15 +120,15 @@ class Repo(abc.ABC):
         self.rid = rid
         self.url = url
 
-    def to_rowdict(self, abipp_home: str, verbose: int = 0) -> dict:
+    def to_rowdict(self, repos_root: str, verbose: int = 0) -> dict:
         row = dict(
-            pp_generator=self.pp_generator,
-            pp_type=self.pp_type,
+            ps_generator=self.ps_generator,
+            ps_typs=self.ps_typs,
             xc_name=self.xc_name,
             relativity_type=self.relativity_type,
             project_name=self.project_name,
             version=self.version,
-            installed=str(self.is_installed(abipp_home)),
+            installed=str(self.is_installed(repos_root)),
             dirname=self.dirname,
             repo_id=str(self.rid),
         )
@@ -165,16 +143,16 @@ class Repo(abc.ABC):
         if self.isnc:
             # ONCVPSP-PBEsol-PDv0.4/
             # ONCVPSP-PBE-FR-PDv0.4/
-            return f"{self.pp_generator}-{self.xc_name}-{self.relativity_type}-{self.project_name}v{self.version}"
+            return f"{self.ps_generator}-{self.xc_name}-{self.relativity_type}-{self.project_name}v{self.version}"
         elif self.ispaw:
             # ATOMPAW-LDA-JTHv0.4
-            return f"{self.pp_generator}-{self.xc_name}-{self.project_name}v{self.version}"
+            return f"{self.ps_generator}-{self.xc_name}-{self.project_name}v{self.version}"
         else:
-            raise ValueError(f"Invalid pp_generator: {self.pp_generator}")
+            raise ValueError(f"Invalid ps_generator: {self.ps_generator}")
 
     @classmethod
-    def from_dirpath(cls, dirpath: str) -> Repo:
-        """Return a Repo for the installation directory."""
+    def from_dirpath(cls, dirpath: str) -> PseudosRepo:
+        """Return a PseudosRepo for the installation directory."""
         dirname = os.path.basename(dirpath)
         for repo in ALL_REPOS:
             if repo.dirname == dirname:
@@ -196,68 +174,67 @@ class Repo(abc.ABC):
     @property
     def isnc(self) -> bool:
         """True if norm-conserving repo."""
-        return self.pp_type == "NC"
+        return self.ps_typs == "NC"
 
     @property
     def ispaw(self) -> bool:
         """True if PAW repo."""
-        return self.pp_type == "PAW"
+        return self.ps_typs == "PAW"
 
-    def is_installed(self, abipp_home: str) -> bool:
-        """True if the repo is already installed in abipp_home."""
-        return os.path.exists(os.path.join(abipp_home, self.dirname))
+    def is_installed(self, repos_root: str) -> bool:
+        """True if the repo is already installed in repos_root."""
+        return os.path.exists(os.path.join(repos_root, self.dirname))
 
-    def install(self, abipp_home: str, verbose: int) -> None:
+    def install(self, repos_root: str, verbose: int) -> None:
         """
-        Install the repo in the standard location relative to the `abipp_home` directory.
+        Install the repo in the standard location relative to the `repos_root` directory.
         """
-        save_dirpath = os.path.join(abipp_home, self.dirname)
+        save_dirpath = os.path.join(repos_root, self.dirname)
         print(f"Installing {repr(self)} in {save_dirpath} directory")
         print(f"Downloading repo from: {self.url} ...")
         start = time.time()
         download_url(self.url, save_dirpath, verbose=verbose)
-        self.validate_checksums(abipp_home, verbose)
+        self.validate_checksums(repos_root, verbose)
         print(f"Completed in {time.time() - start:.2f} [s]")
 
     @abc.abstractmethod
-    def validate_checksums(self, abipp_home: str, verbose: int) -> None:
+    def validate_checksums(self, repos_root: str, verbose: int) -> None:
         """Validate checksums after download."""
 
     @property
     @abc.abstractmethod
-    def pp_type(self) -> str:
+    def ps_typs(self) -> str:
         """Pseudopotential type e.g. NC or PAW"""
 
     #@abc.abstractmethod
     #def build_pseudotable(self, accuracy: str):
 
 
-
-class OncvpspRepo(Repo):
+class OncvpspRepo(PseudosRepo):
 
     @classmethod
     def from_github(cls, xc_name: str, relativity_type: str, rid: int, version: str) -> OncvpspRepo:
-        pp_generator, project_name = "ONCVPSP", "PD"
+        ps_generator, project_name = "ONCVPSP", "PD"
 
         if relativity_type == "FR":
             # https://github.com/PseudoDojo/ONCVPSP-PBE-FR-PDv0.4/archive/refs/heads/master.zip
-            sub_url = f"{pp_generator}-{xc_name}-FR-{project_name}v{version}"
+            sub_url = f"{ps_generator}-{xc_name}-FR-{project_name}v{version}"
         elif relativity_type == "SR":
             # https://github.com/PseudoDojo/ONCVPSP-PBE-PDv0.4/archive/refs/heads/master.zip
-            sub_url = f"{pp_generator}-{xc_name}-{project_name}v{version}"
+            sub_url = f"{ps_generator}-{xc_name}-{project_name}v{version}"
         else:
             raise ValueError(f"Invalid relativity_type {relativity_type}")
 
         url = f"https://github.com/PseudoDojo/{sub_url}/archive/refs/heads/master.zip"
-        return cls(pp_generator, xc_name, relativity_type, project_name, version, rid, url)
+        return cls(ps_generator, xc_name, relativity_type, project_name, version, rid, url)
 
     @property
-    def pp_type(self) -> str:
+    def ps_typs(self) -> str:
         return "NC"
 
-    def validate_checksums(self, abipp_home: str, verbose: int) -> None:
+    def validate_checksums(self, repos_root: str, verbose: int) -> None:
         print(f"\nValidating checksums of {repr(self)} ...")
-        dirpath = os.path.join(abipp_home, self.dirname)
+        dirpath = os.path.join(repos_root, self.dirname)
         djson_paths = [os.path.join(dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]
 
         seen = set()
@@ -287,9 +264,9 @@ class OncvpspRepo(Repo):
         else:
             print("Checksum test: OK")
 
-    def build_pseudotable(self, abipp_home: str, accuracy: str):
+    def build_pseudotable(self, repos_root: str, accuracy: str):
         from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
-        dirpath = os.path.join(abipp_home, self.dirname)
+        dirpath = os.path.join(repos_root, self.dirname)
         djson_path = os.path.join(dirpath, f"{accuracy}.djson")
         with open(djson_path, "rt") as fh:
             djson = json.load(fh)
@@ -301,26 +278,26 @@ class OncvpspRepo(Repo):
         #return PseudoTable
 
 
-class JthRepo(Repo):
+class JthRepo(PseudosRepo):
 
     @classmethod
     def from_abinit_website(cls, xc_name: str, relativity_type: str, rid: int, version: str) -> JthRepo:
-        pp_generator, project_name = "ATOMPAW", "JTH"
+        ps_generator, project_name = "ATOMPAW", "JTH"
         # https://www.abinit.org/ATOMICDATA/JTH-LDA-atomicdata.tar.gz
         # ATOMPAW-LDA-JTHv0.4
         url = f"https://www.abinit.org/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
-        return cls(pp_generator, xc_name, relativity_type, project_name, version, rid, url)
+        return cls(ps_generator, xc_name, relativity_type, project_name, version, rid, url)
 
     @property
-    def pp_type(self) -> str:
+    def ps_typs(self) -> str:
         return "PAW"
 
-    def validate_checksums(self, abipp_home: str, verbose: int) -> None:
+    def validate_checksums(self, repos_root: str, verbose: int) -> None:
         print(f"\nValidating checksums of {repr(self)} ...")
         print("WARNING: JTH-PAW repo does not support md5 checksums!!!!!!!!!!")
 
 
-def repos_from_id_list(id_list: list) -> List[Repo]:
+def repos_from_id_list(id_list: list) -> List[PseudosRepo]:
     """
     Return list of PP Repos from list of table identifiers.
     """
@@ -329,12 +306,12 @@ def repos_from_id_list(id_list: list) -> List[Repo]:
     return [id2repo[rid] for rid in ids]   # This will fail if we have received an invalid id.
 
 
-def pprint_repos(repos: List[Repo], abipp_home: str, out=sys.stdout,
+def pprint_repos(repos: List[PseudosRepo], repos_root: str, out=sys.stdout,
                  rstrip: bool = False, verbose: int = 0) -> None:
 
     rows = None
     for i, repo in enumerate(repos):
-        d = repo.to_rowdict(abipp_home, verbose=verbose)
+        d = repo.to_rowdict(repos_root, verbose=verbose)
         if i == 0:
             rows = [list(d.keys())]
         rows.append(list(d.values()))
@@ -366,35 +343,35 @@ if len(set(_ids)) != len(_ids):
     raise RuntimeError(f"Found duplicated ids in ALL_REPOS:\nids: {_ids}")
 
 
-def get_abipp_home(options) -> str:
+def get_repos_root(options) -> str:
     """
     Return the path to the PseudoDojo installation directory.
     Create the directory if needed.
     """
-    abipp_home = options.abipp_home
-    if not os.path.exists(abipp_home):
-        os.mkdir(abipp_home)
+    repos_root = options.repos_root
+    if not os.path.exists(repos_root):
+        os.mkdir(repos_root)
 
-    return abipp_home
+    return repos_root
 
 
-def abipp_list(options):
+def abips_list(options):
     """
     List all installed pseudopotential repos.
     """
-    abipp_home = get_abipp_home(options)
-    dirpaths = [os.path.join(abipp_home, name) for name in os.listdir(abipp_home) if
-                os.path.isdir(os.path.join(abipp_home, name))]
+    repos_root = get_repos_root(options)
+    dirpaths = [os.path.join(repos_root, name) for name in os.listdir(repos_root) if
+                os.path.isdir(os.path.join(repos_root, name))]
 
     if not dirpaths:
-        print("Could not find any pseudopotential repository installed in:", abipp_home)
+        print("Could not find any pseudopotential repository installed in:", repos_root)
         return 0
 
-    print(f"The following repositories are installed in {abipp_home}:\n")
-    repos = [Repo.from_dirpath(dirpath) for dirpath in dirpaths]
+    print(f"The following repositories are installed in {repos_root}:\n")
+    repos = [PseudosRepo.from_dirpath(dirpath) for dirpath in dirpaths]
     # Keep the list sorted by ID.
     repos = sorted(repos, key=lambda repo: repo.rid)
-    pprint_repos(repos, abipp_home=abipp_home)
+    pprint_repos(repos, repos_root=repos_root)
 
     if not options.checksums:
         return 0
@@ -402,7 +379,7 @@ def abipp_list(options):
     exc_list = []
     for repo in repos:
         try:
-            repo.validate_checksums(abipp_home, options.verbose)
+            repo.validate_checksums(repos_root, options.verbose)
         except Exception as exc:
             exc_list.append(exc)
 
@@ -414,86 +391,86 @@ def abipp_list(options):
     return len(exc_list)
 
 
-def abipp_avail(options):
+def abips_avail(options):
     """
     Show available repos.
     """
     print("List of available pseudopotential repositories:\n")
-    abipp_home = get_abipp_home(options)
-    pprint_repos(ALL_REPOS, abipp_home)
+    repos_root = get_repos_root(options)
+    pprint_repos(ALL_REPOS, repos_root)
 
 
-def abipp_nc_get(options):
+def abips_nc_get(options):
     """
     Get NC repo. Can choose among three formats: psp8, upf2 and psml.
     By default we fetch all formats.
     """
-    abipp_home = get_abipp_home(options)
-    repos = [repo for repo in ALL_REPOS if repo.isnc and not repo.is_installed(abipp_home)]
+    repos_root = get_repos_root(options)
+    repos = [repo for repo in ALL_REPOS if repo.isnc and not repo.is_installed(repos_root)]
     if not repos:
-        print(f"All registered NC repositories are already installed in {abipp_home}. Returning")
+        print(f"All registered NC repositories are already installed in {repos_root}. Returning")
         return 0
 
     print("The following NC repositories will be installed:\n")
-    pprint_repos(repos, abipp_home=abipp_home)
+    pprint_repos(repos, repos_root=repos_root)
     if not options.yes and user_wants_to_abort(): return 2
 
     print("Fetching NC repositories. It may take some time ...")
     for repo in repos:
-        repo.install(abipp_home, options.verbose)
+        repo.install(repos_root, options.verbose)
 
-    abipp_list(options)
+    abips_list(options)
     return 0
 
 
-def abipp_paw_get(options):
+def abips_paw_get(options):
     """
     Get PAW repositories in PAWXML format.
     """
-    abipp_home = get_abipp_home(options)
-    repos = [repo for repo in ALL_REPOS if repo.ispaw and not repo.is_installed(abipp_home)]
+    repos_root = get_repos_root(options)
+    repos = [repo for repo in ALL_REPOS if repo.ispaw and not repo.is_installed(repos_root)]
     if not repos:
-        print(f"All registered PAW repositories are already installed in {abipp_home}. Returning")
+        print(f"All registered PAW repositories are already installed in {repos_root}. Returning")
         return 0
 
     print("The following PAW repositories will be installed:")
-    pprint_repos(repos, abipp_home=abipp_home)
+    pprint_repos(repos, repos_root=repos_root)
     if not options.yes and user_wants_to_abort(): return 2
 
     print("Fetching PAW repositories. It may take some time ...")
     for repo in repos:
-        repo.install(abipp_home, options.verbose)
+        repo.install(repos_root, options.verbose)
 
-    abipp_list(options)
+    abips_list(options)
     return 0
 
 
-def abipp_get_byid(options):
+def abips_get_byid(options):
     """
     Get list of repos by their IDs.
     Use the `avail` command to get the repo ID.
     """
-    abipp_home = get_abipp_home(options)
+    repos_root = get_repos_root(options)
     repos = repos_from_id_list(options.id_list)
-    repos = [repo for repo in repos if not repo.is_installed(abipp_home)]
+    repos = [repo for repo in repos if not repo.is_installed(repos_root)]
 
     if not repos:
         print("Tables are already installed!")
-        abipp_list(options)
+        abips_list(options)
         return 1
 
     print("The following repositories will be installed:")
-    pprint_repos(repos, abipp_home=abipp_home)
+    pprint_repos(repos, repos_root=repos_root)
     if not options.yes and user_wants_to_abort(): return 2
 
     for repo in repos:
-        repo.install(abipp_home, options.verbose)
+        repo.install(repos_root, options.verbose)
 
-    abipp_list(options)
+    abips_list(options)
     return 0
 
 
-#def abipp_apropos(options):
+#def abips_apropos(options):
 
 
 def get_epilog():
@@ -501,12 +478,12 @@ def get_epilog():
 
 Usage example:
 
-  abipp.py avail                          --> Show registered repositories and the associated IDs.
-  abipp.py list                           --> List installed repositories.
-  abipp.py get_byid 1 3                   --> Download repositories by ID(s).          
-  abipp.py nc_get                         --> Get all NC repositories (most recent version)
-  abipp.py nc_get -xc PBE -fr -sr --version 0.4 
-  abipp.py paw_get                        --> Get all PAW repositories (most recent version)
+  abips.py avail                          --> Show registered repositories and the associated IDs.
+  abips.py list                           --> List installed repositories.
+  abips.py get_byid 1 3                   --> Download repositories by ID(s).          
+  abips.py nc_get                         --> Get all NC repositories (most recent version)
+  abips.py nc_get -xc PBE -fr -sr --version 0.4 
+  abips.py paw_get                        --> Get all PAW repositories (most recent version)
 """
 
 
@@ -517,7 +494,7 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity.')
 
-    copts_parser.add_argument('--abipp-home', type=str,
+    copts_parser.add_argument('--repos-root', "-r", type=str,
                               default=os.path.expanduser(os.path.join("~", ".abinit", "pseudos")),
                               help='Installation directory. Default: $HOME/.abinit/pseudos')
 
@@ -536,19 +513,19 @@ def get_parser(with_epilog=False):
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for list command.
-    p_list = subparsers.add_parser("list", parents=[copts_parser], help=abipp_list.__doc__)
+    p_list = subparsers.add_parser("list", parents=[copts_parser], help=abips_list.__doc__)
 
     # Subparser for avail command.
-    subparsers.add_parser("avail", parents=[copts_parser], help=abipp_avail.__doc__)
+    subparsers.add_parser("avail", parents=[copts_parser], help=abips_avail.__doc__)
 
     # Subparser for nc_get command.
-    p_nc_get = subparsers.add_parser("nc_get", parents=[copts_parser], help=abipp_nc_get.__doc__)
+    p_nc_get = subparsers.add_parser("nc_get", parents=[copts_parser], help=abips_nc_get.__doc__)
 
     # Subparser for paw_get command.
-    p_paw_get = subparsers.add_parser("paw_get", parents=[copts_parser], help=abipp_paw_get.__doc__)
+    p_paw_get = subparsers.add_parser("paw_get", parents=[copts_parser], help=abips_paw_get.__doc__)
 
     # Subparser for get_byid command.
-    p_get_byid = subparsers.add_parser("get_byid", parents=[copts_parser], help=abipp_get_byid.__doc__)
+    p_get_byid = subparsers.add_parser("get_byid", parents=[copts_parser], help=abips_get_byid.__doc__)
     p_get_byid.add_argument("id_list", type=int, nargs="+", help="List of PseudoPotential Repo IDs to download.")
 
     return parser
@@ -570,7 +547,7 @@ def main():
     except Exception as exc:
         show_examples_and_exit(error_code=1)
 
-    return globals()[f"abipp_{options.command}"](options)
+    return globals()[f"abips_{options.command}"](options)
 
 
 if __name__ == "__main__":
