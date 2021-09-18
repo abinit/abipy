@@ -134,28 +134,30 @@ PAW_TYPES = {"ATOMPAW"}
 
 class Table(abc.ABC):
 
-    def __init__(self, pseudo_type: str, xc_name: str, relativistic_type: str, table_name: str,
+    def __init__(self, pp_gen: str, xc_name: str, relativity_type: str, table_name: str,
                  version: str, tid: int, url: str):
 
-        if relativistic_type not in {"SR", "FR"}:
-            raise ValueError(f"Invalid relativistic_type: {relativistic_type}")
+        if relativity_type not in {"SR", "FR"}:
+            raise ValueError(f"Invalid relativity_type: {relativity_type}")
 
-        self.pseudo_type = pseudo_type
+        self.pp_gen = pp_gen
         self.xc_name = xc_name
         self.version = version
         self.table_name = table_name
-        self.relativistic_type = relativistic_type
+        self.relativity_type = relativity_type
         self.tid = tid
         self.url = url
 
-    def to_rowdict(self, pd_home: str, verbose: int = 0) -> dict:
+    def to_rowdict(self, abipp_home: str, verbose: int = 0) -> dict:
         row = dict(
-            pseudo_type=self.pseudo_type,
+            pp_gen=self.pp_gen,
+            pp_type=self.pp_type,
             xc_name=self.xc_name,
-            version=self.version,
+            relativity_type=self.relativity_type,
             table_name=self.table_name,
-            relativistic_type=self.relativistic_type,
-            installed=str(self.is_installed(pd_home)),
+            version=self.version,
+            installed=str(self.is_installed(abipp_home)),
+            dirname=self.dirname,
             table_id=str(self.tid),
         )
 
@@ -169,12 +171,12 @@ class Table(abc.ABC):
         if self.isnc:
             # ONCVPSP-PBEsol-PDv0.4/
             # ONCVPSP-PBE-FR-PDv0.4/
-            return f"{self.pseudo_type}-{self.xc_name}-{self.relativistic_type}-{self.table_name}v{self.version}"
+            return f"{self.pp_gen}-{self.xc_name}-{self.relativity_type}-{self.table_name}v{self.version}"
         elif self.ispaw:
             # ATOMPAW-LDA-JTHv0.4
-            return f"{self.pseudo_type}-{self.xc_name}-{self.table_name}v{self.version}"
+            return f"{self.pp_gen}-{self.xc_name}-{self.table_name}v{self.version}"
         else:
-            raise ValueError(f"Invalid pseudo_type: {self.pseudo_type}")
+            raise ValueError(f"Invalid pp_gen: {self.pp_gen}")
 
     @classmethod
     def from_dirpath(cls, dirpath: str) -> Table:
@@ -200,56 +202,64 @@ class Table(abc.ABC):
     @property
     def isnc(self) -> bool:
         """True if norm-conserving table."""
-        return self.pseudo_type in NC_TYPES
+        return self.pp_type == "NC"
 
     @property
     def ispaw(self) -> bool:
         """True if PAW table."""
-        return self.pseudo_type in PAW_TYPES
+        return self.pp_type == "PAW"
 
-    def is_installed(self, pd_home: str) -> bool:
-        """True if the table is already installed in pd_home."""
-        return os.path.exists(os.path.join(pd_home, self.dirname))
+    def is_installed(self, abipp_home: str) -> bool:
+        """True if the table is already installed in abipp_home."""
+        return os.path.exists(os.path.join(abipp_home, self.dirname))
 
-    def install(self, pd_home: str, verbose: int) -> None:
+    def install(self, abipp_home: str, verbose: int) -> None:
         """
-        Install the table in the standard location relative to the `pd_home` directory.
+        Install the table in the standard location relative to the `abipp_home` directory.
         """
-        save_dirpath = os.path.join(pd_home, self.dirname)
+        save_dirpath = os.path.join(abipp_home, self.dirname)
         print(f"Installing {repr(self)} in {save_dirpath} directory")
-        #os.mkdir(save_dirpath)
         print(f"Downloading table from: {self.url} ...")
         start = time.time()
         download_url(self.url, save_dirpath, verbose=verbose)
-        self.validate_checksums(pd_home, verbose)
+        self.validate_checksums(abipp_home, verbose)
         print(f"Completed in {time.time() - start:.2f} [s]")
 
     @abc.abstractmethod
-    def validate_checksums(self, pd_home: str, verbose: int) -> None:
+    def validate_checksums(self, abipp_home: str, verbose: int) -> None:
         """Validate checksums after download."""
+
+    @property
+    @abc.abstractmethod
+    def pp_type(self) -> str:
+        """Pseudopotential type e.g. NC or PAW"""
 
 
 class OncvpspTable(Table):
 
     @classmethod
-    def from_github(cls, xc_name: str, relativistic_type: str, tid: int, version: str) -> OncvpspTable:
-        pseudo_type, table_name = "ONCVPSP", "PD"
+    def from_github(cls, xc_name: str, relativity_type: str, tid: int, version: str) -> OncvpspTable:
+        pp_gen, table_name = "ONCVPSP", "PD"
 
-        if relativistic_type == "FR":
+        if relativity_type == "FR":
             # https://github.com/PseudoDojo/ONCVPSP-PBE-FR-PDv0.4/archive/refs/heads/master.zip
-            repo_name = f"{pseudo_type}-{xc_name}-FR-{table_name}v{version}"
-        elif relativistic_type == "SR":
+            repo_name = f"{pp_gen}-{xc_name}-FR-{table_name}v{version}"
+        elif relativity_type == "SR":
             # https://github.com/PseudoDojo/ONCVPSP-PBE-PDv0.4/archive/refs/heads/master.zip
-            repo_name = f"{pseudo_type}-{xc_name}-{table_name}v{version}"
+            repo_name = f"{pp_gen}-{xc_name}-{table_name}v{version}"
         else:
-            raise ValueError(f"Invalid relativistic_type {relativistic_type}")
+            raise ValueError(f"Invalid relativity_type {relativity_type}")
 
         url = f"https://github.com/PseudoDojo/{repo_name}/archive/refs/heads/master.zip"
-        return cls(pseudo_type, xc_name, relativistic_type, table_name, version, tid, url)
+        return cls(pp_gen, xc_name, relativity_type, table_name, version, tid, url)
 
-    def validate_checksums(self, pd_home: str, verbose: int) -> None:
+    @property
+    def pp_type(self) -> str:
+        return "NC"
+
+    def validate_checksums(self, abipp_home: str, verbose: int) -> None:
         print(f"\nValidating checksums of {repr(self)} ...")
-        dirpath = os.path.join(pd_home, self.dirname)
+        dirpath = os.path.join(abipp_home, self.dirname)
         djson_paths = [os.path.join(dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]
 
         seen = set()
@@ -283,14 +293,18 @@ class OncvpspTable(Table):
 class JthTable(Table):
 
     @classmethod
-    def from_abinit_website(cls, xc_name: str, relativistic_type: str, tid: int, version: str) -> JthTable:
-        pseudo_type, table_name = "ATOMPAW", "JTH"
+    def from_abinit_website(cls, xc_name: str, relativity_type: str, tid: int, version: str) -> JthTable:
+        pp_gen, table_name = "ATOMPAW", "JTH"
         # https://www.abinit.org/ATOMICDATA/JTH-LDA-atomicdata.tar.gz
         # ATOMPAW-LDA-JTHv0.4
         url = f"https://www.abinit.org/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
-        return cls(pseudo_type, xc_name, relativistic_type, table_name, version, tid, url)
+        return cls(pp_gen, xc_name, relativity_type, table_name, version, tid, url)
 
-    def validate_checksums(self, pd_home: str, verbose: int):
+    @property
+    def pp_type(self) -> str:
+        return "PAW"
+
+    def validate_checksums(self, abipp_home: str, verbose: int) -> None:
         print(f"\nValidating checksums of {repr(self)} ...")
         print("WARNING: JTH-PAW table does not support md5 checksums!!!!!!!!!!")
 
@@ -300,11 +314,11 @@ def table_from_id_list(id_list: list) -> List[Table]:
     return [table for table in ALL_TABLES if table.tid in ids]
 
 
-def pprint_tables(tables: List[Table], pd_home: str, out=sys.stdout, rstrip: bool = False, verbose: int = 0) -> None:
+def pprint_tables(tables: List[Table], abipp_home: str, out=sys.stdout, rstrip: bool = False, verbose: int = 0) -> None:
 
     rows = None
     for i, table in enumerate(tables):
-        d = table.to_rowdict(pd_home, verbose=verbose)
+        d = table.to_rowdict(abipp_home, verbose=verbose)
         if i == 0:
             rows = [list(d.keys())]
         rows.append(list(d.values()))
@@ -315,56 +329,56 @@ def pprint_tables(tables: List[Table], pd_home: str, out=sys.stdout, rstrip: boo
 mk_onct = OncvpspTable.from_github
 
 ONCVPSP_TABLES = [
-    mk_onct(xc_name="PBEsol", relativistic_type="SR", version="0.4", tid=1),
-    mk_onct(xc_name="PBEsol", relativistic_type="FR", version="0.4", tid=2),
-    mk_onct(xc_name="PBE", relativistic_type="SR", version="0.4", tid=3),
-    mk_onct(xc_name="PBE", relativistic_type="FR", version="0.4", tid=4),
+    mk_onct(xc_name="PBEsol", relativity_type="SR", version="0.4", tid=1),
+    mk_onct(xc_name="PBEsol", relativity_type="FR", version="0.4", tid=2),
+    mk_onct(xc_name="PBE", relativity_type="SR", version="0.4", tid=3),
+    mk_onct(xc_name="PBE", relativity_type="FR", version="0.4", tid=4),
 ]
 
 mk_jth = JthTable.from_abinit_website
 
 PAW_TABLES = [
-    mk_jth(xc_name="LDA", relativistic_type="SR", version="1.1", tid=21),
-    mk_jth(xc_name="PBE", relativistic_type="SR", version="1.1", tid=22),
+    mk_jth(xc_name="LDA", relativity_type="SR", version="1.1", tid=21),
+    mk_jth(xc_name="PBE", relativity_type="SR", version="1.1", tid=22),
 ]
 
 ALL_TABLES = ONCVPSP_TABLES + PAW_TABLES
 
 # Check for possible mistakes in the IDs.
-_ids = [table.tid for table in ALL_TABLES]
+_ids = [_table.tid for _table in ALL_TABLES]
 if len(set(_ids)) != len(_ids):
     raise RuntimeError(f"Found duplicated ids in ALL_TABLES:\nids: {_ids}")
 
 
-def get_pdojo_home(options) -> str:
+def get_abipp_home(options) -> str:
     """
     Return the path to the PseudoDojo installation directory.
     Create the directory if needed.
     """
-    pd_home = options.pd_home
-    if not os.path.exists(pd_home):
-        os.mkdir(pd_home)
+    abipp_home = options.abipp_home
+    if not os.path.exists(abipp_home):
+        os.mkdir(abipp_home)
 
-    return pd_home
+    return abipp_home
 
 
-def pdojo_list(options):
+def abipp_list(options):
     """
     List installed tables.
     """
-    pd_home = get_pdojo_home(options)
-    dirpaths = [os.path.join(pd_home, name) for name in os.listdir(pd_home) if
-                os.path.isdir(os.path.join(pd_home, name))]
+    abipp_home = get_abipp_home(options)
+    dirpaths = [os.path.join(abipp_home, name) for name in os.listdir(abipp_home) if
+                os.path.isdir(os.path.join(abipp_home, name))]
 
     if not dirpaths:
-        print("Could not find any table installed in:", pd_home)
+        print("Could not find any table installed in:", abipp_home)
         return 0
 
-    print(f"The following tables are installed in {pd_home}:\n")
+    print(f"The following tables are installed in {abipp_home}:\n")
     tables = [Table.from_dirpath(dirpath) for dirpath in dirpaths]
     # Keep the list sorted by ID.
     tables = sorted(tables, key=lambda table: table.tid)
-    pprint_tables(tables, pd_home=pd_home)
+    pprint_tables(tables, abipp_home=abipp_home)
 
     if not options.checksums:
         return 0
@@ -372,7 +386,7 @@ def pdojo_list(options):
     exc_list = []
     for table in tables:
         try:
-            table.validate_checksums(pd_home, options.verbose)
+            table.validate_checksums(abipp_home, options.verbose)
         except Exception as exc:
             exc_list.append(exc)
 
@@ -384,88 +398,87 @@ def pdojo_list(options):
     return len(exc_list)
 
 
-def pdojo_avail(options):
+def abipp_avail(options):
     """
     Show available tables.
     """
     print("List of available pseudopotential tables:\n")
-    pd_home = get_pdojo_home(options)
-    pprint_tables(ALL_TABLES, pd_home)
+    abipp_home = get_abipp_home(options)
+    pprint_tables(ALL_TABLES, abipp_home)
 
 
-def pdojo_nc_get(options):
+def abipp_nc_get(options):
     """
     Get NC table. Can choose among three formats: psp8, upf2 and psml.
     By default we fetch all formats.
     """
-    pd_home = get_pdojo_home(options)
-    tables = [table for table in ALL_TABLES if table.isnc and not table.is_installed(pd_home)]
+    abipp_home = get_abipp_home(options)
+    tables = [table for table in ALL_TABLES if table.isnc and not table.is_installed(abipp_home)]
     if not tables:
-        print(f"All registered NC tables are already installed in {pd_home}")
+        print(f"All registered NC tables are already installed in {abipp_home}. Returning")
         return 0
 
     print("The following NC tables will be installed:\n")
-    pprint_tables(tables, pd_home=pd_home)
+    pprint_tables(tables, abipp_home=abipp_home)
     if not options.yes and user_wants_to_abort(): return 2
 
     print("Fetching NC tables ...")
     for table in tables:
-        table.install(pd_home, options.verbose)
+        table.install(abipp_home, options.verbose)
 
-    pdojo_list(options)
+    abipp_list(options)
     return 0
 
 
-def pdojo_paw_get(options):
+def abipp_paw_get(options):
     """
     Get PAW tables in PAWXML format.
     """
-    pd_home = get_pdojo_home(options)
-    tables = [table for table in ALL_TABLES if table.ispaw and not table.is_installed(pd_home)]
+    abipp_home = get_abipp_home(options)
+    tables = [table for table in ALL_TABLES if table.ispaw and not table.is_installed(abipp_home)]
     if not tables:
-        print(f"All registered PAW tables are already installed in {pd_home}")
+        print(f"All registered PAW tables are already installed in {abipp_home}. Returning")
         return 0
 
     print("The following PAW tables will be installed:")
-    pprint_tables(tables, pd_home=pd_home)
+    pprint_tables(tables, abipp_home=abipp_home)
     if not options.yes and user_wants_to_abort(): return 2
 
-    print("Options:", options)
-    print("Fetching NC tables ...")
+    print("Fetching PAW tables ...")
 
     for table in tables:
-        table.install(pd_home, options.verbose)
+        table.install(abipp_home, options.verbose)
 
-    pdojo_list(options)
+    abipp_list(options)
     return 0
 
 
-def pdojo_get_byid(options):
+def abipp_get_byid(options):
     """
     Get list of tables by their IDs.
     Use the `avail` command to get the table ID.
     """
-    pd_home = get_pdojo_home(options)
+    abipp_home = get_abipp_home(options)
     tables = table_from_id_list(options.id_list)
-    tables = [table for table in tables if not table.is_installed(pd_home)]
+    tables = [table for table in tables if not table.is_installed(abipp_home)]
 
     if not tables:
         print("Tables are already installed!")
-        pdojo_list(options)
+        abipp_list(options)
         return 1
 
     print("The following tables will be installed:")
-    pprint_tables(tables, pd_home=pd_home)
+    pprint_tables(tables, abipp_home=abipp_home)
     if not options.yes and user_wants_to_abort(): return 2
 
     for table in tables:
-        table.install(pd_home, options.verbose)
+        table.install(abipp_home, options.verbose)
 
-    pdojo_list(options)
+    abipp_list(options)
     return 0
 
 
-#def pdojo_apropos(options):
+#def abipp_apropos(options):
 
 
 def get_epilog():
@@ -473,12 +486,12 @@ def get_epilog():
 
 Usage example:
 
-  pdojo.py avail                          --> Show registered tables and the associated IDs.
-  pdojo.py list                           --> List installed tables.
-  pdojo get_byid 1 3                      --> Download tables by ID(s).          
-  pdojo.py nc_get                         --> Get all NC tables (most recent version)
-  pdojo.py nc_get -xc PBE -fr -sr --version 0.4 
-  pdojo.py paw_get                        --> Get all PAW tables (most recent version)
+  abipp.py avail                          --> Show registered tables and the associated IDs.
+  abipp.py list                           --> List installed tables.
+  abipp get_byid 1 3                      --> Download tables by ID(s).          
+  abipp.py nc_get                         --> Get all NC tables (most recent version)
+  abipp.py nc_get -xc PBE -fr -sr --version 0.4 
+  abipp.py paw_get                        --> Get all PAW tables (most recent version)
 """
 
 
@@ -489,12 +502,15 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity.')
 
-    copts_parser.add_argument('--pd-home', type=str,
-                              default=os.path.expanduser(os.path.join("~", ".pseudo_dojo")),
-                              help='Installation directory. Default: $HOME/.pseudo_dojo/')
+    copts_parser.add_argument('--abipp-home', type=str,
+                              default=os.path.expanduser(os.path.join("~", ".abinit", "pseudos")),
+                              help='Installation directory. Default: $HOME/.abinit/pseudos')
 
     copts_parser.add_argument('-y', "--yes", action="store_true", default=False,
                               help="Do not ask for confirmation when installing tables.")
+
+    copts_parser.add_argument("-c", "--checksums", action="store_true", default=False,
+                              help="Validate checksums")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
@@ -505,21 +521,19 @@ def get_parser(with_epilog=False):
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for list command.
-    p_list = subparsers.add_parser("list", parents=[copts_parser], help=pdojo_list.__doc__)
-    p_list.add_argument("-c", "--checksums", action="store_true", default=False,
-                        help="Validate checksums")
+    p_list = subparsers.add_parser("list", parents=[copts_parser], help=abipp_list.__doc__)
 
     # Subparser for avail command.
-    subparsers.add_parser("avail", parents=[copts_parser], help=pdojo_avail.__doc__)
+    subparsers.add_parser("avail", parents=[copts_parser], help=abipp_avail.__doc__)
 
     # Subparser for nc_get command.
-    p_nc_get = subparsers.add_parser("nc_get", parents=[copts_parser], help=pdojo_nc_get.__doc__)
+    p_nc_get = subparsers.add_parser("nc_get", parents=[copts_parser], help=abipp_nc_get.__doc__)
 
     # Subparser for paw_get command.
-    p_paw_get = subparsers.add_parser("paw_get", parents=[copts_parser], help=pdojo_paw_get.__doc__)
+    p_paw_get = subparsers.add_parser("paw_get", parents=[copts_parser], help=abipp_paw_get.__doc__)
 
     # Subparser for get_byid command.
-    p_get_byid = subparsers.add_parser("get_byid", parents=[copts_parser], help=pdojo_get_byid.__doc__)
+    p_get_byid = subparsers.add_parser("get_byid", parents=[copts_parser], help=abipp_get_byid.__doc__)
     p_get_byid.add_argument("id_list", type=int, nargs="+", help="List of Table IDs to download.")
 
     return parser
@@ -544,7 +558,7 @@ def main():
     if options.verbose > 2:
         print(options)
 
-    return globals()[f"pdojo_{options.command}"](options)
+    return globals()[f"abipp_{options.command}"](options)
 
 
 if __name__ == "__main__":
