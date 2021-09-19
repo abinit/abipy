@@ -18,7 +18,7 @@ from abipy.panels.viewers import JSONViewer
 from abipy.flowtk import TaskManager, Flow, PhononFlow
 from .base_models import AbipyModel, MongoModel, cls2dict, AbipyDecoder, QueryResults #, AbipyEncoder
 from .structure_models import StructureData
-from .pseudos_models import PseudoDojoSpecs
+from .pseudos_models import PseudoSpecs
 from .gs_models import GsData
 from .dfpt_models import PhononData
 
@@ -70,7 +70,7 @@ class FlowModel(MongoModel, ABC):
 
     input_structure_data: StructureData = Field(..., description="Input structure.")
 
-    pseudos_specs: PseudoDojoSpecs = Field(..., description="PseudoPotential Table.")
+    pseudos_specs: PseudoSpecs = Field(..., description="PseudoPotential Table.")
 
     # Private class attributes
     _magic_key: ClassVar[str] = "__flow_model__"

@@ -4,51 +4,8 @@ from __future__ import annotations
 import sys
 import os
 import argparse
-import time
-import abc
-import json
-import posixpath
-import tempfile
-import shutil
-import hashlib
 
-from typing import List
-from urllib.parse import urlsplit
-
-
-#__version__ = "0.4.0"
-
-# https://stackoverflow.com/questions/9419162/download-returned-zip-file-from-url
-def download_url(url: str, save_dirpath: str, chunk_size: int = 128, verbose: int = 0) -> None:
-
-    import requests
-    path = urlsplit(url).path
-    filename = posixpath.basename(path)
-    #print(path, filename)
-
-    # stream = true is required by the iter_content below
-    with requests.get(url, stream=True) as r:
-        tmp_dir = tempfile.mkdtemp()
-        #with tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None) as tmp_dir:
-        tmp_filepath = os.path.join(tmp_dir, filename)
-        if verbose:
-            print("Writing temporary file:", tmp_filepath)
-
-        with open(tmp_filepath, 'wb') as fd:
-            for chunk in r.iter_content(chunk_size=chunk_size):
-                fd.write(chunk)
-
-        shutil.unpack_archive(tmp_filepath, extract_dir=tmp_dir)
-
-        dirpaths = [os.path.join(tmp_dir, basen) for basen in os.listdir(tmp_dir) if basen != filename]
-        if len(dirpaths) != 1:
-            raise RuntimeError(f"Expecting single directory, got {dirpaths}")
-        if not os.path.isdir(dirpaths[0]):
-            raise RuntimeError(f"Expecting single directory, got {dirpaths}")
-
-        if verbose:
-            print(f"Moving {dirpaths[0]} to {save_dirpath}")
-        shutil.move(dirpaths[0], save_dirpath)
+from abipy.flowtk.psrepos import ALL_REPOS, PseudosRepo, pprint_repos, repos_from_id_list
 
 
 def user_wants_to_abort():
@@ -59,288 +16,6 @@ def user_wants_to_abort():
         return False
 
     return answer.lower().strip() in ["n", "no"]
-
-
-def md5_for_filepath(filepath: str) -> str:
-    with open(filepath, "rt") as fh:
-        text = fh.read()
-        m = hashlib.md5(text.encode("utf-8"))
-        return m.hexdigest()
-
-
-def pprint_rows(rows: list, out=sys.stdout, rstrip: bool = False) -> None:
-    """
-    Prints out a table of data, padded for alignment
-    Each row must have the same number of columns.
-
-    Args:
-        out:
-            Output stream (file-like object)
-        rows:
-            The table to print. A list of lists.
-        rstrip:
-            if true, trailing withespaces are removed from the entries.
-    """
-    def max_width_col(table, col_idx):
-        """Get the maximum width of the given column index"""
-        return max([len(r[col_idx]) for r in table])
-
-    if rstrip:
-        for row_idx, row in enumerate(rows):
-            rows[row_idx] = [c.rstrip() for c in row]
-
-    col_paddings = []
-    ncols = len(rows[0])
-    for i in range(ncols):
-        col_paddings.append(max_width_col(rows, i))
-
-    for row in rows:
-        # left col
-        out.write( row[0].ljust(col_paddings[0] + 1) )
-        # rest of the cols
-        for i in range(1, len(row)):
-            col = row[i].rjust(col_paddings[i] + 2)
-            out.write(col)
-        out.write("\n")
-
-
-class PseudosRepo(abc.ABC):
-
-    def __init__(self, ps_generator: str, xc_name: str, relativity_type: str, project_name: str,
-                 version: str, rid: int, url: str):
-
-        if relativity_type not in {"SR", "FR"}:
-            raise ValueError(f"Invalid relativity_type: {relativity_type}")
-
-        self.ps_generator = ps_generator
-        self.xc_name = xc_name
-        self.version = version
-        self.project_name = project_name
-        self.relativity_type = relativity_type
-        self.rid = rid
-        self.url = url
-
-    def to_rowdict(self, repos_root: str, verbose: int = 0) -> dict:
-        row = dict(
-            ps_generator=self.ps_generator,
-            ps_typs=self.ps_typs,
-            xc_name=self.xc_name,
-            relativity_type=self.relativity_type,
-            project_name=self.project_name,
-            version=self.version,
-            installed=str(self.is_installed(repos_root)),
-            dirname=self.dirname,
-            repo_id=str(self.rid),
-        )
-
-        if verbose:
-            row.update(url=self.url)
-
-        return row
-
-    @property
-    def dirname(self) -> str:
-        if self.isnc:
-            # ONCVPSP-PBEsol-PDv0.4/
-            # ONCVPSP-PBE-FR-PDv0.4/
-            return f"{self.ps_generator}-{self.xc_name}-{self.relativity_type}-{self.project_name}v{self.version}"
-        elif self.ispaw:
-            # ATOMPAW-LDA-JTHv0.4
-            return f"{self.ps_generator}-{self.xc_name}-{self.project_name}v{self.version}"
-        else:
-            raise ValueError(f"Invalid ps_generator: {self.ps_generator}")
-
-    @classmethod
-    def from_dirpath(cls, dirpath: str) -> PseudosRepo:
-        """Return a PseudosRepo for the installation directory."""
-        dirname = os.path.basename(dirpath)
-        for repo in ALL_REPOS:
-            if repo.dirname == dirname:
-                return repo
-
-        raise ValueError(f"Cannot find `{dirname}` in the list of registered Tables!")
-
-    def __repr__(self) -> str:
-        return self.dirname
-
-    def __str__(self) -> str:
-        lines = [self.dirname]
-        app = lines.append
-        return "\n".join(lines)
-
-    def __eq__(self, other):
-        return self.dirname == other.dirname
-
-    @property
-    def isnc(self) -> bool:
-        """True if norm-conserving repo."""
-        return self.ps_typs == "NC"
-
-    @property
-    def ispaw(self) -> bool:
-        """True if PAW repo."""
-        return self.ps_typs == "PAW"
-
-    def is_installed(self, repos_root: str) -> bool:
-        """True if the repo is already installed in repos_root."""
-        return os.path.exists(os.path.join(repos_root, self.dirname))
-
-    def install(self, repos_root: str, verbose: int) -> None:
-        """
-        Install the repo in the standard location relative to the `repos_root` directory.
-        """
-        save_dirpath = os.path.join(repos_root, self.dirname)
-        print(f"Installing {repr(self)} in {save_dirpath} directory")
-        print(f"Downloading repo from: {self.url} ...")
-        start = time.time()
-        download_url(self.url, save_dirpath, verbose=verbose)
-        self.validate_checksums(repos_root, verbose)
-        print(f"Completed in {time.time() - start:.2f} [s]")
-
-    @abc.abstractmethod
-    def validate_checksums(self, repos_root: str, verbose: int) -> None:
-        """Validate checksums after download."""
-
-    @property
-    @abc.abstractmethod
-    def ps_typs(self) -> str:
-        """Pseudopotential type e.g. NC or PAW"""
-
-    #@abc.abstractmethod
-    #def build_pseudotable(self, accuracy: str):
-
-
-class OncvpspRepo(PseudosRepo):
-
-    @classmethod
-    def from_github(cls, xc_name: str, relativity_type: str, rid: int, version: str) -> OncvpspRepo:
-        ps_generator, project_name = "ONCVPSP", "PD"
-
-        if relativity_type == "FR":
-            # https://github.com/PseudoDojo/ONCVPSP-PBE-FR-PDv0.4/archive/refs/heads/master.zip
-            sub_url = f"{ps_generator}-{xc_name}-FR-{project_name}v{version}"
-        elif relativity_type == "SR":
-            # https://github.com/PseudoDojo/ONCVPSP-PBE-PDv0.4/archive/refs/heads/master.zip
-            sub_url = f"{ps_generator}-{xc_name}-{project_name}v{version}"
-        else:
-            raise ValueError(f"Invalid relativity_type {relativity_type}")
-
-        url = f"https://github.com/PseudoDojo/{sub_url}/archive/refs/heads/master.zip"
-        return cls(ps_generator, xc_name, relativity_type, project_name, version, rid, url)
-
-    @property
-    def ps_typs(self) -> str:
-        return "NC"
-
-    def validate_checksums(self, repos_root: str, verbose: int) -> None:
-        print(f"\nValidating checksums of {repr(self)} ...")
-        dirpath = os.path.join(repos_root, self.dirname)
-        djson_paths = [os.path.join(dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]
-
-        seen = set()
-        errors = []
-        for djson_path in djson_paths:
-            with open(djson_path, "rt") as fh:
-                djson = json.load(fh)
-
-            for symbol, d in djson["pseudos_metadata"].items():
-                bname = d["basename"]
-                if bname in seen: continue
-                seen.add(bname)
-                ref_md5 = d["md5"]
-                this_path = os.path.join(dirpath, symbol, bname)
-                this_md5 = md5_for_filepath(this_path)
-                if ref_md5 != this_md5:
-                    errors.append(f"Different md5 checksums for {this_path}")
-                else:
-                    if verbose:
-                        print(f"MD5 checksum for {this_path} is OK")
-
-        if errors:
-            print("Checksum test: FAILED")
-            errstr = "\n".join(errors)
-            raise ValueError(f"Checksum test failed for the following pseudos:\n{errstr}\n" 
-                             f"Data is corrupted. Try to download {repr(self)} again")
-        else:
-            print("Checksum test: OK")
-
-    def build_pseudotable(self, repos_root: str, accuracy: str):
-        from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
-        dirpath = os.path.join(repos_root, self.dirname)
-        djson_path = os.path.join(dirpath, f"{accuracy}.djson")
-        with open(djson_path, "rt") as fh:
-            djson = json.load(fh)
-            for symbol, d in djson["pseudos_metadata"].items():
-                bname = d["basename"]
-                pseudo_path = os.path.join(dirpath, symbol, bname)
-                pseudo = Pseudo.from_file(pseudo_path)
-
-        #return PseudoTable
-
-
-class JthRepo(PseudosRepo):
-
-    @classmethod
-    def from_abinit_website(cls, xc_name: str, relativity_type: str, rid: int, version: str) -> JthRepo:
-        ps_generator, project_name = "ATOMPAW", "JTH"
-        # https://www.abinit.org/ATOMICDATA/JTH-LDA-atomicdata.tar.gz
-        # ATOMPAW-LDA-JTHv0.4
-        url = f"https://www.abinit.org/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
-        return cls(ps_generator, xc_name, relativity_type, project_name, version, rid, url)
-
-    @property
-    def ps_typs(self) -> str:
-        return "PAW"
-
-    def validate_checksums(self, repos_root: str, verbose: int) -> None:
-        print(f"\nValidating checksums of {repr(self)} ...")
-        print("WARNING: JTH-PAW repo does not support md5 checksums!!!!!!!!!!")
-
-
-def repos_from_id_list(id_list: list) -> List[PseudosRepo]:
-    """
-    Return list of PP Repos from list of table identifiers.
-    """
-    ids = sorted(set([int(i) for i in id_list]))
-    id2repo = {repo.rid: repo for repo in ALL_REPOS}
-    return [id2repo[rid] for rid in ids]   # This will fail if we have received an invalid id.
-
-
-def pprint_repos(repos: List[PseudosRepo], repos_root: str, out=sys.stdout,
-                 rstrip: bool = False, verbose: int = 0) -> None:
-
-    rows = None
-    for i, repo in enumerate(repos):
-        d = repo.to_rowdict(repos_root, verbose=verbose)
-        if i == 0:
-            rows = [list(d.keys())]
-        rows.append(list(d.values()))
-
-    pprint_rows(rows, out=out, rstrip=rstrip)
-
-
-mk_onc = OncvpspRepo.from_github
-
-ONCVPSP_REPOS = [
-    mk_onc(xc_name="PBEsol", relativity_type="SR", version="0.4", rid=1),
-    mk_onc(xc_name="PBEsol", relativity_type="FR", version="0.4", rid=2),
-    mk_onc(xc_name="PBE", relativity_type="SR", version="0.4", rid=3),
-    #mk_onc(xc_name="PBE", relativity_type="FR", version="0.4", rid=4),  FIXME: checksum fails
-]
-
-mk_jth = JthRepo.from_abinit_website
-
-PAW_REPOS = [
-    mk_jth(xc_name="LDA", relativity_type="SR", version="1.1", rid=21),
-    mk_jth(xc_name="PBE", relativity_type="SR", version="1.1", rid=22),
-]
-
-ALL_REPOS = ONCVPSP_REPOS + PAW_REPOS
-
-# Check for possible duplications in the IDs.
-_ids = [_repo.rid for _repo in ALL_REPOS]
-if len(set(_ids)) != len(_ids):
-    raise RuntimeError(f"Found duplicated ids in ALL_REPOS:\nids: {_ids}")
 
 
 def get_repos_root(options) -> str:
@@ -367,11 +42,19 @@ def abips_list(options):
         print("Could not find any pseudopotential repository installed in:", repos_root)
         return 0
 
-    print(f"The following repositories are installed in {repos_root}:\n")
+    print(f"The following pseudopotential repositories are installed in {repos_root}:\n")
     repos = [PseudosRepo.from_dirpath(dirpath) for dirpath in dirpaths]
     # Keep the list sorted by ID.
     repos = sorted(repos, key=lambda repo: repo.rid)
     pprint_repos(repos, repos_root=repos_root)
+
+    if options.verbose:
+        for repo in repos:
+            if repo.ispaw: continue
+            pseudos = repo.get_pseudos(repos_root, table_accuracy="standard")
+            print(pseudos)
+    else:
+        print("\nUse -v to print the pseudos")
 
     if not options.checksums:
         return 0
@@ -459,7 +142,7 @@ def abips_get_byid(options):
         abips_list(options)
         return 1
 
-    print("The following repositories will be installed:")
+    print("The following pseudopotential repositories will be installed:")
     pprint_repos(repos, repos_root=repos_root)
     if not options.yes and user_wants_to_abort(): return 2
 
@@ -470,7 +153,24 @@ def abips_get_byid(options):
     return 0
 
 
-#def abips_apropos(options):
+def abips_show(options):
+    """Show Pseudopotential tables"""
+
+    repos_root = get_repos_root(options)
+    repos = repos_from_id_list(options.id_list)
+    repos = [repo for repo in repos if not repo.is_installed(repos_root)]
+
+    if not repos:
+        print("Tables are already installed!")
+        abips_list(options)
+        return 1
+
+    for repo in repos:
+        print(repo)
+        pseudos = repo.get_pseudos(repos_root, table_accuracy="standard")
+        print(pseudos)
+
+    return 0
 
 
 def get_epilog():
@@ -527,6 +227,10 @@ def get_parser(with_epilog=False):
     # Subparser for get_byid command.
     p_get_byid = subparsers.add_parser("get_byid", parents=[copts_parser], help=abips_get_byid.__doc__)
     p_get_byid.add_argument("id_list", type=int, nargs="+", help="List of PseudoPotential Repo IDs to download.")
+
+    # Subparser for show command.
+    p_show = subparsers.add_parser("show", parents=[copts_parser], help=abips_show.__doc__)
+    p_show.add_argument("id_list", type=int, nargs="+", help="List of PseudoPotential Repo IDs to download.")
 
     return parser
 
