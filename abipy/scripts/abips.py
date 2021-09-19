@@ -4,8 +4,9 @@ from __future__ import annotations
 import sys
 import os
 import argparse
+#import tqdm
 
-from abipy.flowtk.psrepos import ALL_REPOS, PseudosRepo, pprint_repos, repos_from_id_list
+from abipy.flowtk.psrepos import ALL_REPOS, PseudosRepo, pprint_repos, repos_from_names
 
 
 def user_wants_to_abort():
@@ -35,17 +36,14 @@ def abips_list(options):
     List all installed pseudopotential repos.
     """
     repos_root = get_repos_root(options)
-    dirpaths = [os.path.join(repos_root, name) for name in os.listdir(repos_root) if
-                os.path.isdir(os.path.join(repos_root, name))]
+    names = [name for name in os.listdir(repos_root) if os.path.isdir(os.path.join(repos_root, name))]
 
-    if not dirpaths:
+    if not names:
         print("Could not find any pseudopotential repository installed in:", repos_root)
         return 0
 
     print(f"The following pseudopotential repositories are installed in {repos_root}:\n")
-    repos = [PseudosRepo.from_dirpath(dirpath) for dirpath in dirpaths]
-    # Keep the list sorted by ID.
-    repos = sorted(repos, key=lambda repo: repo.rid)
+    repos = [PseudosRepo.from_name(name) for name in names]
     pprint_repos(repos, repos_root=repos_root)
 
     if options.verbose:
@@ -83,58 +81,64 @@ def abips_avail(options):
     pprint_repos(ALL_REPOS, repos_root)
 
 
-def abips_nc_get(options):
-    """
-    Get NC repo. Can choose among three formats: psp8, upf2 and psml.
-    By default we fetch all formats.
-    """
-    repos_root = get_repos_root(options)
-    repos = [repo for repo in ALL_REPOS if repo.isnc and not repo.is_installed(repos_root)]
-    if not repos:
-        print(f"All registered NC repositories are already installed in {repos_root}. Returning")
-        return 0
+#def abips_nc_install(options):
+#    """
+#    Get NC repo. Can choose among three formats: psp8, upf2 and psml.
+#    By default we fetch all formats.
+#    """
+#    repos_root = get_repos_root(options)
+#    repos = [repo for repo in ALL_REPOS if repo.isnc and not repo.is_installed(repos_root)]
+#    if not repos:
+#        print(f"All registered NC repositories are already installed in {repos_root}. Returning")
+#        return 0
+#
+#    print("The following NC repositories will be installed:\n")
+#    pprint_repos(repos, repos_root=repos_root)
+#    if not options.yes and user_wants_to_abort():
+#        return 2
+#
+#    print("Fetching NC repositories. It may take some time ...")
+#    for repo in repos:
+#        repo.install(repos_root, options.verbose)
+#
+#    abips_list(options)
+#    return 0
+#
+#
+#def abips_paw_install(options):
+#    """
+#    Get PAW repositories in PAWXML format.
+#    """
+#    repos_root = get_repos_root(options)
+#    repos = [repo for repo in ALL_REPOS if repo.ispaw and not repo.is_installed(repos_root)]
+#    if not repos:
+#        print(f"All registered PAW repositories are already installed in {repos_root}. Returning")
+#        return 0
+#
+#    print("The following PAW repositories will be installed:")
+#    pprint_repos(repos, repos_root=repos_root)
+#    if not options.yes and user_wants_to_abort():
+#        return 2
+#
+#    print("Fetching PAW repositories. It may take some time ...")
+#    for repo in repos:
+#        repo.install(repos_root, options.verbose)
+#
+#    abips_list(options)
+#    return 0
 
-    print("The following NC repositories will be installed:\n")
-    pprint_repos(repos, repos_root=repos_root)
-    if not options.yes and user_wants_to_abort(): return 2
 
-    print("Fetching NC repositories. It may take some time ...")
-    for repo in repos:
-        repo.install(repos_root, options.verbose)
-
-    abips_list(options)
-    return 0
-
-
-def abips_paw_get(options):
-    """
-    Get PAW repositories in PAWXML format.
-    """
-    repos_root = get_repos_root(options)
-    repos = [repo for repo in ALL_REPOS if repo.ispaw and not repo.is_installed(repos_root)]
-    if not repos:
-        print(f"All registered PAW repositories are already installed in {repos_root}. Returning")
-        return 0
-
-    print("The following PAW repositories will be installed:")
-    pprint_repos(repos, repos_root=repos_root)
-    if not options.yes and user_wants_to_abort(): return 2
-
-    print("Fetching PAW repositories. It may take some time ...")
-    for repo in repos:
-        repo.install(repos_root, options.verbose)
-
-    abips_list(options)
-    return 0
-
-
-def abips_get_byid(options):
+def abips_install(options):
     """
     Get list of repos by their IDs.
     Use the `avail` command to get the repo ID.
     """
+    #if not options.repo_names:
+    #    abips_list(options)
+    #    return 0
+
     repos_root = get_repos_root(options)
-    repos = repos_from_id_list(options.id_list)
+    repos = repos_from_names(options.repo_names)
     repos = [repo for repo in repos if not repo.is_installed(repos_root)]
 
     if not repos:
@@ -144,7 +148,8 @@ def abips_get_byid(options):
 
     print("The following pseudopotential repositories will be installed:")
     pprint_repos(repos, repos_root=repos_root)
-    if not options.yes and user_wants_to_abort(): return 2
+    #if not options.yes and user_wants_to_abort():
+    #    return 2
 
     for repo in repos:
         repo.install(repos_root, options.verbose)
@@ -157,12 +162,12 @@ def abips_show(options):
     """Show Pseudopotential tables"""
 
     repos_root = get_repos_root(options)
-    repos = repos_from_id_list(options.id_list)
-    repos = [repo for repo in repos if not repo.is_installed(repos_root)]
+    repos = repos_from_names(options.repo_names)
+    repos = [repo for repo in repos if repo.is_installed(repos_root)]
 
     if not repos:
-        print("Tables are already installed!")
-        abips_list(options)
+        print(f"There's no installed repository with name in: {options.repo_names}")
+        #abips_list(options)
         return 1
 
     for repo in repos:
@@ -180,10 +185,10 @@ Usage example:
 
   abips.py avail                          --> Show registered repositories and the associated IDs.
   abips.py list                           --> List installed repositories.
-  abips.py get_byid 1 3                   --> Download repositories by ID(s).          
-  abips.py nc_get                         --> Get all NC repositories (most recent version)
-  abips.py nc_get -xc PBE -fr -sr --version 0.4 
-  abips.py paw_get                        --> Get all PAW repositories (most recent version)
+  abips.py install ONCVPSP-PBEsol-SR-PDv0.4  --> Download repositorie(s) by name(s).          
+  abips.py nc_install                         --> Get all NC repositories (most recent version)
+  abips.py nc_install -xc PBE -fr -sr --version 0.4 
+  abips.py paw_install                        --> Get all PAW repositories (most recent version)
 """
 
 
@@ -198,11 +203,11 @@ def get_parser(with_epilog=False):
                               default=os.path.expanduser(os.path.join("~", ".abinit", "pseudos")),
                               help='Installation directory. Default: $HOME/.abinit/pseudos')
 
-    copts_parser.add_argument('-y', "--yes", action="store_true", default=False,
-                              help="Do not ask for confirmation when installing repositories.")
+    #copts_parser.add_argument('-y', "--yes", action="store_true", default=False,
+    #                          help="Do not ask for confirmation when installing repositories.")
 
-    copts_parser.add_argument("-c", "--checksums", action="store_true", default=False,
-                              help="Validate checksums")
+
+
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
@@ -214,23 +219,25 @@ def get_parser(with_epilog=False):
 
     # Subparser for list command.
     p_list = subparsers.add_parser("list", parents=[copts_parser], help=abips_list.__doc__)
+    p_list.add_argument("-c", "--checksums", action="store_true", default=False,
+                       help="Validate checksums")
 
     # Subparser for avail command.
     subparsers.add_parser("avail", parents=[copts_parser], help=abips_avail.__doc__)
 
-    # Subparser for nc_get command.
-    p_nc_get = subparsers.add_parser("nc_get", parents=[copts_parser], help=abips_nc_get.__doc__)
+    # Subparser for nc_install command.
+    #p_nc_install = subparsers.add_parser("nc_install", parents=[copts_parser], help=abips_nc_install.__doc__)
 
-    # Subparser for paw_get command.
-    p_paw_get = subparsers.add_parser("paw_get", parents=[copts_parser], help=abips_paw_get.__doc__)
+    # Subparser for paw_install command.
+    #p_paw_install = subparsers.add_parser("paw_install", parents=[copts_parser], help=abips_paw_install.__doc__)
 
-    # Subparser for get_byid command.
-    p_get_byid = subparsers.add_parser("get_byid", parents=[copts_parser], help=abips_get_byid.__doc__)
-    p_get_byid.add_argument("id_list", type=int, nargs="+", help="List of PseudoPotential Repo IDs to download.")
+    # Subparser for install command.
+    p_install = subparsers.add_parser("install", parents=[copts_parser], help=abips_install.__doc__)
+    p_install.add_argument("repo_names", type=str, nargs="+", help="List of repositories to download.")
 
     # Subparser for show command.
     p_show = subparsers.add_parser("show", parents=[copts_parser], help=abips_show.__doc__)
-    p_show.add_argument("id_list", type=int, nargs="+", help="List of PseudoPotential Repo IDs to download.")
+    p_show.add_argument("repo_names", type=str, nargs="+", help="List of Repo names.")
 
     return parser
 

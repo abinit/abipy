@@ -12,13 +12,15 @@ import posixpath
 import tempfile
 import shutil
 import hashlib
+import requests
 
 from typing import List
 from urllib.parse import urlsplit
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
+from tqdm import tqdm
 
 
-def download_url(url: str, save_dirpath: str, chunk_size: int = 128, verbose: int = 0) -> None:
+def download_url(url: str, save_dirpath: str, chunk_size: int = 2 * 1024**2, verbose: int = 0) -> None:
     """
 
     Args:
@@ -27,8 +29,6 @@ def download_url(url: str, save_dirpath: str, chunk_size: int = 128, verbose: in
         chunk_size:
         verbose:
     """
-
-    import requests
     path = urlsplit(url).path
     filename = posixpath.basename(path)
     #print(path, filename)
@@ -38,11 +38,20 @@ def download_url(url: str, save_dirpath: str, chunk_size: int = 128, verbose: in
         tmp_dir = tempfile.mkdtemp()
         #with tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None) as tmp_dir:
         tmp_filepath = os.path.join(tmp_dir, filename)
-        if verbose: print("Writing temporary file:", tmp_filepath)
+        if verbose:
+            print("Writing temporary file:", tmp_filepath)
+
+        total_size_in_bytes = int(r.headers.get('content-length', 0))
+        progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
 
         with open(tmp_filepath, 'wb') as fd:
             for chunk in r.iter_content(chunk_size=chunk_size):
                 fd.write(chunk)
+                progress_bar.update(len(chunk))
+
+        progress_bar.close()
+        if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
+            raise RuntimeError(f"Something went wrong while donwloading url: {url}")
 
         shutil.unpack_archive(tmp_filepath, extract_dir=tmp_dir)
 
@@ -100,17 +109,16 @@ def pprint_rows(rows: list, out=sys.stdout, rstrip: bool = False) -> None:
         out.write("\n")
 
 
-def get_repo_with_name(repo_name) -> PseudosRepo:
+def get_repo_from_name(repo_name) -> PseudosRepo:
     """
     Return a PseudoRepo from its name ``repo_name``.
     Raises ValueError if ``repo_name`` is not registered.
     """
     for repo in ALL_REPOS:
-        if repo.dirname == repo_name:
+        if repo.name == repo_name:
             return repo
     else:
         raise ValueError(f"Couldn't find {repo_name} in the list of registered repos.")
-
 
 
 class Citation:
@@ -120,14 +128,13 @@ class Citation:
         self.doi = doi
 
 
-
 class PseudosRepo(abc.ABC):
     """
     Base abstract class for Pseudopotential repositories.
     """
 
     def __init__(self, ps_generator: str, xc_name: str, relativity_type: str, project_name: str,
-                 version: str, rid: int, url: str):
+                 version: str, url: str):
         """
         Args:
             ps_generator:
@@ -135,7 +142,6 @@ class PseudosRepo(abc.ABC):
             relativity_type:
             project_name:
             version:
-            rid:
             url:
         """
         if relativity_type not in {"SR", "FR"}:
@@ -146,22 +152,16 @@ class PseudosRepo(abc.ABC):
         self.version = version
         self.project_name = project_name
         self.relativity_type = relativity_type
-        self.rid = rid
         self.url = url
 
     @classmethod
-    def from_dirpath(cls, dirpath: str) -> PseudosRepo:
-        dirname = os.path.basename(dirpath)
-        return cls.from_dirname(dirname)
-
-    @classmethod
-    def from_dirname(cls, dirname: str) -> PseudosRepo:
+    def from_name(cls, name: str) -> PseudosRepo:
         """Return a PseudosRepo for the installation directory."""
         for repo in ALL_REPOS:
-            if repo.dirname == dirname:
+            if repo.name == name:
                 return repo
 
-        raise ValueError(f"Cannot find `{dirname}` in the list of registered Tables!")
+        raise ValueError(f"Cannot find `{name}` in the list of registered Tables!")
 
     def to_rowdict(self, repos_root: str, verbose: int = 0) -> dict:
         row = dict(
@@ -172,8 +172,7 @@ class PseudosRepo(abc.ABC):
             project_name=self.project_name,
             version=self.version,
             installed=str(self.is_installed(repos_root)),
-            dirname=self.dirname,
-            repo_id=str(self.rid),
+            name=self.name,
         )
 
         if verbose:
@@ -182,7 +181,7 @@ class PseudosRepo(abc.ABC):
         return row
 
     @property
-    def dirname(self) -> str:
+    def name(self) -> str:
         if self.isnc:
             # ONCVPSP-PBEsol-PDv0.4/
             # ONCVPSP-PBE-FR-PDv0.4/
@@ -194,15 +193,15 @@ class PseudosRepo(abc.ABC):
             raise ValueError(f"Invalid ps_generator: {self.ps_generator}")
 
     def __repr__(self) -> str:
-        return self.dirname
+        return self.name
 
     def __str__(self) -> str:
-        lines = [self.dirname]
+        lines = [self.name]
         app = lines.append
         return "\n".join(lines)
 
     def __eq__(self, other):
-        return self.dirname == other.dirname
+        return self.name == other.name
 
     @property
     def isnc(self) -> bool:
@@ -216,13 +215,13 @@ class PseudosRepo(abc.ABC):
 
     def is_installed(self, repos_root: str) -> bool:
         """True if the repo is already installed in repos_root."""
-        return os.path.exists(os.path.join(repos_root, self.dirname))
+        return os.path.exists(os.path.join(repos_root, self.name))
 
     def install(self, repos_root: str, verbose: int) -> None:
         """
         Install the repo in the standard location relative to the `repos_root` directory.
         """
-        save_dirpath = os.path.join(repos_root, self.dirname)
+        save_dirpath = os.path.join(repos_root, self.name)
         print(f"Installing {repr(self)} in {save_dirpath} directory")
         print(f"Downloading repository from: {self.url} ...")
         start = time.time()
@@ -255,7 +254,7 @@ class PseudosRepo(abc.ABC):
 class OncvpspRepo(PseudosRepo):
 
     @classmethod
-    def from_github(cls, xc_name: str, relativity_type: str, rid: int, version: str) -> OncvpspRepo:
+    def from_github(cls, xc_name: str, relativity_type: str, version: str) -> OncvpspRepo:
         ps_generator, project_name = "ONCVPSP", "PD"
 
         if relativity_type == "FR":
@@ -268,7 +267,7 @@ class OncvpspRepo(PseudosRepo):
             raise ValueError(f"Invalid relativity_type {relativity_type}")
 
         url = f"https://github.com/PseudoDojo/{sub_url}/archive/refs/heads/master.zip"
-        return cls(ps_generator, xc_name, relativity_type, project_name, version, rid, url)
+        return cls(ps_generator, xc_name, relativity_type, project_name, version, url)
 
     @property
     def ps_type(self) -> str:
@@ -283,7 +282,7 @@ class OncvpspRepo(PseudosRepo):
 
     def validate_checksums(self, repos_root: str, verbose: int) -> None:
         print(f"\nValidating checksums of {repr(self)} ...")
-        dirpath = os.path.join(repos_root, self.dirname)
+        dirpath = os.path.join(repos_root, self.name)
         djson_paths = [os.path.join(dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]
 
         seen = set()
@@ -315,7 +314,7 @@ class OncvpspRepo(PseudosRepo):
 
     def get_pseudos(self, repos_root: str, table_accuracy: str) -> PseudoTable:
 
-        dirpath = os.path.join(repos_root, self.dirname)
+        dirpath = os.path.join(repos_root, self.name)
         djson_path = os.path.join(dirpath, f"{table_accuracy}.djson")
         pseudos = []
         with open(djson_path, "rt") as fh:
@@ -329,7 +328,7 @@ class OncvpspRepo(PseudosRepo):
                 hints = d["hints"]
                 dojo_report = {"hints": hints}
                 pseudo.dojo_report = dojo_report
-                print(pseudo)
+                #print(pseudo)
                 pseudos.append(pseudo)
 
         return PseudoTable(pseudos)
@@ -338,12 +337,12 @@ class OncvpspRepo(PseudosRepo):
 class JthRepo(PseudosRepo):
 
     @classmethod
-    def from_abinit_website(cls, xc_name: str, relativity_type: str, rid: int, version: str) -> JthRepo:
+    def from_abinit_website(cls, xc_name: str, relativity_type: str, version: str) -> JthRepo:
         ps_generator, project_name = "ATOMPAW", "JTH"
         # https://www.abinit.org/ATOMICDATA/JTH-LDA-atomicdata.tar.gz
         # ATOMPAW-LDA-JTHv0.4
         url = f"https://www.abinit.org/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
-        return cls(ps_generator, xc_name, relativity_type, project_name, version, rid, url)
+        return cls(ps_generator, xc_name, relativity_type, project_name, version, url)
 
     @property
     def ps_type(self) -> str:
@@ -356,7 +355,7 @@ class JthRepo(PseudosRepo):
     def get_pseudos(self, repos_root: str, table_accuracy: str) -> PseudoTable:
         if table_accuracy != "standard":
             raise ValueError(f"JTH table does not support table_accuracy: {table_accuracy}")
-        dirpath = os.path.join(repos_root, self.dirname)
+        dirpath = os.path.join(repos_root, self.name)
         pseudos = []
         raise NotImplementedError()
         #return PseudoTable(pseudos)
@@ -369,13 +368,22 @@ class JthRepo(PseudosRepo):
         ]
 
 
-def repos_from_id_list(id_list: list) -> List[PseudosRepo]:
+def repos_from_names(repo_names: List[str]) -> List[PseudosRepo]:
     """
-    Return list of PP Repos from a list of table identifiers.
+    Return list of PP Repos from a list of repo_names
     """
-    ids = sorted(set([int(i) for i in id_list]))
-    id2repo = {repo.rid: repo for repo in ALL_REPOS}
-    return [id2repo[rid] for rid in ids]   # This will fail if we have received an invalid id.
+    id2repo = {repo.name: repo for repo in ALL_REPOS}
+    # This will fail if we have received an invalid repo_name
+    return [id2repo[repo_name] for repo_name in repo_names]
+
+
+def repo_from_name(repo_name: str) -> PseudosRepo:
+    """
+    Return PseudosRepo from its name ``repo_name``.
+    """
+    id2repo = {repo.name: repo for repo in ALL_REPOS}
+    # This will fail if we have received an invalid repo_name.
+    return id2repo[repo_name]
 
 
 def pprint_repos(repos: List[PseudosRepo], repos_root: str, out=sys.stdout,
@@ -396,30 +404,24 @@ def pprint_repos(repos: List[PseudosRepo], repos_root: str, out=sys.stdout,
 # Client code should use ALL_REPOS
 ###################################
 
-mk_onc = OncvpspRepo.from_github
+_mk_onc = OncvpspRepo.from_github
 
-ONCVPSP_REPOS = [
-    mk_onc(xc_name="PBEsol", relativity_type="SR", version="0.4", rid=1),
-    mk_onc(xc_name="PBEsol", relativity_type="FR", version="0.4", rid=2),
-    mk_onc(xc_name="PBE", relativity_type="SR", version="0.4", rid=3),
-    #mk_onc(xc_name="PBE", relativity_type="FR", version="0.4", rid=4),  FIXME: checksum fails
+_ONCVPSP_REPOS = [
+    _mk_onc(xc_name="PBEsol", relativity_type="SR", version="0.4"),
+    _mk_onc(xc_name="PBEsol", relativity_type="FR", version="0.4"),
+    _mk_onc(xc_name="PBE", relativity_type="SR", version="0.4"),
+    #_mk_onc(xc_name="PBE", relativity_type="FR", version="0.4"),  FIXME: checksum fails
 ]
 
-mk_jth = JthRepo.from_abinit_website
+_mk_jth = JthRepo.from_abinit_website
 
-PAW_REPOS = [
-    mk_jth(xc_name="LDA", relativity_type="SR", version="1.1", rid=21),
-    mk_jth(xc_name="PBE", relativity_type="SR", version="1.1", rid=22),
+_PAW_REPOS = [
+    _mk_jth(xc_name="LDA", relativity_type="SR", version="1.1"),
+    _mk_jth(xc_name="PBE", relativity_type="SR", version="1.1"),
 ]
 
-ALL_REPOS = ONCVPSP_REPOS + PAW_REPOS
+ALL_REPOS = _ONCVPSP_REPOS + _PAW_REPOS
 
-# Check for possible duplications in the IDs.
-_ids = [_repo.rid for _repo in ALL_REPOS]
-if len(set(_ids)) != len(_ids):
-    raise RuntimeError(f"Found duplicated ids in ALL_REPOS:\nids: {_ids}")
-
-
-_repo_names = [_repo.dirname for _repo in ALL_REPOS]
+_repo_names = [_repo.name for _repo in ALL_REPOS]
 if len(set(_repo_names)) != len(_repo_names):
     raise RuntimeError(f"Found duplicated repo_names in ALL_REPOS:\nids: {_repo_names}")

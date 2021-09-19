@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field, validator
 from pymatgen.io.abinit.pseudos import PseudoTable
-from abipy.flowtk.psrepos import get_repo_with_name
+from abipy.flowtk.psrepos import get_repo_from_name
 
 
 class _PseudosProvider(BaseModel, ABC):
@@ -35,7 +35,7 @@ class PseudoSpecs(_PseudosProvider):
     @classmethod
     def from_repo_name(cls, repo_name: str, table_accuracy: str = "standard") -> PseudoSpecs:
 
-        repo = get_repo_with_name(repo_name)
+        repo = get_repo_from_name(repo_name)
         data = dict(repo_name=repo_name, table_accuracy=table_accuracy)
         attr_list = ["ps_generator", "xc_name", "relativity_type", "project_name", "version"]
         data.update({aname: getattr(repo, aname) for aname in attr_list})
@@ -50,12 +50,24 @@ class PseudoSpecs(_PseudosProvider):
 
         return value
 
+    @validator('relativity_type')
+    def validate_relativity(cls, value):
+        known_rel_types = ("SR", "FR")
+        if value not in known_rel_types:
+            raise ValueError(f"{value} not in {known_rel_types}")
+
+        return value
+
     def get_pseudos(self) -> PseudoTable:
+        """
+        Return the PseudoTable associated to the specs.
+        Use internal cache to store the table.
+        """
         key = (self.repo_name, self.table_accuracy)
         if key in _PSEUDOTABLES_CACHE:
             return _PSEUDOTABLES_CACHE[key]
 
-        repo = get_repo_with_name(self.repo_name)
+        repo = get_repo_from_name(self.repo_name)
         repos_root = "~/.abinit/pseudos"  # FIXME
         if not repo.is_installed(repos_root):
             repo.install(repos_root, verbose=0)

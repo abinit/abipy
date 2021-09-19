@@ -8,7 +8,7 @@ from abipy.electrons.ebands import ElectronBands
 from abipy.flowtk import TaskManager, Flow
 from abipy.htc.base_models import mongo_insert_models
 from abipy.htc.structure_models import StructureData
-from abipy.htc.pseudos_models import PseudoDojoSpecs
+from abipy.htc.pseudos_models import PseudoSpecs
 from abipy.htc.gs_models import GsData
 from abipy.htc.flow_models import EbandsFlowModel
 
@@ -17,7 +17,7 @@ class TestAbipyBaseModels(AbipyTest):
 
     def test_ebands_flow_model(self):
         si = Structure.from_file(abidata.ref_file("refs/si_ebands/run.abi"))
-        pseudos_specs = PseudoDojoSpecs.from_table_name("Foo")
+        pseudos_specs = PseudoSpecs.from_repo_name("ONCVPSP-PBEsol-SR-PDv0.4")
         collection: Collection = mongomock.MongoClient().db.collection
 
         with self.assertRaises(RuntimeError):

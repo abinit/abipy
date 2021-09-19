@@ -16,9 +16,16 @@ class TestPseudosSpecs(AbipyTest):
         assert specs.version == "0.4"
         assert specs.table_accuracy == "standard"
 
+        data = specs.dict()
+
         with self.assertRaises(ValidationError):
-            d = specs.dict()
+            d = data.copy()
             d["table_accuracy"] = "foobar"
+            PseudoSpecs(**d)
+
+        with self.assertRaises(ValidationError):
+            d = data.copy()
+            d["relativity_type"] = "foobar"
             PseudoSpecs(**d)
 
         with self.assertRaises(ValueError):
