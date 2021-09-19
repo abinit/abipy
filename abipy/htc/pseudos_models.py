@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple
+import os
 
+from typing import Dict, Tuple
 from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field, validator
 from pymatgen.io.abinit.pseudos import PseudoTable
@@ -44,17 +45,19 @@ class PseudoSpecs(_PseudosProvider):
 
     @validator('table_accuracy')
     def validate_table_accuracy(cls, value):
-        known_accuracies = ("standard", "stringent")
-        if value not in known_accuracies:
-            raise ValueError(f"{value} not in {known_accuracies}")
+        """Validate table_accuracy"""
+        allowed_values = ("standard", "stringent")
+        if value not in allowed_values:
+            raise ValueError(f"{value} not in {allowed_values}")
 
         return value
 
     @validator('relativity_type')
     def validate_relativity(cls, value):
-        known_rel_types = ("SR", "FR")
-        if value not in known_rel_types:
-            raise ValueError(f"{value} not in {known_rel_types}")
+        """Validate relativity_type"""
+        allowed_values = ("SR", "FR")
+        if value not in allowed_values:
+            raise ValueError(f"{value} not in {allowed_values}")
 
         return value
 
@@ -65,14 +68,16 @@ class PseudoSpecs(_PseudosProvider):
         """
         key = (self.repo_name, self.table_accuracy)
         if key in _PSEUDOTABLES_CACHE:
+            print("Cache hit")
             return _PSEUDOTABLES_CACHE[key]
 
         repo = get_repo_from_name(self.repo_name)
-        repos_root = "~/.abinit/pseudos"  # FIXME
+        repos_root = os.path.expanduser("~/.abinit/pseudos")  # FIXME
         if not repo.is_installed(repos_root):
+            print(f"Warning: Could not find {self.repo_name}. Will try to install it at runtime...")
             repo.install(repos_root, verbose=0)
 
         # Build PseudoTable and cache it.
         pseudos = repo.get_pseudos(repos_root, table_accuracy=self.table_accuracy)
-        _PSEUDOTABLES_CACHE[key] = pseudos
+        #_PSEUDOTABLES_CACHE[key] = pseudos
         return pseudos

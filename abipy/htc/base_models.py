@@ -111,21 +111,21 @@ class AbipyModel(BaseModel, MSONable):
 
     @classmethod
     def from_dict(cls: Type[M], d: dict) -> M:
-        print("d1 in from dict:")
-        pprint(d)
+        #print("d1 in from dict:")
+        #pprint(d)
         d = monty_load(d)
         if isinstance(d, cls):
             return d
-        print("d2 after monty_load:")
-        pprint(d)
+        #print("d2 after monty_load:")
+        #pprint(d)
         return cls(**d)
 
     @pmg_serialize
     def as_dict(self) -> dict:
         #return monty_trick(self)
         d = self.dict()
-        print("d in as dict:")
-        pprint(d)
+        #print("d in as dict:")
+        #pprint(d)
         return d
 
     def to_json(self, **kwargs) -> str:
@@ -178,11 +178,13 @@ class MongoConnector(AbipyModel):
     _client: Any = PrivateAttr(None)
 
     @classmethod
-    def for_localhost(cls, collection_name: str, port: int = 27017) -> MongoConnector:
+    def for_localhost(cls, collection_name: str, port: int = 27017, **kwargs) -> MongoConnector:
         """
         Build connector assuming a MongoDB server running on localhost listening on the default port
         """
-        return cls(host="localhost", port=port, collection_name=collection_name)
+        d = dict(host="localhost", port=port, collection_name=collection_name)
+        d.update(kwargs)
+        return cls(**d)
 
     def _repr_markdown_(self) -> str:
         """Markdown representation."""

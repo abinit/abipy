@@ -43,7 +43,7 @@ def abips_list(options):
         return 0
 
     print(f"The following pseudopotential repositories are installed in {repos_root}:\n")
-    repos = [PseudosRepo.from_name(name) for name in names]
+    repos = repos_from_names(names)
     pprint_repos(repos, repos_root=repos_root)
 
     if options.verbose:
@@ -173,7 +173,10 @@ def abips_show(options):
     for repo in repos:
         print(repo)
         pseudos = repo.get_pseudos(repos_root, table_accuracy="standard")
-        print(pseudos)
+        for pseudo in pseudos:
+            print(pseudo.filepath)
+            print(pseudo.as_dict()["filepath"])
+        #print(pseudos)
 
     return 0
 
@@ -220,7 +223,7 @@ def get_parser(with_epilog=False):
     # Subparser for list command.
     p_list = subparsers.add_parser("list", parents=[copts_parser], help=abips_list.__doc__)
     p_list.add_argument("-c", "--checksums", action="store_true", default=False,
-                       help="Validate checksums")
+                        help="Validate checksums")
 
     # Subparser for avail command.
     subparsers.add_parser("avail", parents=[copts_parser], help=abips_avail.__doc__)
@@ -234,6 +237,8 @@ def get_parser(with_epilog=False):
     # Subparser for install command.
     p_install = subparsers.add_parser("install", parents=[copts_parser], help=abips_install.__doc__)
     p_install.add_argument("repo_names", type=str, nargs="+", help="List of repositories to download.")
+    p_install.add_argument("-c", "--checksums", action="store_true", default=False,
+                            help="Validate checksums")
 
     # Subparser for show command.
     p_show = subparsers.add_parser("show", parents=[copts_parser], help=abips_show.__doc__)

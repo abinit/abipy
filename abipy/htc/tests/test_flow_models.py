@@ -1,3 +1,4 @@
+"""Tests for test_flow_models.py module"""
 import mongomock
 import abipy.data as abidata
 
@@ -16,6 +17,7 @@ from abipy.htc.flow_models import EbandsFlowModel
 class TestAbipyBaseModels(AbipyTest):
 
     def test_ebands_flow_model(self):
+        """Testing EbandsFlowModel."""
         si = Structure.from_file(abidata.ref_file("refs/si_ebands/run.abi"))
         pseudos_specs = PseudoSpecs.from_repo_name("ONCVPSP-PBEsol-SR-PDv0.4")
         collection: Collection = mongomock.MongoClient().db.collection
@@ -64,6 +66,7 @@ class TestAbipyBaseModels(AbipyTest):
 
             # Save the updated model
             model.mongo_full_update_oid(oid, collection)
+
             # Now retrieve the same model from the collection.
             same_model = EbandsFlowModel.from_mongo_oid(oid, collection)
             assert isinstance(same_model.scf_data, GsData)

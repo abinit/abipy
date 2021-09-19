@@ -1,3 +1,5 @@
+"""Tests for pseudos_models module."""
+
 from pydantic import ValidationError
 from abipy.core.testing import AbipyTest
 from abipy.htc.pseudos_models import PseudoSpecs
@@ -6,6 +8,7 @@ from abipy.htc.pseudos_models import PseudoSpecs
 class TestPseudosSpecs(AbipyTest):
 
     def test_api(self):
+        """Testing PseudoSpecs API."""
         repo_name = "ONCVPSP-PBEsol-SR-PDv0.4"
         specs = PseudoSpecs.from_repo_name(repo_name)
         assert specs.repo_name == repo_name
@@ -28,5 +31,5 @@ class TestPseudosSpecs(AbipyTest):
             d["relativity_type"] = "foobar"
             PseudoSpecs(**d)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(KeyError):
             PseudoSpecs.from_repo_name("ONCVPSP-PBEsol-SRfoo-PDv0.4")

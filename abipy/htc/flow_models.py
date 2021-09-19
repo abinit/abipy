@@ -21,6 +21,7 @@ from .structure_models import StructureData
 from .pseudos_models import PseudoSpecs
 from .gs_models import GsData
 from .dfpt_models import PhononData
+#from .worker import AbipyWorker
 
 
 class ExecStatus(str, Enum):
@@ -70,7 +71,7 @@ class FlowModel(MongoModel, ABC):
 
     input_structure_data: StructureData = Field(..., description="Input structure.")
 
-    pseudos_specs: PseudoSpecs = Field(..., description="PseudoPotential Table.")
+    pseudos_specs: PseudoSpecs = Field(..., description="PseudoPotential Specifications.")
 
     # Private class attributes
     _magic_key: ClassVar[str] = "__flow_model__"
@@ -99,7 +100,7 @@ class FlowModel(MongoModel, ABC):
         return collection.insert_one({cls._magic_key: new_dict}).inserted_id
 
     @classmethod
-    def get_subclass_from_collection(cls, collection: Collection) -> FlowModel:
+    def get_subclass_from_collection(cls, collection: Collection) -> Type[FlowModel]:
         """
         Retrieve the FlowModel subclass from Collection
         The collections should have been initialized previously by calling `init_collection`.
@@ -309,13 +310,17 @@ class EbandsFlowModel(FlowModel):
         Return: |Flow| object.
         """
         from abipy.abio.factories import ebands_input
-        import abipy.data as abidata
-        pseudos = abidata.pseudos("14si.pspnc")
-        #pseudos = self.pseudo_specs.get_pseudos()  # FIXME
+        #import abipy.data as abidata
+        #pseudos = abidata.pseudos("14si.pspnc")
         #ecut = 6
+        pseudos = self.pseudos_specs.get_pseudos()  # FIXME
+        print("in build flow1")
+        for p in pseudos:
+            print(p.filepath)
         multi = ebands_input(self.input_structure_data.structure, pseudos,
                              kppa=self.kppa, nscf_nband=None, ndivsm=self.ndivsm,
-                             ecut=self.ecut, pawecutdg=None, scf_nband=None, accuracy="normal",
+                             #ecut=self.ecut, pawecutdg=None,
+                             scf_nband=None, accuracy="normal",
                              spin_mode=self.spin_mode,
                              smearing=self.smearing, charge=self.charge,
                              scf_algorithm=None, dos_kppa=self.dos_kppa,
@@ -325,6 +330,10 @@ class EbandsFlowModel(FlowModel):
 
         self.scf_input, nscf_input = multi.split_datasets()
         from abipy.flowtk.flows import bandstructure_flow
+        print("in build flow2")
+        for p in self.scf_input.pseudos:
+            print(p.filepath)
+
         # TODO: Dos!
         return bandstructure_flow(workdir, self.scf_input, nscf_input, manager=manager)
 

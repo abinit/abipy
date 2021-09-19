@@ -390,7 +390,8 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         self._vars = OrderedDict(args)
         self.set_structure(structure)
 
-        if pseudo_dir is not None:
+        #if pseudo_dir is not None:
+        if pseudo_dir:
             pseudo_dir = os.path.abspath(pseudo_dir)
             if not os.path.exists(pseudo_dir): raise self.Error("Directory `%s` does not exist" % pseudo_dir)
             pseudos = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
@@ -502,8 +503,13 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
             if isinstance(value, np.ndarray): value = value.tolist()
             abi_args.append((key, value))
 
+        pseudo_dicts = [p.as_dict() for p in self.pseudos]
+        #from abipy.flowtk.psrepos import encode_pseudopath
+        #for d in pseudos_dicts:
+        #    d["filepath"] = encode_pseudopath(d["filepath"])
+
         return dict(structure=self.structure.as_dict(),
-                    pseudos=[p.as_dict() for p in self.pseudos],
+                    pseudos=pseudo_dicts,
                     comment=self.comment,
                     decorators=[dec.as_dict() for dec in self.decorators],
                     abi_args=abi_args,
@@ -536,8 +542,14 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         # and rendere the document more readable. At the time, we decided to use abi_args
         # because the order is preserved but with py2.7 there's no need for this.
         # Similar changes may be done in AnaddbInput.
+
+        #from abipy.flowtk.psrepos import decode_pseudopath
+        #for pseudo_dict in d["pseudos"]:
+        #    pseudo_dict["filepath"] = decode_pseudopath(pseudo_dict["filepath"])
+
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
         dec = MontyDecoder()
+
         return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
                    comment=d["comment"], abi_args=d["abi_args"], tags=d["tags"],
                    enforce_znucl=d.get("enforce_znucl", None),
