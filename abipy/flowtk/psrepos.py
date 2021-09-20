@@ -17,14 +17,31 @@ import requests
 from typing import List
 from urllib.parse import urlsplit
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
+from abipy.tools.decorators import memoized_method
 from tqdm import tqdm
 
 
-#REPOS_ROOT = os.environ.get("ABIPY_PSREPOS_ROOT",
-#                            default=os.path.join(os.path.expanduser("~"), ".abinit", "pseudos"))
+REPOS_ROOT = os.environ.get("ABIPY_PSREPOS_ROOT",
+                            default=os.path.join(os.path.expanduser("~"), ".abinit", "pseudos"))
 
 
-def download_url(url: str, save_dirpath: str, chunk_size: int = 2 * 1024**2, verbose: int = 0) -> None:
+def encode_pseudopath(filepath: str) -> str:
+    for repo in ALL_REPOS:
+        if filepath.startswith(repo.dirpath):
+            return filepath.replace(repo.dirpath, f"@{repo.name}", 1)
+    return filepath
+
+
+def decode_pseudopath(filepath: str) -> str:
+    for repo in ALL_REPOS:
+        start = f"@{repo.name}"
+        if filepath.startswith(start):
+            return filepath.replace(start, repo.dirpath, 1)
+    return filepath
+
+
+def download_repo_from_url(url: str, save_dirpath: str,
+                           chunk_size: int = 2 * 1024**2, verbose: int = 0) -> None:
     """
 
     Args:
@@ -68,21 +85,6 @@ def download_url(url: str, save_dirpath: str, chunk_size: int = 2 * 1024**2, ver
 
             if verbose: print(f"Moving {dirpaths[0]} to {save_dirpath}")
             shutil.move(dirpaths[0], save_dirpath)
-
-
-#def encode_pseudopath(filepath: str) -> str:
-#    for repo in ALL_REPOS:
-#        if filepath.startswith(repo.dirpath):
-#            return filepath.replace(repo.dirpath, f"@{repo.name}", 1)
-#    return filepath
-#
-#
-#def decode_pseudopath(filepath: str) -> str:
-#    for repo in ALL_REPOS:
-#        start = f"@{repo.name}"
-#        if filepath.startswith(start):
-#            return filepath.replace(start, repo.name, 1)
-#    return filepath
 
 
 def md5_for_filepath(filepath: str) -> str:
@@ -131,14 +133,20 @@ def pprint_rows(rows: list, out=sys.stdout, rstrip: bool = False) -> None:
 def get_repo_from_name(repo_name) -> PseudosRepo:
     """
     Return a PseudosRepo from its name ``repo_name``.
-    Raises ValueError if ``repo_name`` is not registered.
+    Raises KeyError if ``repo_name`` is not registered.
     """
     for repo in ALL_REPOS:
         if repo.name == repo_name:
             return repo
     else:
         all_names = [repo.name for repo in ALL_REPOS]
-        raise ValueError(f"Couldn't find {repo_name} in the list of registered repos:\n{all_names}")
+        raise KeyError(f"Couldn't find {repo_name} in the list of registered repos:\n{all_names}")
+
+
+#def get_repos_in_dirpath(dirpath: str) -> List[PseudosRepo]:
+#    dir_basenames = [name for name in os.listdir(dirpath) if os.path.isdir(os.path.join(dirpath, name))]
+#    dirname2repo = {repo.name: repo for repo in ALL_REPOS}
+#    return [dirname2repo[dirname] for dirname in dir_basenames if dirname in dirname2repo]
 
 
 class Citation:
@@ -150,7 +158,9 @@ class Citation:
 
 class PseudosRepo(abc.ABC):
     """
-    Base abstract class for Pseudopotential repositories.
+    Base abstract class for a Pseudopotential repository that is essentially a collection.
+    of pseudopotential files with some metadata and some external files that allow us to
+    construct a PseudoTable object.
     """
 
     def __init__(self, ps_generator: str, xc_name: str, relativity_type: str, project_name: str,
@@ -174,16 +184,7 @@ class PseudosRepo(abc.ABC):
         self.relativity_type = relativity_type
         self.url = url
 
-    #@classmethod
-    #def from_name(cls, name: str) -> PseudosRepo:
-    #    """Return a PseudosRepo for the installation directory."""
-    #    for repo in ALL_REPOS:
-    #        if repo.name == name:
-    #            return repo
-
-    #    raise ValueError(f"Cannot find `{name}` in the list of registered Tables!")
-
-    def to_rowdict(self, repos_root: str, verbose: int = 0) -> dict:
+    def to_rowdict(self, verbose: int = 0) -> dict:
         row = dict(
             ps_generator=self.ps_generator,
             ps_type=self.ps_type,
@@ -191,7 +192,7 @@ class PseudosRepo(abc.ABC):
             relativity_type=self.relativity_type,
             project_name=self.project_name,
             version=self.version,
-            installed=str(self.is_installed(repos_root)),
+            installed=str(self.is_installed()),
             name=self.name,
         )
 
@@ -221,28 +222,33 @@ class PseudosRepo(abc.ABC):
         """True if PAW repo."""
         return self.ps_type == "PAW"
 
-    def is_installed(self, repos_root: str) -> bool:
-        """True if the repo is already installed in repos_root."""
-        return os.path.exists(os.path.join(repos_root, self.name))
+    @property
+    def dirpath(self) -> str:
+        """Absolute path to the directory with the pseudopotentials."""
+        return os.path.join(REPOS_ROOT, self.name)
 
-    def install(self, repos_root: str, verbose: int) -> None:
+    def is_installed(self) -> bool:
+        """True if the repo is already installed in REPOS_ROOT."""
+        return os.path.exists(os.path.join(REPOS_ROOT, self.name))
+
+    def install(self, verbose: int = 0) -> None:
         """
-        Install the repo in the standard location relative to the `repos_root` directory.
+        Install the repository in the standard location relative to the `REPOS_ROOT` directory.
         """
-        save_dirpath = os.path.join(repos_root, self.name)
         print(f"Downloading repository from: {self.url} ...")
-        print(f"Installing {repr(self)} in {save_dirpath} directory")
+        print(f"Installing {repr(self)} in: {self.dirpath}")
         start = time.time()
-        download_url(self.url, save_dirpath, verbose=verbose)
-        self.validate_checksums(repos_root, verbose)
-        print(f"Installation completed succesfully in {time.time() - start:.2f} [s]")
+        if not os.path.exists(REPOS_ROOT): os.mkdir(REPOS_ROOT)
+        download_repo_from_url(self.url, self.dirpath, verbose=verbose)
+        self.validate_checksums(verbose)
+        print(f"Installation completed successfully in {time.time() - start:.2f} [s]")
 
     #####################
     # Abstract interface.
     #####################
 
     @abc.abstractmethod
-    def validate_checksums(self, repos_root: str, verbose: int) -> None:
+    def validate_checksums(self, verbose: int) -> None:
         """Validate md5 checksums after download."""
 
     @property
@@ -260,7 +266,7 @@ class PseudosRepo(abc.ABC):
         """Return list of citations for this repository."""
 
     @abc.abstractmethod
-    def get_pseudos(self, repos_root: str, table_accuracy: str) -> PseudoTable:
+    def get_pseudos(self, table_accuracy: str) -> PseudoTable:
         """
         Build and return the PseudoPotential table associated to the given table_accuracy
         """
@@ -270,6 +276,9 @@ class OncvpspRepo(PseudosRepo):
 
     @classmethod
     def from_github(cls, xc_name: str, relativity_type: str, version: str) -> OncvpspRepo:
+        """
+        Build a OncvpsRepo assuming a github repository.
+        """
         ps_generator, project_name = "ONCVPSP", "PD"
 
         if relativity_type == "FR":
@@ -301,10 +310,9 @@ class OncvpspRepo(PseudosRepo):
                 doi="https://doi.org/10.1016/j.cpc.2018.01.012"),
         ]
 
-    def validate_checksums(self, repos_root: str, verbose: int) -> None:
+    def validate_checksums(self, verbose: int) -> None:
         print(f"\nValidating md5 checksums of {repr(self)} ...")
-        dirpath = os.path.join(repos_root, self.name)
-        djson_paths = [os.path.join(dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]
+        djson_paths = [os.path.join(self.dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]
 
         seen = set()
         errors = []
@@ -317,7 +325,7 @@ class OncvpspRepo(PseudosRepo):
                 if bname in seen: continue
                 seen.add(bname)
                 ref_md5 = d["md5"]
-                this_path = os.path.join(dirpath, symbol, bname)
+                this_path = os.path.join(self.dirpath, symbol, bname)
                 this_md5 = md5_for_filepath(this_path)
                 if ref_md5 != this_md5:
                     errors.append(f"Different md5 checksums for {this_path}")
@@ -333,28 +341,28 @@ class OncvpspRepo(PseudosRepo):
         else:
             print("Checksum test: OK")
 
-    def get_pseudos(self, repos_root: str, table_accuracy: str) -> PseudoTable:
+    @memoized_method()
+    def get_pseudos(self, table_accuracy: str) -> PseudoTable:
         """
         Build and return the PseudoPotential table associated to the given table_accuracy
         """
-        dirpath = os.path.join(repos_root, self.name)
-        djson_path = os.path.join(dirpath, f"{table_accuracy}.djson")
+        djson_path = os.path.join(self.dirpath, f"{table_accuracy}.djson")
         pseudos = []
         with open(djson_path, "rt") as fh:
             djson = json.load(fh)
             for symbol, d in djson["pseudos_metadata"].items():
                 bname = d["basename"]
-                pseudo_path = os.path.join(dirpath, symbol, bname)
-                print(f"Reading pseudo from {pseudo_path}")
+                pseudo_path = os.path.join(self.dirpath, symbol, bname)
+                #print(f"Reading pseudo from {pseudo_path}")
                 # FIXME: Bug if ~ in pseudo_path
                 pseudo_path = os.path.expanduser(pseudo_path)
                 pseudo = Pseudo.from_file(pseudo_path)
                 # Attach a fake dojo_report
-                # TODO: This part should be rationalized
+                # TODO: This part should be rationalized/rewritten
                 hints = d["hints"]
                 dojo_report = {"hints": hints}
                 pseudo.dojo_report = dojo_report
-                print(f"pseudo.filepath after {pseudo.filepath}")
+                #print(f"pseudo.filepath after {pseudo.filepath}")
                 pseudos.append(pseudo)
 
         return PseudoTable(pseudos)
@@ -379,11 +387,12 @@ class JthRepo(PseudosRepo):
         # ATOMPAW-LDA-JTHv0.4
         return f"{self.ps_generator}-{self.xc_name}-{self.project_name}v{self.version}"
 
-    def validate_checksums(self, repos_root: str, verbose: int) -> None:
+    def validate_checksums(self, verbose: int) -> None:
         print(f"\nValidating md5 checksums of {repr(self)} ...")
         print("WARNING: JTH-PAW repository does not support md5 checksums!!!")
 
-    def get_pseudos(self, repos_root: str, table_accuracy: str) -> PseudoTable:
+    @memoized_method()
+    def get_pseudos(self, table_accuracy: str) -> PseudoTable:
         """
         Build and return the PseudoPotential table associated to the given table_accuracy
         """
@@ -391,17 +400,15 @@ class JthRepo(PseudosRepo):
         if table_accuracy != "standard":
             raise ValueError(f"JTH table does not support table_accuracy: {table_accuracy}")
 
-        dirpath = os.path.join(repos_root, self.name)
-
         # Read the list of pseudopotential paths (relative to dirpath)
-        txt_path = os.path.join(dirpath, f"{table_accuracy}.txt")
+        txt_path = os.path.join(self.dirpath, f"{table_accuracy}.txt")
         with open(txt_path, "rt") as fh:
             relpaths = fh.readlines()
             relpaths = [l for l in relpaths if l.strip()]
 
         pseudos = []
         for rpath in relpaths:
-            pseudo = Pseudo.from_file(os.path.join(dirpath, rpath))
+            pseudo = Pseudo.from_file(os.path.join(self.dirpath, rpath))
             # TODO: Get hints
             pseudos.append(pseudo)
 
@@ -433,12 +440,12 @@ def repo_from_name(repo_name: str) -> PseudosRepo:
     return id2repo[repo_name]
 
 
-def pprint_repos(repos: List[PseudosRepo], repos_root: str, out=sys.stdout,
+def pprint_repos(repos: List[PseudosRepo], out=sys.stdout,
                  rstrip: bool = False, verbose: int = 0) -> None:
 
     rows = None
     for i, repo in enumerate(repos):
-        d = repo.to_rowdict(repos_root, verbose=verbose)
+        d = repo.to_rowdict(verbose=verbose)
         if i == 0:
             rows = [list(d.keys())]
         rows.append(list(d.values()))
@@ -446,9 +453,9 @@ def pprint_repos(repos: List[PseudosRepo], repos_root: str, out=sys.stdout,
     pprint_rows(rows, out=out, rstrip=rstrip)
 
 
-###################################
-# Here we register the repositories
-###################################
+############################################################
+# Here we register the repositories and build ALL_REPOS list
+############################################################
 
 _mk_onc = OncvpspRepo.from_github
 
@@ -468,7 +475,7 @@ _PAW_REPOS = [
 
 ALL_REPOS = _ONCVPSP_REPOS + _PAW_REPOS
 
-# Check whether repo name is unique.
+# Make sure repo name is unique.
 _repo_names = [_repo.name for _repo in ALL_REPOS]
 if len(set(_repo_names)) != len(_repo_names):
     raise RuntimeError(f"Found duplicated repo_names in ALL_REPOS:\nids: {_repo_names}")

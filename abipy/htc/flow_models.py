@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import traceback
 import panel as pn
+import logging
 
 from datetime import datetime
 from enum import Enum
@@ -22,6 +23,8 @@ from .pseudos_models import PseudoSpecs
 from .gs_models import GsData
 from .dfpt_models import PhononData
 #from .worker import AbipyWorker
+
+logger = logging.getLogger(__name__)
 
 
 class ExecStatus(str, Enum):
@@ -176,7 +179,9 @@ class FlowModel(MongoModel, ABC):
 
         except Exception:
             flow_data.exec_status = ExecStatus.errored
-            flow_data.tracebacks.append(traceback.format_exc())
+            exc_string = traceback.format_exc()
+            logger.critical(exc_string)
+            flow_data.tracebacks.append(exc_string)
             return None
 
         finally:
@@ -310,13 +315,9 @@ class EbandsFlowModel(FlowModel):
         Return: |Flow| object.
         """
         from abipy.abio.factories import ebands_input
-        #import abipy.data as abidata
-        #pseudos = abidata.pseudos("14si.pspnc")
         #ecut = 6
-        pseudos = self.pseudos_specs.get_pseudos()  # FIXME
-        print("in build flow1")
-        for p in pseudos:
-            print(p.filepath)
+        pseudos = self.pseudos_specs.get_pseudos()
+
         multi = ebands_input(self.input_structure_data.structure, pseudos,
                              kppa=self.kppa, nscf_nband=None, ndivsm=self.ndivsm,
                              #ecut=self.ecut, pawecutdg=None,
@@ -330,9 +331,6 @@ class EbandsFlowModel(FlowModel):
 
         self.scf_input, nscf_input = multi.split_datasets()
         from abipy.flowtk.flows import bandstructure_flow
-        print("in build flow2")
-        for p in self.scf_input.pseudos:
-            print(p.filepath)
 
         # TODO: Dos!
         return bandstructure_flow(workdir, self.scf_input, nscf_input, manager=manager)

@@ -18,7 +18,7 @@ import abipy.abio.input_tags as atags
 
 from collections import OrderedDict
 from collections.abc import MutableMapping
-from typing import List, Any, Union #, Optional, Any,
+from typing import List, Any, Union, Iterable
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
@@ -239,7 +239,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         """
         return self.remove_vars(keys, strict=False)
 
-    def remove_vars(self, keys: List[str], strict: bool = True) -> dict:
+    def remove_vars(self, keys: Union[Iterable[str], str], strict: bool = True) -> dict:
         """
         Remove the variables listed in keys.
         Return dictionary with the variables that have been removed.
@@ -292,7 +292,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         for new_vars in product_dict(kwargs):
             new_inp = self.deepcopy()
             # Remove the variable names to avoid annoying warnings if the variable is overwritten.
-            new_inp.remove_vars(new_vars.keys())
+            new_inp.remove_vars(list(new_vars.keys()))
             new_inp.set_vars(**new_vars)
             yield new_inp
 
@@ -472,7 +472,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
 
         # Add key, values to sha1
         # (not sure this is code is portable: roundoff errors and conversion to string)
-        # We could just compute the hash from the keys (hash equality does not necessarily imply __eq__!)
+        # We may just compute the hash from the keys (hash equality does not necessarily imply __eq__!)
         for key in sorted(self.keys()):
             value = self[key]
             if isinstance(value, np.ndarray): value = value.tolist()
@@ -504,9 +504,12 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
             abi_args.append((key, value))
 
         pseudo_dicts = [p.as_dict() for p in self.pseudos]
-        #from abipy.flowtk.psrepos import encode_pseudopath
-        #for d in pseudos_dicts:
-        #    d["filepath"] = encode_pseudopath(d["filepath"])
+
+        # replace absolute machine dependent filepaths with REPO prefix + relative path
+        # if we are using one of the "official" tables.
+        from abipy.flowtk.psrepos import encode_pseudopath
+        for d in pseudo_dicts:
+            d["filepath"] = encode_pseudopath(d["filepath"])
 
         return dict(structure=self.structure.as_dict(),
                     pseudos=pseudo_dicts,
@@ -538,14 +541,18 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         """
         JSON interface used in pymatgen for easier serialization.
         """
-        # TODO: We may replace abi_args with abi_kwargs to faciliate MongoDB queries
-        # and rendere the document more readable. At the time, we decided to use abi_args
+        # TODO: We may replace abi_args with abi_kwargs to facilitate MongoDB queries
+        # and render the document more readable. At the time, we decided to use abi_args
         # because the order is preserved but with py2.7 there's no need for this.
         # Similar changes may be done in AnaddbInput.
 
-        #from abipy.flowtk.psrepos import decode_pseudopath
-        #for pseudo_dict in d["pseudos"]:
-        #    pseudo_dict["filepath"] = decode_pseudopath(pseudo_dict["filepath"])
+        # First of all, let's check if are using a pseudo whose filepath is given
+        # in the form: REPO prefix + relative path and convert it to an absolute
+        # path on this machine. NB: I'm assuming the the PS REPO is already installed.
+        # else from_file will fail.
+        from abipy.flowtk.psrepos import decode_pseudopath
+        for pseudo_dict in d["pseudos"]:
+            pseudo_dict["filepath"] = decode_pseudopath(pseudo_dict["filepath"])
 
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
         dec = MontyDecoder()
@@ -781,7 +788,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
             if with_structure:
                 app(w * "#")
-                app("####" + ("STRUCTURE").center(w - 1))
+                app("####" + "STRUCTURE".center(w - 1))
                 app(w * "#")
                 kws = dict(enforce_znucl=self.enforce_znucl, enforce_typat=self.enforce_typat)
                 for name, value in self.structure.to_abivars(**kws).items():
@@ -820,7 +827,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                               with_structure=True, with_pseudos=False)
 
     @property
-    def comment(self) -> str:
+    def comment(self) -> Union[str, None]:
         """Optional string with comment. None if comment is not set."""
         try:
             return self._comment
@@ -884,6 +891,53 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     # Helper functions to facilitate the specification of several variables.
     ########################################################################
 
+    def set_cutoffs_for_accuracy(self, accuracy: str) -> dict:
+        """
+        Set the value of ecut and pawcutdg (if PAW) using the hints reported in the pseudos.
+        Raises ``AbinitInputError`` if pseudos do not provide hints.
+        In the case of PAW, pawecutdg is either taken from the hints or computed from the recommended
+        value of ecut using a scaling factor that depends on ``accuracy``.
+
+        Args:
+            accuracy:
+
+        Return: Dictionary with variables.
+        """
+        ecut, pawecutdg = 0.0, 0.0
+        has_paw = 0
+        for pseudo in self.pseudos:
+            hint = pseudo.hint_for_accuracy(accuracy)
+            if hint.ecut <= 0:
+                raise self.Error(f"Pseudo {repr(pseudo)} does not provide hints for ecut!")
+            ecut = max(ecut, hint.ecut)
+            if pseudo.ispaw:
+                has_paw += 1
+                pawecutdg = max(pawecutdg, hint.pawecutdg)
+
+        if has_paw and pawecutdg == 0.0:
+            fact = {"low": 1.0, "normal": 1.5, "high": 2}[accuracy]
+            pawecutdg = fact * ecut
+
+        d = dict(ecut=ecut)
+        if has_paw: d.update(pawecutdg=pawecutdg)
+        return self.set_vars(**d)
+
+    #def set_auto_scf_nband(self, nsppol: int, nspinor: int, nspden: int,
+    #                       occopt: int, tsmear: float) -> dict:
+    #    assert nsppol in (1, 2)
+    #    assert nspinor in (1, 2)
+    #    assert nspden in (1, 2, 4)
+    #    self._check_nsppol_nspinor(nsppol, nspinor)
+
+    #    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
+    #                                   charge=charge, nband=scf_nband, fband=None)
+    #    _find_scf_nband(structure, pseudos, electrons, spinat=None)
+    #    num_valence_electrons = self.structure.num_valence_electrons(pseudos)
+    #    nband = num_valence_electrons // nsppol
+    #    _, rest = divmod(nband, 4)
+    #    nband += rest
+    #    return self.set_vars(nsppol=nsppol, nspinor=nspinor, nsppden=nspden, nband=nband)
+
     def set_kmesh(self, ngkpt, shiftk, kptopt: int = 1) -> dict:
         """
         Set the variables for the sampling of the BZ.
@@ -912,7 +966,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt,
                              nshiftk=len(shiftk), shiftk=shiftk)
 
-    def get_ngkpt_shiftk(self):
+    def get_ngkpt_shiftk(self) -> tuple:
         """
         Return info on the k-point sampling from the input file,
         more specifically a tuple with nkgpt and shift.
@@ -963,7 +1017,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ph_nqshift=len(ph_qshift),
         )
 
-    def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
+    def set_kpath(self, ndivsm, kptbounds=None, iscf=-2) -> dict:
         """
         Set the variables for the NSCF computation of the electronic band structure.
 
@@ -986,7 +1040,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             kpts = kpoints_from_line_density(self.structure, abs(ndivsm))
             return self.set_vars(kptopt=0, nkpt=len(kpts), kpt=kpts, iscf=iscf)
 
-    def set_qpath(self, ndivsm, qptbounds=None):
+    def set_qpath(self, ndivsm, qptbounds=None) -> dict:
         """
         Set the variables for the computation of the phonon band structure
         and phonon linewidths in the EPH part.
@@ -1001,7 +1055,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return self.set_vars(ph_ndivsm=ndivsm, ph_nqpath=len(qptbounds), ph_qpath=qptbounds)
 
-    def set_kptgw(self, kptgw, bdgw):
+    def set_kptgw(self, kptgw, bdgw) -> dict:
         """
         Set the variables (k-points, bands) and nkptgw for the computation of self-energy matrix elements.
 
@@ -1017,7 +1071,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
-    def set_spin_mode(self, spin_mode):
+    def set_spin_mode(self, spin_mode) -> dict:
         """
         Set the variables used to the treat the spin degree of freedom.
         Return dictionary with the variables that have been removed.
@@ -1036,7 +1090,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         self.add_abiobjects(aobj.SpinMode.as_spinmode(spin_mode))
         return old_vars
 
-    def set_autospinat(self, default=0.6):
+    def set_autospinat(self, default=0.6) -> dict:
         """
         Set the variable spinat for collinear calculation in the format (0, 0, m) with the value of m determined
         with the following order of preference:
@@ -1081,7 +1135,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return self.set_vars(spinat=spinat)
 
-    def set_spinat_from_symbols(self, symb2spinat, default=(0, 0, 0)):
+    def set_spinat_from_symbols(self, symb2spinat, default=(0, 0, 0)) -> dict:
         """
         Set spinat parameters from a dictionary mapping chemical simbol to spinat value.
         If an element in the structure is not present in symb2luj, default is used.
@@ -1121,7 +1175,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return self.set_vars(spinat=s)
 
-    def set_usepawu(self, usepawu, symb2luj, units="eV"):
+    def set_usepawu(self, usepawu, symb2luj, units="eV") -> dict:
         """
         Set DFT+U parameters for PAW calculations.
 
@@ -1157,7 +1211,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return self.set_vars(usepawu=usepawu, lpawu=lpawu, upawu=upawu, jpawu=jpawu)
 
-    def set_kmesh_nband_and_occ(self, ngkpt, shiftk, nsppol, occ1k_spin, nspinor=1, kptopt=1, occopt=2):
+    def set_kmesh_nband_and_occ(self, ngkpt, shiftk, nsppol, occ1k_spin,
+                                nspinor=1, kptopt=1, occopt=2) -> dict:
         """
         Helper function to set occupancies when occopt == 2
 
@@ -1208,7 +1263,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return d
 
     @property
-    def pseudos(self):
+    def pseudos(self) -> List[Pseudo]:
         """List of |Pseudo| objects."""
         return self._pseudos
 
@@ -1223,16 +1278,16 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return all(p.isnc for p in self.pseudos)
 
     @property
-    def num_valence_electrons(self):
+    def num_valence_electrons(self) -> int:
         """Number of valence electrons computed from the pseudos and the structure."""
         return self.structure.num_valence_electrons(self.pseudos)
 
     @property
-    def valence_electrons_per_atom(self):
+    def valence_electrons_per_atom(self) -> int:
         """Number of valence electrons for each atom in the structure."""
         return self.structure.valence_electrons_per_atom(self.pseudos)
 
-    def linspace(self, varname, start, stop, num=50, endpoint=True):
+    def linspace(self, varname, start, stop, num=50, endpoint=True) -> List[AbinitInput]:
         """
         Generate `num` input files by changing the value of variable `varname` over the interval [`start`, `stop`].
         The endpoint of the interval can optionally be excluded.
@@ -1259,7 +1314,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return inps
 
-    def arange(self, varname, start, stop, step):
+    def arange(self, varname, start, stop, step) -> List[AbinitInput]:
         """
         Generate list of input files by changing the value of variable `varname` over the interval [`start`, `stop`].
         Values are generated within the half-open interval ``[start, stop)``
@@ -1288,7 +1343,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return inps
 
-    def product(self, *items):
+    def product(self, *items) -> List[AbinitInput]:
         """
         Cartesian product of input iterables. Equivalent to nested for-loops.
 
@@ -1474,7 +1529,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     #    return self.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])
 
     @property
-    def scf_tolvar(self):
+    def scf_tolvar(self) -> Tuple[str, float]:
         """
         Returns the tolerance variable and value relative to the SCF convergence.
         If more than one is present, an error is raised.

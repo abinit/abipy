@@ -394,7 +394,7 @@ class TestAbicheck(ScriptTest):
 
 def make_scf_nscf_inputs(paral_kgb=1, usepaw=0):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml") if usepaw else abidata.pseudos("14si.pspnc")
+    pseudos = abidata.pseudos("Si.GGA_PBE-JTH-paw.xml") if usepaw else abidata.pseudos("14si.pspnc")
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
     multi.set_mnemonics(True)
 
@@ -501,3 +501,17 @@ class TestAbiw(ScriptTest):
     def test_abiw(self):
         """Testing abiw.py script"""
         env = self.get_env()
+        # Note that ldiscover has side effect as it updates the list of local servers.
+        r = env.run(self.script, "ldiscover", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "clients", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
+
+class TestAbipsp(ScriptTest):
+    script = os.path.join(script_dir, "abips.py")
+
+    def test_abipsp(self):
+        """Testing abips.py script"""
+        env = self.get_env()
+        r = env.run(self.script, "avail", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "list", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        # Cannot test other commands as they perform installation

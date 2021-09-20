@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import os
+#import os
 
-from typing import Dict, Tuple
+#from typing import Dict, Tuple
 from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field, validator
 from pymatgen.io.abinit.pseudos import PseudoTable
@@ -14,9 +14,6 @@ class _PseudosProvider(BaseModel, ABC):
     @abstractmethod
     def get_pseudos(self) -> PseudoTable:
         """Return PseudoPotential Table."""
-
-
-_PSEUDOTABLES_CACHE: Dict[Tuple[str, str], PseudoTable] = {}
 
 
 class PseudoSpecs(_PseudosProvider):
@@ -35,7 +32,10 @@ class PseudoSpecs(_PseudosProvider):
 
     @classmethod
     def from_repo_name(cls, repo_name: str, table_accuracy: str = "standard") -> PseudoSpecs:
-
+        """
+        Build the object from a repository name and the table_accuracy.
+        Note that a PseudoPotential repository may provide different set of pseudos for a given ``table_accuracy``.
+        """
         repo = get_repo_from_name(repo_name)
         data = dict(repo_name=repo_name, table_accuracy=table_accuracy)
         attr_list = ["ps_generator", "xc_name", "relativity_type", "project_name", "version"]
@@ -53,7 +53,7 @@ class PseudoSpecs(_PseudosProvider):
         return value
 
     @validator('relativity_type')
-    def validate_relativity(cls, value):
+    def validate_relativity_type(cls, value):
         """Validate relativity_type"""
         allowed_values = ("SR", "FR")
         if value not in allowed_values:
@@ -63,21 +63,16 @@ class PseudoSpecs(_PseudosProvider):
 
     def get_pseudos(self) -> PseudoTable:
         """
-        Return the PseudoTable associated to the specs.
-        Use internal cache to store the table.
+        Return the PseudoTable associated to the initial specs.
         """
-        key = (self.repo_name, self.table_accuracy)
-        if key in _PSEUDOTABLES_CACHE:
-            print("Cache hit")
-            return _PSEUDOTABLES_CACHE[key]
-
         repo = get_repo_from_name(self.repo_name)
-        repos_root = os.path.expanduser("~/.abinit/pseudos")  # FIXME
-        if not repo.is_installed(repos_root):
-            print(f"Warning: Could not find {self.repo_name}. Will try to install it at runtime...")
-            repo.install(repos_root, verbose=0)
+        if not repo.is_installed():
+            print(f"Warning: Could not find {self.repo_name} installed in {repo.dirpath}.\n"
+                  f"Will try to install it at runtime...")
+            repo.install(verbose=1)
 
-        # Build PseudoTable and cache it.
-        pseudos = repo.get_pseudos(repos_root, table_accuracy=self.table_accuracy)
-        #_PSEUDOTABLES_CACHE[key] = pseudos
-        return pseudos
+        # Note that the repo instance keeps an internal cache of tables.
+        return repo.get_pseudos(table_accuracy=self.table_accuracy)
+
+
+#class PseudoSpecs(_PseudosProvider):

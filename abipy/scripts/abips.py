@@ -4,9 +4,9 @@ from __future__ import annotations
 import sys
 import os
 import argparse
-#import tqdm
 
-from abipy.flowtk.psrepos import ALL_REPOS, PseudosRepo, pprint_repos, repos_from_names
+from abipy.core.release import __version__
+from abipy.flowtk.psrepos import pprint_repos, repos_from_names, ALL_REPOS
 
 
 def user_wants_to_abort():
@@ -24,11 +24,12 @@ def get_repos_root(options) -> str:
     Return the path to the PseudoDojo installation directory.
     Create the directory if needed.
     """
-    repos_root = options.repos_root
-    if not os.path.exists(repos_root):
-        os.mkdir(repos_root)
+    from abipy.flowtk.psrepos import REPOS_ROOT
+    #repos_root = options.repos_root
+    if not os.path.exists(REPOS_ROOT):
+        os.mkdir(REPOS_ROOT)
 
-    return repos_root
+    return REPOS_ROOT
 
 
 def abips_list(options):
@@ -44,12 +45,12 @@ def abips_list(options):
 
     print(f"The following pseudopotential repositories are installed in {repos_root}:\n")
     repos = repos_from_names(names)
-    pprint_repos(repos, repos_root=repos_root)
+    pprint_repos(repos)
 
     if options.verbose:
         for repo in repos:
             if repo.ispaw: continue
-            pseudos = repo.get_pseudos(repos_root, table_accuracy="standard")
+            pseudos = repo.get_pseudos(table_accuracy="standard")
             print(pseudos)
     else:
         print("\nUse -v to print the pseudos")
@@ -60,7 +61,7 @@ def abips_list(options):
     exc_list = []
     for repo in repos:
         try:
-            repo.validate_checksums(repos_root, options.verbose)
+            repo.validate_checksums(options.verbose)
         except Exception as exc:
             exc_list.append(exc)
 
@@ -77,8 +78,7 @@ def abips_avail(options):
     Show available repos.
     """
     print("List of available pseudopotential repositories:\n")
-    repos_root = get_repos_root(options)
-    pprint_repos(ALL_REPOS, repos_root)
+    pprint_repos(ALL_REPOS)
 
 
 #def abips_nc_install(options):
@@ -130,53 +130,43 @@ def abips_avail(options):
 
 def abips_install(options):
     """
-    Get list of repos by their IDs.
-    Use the `avail` command to get the repo ID.
+    Install pseudopotential repositories by name(s).
+    Use the `avail` command to get the repo name.
     """
-    #if not options.repo_names:
-    #    abips_list(options)
-    #    return 0
-
-    repos_root = get_repos_root(options)
     repos = repos_from_names(options.repo_names)
-    repos = [repo for repo in repos if not repo.is_installed(repos_root)]
+    repos = [repo for repo in repos if not repo.is_installed()]
 
     if not repos:
-        print("Tables are already installed!")
-        abips_list(options)
-        return 1
+        print("Table(s) are already installed! Nothing to do. Returning")
+        return 0
 
     print("The following pseudopotential repositories will be installed:")
-    pprint_repos(repos, repos_root=repos_root)
-    #if not options.yes and user_wants_to_abort():
-    #    return 2
+    pprint_repos(repos)
+    #if not options.yes and user_wants_to_abort(): return 2
 
     for repo in repos:
-        repo.install(repos_root, options.verbose)
+        repo.install(verbose=options.verbose)
 
-    abips_list(options)
+    #abips_list(options)
     return 0
 
 
 def abips_show(options):
     """Show Pseudopotential tables"""
-
-    repos_root = get_repos_root(options)
     repos = repos_from_names(options.repo_names)
-    repos = [repo for repo in repos if repo.is_installed(repos_root)]
+    repos = [repo for repo in repos if repo.is_installed()]
 
     if not repos:
         print(f"There's no installed repository with name in: {options.repo_names}")
-        #abips_list(options)
         return 1
 
     for repo in repos:
-        print(repo)
-        pseudos = repo.get_pseudos(repos_root, table_accuracy="standard")
-        for pseudo in pseudos:
-            print(pseudo.filepath)
-            print(pseudo.as_dict()["filepath"])
-        #print(pseudos)
+        #print(repo)
+        pseudos = repo.get_pseudos(table_accuracy="standard")
+        #for pseudo in pseudos:
+        #    print(pseudo.filepath)
+        #    print(pseudo.as_dict()["filepath"])
+        print(pseudos)
 
     return 0
 
@@ -186,13 +176,15 @@ def get_epilog():
 
 Usage example:
 
-  abips.py avail                          --> Show registered repositories and the associated IDs.
-  abips.py list                           --> List installed repositories.
-  abips.py install ONCVPSP-PBEsol-SR-PDv0.4  --> Download repositorie(s) by name(s).          
-  abips.py nc_install                         --> Get all NC repositories (most recent version)
-  abips.py nc_install -xc PBE -fr -sr --version 0.4 
-  abips.py paw_install                        --> Get all PAW repositories (most recent version)
+  abips.py avail                             --> Show all registered repositories
+  abips.py list                              --> List repositories installed on this machine
+  abips.py install ONCVPSP-PBEsol-SR-PDv0.4  --> Install repository by name (requires internet connection).
 """
+
+  #abips.py show ONCVPSP-PBEsol-SR-PDv0.4  --> Install repository.
+  #abips.py nc_install                        --> Get all NC repositories (most recent version)
+  #abips.py nc_install -xc PBE -fr -sr --version 0.4
+  #abips.py paw_install                        --> Get all PAW repositories (most recent version)
 
 
 def get_parser(with_epilog=False):
@@ -202,43 +194,43 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity.')
 
-    copts_parser.add_argument('--repos-root', "-r", type=str,
-                              default=os.path.expanduser(os.path.join("~", ".abinit", "pseudos")),
-                              help='Installation directory. Default: $HOME/.abinit/pseudos')
+    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+                              help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
+    #copts_parser.add_argument('--repos-root', "-r", type=str,
+    #                          default=os.path.expanduser(os.path.join("~", ".abinit", "pseudos")),
+    #                          help='Installation directory. Default: $HOME/.abinit/pseudos')
 
     #copts_parser.add_argument('-y', "--yes", action="store_true", default=False,
     #                          help="Do not ask for confirmation when installing repositories.")
 
-
-
-
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='version')  #, version=__version__)
+    parser.add_argument('-V', '--version', action='version', version=__version__)
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
+
+    # Subparser for avail command.
+    subparsers.add_parser("avail", parents=[copts_parser], help=abips_avail.__doc__)
 
     # Subparser for list command.
     p_list = subparsers.add_parser("list", parents=[copts_parser], help=abips_list.__doc__)
     p_list.add_argument("-c", "--checksums", action="store_true", default=False,
                         help="Validate checksums")
 
-    # Subparser for avail command.
-    subparsers.add_parser("avail", parents=[copts_parser], help=abips_avail.__doc__)
+    # Subparser for install command.
+    p_install = subparsers.add_parser("install", parents=[copts_parser], help=abips_install.__doc__)
+    p_install.add_argument("repo_names", type=str, nargs="+", help="List of repositories to download.")
+    p_install.add_argument("-c", "--checksums", action="store_true", default=False,
+                           help="Validate checksums")
 
     # Subparser for nc_install command.
     #p_nc_install = subparsers.add_parser("nc_install", parents=[copts_parser], help=abips_nc_install.__doc__)
 
     # Subparser for paw_install command.
     #p_paw_install = subparsers.add_parser("paw_install", parents=[copts_parser], help=abips_paw_install.__doc__)
-
-    # Subparser for install command.
-    p_install = subparsers.add_parser("install", parents=[copts_parser], help=abips_install.__doc__)
-    p_install.add_argument("repo_names", type=str, nargs="+", help="List of repositories to download.")
-    p_install.add_argument("-c", "--checksums", action="store_true", default=False,
-                            help="Validate checksums")
 
     # Subparser for show command.
     p_show = subparsers.add_parser("show", parents=[copts_parser], help=abips_show.__doc__)
@@ -261,7 +253,18 @@ def main():
     try:
         options = parser.parse_args()
     except Exception as exc:
+        print(exc)
         show_examples_and_exit(error_code=1)
+
+    # loglevel is bound to the string value obtained from the command line argument.
+    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
+    import logging
+    numeric_level = getattr(logging, options.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % options.loglevel)
+    logging.basicConfig(level=numeric_level)
+
+    #if options.repos_root:
 
     return globals()[f"abips_{options.command}"](options)
 

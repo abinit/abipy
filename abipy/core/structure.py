@@ -2295,7 +2295,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return int(nval) if int(nval) == nval else nval
 
-    def valence_electrons_per_atom(self, pseudos):
+    def valence_electrons_per_atom(self, pseudos) -> list:
         """
         Returns the number of valence electrons for each atom in the structure.
 

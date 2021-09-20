@@ -50,8 +50,9 @@ class TestAbinitInput(AbipyTest):
         with self.assertRaises(inp.Error): inp._check_nsppol_nspinor(3, 1)
         with self.assertRaises(inp.Error): inp._check_nsppol_nspinor(2, 2)
         with self.assertRaises(inp.Error): inp._check_nsppol_nspinor(1, 4)
+        with self.assertRaises(inp.Error): inp.set_cutoffs_for_accuracy("normal")
 
-        # unless we deactive spell_check
+        # unless we deactivate spell_check
         assert inp.spell_check
         inp.set_spell_check(False)
         inp["foo"] = 1
@@ -99,6 +100,10 @@ class TestAbinitInput(AbipyTest):
         with self.assertRaises(KeyError):
             inp.remove_vars("foo", strict=True)
         assert not inp.remove_vars("foo", strict=False)
+
+        with self.assertRaises(inp.Error):
+            # Pseudos do not provide hints
+            inp.set_cutoffs_for_accuracy("normal")
 
         # Test deepcopy and remove_vars.
         inp["bdgw"] = [1, 2]
