@@ -3,7 +3,7 @@
 
 from .works import Work
 from abipy.lumi.deltaSCF import DeltaSCF
-from abipy.abilab import abiopen 
+from abipy.abilab import abiopen
 
 class LumiWork(Work):
     """
@@ -74,14 +74,13 @@ class LumiWork(Work):
         This method is called when all the works in the flow have reached S_OK.
 
         This is the section in which we implement most of the workflow logic at runtime.
-since we need to generate input files with relaxed structures.
-"""
+        since we need to generate input files with relaxed structures.
+        """
             # Get Ag relaxed structure
-        with abiopen(self.gs_relax_task.output_file.path) as relax_gs_file:
-            ag_relaxed_structure=relax_gs_file.final_structure
-            
-	#with self.gs_relax_task.open_gsr() as gsr:
-        #    ag_relaxed_structure = gsr.structure
+        #with self.gs_relax_task.open_gsr() as gsr:
+           # ag_relaxed_structure = gsr.structure
+        with abiopen(self.gs_relax_task.output_file.path) as relax_gs_abo:
+           ag_relaxed_structure = relax_gs_abo.final_structure
 
         if self.iteration_step == 0:
             print("in iteration step 0")
@@ -90,7 +89,7 @@ since we need to generate input files with relaxed structures.
             # Relax geometry with excited configuration starting from Ag*.
             relax_ex_inp=self.ex_scf_inp.new_with_vars(self.relax_kwargs_ex)
             relax_ex_inp_2 = relax_ex_inp.new_with_structure(ag_relaxed_structure)
-            self.ex_relax_task = self.register_relax_task(relax_ex_inp_2,deps={self.gs_relax_task: "DEN"})
+            self.ex_relax_task = self.register_relax_task(relax_ex_inp_2)#,deps={self.gs_relax_task: "DEN"})
 
             # if only the two relaxation, go to results writing step directly
             if self.four_points==False:
@@ -107,26 +106,28 @@ since we need to generate input files with relaxed structures.
             # Build GS SCF input for the Ag configuration:
             # use same structure as Ag with ground occupation factors.
             ag_scf_inp = self.gs_scf_inp.new_with_structure(ag_relaxed_structure)
-            self.ag_scf_task = self.register_scf_task(ag_scf_inp,deps={self.gs_relax_task: "DEN"})
+            self.ag_scf_task = self.register_scf_task(ag_scf_inp)#,deps={self.gs_relax_task: "DEN"})
 
             # Build GS SCF input for the Ag* configuration:
             # use same structure as Ag but with excited occupation factors.
             agstar_scf_inp = self.ex_scf_inp.new_with_structure(ag_relaxed_structure)
-            self.agstar_scf_task = self.register_scf_task(agstar_scf_inp,deps={self.gs_relax_task: "DEN"})
+            self.agstar_scf_task = self.register_scf_task(agstar_scf_inp)#,deps={self.gs_relax_task: "DEN"})
 
             # Get Aestar relaxed structure.
-            with self.ex_relax_task.open_gsr() as gsr:
-                aestar_relaxed_structure = gsr.structure
+            #with self.ex_relax_task.open_gsr() as gsr:
+            #    aestar_relaxed_structure = gsr.structure
+            with abiopen(self.ex_relax_task.output_file.path) as relax_ex_abo:
+                aestar_relaxed_structure = relax_ex_abo.final_structure
 
             # Build ex SCF input for the Aestar configuration:
             # use same structure as Aestar with excited occupation factors.
             aestar_scf_inp = self.ex_scf_inp.new_with_structure(aestar_relaxed_structure)
-            self.aestar_scf_task = self.register_scf_task(aestar_scf_inp,deps={self.ex_relax_task: "DEN"})
+            self.aestar_scf_task = self.register_scf_task(aestar_scf_inp)#,deps={self.ex_relax_task: "DEN"})
 
             # Build GS SCF task for the Ae configuration:
             # use same structure as Aestar but with ground occupation factors.
             ae_scf_inp = self.gs_scf_inp.new_with_structure(aestar_relaxed_structure)
-            self.ae_scf_task = self.register_scf_task(ae_scf_inp,deps={self.ex_relax_task: "DEN"})
+            self.ae_scf_task = self.register_scf_task(ae_scf_inp)#,deps={self.ex_relax_task: "DEN"})
 
 
             if self.ndivsm != 0:
@@ -156,29 +157,29 @@ since we need to generate input files with relaxed structures.
 
             self.json_data["meta"] = self.meta
 
-            with self.gs_relax_task.open_gsr() as gsr:
-                self.json_data["gs_relax_filepath"]=gsr.filepath
+            #with self.gs_relax_task.open_gsr() as gsr:
+            self.json_data["gs_relax_filepath"]=self.gs_relax_task.gsr_path
 
-            with self.ex_relax_task.open_gsr() as gsr:
-                self.json_data["ex_relax_filepath"]=gsr.filepath
+            #with self.ex_relax_task.open_gsr() as gsr:
+            self.json_data["ex_relax_filepath"]=self.ex_relax_task.gsr_path
 
 
             if self.four_points == True:
                 # Get Ag total energy.
-                with self.ag_scf_task.open_gsr() as gsr:
-                    self.json_data["Ag_gsr_filepath"] = gsr.filepath
+                #with self.ag_scf_task.open_gsr() as gsr:
+                self.json_data["Ag_gsr_filepath"] = self.ag_scf_task.gsr_path
 
                 # Get Agstar total energy.
-                with self.ex_relax_task.open_gsr() as gsr:
-                    self.json_data["Agstar_gsr_filepath"] = gsr.filepath
+                #with self.ex_relax_task.open_gsr() as gsr:
+                self.json_data["Agstar_gsr_filepath"] = self.agstar_scf_task.gsr_path
 
                 # Get Aestar total energy.
-                with self.aestar_scf_task.open_gsr() as gsr:
-                    self.json_data["Aestar_gsr_filepath"] = gsr.filepath
+                #with self.aestar_scf_task.open_gsr() as gsr:
+                self.json_data["Aestar_gsr_filepath"] = self.aestar_scf_task.gsr_path
 
                 # Get Aestar total energy.
-                with self.ae_scf_task.open_gsr() as gsr:
-                    self.json_data["Ae_gsr_filepath"] = gsr.filepath
+                #with self.ae_scf_task.open_gsr() as gsr:
+                self.json_data["Ae_gsr_filepath"] = self.ae_scf_task.gsr_path
 
             # Write json file in the outdir of the work
             self.write_json_in_outdir("lumi.json", self.json_data)
