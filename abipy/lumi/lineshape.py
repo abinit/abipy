@@ -124,7 +124,6 @@ class Lineshape():
         index_0 = int((len(t) - 1) / 2)
         g = g_plus[index_0] + g_minus[index_0]
 
-        G_t = np.zeros(n_step, dtype=complex)
         G_t = np.exp(g_plus + g_minus - g)
 
         return (t, G_t)

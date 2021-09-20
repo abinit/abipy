@@ -401,6 +401,28 @@ class DeltaSCF():
 
         return f
 
+    def plot_four_BandStructures(self,nscf_files):
+        """"
+        plot the 4 band structures
+        nscf_files is the list of Ag, Agstar, Aestar, Ae nscf file paths.
+        """
+        ebands = []
+        for file in nscf_files:
+            with abiopen(file) as f:
+                ebands.append(f.ebands)
+
+        fig, axs = plt.subplots(1, 4) #figsize=(9, 5))
+        titles = [r'$A_g$', r'$A_g^*$', r'$A_e^*$', r'$A_e$']
+        e0 = ebands[0].fermie
+        for i,eband in enumerate(ebands):
+            eband.plot(ax=axs[i], e0=e0, ylims=(-5, 5))
+            eband.decorate_ax(ax=axs[i], title=titles[i])
+
+        for ax in axs.flat:
+            ax.label_outer()
+
+        plt.subplots_adjust(hspace=0.5, wspace=0.1)
+
 
 
 

@@ -3,6 +3,7 @@
 
 from .works import Work
 from abipy.lumi.deltaSCF import DeltaSCF
+from abipy.abilab import abiopen 
 
 class LumiWork(Work):
     """
@@ -73,11 +74,14 @@ class LumiWork(Work):
         This method is called when all the works in the flow have reached S_OK.
 
         This is the section in which we implement most of the workflow logic at runtime.
-        since we need to generate input files with relaxed structures.
-        """
+since we need to generate input files with relaxed structures.
+"""
             # Get Ag relaxed structure
-        with self.gs_relax_task.open_gsr() as gsr:
-            ag_relaxed_structure = gsr.structure
+        with abiopen(self.gs_relax_task.output_file.path) as relax_gs_file:
+            ag_relaxed_structure=relax_gs_file.final_structure
+            
+	#with self.gs_relax_task.open_gsr() as gsr:
+        #    ag_relaxed_structure = gsr.structure
 
         if self.iteration_step == 0:
             print("in iteration step 0")
