@@ -3,7 +3,6 @@ Pseudopotential repositories
 """
 from __future__ import annotations
 
-import sys
 import os
 import time
 import abc
@@ -14,8 +13,9 @@ import shutil
 import hashlib
 import requests
 
-from typing import List
+from typing import List, Optional, Tuple
 from urllib.parse import urlsplit
+from monty.termcolor import cprint, colored
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
 from abipy.tools.decorators import memoized_method
 from tqdm import tqdm
@@ -25,15 +25,26 @@ REPOS_ROOT = os.environ.get("ABIPY_PSREPOS_ROOT",
                             default=os.path.join(os.path.expanduser("~"), ".abinit", "pseudos"))
 
 
+def get_repos_root() -> str:
+    """
+    Return the path to the PseudoDojo installation directory.
+    Create the directory if needed.
+    """
+    if not os.path.exists(REPOS_ROOT):
+        os.mkdir(REPOS_ROOT)
+
+    return REPOS_ROOT
+
+
 def encode_pseudopath(filepath: str) -> str:
-    for repo in ALL_REPOS:
+    for repo in _ALL_REPOS:
         if filepath.startswith(repo.dirpath):
             return filepath.replace(repo.dirpath, f"@{repo.name}", 1)
     return filepath
 
 
 def decode_pseudopath(filepath: str) -> str:
-    for repo in ALL_REPOS:
+    for repo in _ALL_REPOS:
         start = f"@{repo.name}"
         if filepath.startswith(start):
             return filepath.replace(start, repo.dirpath, 1)
@@ -97,56 +108,24 @@ def md5_for_filepath(filepath: str) -> str:
         return m.hexdigest()
 
 
-def pprint_rows(rows: list, out=sys.stdout, rstrip: bool = False) -> None:
-    """
-    Prints out a table of data, padded for alignment
-    Each row must have the same number of columns.
-
-    Args:
-        out: Output stream (file-like object)
-        rows: The table to print. A list of lists.
-        rstrip: if true, trailing withespaces are removed from the entries.
-    """
-    def max_width_col(table, col_idx):
-        """Get the maximum width of the given column index"""
-        return max([len(r[col_idx]) for r in table])
-
-    if rstrip:
-        for row_idx, row in enumerate(rows):
-            rows[row_idx] = [c.rstrip() for c in row]
-
-    col_paddings = []
-    ncols = len(rows[0])
-    for i in range(ncols):
-        col_paddings.append(max_width_col(rows, i))
-
-    for row in rows:
-        # left col
-        out.write( row[0].ljust(col_paddings[0] + 1) )
-        # rest of the cols
-        for i in range(1, len(row)):
-            col = row[i].rjust(col_paddings[i] + 2)
-            out.write(col)
-        out.write("\n")
-
-
 def get_repo_from_name(repo_name) -> PseudosRepo:
     """
     Return a PseudosRepo from its name ``repo_name``.
     Raises KeyError if ``repo_name`` is not registered.
     """
-    for repo in ALL_REPOS:
+    for repo in _ALL_REPOS:
         if repo.name == repo_name:
             return repo
     else:
-        all_names = [repo.name for repo in ALL_REPOS]
+        all_names = [repo.name for repo in _ALL_REPOS]
         raise KeyError(f"Couldn't find {repo_name} in the list of registered repos:\n{all_names}")
 
 
-#def get_repos_in_dirpath(dirpath: str) -> List[PseudosRepo]:
-#    dir_basenames = [name for name in os.listdir(dirpath) if os.path.isdir(os.path.join(dirpath, name))]
-#    dirname2repo = {repo.name: repo for repo in ALL_REPOS}
-#    return [dirname2repo[dirname] for dirname in dir_basenames if dirname in dirname2repo]
+def get_installed_repos_and_root(dirpath: Optional[str] = None) -> Tuple[List[PseudosRepo], str]:
+    dirpath = REPOS_ROOT if not dirpath else dirpath
+    dir_basenames = [name for name in os.listdir(dirpath) if os.path.isdir(os.path.join(dirpath, name))]
+    dirname2repo = {repo.name: repo for repo in _ALL_REPOS}
+    return [dirname2repo[dirname] for dirname in dir_basenames if dirname in dirname2repo], dirpath
 
 
 class Citation:
@@ -155,6 +134,15 @@ class Citation:
         self.title = title
         self.doi = doi
 
+    def __str__(self):
+        return f"{self.title}\doi:{self.doi}"
+
+    #def __hash__(self) -> int:
+    #    return hash(self.doi)
+
+    #def __eq__(self, other):
+    #    return self.doi == other.doi
+
 
 class PseudosRepo(abc.ABC):
     """
@@ -162,6 +150,8 @@ class PseudosRepo(abc.ABC):
     of pseudopotential files with some metadata and some external files that allow us to
     construct a PseudoTable object.
     """
+
+    #accuracies = ["standard", "stringent"]
 
     def __init__(self, ps_generator: str, xc_name: str, relativity_type: str, project_name: str,
                  version: str, url: str):
@@ -192,7 +182,7 @@ class PseudosRepo(abc.ABC):
             relativity_type=self.relativity_type,
             project_name=self.project_name,
             version=self.version,
-            installed=str(self.is_installed()),
+            installed=self.is_installed(),
             name=self.name,
         )
 
@@ -311,7 +301,7 @@ class OncvpspRepo(PseudosRepo):
         ]
 
     def validate_checksums(self, verbose: int) -> None:
-        print(f"\nValidating md5 checksums of {repr(self)} ...")
+        print(f"\nValidating md5 checksums of {repr(self)}...")
         djson_paths = [os.path.join(self.dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]
 
         seen = set()
@@ -334,12 +324,12 @@ class OncvpspRepo(PseudosRepo):
                         print(f"MD5 checksum for {this_path} is OK")
 
         if errors:
-            print("Checksum test: FAILED")
+            cprint("Checksum test: FAILED", color="red")
             errstr = "\n".join(errors)
             raise ValueError(f"Checksum test failed for the following pseudos:\n{errstr}\n"
                              f"Data is corrupted. Try to download {repr(self)} again")
         else:
-            print("Checksum test: OK")
+            cprint("Checksum test: OK", color="green")
 
     @memoized_method()
     def get_pseudos(self, table_accuracy: str) -> PseudoTable:
@@ -389,7 +379,7 @@ class JthRepo(PseudosRepo):
 
     def validate_checksums(self, verbose: int) -> None:
         print(f"\nValidating md5 checksums of {repr(self)} ...")
-        print("WARNING: JTH-PAW repository does not support md5 checksums!!!")
+        cprint("WARNING: JTH-PAW repository does not support md5 checksums!!!", color="red")
 
     @memoized_method()
     def get_pseudos(self, table_accuracy: str) -> PseudoTable:
@@ -426,7 +416,7 @@ def repos_from_names(repo_names: List[str]) -> List[PseudosRepo]:
     """
     Return list of PP Repos from a list of repo_names
     """
-    id2repo = {repo.name: repo for repo in ALL_REPOS}
+    id2repo = {repo.name: repo for repo in _ALL_REPOS}
     # This will fail if we have received an invalid repo_name
     return [id2repo[repo_name] for repo_name in repo_names]
 
@@ -435,27 +425,57 @@ def repo_from_name(repo_name: str) -> PseudosRepo:
     """
     Return PseudosRepo from its name ``repo_name``.
     """
-    id2repo = {repo.name: repo for repo in ALL_REPOS}
+    id2repo = {repo.name: repo for repo in _ALL_REPOS}
     # This will fail if we have received an invalid repo_name.
     return id2repo[repo_name]
 
 
-def pprint_repos(repos: List[PseudosRepo], out=sys.stdout,
-                 rstrip: bool = False, verbose: int = 0) -> None:
+def tabulate_repos(repos: List[PseudosRepo], exclude: Optional[List[str]] = None,
+                   with_citations: bool = False, verbose: int = 0) -> str:
 
-    rows = None
+    bool2color = {True: "green", False: "red"}
+
+    rows = []
     for i, repo in enumerate(repos):
         d = repo.to_rowdict(verbose=verbose)
+        if exclude:
+            d = {k: d[k] for k in d if k not in exclude}
+
         if i == 0:
-            rows = [list(d.keys())]
+            headers = list(d.keys())
+
+        if "installed" in d:
+            d["installed"] = colored(d["installed"], bool2color[d["installed"]])
+
         rows.append(list(d.values()))
 
-    pprint_rows(rows, out=out, rstrip=rstrip)
+    from tabulate import tabulate
+    s = tabulate(rows, headers)
+    if not with_citations: return s
+
+    lines = [s, ""]
+
+    proj2citations = {}
+    for repo in repos:
+        proj2citations[repo.project_name] = repo.get_citations()
+
+    for projname, citations in proj2citations.items():
+        lines.append(f"References for the {projname} project:")
+        for i, citation in enumerate(citations):
+            lines.append(f"\t- {citation.doi}")
+
+    s = "\n".join(lines)
+
+    return s
 
 
-############################################################
-# Here we register the repositories and build ALL_REPOS list
-############################################################
+#############################################################
+# Here we register the repositories and build _ALL_REPOS list
+#############################################################
+
+def get_all_registered_repos():
+    return _ALL_REPOS[:]
+
 
 _mk_onc = OncvpspRepo.from_github
 
@@ -473,9 +493,9 @@ _PAW_REPOS = [
     _mk_jth(xc_name="PBE", relativity_type="SR", version="1.1"),
 ]
 
-ALL_REPOS = _ONCVPSP_REPOS + _PAW_REPOS
+_ALL_REPOS = _ONCVPSP_REPOS + _PAW_REPOS
 
 # Make sure repo name is unique.
-_repo_names = [_repo.name for _repo in ALL_REPOS]
+_repo_names = [_repo.name for _repo in _ALL_REPOS]
 if len(set(_repo_names)) != len(_repo_names):
     raise RuntimeError(f"Found duplicated repo_names in ALL_REPOS:\nids: {_repo_names}")

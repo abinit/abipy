@@ -23,7 +23,7 @@ import panel as pn
 from datetime import datetime
 from uuid import uuid4
 #from queue import Queue, Empty
-from typing import List, Union, Optional, Tuple, Type  # Awaitable
+from typing import List, Union, Optional, Tuple  # , Type  # Awaitable
 from enum import Enum
 from monty.json import MSONable
 #from monty.functools import lazy_property
@@ -204,7 +204,7 @@ class WorkerStatusEnum(str, Enum):
     dead = "dead"
 
 
-def _str_uuid():
+def _str_uuid() -> str:
     return str(uuid4())
 
 
@@ -648,7 +648,7 @@ def _get_all_local_worker_states(as_dict=False, dirpath=None):
     return states
 
 
-def print_local_workers(dirpath=None) -> None:
+def print_local_workers(dirpath: Optional[str] = None) -> None:
     df = pd.DataFrame(_get_all_local_worker_states(dirpath=dirpath))
     print_dataframe(df, title="\nLocal AbiPy Workers:\n")
 

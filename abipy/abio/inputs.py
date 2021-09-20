@@ -870,7 +870,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         errors = []
         eapp = errors.append
 
-        if nsppol not in (1, 2): eapp(f"nsppol should be either 1 or 2 while it is: {nsppol}")
+        if nsppol not in (1, 2):
+            eapp(f"nsppol should be either 1 or 2 while it is: {nsppol}")
 
         if nspinor == 1:
             if nsppol not in (1, 2):
@@ -924,9 +925,6 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     #def set_auto_scf_nband(self, nsppol: int, nspinor: int, nspden: int,
     #                       occopt: int, tsmear: float) -> dict:
-    #    assert nsppol in (1, 2)
-    #    assert nspinor in (1, 2)
-    #    assert nspden in (1, 2, 4)
     #    self._check_nsppol_nspinor(nsppol, nspinor)
 
     #    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,

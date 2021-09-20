@@ -1,8 +1,13 @@
+"""
+Tests for psrepos.py module
+"""
 import tempfile
+import os
 
 from abipy.core.testing import AbipyTest
-from abipy.flowtk.psrepos import (OncvpspRepo, get_repo_from_name, encode_pseudopath, decode_pseudopath, \
-    download_repo_from_url)
+from abipy.flowtk.psrepos import (OncvpspRepo, get_repo_from_name, encode_pseudopath, decode_pseudopath,
+                                  download_repo_from_url, tabulate_repos, get_all_registered_repos,
+                                  get_installed_repos_and_root)
 
 
 class TestPsRepos(AbipyTest):
@@ -44,7 +49,7 @@ class TestPsRepos(AbipyTest):
 
         assert not repo.is_installed()
         d = repo.to_rowdict(verbose=2)
-        assert d["installed"] == "False"
+        assert d["installed"] is False
         assert d["version"] == "0.1"
 
         # For the time being, we don't test the installation procedure.
@@ -53,6 +58,23 @@ class TestPsRepos(AbipyTest):
         with self.assertRaises(ValueError):
             OncvpspRepo(ps_generator="ONCVPSP", xc_name="PBE", relativity_type="Foo",
                         project_name="PD", version="0.1", url="http://example.org")
+
+    def test_high_level_api(self):
+
+        def check_url(url):
+            import requests
+            response = requests.head(url)
+            # 302 corresponds to redirection and it's returned by github.
+            if response.status_code not in (200, 302):
+                raise RuntimeError(f'url {url} returned {response.status_code}')
+
+        repos = get_all_registered_repos()
+        assert repos
+        for repo in repos:
+            check_url(repo.url)
+
+        installed_repos, root = get_installed_repos_and_root()
+        assert os.path.exists(root)
 
     def test_oncvpsp_api(self):
         """Testing ONCVPSP API."""
@@ -67,6 +89,9 @@ class TestPsRepos(AbipyTest):
         assert all(repo.version == "0.4" for repo in repos)
         assert all(repo.project_name == "PD" for repo in repos)
         assert all(repo.ps_generator == "ONCVPSP" for repo in repos)
+
+        assert tabulate_repos(repos, with_citations=True, verbose=1)
+        assert tabulate_repos(repos, exclude=["installed"], verbose=1)
 
         if repo_sr.is_installed():
             repo_sr.validate_checksums(verbose=1)

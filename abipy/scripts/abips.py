@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+Script to download and install pseudopotential tables.
+"""
 from __future__ import annotations
 
 import sys
@@ -6,7 +9,8 @@ import os
 import argparse
 
 from abipy.core.release import __version__
-from abipy.flowtk.psrepos import pprint_repos, repos_from_names, ALL_REPOS
+from abipy.flowtk.psrepos import (tabulate_repos, repos_from_names,
+                                  get_all_registered_repos, get_installed_repos_and_root)
 
 
 def user_wants_to_abort():
@@ -19,43 +23,29 @@ def user_wants_to_abort():
     return answer.lower().strip() in ["n", "no"]
 
 
-def get_repos_root(options) -> str:
-    """
-    Return the path to the PseudoDojo installation directory.
-    Create the directory if needed.
-    """
-    from abipy.flowtk.psrepos import REPOS_ROOT
-    #repos_root = options.repos_root
-    if not os.path.exists(REPOS_ROOT):
-        os.mkdir(REPOS_ROOT)
-
-    return REPOS_ROOT
-
-
 def abips_list(options):
     """
     List all installed pseudopotential repos.
     """
-    repos_root = get_repos_root(options)
-    names = [name for name in os.listdir(repos_root) if os.path.isdir(os.path.join(repos_root, name))]
+    repos, repos_root = get_installed_repos_and_root()
 
-    if not names:
+    if not repos:
         print("Could not find any pseudopotential repository installed in:", repos_root)
         return 0
 
     print(f"The following pseudopotential repositories are installed in {repos_root}:\n")
-    repos = repos_from_names(names)
-    pprint_repos(repos)
+    print(tabulate_repos(repos, exclude=["installed"], verbose=options.verbose))
 
-    if options.verbose:
-        for repo in repos:
-            if repo.ispaw: continue
-            pseudos = repo.get_pseudos(table_accuracy="standard")
-            print(pseudos)
-    else:
-        print("\nUse -v to print the pseudos")
+    #if options.verbose:
+    #    for repo in repos:
+    #        if repo.ispaw: continue
+    #        pseudos = repo.get_pseudos(table_accuracy="standard")
+    #        print(pseudos)
+    #else:
+    #    print("\nUse -v to print the pseudos")
 
     if not options.checksums:
+        print("\nUse -c to validate the md5 checksum")
         return 0
 
     exc_list = []
@@ -78,7 +68,8 @@ def abips_avail(options):
     Show available repos.
     """
     print("List of available pseudopotential repositories:\n")
-    pprint_repos(ALL_REPOS)
+    all_repos = get_all_registered_repos()
+    print(tabulate_repos(all_repos, with_citations=True, verbose=options.verbose))
 
 
 #def abips_nc_install(options):
@@ -87,6 +78,7 @@ def abips_avail(options):
 #    By default we fetch all formats.
 #    """
 #    repos_root = get_repos_root(options)
+#    all_repos = get_all_registered_repos()
 #    repos = [repo for repo in ALL_REPOS if repo.isnc and not repo.is_installed(repos_root)]
 #    if not repos:
 #        print(f"All registered NC repositories are already installed in {repos_root}. Returning")
@@ -101,7 +93,7 @@ def abips_avail(options):
 #    for repo in repos:
 #        repo.install(repos_root, options.verbose)
 #
-#    abips_list(options)
+#    if options.verbose: abips_list(options)
 #    return 0
 #
 #
@@ -110,6 +102,7 @@ def abips_avail(options):
 #    Get PAW repositories in PAWXML format.
 #    """
 #    repos_root = get_repos_root(options)
+#    all_repos = get_all_registered_repos()
 #    repos = [repo for repo in ALL_REPOS if repo.ispaw and not repo.is_installed(repos_root)]
 #    if not repos:
 #        print(f"All registered PAW repositories are already installed in {repos_root}. Returning")
@@ -124,7 +117,7 @@ def abips_avail(options):
 #    for repo in repos:
 #        repo.install(repos_root, options.verbose)
 #
-#    abips_list(options)
+#    if options.verbose: abips_list(options)
 #    return 0
 
 
@@ -141,13 +134,13 @@ def abips_install(options):
         return 0
 
     print("The following pseudopotential repositories will be installed:")
-    pprint_repos(repos)
+    print(tabulate_repos(repos, verbose=options.verbose))
     #if not options.yes and user_wants_to_abort(): return 2
 
     for repo in repos:
         repo.install(verbose=options.verbose)
 
-    #abips_list(options)
+    if options.verbose: abips_list(options)
     return 0
 
 
@@ -161,12 +154,17 @@ def abips_show(options):
         return 1
 
     for repo in repos:
-        #print(repo)
-        pseudos = repo.get_pseudos(table_accuracy="standard")
-        #for pseudo in pseudos:
-        #    print(pseudo.filepath)
-        #    print(pseudo.as_dict()["filepath"])
-        print(pseudos)
+        print(repo)
+        #for table_accuracy in repo.table_accuracies:
+        table_accuracies = ["standard", "stringent"]
+        for table_accuracy in table_accuracies:
+            pseudos = repo.get_pseudos(table_accuracy=table_accuracy)
+            #for pseudo in pseudos:
+            #    print(pseudo.filepath)
+            #    print(pseudo.as_dict()["filepath"])
+            print(f"For accuracy: {table_accuracy}:")
+            #print(pseudos.summarize())
+            print(pseudos)
 
     return 0
 
@@ -176,7 +174,7 @@ def get_epilog():
 
 Usage example:
 
-  abips.py avail                             --> Show all registered repositories
+  abips.py avail                             --> Show all registered pseudopotential repositories
   abips.py list                              --> List repositories installed on this machine
   abips.py install ONCVPSP-PBEsol-SR-PDv0.4  --> Install repository by name (requires internet connection).
 """

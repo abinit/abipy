@@ -10,6 +10,7 @@ import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
+from typing import Optional
 from tabulate import tabulate
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
@@ -217,7 +218,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return self.reader.read_energy_terms(unit="eV")
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["ecut"] = float(self.ecut)
@@ -229,7 +230,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         self.reader.close()
 
     # FIXME: This is deprecated. Must keep it to avoid breaking ScfTask.get_results
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return {}
 
     def get_computed_entry(self, inc_structure=True, parameters=None, data=None):
@@ -361,7 +362,7 @@ class EnergyTerms(AttrDict):
 
     __repr__ = __str__
 
-    def to_string(self, verbose=0, with_doc=True):
+    def to_string(self, verbose: int = 0, with_doc: bool = True) -> str:
         """String representation, with documentation if with_doc."""
         lines = [str(self.table)]
         if with_doc:
@@ -550,7 +551,7 @@ class GsrRobot(Robot, RobotWithEbands):
         dataframe = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
         return dict2namedtuple(fits=fits, dataframe=dataframe)
 
-    def get_energyterms_dataframe(self, iref=None):
+    def get_energyterms_dataframe(self, iref: Optional[int] = None) -> pd.DataFrame:
         """
         Build and return dataframe with the different contributions to the total energy in eV
 

@@ -94,6 +94,7 @@ class AbipyModel(BaseModel, MSONable):
         # Subclasses will inherit these json_encoders.
         json_encoders = {
             ModelMetaclass: lambda cls: cls2dict(cls),
+            ObjectId: lambda oid: str(oid),
             Element: lambda o: monty_trick(o),
             Composition: lambda o: monty_trick(o),
             pmg_Structure: lambda o: monty_trick(o),

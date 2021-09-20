@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-#import os
-
-#from typing import Dict, Tuple
+from typing import List  # Dict, Tuple
 from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field, validator
+from bson.objectid import ObjectId
 from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.flowtk.psrepos import get_repo_from_name
+from .base_models import MongoConnector
 
 
 class _PseudosProvider(BaseModel, ABC):
@@ -14,6 +14,28 @@ class _PseudosProvider(BaseModel, ABC):
     @abstractmethod
     def get_pseudos(self) -> PseudoTable:
         """Return PseudoPotential Table."""
+
+
+#class PseudoSpecs(_PseudosProvider):
+#
+#    mongo_connector: MongoConnector = Field(..., description="")
+#    oid_list: List[ObjectId] = Field(..., description="")
+#
+#    def get_pseudos(self) -> PseudoTable:
+#        collection = self.mongo_connector.get_collection()
+#        query = {"_id": {"$in": self.oid_list}}
+#        docs = collection.find(query)
+#        if not docs or len(docs) != len(self.oid_list):
+#            raise RuntimeError("")
+#
+#        pseudos = []
+#        for doc in docs:
+#            s = doc["psp8_string"]
+#            filepath = "foo.psp8"
+#            with open(filepath, "wt") as fh:
+#                fh.write(s)
+#            pseudos.append(Pseudo.from_file(filepath))
+#        return PseudoTable(pseudos)
 
 
 class PseudoSpecs(_PseudosProvider):
@@ -73,6 +95,3 @@ class PseudoSpecs(_PseudosProvider):
 
         # Note that the repo instance keeps an internal cache of tables.
         return repo.get_pseudos(table_accuracy=self.table_accuracy)
-
-
-#class PseudoSpecs(_PseudosProvider):

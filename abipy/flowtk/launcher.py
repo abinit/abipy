@@ -31,6 +31,7 @@ __all__ = [
     "ScriptEditor",
     "PyLauncher",
     "PyFlowScheduler",
+    "MultiFlowScheduler",
 ]
 
 

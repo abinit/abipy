@@ -93,7 +93,7 @@ class ShiftMode(Enum):
             raise TypeError('The object provided is not handled: type %s' % type(obj))
 
 
-def _stopping_criterion(runlevel, accuracy):
+def _stopping_criterion(runlevel: str, accuracy: str) -> dict:
     """Return the stopping criterion for this runlevel with the given accuracy."""
     tolname = _runl2tolname[runlevel]
     return {tolname: getattr(_tolerances[tolname], accuracy)}
