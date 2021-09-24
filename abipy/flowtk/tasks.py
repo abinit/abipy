@@ -26,6 +26,7 @@ from pymatgen.core.units import Memory
 from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.util.serialization import json_pretty_dump, pmg_serialize
 from abipy.core.globals import get_workdir
+from abipy.tools.iotools import yaml_safe_load
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
 from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
 from . import qutils as qu
@@ -65,12 +66,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Tools and helper functions.
-
-
-def yaml_safe_load(string):
-    #return yaml.safe_load(string)
-    return yaml.YAML(typ='safe', pure=True).load(string)
-
 
 def straceback():
     """Returns a string with the traceback."""

@@ -1,11 +1,26 @@
 # coding: utf-8
 """IO related utilities."""
+from __future__ import annotations
+
 import os
+import ruamel.yaml as yaml
 
 from contextlib import ExitStack
 from subprocess import call
+from typing import Any
 from monty.termcolor import cprint
 from monty.string import list_strings
+
+
+def yaml_safe_load(string: str) -> Any:
+    """Load Yaml string"""
+    return yaml.YAML(typ='safe', pure=True).load(string)
+
+
+def yaml_safe_load_path(filepath: str) -> Any:
+    """Load Yaml document from filepath"""
+    with open(filepath, "rt") as fh:
+        return yaml.YAML(typ='safe', pure=True).load(fh.read())
 
 
 class ExitStackWithFiles(ExitStack):

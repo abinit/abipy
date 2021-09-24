@@ -11,10 +11,11 @@ from collections.abc import Iterable, Iterator, Mapping
 from typing import List, Union
 
 import numpy as np
-import ruamel.yaml as yaml
+#import ruamel.yaml as yaml
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from tabulate import tabulate
+from abipy.tools.iotools import yaml_safe_load
 from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt,
     get_figs_plotly, plotly_set_lims, add_plotly_fig_kwargs)
 
@@ -740,10 +741,6 @@ class YamlTokenizer(Iterator):
 
         self.seek(0)
         return docs
-
-
-def yaml_safe_load(string: str):
-    return yaml.YAML(typ='safe', pure=True).load(string)
 
 
 def yaml_read_kpoints(filename: str, doc_tag: str = "!Kpoints") -> np.ndarray:

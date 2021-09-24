@@ -20,7 +20,9 @@ from monty.collections import AttrDict #, dict2namedtuple
 from monty.termcolor import cprint
 from monty.functools import lazy_property
 from pymatgen.util.io_utils import ask_yesno
+from abipy.tools.iotools import yaml_safe_load
 from .utils import as_bool
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -40,10 +42,6 @@ def straceback():
     import traceback
     return traceback.format_exc()
 
-
-def yaml_safe_load(string):
-    import ruamel.yaml as yaml
-    return yaml.YAML(typ='safe', pure=True).load(string)
 
 
 class ScriptEditor(object):
@@ -698,7 +696,7 @@ class PyFlowScheduler(BaseScheduler):
             print("Calling flow.finalize() ...")
             flow.finalize()
             if self.rmflow:
-                app("Flow directory will be removed...")
+                print("Flow directory will be removed...")
                 try:
                     flow.rmtree()
                 except Exception:
@@ -960,7 +958,7 @@ class MultiFlowScheduler(BaseScheduler):
     def get_dataframe(self):
         with self.sql_connect() as con:
             df = pd.read_sql_query("SELECT * FROM flows", con)
-            print("dtype", df["upload_data"].dtype)
+            #print("dtype", df["upload_date"].dtype)
             return df
 
     def get_json_status(self):

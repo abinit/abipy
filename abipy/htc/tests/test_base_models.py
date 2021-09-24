@@ -73,13 +73,24 @@ class TestAbipyBaseModels(AbipyTest):
     def test_mongo_connector(self):
         connector = MongoConnector(host="example.com", port=27017, collection_name="collection_name")
         assert connector.host == "example.com"
-        assert str(connector.port) in connector._repr_markdown_()
+        assert str(connector.port) in str(connector)
 
         connector = MongoConnector.for_localhost(collection_name="foobar")
-        assert "foobar" in connector._repr_markdown_()
+        assert "foobar" in str(connector)
         self.assertMSONable(connector, test_if_subclass=True)
 
+        # Username requires password.
+        with self.assertRaises(ValueError):
+            MongoConnector(host="example.com", username="John", collection_name="collection_name")
+
+        MongoConnector(host="example.com", username="John", password="password", collection_name="collection_name")
+
         #collection = connector.get_collection()
+        #from unittest.mock import MagicMock
+        #thing = ProductionClass()
+        #thing.method = MagicMock(return_value=3)
+
+
         #connector.open_mongoflow_gui(**serve_kwargs)
 
     def test_query_results_api(self):

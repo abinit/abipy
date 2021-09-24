@@ -7,12 +7,14 @@ import json
 import os
 import inspect
 
-from typing import List, Any, Type, TypeVar
-from pprint import pprint
-from pydantic import BaseModel, Field, PrivateAttr
+from typing import List, Any, Type, TypeVar, Optional, Iterable
+from uuid import UUID
+#from pprint import pprint
+from pydantic import BaseModel, Field, PrivateAttr, root_validator
 from pydantic.main import ModelMetaclass
 from bson.objectid import ObjectId
 from pymongo import MongoClient
+from pymongo.database import Database
 from pymongo.collection import Collection
 from monty.json import MontyEncoder, MontyDecoder, MSONable
 from pymatgen.util.serialization import pmg_serialize
@@ -95,6 +97,7 @@ class AbipyModel(BaseModel, MSONable):
         json_encoders = {
             ModelMetaclass: lambda cls: cls2dict(cls),
             ObjectId: lambda oid: str(oid),
+            #UUID: lambda uuid: str(uuid),
             Element: lambda o: monty_trick(o),
             Composition: lambda o: monty_trick(o),
             pmg_Structure: lambda o: monty_trick(o),
@@ -165,27 +168,54 @@ class MongoConnector(AbipyModel):
 
     host: str = Field(..., description="Host address e.g. 'localhost'")
 
-    port: int = Field(..., description="MongoDB server port. e.g. 27017")
+    port: int = Field(27017, description="MongoDB server port")
 
-    db_name: str = Field("abipy", description="Name of the MongoDB database")
+    dbname: str = Field("abipy", description="MongoDB database")
 
-    collection_name: str = Field(..., description="Name of the MongoDB collection")
+    collection_name: str = Field(..., description="MongoDB collection")
 
-    user: str = Field(None, description="User name for authentication")
+    username: str = Field(None, description="User name for MongDB authentication. Implies password.")
 
-    password: str = Field(None, description="Password for authentication")
+    password: str = Field(None, description="Password for MongDB authentication")
 
     # Private attributes
-    _client: Any = PrivateAttr(None)
+    _client: MongoClient = PrivateAttr(None)
 
     @classmethod
     def for_localhost(cls, collection_name: str, port: int = 27017, **kwargs) -> MongoConnector:
         """
-        Build connector assuming a MongoDB server running on localhost listening on the default port
+        Build mongodb_connector assuming a MongoDB server running on localhost listening on the default port
         """
         d = dict(host="localhost", port=port, collection_name=collection_name)
         d.update(kwargs)
         return cls(**d)
+
+    @classmethod
+    def from_abipy_config(cls, collection_name: str, **kwargs) -> MongoConnector:
+        """
+        Build mongodb_connector using the global configuration options stored in the AbiPy config.yml file.
+        """
+        #d = dict(host="localhost", port=port, collection_name=collection_name)
+        from abipy.core.config import get_config
+        config = get_config()
+        d = dict(host=config.mongo_host, port=config.mongo_port,
+                 username=config.mongo_username, password=config.mongo_password,
+                 dbname=config.mongo_dbname,
+                 collection_name=collection_name,
+                 )
+        d.update(kwargs)
+
+        return cls(**d)
+
+    @root_validator
+    def check_username_and_password(cls, values):
+        username, password = values.get("username"), values.get("password")
+        if username is not None and password is None:
+            raise ValueError('password must be provided when username is not None')
+        return values
+
+    def __str__(self):
+        return self._repr_markdown_()
 
     def _repr_markdown_(self) -> str:
         """Markdown representation."""
@@ -195,10 +225,9 @@ class MongoConnector(AbipyModel):
 
 - Host: {self.host}
 - Port: {self.port}
-- Database: {self.db_name}
-- Collection: {self.collection_name}
-- User: {self.user}
-
+- Database: {self.dbname}
+- Default collection: {self.collection_name}
+- User: {self.username}
 """
 
     #def get_panel_view(self):
@@ -213,7 +242,7 @@ class MongoConnector(AbipyModel):
         """
         from pymongo.errors import ConnectionFailure
 
-        def client_is_connected(client: MongoConnector) -> bool:
+        def client_is_connected(client: MongoClient) -> bool:
             try:
                 # The ping command is cheap and does not require auth.
                 client.admin.command("ping")
@@ -226,21 +255,44 @@ class MongoConnector(AbipyModel):
             return self._client
 
         # Reconnect and cache new client.
-        self._client = MongoClient(host=self.host, port=self.port)
+        if self.username and self.password:
+            # Authenticate if needed
+            self._client = MongoClient(host=self.host,
+                                       port=self.port,
+                                       username=self.username,
+                                       password=self.password,
+                                       authSource=self.dbname,
+                                       #authMechanism='SCRAM-SHA-256'
+                                       )
+
+        else:
+            self._client = MongoClient(host=self.host, port=self.port)
+
         return self._client
 
-    def get_collection(self, collection_name: str = None) -> Collection:
+    def get_db(self) -> Database:
+        client = self.get_client()
+        return client[self.dbname]
+
+    def get_collection(self, collection_name: Optional[str] = None) -> Collection:
         """
         Returns MongoDB collection from its name.
+        Use default collection if collection_name is None.
         """
-        client = self.get_client()
-        db = client[self.db_name]
-
-        # Authenticate if needed
-        if self.user and self.password:
-            db.autenticate(self.user, password=self.password)
-
+        db = self.get_db()
         return db[collection_name or self.collection_name]
+
+    def list_collection_names(self) -> List[str]:
+        """
+        "Return list with all collection names in this database.
+        """
+        db = self.get_db()
+        _filter = {"name": {"$regex": r"^(?!system\.)"}}
+        return db.list_collection_names(filter=_filter)
+
+    def list_collections(self) -> Iterable:
+        db = self.get_db()
+        return db.list_collections()
 
     def open_mongoflow_gui(self, **serve_kwargs):
         collection = self.get_collection()

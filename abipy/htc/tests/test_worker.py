@@ -31,7 +31,7 @@ class TestWorker(AbipyTest):
         assert state.name == worker_name
         assert state.status == "dead"
 
-        clients = WorkerClients.local_discover(dirpath=None)
+        clients = WorkerClients.ldiscover(dirpath=None)
         assert len(clients) > 0
         assert repr(clients)
         assert str(clients)
@@ -41,6 +41,7 @@ class TestWorker(AbipyTest):
         d = clients.as_dict()
         same_clients = WorkerClients.from_dict(d)
         assert type(clients) is type(same_clients)
+        print("same_clients\n", same_clients)
         assert len(clients) == len(same_clients)
         #self.assertMSONable(clients)
 

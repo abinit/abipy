@@ -26,6 +26,7 @@ from uuid import uuid4
 from typing import List, Union, Optional, Tuple  # , Type  # Awaitable
 from enum import Enum
 from monty.json import MSONable
+from monty.termcolor import colored
 #from monty.functools import lazy_property
 from tqdm import tqdm
 
@@ -35,18 +36,13 @@ from abipy.tools import duck
 from abipy.flowtk.flows import Flow
 from abipy.flowtk.tasks import TaskManager
 from abipy.flowtk.launcher import MultiFlowScheduler
+from abipy.tools.iotools import yaml_safe_load_path
 from .tools import pid_exists, port_is_open, find_free_port
 from .base_models import AbipyModel, Field, MongoConnector, AbipyEncoder
 from .flow_models import FlowModel
 
 # This should become a global variable used in all the other modules to facilitate unit tests.
 ABIPY_DIRPATH = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
-
-
-def yaml_safe_load_path(path: str):
-    import ruamel.yaml as yaml
-    with open(path, "rt") as fh:
-        return yaml.YAML(typ='safe', pure=True).load(fh.read())
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -203,6 +199,11 @@ class WorkerStatusEnum(str, Enum):
     serving = "serving"
     dead = "dead"
 
+    def colored_str(self) -> str:
+        s = self.value
+        color = {"init": "blue", "serving": "green",  "dead": "red"}[s]
+        return colored(s, color=color)
+
 
 def _str_uuid() -> str:
     return str(uuid4())
@@ -245,8 +246,7 @@ class AbipyWorker:
     """
 
     def __init__(self, name: str, sched_options: dict, scratch_dir: str,
-                 address: str = "localhost",
-                 port: int = 0,
+                 address: str = "localhost", port: int = 0,
                  manager: Optional[TaskManager] = None,
                  mongo_connector: Optional[MongoConnector] = None):
         """
@@ -356,6 +356,7 @@ class AbipyWorker:
         # TODO: Implement Pipelines?
         # Use atomic update of the models so that we can have multiple workers possibly on
         # different machines fetching and updating documents in the same collection.
+        print("Finding runnable_oid_models")
         oid_flowmodel_list = self.flow_model_cls.find_runnable_oid_models(collection, limit=5)
         if not oid_flowmodel_list: return
         print("in build_flow_from_mongodb, found", len(oid_flowmodel_list), "flows in database")
@@ -385,7 +386,7 @@ class AbipyWorker:
         state, path = cls._get_state_path(dirname)
 
         if state.status != state.status.init:
-            raise RuntimeError(f"`status` entry in json file: `{path}`\n" 
+            raise RuntimeError(f"`status` entry in json file: `{path}`\n"
                                f"should be set to `init` while it is: `{state.status}`")
 
         config_dir = os.path.dirname(path)
@@ -616,8 +617,11 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         atexit.register(self.write_state_file)
 
         if self.flow_model_cls is not None:
-            time_ms = 7000
-            print("registering periodic callback every", time_ms, "ms")
+            print("Abipy Worker will try to connect to MongoDB database using:")
+            print(self.mongo_connector)
+            print("FlowModel class:", self.flow_model_cls)
+            time_ms = 10000
+            print("Connecting to the MongoDB database every", time_ms, "ms")
             #from tornado.ioloop import IOLoop
             #ioloop = IOLoop.current()
             from tornado.ioloop import PeriodicCallback
@@ -630,20 +634,14 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         #return server.start()
 
 
-def _get_all_local_worker_states(as_dict=False, dirpath=None):
-    states, paths = [], []
-
+def _get_all_local_worker_states(dirpath: Optional[str] = None) -> List[WorkerState]:
     dirpath = ABIPY_DIRPATH if not dirpath else dirpath
 
     worker_dirs = [dirname for dirname in os.listdir(dirpath) if dirname.startswith("worker_")]
+    states = []
     for workdir in worker_dirs:
-        state_file = os.path.join(dirpath, workdir, "state.json")
-        state = WorkerState.from_json_file(state_file)
+        state = WorkerState.from_json_file(os.path.join(dirpath, workdir, "state.json"))
         states.append(state)
-        paths.append(state_file)
-
-    if as_dict:
-        return {state.name: state for state in states}
 
     return states
 
@@ -703,22 +701,23 @@ def rdiscover(hostnames: List[str], printout: bool = True) -> WorkerClients:
                 print(f"Cannot find `state.json` file: {host}@{state_path}. Ignoring error.")
                 print(exc)
 
-    clients = WorkerClients.from_json_file(empty_if_not_file=True)
-    clients.update_from_worker_states(worker_states, write_json=False)
-    for client in clients:
+    all_clients = WorkerClients.from_json_file(empty_if_not_file=True)
+    all_clients.update_from_worker_states(worker_states, write_json=False)
+    for client in all_clients:
         client.setup_ssh_port_forwarding()
 
-    clients.write_json_file()
+    all_clients.write_json_file()
 
     if printout:
-        df = clients.get_dataframe()
+        df = all_clients.get_dataframe()
         df = df[df["is_local_worker"] == False]
         print_dataframe(df, title="Remote Workers")
         print(f"Found {len(worker_states)} clients")
         # Make sure that hostname is listed in your ~/.ssh/config file!
         # Change it accordingly
 
-    return clients
+    return all_clients
+    #return cls(c for c in all_clients if c.is_remote_worker)
 
 
 _SSH_CONFIG = None
@@ -762,7 +761,10 @@ def need_serving_worker(method):
     def decorated(*args, **kwargs):
         self = args[0]
         if self.worker_state.status != self.worker_state.status.serving:
-            raise ClientError(f"Status of {self.worker_state.name} worker is `{self.worker_state.status}`")
+            raise ClientError(
+                f"Status of {self.worker_state.name} worker is `{self.worker_state.status}`\n"
+                f"Use `abiw.py restart {self.worker_state.name}` to restart the worker"
+            )
 
         return method(*args, **kwargs)
 
@@ -828,6 +830,11 @@ class WorkerClient(MSONable):
         """True if this is a remote worker."""
         return not self.is_local_worker
 
+    #def lworkdir_exists(self) -> bool:
+    #    dirname = "worker_{self.worker_state.name}"
+    #    dirpath = os.path.expanduser(o.path.join("~", ".abinit". "abipy", dirname))
+    #    return os.path.exists(dirpath)
+
     @pmg_serialize
     def as_dict(self) -> dict:
         return dict(
@@ -840,6 +847,9 @@ class WorkerClient(MSONable):
                 saved_uuid=self.saved_uuid,
         )
 
+    #def from_dict(self, d):
+    #    return self(**d)
+
     def setup_ssh_port_forwarding(self) -> None:
         info = []
 
@@ -848,7 +858,6 @@ class WorkerClient(MSONable):
             return
 
         print("in setup_ssh_port_forwarding")
-
         # Need ssh port-forwarding.
         if self.local_port is None:
             self.local_port = find_free_port()
@@ -959,7 +968,10 @@ class WorkerClient(MSONable):
         raise ClientError.from_response(r)
 
     @need_serving_worker
-    def send_kill_message(self, end_point="action"):
+    def send_kill_message(self, end_point="action") -> str:
+        """
+        Ask the server to terminate execution.
+        """
         url = self._get_url(end_point, "Sending kill message")
         r = requests.post(url=url, json=dict(action="kill"), timeout=self.timeout)
         if r.status_code == 200:
@@ -968,7 +980,10 @@ class WorkerClient(MSONable):
         raise ClientError.from_response(r)
 
     @need_serving_worker
-    def get_json_status(self, end_point="json_status"):
+    def get_json_status(self, end_point="json_status") -> str:
+        """
+        Inquire server status.
+        """
         url = self._get_url(end_point, "Sending status request")
         r = requests.get(url=url, timeout=self.timeout)
 
@@ -998,24 +1013,22 @@ class WorkerClients(list, MSONable):
     """
 
     @classmethod
-    def local_discover(cls, printout: bool = True, dirpath=None) -> WorkerClients:
+    def ldiscover(cls, dirpath: Optional[str] = None) -> WorkerClients:
         """
         Discover all the AbipyWorkers created on the same machine by inspecting
-        the configuration directorys in the AbiPy HHOME.
+        the configuration directories in the AbiPy directory.
+
+        Return: :ist of clients associated to local AbiPy workers.
         """
-
         worker_states = _get_all_local_worker_states(dirpath)
-        clients = cls.from_json_file(empty_if_not_file=True)
-        clients.update_from_worker_states(worker_states, write_json=True)
-        if printout:
-            df = clients.get_dataframe()
-            df = df[df["is_local_worker"] == True]
-            print_dataframe(df, title="Local Workers")
+        all_clients = cls.from_json_file(empty_if_not_file=True)
+        all_clients = all_clients.remove_stale_local_clients()
+        all_clients.update_from_worker_states(worker_states, write_json=True)
 
-        return clients
+        return cls(c for c in all_clients if c.is_local_worker)
 
     @classmethod
-    def from_json_file(cls, empty_if_not_file=False, filepath=None) -> WorkerClients:
+    def from_json_file(cls, empty_if_not_file: bool = False, filepath: Optional[str] = None) -> WorkerClients:
         """
         Build object from JSON file.
 
@@ -1039,12 +1052,14 @@ Please execute:
 or
 
     abiw.py rdiscover
+
 to create it""")
 
         with open(filepath, "rt") as fp:
-            d = json.load(fp)
-            for w in d["clients"]:
-                new.append(WorkerClient.from_dict(w))
+            data = json.load(fp)
+            for d in data["clients"]:
+                client = WorkerClient.from_dict(d)
+                new.append(client)
 
         new._validate()
         return new
@@ -1072,7 +1087,7 @@ to create it""")
             if duck.is_intlike(client.local_port):
                 address = "localhost"
                 if not port_is_open(client.local_port, address=address):
-                    print(f"WARNING: Nobody is listening to `{address}:{client.local_port}`")
+                    #print(f"WARNING: Nobody is listening to `{address}:{client.local_port}`")
                     client.local_port = None
                 else:
                     print(f"{client.worker_state.name} listening to `{address}:{client.local_port}`")
@@ -1084,13 +1099,14 @@ to create it""")
         lines = [str(w) for w in self]
         return (2 * "\n").join(lines)
 
+    #@pmg_serialize
     def as_dict(self) -> dict:
         return {"clients": [w.as_dict() for w in self]}
 
-    def dict(self) -> dict:
-        return {"clients": [w.dict() for w in self]}
+    #def dict(self) -> dict:
+    #    return {"clients": [w.dict() for w in self]}
 
-    def write_json_file(self, filepath=None) -> None:
+    def write_json_file(self, filepath: Optional[str] = None) -> None:
         """
         Write json file with the list of clients
         """
@@ -1103,7 +1119,10 @@ to create it""")
         with open(filepath, "wt") as fp:
             json.dump(self.as_dict(), fp, indent=2)
 
-    def update_from_worker_states(self, worker_states, write_json=True):
+    def update_from_worker_states(self, worker_states: List[WorkerState], write_json: bool = True) -> None:
+        """
+        Update clients from worker_states
+        """
         for state in worker_states:
             client = self.select_from_worker_name(state.name, allow_none=True)
             if client is not None:
@@ -1114,53 +1133,60 @@ to create it""")
         self._validate()
         if write_json: self.write_json_file()
 
-    #def refresh(self):
-    #    old_clients = {client.worker_state.name: client.as_dict() for client in self}
+    def remove_stale_local_clients(self) -> WorkerClients:
+        new_clients = []
+        for client in self:
+            worker_dirpath = os.path.join(ABIPY_DIRPATH, f"worker_{client.worker_state.name}")
+            if client.is_local_worker and not os.path.exists(worker_dirpath):
+                print("Removing section for stale worker:", client.worker_state.name)
+            else:
+                new_clients.append(client)
 
-    #    #wnames = set([c.worker_state.name for c in self if c.is_default_worker])
-    #    wnames = set(self.get_all_worker_names())
-    #    all_lworker_states = _get_all_local_worker_states(as_dict=True)
-    #    lworker_states = [state for (name, state) in all_lworker_states.items() if name is wnames]
-    #    self.update_from_worker_states(lworker_states)
+        return self.__class__(new_clients)
 
-    #    #remote_hostnames = [client.worker_state.hostname for client in self if not client.is_local_worker]
-    #    #print(remote_hostnames)
-    #    #rdiscover(remote_hostnames, printout=False)
-
-    #    #for client in self:
-    #    #    old_d = client.as_dict()
-    #    #    client.refresh()
-    #    #    new_d = client.as_dict()
-    #    #    print("old_d:\n", pformat(old_d))
-    #    #    print("new_d:\n", pformat(new_d))
-
-    #    self._validate()
-    #    self.write_json_file()
 
     def get_dataframe(self) -> pd.DataFrame:
         """
         Return Dataframe with the AbipyWorker states.
         """
-
-        #keys = ["is_default_worker", "timeout", "is_local_worker", "ssh_destination",
-        #         "local_port", "name",  "status", "pid", "address",  "port scratch_dir",
-        #         "username", "hostname" "uuid version"
+        #all_keys = ["is_default_worker", "timeout", "is_local_worker", "ssh_destination",
+        #            "local_port", "name",  "status", "pid", "address",  "port",  scratch_dir",
+        #            "username", "hostname" "uuid version"
         #        ]
 
         rows = []
         for client in self:
             d = client.as_dict()
             d = {k: v for k, v in d.items() if not k.startswith("@")}
-            state = d.pop("worker_state")
+            state = d.pop("worker_state", )
+            #mongo_connector_dict = d.pop("mongo_connector", None)
+            if "status" in state:
+                state["status"] = state["status"].value  #.colored_str()
+            #if mongo_connector_dict is not None:
+            #    state.update(**mongo_connector_dict)
             d.update(**state)
             rows.append(d)
 
         df = pd.DataFrame(rows)
-        #return df.set_index("name")
+        #df.set_index("name", inplace=True)
         return df
 
     def print_dataframe(self) -> None:
-        print_dataframe(self.get_dataframe(), title="\nAbiPyWorker Clients:\n")
+        #if select_keys == "short":
+        #    selected_keys = ["name", "status", "pid", "scratch_dir", "username", "hostname", ]
+
+        df = self.get_dataframe()
+        #df.set_index("name", inplace=True)
+        print_dataframe(df, title="\nAbiPyWorker Clients:\n")
+
+    def summarize(self):
+        select_keys = ["name", "status", "pid", "scratch_dir", ]
+        if any(c.is_remote_worker for c in self):
+            select_keys += ["username", "hostname",]
+        df = self.get_dataframe()
+        df = df[select_keys]
+        df.set_index("name", inplace=True)
+        return df
 
     def get_all_worker_names(self) -> List[str]:
         """List of worker names stored in the object."""

@@ -108,7 +108,7 @@ def md5_for_filepath(filepath: str) -> str:
         return m.hexdigest()
 
 
-def get_repo_from_name(repo_name) -> PseudosRepo:
+def get_repo_from_name(repo_name: str) -> PseudosRepo:
     """
     Return a PseudosRepo from its name ``repo_name``.
     Raises KeyError if ``repo_name`` is not registered.
@@ -135,7 +135,7 @@ class Citation:
         self.doi = doi
 
     def __str__(self):
-        return f"{self.title}\doi:{self.doi}"
+        return f"{self.title}\ndoi:{self.doi}"
 
     #def __hash__(self) -> int:
     #    return hash(self.doi)

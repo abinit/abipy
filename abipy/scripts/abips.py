@@ -5,7 +5,7 @@ Script to download and install pseudopotential tables.
 from __future__ import annotations
 
 import sys
-import os
+#import os
 import argparse
 
 from abipy.core.release import __version__
@@ -145,7 +145,9 @@ def abips_install(options):
 
 
 def abips_show(options):
-    """Show Pseudopotential tables"""
+    """
+    Show pseudopotential tables
+    """
     repos = repos_from_names(options.repo_names)
     repos = [repo for repo in repos if repo.is_installed()]
 
