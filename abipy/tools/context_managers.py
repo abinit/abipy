@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import time
+import signal
 
 from contextlib import contextmanager
 
@@ -56,3 +57,26 @@ def temporary_change_attributes(something, **kwargs):
     finally:
         for k, v in previous_values.items():
             setattr(something, k, v)
+
+
+class Timeout:
+    """
+    Taken from https://stackoverflow.com/questions/2281850/timeout-function-if-it-takes-too-long-to-finish/22348885#22348885
+    """
+
+    def __init__(self, seconds: int, message: str = 'Timeout'):
+        self.seconds = int(seconds)
+        if self.seconds <= 0:
+            raise ValueError(f"seconds should be > 0 while it is: {self.seconds}")
+        self.message = message
+
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.message)
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+
+    def __exit__(self, type, value, traceback):
+        # If seconds is zero, any pending alarm is canceled.
+        signal.alarm(0)

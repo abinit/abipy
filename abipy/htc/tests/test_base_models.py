@@ -1,5 +1,6 @@
 #from pprint import pprint
 import mongomock
+#import numpy as np
 
 from typing import List
 from pydantic.main import ModelMetaclass
@@ -31,7 +32,11 @@ class TestAbipyBaseModels(AbipyTest):
 
         sub_model = SubModel(abi_structure=abi_structure)
         abinit_input = self.get_gsinput_si()
-        top_model = TopModel(pmg_structure=pmg_structure, submodel=sub_model, abinit_input=abinit_input)
+        top_model = TopModel(pmg_structure=pmg_structure, submodel=sub_model,
+                             abinit_input=abinit_input, items=[4.2, 5.3, 6.0])
+
+        # Note how pydantic has converted items to int.
+        assert top_model.items == [4, 5, 6]
 
         # Test pydantic API
         pydantic_json_string = top_model.json()
@@ -85,11 +90,12 @@ class TestAbipyBaseModels(AbipyTest):
 
         MongoConnector(host="example.com", username="John", password="password", collection_name="collection_name")
 
+        #mongo_connector = MongoConnector.from_abipy_config(collection_name="ebands")
+
         #collection = connector.get_collection()
         #from unittest.mock import MagicMock
         #thing = ProductionClass()
         #thing.method = MagicMock(return_value=3)
-
 
         #connector.open_mongoflow_gui(**serve_kwargs)
 

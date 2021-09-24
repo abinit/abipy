@@ -26,3 +26,7 @@ class TestStructureData(AbipyTest):
             same_data = StructureData.from_json_file(filepath)
             assert type(structure_data) is type(same_data)
             assert same_data.structure == structure_data.structure
+
+        # Test from_mpid.
+        mp_structure_data = StructureData.from_mpid("mp-149")
+        assert mp_structure_data.structure.formula == "Si2"

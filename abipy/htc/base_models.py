@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import inspect
+#import numpy as np
 
 from typing import List, Any, Type, TypeVar, Optional, Iterable
 from uuid import UUID
@@ -97,6 +98,7 @@ class AbipyModel(BaseModel, MSONable):
         json_encoders = {
             ModelMetaclass: lambda cls: cls2dict(cls),
             ObjectId: lambda oid: str(oid),
+            #np.ndarray: lambda arr: arr.tolist(),
             #UUID: lambda uuid: str(uuid),
             Element: lambda o: monty_trick(o),
             Composition: lambda o: monty_trick(o),
@@ -281,6 +283,14 @@ class MongoConnector(AbipyModel):
         """
         db = self.get_db()
         return db[collection_name or self.collection_name]
+
+    #def insert_models(models: List[MongoModel], collection_name: Optional[str] = None)) -> List[ObjectId]:
+    #    """
+    #    Insert list of models in a collection. Return list of objectid
+    #    Use default collection if collection_name is None.
+    #    """
+    #    collection = self.get_collection(collection_name=collection_name)
+    #    return mongo_insert_models(models, collection)
 
     def list_collection_names(self) -> List[str]:
         """

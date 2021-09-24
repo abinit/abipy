@@ -67,7 +67,26 @@ class FlowModel(MongoModel, ABC):
     Base class for models associated to a Flow calculation performed by an AbiPy Worker.
     This model implements the businness logic to create a Flow from the database,
     execute it and post-process the results.
+
+
+
+    Users are supposed to use this model to initialize a MongoDB collection with all
+    the input arguments that will be used to generate the flow and provide a concrete
+    implementation of:
+
+        - build_flow.
+        - postprocess_flow
+
+    The first method receives the input arguments from the MongoDB database
+    and use these values to build a flow.
+
+    The second method is invoked by the AbiPy worker when the calculation is completed.
+    The function uses the Flow API to fill the ouput part of the model that
+    will be then be stored in the database collection.
+
     The AbipyWorker uses this API to automate calculations.
+
+    NOTES: The flow should have a single structure.
     """
 
     flow_data: FlowData = Field(None, description="")
@@ -233,7 +252,7 @@ class FlowModel(MongoModel, ABC):
     def mongo_find_by_spg_number(cls, spg_number: int, collection: Collection, **kwargs) -> QueryResults:
         """
         Filter documents in the collection according to the space group number.
-        kwargs are passed to pymong collection.find.
+        kwargs are passed to pymongo collection.find.
         """
         query = {"input_structure_data.spg_number": int(spg_number)}
         return cls.mongo_find(query, collection, **kwargs)
@@ -252,22 +271,6 @@ class EbandsFlowModel(FlowModel):
     """
     This model defines the input arguments used to build a Flow for band structure calculations
     as well as the submodels used to store the final results.
-
-    Users are supposed to use this model to initialize a MongoDB collection with all
-    the input arguments that will be used to generate the flow and provide a concrete
-    implementation of:
-
-        - build_flow.
-        - postprocess_flow
-
-    The first method receives the input arguments from the MongoDB database
-    and use these values to build a flow.
-
-    The second method is invoked by the AbiPy worker when the calculation is completed.
-    The function uses the Flow API to fill the ouput part of the model that
-    will be then be stored in the database collection.
-
-    NOTES: The flow should have a single structure.
     """
 
     ########
@@ -401,21 +404,6 @@ class PhononFlowModel(FlowModel):
     """
     This model defines the input arguments used to build a Flow for phonon calculations
     as well as submodels for storing the final results in the MongoDB collection.
-
-    Users are supposed to use this model to initialize a MongoDB collection with all
-    the input arguments that will be used to generate the flow and provide a concrete
-    implementation of:
-
-        - build_flow.
-        - postprocess_flow
-        - get_common_queries
-
-    The first method receives the input arguments from the MongoDB database
-    and use these values to build a flow.
-
-    The second method is invoked by the AbiPy worker when the calculation is completed.
-    The function uses the Flow API to fill the ouput part of the model that
-    will be then stored in the database collection.
     """
 
     ########

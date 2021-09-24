@@ -31,7 +31,7 @@ class TestWorker(AbipyTest):
         assert state.name == worker_name
         assert state.status == "dead"
 
-        clients = WorkerClients.ldiscover(dirpath=None)
+        clients = WorkerClients.lscan(dirpath=None)
         assert len(clients) > 0
         assert repr(clients)
         assert str(clients)

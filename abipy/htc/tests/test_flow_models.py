@@ -14,7 +14,7 @@ from abipy.htc.gs_models import GsData
 from abipy.htc.flow_models import EbandsFlowModel
 
 
-class TestAbipyBaseModels(AbipyTest):
+class TestFlowModels(AbipyTest):
 
     def test_ebands_flow_model(self):
         """Testing EbandsFlowModel."""

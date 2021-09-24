@@ -112,10 +112,13 @@ class StructureData(AbipyModel):
 
     #custom_dict: Dict[str, Any] = Field(None, description="")
 
-    #@classmethod
-    #def from_mpid(cls, material_id: str) -> StructureData:
-    #    structure = Structure.from_mpid(material_id, final=True)
-    #    new = cls.from_structure(structure)
+    @classmethod
+    def from_mpid(cls, material_id: str) -> StructureData:
+        """
+        Initialize the model from a MaterialsProject id.
+        """
+        structure = Structure.from_mpid(material_id, final=True)
+        return cls.from_structure(structure)
 
     @classmethod
     def from_structure(cls, structure: Structure) -> StructureData:

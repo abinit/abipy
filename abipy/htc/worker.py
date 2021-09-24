@@ -33,10 +33,10 @@ from tqdm import tqdm
 from pymatgen.util.serialization import pmg_serialize
 from abipy.tools.printing import print_dataframe
 from abipy.tools import duck
+from abipy.tools.iotools import yaml_safe_load_path
 from abipy.flowtk.flows import Flow
 from abipy.flowtk.tasks import TaskManager
 from abipy.flowtk.launcher import MultiFlowScheduler
-from abipy.tools.iotools import yaml_safe_load_path
 from .tools import pid_exists, port_is_open, find_free_port
 from .base_models import AbipyModel, Field, MongoConnector, AbipyEncoder
 from .flow_models import FlowModel
@@ -251,7 +251,7 @@ class AbipyWorker:
                  mongo_connector: Optional[MongoConnector] = None):
         """
         Args:
-            name: The name of the AbipyWorker. Must be unique acrossi machines.
+            name: The name of the AbipyWorker. Must be unique across machines.
             sched_options:
             scratch_dir:
             address:
@@ -277,7 +277,7 @@ class AbipyWorker:
 
         # url --> callables returning panel objects.
         self.routes = {
-            "/": self.serve_homepage,
+            "/": self.serve_worker_homepage,
             r"/flow/\d+": self.serve_panel_flow,
         }
 
@@ -317,6 +317,14 @@ class AbipyWorker:
 
         #self.write_state_file(status="init")
 
+    # TODO
+    #@lazy_property
+    #def full_name(self)
+    #    return f"{self.name}@{socket.gethostname()}"
+
+    #def __str__(self)
+    #def __repr__(self)
+
     #@tornado.concurrent.run_on_executor
     #def refresh():
     #    do_something_that_takes_a_while()
@@ -328,8 +336,8 @@ class AbipyWorker:
 
     def build_flow_from_mongodb(self):
         """
-        This a periodic callback executed by the primary thread to fetch new calculations from
-        the MongoDB database whe then AbipyWorker is running with a "flow_model_cls".
+        Periodic callback executed by the primary thread to fetch new calculations from
+        the MongoDB collection when then AbipyWorker is running with a "flow_model_cls".
         """
         if self.flow_model_cls is None:
             raise ValueError("The AbipyWorker should have a flow_model_cls when running with a MongDB database.")
@@ -381,7 +389,7 @@ class AbipyWorker:
     @classmethod
     def init_from_dirname(cls, dirname: str) -> AbipyWorker:
         """
-        Initialize the AbipyWorker from a direcrory
+        Initialize the AbipyWorker from a directory basename.
         """
         state, path = cls._get_state_path(dirname)
 
@@ -450,7 +458,7 @@ After this step, use:
 
 to start the AbiPy worker, and:
 
-    abiw.py ldiscover
+    abiw.py lscan
 
 to update the list of local clients.
 """)
@@ -474,7 +482,7 @@ to update the list of local clients.
     @classmethod
     def restart_from_dirname(cls, name: str, force: bool = False) -> AbipyWorker:
         """
-        Restart the AbipyWorker given the configuration directory.
+        Restart the AbipyWorker given the name.
         """
         state, path = cls._get_state_path(name)
         pid = state.pid
@@ -508,11 +516,13 @@ to update the list of local clients.
         new = cls(state.name, sched_options, state.scratch_dir, address=state.address, port=state.port,
                   manager=manager, mongo_connector=state.mongo_connector)
 
-        print("Remember to execute ldiscover or rdiscover...")
+        print("Remember to execute lscan or rscan...")
         return new
 
     def write_state_file(self, status: str = "dead", filepath=None) -> str:
-        """Write/update the state.json file."""
+        """
+        Write/update the state.json file of the worker.
+        """
         if filepath is None:
             filepath = os.path.join(self.config_dir, "state.json")
 
@@ -532,7 +542,10 @@ to update the list of local clients.
     #def remove_flows(self):
     #    """This requires locking the SQLite database."""
 
-    def serve_homepage(self):
+    def serve_worker_homepage(self):
+        """
+        The Homepage of the AbipyWorker dashboard.
+        """
 
         import platform
         system, node, release, version, machine, processor = platform.uname()
@@ -583,7 +596,15 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         return pn.pane.Alert(f"Cannot find Flow with node id: {flow_id}", alert_type="danger")
 
     def serve(self, **serve_kwargs):
-        """Start the webserver."""
+        """
+        Start the webserver.
+        """
+        # Register function atexit to update the state.json file if the worker gets killed.
+        # Note that the callback won't be executed if we receive SIGKILL (kill -9)
+        # or if an exception is raised in write_state_file or in any other registered callback.
+        import atexit
+        atexit.register(self.write_state_file)
+
         from abipy.panels.core import abipanel #, get_abinit_template_cls_kwds, AbipyParameterized
         self.panel_template = serve_kwargs.pop("panel_template", "FastList")
         abipanel(panel_template=self.panel_template)
@@ -609,12 +630,6 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         thread = threading.Thread(target=self.flow_scheduler.start, name="flow_scheduler", daemon=True)
         thread.start()
         #termcolor.enable(False)
-
-        # Register function atexit to update the state.js if the worker gets killed.
-        # Note that the callback won't be executed if we receive SIGKILL (kill -9)
-        # or if an exception is raised in write_state_file or in other registered callbacks.
-        import atexit
-        atexit.register(self.write_state_file)
 
         if self.flow_model_cls is not None:
             print("Abipy Worker will try to connect to MongoDB database using:")
@@ -650,74 +665,6 @@ def print_local_workers(dirpath: Optional[str] = None) -> None:
     df = pd.DataFrame(_get_all_local_worker_states(dirpath=dirpath))
     print_dataframe(df, title="\nLocal AbiPy Workers:\n")
 
-
-def rdiscover(hostnames: List[str], printout: bool = True) -> WorkerClients:
-    """
-    Uses fabric to discover AbipyWorkers running on remote machines.
-
-    Args:
-        hostnames: List of hostnames as declared in ~/.ssh/config.
-        printout:
-    """
-    #
-    # From https://docs.fabfile.org/en/2.6/api/transfer.html#fabric.transfer.Transfer
-    #
-    # Most SFTP servers set the remote working directory to the connecting user’s home directory,
-    # and (unlike most shells) do not expand tildes (~).
-    #
-    # For example, instead of saying get("~/tmp/archive.tgz"), say get("tmp/archive.tgz").
-
-    try:
-        from fabric import Connection
-    except ImportError:
-        raise ImportError("rdiscover requires fabric package. Install it with `pip install fabric`.")
-
-    from io import BytesIO
-    print("Make sure the hosts are listed in your ~/.ssh/config file and that ProxyJump is activated if needed")
-    worker_states = []
-    for host in tqdm(hostnames):
-        print(f"Contacting {host}. It may take some time ...")
-        try:
-            c = Connection(host)
-            result = c.run("ls ~/.abinit/abipy")
-            files = result.stdout.split()
-            worker_dirs = [f for f in files if f.startswith("worker_")]
-            worker_dirs = [os.path.join(".abinit/abipy", d) for d in worker_dirs]
-        except Exception as exc:
-            print(exc)
-            continue
-
-        # Now get the state.json via sftp.
-        for w in worker_dirs:
-            state_path = os.path.join(w, "state.json")
-            try:
-                strio = BytesIO()
-                c.get(state_path, local=strio)
-                json_bstring = strio.getvalue()
-                strio.close()
-                worker_states.append(WorkerState.from_json(json_bstring))
-
-            except IOError as exc:
-                print(f"Cannot find `state.json` file: {host}@{state_path}. Ignoring error.")
-                print(exc)
-
-    all_clients = WorkerClients.from_json_file(empty_if_not_file=True)
-    all_clients.update_from_worker_states(worker_states, write_json=False)
-    for client in all_clients:
-        client.setup_ssh_port_forwarding()
-
-    all_clients.write_json_file()
-
-    if printout:
-        df = all_clients.get_dataframe()
-        df = df[df["is_local_worker"] == False]
-        print_dataframe(df, title="Remote Workers")
-        print(f"Found {len(worker_states)} clients")
-        # Make sure that hostname is listed in your ~/.ssh/config file!
-        # Change it accordingly
-
-    return all_clients
-    #return cls(c for c in all_clients if c.is_remote_worker)
 
 
 _SSH_CONFIG = None
@@ -774,7 +721,7 @@ def need_serving_worker(method):
 class WorkerClient(MSONable):
     """
     The client used by the user to connect to an AbipyWorker, send python scripts or directories for execution.
-    This object also provides an APIt to querty the status of the Worker.
+    This object also provides an API to query the status of the Worker.
     """
 
     def __init__(self, worker_state, is_default_worker=False, timeout=240,
@@ -830,10 +777,9 @@ class WorkerClient(MSONable):
         """True if this is a remote worker."""
         return not self.is_local_worker
 
-    #def lworkdir_exists(self) -> bool:
+    #def lworker_dirpath(self) -> bool:
     #    dirname = "worker_{self.worker_state.name}"
-    #    dirpath = os.path.expanduser(o.path.join("~", ".abinit". "abipy", dirname))
-    #    return os.path.exists(dirpath)
+    #    return os.path.expanduser(o.path.join("~", ".abinit". "abipy", dirname))
 
     @pmg_serialize
     def as_dict(self) -> dict:
@@ -851,6 +797,7 @@ class WorkerClient(MSONable):
     #    return self(**d)
 
     def setup_ssh_port_forwarding(self) -> None:
+        # TODO Rationalize this part. Make sure hostname is listed in ~/.ssh/config.
         info = []
 
         # Return immediately if port forwarding is not needed.
@@ -895,9 +842,12 @@ class WorkerClient(MSONable):
     def __str__(self):
         return self.to_json()
 
+    def __repr__(self):
+        return repr(self.worker_state)
+
     def to_json(self) -> str:
         """
-        Returns a json string representation of the MSONable object.
+        Returns a string with the json representation of the client
         """
         # TODO: monty.to_json should accept **kwargs
         return json.dumps(self, cls=AbipyEncoder, indent=2)
@@ -1000,6 +950,9 @@ class WorkerClient(MSONable):
 
     @need_serving_worker
     def open_webgui(self):
+        """
+        Open a new tab in the browser with a panel dashboard to interact with the Worker.
+        """
         end_point = ""
         url = self._get_url(end_point, f"Contacting {self.worker_state.name} worker")
         #print(self)
@@ -1013,17 +966,17 @@ class WorkerClients(list, MSONable):
     """
 
     @classmethod
-    def ldiscover(cls, dirpath: Optional[str] = None) -> WorkerClients:
+    def lscan(cls, dirpath: Optional[str] = None) -> WorkerClients:
         """
         Discover all the AbipyWorkers created on the same machine by inspecting
         the configuration directories in the AbiPy directory.
 
-        Return: :ist of clients associated to local AbiPy workers.
+        Return: list of clients associated to local AbiPy workers.
         """
         worker_states = _get_all_local_worker_states(dirpath)
         all_clients = cls.from_json_file(empty_if_not_file=True)
         all_clients = all_clients.remove_stale_local_clients()
-        all_clients.update_from_worker_states(worker_states, write_json=True)
+        all_clients.update_worker_states(worker_states, write_json=True)
 
         return cls(c for c in all_clients if c.is_local_worker)
 
@@ -1047,11 +1000,11 @@ class WorkerClients(list, MSONable):
 Could not find `{filepath}`
 Please execute:
 
-    abiw.py ldiscover
+    abiw.py lscan
 
 or
 
-    abiw.py rdiscover
+    abiw.py rscan
 
 to create it""")
 
@@ -1063,6 +1016,68 @@ to create it""")
 
         new._validate()
         return new
+
+    @classmethod
+    def rscan(cls, hostnames: List[str], printout: bool = True) -> WorkerClients:
+        """
+        Uses fabric to discover AbipyWorkers running on remote machines.
+
+        Args:
+            hostnames: List of hostnames as declared in ~/.ssh/config.
+            printout:
+        """
+        #
+        # From https://docs.fabfile.org/en/2.6/api/transfer.html#fabric.transfer.Transfer
+        #
+        # Most SFTP servers set the remote working directory to the connecting user’s home directory,
+        # and (unlike most shells) do not expand tildes (~).
+        #
+        # For example, instead of saying get("~/tmp/archive.tgz"), say get("tmp/archive.tgz").
+
+        try:
+            from fabric import Connection
+        except ImportError:
+            raise ImportError("rscan requires fabric package. Install it with `pip install fabric`.")
+
+        from io import BytesIO
+        print("Make sure the hosts are listed in your ~/.ssh/config file and that ProxyJump is activated if needed")
+        worker_states = []
+        for host in tqdm(hostnames):
+            print(f"Contacting {host}. It may take some time ...")
+            try:
+                c = Connection(host)
+                result = c.run("ls ~/.abinit/abipy")
+                files = result.stdout.split()
+                worker_dirs = [f for f in files if f.startswith("worker_")]
+                worker_dirs = [os.path.join(".abinit/abipy", d) for d in worker_dirs]
+            except Exception as exc:
+                print(exc)
+                continue
+
+            # Now get the state.json via sftp.
+            for w in worker_dirs:
+                state_path = os.path.join(w, "state.json")
+                try:
+                    strio = BytesIO()
+                    c.get(state_path, local=strio)
+                    json_bstring = strio.getvalue()
+                    strio.close()
+                    worker_states.append(WorkerState.from_json(json_bstring))
+
+                except IOError as exc:
+                    print(f"Cannot find `state.json` file: {host}@{state_path}. Ignoring exception.")
+                    print(exc)
+
+        all_clients = cls.from_json_file(empty_if_not_file=True)
+        all_clients = all_clients.remove_stale_local_clients()
+        all_clients.update_worker_states(worker_states, write_json=False)
+
+        #for client in all_clients:
+        #    client.setup_ssh_port_forwarding()
+
+        all_clients.write_json_file()
+
+        return cls(c for c in all_clients if c.is_remote_worker)
 
     def _validate(self) -> None:
         err_lines = []
@@ -1119,7 +1134,7 @@ to create it""")
         with open(filepath, "wt") as fp:
             json.dump(self.as_dict(), fp, indent=2)
 
-    def update_from_worker_states(self, worker_states: List[WorkerState], write_json: bool = True) -> None:
+    def update_worker_states(self, worker_states: List[WorkerState], write_json: bool = True) -> None:
         """
         Update clients from worker_states
         """
@@ -1134,6 +1149,10 @@ to create it""")
         if write_json: self.write_json_file()
 
     def remove_stale_local_clients(self) -> WorkerClients:
+        """
+        Return new list of clients where all entries associated to workers whose
+        directory is not found have been removed.
+        """
         new_clients = []
         for client in self:
             worker_dirpath = os.path.join(ABIPY_DIRPATH, f"worker_{client.worker_state.name}")
@@ -1144,59 +1163,70 @@ to create it""")
 
         return self.__class__(new_clients)
 
-
     def get_dataframe(self) -> pd.DataFrame:
         """
-        Return Dataframe with the AbipyWorker states.
+        Build and return pandas Dataframe with the AbipyWorker states.
         """
-        #all_keys = ["is_default_worker", "timeout", "is_local_worker", "ssh_destination",
-        #            "local_port", "name",  "status", "pid", "address",  "port",  scratch_dir",
-        #            "username", "hostname" "uuid version"
-        #        ]
-
         rows = []
         for client in self:
             d = client.as_dict()
             d = {k: v for k, v in d.items() if not k.startswith("@")}
             state = d.pop("worker_state", )
-            #mongo_connector_dict = d.pop("mongo_connector", None)
             if "status" in state:
                 state["status"] = state["status"].value  #.colored_str()
-            #if mongo_connector_dict is not None:
-            #    state.update(**mongo_connector_dict)
+
+            mongo_connector_dict = state.pop("mongo_connector", None)
+            if mongo_connector_dict is not None:
+                # Add the most important info from the mongo_connector.
+                # Prepend some keys with `mongo_prefix`.
+                remap = {"host": "mongo_host", "dbname": "mongo_dbname", "collection_name": None}
+                mongo_info = {k: mongo_connector_dict[k] for k in remap}
+                for k, new_key in remap.items():
+                    if new_key is None: continue
+                    mongo_info[new_key] = mongo_info.pop(k)
+
+                state.update(**mongo_info)
+
             d.update(**state)
             rows.append(d)
 
         df = pd.DataFrame(rows)
-        #df.set_index("name", inplace=True)
         return df
 
     def print_dataframe(self) -> None:
         #if select_keys == "short":
         #    selected_keys = ["name", "status", "pid", "scratch_dir", "username", "hostname", ]
 
-        df = self.get_dataframe()
-        #df.set_index("name", inplace=True)
+        #all_keys = ["is_default_worker", "timeout", "is_local_worker", "ssh_destination",
+        #            "local_port", "name",  "status", "pid", "address",  "port",  scratch_dir",
+        #            "username", "hostname" "uuid version"
+        #        ]
+
+        df = self.get_dataframe().set_index("name")
         print_dataframe(df, title="\nAbiPyWorker Clients:\n")
 
-    def summarize(self):
-        select_keys = ["name", "status", "pid", "scratch_dir", ]
+    def summarize(self) -> pd.DataFrame:
+        """
+        Return dataframe with the most important columns.
+        """
+        select_keys = ["name", "status", "pid", "scratch_dir"]
         if any(c.is_remote_worker for c in self):
-            select_keys += ["username", "hostname",]
+            select_keys += ["username", "hostname"]
         df = self.get_dataframe()
-        df = df[select_keys]
-        df.set_index("name", inplace=True)
-        return df
+
+        if df.empty: return df
+        return df[select_keys].set_index("name")
 
     def get_all_worker_names(self) -> List[str]:
-        """List of worker names stored in the object."""
+        """Return the list of worker names stored in self."""
         return [client.worker_state.name for client in self]
 
     def select_from_worker_name(self, worker_name: str,
                                 allow_none=False) -> Union[WorkerClient, None]:
         """
-        Select and return a WorkerClient from its name.
-        Return None if name is not found and allow_none is True else raises ValueError.
+        Select and return a WorkerClient from its name `worker_name`.
+
+        Return: None if `worker_name` is not found and `allow_none` is True else raises ValueError.
         """
         if worker_name is None:
             # If there are n > 1 workers, a default must be set by the user.
@@ -1213,7 +1243,7 @@ to create it""")
             if client.worker_state.name == worker_name: return client
 
         if allow_none: return None
-        raise ValueError(f"Cannot find worker with name `{worker_name}` in list:\n" +
+        raise ValueError(f"Cannot find worker with name `{worker_name}`. Choose among:\n" +
                          f"\t{self.get_all_worker_names()}\n")
 
     def set_default(self, worker_name: str) -> None:
@@ -1227,3 +1257,72 @@ to create it""")
 
         self._validate()
         self.write_json_file()
+
+
+
+
+
+import subprocess
+import random
+import tempfile
+
+class SSHTunnel:
+    """
+    https://stackoverflow.com/questions/4364355/how-to-open-an-ssh-tunnel-using-python
+
+    And here's how you could use it, for example with MySQL (port 3306 usually):
+
+    with SSHTunnel('database.server.com', 'you', '22', '/path/to/private_key', '3306') as tunnel:
+        print("Connected on port {} at {}".format(tunnel.local_port, tunnel.local_host))
+    """
+
+    def __init__(self, host, user, port, key, remote_port):
+        self.host = host
+        self.user = user
+        self.port = port
+        self.key = key
+        self.remote_port = remote_port
+        # Get a temporary file name
+        tmpfile = tempfile.NamedTemporaryFile()
+        tmpfile.close()
+        self.socket = tmpfile.name
+        self.local_port = random.randint(10000, 65535)
+        self.local_host = '127.0.0.1'
+        self.open = False
+
+    def start(self):
+        # I had to use -o ExitOnForwardFailure=yes instead of -o ExitOnForwardFailure=True.
+        exit_status = subprocess.call(['ssh', '-MfN',
+            '-S', self.socket,
+            '-i', self.key,
+            '-p', self.port,
+            '-l', self.user,
+            '-L', '{}:{}:{}'.format(self.local_port, self.local_host, self.remote_port),
+            '-o', 'ExitOnForwardFailure=yes',
+            self.host
+        ])
+        if exit_status != 0:
+            raise Exception('SSH tunnel failed with status: {}'.format(exit_status))
+        if self.send_control_command('check') != 0:
+            raise Exception('SSH tunnel failed to check')
+        self.open = True
+
+    def stop(self):
+        if self.open:
+            if self.send_control_command('exit') != 0:
+                raise Exception('SSH tunnel failed to exit')
+            self.open = False
+
+    def send_control_command(self, cmd):
+        return subprocess.check_call(['ssh', '-S', self.socket, '-O', cmd, '-l', self.user, self.host])
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.stop()
+
+
+
+

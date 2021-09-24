@@ -1,7 +1,9 @@
 # coding: utf-8
 """Tests for context_managers module."""
+import time
+
 from abipy.core.testing import AbipyTest
-from abipy.tools.context_managers import Timer, temporary_change_attributes
+from abipy.tools.context_managers import Timer, temporary_change_attributes, Timeout
 
 
 class TestContextManagers(AbipyTest):
@@ -24,3 +26,11 @@ class TestContextManagers(AbipyTest):
             assert s.x == 4 and s.y == 5
 
         assert s.x == 1 and s.y == 2
+
+        with self.assertRaises(ValueError):
+            with Timeout(seconds=0, message="Timeout"):
+                pass
+
+        with self.assertRaises(TimeoutError):
+            with Timeout(seconds=2, message="Timeout"):
+                time.sleep(6)

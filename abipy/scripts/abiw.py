@@ -13,7 +13,7 @@ from abipy.core.release import __version__
 from abipy.core.config import get_config
 from abipy.tools.printing import print_dataframe
 from abipy.htc.base_models import MongoConnector
-from abipy.htc.worker import WorkerClients, AbipyWorker, print_local_workers, rdiscover
+from abipy.htc.worker import WorkerClients, AbipyWorker, print_local_workers
 
 
 def get_epilog():
@@ -22,6 +22,8 @@ def get_epilog():
 Usage example:
 
   abiw.py new
+  abiw.py lscan
+  abiw.py rscan
   abiw.py clients  DONE
   abiw.py disable name
   abiw.py set_default name
@@ -34,8 +36,9 @@ Usage example:
   abiw.py send script.py DONE
   abiw.py gui
   abiw.py allgui
-  abiw.py mongo_start [COLLECTION_NAME]
-  abiw.py mongo_gui [COLLECTION_NAME]
+  abiw.py mongo_start
+  abiw.py mongo_start -c COLLECTION_NAME
+  abiw.py mongo_gui -c COLLECTION_NAME
 """
 
     notes = """\
@@ -55,7 +58,7 @@ Notes:
 
     Open a new terminal and issue:
 
-        $ abiw.py ldiscover
+        $ abiw.py lscan
 
     to discover all the workers running on the localhost and generate
     the clients.json file in ~/.abinit/abipy/
@@ -108,15 +111,12 @@ def get_parser(with_epilog=False):
     p_clients = subparsers.add_parser("clients", parents=[copts_parser], help="List available clients.")
 
     # Subparser for lworkers command.
-    p_servers = subparsers.add_parser("lworkers", parents=[copts_parser],
-                                      help="List AbiPy workers available on the local machine")
+    p_lworkers = subparsers.add_parser("lworkers", parents=[copts_parser],
+                                       help="List AbiPy workers available on the local machine")
 
     # Subparser for start command.
     p_start = subparsers.add_parser("start", parents=[copts_parser, worker_selector, serve_parser],
                                     help="Start worker.")
-    ## FIXME ???
-    #p_start.add_argument("-s", "--scratch-dir", type=str, required=True,
-    #                     help="Scratch directory in which Flows will be generated")
 
     p_restart = subparsers.add_parser("restart", parents=[copts_parser, worker_selector, serve_parser],
                                       help="Restart worker.")
@@ -132,7 +132,8 @@ def get_parser(with_epilog=False):
 
     p_mongo_start = subparsers.add_parser(
         "mongo_start", parents=[copts_parser, serve_parser, worker_selector_with_default],
-        help="Create and start new AbiPy worker connected to a MongoDB database with FlowModels.")
+        help="Create and start new AbiPy worker connected to a MongoDB database containing FlowModels.")
+    #p_mongo_start.add_argument("collection_name", type=str,
     p_mongo_start.add_argument("-c", "--collection-name", type=str,
                                default="",
                                #required=True,
@@ -177,12 +178,12 @@ def get_parser(with_epilog=False):
     p_all_status = subparsers.add_parser("all_status", parents=[copts_parser],
                                           help="Return status af all workers.")
 
-    p_ldiscover = subparsers.add_parser("ldiscover", parents=[copts_parser],
-                                        help="Discover AbiPy workers on localhost.")
+    p_lscan = subparsers.add_parser("lscan", parents=[copts_parser],
+                                    help="Discover AbiPy workers on localhost.")
 
-    p_rdiscover = subparsers.add_parser("rdiscover", parents=[copts_parser],
-                                        help="Discover remote AbiPy workers.")
-    p_rdiscover.add_argument("hostnames", nargs="*", type=str,
+    p_rscan = subparsers.add_parser("rscan", parents=[copts_parser],
+                                    help="Discover remote AbiPy workers.")
+    p_rscan.add_argument("hostnames", nargs="*", type=str,
                              help="List of hostnames. "
                                   "If empty, the list is taken from the abipy configuration file (remote_hosts_for_workers)")
 
@@ -252,7 +253,9 @@ to activate port forwarding.
 
 
 def serve(worker, options):
-    #print(worker)
+    s = str(worker) if options.verbose else repr(worker)
+    print(s)
+
     serve_kwargs = serve_kwargs_from_options(options)
 
     if not options.daemonize:
@@ -318,15 +321,7 @@ def main():
         print(options)
         print("global abipy config options:\n", config)
 
-    if options.command == "start":
-        worker = AbipyWorker.init_from_dirname(options.worker_name)
-        return serve(worker, options)
-
-    elif options.command == "restart":
-        worker = AbipyWorker.restart_from_dirname(options.worker_name, force=options.force)
-        return serve(worker, options)
-
-    elif options.command == "new":
+    if options.command == "new":
         mongo_connector = None
         if options.collection_name:
             mongo_connector = MongoConnector.from_abipy_config(collection_name=options.collection_name)
@@ -335,7 +330,32 @@ def main():
         scratch_dir = get_scratch_dir()
         worker = AbipyWorker.new_with_name(options.worker_name, scratch_dir, mongo_connector=mongo_connector)
         print(worker)
-        WorkerClients.ldiscover()
+        WorkerClients.lscan()
+        return 0
+
+    elif options.command == "start":
+        worker = AbipyWorker.init_from_dirname(options.worker_name)
+        return serve(worker, options)
+
+    elif options.command == "restart":
+        worker = AbipyWorker.restart_from_dirname(options.worker_name, force=options.force)
+        return serve(worker, options)
+
+    elif options.command == "lscan":
+        local_clients = WorkerClients.lscan()
+        df = local_clients.summarize()
+        print_dataframe(df, title="List of AbiPy workers running on localhost\n")
+        return 0
+
+    elif options.command == "rscan":
+        hostnames = options.hostnames
+        if not hostnames:
+            print("Taking list of remote hosts from the AbiPy configuration file.")
+            hostnames = config.remote_hosts_for_workers
+
+        remote_clients = WorkerClients.rscan(hostnames)
+        df = remote_clients.summarize()
+        print_dataframe(df, title="List of remote AbiPy workers\n")
         return 0
 
     elif options.command == "mongo_start":
@@ -344,9 +364,9 @@ def main():
         print(mongo_connector)
 
         if not options.collection_name:
-            print("You have to specify the MongoDB collection from which")
-            print("FlowModels documents are fetched with the -c argument")
-            print("Choose among the following collections:")
+            print("Use the -c option to specify the MongoDB collection from which")
+            print("FlowModel documents will be fetched by the Worker.")
+            print("Choose among the following collections:\n")
             for i, cname in enumerate(mongo_connector.list_collection_names()):
                 print(f"[{i+1}]", cname)
             return 1
@@ -354,23 +374,46 @@ def main():
         # Generate automatically the worker_name from the collection if not given.
         worker_name = options.worker_name
         if worker_name is None:
-            worker_name = f"worker_{options.collection_name}"
+            worker_name = options.collection_name
 
-        # Make sure there's no other running worker connected to the same collection.
-        for local_client in WorkerClients.ldiscover():
+        # Make sure there's no other worker connected to the same collection.
+        errors = []
+        eapp = errors.append
+        for local_client in WorkerClients.lscan():
             other_connector = local_client.worker_state.mongo_connector
             if other_connector is None: continue
-            if options.collection_name == other_connector.collection_name:
-                print(f"There's already another worker connected to {options.collection_name}")
-                print(local_client)
-                #local_client.worker_state.status == "running".
-                print("Aborting now")
-                return 1
 
+            if options.collection_name == other_connector.collection_name:
+
+                if local_client.worker_state.name == worker_name:
+                    # Handle the case in which the user tries to start a worker that already exists.
+                    status = local_client.worker_state.status
+
+                    if status == "init":
+                        # This is not critical. new_with_name will handel the problem.
+                        continue
+                    elif status == "dead":
+                        eapp(f"Use `abiw.py restart` to restart Worker: `{worker_name}`")
+                    elif status == "running":
+                        eapp(f"Worker: `{worker_name}` is already running and connected to the collection.")
+                    else:
+                        raise ValueError(f"Unknown status: {status}")
+            else:
+                # Different worker connected to the same collection.
+                eapp(f"There's already another worker connected to collection: {options.collection_name}")
+                eapp(repr(local_client))
+
+        if errors:
+            for error in errors:
+                print(error)
+            print("Aborting now")
+            return 1
+
+        # Create the Worker and start serving.
         scratch_dir = get_scratch_dir()
         worker = AbipyWorker.new_with_name(worker_name, scratch_dir, mongo_connector=mongo_connector)
-        print(worker)
-        #return serve(worker, options)
+
+        return serve(worker, options)
 
     #if os.path.basename(options.filepath) == "flows.db":
     #    from abipy.flowtk.launcher import print_flowsdb_file
@@ -380,32 +423,15 @@ def main():
         print_local_workers()
         return 0
 
-    elif options.command == "ldiscover":
-        local_clients = WorkerClients.ldiscover()
-        df = local_clients.summarize()
-        print_dataframe(df, title="List of AbiPy workers running on localhost\n")
-        return 0
-
-    elif options.command == "rdiscover":
-        hostnames = options.hostnames
-        if not hostnames:
-            print("Taking list of remote hosts from configuration file.")
-            hostnames = config.remote_hosts_for_workers
-        rdiscover(hostnames)
-        #remote_clients = WorkerClients.rdiscover(hostnames)
-        #df = remote_clients.summarize()
-        #print_dataframe(df, title="List of remote AbiPy workers")
-        return 0
-
-    #local_clients = WorkerClients.ldiscover()
+    #local_clients = WorkerClients.lscan()
     all_clients = WorkerClients.from_json_file()
 
     if options.command == "kill":
         print("Killing worker: {options.worker_name}")
         client = all_clients.select_from_worker_name(options.worker_name)
         client.send_kill_message()
-        print("Calling ldiscover after kill")
-        WorkerClients.ldiscover()
+        print("Calling lscan after kill")
+        WorkerClients.lscan()
 
     #if options.command == "rm":
     #    client = all_clients.select_from_worker_name(options.worker_name)
@@ -416,7 +442,7 @@ def main():
         #if options.refresh:
         #all_clients.refresh()
         #print(all_clients)
-        print("\nTIP: Remember to execute `ldiscover` or `rdiscover` to discover new AbiPy workers")
+        print("\nTIP: Remember to execute `lscan` or `rscan` to discover new AbiPy workers")
 
     elif options.command == "send":
         client = all_clients.select_from_worker_name(options.worker_name)
@@ -425,6 +451,8 @@ def main():
     elif options.command == "lsend_flows":
         client = all_clients.select_from_worker_name(options.worker_name)
         client.send_flow_dir(options.flow_dir, user_message=options.message)
+
+    #elif options.command == "show":  show Workername
 
     elif options.command == "status":
 
