@@ -11,7 +11,7 @@ from abipy.htc.base_models import mongo_insert_models
 from abipy.htc.structure_models import StructureData
 from abipy.htc.pseudos_models import PseudoSpecs
 from abipy.htc.gs_models import GsData
-from abipy.htc.flow_models import EbandsFlowModel
+from abipy.htc.flow_models import FlowModel, EbandsFlowModel, ExecStatus
 
 
 class TestFlowModels(AbipyTest):
@@ -22,15 +22,31 @@ class TestFlowModels(AbipyTest):
         pseudos_specs = PseudoSpecs.from_repo_name("ONCVPSP-PBEsol-SR-PDv0.4")
         collection: Collection = mongomock.MongoClient().db.collection
 
+        # This should raise as the collection does not contain the magic document with the FlowModel class.
         with self.assertRaises(RuntimeError):
             EbandsFlowModel.get_subclass_from_collection(collection)
 
         assert collection.count_documents({}) == 0
 
-        EbandsFlowModel.init_collection(collection)
+        oid = EbandsFlowModel.init_collection(collection)
+        assert EbandsFlowModel.init_collection(collection) == oid
         assert collection.count_documents({}) == 1
         sub_class = EbandsFlowModel.get_subclass_from_collection(collection)
         assert sub_class is EbandsFlowModel
+
+        with self.assertRaises(TypeError):
+            # This should raise as we are trying to register another model in the same collection.
+            FlowModel.init_collection(collection)
+
+        with self.assertRaises(TypeError):
+
+            class DifferentFlowModel(FlowModel):
+                """This should raise as the class in the collection is not the same as the base FlowModel class."""
+
+            DifferentFlowModel.get_subclass_from_collection(collection)
+
+        # but one can still use the base class.
+        assert FlowModel.get_subclass_from_collection(collection) is EbandsFlowModel
 
         items = EbandsFlowModel.find_runnable_oid_models(collection)
         assert not items
@@ -43,7 +59,11 @@ class TestFlowModels(AbipyTest):
             model = EbandsFlowModel(input_structure_data=input_structure_data,
                                     pseudos_specs=pseudos_specs, kppa=kppa)
             model_list.append(model)
-            #assert model.flow_data.exec_status  == "Initialized"
+            #assert model.flow_data.exec_status == "Initialized"
+            assert model.is_init
+            assert not model.is_built
+            assert not model.is_completed
+            assert not model.is_errored
             assert model.abipy_version and model.pymatgen_version
             assert model.kppa == kppa
             assert model.scf_data is None
@@ -55,12 +75,12 @@ class TestFlowModels(AbipyTest):
             workdir = self.mkdtemp()
             manager = TaskManager.from_user_config()
             flow = model.build_flow(workdir, manager)
+            #flow = model.build_flow_and_update_collection(workdir, oid, collection, worker)
+            #assert model.is_built
             assert isinstance(flow, Flow)
             assert flow.workdir == workdir
             assert flow[0][0].manager is not None
 
-            #d = model.dict()
-            #for k, v in d.items(): print(f"{type(k)} --> {type(v)}")
             model.scf_data = GsData.from_gsr_filepath(abidata.ref_file("si_scf_GSR.nc"))
             model.nscf_kpath_data = GsData.from_gsr_filepath(abidata.ref_file("si_nscf_GSR.nc"))
 
@@ -84,18 +104,32 @@ class TestFlowModels(AbipyTest):
             #assert same_model.structure == structure
             #print(same_model.scf_data.ebands.structure)
 
-        #qr = EbandsFlowModel.mongo_find_by_formula("Si", collection)
-        #assert qr
-        #qr = EbandsFlowModel.mongo_find_by_spg_number(1, collection)
-        #assert not qr
-        #qr = EbandsFlowModel.mongo_find_by_spg_number(32, collection)
-        #assert not qr
+        systems = EbandsFlowModel.mongo_get_crystal_systems_incoll(collection)
+        assert systems == ["Cubic"]
+        spg_numbers = EbandsFlowModel.mongo_get_spg_numbers_incoll(collection)
+        assert spg_numbers == [227]
+
+        qr = EbandsFlowModel.mongo_find_by_formula("Si", collection)
+        assert qr and qr.models[0].input_structure_data.structure.composition.reduced_formula == "Si"
+
+        qr = EbandsFlowModel.mongo_find_by_spg_number(1, collection)
+        assert not qr
+        qr = EbandsFlowModel.mongo_find_by_spg_number(227, collection)
+        assert qr and qr.models[0].input_structure_data.spg_number == 227
+
+        qr = EbandsFlowModel.mongo_find_by_crystal_system("Cubic", collection)
+        assert qr and qr.models[0].input_structure_data.crystal_system == "Cubic"
 
         oid_models = EbandsFlowModel.find_runnable_oid_models(collection, limit=1)
         assert len(oid_models) == 1
         #runnable_oid, runnable_model = oid_models[0]
         #flow = runnable_model.build_flow()
         #assert runnable_model.exec_status == ""
+
+        status2oids = EbandsFlowModel.mongo_get_status2oids(collection)
+        assert not status2oids[ExecStatus.errored]
+        assert not status2oids[ExecStatus.completed]
+        assert len(status2oids[ExecStatus.init]) == collection.count_documents({}) - 1
 
         oids = mongo_insert_models(model_list, collection)
         assert len(oids) == len(model_list)

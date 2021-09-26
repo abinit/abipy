@@ -849,9 +849,10 @@ class PyFlowScheduler(BaseScheduler):
 
         return sendmail(subject=flow.name + tag, text=strio.getvalue(), mailto=self.mailto)
 
+
 class MultiFlowScheduler(BaseScheduler):
 
-    # TODO: history, logging, better treatment of exceptions....
+    # TODO: history, logging, shutdown better treatment of exceptions....
 
     def __init__(self, sqldb_path, **kwargs):
         super().__init__(**kwargs)
@@ -902,6 +903,7 @@ class MultiFlowScheduler(BaseScheduler):
         self.start_time = time.time()
         self.sched.start()
 
+    # TODO
     #def stop(self):
     #def restart(self):
 

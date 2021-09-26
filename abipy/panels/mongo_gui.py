@@ -33,6 +33,9 @@ class MongoGui(AbipyParameterized):
         self.limit = 0
         self.build_ui()
 
+    #def collection(self):
+    #    return self.mongo_connector.get_collection()
+
     def build_ui(self):
         # This is the part that should be abstracted out
         # so that one can implement customized subclasses
@@ -45,7 +48,13 @@ class MongoGui(AbipyParameterized):
         self.filter_btn = pnw.Button(name="Run query", button_type='primary')
         self.filter_btn.on_click(self.on_filter_btn)
 
-        self.spg_number_wdg = pnw.IntInput(name='FIlter by space group number', value=None, step=1, start=1, end=230)
+        collection = self.mongo_connector.get_collection()
+
+        # Get all spg_numbers in the collection.
+        spg_numbers = self.flow_model_cls.mongo_get_spg_numbers_incoll(collection)
+        self.spg_number_wdg = pnw.Select(name='Filter by space group number', options=spg_numbers)
+        #self.spg_number_wdg = pnw.IntInput(name='Filter by space group number', value=None, step=1, start=1, end=230)
+
         self.filter_by_spg_number_btn = pnw.Button(name="Run query", button_type='primary')
         self.filter_by_spg_number_btn.on_click(self.on_filter_by_spg_number_btn)
 
@@ -53,9 +62,10 @@ class MongoGui(AbipyParameterized):
         self.filter_by_formula_btn = pnw.Button(name="Run query", button_type='primary')
         self.filter_by_formula_btn.on_click(self.on_filter_by_formula_btn)
 
-        #self.crystal_system_wdg = pnw.Select(name='Filter by crystal system', options=)
-        #self.filter_by_crystal_system_btn = pnw.Button(name="Run query", button_type='primary')
-        #self.filter_by_crystal_system_btn.on_click(self.on_filter_by_crystal_system_btn)
+        crystal_systems = self.flow_model_cls.mongo_get_crystal_systems_incoll(collection)
+        self.crystal_system_wdg = pnw.Select(name='Filter by crystal system', options=crystal_systems)
+        self.filter_by_crystal_system_btn = pnw.Button(name="Run query", button_type='primary')
+        self.filter_by_crystal_system_btn.on_click(self.on_filter_by_crystal_system_btn)
 
         self.common_queries_btn = pnw.Button(name="Run query", button_type='primary')
         self.common_queries_btn.on_click(self.on_common_queries_btn)
@@ -71,7 +81,7 @@ class MongoGui(AbipyParameterized):
             self.filter_query, self.filter_btn,
             pn.Row(self.spg_number_wdg, self.formula_wdg),
             pn.Row(self.filter_by_spg_number_btn, self.filter_by_formula_btn),
-            #self.crystal_system_wdg, self.filter_by_crystal_system_btn,
+            self.crystal_system_wdg, self.filter_by_crystal_system_btn,
             self.common_queries_wdg, self.common_queries_btn,
             #sizing_mode="stretch_width",
         )
@@ -113,12 +123,12 @@ class MongoGui(AbipyParameterized):
         qr = self.flow_model_cls.mongo_find_by_formula(reduced_formula, collection, limit=self.limit)
         return qr
 
-    #@display_qr
-    #def on_filter_by_crystal_system_btn(self, _):
-    #    crystal_system = self.crystal_system_wdg.value
-    #    collection = self.mongo_connector.get_collection()
-    #    qr = self.flow_model_cls.mongo_find_by_crystal_system(crystal_system, collection, limit=self.limit)
-    #    return qr
+    @display_qr
+    def on_filter_by_crystal_system_btn(self, _):
+        crystal_system = self.crystal_system_wdg.value
+        collection = self.mongo_connector.get_collection()
+        qr = self.flow_model_cls.mongo_find_by_crystal_system(crystal_system, collection, limit=self.limit)
+        return qr
 
     @display_qr
     def on_common_queries_btn(self, _):

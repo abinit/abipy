@@ -364,11 +364,13 @@ def main():
         print(mongo_connector)
 
         if not options.collection_name:
-            print("Use the -c option to specify the MongoDB collection from which")
-            print("FlowModel documents will be fetched by the Worker.")
-            print("Choose among the following collections:\n")
+            # If the collection is not specified, contact the MongoDB server to get the list of
+            # collections and print them before exiting.
+            print("Use the `-c COLLECTION_NAME` option to specify the MongoDB collection from which\n"
+                  "FlowModel documents will be fetched by the AbiPy Worker.\n"
+                  "Choose among the following collections:\n")
             for i, cname in enumerate(mongo_connector.list_collection_names()):
-                print(f"[{i+1}]", cname)
+                print(f"\t[{i+1}]", cname)
             return 1
 
         # Generate automatically the worker_name from the collection if not given.
@@ -390,7 +392,7 @@ def main():
                     status = local_client.worker_state.status
 
                     if status == "init":
-                        # This is not critical. new_with_name will handel the problem.
+                        # This is not critical. new_with_name will handle the problem.
                         continue
                     elif status == "dead":
                         eapp(f"Use `abiw.py restart` to restart Worker: `{worker_name}`")
@@ -399,8 +401,8 @@ def main():
                     else:
                         raise ValueError(f"Unknown status: {status}")
             else:
-                # Different worker connected to the same collection.
-                eapp(f"There's already another worker connected to collection: {options.collection_name}")
+                # Found a different worker connected to the same collection.
+                eapp(f"There's already another AbiPy Worker connected to collection: {options.collection_name}")
                 eapp(repr(local_client))
 
         if errors:
@@ -409,7 +411,7 @@ def main():
             print("Aborting now")
             return 1
 
-        # Create the Worker and start serving.
+        # Create the AbiPyWorker and start serving.
         scratch_dir = get_scratch_dir()
         worker = AbipyWorker.new_with_name(worker_name, scratch_dir, mongo_connector=mongo_connector)
 

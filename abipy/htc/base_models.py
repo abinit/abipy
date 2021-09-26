@@ -294,13 +294,16 @@ class MongoConnector(AbipyModel):
 
     def list_collection_names(self) -> List[str]:
         """
-        "Return list with all collection names in this database.
+        "Return list of strings with all collection names in the database.
         """
         db = self.get_db()
         _filter = {"name": {"$regex": r"^(?!system\.)"}}
         return db.list_collection_names(filter=_filter)
 
-    def list_collections(self) -> Iterable:
+    def list_collections(self) -> Iterable[Collection]:
+        """
+        Return iterable with collections available in the MongoDB database.
+        """
         db = self.get_db()
         return db.list_collections()
 
@@ -314,6 +317,17 @@ class MongoConnector(AbipyModel):
         app = MongoGui(self, flow_model).get_app()
         import panel as pn
         pn.serve(app, **serve_kwargs)
+
+
+class MockedMongoConnector(MongoConnector):
+    """
+    Mock a MongoConnector using mongomock. Used for unit tests.
+    """
+
+    def get_client(self) -> MongoClient:
+        import mongomock
+        #collection: Collection = mongomock.MongoClient().db.collection
+        return mongomock.MongoClient()
 
 
 class MongoModel(AbipyModel):
@@ -339,7 +353,7 @@ class MongoModel(AbipyModel):
         """
         Return a model instance for the ObjectId oid and the collection.
         """
-        data = collection.find_one({'_id': oid})
+        data = collection.find_one(filter={'_id': oid})
         if data is None: return data
         data.pop("_id")
         data = AbipyDecoder().process_decoded(data)
@@ -351,7 +365,7 @@ class MongoModel(AbipyModel):
         """
         Find the models in the collection matching the mongodb query.
         """
-        cursor = collection.find(query, **kwargs)
+        cursor = collection.find(filter=query, **kwargs)
         if cursor is None:
             return QueryResults.empty_from_query(query)
 
@@ -377,7 +391,7 @@ class MongoModel(AbipyModel):
         Perform a full update of the document given the ObjectId in the collection.
         """
         # TODO: Implement Atomic transaction
-        old_doc = collection.find_one({'_id': oid})
+        old_doc = collection.find_one(filter={'_id': oid})
         if old_doc is None:
             raise RuntimeError(f"Cannot find document with ObjectId: {oid}")
 

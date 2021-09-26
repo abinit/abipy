@@ -244,6 +244,10 @@ class AbipyWorker:
 
     A command line interface to create/start/restart Workers is provided by the `abiw.py` script.
     """
+    MAX_NUM_EXCS_IN_BUILDFLOW = 30
+
+    #MONGO_PERIODIC_CALLBACK_TIME_MS = 10000
+    MONGO_PERIODIC_CALLBACK_TIME_MS = 5000
 
     def __init__(self, name: str, sched_options: dict, scratch_dir: str,
                  address: str = "localhost", port: int = 0,
@@ -268,12 +272,13 @@ class AbipyWorker:
         self.manager = manager
         self.mongo_connector = mongo_connector
         self.flow_model_cls = None
+        self.num_exceptions_in_build_flow_from_mongodb = 0
+        self.flowid2_oid_model = {}
 
         if self.mongo_connector:
             # Get the FlowMode subclass from the DB collection.
             collection = self.mongo_connector.get_collection()
             self.flow_model_cls = FlowModel.get_subclass_from_collection(collection)
-            self.flowid2_oid_model = {}
 
         # url --> callables returning panel objects.
         self.routes = {
@@ -322,19 +327,34 @@ class AbipyWorker:
     #def full_name(self)
     #    return f"{self.name}@{socket.gethostname()}"
 
-    #def __str__(self)
-    #def __repr__(self)
+    def __repr__(self) -> str:
+        return f"{self.name} at {self.address}:{self.port}. pid: {self.pid}"
 
-    #@tornado.concurrent.run_on_executor
-    #def refresh():
-    #    do_something_that_takes_a_while()
-    #    tornado.ioloop.IOLoop.instance().add_callback(self.refresh)
+    #def __str__(self) -> str:
+    #    lines = []
+    #    app = lines.append
+    #    return "\n".join(lines)
 
     #def mkworkdir(self):
     #    now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     #    workdir = tempfile.mkdtemp(prefix=f"Flow-{now}", dir=self.scratch_dir)
 
-    def build_flow_from_mongodb(self):
+    def build_flow_from_mongodb(self) -> None:
+        # Stop the server if the number of consecutive exceptions becomes too large
+        # This may be due to e.g. a quota limit or other hardware-related problems.
+        print("in build_flow")
+        try:
+            self._build_flow_from_mongodb()
+            if self.num_exceptions_in_build_flow_from_mongodb > 0:
+                self.num_exceptions_in_build_flow_from_mongodb -= 1
+
+        except Exception as exc:
+            self.num_exceptions_in_build_flow_from_mongodb += 1
+
+        if self.num_exceptions_in_build_flow_from_mongodb > self.MAX_NUM_EXCS_IN_BUILDFLOW:
+            self.shutdown_server("Too many exceptions in build_flow_from_mongodb")
+
+    def _build_flow_from_mongodb(self) -> None:
         """
         Periodic callback executed by the primary thread to fetch new calculations from
         the MongoDB collection when then AbipyWorker is running with a "flow_model_cls".
@@ -344,6 +364,7 @@ class AbipyWorker:
 
         # TODO: Improve error handling.
         collection = self.mongo_connector.get_collection()
+        print("hello")
 
         if self.flowid2_oid_model:
             node_ids = list(self.flowid2_oid_model.keys())
@@ -595,6 +616,22 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
 
         return pn.pane.Alert(f"Cannot find Flow with node id: {flow_id}", alert_type="danger")
 
+    def shutdown_server(self, message: str) -> None:
+        self.write_state_file(status="dead")
+        #self.flow_scheduler.stop()
+
+        # If we are connected to a MongoDB collection, we try to log the problem in the database.
+        #if self.flow_model_cls is not None:
+        #    try:
+        #        collection = self.mongo_connector.get_collection()
+        #        self.flow_model_cls.register_worker_exception(self, collection)
+        #    except:
+        #        pass
+
+        print("Shuting the server down.")
+        print(message)
+        sys.exit(1)
+
     def serve(self, **serve_kwargs):
         """
         Start the webserver.
@@ -635,12 +672,9 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
             print("Abipy Worker will try to connect to MongoDB database using:")
             print(self.mongo_connector)
             print("FlowModel class:", self.flow_model_cls)
-            time_ms = 10000
-            print("Connecting to the MongoDB database every", time_ms, "ms")
-            #from tornado.ioloop import IOLoop
-            #ioloop = IOLoop.current()
+            print("Connecting to the MongoDB database every", self.MONGO_PERIODIC_CALLBACK_TIME_MS, "ms")
             from tornado.ioloop import PeriodicCallback
-            periodic = PeriodicCallback(self.build_flow_from_mongodb, time_ms)
+            periodic = PeriodicCallback(self.build_flow_from_mongodb, self.MONGO_PERIODIC_CALLBACK_TIME_MS)
             periodic.start()
 
         server = pn.serve(self.routes, port=self.port, address=self.address,
@@ -839,11 +873,11 @@ class WorkerClient(MSONable):
 
             self.saved_uuid = worker_state.uuid
 
-    def __str__(self):
-        return self.to_json()
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.worker_state)
+
+    def __str__(self) -> str:
+        return self.to_json()
 
     def to_json(self) -> str:
         """
