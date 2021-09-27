@@ -1,15 +1,16 @@
 """
-Base pydantic models used by Abipy.
+Base pydantic models used by Abipy to implement the HTC version of the Flow connected to a MongoDB database.
 """
 from __future__ import annotations
 
 import json
 import os
 import inspect
+import time
 #import numpy as np
 
 from typing import List, Any, Type, TypeVar, Optional, Iterable
-from uuid import UUID
+#from uuid import UUID
 #from pprint import pprint
 from pydantic import BaseModel, Field, PrivateAttr, root_validator
 from pydantic.main import ModelMetaclass
@@ -31,7 +32,7 @@ from abipy.electrons.ebands import ElectronBands
 
 class AbipyDecoder(MontyDecoder):
     """
-    Extends MontyDecoder adding support for class decoding.
+    Extends MontyDecoder adding support for decoding classes besides instances..
     """
 
     def process_decoded(self, d):
@@ -45,9 +46,14 @@ class AbipyDecoder(MontyDecoder):
         return super().process_decoded(d)
 
 
+def cls2dict(cls) -> dict:
+    """Encodes python class using __qualname__"""
+    return {"@qualname": cls.__qualname__, "@module": cls.__module__}
+
+
 class AbipyEncoder(MontyEncoder):
     """
-    Extends MontyEncoder to add support for class encoding.
+    Extends MontyEncoder adding support for encoding classes besides instances..
     """
 
     def default(self, o) -> dict:  # pylint: disable=E0202
@@ -80,19 +86,23 @@ def monty_trick(obj: Any) -> Any:
     return json.loads(monty_json_dumps(obj))
 
 
-def cls2dict(cls) -> dict:
-    return {"@qualname": cls.__qualname__, "@module": cls.__module__}
-
-
 M = TypeVar('M', bound='AbipyModel')
 
 
 class AbipyModel(BaseModel, MSONable):
     """
-    Base class providing tools to serialize Abipy/Pymatgen objects supporting the MSONable protocol.
+    Base class providing tools to serialize Abipy/Pymatgen objects
+    implementing the MSONable protocol.
+    Most of the AbiPy models should inherith from this class so that we
+    can take advantage of pydantic Config to encode/decode objects that are not pydantci models.
     """
 
     class Config:
+
+        # This is needed to be able to use MSONable AbiPy objects
+        # such as ElectronBands that do not inherit from BaseModel
+        arbitrary_types_allowed = True
+
         # Here we register specialized encoders to convert MSONable objects to JSON strings.
         # Subclasses will inherit these json_encoders.
         json_encoders = {
@@ -108,15 +118,15 @@ class AbipyModel(BaseModel, MSONable):
             ElectronBands: lambda o: monty_trick(o),
         }
 
-        # This is needed to be able to use MSONable AbiPy objects
-        # such as ElectronBands that do not inherit from BaseModel
-        arbitrary_types_allowed = True
-
         #json_loads = monty_json_loads
         #json_dumps = monty_json_dumps
 
+
     @classmethod
     def from_dict(cls: Type[M], d: dict) -> M:
+        """
+        Reconstruct the model from a dictionary taking into account the MSONAble protocol
+        """
         #print("d1 in from dict:")
         #pprint(d)
         d = monty_load(d)
@@ -128,11 +138,17 @@ class AbipyModel(BaseModel, MSONable):
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """
+        Convert the model to dictionary taking into account the MSONable protocol.
+        """
         #return monty_trick(self)
         d = self.dict()
         #print("d in as dict:")
         #pprint(d)
         return d
+
+    #@staticmethod
+    #def serialize(self, data):
 
     def to_json(self, **kwargs) -> str:
         """
@@ -143,16 +159,19 @@ class AbipyModel(BaseModel, MSONable):
 
     @classmethod
     def from_json_file(cls: Type[M], filepath: str) -> M:
+        """Helper function to reconstruct the model from a json file."""
         with open(filepath, "rt") as fp:
             return cls.from_json(fp.read())
 
     @classmethod
     def from_json(cls: Type[M], json_string: str) -> M:
+        """Helper function to reconstruct the model from a json string."""
         new = monty_json_loads(json_string)
         if isinstance(new, cls): return new
         return cls(**new)
 
     def json_write(self, filepath: str, **kwargs) -> None:
+        """Helper function to write a json string with the model to file."""
         with open(filepath, "wt") as fp:
             #fp.write(self.json(**kwargs))
             fp.write(self.to_json(**kwargs))
@@ -165,7 +184,11 @@ class AbipyModel(BaseModel, MSONable):
 class MongoConnector(AbipyModel):
     """
     Stores the parameters used to connect to the MongoDB server and the name of
-    the (default) collection used to perform CRUD operations.
+    the default collection used to perform CRUD operations.
+    This object is usually instanciated from the AbiPy configuration file that defines the host,
+    post, dbname, username and password.
+    Note, however, that we don't store the name of the collection in the configuration file.
+    so the user has to specify it explictly when calling ``from_abipy_config``.
     """
 
     host: str = Field(..., description="Host address e.g. 'localhost'")
@@ -186,7 +209,7 @@ class MongoConnector(AbipyModel):
     @classmethod
     def for_localhost(cls, collection_name: str, port: int = 27017, **kwargs) -> MongoConnector:
         """
-        Build mongodb_connector assuming a MongoDB server running on localhost listening on the default port
+        Build an instance assuming a MongoDB server running on localhost listening on the default port
         """
         d = dict(host="localhost", port=port, collection_name=collection_name)
         d.update(kwargs)
@@ -195,9 +218,8 @@ class MongoConnector(AbipyModel):
     @classmethod
     def from_abipy_config(cls, collection_name: str, **kwargs) -> MongoConnector:
         """
-        Build mongodb_connector using the global configuration options stored in the AbiPy config.yml file.
+        Build an instance from the configuration options stored in the AbiPy config.yml file.
         """
-        #d = dict(host="localhost", port=port, collection_name=collection_name)
         from abipy.core.config import get_config
         config = get_config()
         d = dict(host=config.mongo_host, port=config.mongo_port,
@@ -211,12 +233,13 @@ class MongoConnector(AbipyModel):
 
     @root_validator
     def check_username_and_password(cls, values):
+        """Both Username and password are needed"""
         username, password = values.get("username"), values.get("password")
         if username is not None and password is None:
             raise ValueError('password must be provided when username is not None')
         return values
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._repr_markdown_()
 
     def _repr_markdown_(self) -> str:
@@ -238,9 +261,7 @@ class MongoConnector(AbipyModel):
 
     def get_client(self) -> MongoClient:
         """
-        Establish a connection with the MongoDB server.
-
-        Return: MongoClient
+        Establish a connection with the MongoDB server. Return MongoClient
         """
         from pymongo.errors import ConnectionFailure
 
@@ -273,13 +294,13 @@ class MongoConnector(AbipyModel):
         return self._client
 
     def get_db(self) -> Database:
+        """Return MongoDB database."""
         client = self.get_client()
         return client[self.dbname]
 
     def get_collection(self, collection_name: Optional[str] = None) -> Collection:
         """
-        Returns MongoDB collection from its name.
-        Use default collection if collection_name is None.
+        Returns MongoDB collection from its name. Use default collection if ``collection_name`` is None.
         """
         db = self.get_db()
         return db[collection_name or self.collection_name]
@@ -308,6 +329,9 @@ class MongoConnector(AbipyModel):
         return db.list_collections()
 
     def open_mongoflow_gui(self, **serve_kwargs):
+        """
+        Start panel GUI that allows the user to inspect the results stored in the collection.
+        """
         collection = self.get_collection()
         from .flow_models import FlowModel
         flow_model = FlowModel.get_subclass_from_collection(collection)
@@ -321,7 +345,7 @@ class MongoConnector(AbipyModel):
 
 class MockedMongoConnector(MongoConnector):
     """
-    Mock a MongoConnector using mongomock. Used for unit tests.
+    Mock a MongoConnector using mongomock. Mainly used for unit tests.
     """
 
     def get_client(self) -> MongoClient:
@@ -366,8 +390,8 @@ class MongoModel(AbipyModel):
         Find the models in the collection matching the mongodb query.
         """
         cursor = collection.find(filter=query, **kwargs)
-        if cursor is None:
-            return QueryResults.empty_from_query(query)
+        #if cursor is None:
+        #    return QueryResults.empty_from_query(query)
 
         oids, models = [], []
         decoder = AbipyDecoder()
@@ -437,12 +461,18 @@ class MongoModel(AbipyModel):
 #    return cls.from_json_file(filepath)
 
 
-def mongo_insert_models(models: List[MongoModel], collection: Collection) -> List[ObjectId]:
+def mongo_insert_models(models: List[MongoModel], collection: Collection, verbose: int = 0) -> List[ObjectId]:
     """
     Insert list of models in a collection. Return list of objectid
+    If verbose > 0, print elasped time.
     """
+    start = time.time()
     docs = [json.loads(model.json()) for model in models]
-    return collection.insert_many(docs).inserted_ids
+    oids = collection.insert_many(docs).inserted_ids
+    if verbose:
+        print(f"Inserted {len(oids)} MongoDB documents in collection: {collection.full_name} in "
+              f"{time.time() - start: .2f} [s]")
+    return oids
 
 
 class QueryResults:

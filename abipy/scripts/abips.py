@@ -218,13 +218,13 @@ def get_parser(with_epilog=False):
     # Subparser for list command.
     p_list = subparsers.add_parser("list", parents=[copts_parser], help=abips_list.__doc__)
     p_list.add_argument("-c", "--checksums", action="store_true", default=False,
-                        help="Validate checksums")
+                        help="Validate md5 checksums")
 
     # Subparser for install command.
     p_install = subparsers.add_parser("install", parents=[copts_parser], help=abips_install.__doc__)
     p_install.add_argument("repo_names", type=str, nargs="+", help="List of repositories to download.")
     p_install.add_argument("-c", "--checksums", action="store_true", default=False,
-                           help="Validate checksums")
+                           help="Validate md5 checksums")
 
     # Subparser for nc_install command.
     #p_nc_install = subparsers.add_parser("nc_install", parents=[copts_parser], help=abips_nc_install.__doc__)

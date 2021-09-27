@@ -1,7 +1,7 @@
 """pydantic models for storing results of ground-state calculations."""
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+#from abc import ABC, abstractmethod
 from pydantic import Field
 from typing import List
 from abipy.electrons.gsr import GsrFile
@@ -13,7 +13,7 @@ from .base_models import AbipyModel
 # mpid:
 
 
-class _ModelWithEbands(AbipyModel:
+class _ModelWithEbands(AbipyModel):
     """
     Base model with an ElectronBands object and other important quantiies such as
     the Fermi level and the band gaps.
@@ -25,7 +25,7 @@ class _ModelWithEbands(AbipyModel:
 
     #direct_band_gap_ev: float = Field(..., description="Direct band gap in eV.")
 
-    #fermie_ev: float = Field(..., description="Electronic bands.")
+    #fermie_ev: float = Field(..., description="Fermi level in eV.")
 
 
 class NscfData(_ModelWithEbands):
@@ -34,12 +34,21 @@ class NscfData(_ModelWithEbands):
     """
 
     @classmethod
+    def from_gsr_filepath(cls, gsr_filepath: str):
+        """
+        Fill the model from the GSR filepath.
+        """
+        with GsrFile(gsr_filepath) as gsr:
+            return cls.from_gsr(gsr)
+
+    @classmethod
     def from_gsr(cls, gsr: GsrFile) -> NscfData:
         """
         Fill the model from a |GsrFile|
         """
-        # TODO: Use "cartesian_forces_eV/Ang" and get rid of ArrayWithUnits
-        #gsr.ebands.structure.remove_site_property("cartesian_forces")
+        if gsr.is_scf_run:
+            raise RuntimeError("Expecting a GSR file produced by a NSCF calculation.")
+
         kwargs = dict(
             ebands=gsr.ebands,
         )
@@ -77,6 +86,12 @@ class _ScfBaseModel(_ModelWithEbands):
     #    [], description="Stress on the unitcell from the last calculation"
     #)
 
+
+class GsData(_ScfBaseModel):
+    """
+    Ground-state results: energy, forces, stress tensor, Fermi level, band gaps.
+    """
+
     @classmethod
     def from_gsr_filepath(cls, gsr_filepath: str):
         """
@@ -85,29 +100,20 @@ class _ScfBaseModel(_ModelWithEbands):
         with GsrFile(gsr_filepath) as gsr:
             return cls.from_gsr(gsr)
 
-   # @classmethod
-   # @abstractmethod
-   # def from_gsr(cls, gsr: GsrFile):
-   #     """Build the model from a GSR file"""
-
-
-class GsData(_ScfBaseModel):
-    """
-    Ground-state results: energy, forces, stress tensor, Fermi level, band gaps.
-    """
-
     @classmethod
     def from_gsr(cls, gsr: GsrFile) -> GsData:
         """
         Fill the model from a |GsrFile|
         """
+        if not gsr.is_scf_run:
+            raise RuntimeError("Expecting a GSR file produced by a SCF calculation")
+
         # TODO: Use "cartesian_forces_eV/Ang" and get rid of ArrayWithUnits
         #gsr.ebands.structure.remove_site_property("cartesian_forces")
         kwargs = dict(
             ebands=gsr.ebands,
         )
 
-        #if gsr.is_scf_run:
         kwargs.update(dict(
             pressure_gpa=gsr.pressure,
             abs_pressure_gpa=abs(gsr.pressure),
@@ -144,19 +150,19 @@ class RelaxData(_ScfBaseModel):
                                           description="Unit cell volume in Ang**3 at the different relaxation steps.")
 
     @classmethod
-    def from_hist_filepath(cls, filepath: str) -> RelaxData:
+    def from_hist_gsr_filepaths(cls, hist_filepath: str, gsr_filepath: str) -> RelaxData:
         """
         Fill the model from a HIST.nc filepath.
         """
-        with HistFile(filepath) as hist:
-            return cls.from_hist(hist)
+        with HistFile(hist_filepath) as hist_file, GsrFile(gsr_filepath) as gsr_file:
+            return cls.from_hist_gsr(hist_file, gsr_file)
 
     @classmethod
-    def from_hist(cls, hist: HistFile) -> RelaxData:
+    def from_hist_gsr(cls, hist: HistFile, gsr_file: GsrFile) -> RelaxData:
         """
         Fill the model from a |HistFile|
         """
-        raise NotImplementedError())
+        raise NotImplementedError()
         #    # TODO
         #    kwargs = dict()
         #    # TODO: Use "cartesian_forces_eV/Ang" and get rid of ArrayWithUnits

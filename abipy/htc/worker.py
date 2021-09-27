@@ -342,13 +342,13 @@ class AbipyWorker:
     def build_flow_from_mongodb(self) -> None:
         # Stop the server if the number of consecutive exceptions becomes too large
         # This may be due to e.g. a quota limit or other hardware-related problems.
-        print("in build_flow")
+        #print("in build_flow")
         try:
             self._build_flow_from_mongodb()
             if self.num_exceptions_in_build_flow_from_mongodb > 0:
                 self.num_exceptions_in_build_flow_from_mongodb -= 1
 
-        except Exception as exc:
+        except Exception:
             self.num_exceptions_in_build_flow_from_mongodb += 1
 
         if self.num_exceptions_in_build_flow_from_mongodb > self.MAX_NUM_EXCS_IN_BUILDFLOW:
@@ -364,7 +364,6 @@ class AbipyWorker:
 
         # TODO: Improve error handling.
         collection = self.mongo_connector.get_collection()
-        print("hello")
 
         if self.flowid2_oid_model:
             node_ids = list(self.flowid2_oid_model.keys())
