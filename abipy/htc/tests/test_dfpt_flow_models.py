@@ -2,7 +2,7 @@ from abipy.core.testing import AbipyTest
 from abipy.htc.base_models import MongoConnector
 from abipy.htc.pseudos_models import PseudoSpecs
 from abipy.htc.structure_models import StructureData
-from abipy.htc.dfpt_flowmodels import PhononFlowModel #, PhononFlowModelWithInput
+from abipy.htc.dfpt_flow_models import PhononFlowModel #, PhononFlowModelWithInput
 
 
 class TestPhononFlowModels(AbipyTest):
@@ -23,7 +23,7 @@ class TestPhononFlowModels(AbipyTest):
 
         # Pseudopotential specifications.
         # Note that we still need to specify the accuracy.
-        pseudos_specs = PseudoSpecs.from_repo_name("ONCVPSP-PBE-SR-PDv0.4", table_accuracy="standard")
+        pseudos_specs = PseudoSpecs.from_repo_name("ONCVPSP-PBE-SR-PDv0.4", table_name="standard")
 
         # Generate list of structures.
         from abipy.data.ucells import structure_from_ucell

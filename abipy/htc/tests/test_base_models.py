@@ -8,7 +8,8 @@ from pymatgen.core.structure import Structure as pmg_Structure
 from abipy.core.testing import AbipyTest
 from abipy.core.structure import Structure as abi_Structure
 from abipy.abio.inputs import AbinitInput
-from abipy.htc.base_models import AbipyModel, MongoConnector, QueryResults, MongoModel, mongo_insert_models
+from abipy.htc.base_models import (AbipyModel, MongoConnector, MockedMongoConnector, QueryResults,
+        MongoModel, mongo_insert_models)
 
 
 class SubModel(AbipyModel):
@@ -105,3 +106,17 @@ class TestAbipyBaseModels(AbipyTest):
         assert qr.query == query
         assert not qr
         assert len(qr) == 0
+
+
+    #def test_mocked_mongo_connector(self):
+    #    mocked = MockedMongoConnector(host="example.com", port=27017, collection_name="collection_name")
+    #    collection = mocked.get_collection()
+    #    print(collection)
+    #    assert collection.insert_one({"foo": 1, "bar": "foo"})
+    #    print("names:", mocked.list_collection_names())
+    #    assert 0
+    #    #assert "collection_name" in mocked.list_collection_names()
+
+
+
+

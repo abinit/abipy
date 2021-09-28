@@ -11,7 +11,8 @@ from abipy.htc.base_models import mongo_insert_models
 from abipy.htc.structure_models import StructureData
 from abipy.htc.pseudos_models import PseudoSpecs
 from abipy.htc.gs_models import GsData, NscfData
-from abipy.htc.flow_models import FlowModel, EbandsFlowModel, EbandsFlowModelWithInputs, ExecStatus
+from abipy.htc.flow_models import FlowModel, ExecStatus
+from abipy.htc.gs_flow_models import EbandsFlowModel, EbandsFlowModelWithInputs
 
 
 class TestFlowModels(AbipyTest):

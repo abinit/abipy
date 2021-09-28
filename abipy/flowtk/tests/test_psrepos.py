@@ -95,10 +95,10 @@ class TestPsRepos(AbipyTest):
 
         if repo_sr.is_installed():
             repo_sr.validate_checksums(verbose=1)
-            for table_accuracy in ("standard", "stringent"):
-                pseudos = repo_sr.get_pseudos(table_accuracy=table_accuracy)
+            for table_name in ("standard", "stringent"):
+                pseudos = repo_sr.get_pseudos(table_name=table_name)
                 # Test memoized method.
-                same_pseudos = repo_sr.get_pseudos(table_accuracy=table_accuracy)
+                same_pseudos = repo_sr.get_pseudos(table_name=table_name)
                 assert same_pseudos is pseudos
                 zmax = 56  # Ba
                 assert pseudos.is_complete(zmax=zmax)
@@ -108,10 +108,10 @@ class TestPsRepos(AbipyTest):
 
         if repo_fr.is_installed():
             repo_fr.validate_checksums(verbose=1)
-            for table_accuracy in ("standard", "stringent"):
-                pseudos = repo_fr.get_pseudos(table_accuracy=table_accuracy)
+            for table_name in ("standard", "stringent"):
+                pseudos = repo_fr.get_pseudos(table_name=table_name)
                 # Test memoized method.
-                same_pseudos = repo_fr.get_pseudos(table_accuracy=table_accuracy)
+                same_pseudos = repo_fr.get_pseudos(table_name=table_name)
                 assert same_pseudos is pseudos
                 zmax = 56  # Ba
                 assert pseudos.is_complete(zmax=zmax)

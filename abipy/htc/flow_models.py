@@ -2,30 +2,20 @@ from __future__ import annotations
 
 import traceback
 
-#import numpy as np
 import pandas as pd
-import panel as pn
 import logging
 
 from datetime import datetime
 from enum import Enum
 from abc import ABC, abstractmethod
 from typing import List, Tuple, ClassVar, Union, TypeVar, Type, Dict  #, Optional, Any, Type,
-from pydantic import Field, root_validator
+from pydantic import Field
 from bson.objectid import ObjectId
 from pymongo.collection import Collection
-#from pymatgen.util.typing import VectorLike, MatrixLike
-#from abipy.tools.tensors import Stress
-from abipy.abio.inputs import AbinitInput
-from abipy.panels.core import ply
-from abipy.panels.viewers import JSONViewer
-from abipy.flowtk import TaskManager, Flow, PhononFlow
-from .base_models import AbipyModel, MongoModel, cls2dict, AbipyDecoder, QueryResults #, AbipyEncoder
+from abipy.flowtk import TaskManager, Flow
+from .base_models import AbipyModel, MongoModel, cls2dict, AbipyDecoder, QueryResults
 from .structure_models import StructureData
 from .pseudos_models import PseudoSpecs
-from .gs_models import GsData, NscfData, RelaxData
-from .dfpt_models import PhononData
-#from .worker import AbipyWorker
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +35,10 @@ class ExecStatus(str, Enum):
 
 
 class FlowData(AbipyModel):
-
+    """
+    Submodel storing the status the Flow and additional metadata.
+    Users do not need to interact with FlowData explicitly as this task is delegated to the AbipyWorker.
+    """
     exec_status: ExecStatus = ExecStatus.init
 
     worker_name: str = Field(None, description="The name of th AbiPy worker running this Flow.")
@@ -73,8 +66,8 @@ FM = TypeVar('FM', bound='FlowModel')
 class FlowModel(MongoModel, ABC):
     """
     Abstract class for models associated to a Flow calculation performed by an AbiPy Worker.
-    This model implements the businness logic to create a Flow from the database,
-    execute it and post-process the results.
+    This model implements the businness logic to create a Flow from a MongoDB collection
+    and post-process the results once the Flow is completed.
 
     Users are supposed to use this model to initialize a MongoDB collection with all
     the input arguments that will be used to generate the Flow and provide a concrete
@@ -94,11 +87,12 @@ class FlowModel(MongoModel, ABC):
     NOTES: The flow is assumed to have the same tructure and pseudopotentials.
     """
 
-    flow_data: FlowData = Field(default_factory=FlowData, description="")
+    flow_data: FlowData = Field(default_factory=FlowData,
+                                description="Stores info on the Flow execution status. Set by the AbiPy Worker.")
 
-    in_structure_data: StructureData = Field(..., description="Stores the input structure and associated metadata")
+    in_structure_data: StructureData = Field(..., description="Input structure and associated metadata. Used ")
 
-    pseudos_specs: PseudoSpecs = Field(..., description="PseudoPotential specifications.")
+    pseudos_specs: PseudoSpecs = Field(..., description="Pseudopotential specifications.")
 
     # Private class attributes
     _magic_key: ClassVar[str] = "_flow_model_"
@@ -106,9 +100,11 @@ class FlowModel(MongoModel, ABC):
     @classmethod
     def init_collection(cls: Type[FM], collection: Collection) -> ObjectId:
         """
-        Initialize a MongoDB collection by inserting a special document containing the serialized FlowModel subclass.
-        Return ObiectID of the new document.
+        Initialize a MongoDB collection by inserting a special document containing
+        the serialized FlowModel subclass.
         This function must be used when creating the collection of FlowModels for the first time.
+
+        Return: ObiectID of the new document.
         """
         new_dict = cls2dict(cls)
 
@@ -155,7 +151,8 @@ class FlowModel(MongoModel, ABC):
     @classmethod
     def mongo_find_completed_oids(cls, collection: Collection, **kwargs) -> List[ObjectId]:
         """
-        Find all the models in collection that are completed and return list of ObjectId.
+        Find all the models in collection that are completed.
+        Return: list of ObjectId.
         """
         d = cls.mongo_get_status2oids(collection, **kwargs)
         return d[ExecStatus.completed]
@@ -237,10 +234,8 @@ class FlowModel(MongoModel, ABC):
         Must be implemented in the concrete subclass.
         """
 
-    def build_flow_and_update_collection(self, workdir: str,
-                                         oid: ObjectId,
-                                         collection: Collection,
-                                         abipy_worker) -> Union[Flow, None]:
+    def build_flow_and_update_collection(self, workdir: str, oid: ObjectId,
+                                         collection: Collection, abipy_worker) -> Union[Flow, None]:
         """
         This is the API used by the AbiPyWorker to build a Flow from the model.
         Wraps build_flow implemented by the subclass to perform extra operations on the
@@ -269,13 +264,13 @@ class FlowModel(MongoModel, ABC):
             return None
 
         finally:
-            # Insert model in the MongoDB collection.
+            # Update document in the MongoDB collection.
             self.mongo_full_update_oid(oid, collection)
 
     @abstractmethod
     def postprocess_flow(self, flow: Flow) -> None:
         """
-        Postprocess the Flow.
+        Postprocess the Flow and update the model with output results.
         Must be implemented in the concrete subclass.
         """
 
@@ -383,223 +378,3 @@ class FlowModel(MongoModel, ABC):
             rows.append(d)
 
         return pd.DataFrame(rows).set_index("_id")
-
-
-class _BaseEbandsFlowModel(FlowModel):
-    """
-    This is the base class for models performing band structure calculations.
-    It defines the three input files for the SCF/NSCF/DOS calculation and submodels
-    for the output results.
-    """
-
-    # These inputs can be generated either manually or from meta-parameters + factory functions.
-
-    scf_input: AbinitInput = Field(None, description="Abinit Input file generated by AbiPy.")
-
-    nscf_input: AbinitInput = Field(None, description="Abinit Input file generated by AbiPy.")
-
-    dos_input: AbinitInput = Field(None, description="Abinit Input file generated by AbiPy.")
-
-    ########
-    # Output
-    ########
-
-    scf_data: GsData = Field(None, description="Results produced by the GS SCF run.")
-
-    nscf_kpath_data: NscfData = Field(None, description="Results produced by the GS NSCF run.")
-
-    nscf_kmesh_data: NscfData = Field(None, description="Results produced by the GS NSCF run.")
-
-    def postprocess_flow(self, flow: Flow) -> None:
-        """
-        Analyze the flow and fills the model with output results.
-        This function is called by the AbiPy Worker if the flow completed succesfully.
-        """
-        with flow[0][0].open_gsr() as gsr:
-            self.scf_data = GsData.from_gsr(gsr)
-
-        with flow[0][1].open_gsr() as gsr:
-            self.nscf_kpath_data = NscfData.from_gsr(gsr)
-
-        if self.dos_input is not None:
-            with flow[0][2].open_gsr() as gsr:
-                self.nscf_kmesh_data = NscfData.from_gsr(gsr)
-
-    def get_panel_view(self):
-        """
-        Return panel object with a view of the model.
-        """
-        title = self.in_structure_data.get_title()
-        structure = self.in_structure_data.structure
-        a, b, c = structure.lattice.abc
-        alpha, beta, gamma = structure.lattice.angles
-        header = f"""\
-## {title}
-
-- Lattice lengths: a = {a:.6f}, b = {b:.6f}, c = {c:.6f} Ang
-- Lattice angles: α = {alpha:.3f}, β = {beta:.3f}, ɣ = {gamma:.3f} degrees
-"""
-
-        if self.is_completed:
-            header += f"""\
-- Pressure: {self.scf_data.pressure_gpa:.3f} GPa
-- Max |Force|: {self.scf_data.max_force_ev_over_ang:.8f} eV/Ang
-- Energy: {self.scf_data.energy:.4f} eV
-- Energy per atom: {self.scf_data.energy_per_atom:.4f} eV
-"""
-            plotly_bands = ply(self.nscf_kpath_data.ebands.plotly(show=False))
-        else:
-            plotly_bands = pn.pane.Alert(f"Bands are not available because exec_status is `{self.flow_data.exec_status}`")
-
-        return pn.Column(
-            #self.in_structure_data.get_panel_view(),
-            header,
-            pn.Row(
-                plotly_bands,
-                pn.pane.HTML(self.scf_input._repr_html_()),
-            ),
-            "### MongoDB Document",
-            JSONViewer(self.json(), depth=1),
-            pn.layout.Divider(),
-            sizing_mode="stretch_both",
-        )
-
-    @classmethod
-    def get_common_queries(cls) -> List[dict]:
-        """
-        Return list of dictionaries with the MongoDB queries typically used to filter results.
-        Empty list if no suggestion is available. Mainly used by the panel-based GUI.
-        """
-        return [
-            {"$and": [
-                {"scf_data.abs_pressure_gpa:": {"$gt": 2}},
-                {"scf_data.max_force_ev_over_ang": {"$gt": 1e-6}}]
-            },
-        ]
-
-    #@classmethod
-    #def mongo_aggregate_egaps(cls, collection: Collection) -> pd.DataFrame:
-    #    fundamental_gap_projection = {
-    #        "scf_data.fundamental_gap": 1,
-    #        "nscf_kpath_data.fundamental_gap": 1,
-    #        "nscf_kmesh_data.fundamental_gap": 1,
-    #    }
-
-    #    direct_gap_projection = {
-    #        "scf_data.direct_gap": 1,
-    #        "nscf_kpath_data.direct_gap": 1,
-    #        "nscf_kmesh_data.direct_gap": 1,
-    #    }
-
-    #    projection = {
-    #        "_id": 1,
-    #        "in_structure_data": 1
-    #    }
-    #    projection.update(fundamental_gap_projection)
-    #    projection.update(direct_gap_projection)
-
-    #    oids = cls.mongo_find_completed_oids(collection)
-    #    rows = []
-    #    for oid in oids:
-    #        doc = collection.find_one({"_id": oid}, projection)
-    #        structure_data = AbipyDecoder().process_decoded(doc["in_structure_data"])
-    #        #structure_data = cls.decode(doc["in_structure_data"])
-    #        row = structure_data.dict4pandas()
-    #        # Here I need a tool to access foo.bar instead of d["foo"]["bar"]
-    #        row["fund_gap"] = min(doc[key] for key in fundamental_gap_projection)
-    #        row["direct_gap"] = min(doc[key] for key in direct_gap_projection)
-
-    #        rows.append(row)
-
-    #    return pd.DataFrame(rows)
-
-
-class EbandsFlowModel(_BaseEbandsFlowModel):
-    """
-    This model defines the input arguments used to build a Flow for band structure calculations
-    as well as the submodels used to store the final results.
-    """
-
-    ##################
-    # Input parameters
-    ##################
-    kppa: int = Field(1000, description="Defines the sampling used for the SCF run. Defaults to 1000 if not given.")
-
-    ndivsm: int = Field(2, description="Number of divisions used to sample the smallest segment of the k-path.")
-
-    spin_mode: str = Field("unpolarized", description="Spin polarization")
-
-    charge: float = Field(0.0, description="Electronic charge added to the unit cell.")
-
-    smearing: str = Field("fermi_dirac:0.1 eV", description="Smearing technique.")
-
-    dos_kppa: int = Field(None,
-                          description="Scalar or List of integers with the number of k-points per atom " +
-                                      "to be used for the computation of the DOS (None if DOS is not wanted")
-
-    paral_kgb: int = Field(0, description="")
-
-    # validators
-    #_normalize_name = validator('name', allow_reuse=True)(normalize)
-    #_normalize_name = reuse_validator('name')(normalize)
-
-    def build_flow(self, workdir: str, manager: TaskManager) -> Flow:
-        """
-        Build an AbiPy Flow using the input data available in the model and return it.
-
-        Args:
-            workdir: Working directory provided by the caller.
-            manager: |TaskManager| object.
-
-        Return: |Flow| object.
-        """
-        from abipy.abio.factories import ebands_input
-        pseudos = self.pseudos_specs.get_pseudos()
-
-        multi = ebands_input(self.in_structure_data.structure, pseudos,
-                             kppa=self.kppa, nscf_nband=None, ndivsm=self.ndivsm,
-                             #ecut=6, pawecutdg=None,
-                             scf_nband=None, accuracy="normal",
-                             spin_mode=self.spin_mode,
-                             smearing=self.smearing, charge=self.charge,
-                             scf_algorithm=None, dos_kppa=self.dos_kppa,
-                             )
-
-        multi.set_vars(paral_kgb=self.paral_kgb)
-
-        if self.dos_kppa is not None:
-            self.scf_input, self.nscf_input, self.dos_input = multi.split_datasets()
-        else:
-            self.scf_input, self.nscf_input = multi.split_datasets()
-
-        from abipy.flowtk.flows import bandstructure_flow
-        return bandstructure_flow(workdir, self.scf_input, self.nscf_input,
-                                  dos_inputs=self.dos_input, manager=manager)
-
-
-class EbandsFlowModelWithInputs(_BaseEbandsFlowModel):
-    """
-    More flexible model that requires AbinitInput objects generated by the user when
-    building the model
-    """
-
-    @root_validator
-    def check_inputs(cls, values):
-        scf_input, nscf_input = values.get('scf_input'), values.get('nscf_input')
-        if scf_input is None or nscf_input is None:
-            raise ValueError(f"Building a {cls.__name__} model requires both scf_input and nscf_input")
-        return values
-
-    def build_flow(self, workdir: str, manager: TaskManager) -> Flow:
-        """
-        Build an AbiPy Flow using the input data available in the model and return it.
-
-        Args:
-            workdir: Working directory provided by the caller.
-            manager: |TaskManager| object.
-
-        Return: |Flow| object.
-        """
-        from abipy.flowtk.flows import bandstructure_flow
-        return bandstructure_flow(workdir, self.scf_input, self.nscf_input,
-                                  dos_inputs=self.dos_input, manager=manager)

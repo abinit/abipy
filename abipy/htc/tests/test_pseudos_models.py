@@ -10,21 +10,16 @@ class TestPseudosSpecs(AbipyTest):
     def test_api(self):
         """Testing PseudoSpecs API."""
         repo_name = "ONCVPSP-PBEsol-SR-PDv0.4"
-        specs = PseudoSpecs.from_repo_name(repo_name)
+        specs = PseudoSpecs.from_repo_table_name(repo_name, "standard")
         assert specs.repo_name == repo_name
+        assert specs.table_name == "standard"
         assert specs.ps_generator == "ONCVPSP"
         assert specs.xc_name == "PBEsol"
         assert specs.relativity_type == "SR"
         assert specs.project_name == "PD"
         assert specs.version == "0.4"
-        assert specs.table_accuracy == "standard"
 
         data = specs.dict()
-
-        with self.assertRaises(ValidationError):
-            d = data.copy()
-            d["table_accuracy"] = "foobar"
-            PseudoSpecs(**d)
 
         with self.assertRaises(ValidationError):
             d = data.copy()
@@ -32,4 +27,4 @@ class TestPseudosSpecs(AbipyTest):
             PseudoSpecs(**d)
 
         with self.assertRaises(KeyError):
-            PseudoSpecs.from_repo_name("ONCVPSP-PBEsol-SRfoo-PDv0.4")
+            PseudoSpecs.from_repo_name("ONCVPSP-PBEsol-SRfoo-PDv0.4", "standard")

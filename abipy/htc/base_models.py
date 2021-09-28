@@ -350,8 +350,10 @@ class MockedMongoConnector(MongoConnector):
 
     def get_client(self) -> MongoClient:
         import mongomock
-        #collection: Collection = mongomock.MongoClient().db.collection
         return mongomock.MongoClient()
+
+    #def get_collection(self, collection_name: Optional[str] = None) -> Collection:
+    #    return mongomock.MongoClient().db.collection
 
 
 class MongoModel(AbipyModel):
@@ -390,8 +392,6 @@ class MongoModel(AbipyModel):
         Find the models in the collection matching the mongodb query.
         """
         cursor = collection.find(filter=query, **kwargs)
-        #if cursor is None:
-        #    return QueryResults.empty_from_query(query)
 
         oids, models = [], []
         decoder = AbipyDecoder()
@@ -404,9 +404,11 @@ class MongoModel(AbipyModel):
 
     def mongo_insert(self, collection: Collection) -> ObjectId:
         """
-        Insert the model in a collection. Return ObjectId.
+        Insert the model in the collection. Return ObjectId.
         """
-        # Use plain json loads here as we want to insert a dictionary
+        # self.json build a JSON string: pydantic handles the serialization of pydantic entries
+        # while arbitrary types (e.g. Strucuture) are encoded using json_encoders.
+        # json loads allows us to get the final dictionary to be inserted in the MongoDB collection.
         doc = json.loads(self.json())
         return collection.insert_one(doc).inserted_id
 
@@ -423,21 +425,6 @@ class MongoModel(AbipyModel):
         old_doc.update(new_doc)
 
         collection.replace_one({"_id": oid}, new_doc, upsert=False)
-        #collection.update_one({'_id': oid}, new_doc)
-
-        #update =
-        #{ $set:
-        #   {
-        #     quantity: 500,
-        #     details: { model: "14Q3", make: "xyz" },
-        #     tags: [ "coats", "outerwear", "clothing" ]
-        #   }
-        #}
-        #self.collection.update_one(
-        #    filter={"_id": oid},
-        #    update={"$set": person.dict()},
-        #    upsert=False
-        # )
 
     def backup_oid_collection_name(self, oid: ObjectId, collection_name: str) -> str:
         """
@@ -446,7 +433,7 @@ class MongoModel(AbipyModel):
         Useful if the MongoDB server goes down and the AbipyWorker needs
         to save the results somewhere on the filesystem.
         """
-        bkp_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "bkk_models")
+        bkp_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "bkp_models")
         if not os.path.isdir(bkp_dir): os.mkdir(bkp_dir)
         filename = f"{collection_name}_{str(oid)}"
         filepath = os.path.join(bkp_dir, filename)
@@ -463,8 +450,8 @@ class MongoModel(AbipyModel):
 
 def mongo_insert_models(models: List[MongoModel], collection: Collection, verbose: int = 0) -> List[ObjectId]:
     """
-    Insert list of models in a collection. Return list of objectid
-    If verbose > 0, print elasped time.
+    Insert list of models in a collection. If verbose > 0, print elasped time.
+    Return: list of ObjectId
     """
     start = time.time()
     docs = [json.loads(model.json()) for model in models]

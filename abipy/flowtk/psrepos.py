@@ -1,5 +1,13 @@
 """
-Pseudopotential repositories
+This module provides an API to deal with pseudopotential repositories.
+A repo is essentially a collection of versioned pseudopotentials files installed within the same root directory.
+A repo has a unique name that encodes the XC functional, relativity type, the kind of pseudopotential and the version.
+The default root is ~/.abinit/pseudos although it is possible to change it via the ABIPY_PSREPOS_ROOT env variable
+
+Note that all pseudos in a repo share the same XC functional, the type (NC, PAW) and the
+treatment of relativistic corrections although one may have multiple pseudos for the same element.
+Due to this ambiguity, a repo cannot be directly used for running calculations in an automatic fashion
+hence the user is supposed to specify both the `repo_name` and the `table_name` when constructing a `PseudoTable`.
 """
 from __future__ import annotations
 
@@ -27,8 +35,7 @@ REPOS_ROOT = os.environ.get("ABIPY_PSREPOS_ROOT",
 
 def get_repos_root() -> str:
     """
-    Return the path to the PseudoDojo installation directory.
-    Create the directory if needed.
+    Return the path to the installation directory. Create the directory if needed.
     """
     if not os.path.exists(REPOS_ROOT):
         os.mkdir(REPOS_ROOT)
@@ -256,9 +263,9 @@ class PseudosRepo(abc.ABC):
         """Return list of citations for this repository."""
 
     @abc.abstractmethod
-    def get_pseudos(self, table_accuracy: str) -> PseudoTable:
+    def get_pseudos(self, table_name: str) -> PseudoTable:
         """
-        Build and return the PseudoPotential table associated to the given table_accuracy
+        Build and return the PseudoTable associated to the given table_name
         """
 
 
@@ -332,11 +339,12 @@ class OncvpspRepo(PseudosRepo):
             cprint("Checksum test: OK", color="green")
 
     @memoized_method()
-    def get_pseudos(self, table_accuracy: str) -> PseudoTable:
+    def get_pseudos(self, table_name: str) -> PseudoTable:
         """
-        Build and return the PseudoPotential table associated to the given table_accuracy
+        Build and return the PseudoTable associated to the given table_name.
+        Note that we use a per-instance cache to store the results.
         """
-        djson_path = os.path.join(self.dirpath, f"{table_accuracy}.djson")
+        djson_path = os.path.join(self.dirpath, f"{table_name}.djson")
         pseudos = []
         with open(djson_path, "rt") as fh:
             djson = json.load(fh)
@@ -382,16 +390,15 @@ class JthRepo(PseudosRepo):
         cprint("WARNING: JTH-PAW repository does not support md5 checksums!!!", color="red")
 
     @memoized_method()
-    def get_pseudos(self, table_accuracy: str) -> PseudoTable:
+    def get_pseudos(self, table_name: str) -> PseudoTable:
         """
-        Build and return the PseudoPotential table associated to the given table_accuracy
+        Build and return the PseudoPotential table associated to the given table_name
         """
-        #raise NotImplementedError()
-        if table_accuracy != "standard":
-            raise ValueError(f"JTH table does not support table_accuracy: {table_accuracy}")
+        if table_name != "standard":
+            raise ValueError(f"JTH table does not support table_name: {table_name}")
 
         # Read the list of pseudopotential paths (relative to dirpath)
-        txt_path = os.path.join(self.dirpath, f"{table_accuracy}.txt")
+        txt_path = os.path.join(self.dirpath, f"{table_name}.txt")
         with open(txt_path, "rt") as fh:
             relpaths = fh.readlines()
             relpaths = [l for l in relpaths if l.strip()]

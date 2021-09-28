@@ -73,21 +73,20 @@ class _PseudosProvider(BaseModel, ABC):
 class PseudoSpecs(_PseudosProvider):
     """
     This model stores the parameters needed to retrieve the PseudoPotential Table from a PseudoDojo/JTH repository.
-    The `repo_name` defines the full set of versioned pseudos while `table_accuracy`
+    The `repo_name` defines the full set of versioned pseudos while `table_name`
     defines the list of pseudos included in the final Table.
     Note that the PseudoDojo/JTC project may provide multiple pseudos for the same atom.
     This is the reason why the final table with one pseudo per element is uniquely defined by
-    the tuple: (repo_name, table_accuracy).
+    the tuple (repo_name, table_name).
 
     .. code-block::
 
-        specs = PseudoSpecs.from_repo_name("ONCVPSP-PBEsol-SR-PDv0.4")
+        specs = PseudoSpecs.from_repo_table_name("ONCVPSP-PBEsol-SR-PDv0.4", "standard")
     """
 
     repo_name: str = Field(..., description="Name of the pseudopotential repository.")
 
-    # TODO: replace table_accuracy with table_type e.g. MD
-    table_accuracy: str = Field(..., description="Accuracy of the table: normal or stringent")
+    table_name: str = Field(..., description="Name of the table e.g. normal, stringent, MD ...")
 
     ps_generator: str = Field(..., description="Pseudopotential type e.g. NC or PAW.")
 
@@ -100,27 +99,16 @@ class PseudoSpecs(_PseudosProvider):
     version: str = Field(..., description="Version of the repository.")
 
     @classmethod
-    def from_repo_name(cls, repo_name: str, table_accuracy: str = "standard") -> PseudoSpecs:
+    def from_repo_table_name(cls, repo_name: str, table_name: str) -> PseudoSpecs:
         """
-        Build the object from a repository name and ``table_accuracy``.
+        Build the object from a repository name and ``table_name``.
         """
         repo = get_repo_from_name(repo_name)
-        data = dict(repo_name=repo_name, table_accuracy=table_accuracy)
+        data = dict(repo_name=repo_name, table_name=table_name)
         attr_list = ["ps_generator", "xc_name", "relativity_type", "project_name", "version"]
         data.update({aname: getattr(repo, aname) for aname in attr_list})
 
         return cls(**data)
-
-    #@validator("table_accuracy")
-    #def validate_table_accuracy(cls, value):
-    #    """
-    #    Validate table_accuracy
-    #    """
-    #    allowed_values = ("standard", "stringent")
-    #    if value not in allowed_values:
-    #        raise ValueError(f"{value} not in {allowed_values}")
-
-    #    return value
 
     @validator("relativity_type")
     def validate_relativity_type(cls, value):
@@ -144,4 +132,4 @@ class PseudoSpecs(_PseudosProvider):
             repo.install(verbose=1)
 
         # Note that the repo instance keeps an internal cache of tables.
-        return repo.get_pseudos(table_accuracy=self.table_accuracy)
+        return repo.get_pseudos(table_name=self.table_name)

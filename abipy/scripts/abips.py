@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Script to download and install pseudopotential tables.
+Script to download and install pseudopotential tables from the web
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def abips_list(options):
     #if options.verbose:
     #    for repo in repos:
     #        if repo.ispaw: continue
-    #        pseudos = repo.get_pseudos(table_accuracy="standard")
+    #        pseudos = repo.get_pseudos(table_name="standard")
     #        print(pseudos)
     #else:
     #    print("\nUse -v to print the pseudos")
@@ -157,14 +157,13 @@ def abips_show(options):
 
     for repo in repos:
         print(repo)
-        #for table_accuracy in repo.table_accuracies:
-        table_accuracies = ["standard", "stringent"]
-        for table_accuracy in table_accuracies:
-            pseudos = repo.get_pseudos(table_accuracy=table_accuracy)
+        table_names = ["standard", "stringent"]
+        for table_name in table_names:
+            pseudos = repo.get_pseudos(table_name=table_name)
             #for pseudo in pseudos:
             #    print(pseudo.filepath)
             #    print(pseudo.as_dict()["filepath"])
-            print(f"For accuracy: {table_accuracy}:")
+            print(f"For accuracy: {table_name}:")
             #print(pseudos.summarize())
             print(pseudos)
 
