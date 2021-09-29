@@ -150,7 +150,7 @@ def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, outp
         makedirs_p(output_dir_path)
 
         fc_filepath = os.path.join(output_dir_path, prefix_outfiles+"FORCE_CONSTANTS")
-        write_FORCE_CONSTANTS(phonon.get_force_constants(), fc_filepath)
+        write_FORCE_CONSTANTS(phonon.get_force_constants(), fc_filepath, p2s_map=phonon.primitive.p2s_map)
 
         if becs is not None and epsinf is not None:
             born_filepath = os.path.join(output_dir_path, prefix_outfiles+"BORN")

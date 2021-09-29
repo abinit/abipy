@@ -119,7 +119,7 @@ class Raman:
             # this will make the indices of the i,j component such that the first
             # will refer to the polarization of the incoming photon and the second
             # to the polarization of the created one.
-            np.transpose(i, axes=(0, 2, 1))
+            i = np.transpose(i, axes=(0, 2, 1))
         else:
             if pol_in is None or pol_out is None:
                 raise ValueError("pol_in and pol_out should be either both None or both defined")
