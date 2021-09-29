@@ -12,7 +12,6 @@ from .base_models import AbipyModel
 # TODO Add dictionary with metavariables TAGS
 # mpid:
 
-
 class _ModelWithEbands(AbipyModel):
     """
     Base model with an ElectronBands object and other important quantiies such as
@@ -26,6 +25,8 @@ class _ModelWithEbands(AbipyModel):
     #direct_band_gap_ev: float = Field(..., description="Direct band gap in eV.")
 
     #fermie_ev: float = Field(..., description="Fermi level in eV.")
+
+    #gsr_file_desc: GridFsFileDesc
 
 
 class NscfData(_ModelWithEbands):

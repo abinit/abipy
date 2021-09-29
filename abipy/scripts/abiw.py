@@ -21,24 +21,28 @@ def get_epilog():
 
 Usage example:
 
-  abiw.py new
-  abiw.py lscan
-  abiw.py rscan
-  abiw.py clients  DONE
-  abiw.py disable name
-  abiw.py set_default name
-  abiw.py ping [names]
+  abiw.py new WORKER_NAME        --> Create new worker
+  abiw.py start WORKER_NAME
+  abiw.py restart WORKER_NAME    -->
+  abiw.py lscan                  --> Find workers available on the local machine
+  abiw.py rscan HOST1 HOST2      --> Contact host(s) to get list of remote workers
   abiw.py status [names | all]
-  abiw.py start name DONE
-  abiw.py restart name DONE TO_BE_TESTED
-  abiw.py kill name DONE
+
+  abiw.py clients  --> List available clients
   abiw.py ladd_flows
   abiw.py send script.py DONE
+
+
   abiw.py gui
-  abiw.py allgui
   abiw.py mongo_start
   abiw.py mongo_start -c COLLECTION_NAME
   abiw.py mongo_gui -c COLLECTION_NAME
+
+  ??????
+  #abiw.py kill name DONE
+  #abiw.py disable name
+  #abiw.py set_default name
+  #abiw.py ping [names]
 """
 
     notes = """\
@@ -49,7 +53,7 @@ Notes:
 
         $ abiw.py new WORKER_NAME --scratch-dir=/tmp
 
-    The new worker will create flows in `--scratch-dir`.
+    The new worker will generate Flows in `--scratch-dir`.
     Note that WORKER_NAME must be unique.
 
     Start the worker with:
@@ -344,7 +348,7 @@ def main():
     elif options.command == "lscan":
         local_clients = WorkerClients.lscan()
         df = local_clients.summarize()
-        print_dataframe(df, title="List of AbiPy workers running on localhost\n")
+        print_dataframe(df, title="List of AbiPy workers available on localhost\n")
         return 0
 
     elif options.command == "rscan":
@@ -352,6 +356,9 @@ def main():
         if not hostnames:
             print("Taking list of remote hosts from the AbiPy configuration file.")
             hostnames = config.remote_hosts_for_workers
+            for i, rhost in enumerate(hostnames):
+                print(f"\n[{i+1}] {rhost}")
+            print("\n")
 
         remote_clients = WorkerClients.rscan(hostnames)
         df = remote_clients.summarize()
@@ -359,7 +366,6 @@ def main():
         return 0
 
     elif options.command == "mongo_start":
-
         mongo_connector = MongoConnector.from_abipy_config(collection_name=options.collection_name)
         print(mongo_connector)
 
@@ -378,7 +384,7 @@ def main():
         if worker_name is None:
             worker_name = options.collection_name
 
-        # Make sure there's no other worker connected to the same collection.
+        # Make sure there's no worker already connected to the same collection.
         errors = []
         eapp = errors.append
         for local_client in WorkerClients.lscan():
@@ -395,9 +401,9 @@ def main():
                         # This is not critical. new_with_name will handle the problem.
                         continue
                     elif status == "dead":
-                        eapp(f"Use `abiw.py restart` to restart Worker: `{worker_name}`")
+                        eapp(f"Use `abiw.py restart` to restart worker: `{worker_name}`")
                     elif status == "running":
-                        eapp(f"Worker: `{worker_name}` is already running and connected to the collection.")
+                        eapp(f"Worker `{worker_name}` is already running and connected to the collection.")
                     else:
                         raise ValueError(f"Unknown status: {status}")
             else:
@@ -444,7 +450,7 @@ def main():
         #if options.refresh:
         #all_clients.refresh()
         #print(all_clients)
-        print("\nTIP: Remember to execute `lscan` or `rscan` to discover new AbiPy workers")
+        print("\nRemember to execute lscan (rscan) to update the list of local (remote) clients...")
 
     elif options.command == "send":
         client = all_clients.select_from_worker_name(options.worker_name)

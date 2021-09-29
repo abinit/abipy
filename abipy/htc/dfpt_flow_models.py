@@ -15,8 +15,10 @@ from .flow_models import FlowModel
 
 class _BasePhononFlowModel(FlowModel):
     """
-    This model defines the input arguments used to build a Flow for phonon calculations
-    as well as submodels for storing the final results in the MongoDB collection.
+    This is the base class for models performing phonon band structure calculations.
+
+    It defines ...
+    as well as submodels storing the output results.
     """
 
     ########
@@ -29,7 +31,7 @@ class _BasePhononFlowModel(FlowModel):
 
     with_quad: bool = Field(..., description="Activate calculation of dynamical quadrupoles.")
 
-    with_flexoe: bool = Field(False, description="Activate computation of flexoelectric tensor.")
+    with_flexoe: bool = Field(False, description="Activate computation of the flexoelectric tensor.")
 
     ########
     # Output
@@ -56,7 +58,7 @@ class _BasePhononFlowModel(FlowModel):
     def postprocess_flow(self, flow: PhononFlow) -> None:
         """
         Analyze the flow and fills the model with output results.
-        This function is called by the worker if the flow completed succesfully.
+        This function is called by the worker if the flow completed successfully.
         """
         with flow[0][0].open_gsr() as gsr:
             self.scf_data = GsData.from_gsr(gsr)
@@ -77,10 +79,23 @@ class _BasePhononFlowModel(FlowModel):
         raise NotImplementedError()
 
 
-class PhononFlowModel(_BasePhononFlowModel):
+class PhononFlowModelWithParams(_BasePhononFlowModel):
+    """
+    This model generates the SCF input from meta parameters that will be stored in the database.
+    """
+
+    #kppa: float
+    #qppa: float
 
     def __init__(self, **data):
         super().__init__(**data)
+
+        self.make_input_from_params()
+        if self.scf_input is None:
+            raise ValueError("scf_input should be defined after the call to `make_input_from_params")
+
+
+    def make_input_from_params(self):
         if self.scf_input is not None:
             raise ValueError(f"scf_input should be None when calling {self.__class__.__name__} "
                              "as scf_input is automatically generated from the meta-parameters.")
@@ -91,13 +106,18 @@ class PhononFlowModel(_BasePhononFlowModel):
 
 
 class PhononFlowModelWithInput(_BasePhononFlowModel):
+    """
+    This model requires a scf AbinitInput constructed by the user.
+    It is more flexible than the parameter-based version but queries related to input variables
+    are more complex to perform as one should use the |AbinitInput| dictionary.
+    """
 
     #ph_ngqpt: Tuple[int, int, int]
 
     @validator("scf_input")
     def check_scf_input_is_not_none(cls, v):
         if v is None:
-            raise ValueError(f"Model {cls.__name__} requires scf_input")
+            raise ValueError(f"Model {cls.__name__} requires an scf_input object.")
         return v
 
     #@root_validator

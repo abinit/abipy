@@ -12,7 +12,8 @@ class TestWorker(AbipyTest):
         """Testing AbipyWorker."""
         worker_name = "__abipy_worker_unittest__"
         worker_dir = os.path.join(ABIPY_DIRPATH, "worker_" + worker_name)
-        if os.path.isdir(worker_dir): remove(worker_dir)
+        if os.path.isdir(worker_dir):
+            remove(worker_dir)
 
         worker = AbipyWorker.new_with_name(worker_name=worker_name,
                                            scratch_dir="/tmp",
@@ -56,3 +57,10 @@ class TestWorker(AbipyTest):
 
         #c.get_json_status()
         #assert c.ssh_destination == ""
+
+        if os.path.isdir(worker_dir):
+            remove(worker_dir)
+
+        clients = WorkerClients.lscan(dirpath=None)
+        with self.assertRaises(ValueError)
+            clients.select_from_worker_name(worker_name)

@@ -111,6 +111,9 @@ class ActionHandler(BaseHandler):
 
 
 class PostFlowHandler(BaseHandler):
+    """
+    This endpoint allows the client to send a python script to the server.
+    """
 
     SUPPORTED_METHODS = ("POST",)
 
@@ -157,6 +160,9 @@ class _JsonHandler(BaseHandler):
 
 
 class JsonStatusHandler(_JsonHandler):
+    """
+    This endpoint allows the client to get a json document with the status of the server.
+    """
 
     SUPPORTED_METHODS = ("GET",)
 
@@ -168,6 +174,11 @@ class JsonStatusHandler(_JsonHandler):
 
 
 class FlowDirsPostHandler(BaseHandler):
+    """
+    This endpoint allows the client to send to the server a list of directories
+    containing pregenerated Flows. It is assumed that both the client and the server
+    are running on the same host machine.
+    """
 
     SUPPORTED_METHODS = ("POST",)
 
@@ -211,29 +222,27 @@ def _str_uuid() -> str:
 
 class WorkerState(AbipyModel):
 
-    name: str = Field(..., description="Name of the AbiPy worker")
+    name: str = Field(..., description="Name of the AbiPy worker. It is assumed to be unique.")
 
     status: WorkerStatusEnum = Field(WorkerStatusEnum.init, description="Status of the worker.")
 
-    pid: int = Field(default_factory=os.getpid, description="Process identifier.")
+    pid: int = Field(default_factory=os.getpid, description="Process identifier")
 
     address: str = Field("localhost", description="Server address.")
 
-    port: int = Field(0, description="Server port.")
+    port: int = Field(0, description="Server port. 0 means find a free port at runtime.")
 
-    scratch_dir: str = Field(..., description="Scratch directory where Flows will be generated.")
+    scratch_dir: str = Field(..., description="Scratch directory used by the Worker to generate Flows.")
 
-    username: str = Field(default_factory=getpass.getuser,
-                          description="User name at the host")
+    username: str = Field(default_factory=getpass.getuser, description="User name at the host")
 
-    hostname: str = Field(default_factory=socket.gethostname,
-                          description="Host name.")
+    hostname: str = Field(default_factory=socket.gethostname, description="Host name.")
 
     #uuid: UUID = Field(default_factory=uuid4)
     uuid: str = Field(default_factory=_str_uuid,
                       description="AbipyWorker ID. Used by the client to detect server restart.")
 
-    mongo_connector: MongoConnector = Field(None, description="MongoDB connector")
+    mongo_connector: MongoConnector = Field(None, description="Name of the collection and connection parameters")
 
 
 class AbipyWorker:
@@ -390,7 +399,7 @@ class AbipyWorker:
         print("in build_flow_from_mongodb, found", len(oid_flowmodel_list), "flows in database")
 
         for oid, model in oid_flowmodel_list:
-            print("Running model:", model)
+            print("Running model:", repr(model))
             now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             workdir = tempfile.mkdtemp(prefix=f"Flow-{now}", dir=self.scratch_dir)
 
@@ -502,9 +511,16 @@ to update the list of local clients.
     @classmethod
     def restart_from_dirname(cls, name: str, force: bool = False) -> AbipyWorker:
         """
-        Restart the AbipyWorker given the name.
+        Restart the AbipyWorker given its name. Must be executed on the same machine
+        where the Worker resides.
         """
-        state, path = cls._get_state_path(name)
+        try:
+            state, path = cls._get_state_path(name)
+        except FileNotFoundError as exc:
+            print(exc)
+            raise ValueError(f"{name} is a remote Worker.\n"
+                             "To restart it, execute the command on the same machine where the worker resides.")
+
         pid = state.pid
 
         #if state.status != "dead":
@@ -516,7 +532,7 @@ to update the list of local clients.
             msg = f"It seems there's already a worker serving on this machine with pid: {pid}"
             if not force:
                 if not e_pid:
-                    print(f"Status 'serving' but pid {pid} does not exist!")
+                    print(f"Status is set to `serving` but pid {pid} does not exist!")
                 else:
                     raise RuntimeError(msg)
             else:
@@ -536,7 +552,7 @@ to update the list of local clients.
         new = cls(state.name, sched_options, state.scratch_dir, address=state.address, port=state.port,
                   manager=manager, mongo_connector=state.mongo_connector)
 
-        print("Remember to execute lscan or rscan...")
+        print("Remember to execute lscan (rscan) to update the list of local (remote) clients...")
         return new
 
     def write_state_file(self, status: str = "dead", filepath=None) -> str:
@@ -564,9 +580,8 @@ to update the list of local clients.
 
     def serve_worker_homepage(self):
         """
-        The Homepage of the AbipyWorker dashboard.
+        Serve the landing page of the AbipyWorker website
         """
-
         import platform
         system, node, release, version, machine, processor = platform.uname()
 
@@ -668,10 +683,10 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         #termcolor.enable(False)
 
         if self.flow_model_cls is not None:
-            print("Abipy Worker will try to connect to MongoDB database using:")
+            print("Abipy Worker will try to connect to the MongoDB server using:")
             print(self.mongo_connector)
-            print("FlowModel class:", self.flow_model_cls)
-            print("Connecting to the MongoDB database every", self.MONGO_PERIODIC_CALLBACK_TIME_MS, "ms")
+            print("Using FlowModel class:", self.flow_model_cls)
+            print("Connecting every", self.MONGO_PERIODIC_CALLBACK_TIME_MS, "ms")
             from tornado.ioloop import PeriodicCallback
             periodic = PeriodicCallback(self.build_flow_from_mongodb, self.MONGO_PERIODIC_CALLBACK_TIME_MS)
             periodic.start()
@@ -734,12 +749,12 @@ class ClientError(Exception):
 
 def need_serving_worker(method):
     """
-    Decorator for WorkerClient methods requiring a running AbipyWorker.
+    Decorator for methods of the WorkerClient that require a running AbipyWorker.
     """
 
     @functools.wraps(method)
     def decorated(*args, **kwargs):
-        self = args[0]
+        self: WorkerClient = args[0]
         if self.worker_state.status != self.worker_state.status.serving:
             raise ClientError(
                 f"Status of {self.worker_state.name} worker is `{self.worker_state.status}`\n"
@@ -1190,7 +1205,7 @@ to create it""")
         for client in self:
             worker_dirpath = os.path.join(ABIPY_DIRPATH, f"worker_{client.worker_state.name}")
             if client.is_local_worker and not os.path.exists(worker_dirpath):
-                print("Removing section for stale worker:", client.worker_state.name)
+                print("Removing stale section with worker:", client.worker_state.name)
             else:
                 new_clients.append(client)
 

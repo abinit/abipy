@@ -93,8 +93,7 @@ def dump_args(func):
 
 class Appender(object):
     r"""
-    A function decorator that will append an addendum to the docstring
-    of the target function.
+    A function decorator that appends an addendum to the docstring of the target function.
     This decorator should be robust even if func.__doc__ is None
     (for example, if -OO was passed to the interpreter).
     Usage: construct a docstring.Appender with a string to be joined to

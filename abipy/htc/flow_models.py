@@ -12,7 +12,10 @@ from typing import List, Tuple, ClassVar, Union, TypeVar, Type, Dict  #, Optiona
 from pydantic import Field
 from bson.objectid import ObjectId
 from pymongo.collection import Collection
-from abipy.flowtk import TaskManager, Flow
+from abipy.flowtk.tasks import Task
+from abipy.flowtk.events import EventReport
+from abipy.flowtk import TaskManager, Work, Flow
+from abipy.abio.inputs import AbinitInput
 from .base_models import AbipyModel, MongoModel, cls2dict, AbipyDecoder, QueryResults
 from .structure_models import StructureData
 from .pseudos_models import PseudoSpecs
@@ -282,7 +285,6 @@ class FlowModel(MongoModel, ABC):
         operations on the model, error handling and finally the insertion in the collection.
         """
         flow_data = self.flow_data
-        #if flow_data.exec_status == ExecStatus.errored: return
         try:
             self.postprocess_flow(flow)
             flow_data.exec_status = ExecStatus.completed
@@ -291,7 +293,7 @@ class FlowModel(MongoModel, ABC):
             flow_data.tracebacks.append(traceback.format_exc())
         finally:
             flow_data.completed_at = datetime.utcnow()
-            #print("in postprocessing_flow_and_update_collection with  status:", flow_data.exec_status)
+            #print("in postprocessing_flow_and_update_collection with status:", flow_data.exec_status)
             self.mongo_full_update_oid(oid, collection)
 
     @classmethod
@@ -378,3 +380,121 @@ class FlowModel(MongoModel, ABC):
             rows.append(d)
 
         return pd.DataFrame(rows).set_index("_id")
+
+
+class _NodeData(AbipyModel):
+
+    node_id: str = Field(..., description="Node identifier")
+
+    node_class: str = Field(..., description="Class of the Node")
+
+    status: str = Field(..., description="Status of the Node")
+
+    @classmethod
+    def get_data_for_node(cls, node):
+        return dict(
+            node_id=node.node_id,
+            node_class=node.__class__.__name__,
+            status=str(node.status),
+        )
+
+
+class TaskData(_NodeData):
+    """
+    Data Model associated to an AbiPy |Task|.
+    """
+
+    input: AbinitInput = Field(..., description="Abinit input object")
+    #output_str: str = Field(..., description="Abinit input")
+    #log_str: str = Field(..., description="Abinit input")
+
+    report: EventReport = Field(..., description="Number of warnings")
+
+    num_warnings: int = Field(..., description="Number of warnings")
+
+    num_errors: int = Field(..., description="Number of errors")
+
+    num_comments: int = Field(..., description="Number of comments")
+
+    #num_restarts: int = Field(..., description="Number of comments")
+
+    #cpu_time: float = Field(..., description="CPU-time in seconds")
+
+    #wall_time: float = Field(..., description="Wall-time in seconds")
+
+    #mpi_nprocs: int = Field(..., description="Number of MPI processes")
+
+    #omp_nthreads: int = Field(..., description="Number of OpenMP threads. -1 if not used.")
+
+    @classmethod
+    def from_task(cls, task: Task) -> TaskData:
+        """
+        Build the model from an AbiPy |Task|
+        """
+        data = cls.get_data_for_node(task)
+
+        data["input"] = task.input
+
+        # TODO: Handle None!
+        report = task.get_event_report()
+        data["report"] = report
+        #data["report"] = report.as_dict()
+        for a in ("num_errors", "num_comments", "num_warnings"):
+            data[a] = getattr(report, a)
+
+        return cls(**data)
+
+
+class WorkData(_NodeData):
+    """
+    Data Model associated to an AbiPy |Work|
+    """
+
+    tasks: List[TaskData] = Field(..., description="List of TaskData")
+
+    @classmethod
+    def from_work(cls, work: Work) -> WorkData:
+        """
+        Build the model from a AbiPy |Work| instance.
+        """
+        data = cls.get_data_for_node(work)
+        data["tasks"] = [TaskData.from_task(task) for task in work]
+        return cls(**data)
+
+
+class __FlowData(_NodeData):
+    """
+    Document associated to an AbiPy |Flow|
+    """
+    works: List[WorkData] = Field(..., description="")
+
+    @classmethod
+    def from_flow(cls, flow: Flow) -> __FlowData:
+        """
+        Build the model from an AbiPy |Flow|
+        """
+        data = cls.get_data_for_node(flow)
+        data["works"] = [WorkData.from_work(work) for work in flow]
+        return cls(**data)
+
+    #def __getitem__(self, name):
+    #    try:
+    #        # Dictionary-style field of super
+    #        return super().__getitem__(name)
+    #    except KeyError:
+    #        # Assume int or slice
+    #        try:
+    #            return self.works[name]
+    #        except IndexError:
+    #            raise
+
+    #def delete(self):
+    #    # Remove GridFs files.
+    #    for work in self.works:
+    #        work.outfiles.delete()
+    #        #work.delete()
+    #        for task in work:
+    #            #task.delete()
+    #            task.outfiles.delete()
+
+    #    self.delete()

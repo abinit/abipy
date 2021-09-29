@@ -1,6 +1,6 @@
+"""Tests for base_models module."""
 #from pprint import pprint
 import mongomock
-#import numpy as np
 
 from typing import List
 from pydantic.main import ModelMetaclass
@@ -76,7 +76,7 @@ class TestAbipyBaseModels(AbipyTest):
         assert len(qr.models) == 3
         assert set(qr.oids) == set(oids + [oid])
 
-    def test_mongo_connector(self):
+    def test_mongo_connector_base_api(self):
         connector = MongoConnector(host="example.com", port=27017, collection_name="collection_name")
         assert connector.host == "example.com"
         assert str(connector.port) in str(connector)
@@ -89,16 +89,10 @@ class TestAbipyBaseModels(AbipyTest):
         with self.assertRaises(ValueError):
             MongoConnector(host="example.com", username="John", collection_name="collection_name")
 
-        MongoConnector(host="example.com", username="John", password="password", collection_name="collection_name")
-
-        #mongo_connector = MongoConnector.from_abipy_config(collection_name="ebands")
-
-        #collection = connector.get_collection()
-        #from unittest.mock import MagicMock
-        #thing = ProductionClass()
-        #thing.method = MagicMock(return_value=3)
-
-        #connector.open_mongoflow_gui(**serve_kwargs)
+        connector = MongoConnector(host="example.com", username="John",
+                                   password="password", collection_name="collection_name")
+        assert repr(connector)
+        assert str(connector)
 
     def test_query_results_api(self):
         query = {"_id": "foo"}
@@ -107,16 +101,19 @@ class TestAbipyBaseModels(AbipyTest):
         assert not qr
         assert len(qr) == 0
 
+    def test_mocked_mongo_connector(self):
+        """Testing MockedMongoConnector"""
+        collection_name = "dummy_collection_name"
+        mocked = MockedMongoConnector(host="example.com", port=27017, collection_name=collection_name)
+        assert str(mocked)
+        assert repr(mocked)
+        collection = mocked.get_collection()
+        assert collection
+        #print(collection)
+        assert collection.insert_one({"foo": 1, "bar": "foo"})
 
-    #def test_mocked_mongo_connector(self):
-    #    mocked = MockedMongoConnector(host="example.com", port=27017, collection_name="collection_name")
-    #    collection = mocked.get_collection()
-    #    print(collection)
-    #    assert collection.insert_one({"foo": 1, "bar": "foo"})
-    #    print("names:", mocked.list_collection_names())
-    #    assert 0
-    #    #assert "collection_name" in mocked.list_collection_names()
-
-
-
+        # It seems that mongomock doesn't support db.list_collection_names
+        #print("names:", mocked.list_collection_names())
+        #assert collection_name in mocked.list_collection_names()
+        #assert 0
 

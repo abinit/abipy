@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 class _BaseEbandsFlowModel(FlowModel):
     """
     This is the base class for models performing band structure calculations.
-    It defines the three input files for the SCF/NSCF/DOS calculation and submodels
-    for the output results.
+    It defines the three input files for the SCF/NSCF/DOS calculation
+    as well as submodels storing the output results.
     """
 
     # These inputs can be generated either manually or from meta-parameters + factory functions.
@@ -40,13 +40,16 @@ class _BaseEbandsFlowModel(FlowModel):
 
     nscf_kmesh_data: NscfData = Field(None, description="Results produced by the GS NSCF run.")
 
+    #with_gsr_files: bool = Field(False, description="If set to True, save GSR files in GridFS")
+    #scf_gsr
+
     def postprocess_flow(self, flow: Flow) -> None:
         """
         Analyze the flow and fills the model with output results.
-        This function is called by the AbiPy Worker if the flow completed succesfully.
+        This function is called by the AbiPy Worker if the flow completed successfully.
         """
         with flow[0][0].open_gsr() as gsr:
-            self.scf_data = GsData.from_gsr(gsr)
+            self.scf_data = GsData.from_gsr(gsr) # with_gsr=with_gsr
 
         with flow[0][1].open_gsr() as gsr:
             self.nscf_kpath_data = NscfData.from_gsr(gsr)
@@ -144,10 +147,10 @@ class _BaseEbandsFlowModel(FlowModel):
     #    return pd.DataFrame(rows)
 
 
-class EbandsFlowModel(_BaseEbandsFlowModel):
+class EbandsFlowModelWithParams(_BaseEbandsFlowModel):
     """
     This model defines the input arguments used to build a Flow for band structure calculations
-    as well as the submodels used to store the final results.
+    as well as the sub models used to store the final results.
     """
 
     ##################
@@ -168,6 +171,8 @@ class EbandsFlowModel(_BaseEbandsFlowModel):
                                       "to be used for the computation of the DOS (None if DOS is not wanted")
 
     paral_kgb: int = Field(0, description="")
+
+
 
     # validators
     #_normalize_name = validator('name', allow_reuse=True)(normalize)

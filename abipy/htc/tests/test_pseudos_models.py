@@ -27,4 +27,4 @@ class TestPseudosSpecs(AbipyTest):
             PseudoSpecs(**d)
 
         with self.assertRaises(KeyError):
-            PseudoSpecs.from_repo_name("ONCVPSP-PBEsol-SRfoo-PDv0.4", "standard")
+            PseudoSpecs.from_repo_table_name("ONCVPSP-PBEsol-SRfoo-PDv0.4", "standard")

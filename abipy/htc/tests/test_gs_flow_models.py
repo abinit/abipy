@@ -12,28 +12,28 @@ from abipy.htc.structure_models import StructureData
 from abipy.htc.pseudos_models import PseudoSpecs
 from abipy.htc.gs_models import GsData, NscfData
 from abipy.htc.flow_models import FlowModel, ExecStatus
-from abipy.htc.gs_flow_models import EbandsFlowModel, EbandsFlowModelWithInputs
+from abipy.htc.gs_flow_models import EbandsFlowModelWithParams, EbandsFlowModelWithInputs
 
 
 class TestFlowModels(AbipyTest):
 
     def test_ebands_flow_model(self):
-        """Testing EbandsFlowModel."""
+        """Testing EbandsFlowModelWithParams."""
         si = Structure.from_file(abidata.ref_file("refs/si_ebands/run.abi"))
-        pseudos_specs = PseudoSpecs.from_repo_name("ONCVPSP-PBEsol-SR-PDv0.4")
+        pseudos_specs = PseudoSpecs.from_repo_table_name("ONCVPSP-PBEsol-SR-PDv0.4", "standard")
         collection: Collection = mongomock.MongoClient().db.collection
 
         # This should raise as the collection does not contain the magic document with the FlowModel class.
         with self.assertRaises(RuntimeError):
-            EbandsFlowModel.get_subclass_from_collection(collection)
+            EbandsFlowModelWithParams.get_subclass_from_collection(collection)
 
         assert collection.count_documents({}) == 0
 
-        oid = EbandsFlowModel.init_collection(collection)
-        assert EbandsFlowModel.init_collection(collection) == oid
+        oid = EbandsFlowModelWithParams.init_collection(collection)
+        assert EbandsFlowModelWithParams.init_collection(collection) == oid
         assert collection.count_documents({}) == 1
-        sub_class = EbandsFlowModel.get_subclass_from_collection(collection)
-        assert sub_class is EbandsFlowModel
+        sub_class = EbandsFlowModelWithParams.get_subclass_from_collection(collection)
+        assert sub_class is EbandsFlowModelWithParams
 
         with self.assertRaises(TypeError):
             # This should raise as we are trying to register another model in the same collection.
@@ -47,9 +47,9 @@ class TestFlowModels(AbipyTest):
             DifferentFlowModel.get_subclass_from_collection(collection)
 
         # but one can still use the base class.
-        assert FlowModel.get_subclass_from_collection(collection) is EbandsFlowModel
+        assert FlowModel.get_subclass_from_collection(collection) is EbandsFlowModelWithParams
 
-        items = EbandsFlowModel.find_runnable_oid_models(collection)
+        items = EbandsFlowModelWithParams.find_runnable_oid_models(collection)
         assert not items
 
         model_list = []
@@ -57,8 +57,8 @@ class TestFlowModels(AbipyTest):
         for structure in structures:
             in_structure_data = StructureData.from_structure(structure)
             kppa = 300
-            model = EbandsFlowModel(in_structure_data=in_structure_data,
-                                    pseudos_specs=pseudos_specs, kppa=kppa)
+            model = EbandsFlowModelWithParams(in_structure_data=in_structure_data,
+                                              pseudos_specs=pseudos_specs, kppa=kppa)
             model_list.append(model)
             assert model.is_init
             assert not model.is_built
@@ -88,7 +88,7 @@ class TestFlowModels(AbipyTest):
             model.mongo_full_update_oid(oid, collection)
 
             # Now retrieve the same model from the collection.
-            same_model = EbandsFlowModel.from_mongo_oid(oid, collection)
+            same_model = EbandsFlowModelWithParams.from_mongo_oid(oid, collection)
             assert isinstance(same_model.scf_data, GsData)
             assert model.scf_data.pressure_gpa == float(same_model.scf_data.pressure_gpa)
             assert isinstance(same_model.scf_data.ebands, ElectronBands)
@@ -97,36 +97,36 @@ class TestFlowModels(AbipyTest):
             #d = model.as_dict()
             #print(d, type(d["structure"]))
             ##print(monty_json_dumps(model))
-            ##new_model = EbandsFlowModel.from_dict(d)
+            ##new_model = EbandsFlowModelWithParams.from_dict(d)
             #print("same_model", type(same_model)) #, model)
             #print("same_model.structure", type(same_model.structure)) #, model)
             #assert same_model.flow_status == 0
             #assert same_model.structure == structure
             #print(same_model.scf_data.ebands.structure)
 
-        systems = EbandsFlowModel.mongo_get_crystal_systems_incoll(collection)
+        systems = EbandsFlowModelWithParams.mongo_get_crystal_systems_incoll(collection)
         assert systems == ["Cubic"]
-        spg_numbers = EbandsFlowModel.mongo_get_spg_numbers_incoll(collection)
+        spg_numbers = EbandsFlowModelWithParams.mongo_get_spg_numbers_incoll(collection)
         assert spg_numbers == [227]
 
-        qr = EbandsFlowModel.mongo_find_by_formula("Si", collection)
+        qr = EbandsFlowModelWithParams.mongo_find_by_formula("Si", collection)
         assert qr and qr.models[0].in_structure_data.structure.composition.reduced_formula == "Si"
 
-        qr = EbandsFlowModel.mongo_find_by_spg_number(1, collection)
+        qr = EbandsFlowModelWithParams.mongo_find_by_spg_number(1, collection)
         assert not qr
-        qr = EbandsFlowModel.mongo_find_by_spg_number(227, collection)
+        qr = EbandsFlowModelWithParams.mongo_find_by_spg_number(227, collection)
         assert qr and qr.models[0].in_structure_data.spg_number == 227
 
-        qr = EbandsFlowModel.mongo_find_by_crystal_system("Cubic", collection)
+        qr = EbandsFlowModelWithParams.mongo_find_by_crystal_system("Cubic", collection)
         assert qr and qr.models[0].in_structure_data.crystal_system == "Cubic"
 
-        oid_models = EbandsFlowModel.find_runnable_oid_models(collection, limit=1)
+        oid_models = EbandsFlowModelWithParams.find_runnable_oid_models(collection, limit=1)
         assert len(oid_models) == 1
         #runnable_oid, runnable_model = oid_models[0]
         #flow = runnable_model.build_flow()
         #assert runnable_model.exec_status == ""
 
-        status2oids = EbandsFlowModel.mongo_get_status2oids(collection)
+        status2oids = EbandsFlowModelWithParams.mongo_get_status2oids(collection)
         assert not status2oids[ExecStatus.errored]
         assert not status2oids[ExecStatus.completed]
         assert len(status2oids[ExecStatus.init]) == collection.count_documents({}) - 1
@@ -148,7 +148,7 @@ class TestFlowModels(AbipyTest):
 
         scf_input = nscf_input = self.get_gsinput_si()
         in_structure_data = StructureData.from_structure(scf_input.structure)
-        pseudos_specs = PseudoSpecs.from_repo_name("ONCVPSP-PBEsol-SR-PDv0.4")
+        pseudos_specs = PseudoSpecs.from_repo_table_name("ONCVPSP-PBEsol-SR-PDv0.4", "standard")
 
         with self.assertRaises(ValueError):
             EbandsFlowModelWithInputs(in_structure_data=in_structure_data, pseudos_specs=pseudos_specs)

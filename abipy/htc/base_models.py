@@ -28,6 +28,7 @@ from abipy.core.release import __version__ as abipy_version
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
 from abipy.electrons.ebands import ElectronBands
+from abipy.flowtk.events import EventReport
 
 
 class AbipyDecoder(MontyDecoder):
@@ -116,6 +117,7 @@ class AbipyModel(BaseModel, MSONable):
             Structure: lambda o: monty_trick(o),
             AbinitInput: lambda o: monty_trick(o),
             ElectronBands: lambda o: monty_trick(o),
+            EventReport: lambda o: monty_trick(o),
         }
 
         #json_loads = monty_json_loads
@@ -179,6 +181,16 @@ class AbipyModel(BaseModel, MSONable):
     #@abstractmethod
     #def get_panel_view(self):
     #    """Return panel object with a view of the model"""
+
+class GridFsFileDesc(AbipyModel):
+    pass
+
+    #filename: this is an optional field that is a human readable identification for the file.
+    #uploadDate: field of type Date which stores the date the document was first stored.
+    #metadata: this is an optional field that holds additional information that one wants to store.
+
+    #gridfs_collection: str
+    #gridfs_oid: str:
 
 
 class MongoConnector(AbipyModel):
@@ -304,6 +316,12 @@ class MongoConnector(AbipyModel):
         """
         db = self.get_db()
         return db[collection_name or self.collection_name]
+
+    def get_gridfs(self):
+        db = self.get_db()
+        fs = gridfs.GridFS(db, collection='fs')
+        #b = fs.put(fs.get(a), filename="foo", bar="baz")
+        return fs
 
     #def insert_models(models: List[MongoModel], collection_name: Optional[str] = None)) -> List[ObjectId]:
     #    """
