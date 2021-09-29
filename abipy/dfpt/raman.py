@@ -1,3 +1,5 @@
+"""Objects for post-processing Raman results produced by anaddb."""
+
 import numpy as np
 import abipy.core.abinit_units as abu
 from abipy.iotools import ETSF_Reader
@@ -48,8 +50,7 @@ class Raman:
         Args:
             filepath: path to the netcdf file.
 
-        Returns:
-            An instance of Raman.
+        Returns: An instance of Raman.
         """
 
         with ETSF_Reader(filepath) as r:
@@ -84,13 +85,13 @@ class Raman:
 
         Args:
             temp: temperature in K.
-            laser_freq: frequency of the incident laser. The units are determined the "units"
+            laser_freq: frequency of the incident laser. The units are determined by the "units"
                 argument.
             non_anal_dir: index of the direction along which the non analytical contribution
                 has been calculated. Corresponds to the indices in the non_anal_directions attribute.
             relative: if True the intensities will be rescaled so that the largest value is 1.
             units: the units in which the input and the output frequencies will be given.
-                Possible values in ("eV", "meV", "Ha", "cm-1", "Thz")
+                Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
             pol_in: the polarization of the incoming photon. If not None can be either either a string
                 with one of the cartesian components i.e. "x", "y", "z" or an array with 3 elements
                 representing the polarization direction. If not None pol_out can not be None.
@@ -249,7 +250,7 @@ class Raman:
 
         Returns:
             If pol_in==pol_out==None a 3x3 list with a Function1D corresponding to the different
-            components of the intensities. Otherwise a single Function1D with the  intensities of
+            components of the intensities. Otherwise a single Function1D with the intensities of
             the selected polarizations. Each Function1D has "num" points.
         """
 
@@ -387,8 +388,8 @@ class Raman:
 
         Args:
             temp: temperature in K.
-            laser_freq: frequency of the incident laser. The units are determined the "units"
-                argument.
+            laser_freq: frequency of the incident laser. The units are determined according to
+                the "units" argument.
             width: the width of the Lorentz distribution. The units are determined the "units"
                 argument. If None or 0 a plot of only the frequencies for each mode will be given.
             value: a string describing the value that should be plotted. Can be "powder" or
@@ -412,8 +413,7 @@ class Raman:
                 phonon modes.
             **kwargs: arguments passed to the plot function.
 
-        Returns:
-            |matplotlib-Figure|
+        Returns: |matplotlib-Figure|
         """
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)

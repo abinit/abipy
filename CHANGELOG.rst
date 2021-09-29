@@ -1,4 +1,13 @@
 
+Release 0.9.2:
+
+   * Add abiview.py ifermi_fs
+   * G0W0WithQptdmFlow is deprecated and will be removed in v 0.9.3
+   * Add abigui.py script
+   * Add abilab.abirobot function to create a Robot from a list of filepaths.
+   * Add plotly version of fatbands
+   * Support for dipquad and quadquad
+
 Release 0.9.1:
 
    * Add  "-ew", "--expose-web",

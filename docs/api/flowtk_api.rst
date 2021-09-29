@@ -85,6 +85,14 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`gw` Module
+----------------
+
+.. automodule:: abipy.flowtk.gw
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`gruneisen` Module
 -----------------------
 

@@ -1,12 +1,15 @@
 """
 Objects used to extract and plot results from output files in text format.
 """
+from __future__ import annotations
+
 import os
 import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
 from io import StringIO
+from typing import List, Union
 from monty.string import is_string, marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -53,7 +56,7 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
     .. inheritance-diagram:: AbinitLogFile
     """
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         return str(self.events)
 
     def plot(self, **kwargs):
@@ -90,7 +93,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     """
     # TODO: Extract number of errors and warnings.
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.debug_level = 0
         self._parse()
@@ -106,7 +109,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         self.overall_cputime, self.overall_walltime = 0.0, 0.0
         self.proc0_cputime, self.proc0_walltime = 0.0, 0.0
 
-        with open(self.filepath) as fh:
+        with open(self.filepath, "rt") as fh:
             for line in fh:
                 if self.version is None and line.startswith(".Version"):
                     self.version = line.split()[1]
@@ -182,7 +185,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             else:
                 self.final_vars_global, self.final_vars_dataset = self._parse_variables("footer")
 
-    def _parse_variables(self, what):
+    def _parse_variables(self, what: str):
         vars_global = OrderedDict()
         vars_dataset = OrderedDict([(k, OrderedDict()) for k in self.datasets.keys()])
         #print("keys", vars_dataset.keys())
@@ -266,7 +269,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         return vars_global, vars_dataset
 
-    def _get_structures(self, what):
+    def _get_structures(self, what: str):
         if what == "header":
             vars_global, vars_dataset = self.initial_vars_global, self.initial_vars_dataset
         elif what == "footer":
@@ -355,17 +358,17 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return structures
 
     @lazy_property
-    def initial_structures(self):
+    def initial_structures(self) -> List[Structure]:
         """List of initial |Structure|."""
         return self._get_structures("header")
 
     @property
-    def has_same_initial_structures(self):
+    def has_same_initial_structures(self) -> bool:
         """True if all initial structures are equal."""
         return all(self.initial_structures[0] == s for s in self.initial_structures)
 
     @lazy_property
-    def final_structures(self):
+    def final_structures(self) -> List[Structure]:
         """List of final |Structure|."""
         if self.run_completed:
             return self._get_structures("footer")
@@ -374,7 +377,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             return []
 
     @lazy_property
-    def initial_structure(self):
+    def initial_structure(self) -> Structure:
         """
         The |Structure| defined in the output file.
 
@@ -393,12 +396,12 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return self.initial_structures[0]
 
     @property
-    def has_same_final_structures(self):
+    def has_same_final_structures(self) -> bool:
         """True if all initial structures are equal."""
         return all(self.final_structures[0] == s for s in self.final_structures)
 
     @lazy_property
-    def final_structure(self):
+    def final_structure(self) -> Union[Structure, None]:
         """
         The |Structure| defined in the output file.
 
@@ -452,7 +455,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = ["ndtset: %d, completed: %s" % (self.ndtset, self.run_completed)]
         app = lines.append
@@ -496,7 +499,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         return "\n".join(lines)
 
-    def get_dims_spginfo_dataframe(self, verbose=0):
+    def get_dims_spginfo_dataframe(self, verbose: int = 0) -> pd.DataFrame:
         """
         Parse the section with the dimensions of the calculation. Return Dataframe.
         """
@@ -655,6 +658,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             cycle = self.next_gs_scf_cycle()
             if cycle is None: break
             cycles.append(cycle)
+
         self.seek(0)
         return cycles
 
@@ -694,10 +698,10 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         with_timer = kwargs.pop("with_timer", True)
 
         for icycle, cycle in enumerate(self.get_all_gs_scf_cycles()):
-            yield cycle.plot(title="SCF cycle #%d" % icycle, tight_layout=tight_layout, show=False)
+            yield cycle.plot(title=f"SCF cycle {icycle}", tight_layout=tight_layout, show=False)
 
         for icycle, cycle in enumerate(self.get_all_d2de_scf_cycles()):
-            yield cycle.plot(title="DFPT cycle #%d" % icycle, tight_layout=tight_layout, show=False)
+            yield cycle.plot(title=f"DFPT cycle {icycle}", tight_layout=tight_layout, show=False)
 
         if with_timer:
             self.seek(0)
@@ -705,6 +709,25 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
             except Exception:
                 print("Abinit output files does not contain timopt data")
+
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        """
+        with_timer = kwargs.pop("with_timer", True)
+
+        for icycle, cycle in enumerate(self.get_all_gs_scf_cycles()):
+            yield cycle.plotly(title=f"SCF cycle {icycle}", show=False)
+
+        for icycle, cycle in enumerate(self.get_all_d2de_scf_cycles()):
+            yield cycle.plotly(title=f"DFPT cycle {icycle}", show=False)
+
+        #if with_timer:
+        #    self.seek(0)
+        #    try:
+        #        yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
+        #    except Exception:
+        #        print("Abinit output files does not contain timopt data")
 
     def compare_gs_scf_cycles(self, others, show=True):
         """
@@ -784,12 +807,12 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         return figures
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the Abinit output file either in a notebook or in panel app.
         """
         from abipy.panels.outputs import AbinitOutputFilePanel
-        return AbinitOutputFilePanel(self).get_panel()
+        return AbinitOutputFilePanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """
@@ -894,7 +917,7 @@ class AboRobot(Robot):
     """
     EXT = "abo"
 
-    def get_dims_dataframe(self, with_time=True, index=None):
+    def get_dims_dataframe(self, with_time=True, index=None) -> pd.DataFrame:
         """
         Build and return |pandas-DataFrame| with the dimensions of the calculation.
 
@@ -922,7 +945,7 @@ class AboRobot(Robot):
 
         return pd.DataFrame(rows, index=my_index, columns=list(rows[0].keys()))
 
-    def get_dataframe(self, with_geo=True, with_dims=True, abspath=False, funcs=None):
+    def get_dataframe(self, with_geo=True, with_dims=True, abspath=False, funcs=None) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the most important results and the filenames as index.
 
@@ -956,7 +979,7 @@ class AboRobot(Robot):
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
-    def get_time_dataframe(self):
+    def get_time_dataframe(self) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the wall-time, cpu time in seconds and the filenames as index.
         """

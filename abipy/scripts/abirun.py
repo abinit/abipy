@@ -80,6 +80,7 @@ def select_nids(flow, options):
     """
     Return the list of node ids selected by the user via the command line interface.
     """
+    #print("options.nids:", options.nids)
     task_ids = [task.node_id for task in
                 flow.select_tasks(nids=options.nids, wslice=options.wslice, task_class=options.task_class)]
 
@@ -452,13 +453,6 @@ def get_parser(with_epilog=False):
     p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="Number of minutes to wait.")
     p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="Number of seconds to wait.")
 
-    # Subparser for batch command.
-    p_batch = subparsers.add_parser('batch', parents=[copts_parser], help="Run scheduler in batch script.")
-    p_batch.add_argument("-t", '--timelimit', default=None, help=("Time limit for batch script. "
-                         "Accept int with seconds or string with time given in the slurm convention: "
-                         "`days-hours:minutes:seconds`. If timelimit is None, the default value specified"
-                         " in the `batch_adapter` entry of `manager.yml` is used."))
-
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show status table.")
     p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int,
@@ -524,8 +518,19 @@ Default: o
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
 
-    p_panel = subparsers.add_parser('panel', parents=[copts_parser],
+    # Subparser for panel
+    p_panel = subparsers.add_parser('panel', parents=[copts_parser, flow_selector_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
+    p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
+                        help="Specify template for panel dasboard." +
+                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                             "Default: FastList"
+                        )
+    p_panel.add_argument('--no-browser', action='store_true', default=False,
+                        help=("Start the bokeh server to serve the panel app "
+                              "but don't open the app in the browser.\n"
+                              "Use this option to connect remotely from localhost to the machine running the server"))
+    p_panel.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
 
     # Subparser for new_manager.
     p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser],
@@ -537,6 +542,10 @@ Default: o
         help="Use unix tail to follow the main output files of the flow.")
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o", choices=["o", "l", "e"],
         help="What to follow: `o` for output (default), `l` for logfile, `e` for stderr.")
+
+    # Subparser for tail.
+    p_timeit = subparsers.add_parser('timeit', parents=[copts_parser, flow_selector_parser],
+        help="Extract timing data from Abinit output files.")
 
     # Subparser for qstat.
     # TODO: finalize the implementation
@@ -640,6 +649,16 @@ Default: o
     p_notebook.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
 
+    # TODO:
+    #parser.add_argument('--classic-notebook', "-cnb", action='store_true', default=False,
+    #                    help="Use classic jupyter notebook instead of jupyterlab.")
+    #parser.add_argument('--no-browser', action='store_true', default=False,
+    #                    help=("Start the jupyter server to serve the notebook "
+    #                          "but don't open the notebook in the browser.\n"
+    #                          "Use this option to connect remotely from localhost to the machine running the kernel"))
+    #parser.add_argument('--foreground', action='store_true', default=False,
+    #                    help="Run jupyter notebook in the foreground.")
+
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser],
         help="Embed IPython. Useful for advanced operations or debugging purposes.")
@@ -711,6 +730,32 @@ Default: o
     p_listext.add_argument('listexts', nargs="*", default=[], help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
     return parser
+
+
+def serve_kwargs_from_options(options):
+
+    #address = "localhost"
+    if options.no_browser:
+        print("""
+Use:
+
+    ssh -N -f -L localhost:{port}:localhost:{port} username@your_remote_cluster
+
+for port forwarding.
+""")
+
+    import abipy.panels as mod
+    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
+
+    return dict(
+        debug=options.verbose > 0,
+        show=not options.no_browser,
+        port=options.port,
+        static_dirs={"/assets": assets_path},
+        #address=address,
+        #websocket_origin="{address}:{port}",
+    )
+
 
 
 @prof_main
@@ -865,13 +910,27 @@ def main():
         return flow.build_and_pickle_dump()
 
     elif options.command == "panel":
-        try:
-            import panel  # noqa: F401
-        except ImportError as exc:
-            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
-            raise exc
+        pn = abilab.abipanel()
+        serve_kwargs = serve_kwargs_from_options(options)
 
-        flow.get_panel().show()
+        if options.nids is None:
+            # Start Multipage app for this flow.
+            from abipy.panels.flows import FlowMultiPageApp
+            FlowMultiPageApp(flow, options.panel_template).serve(**serve_kwargs)
+
+        else:
+            node_list = list(flow.iflat_nodes(nids=select_nids(flow, options)))
+            if len(node_list) > 1:
+                print("Got more than one node in node_list:")
+                print("Only the last node will be shown in the panel dashboard!\n")
+                for node in node_list:
+                    print(node)
+                print("")
+
+            node = node_list[-1]
+            app = node.get_panel(template=options.panel_template)
+            pn.serve(app, **serve_kwargs)
+
         return 0
 
     elif options.command == "events":
@@ -914,9 +973,6 @@ def main():
 
         print(sched)
         return sched.start()
-
-    elif options.command == "batch":
-        return flow.batch(timelimit=options.timelimit)
 
     elif options.command == "status":
         # Select the method to call.
@@ -1040,6 +1096,13 @@ def main():
             except KeyboardInterrupt:
                 cprint("Received KeyboardInterrupt from user\n", "yellow")
 
+    elif options.command == "timeit":
+        flow.check_status()
+        time_parser = flow.parse_timing(nids=select_nids(flow, options))
+        print(time_parser)
+        df = time_parser.summarize()
+        abilab.print_dataframe(df, title="output o time_parse.summarize():")
+
     #elif options.command == "qstat":
     #    print("Warning: this option is still under development.")
     #    #for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
@@ -1090,7 +1153,7 @@ def main():
 
     elif options.command == "cycles":
         # Print cycles.
-        from pymatgen.io.abinit.abiinspect import CyclesPlotter
+        from abipy.flowtk.abiinspect import CyclesPlotter
         cls2plotter = OrderedDict()
         for task, cycle in flow.get_task_scfcycles(nids=select_nids(flow, options),
                                                    exclude_ok_tasks=options.exclude_ok_tasks):
@@ -1270,9 +1333,9 @@ def main():
         else:
             graph = node.get_graphviz(engine=options.engine)
 
-        if options.verbose:
-            # Print DOT string. Can be used with e.g. http://viz-js.com/
-            print(graph)
+        # Add this liine to print the DOT string
+        # Can be used with e.g. http://viz-js.com/
+        if options.verbose: print(graph)
 
         graph.view(directory=directory, cleanup=False)
 

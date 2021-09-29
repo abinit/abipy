@@ -8,14 +8,14 @@
     * - Package
       - |pypi-version| |download-with-anaconda| |supported-versions|
     * - Continuous Integration
-      - |travis-status| |coverage-status| 
+      - |travis-status| |coverage-status|
     * - Documentation
-      - |docs-github| |launch-nbviewer| |launch-binder| 
+      - |docs-github| |launch-nbviewer| |launch-binder|
 
 About
 =====
 
-AbiPy is a Python_ library to analyze the results produced by Abinit_,
+AbiPy is a python library to analyze the results produced by Abinit_,
 an open-source program for the ab-initio calculations of the physical properties of materials
 within Density Functional Theory and Many-Body perturbation theory.
 It also provides tools to generate input files and workflows to automate
@@ -24,11 +24,11 @@ AbiPy is interfaced with pymatgen_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem.
 
 The official documentation is hosted on `github pages <http://abinit.github.io/abipy>`_.
+Check out our `gallery of plotting scripts <http://abinit.github.io/abipy/gallery/index.html>`_
+and the `gallery of AbiPy workflows <http://abinit.github.io/abipy/flow_gallery/index.html>`_.
 
 AbiPy can be used in conjunction with matplotlib_, pandas_, scipy_, seaborn_, ipython_ and jupyter_ notebooks
 thus providing a powerful and user-friendly environment for data analysis and visualization.
-Check out our `gallery of plotting scripts <http://abinit.github.io/abipy/gallery/index.html>`_
-and the `gallery of AbiPy workflows <http://abinit.github.io/abipy/flow_gallery/index.html>`_.
 
 To learn more about the integration between jupyter_ and AbiPy, visit `our collection of notebooks
 <https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_
@@ -52,12 +52,13 @@ Links to talks
 
 This section collects links to some of the talks given by the AbiPy developers.
 
+* `The new features of AbiPy v0.9.1. 10th international ABINIT developer workshop, May 31 - June 4, 2021 <https://gmatteo.github.io/abipy_abidev2021/#/>`_ (New workflows, plotly interface, etc.)
 
 * `Automating ABINIT calculations with AbiPy. Boston MA, 3 March 2019 <https://gmatteo.github.io/abipy_slides_aps_boston_2019/>`_ (Introduction to AbiPy for newcomers).
 
 * `New features of AbiPy v0.7. Louvain-la-Neuve, Belgium, 20 May 2019 <https://gmatteo.github.io/abipy_intro_abidev2019/>`_ (How to use the AbiPy command line interface in the terminal)
 
-* `Automatize a DFT code: high-throughput workflows for Abinit 
+* `Automatize a DFT code: high-throughput workflows for Abinit
   <https://object.cscs.ch/v1/AUTH_b1d80408b3d340db9f03d373bbde5c1e/learn-public/materials/2019_05_aiida_tutorial/day4_abipy_Petretto.pdf>`_
 
 
@@ -68,17 +69,17 @@ Stable version
 --------------
 
 The version at the Python Package Index (PyPI) is always the latest stable release
-that can be installed with::
+that can be installed in user mode with::
 
-    pip install abipy
+    pip install abipy --user
 
-Note that you may need to install pymatgen and other critical dependencies manually.
+Note that you may need to install some optional dependencies manually.
 In this case, please consult the detailed installation instructions provided by the
-`pymatgen howto <http://pymatgen.org/index.html#standard-install>`_ to install pymatgen 
+`pymatgen howto <https://pymatgen.org/installation.html>`_ to install pymatgen
 and then follow the instructions in `our howto <http://abinit.github.io/abipy/installation>`_.
 
-The installation process is greatly simplified if you install the required 
-python packages through `Anaconda <https://continuum.io/downloads>`_ (or conda). 
+The installation process is greatly simplified if you install the required
+python packages through `Anaconda <https://continuum.io/downloads>`_ (or conda).
 See `Installing conda`_ to install conda itself.
 We routinely use conda_ to test new developments with multiple Python versions and multiple virtual environments.
 The anaconda distribution already provides the most critical dependencies (matplotlib_, scipy_, numpy_, netcdf4-python_)
@@ -96,16 +97,15 @@ and activate it with::
 
 You should see the name of the conda environment in the shell prompt.
 
-Now add ``conda-forge``, and ``abinit`` to your conda channels with::
+Now add ``conda-forge`` to your conda channels with::
 
     conda config --add channels conda-forge
-    conda config --add channels abinit
 
-These are the channels from which we will download pymatgen, abipy and abinit.
+This is the channel from which we will download pymatgen, abipy and abinit.
 
-Finally, install AbiPy from the abinit-channel_ with::
+Finally, install AbiPy with::
 
-    conda install abipy -c abinit
+    conda install abipy
 
 Additional information on the steps required to install AbiPy with anaconda are available
 in the `anaconda howto <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
@@ -116,7 +116,7 @@ to provide packages for AbiPy and Abinit in order to facilitate the installation
 Developmental version
 ---------------------
 
-Getting the developmental version of AbiPy is easy. 
+Getting the developmental version of AbiPy is easy.
 Clone the `github repository <https://github.com/abinit/abipy>`_ with::
 
     git clone https://github.com/abinit/abipy
@@ -126,7 +126,7 @@ For pip, use::
     pip install -r requirements.txt
     pip install -r requirements-optional.txt
 
-If you are using conda_ (see `Installing conda`_ to install conda itself),  create a new environment (``abienv``) 
+If you are using conda_ (see `Installing conda`_ to install conda itself),  create a new environment (``abienv``)
 based on python3.6 with::
 
     conda create -n abienv python=3.6
@@ -151,11 +151,11 @@ or alternately::
 
     python setup.py develop
 
-to install the package in developmental mode. 
+to install the package in developmental mode.
 This is the recommended approach, especially if you are planning to implement new features.
 
 Note, however, that the developmental version of AbiPy is kept in sync with the
-developmental version of pymatgen thus ```python setup.py develop``` may 
+developmental version of pymatgen thus ```python setup.py develop``` may
 try to download new versions from the PyPi portal and then fail with e.g. the error message::
 
     ...
@@ -176,8 +176,8 @@ Use::
 to display information about the installed version of pymatgen.
 
 Also note that the BLAS/Lapack libraries provided by conda have multithreading support activated by default.
-Each process will try to use all of the cores on your machine, which quickly overloads things 
-if there are multiple processes running. 
+Each process will try to use all of the cores on your machine, which quickly overloads things
+if there are multiple processes running.
 (Also, this is a shared machine, so it is just rude behavior in general).
 To disable multithreading, add these lines to your ~/.bash_profile::
 
@@ -193,7 +193,7 @@ To run the suite of unit tests, make sure you have pytest_ installed and then ty
 
     pytest
 
-in the AbiPy root directory. A quicker check might be obtained with:: 
+in the AbiPy root directory. A quicker check might be obtained with::
 
     pytest abipy/core/tests -v
 
@@ -201,10 +201,10 @@ Unit tests require ``scripttest`` that can be installed with::
 
     pip install scripttest
 
-Two tests rely on the availability of a 
+Two tests rely on the availability of a
 `pymatgen PMG_MAPI_KEY <http://pymatgen.org/usage.html#setting-the-pmg-mapi-key-in-the-config-file>` in ~/.pmgrc.yaml.
 
-Note that several unit tests check the integration between AbiPy and Abinit. 
+Note that several unit tests check the integration between AbiPy and Abinit.
 In order to run the tests, you will need a working set of Abinit executables and  a ``manager.yml`` configuration file.
 
 Contributing to AbiPy is relatively easy.
@@ -221,9 +221,9 @@ Installing Abinit
 One of the big advantages of conda over pip is that conda can also install
 libraries and executables written in Fortran.
 A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the
-abinit-channel_ with::
+conda-forge channel with::
 
-    conda install abinit -c abinit
+    conda install abinit -c conda-forge
 
 Otherwise, follow the usual abinit installation instructions, and make sure abinit can be run with the command::
 
@@ -237,13 +237,13 @@ In order to run the Abipy tests, you will need a ``manager.yml`` configuration f
 For a detailed description of the syntax used in this configuration file
 please consult the `TaskManager documentation <http://abinit.github.io/abipy/workflows/taskmanager.html>`_.
 
-At this stage, for the purpose of checking the installation, you might 
+At this stage, for the purpose of checking the installation, you might
 take the ``shell_nompi_manager.yml`` file from the ``abipy/data/managers`` directory
 of this repository, and copy it with new name ``manager.yml`` to your `$HOME/.abinit/abipy` directory.
 Open this file and make sure that the ``pre_run`` section contains the shell commands
 needed to setup the environment before launching Abinit (e.g. Abinit is in $PATH), unless it is available from the environment (e.g. conda).
 
-To complete the configuration files for Abipy, you might also copy the ``simple_scheduler.yml`` file from the same directory, 
+To complete the configuration files for Abipy, you might also copy the ``simple_scheduler.yml`` file from the same directory,
 and copy it with name ``scheduler.yml``. Modifications are needed if you are developer.
 
 Checking the installation
@@ -274,12 +274,12 @@ To perform a basic validation of the build, execute::
 
 Abinit should echo miscellaneous information, starting with::
 
-    DATA TYPE INFORMATION: 
-    REAL:      Data type name: REAL(DP) 
+    DATA TYPE INFORMATION:
+    REAL:      Data type name: REAL(DP)
                Kind value:      8
                Precision:      15
 
-and ending with:: 
+and ending with::
 
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     Default optimizations:
@@ -411,7 +411,7 @@ The following scripts can be invoked directly from the terminal:
 * ``abidoc.py``     Document Abinit input variables and Abipy configuration files.
 * ``abinp.py``      Build input files (simplified interface for the AbiPy factory functions).
 
-Use ``SCRIPT --help`` to get the list of supported commands and 
+Use ``SCRIPT --help`` to get the list of supported commands and
 ``SCRIPT COMMAND --help`` to get the documentation for ``COMMAND``.
 
 For further information, please consult the `scripts docs <http://abinit.github.io/abipy/scripts/index.html>`_ section.
@@ -551,11 +551,11 @@ AbiPy is released under the GNU GPL license. For more details see the LICENSE fi
     :alt: Coverage status
     :target: https://coveralls.io/github/abinit/abipy?branch=develop
 
-.. |download-with-anaconda| image:: https://anaconda.org/abinit/abipy/badges/installer/conda.svg   
+.. |download-with-anaconda| image:: https://anaconda.org/abinit/abipy/badges/installer/conda.svg
     :alt: Download with Anaconda
     :target: https://conda.anaconda.org/abinit
 
-.. |launch-binder| image:: https://mybinder.org/badge.svg 
+.. |launch-binder| image:: https://mybinder.org/badge.svg
     :alt: Launch binder
     :target: https://mybinder.org/v2/gh/abinit/abipy/develop
 

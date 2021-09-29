@@ -241,7 +241,7 @@ class Directory(object):
         """
         # Select the files in the directory.
         fnames = [f for f in os.listdir(self.path)]
-        filepaths = filter(os.path.isfile, [os.path.join(self.path, f) for f in fnames])
+        filepaths = list(filter(os.path.isfile, [os.path.join(self.path, f) for f in fnames]))
 
         if wildcard is not None:
             # Filter using shell patterns.
@@ -249,7 +249,7 @@ class Directory(object):
             filepaths = [path for path in filepaths if w.match(os.path.basename(path))]
             #filepaths = WildCard(wildcard).filter(filepaths)
 
-        return filepaths
+        return sorted(filepaths)
 
     def has_abiext(self, ext, single_file=True):
         """
@@ -465,6 +465,7 @@ class Directory(object):
 # moving to the new approach requires some careful testing besides not all files support the get*_path syntax!
 
 _EXT2VARS = {
+    # File extension -> {varname: value}
     "DEN": {"irdden": 1},
     "WFK": {"irdwfk": 1},
     "WFQ": {"irdwfq": 1},
@@ -484,6 +485,11 @@ _EXT2VARS = {
     # Abinit does not implement getkden and irdkden but relies on irden
     "KDEN": {},  #{"irdkden": 1},
     "KERANGE.nc": {"getkerange_filepath": '"indata/in_KERANGE.nc"'},
+    "POT": {"getpot_filepath" : '"indata/in_POT.nc"'},
+    "SIGEPH": {"getsigeph_filepath": '"indata/in_SIGEPH.nc"'},
+    "DKDK": {},  # irddkdk is not defined.
+    #"DKDE": {"getdkde": 1},
+    #"DELFD": {"getdelfd": 1},
 }
 
 

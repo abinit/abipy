@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 import functools
 import numpy as np
 import itertools
@@ -6,9 +8,11 @@ import pickle
 import os
 import json
 import warnings
+import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
+from typing import Any, List
 from monty.string import is_string, list_strings, marquee
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
@@ -30,6 +34,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get
     push_to_chart_studio, PlotlyRowColDesc, plotly_klabels, plotly_set_xylabels, plotly_set_lims
 from .phtk import match_eigenvectors, get_dyn_mat_eigenvec, open_file_phononwebsite, NonAnalyticalPh
 
+
 __all__ = [
     "PhononBands",
     "PhononBandsPlotter",
@@ -42,7 +47,7 @@ __all__ = [
 
 
 @functools.total_ordering
-class PhononMode(object):
+class PhononMode:
     """
     A phonon mode has a q-point, a frequency, a cartesian displacement and a |Structure|.
     """
@@ -54,12 +59,12 @@ class PhononMode(object):
         "structure"
     ]
 
-    def __init__(self, qpoint, freq, displ_cart, structure):
+    def __init__(self, qpoint, freq, displ_cart, structure: Structure) -> None:
         """
         Args:
             qpoint: qpoint in reduced coordinates.
             freq: Phonon frequency in eV.
-            displ: Displacement (Cartesian coordinates in Angstrom)
+            displ_cart: Displacement (Cartesian coordinates in Angstrom)
             structure: |Structure| object.
         """
         self.qpoint = Kpoint.as_kpoint(qpoint, structure.reciprocal_lattice)
@@ -78,7 +83,7 @@ class PhononMode(object):
     def __str__(self):
         return self.to_string(with_displ=False)
 
-    def to_string(self, with_displ=True, verbose=0):
+    def to_string(self, with_displ=True, verbose=0) -> str:
         """
         String representation
 
@@ -104,7 +109,7 @@ class PhononMode(object):
     #def build_supercell(self):
 
 
-class PhononBands(object):
+class PhononBands:
     """
     Container object storing the phonon band structure.
 
@@ -112,8 +117,9 @@ class PhononBands(object):
 
         Frequencies are in eV. Cartesian displacements are in Angstrom.
     """
+
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> PhononBands:
         """Create the object from a netcdf_ file."""
         with PHBST_Reader(filepath) as r:
             structure = r.read_structure()
@@ -158,7 +164,7 @@ class PhononBands(object):
                        )
 
     @classmethod
-    def as_phbands(cls, obj):
+    def as_phbands(cls, obj: Any) -> PhononBands:
         """
         Return an instance of |PhononBands| from a generic object ``obj``.
         Supports:
@@ -187,13 +193,13 @@ class PhononBands(object):
         raise TypeError("Don't know how to extract a PhononBands from type %s" % type(obj))
 
     @staticmethod
-    def phfactor_ev2units(units):
+    def phfactor_ev2units(units: str) -> float:
         """
         Return conversion factor eV --> units (case-insensitive)
         """
         return abu.phfactor_ev2units(units)
 
-    def read_non_anal_from_file(self, filepath):
+    def read_non_anal_from_file(self, filepath: str) -> None:
         """
         Reads the non analytical directions, frequencies and displacements from the anaddb.nc file
         specified and adds them to the object.
@@ -292,7 +298,7 @@ class PhononBands(object):
 
     # TODO: Replace num_qpoints with nqpt, deprecate num_qpoints
     @property
-    def nqpt(self):
+    def nqpt(self) -> int:
         """An alias for num_qpoints."""
         return self.num_qpoints
 
@@ -304,7 +310,7 @@ class PhononBands(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, title=None, with_structure=True, with_qpoints=False, verbose=0):
+    def to_string(self, title=None, with_structure=True, with_qpoints=False, verbose=0) -> str:
         """
         Human-readable string with useful information such as structure, q-points, ...
 
@@ -334,7 +340,7 @@ class PhononBands(object):
 
         return "\n".join(lines)
 
-    def __add__(self, other):
+    def __add__(self, other: PhononBands) -> PhononBandsPlotter:
         """self + other returns a |PhononBandsPlotter| object."""
         if not isinstance(other, (PhononBands, PhononBandsPlotter)):
             raise TypeError("Cannot add %s to %s" % (type(self), type(other)))
@@ -384,12 +390,12 @@ class PhononBands(object):
         return self.phdispl_cart.shape
 
     @property
-    def minfreq(self):
+    def minfreq(self) -> float:
         """Minimum phonon frequency."""
         return self.get_minfreq_mode()
 
     @property
-    def maxfreq(self):
+    def maxfreq(self) -> float:
         """Maximum phonon frequency in eV."""
         return self.get_maxfreq_mode()
 
@@ -425,7 +431,7 @@ class PhononBands(object):
         self._linewidths = linewidths
 
     @property
-    def has_linewidths(self):
+    def has_linewidths(self) -> bool:
         """True if bands with linewidths."""
         return getattr(self, "_linewidths", None) is not None
 
@@ -469,7 +475,7 @@ class PhononBands(object):
         else:
             return None
 
-    def to_xmgrace(self, filepath, units="meV"):
+    def to_xmgrace(self, filepath: str, units: str = "meV") -> str:
         """
         Write xmgrace_ file with phonon band structure energies and labels for high-symmetry q-points.
 
@@ -558,7 +564,7 @@ class PhononBands(object):
     #    has_timrev, fermie = True, 0.0
     #    return PhononBands3D(self.structure, self.qpoints, has_timrev, self.phfreqs, fermie)
 
-    def qindex(self, qpoint):
+    def qindex(self, qpoint) -> int:
         """Returns the index of the qpoint. Accepts integer or reduced coordinates."""
         if duck.is_intlike(qpoint):
             return int(qpoint)
@@ -625,7 +631,7 @@ class PhononBands(object):
     #    """
     #    qindex, qpoint = self.qindex_qpoint(qpoint)
 
-    def get_dict4pandas(self, with_spglib=True):
+    def get_dict4pandas(self, with_spglib=True) -> dict:
         """
         Return a :class:`OrderedDict` with the most important parameters:
 
@@ -649,7 +655,7 @@ class PhononBands(object):
 
         return odict
 
-    def get_phdos(self, method="gaussian", step=1.e-4, width=4.e-4):
+    def get_phdos(self, method: str = "gaussian", step: float = 1.e-4, width: float = 4.e-4) -> PhononDos:
         """
         Compute the phonon DOS on a linear mesh.
 
@@ -1000,7 +1006,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return workdir
 
-    def decorate_ax(self, ax, units='eV', **kwargs):
+    def decorate_ax(self, ax, units: str = 'eV', **kwargs) -> None:
         """
         Add q-labels, title and unit name to axis ax.
         Use units="" to add k-labels without unit name.
@@ -1033,7 +1039,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
 
-    def decorate_plotly(self, fig, units='eV', **kwargs):
+    def decorate_plotly(self, fig, units: str = 'eV', **kwargs) -> None:
         """
         Add q-labels and unit name to figure ``fig``.
         Use units="" to add k-labels without unit name.
@@ -1570,7 +1576,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                       alpha=0.6, max_stripe_width_mev=5.0, width_ratios=(2, 1),
                       qlabels=None, ylims=None, fontsize=12, **kwargs):
         r"""
-        Plot phonon fatbands and, optionally, atom-projected phonon DOSes.
+        Plot phonon fatbands and, optionally, atom-projected phonon DOSes with matplotlib.
         The width of the band is given by ||v_{type}||
         where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and
         v_{type} selects only the terms associated to the atomic type.
@@ -1706,6 +1712,153 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return fig
 
+    # TODO: fatbands along x, y, z
+    @add_plotly_fig_kwargs
+    def plotly_fatbands(self, use_eigvec=True, units="eV", colormap="G10", phdos_file=None,
+                        alpha=0.6, max_stripe_width_mev=5.0, width_ratios=(2, 1),
+                        qlabels=None, ylims=None, fontsize=16, **kwargs):
+        r"""
+        Plot phonon fatbands and, optionally, atom-projected phonon DOSes with plotly.
+        The width of the band is given by ||v_{type}||
+        where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and
+        v_{type} selects only the terms associated to the atomic type.
+
+        Args:
+            use_eigvec: True if the width of the phonon branch should be computed from the eigenvectors.
+                False to use phonon displacements. Note that the PHDOS is always decomposed in
+                terms of (orthonormal) eigenvectors.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            colormap: Have a look at the colormaps here and decide which one you like:
+                https://plotly.com/python/discrete-color/
+            phdos_file: Used to activate fatbands + PJDOS plot.
+                Accept string with path of PHDOS.nc file or |PhdosFile| object.
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to ``units``.
+            width_ratios: Ratio between the width of the fatbands plots and the DOS plots.
+                Used if `phdos_file` is not None
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            fontsize: Legend and title fontsize.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        lw = kwargs.pop("lw", 2)
+        factor = abu.phfactor_ev2units(units)
+        ntypat = self.structure.ntypesp
+
+        # Prepare PJDOS.
+        close_phdos_file = False
+        if phdos_file is not None:
+            if is_string(phdos_file):
+                phdos_file = PhdosFile(phdos_file)
+                close_phdos_file = True
+            else:
+                if not isinstance(phdos_file, PhdosFile):
+                    raise TypeError("Expecting string or PhdosFile, got %s" % type(phdos_file))
+
+        # Fig with [ntypat] plots if fatbands only or [ntypat, 2] if fatbands + PJDOS
+        nrows, ncols = (ntypat, 1) if phdos_file is None else (ntypat, 2)
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, sharex=True, sharey=True, vertical_spacing=0.05,
+                                 horizontal_spacing=0.02, column_widths=width_ratios if ncols == 2 else None)
+
+        import plotly.express as px
+        color_l = getattr(px.colors.qualitative, colormap)
+        if len(color_l) < len(self.structure.symbol_set):
+            raise ValueError(f"Colormap {colormap} is not enough, please provide more than %d colors"
+                             % len(self.structure.symbol_set))
+        qq = list(range(self.num_qpoints))
+
+        # phonon_displacements are in cartesian coordinates and stored in an array with shape
+        # (nqpt, 3*natom, 3*natom) where the last dimension stores the cartesian components.
+        # PJDoses are in cartesian coordinates and are computed by anaddb using the the
+        # phonon eigenvectors that are orthonormal.
+
+        # Precompute normalization factor:
+        # Here I use d2[q, nu] = \sum_{i=0}^{3*Nat-1) |d^{q\nu}_i|**2
+        # it makes sense only for displacements
+        d2_qnu = np.ones((self.num_qpoints, self.num_branches))
+        if not use_eigvec:
+            for iq in range(self.num_qpoints):
+                for nu in self.branches:
+                    cvect = self.phdispl_cart[iq, nu, :]
+                    d2_qnu[iq, nu] = np.vdot(cvect, cvect).real
+
+        # Plot fatbands: one plot per atom type.
+        for row, symbol in enumerate(self.structure.symbol_set):
+            color = color_l[row]
+            rcd = PlotlyRowColDesc(row, 0, nrows, ncols)
+            iax=rcd.iax
+            self.decorate_plotly(fig, units=units, qlabels=qlabels, iax=iax)
+            if row != len(self.structure.symbol_set):
+                xaxis = 'xaxis%u' % iax
+                fig.layout[xaxis].title.text = ""
+
+            # dir_indices lists the coordinate indices for the atoms of the same type.
+            atom_indices = self.structure.indices_from_symbol(symbol)
+            dir_indices = []
+            for aindx in atom_indices:
+                start = 3 * aindx
+                dir_indices.extend([start, start + 1, start + 2])
+            dir_indices = np.array(dir_indices)
+
+            for nu in self.branches:
+                yy_qq = self.phfreqs[:, nu] * factor
+
+                # Ectract the sub-vector associated to this atom type (eigvec or displacement).
+                if use_eigvec:
+                    v_type = self.dyn_mat_eigenvect[:, nu, dir_indices]
+                else:
+                    v_type = self.phdispl_cart[:, nu, dir_indices]
+
+                v2_type = np.empty(self.num_qpoints)
+                for iq in range(self.num_qpoints):
+                    v2_type[iq] = np.vdot(v_type[iq], v_type[iq]).real
+
+                # Normalize and scale by max_stripe_width_mev taking into account units.
+                # The stripe is centered on the phonon branch hence the factor 2
+                stype_qq = (factor * max_stripe_width_mev * 1.e-3 / 2) * np.sqrt(v2_type / d2_qnu[:, nu])
+
+                # Plot the phonon branch with the stripe.
+                ply_row, ply_col = rcd.ply_row, rcd.ply_col
+                if nu == 0:
+                    fig.add_scatter(x=qq, y=yy_qq, mode='lines', line=dict(width=lw, color=color), name=symbol,
+                                    legendgroup=row ,row=ply_row, col=ply_col)
+                else:
+                    fig.add_scatter(x=qq, y=yy_qq, mode='lines', line=dict(width=lw, color=color), name=symbol,
+                                    showlegend=False, legendgroup=row ,row=ply_row, col=ply_col)
+
+                fig.add_scatter(x=qq, y=yy_qq-stype_qq, mode='lines', line=dict(width=0, color=color), name='',
+                                showlegend=False, legendgroup=row ,row=ply_row, col=ply_col)
+                fig.add_scatter(x=qq, y=yy_qq+stype_qq, mode='lines', line=dict(width=0, color=color), name='',
+                                showlegend=False, legendgroup=row, fill='tonexty', row=ply_row, col=ply_col)
+
+            plotly_set_lims(fig, ylims, "y", iax=iax)
+
+        # Type projected DOSes (always computed from eigenvectors in anaddb).
+        if phdos_file is not None:
+            for row, symbol in enumerate(self.structure.symbol_set):
+                color = color_l[row]
+                rcd = PlotlyRowColDesc(row, 1, nrows, ncols)
+
+                # Get PJDOS: Dictionary symbol --> partial PhononDos
+                pjdos = phdos_file.pjdos_symbol[symbol]
+                x, y = pjdos.mesh * factor, pjdos.values / factor
+
+                ply_row, ply_col = rcd.ply_row, rcd.ply_col
+                fig.add_scatter(x=y, y=x, mode='lines', line=dict(width=lw, color=color), name='', showlegend=False,
+                                legendgroup=row ,row=ply_row, col=ply_col)
+                plotly_set_lims(fig, ylims, "y", iax=rcd.iax)
+
+            if close_phdos_file:
+                phdos_file.close()
+
+        fig.layout.legend.font.size = fontsize
+        fig.layout.title.font.size = fontsize + 2
+
+        return fig
+
     @add_fig_kwargs
     def plot_with_phdos(self, phdos, units="eV", qlabels=None, ax_list=None, width_ratios=(2, 1), **kwargs):
         r"""
@@ -1766,7 +1919,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @add_plotly_fig_kwargs
     def plotly_with_phdos(self, phdos, units="eV", qlabels=None, fig=None, rcd_phbands=None, rcd_phdos=None,
-                          width_ratios=(2, 1), **kwargs):
+                          width_ratios=(2, 1), fontsize=12, **kwargs):
         r"""
         Plot the phonon band structure with the phonon DOS with plotly.
 
@@ -1780,6 +1933,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 is created.
             width_ratios: Ratio between the width of the bands plots and the DOS plots.
                 Used if ``fig`` is None
+            fontsize: Title fontsize.
 
         Returns: |plotly.graph_objects.Figure|
         """
@@ -1788,7 +1942,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         if fig is None:
             # build fig and align bands and DOS.
             fig, _ = get_figs_plotly(nrows=1, ncols=2, subplot_titles=[], sharex=False, sharey=True,
-                                     horizontal_spacing=0.03, column_widths=width_ratios)
+                                     horizontal_spacing=0.02, column_widths=width_ratios)
 
         if not kwargs:
             kwargs = {"line_color": "black", "line_width": 2.0}
@@ -1814,6 +1968,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             rcd_phdos = PlotlyRowColDesc(0, 1, 1, 2)
 
         phdos.plotly_dos_idos(fig, rcd=rcd_phdos, what="d", units=units, exchange_xy=True, showlegend=False, **kwargs)
+        fig.update_layout(font_size=fontsize)
 
         return fig
 
@@ -2030,7 +2185,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         return fig
 
-    def get_dataframe(self):
+    def get_dataframe(self, mode_range=None) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the following columns:
 
@@ -2046,11 +2201,16 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         freq            Phonon frequency in eV.
         qpoint          |Kpoint| object
         ==============  ==========================
+
+        Args:
+            mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]`.
         """
-        import pandas as pd
         rows = []
         for iq, qpoint in enumerate(self.qpoints):
             for nu in self.branches:
+                if mode_range is not None and (nu < mode_range[0] or nu >= mode_range[1]):
+                    continue
+
                 rows.append(OrderedDict([
                            ("qidx", iq),
                            ("mode", nu),
@@ -2058,12 +2218,14 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                            ("qpoint", self.qpoints[iq]),
                         ]))
 
-        return pd.DataFrame(rows, columns=list(rows[0].keys()))
+        df = pd.DataFrame(rows, columns=list(rows[0].keys()))
+        return df
 
     @add_fig_kwargs
     def boxplot(self, ax=None, units="eV", mode_range=None, swarm=False, **kwargs):
         """
-        Use seaborn_ to draw a box plot to show distributions of eigenvalues with respect to the mode index.
+        Use seaborn_ to draw a box plot showing the distribution of the phonon
+        frequencies with respect to the mode index.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -2072,28 +2234,63 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keyword arguments passed to seaborn boxplot.
+
+        Return: |matplotlib-Figure|
         """
-        # Get the dataframe and select bands
-        frame = self.get_dataframe()
-        if mode_range is not None:
-            frame = frame[(frame["mode"] >= mode_range[0]) & (frame["mode"] < mode_range[1])]
+        df = self.get_dataframe(mode_range=mode_range)
+        factor = abu.phfactor_ev2units(units)
+        yname = "freq %s" % abu.phunit_tag(units)
+        df[yname] = factor * df["freq"]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-
-        factor = abu.phfactor_ev2units(units)
-        yname = "freq %s" % abu.phunit_tag(units)
-        frame[yname] = factor * frame["freq"]
-
         import seaborn as sns
         hue = None
-        ax = sns.boxplot(x="mode", y=yname, data=frame, hue=hue, ax=ax, **kwargs)
+        ax = sns.boxplot(x="mode", y=yname, data=df, hue=hue, ax=ax, **kwargs)
         if swarm:
-            sns.swarmplot(x="mode", y=yname, data=frame, hue=hue, color=".25", ax=ax)
+            sns.swarmplot(x="mode", y=yname, data=df, hue=hue, color=".25", ax=ax)
 
         return fig
 
-    def to_pymatgen(self, qlabels=None):
+    @add_plotly_fig_kwargs
+    def boxplotly(self, units="eV", mode_range=None, swarm=False, fig=None, rcd=None, **kwargs):
+        """
+        Use plotly to draw a box plot to show the distribution of the phonon
+        frequencies with respect to the mode index.
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]` are included in the plot.
+            swarm: True to show the datapoints on top of the boxes
+            fig: plotly figure or None if a new figure should be created.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
+                of the subplot in the grid.
+            kwargs: Keyword arguments passed to plotly px.box.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        df = self.get_dataframe(mode_range=mode_range)
+        factor = abu.phfactor_ev2units(units)
+        yname = "freq %s" % abu.phunit_tag(units)
+        df[yname] = factor * df["freq"]
+
+        import plotly.express as px
+        hue = None
+        points = 'outliers' if not swarm else "all"
+        px_fig = px.box(df, x="mode", y=yname, color=hue, points=points, **kwargs)
+
+        if rcd is None: return px_fig
+
+        # Add px_fig traces to input fig with subplot.
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
+        for trace in px_fig.data:
+            fig.add_trace(trace, row=ply_row, col=ply_col)
+
+        return fig
+
+    def to_pymatgen(self, qlabels=None) -> PhononBandStructureSymmLine:
         r"""
         Creates a pymatgen :class:`PhononBandStructureSymmLine` object.
 
@@ -2141,16 +2338,14 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                                            labels_dict=labels_dict, structure=self.structure)
 
     @classmethod
-    def from_pmg_bs(cls, pmg_bs, structure=None):
+    def from_pmg_bs(cls, pmg_bs: PhononBandStructureSymmLine, structure=None) -> PhononBands:
         """
         Creates an instance of the object from a :class:`PhononBandStructureSymmLine` object.
 
         Args:
             pmg_bs: the instance of PhononBandStructureSymmLine.
-            structure: a |Structure| object. Should be present if the structure attribute is
-                not set in pmg_bs.
+            structure: a |Structure| object. Should be present if the structure attribute is not set in pmg_bs.
         """
-
         structure = structure or pmg_bs.structure
         if not structure:
             raise ValueError("The structure is needed to create the abipy object.")
@@ -2709,7 +2904,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
     .. inheritance-diagram:: PhbstFile
     """
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         """
         Args:
             path: path to the file
@@ -2723,7 +2918,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """
         String representation
 
@@ -2741,7 +2936,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         return "\n".join(lines)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object"""
         return self.phbands.structure
 
@@ -2751,16 +2946,16 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         return self.phbands.qpoints
 
     @property
-    def phbands(self):
+    def phbands(self) -> PhononBands:
         """|PhononBands| object"""
         return self._phbands
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_phbands_params()
         return od
@@ -2801,11 +2996,10 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
             d.update(self.structure.get_dict4pandas(with_spglib=True))
 
         # Build the pandas Frame and add the q-point as attribute.
-        import pandas as pd
-        frame = pd.DataFrame(d, columns=list(d.keys()))
-        frame.qpoint = qpoint
+        df = pd.DataFrame(d, columns=list(d.keys()))
+        df.qpoint = qpoint
 
-        return frame
+        return df
 
     def get_phmode(self, qpoint, branch):
         """
@@ -2837,13 +3031,6 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         This function *generates* a predefined list of plotly figures with minimal input from the user.
         """
         return self.yield_phbands_plotly_figs(**kwargs)
-
-    #def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):
-    #    """
-    #    This function *generates* a predefined list of plotly figures with minimal input from the user.
-    #    """
-    #    renderer = "chart_studio" if chart_studio else None
-    #    self.phbands.plotly(renderer=renderer)
 
     def write_notebook(self, nbpath=None):
         """
@@ -2890,7 +3077,7 @@ class PhononDos(Function1D):
     """
 
     @classmethod
-    def as_phdos(cls, obj, phdos_kwargs=None):
+    def as_phdos(cls, obj: Any, phdos_kwargs=None) -> PhononDos:
         """
         Return an instance of |PhononDos| from a generic obj. Supports::
 
@@ -2935,7 +3122,7 @@ class PhononDos(Function1D):
         raise TypeError("Don't know how to create PhononDos object from type: `%s`" % type(obj))
 
     @lazy_property
-    def iw0(self):
+    def iw0(self) -> int:
         """
         Index of the first point in the mesh whose value is >= 0
         """
@@ -3074,7 +3261,7 @@ class PhononDos(Function1D):
 
         return fig
 
-    def get_internal_energy(self, tstart=5, tstop=300, num=50):
+    def get_internal_energy(self, tstart=5, tstop=300, num=50) -> Function1D:
         """
         Returns the internal energy, in eV, in the harmonic approximation for different temperatures
         Zero point energy is included.
@@ -3103,7 +3290,7 @@ class PhononDos(Function1D):
 
         return Function1D(tmesh, vals)
 
-    def get_entropy(self, tstart=5, tstop=300, num=50):
+    def get_entropy(self, tstart=5, tstop=300, num=50) -> Function1D:
         """
         Returns the entropy, in eV/K, in the harmonic approximation for different temperatures
 
@@ -3130,7 +3317,7 @@ class PhononDos(Function1D):
 
         return Function1D(tmesh, abu.kb_eVK * vals)
 
-    def get_free_energy(self, tstart=5, tstop=300, num=50):
+    def get_free_energy(self, tstart=5, tstop=300, num=50) -> Function1D:
         """
         Returns the free energy, in eV, in the harmonic approximation for different temperatures
         Zero point energy is included.
@@ -3147,7 +3334,7 @@ class PhononDos(Function1D):
 
         return Function1D(uz.mesh, uz.values - s.mesh * s.values)
 
-    def get_cv(self, tstart=5, tstop=300, num=50):
+    def get_cv(self, tstart=5, tstop=300, num=50) -> Function1D:
         """
         Returns the constant-volume specific heat, in eV/K, in the harmonic approximation
         for different temperatures
@@ -3190,7 +3377,7 @@ class PhononDos(Function1D):
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
-            fontsize: Title fontsize.
+            fontsize: Label and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -3245,7 +3432,7 @@ class PhononDos(Function1D):
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
-            fontsize: Legend and title fontsize.
+            fontsize: Label and title fontsize.
 
         Returns |plotly.graph_objects.Figure|
         """
@@ -3273,12 +3460,12 @@ class PhononDos(Function1D):
             iax = iq + 1
             fig.layout['yaxis%u' % iax].title = {'text': _PLOTLY_THERMO_YLABELS[qname][units], 'font_size': fontsize}
 
-            if irow == nrows-1:
+            if irow == nrows - 1:
                 fig.layout['xaxis%u' % iax].title = {'text': 'T (K)', 'font_size': fontsize}
 
         return fig
 
-    def to_pymatgen(self):
+    def to_pymatgen(self) -> PmgPhononDos:
         """
         Creates a pymatgen :class:`PmgPhononDos` object
         """
@@ -3287,23 +3474,23 @@ class PhononDos(Function1D):
         return PmgPhononDos(self.mesh * factor, self.values / factor)
 
     @property
-    def debye_temp(self):
+    def debye_temp(self) -> float:
         """
         Debye temperature in K.
         """
         integrals = (self * self.mesh ** 2).spline_integral() / self.spline_integral()
-        t_d = np.sqrt(5/3*integrals)/abu.kb_eVK
+        t_d = np.sqrt(5 / 3 * integrals) / abu.kb_eVK
 
         return t_d
 
-    def get_acoustic_debye_temp(self, nsites):
+    def get_acoustic_debye_temp(self, nsites) -> float:
         """
         Acoustic Debye temperature in K, i.e. the Debye temperature divided by nsites**(1/3).
 
         Args:
             nsites: the number of sites in the cell.
         """
-        return self.debye_temp / nsites**(1/3)
+        return self.debye_temp / nsites ** (1 / 3)
 
 
 class PhdosReader(ETSF_Reader):
@@ -3334,7 +3521,7 @@ class PhdosReader(ETSF_Reader):
         """
         return self.read_value("pjdos")
 
-    def read_phdos(self):
+    def read_phdos(self) -> PhononDos:
         """Return |PhononDos| object with the total phonon DOS"""
         return PhononDos(self.wmesh, self.read_value("phdos"))
 
@@ -3402,19 +3589,19 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     .. inheritance-diagram:: PhdosFile
     """
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         # Open the file, read data and create objects.
         super().__init__(filepath)
 
         self.reader = r = PhdosReader(filepath)
         self.wmesh = r.wmesh
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """
         :class:`OrderedDict` with the convergence parameters
         Used to construct |pandas-DataFrames|.
@@ -3429,7 +3616,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Invoked by str"""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """
         Human-readable string with useful information such as structure...
 
@@ -3447,12 +3634,12 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     @lazy_property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.reader.structure
 
     @lazy_property
-    def phdos(self):
+    def phdos(self) -> PhononDos:
         """|PhononDos| object."""
         return self.reader.read_phdos()
 
@@ -3582,11 +3769,11 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             else:
                 if not exchange_xy:
                     fig.add_scatter(x=x, y=cumulative + y, mode='lines', name=symbol,
-                                             line=dict(width=lw), fill='tonextx')
+                                    line=dict(width=lw), fill='tonextx')
                     cumulative += y
                 else:
                     fig.add_scatter(x=cumulative + x, y=y, mode='lines', name=symbol,
-                                             line=dict(width=lw), fill='tonexty')
+                                    line=dict(width=lw), fill='tonexty')
                     cumulative += x
 
         # Total PHDOS
@@ -3794,7 +3981,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return self._write_nb_nbpath(nb, nbpath)
 
-    def to_pymatgen(self):
+    def to_pymatgen(self) -> PmgCompletePhononDos:
         """
         Creates a pymatgen :class:`PmgCompletePhononDos` object.
         """
@@ -3889,7 +4076,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
     return fig
 
 
-def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
+def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True) -> pd.DataFrame:
     """
     Build pandas dataframe with the most important results available in a list of band structures.
 
@@ -3906,7 +4093,6 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
     # Use OrderedDict to have columns ordered nicely.
     odict_list = [(phbands.get_dict4pandas(with_spglib=with_spglib)) for phbands in phbands_list]
 
-    import pandas as pd
     return pd.DataFrame(odict_list, index=index,
                         columns=list(odict_list[0].keys()) if odict_list else None)
 
@@ -3952,6 +4138,9 @@ class PhononBandsPlotter(NotebookWriter):
             if len(key_phbands) != len(key_phdos):
                 raise ValueError("key_phbands and key_phdos must have the same number of elements.")
 
+    def __len__(self):
+        return len(self._bands_dict)
+
     def __repr__(self):
         """Invoked by repr"""
         return self.to_string(func=repr)
@@ -3966,7 +4155,7 @@ class PhononBandsPlotter(NotebookWriter):
             phdos = self._phdoses_dict.get(label, None)
             self.add_phbands(label, phbands, phdos=phdos)
 
-    def add_plotter(self, other):
+    def add_plotter(self, other: PhononBandsPlotter) -> PhononBandsPlotter:
         """Merge two plotters, return new plotter."""
         if not isinstance(other, self.__class__):
             raise TypeError("Don't know to to add %s to %s" % (other.__class__, self.__class__))
@@ -3976,7 +4165,7 @@ class PhononBandsPlotter(NotebookWriter):
 
         return self.__class__(key_phbands=key_phbands, key_phdos=key_phdos)
 
-    def to_string(self, func=str, verbose=0):
+    def to_string(self, func=str, verbose: int = 0) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -3989,7 +4178,7 @@ class PhononBandsPlotter(NotebookWriter):
 
         return "\n".join(lines)
 
-    def has_same_formula(self):
+    def has_same_formula(self) -> bool:
         """
         True of plotter contains structures with same chemical formula.
         """
@@ -3997,7 +4186,7 @@ class PhononBandsPlotter(NotebookWriter):
         if structures and any(s.formula != structures[0].formula for s in structures): return False
         return True
 
-    def get_phbands_frame(self, with_spglib=True):
+    def get_phbands_frame(self, with_spglib=True) -> pd.DataFrame:
         """
         Build a |pandas-DataFrame| with the most important results available in the band structures.
         """
@@ -4005,7 +4194,7 @@ class PhononBandsPlotter(NotebookWriter):
                                       index=list(self.phbands_dict.keys()), with_spglib=with_spglib)
 
     @property
-    def phbands_dict(self):
+    def phbands_dict(self) -> dict:
         """Dictionary with the mapping label --> phbands."""
         return self._bands_dict
 
@@ -4013,17 +4202,17 @@ class PhononBandsPlotter(NotebookWriter):
     bands_dict = phbands_dict
 
     @property
-    def phdoses_dict(self):
+    def phdoses_dict(self) -> dict:
         """Dictionary with the mapping label --> phdos."""
         return self._phdoses_dict
 
     @property
-    def phbands_list(self):
+    def phbands_list(self) -> List[PhononBands]:
         """"List of |PhononBands| objects."""
         return list(self._bands_dict.values())
 
     @property
-    def phdoses_list(self):
+    def phdoses_list(self) -> List[PhononDos]:
         """"List of |PhononDos|."""
         return list(self._phdoses_dict.values())
 
@@ -4037,7 +4226,7 @@ class PhononBandsPlotter(NotebookWriter):
         for o in itertools.product(self._LINE_WIDTHS,  self._LINE_STYLES_PLOTLY, self._LINE_COLORS):
             yield {"line_width": o[0], "line_dash": o[1], "line_color": o[2]}
 
-    def add_phbands(self, label, bands, phdos=None, dos=None, phdos_kwargs=None):
+    def add_phbands(self, label, bands, phdos=None, dos=None, phdos_kwargs=None) -> None:
         """
         Adds a band structure for plotting.
 
@@ -4161,14 +4350,14 @@ class PhononBandsPlotter(NotebookWriter):
             width_ratios: Ratio between the width of the phonon bands plots and the DOS plots.
                 Used if plotter has DOSes.
             fontsize: fontsize for titles and legend.
-            linestyle_dict: Dictionary mapping labels to plotly linestyle options.
+            linestyle_dict: Dictionary mapping labels to linestyle options passed to |plotly.graph_objects.scatter|.
 
         Returns: |plotly.graph_objects.Figure|
         """
         if self.phdoses_dict:
             nrows, ncols = (1, 2)
             fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=[], sharex=False, sharey=True,
-                                      horizontal_spacing=0.03, column_widths=width_ratios)
+                                     horizontal_spacing=0.02, column_widths=width_ratios)
         else:
             nrows, ncols = (1, 1)
             fig, _ = get_fig_plotly()
@@ -4207,7 +4396,8 @@ class PhononBandsPlotter(NotebookWriter):
         if self.phdoses_dict:
             rcd = PlotlyRowColDesc(0, 1, nrows, ncols)
             for label, dos in self.phdoses_dict.items():
-                dos.plotly_dos_idos(fig, rcd=rcd, exchange_xy=True, units=units, **opts_label[label])
+                dos.plotly_dos_idos(fig, rcd=rcd, exchange_xy=True, units=units, trace_name=label, legendgroup=label,
+                                    showlegend=False, **opts_label[label])
 
         return fig
 
@@ -4223,21 +4413,18 @@ class PhononBandsPlotter(NotebookWriter):
             yield self.combiplot(show=False)
             yield self.combiboxplot(show=False)
 
-    def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):  # pragma: no cover
-        """This function *generates* a predefined list of plotly figures with minimal input from the user."""
-        kwargs["show"] = False
-
-        figs = []; f = figs.append
-        f(self.gridplotly(**kwargs))
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """This function *generates* a predefined list of matplotlib figures with minimal input from the user."""
+        yield self.gridplotly(show=False)
+        #yield self.boxplotly(show=False)
         if self.has_same_formula():
-            f(self.combiplotly(**kwargs))
-
-        push_to_chart_studio(figs) if chart_studio else plotlyfigs_to_browser(figs)
+            yield self.combiplotly(show=False)
+            #yield self.combiboxplotly(show=False)
 
     @add_fig_kwargs
     def gridplot(self, with_dos=True, units="eV", fontsize=8, **kwargs):
         """
-        Plot multiple phonon bandstructures and optionally DOSes on a grid.
+        Plot multiple phonon bandstructures and optionally DOSes on a grid with matplotlib.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
@@ -4257,9 +4444,9 @@ class PhononBandsPlotter(NotebookWriter):
                                 units=units, fontsize=fontsize, show=False)
 
     @add_plotly_fig_kwargs
-    def gridplotly(self, with_dos=True, units="eV", fontsize=8, **kwargs):
+    def gridplotly(self, with_dos=True, units="eV", fontsize=12, **kwargs):
         """
-        Plot multiple phonon bandstructures and optionally DOSes on a grid.
+        Plot multiple phonon bandstructures and optionally DOSes on a grid with plotly.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
@@ -4272,24 +4459,38 @@ class PhononBandsPlotter(NotebookWriter):
         titles = list(self._bands_dict.keys())
         phb_objects = list(self._bands_dict.values())
         phdos_objects = None
+        plot_with_phdos = False
         if self.phdoses_dict and with_dos:
             phdos_objects = list(self.phdoses_dict.values())
+            plot_with_phdos = True
 
         # Build grid of plots.
         ncols, nrows = 1, 1
         num_plots = len(phb_objects)
+
+        if plot_with_phdos:
+            # Special treatment required for phbands with DOS.
+            num_plots *= 2
+            titles = []
+            for k in self._bands_dict.keys():
+                titles.extend([k, ""])
+
         if num_plots > 1:
             ncols = 2
             nrows = num_plots // ncols + num_plots % ncols
 
-        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=titles, sharex=True, sharey=False)
+        sharex = not plot_with_phdos
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=titles, sharex=sharex, sharey=False)
 
-        if self.phdoses_dict and with_dos:
-            raise NotImplementedError("")
-            for i, (phbands, phdos) in enumerate(zip(phb_objects, phdos_objects)):
-                row, col = divmod(i, ncols)
-                rcd_phdos = PlotlyRowColDesc(row, col, nrows, ncols)
+        if plot_with_phdos:
+            #print("Warning: plot_with_phdos is still under development!!!!!!!!!!")
+            jj = 0
+            for i, phbands in enumerate(phb_objects):
+                phdos = phdos_objects[i]
+                row, col = divmod(jj, ncols)
+                jj += 2
                 rcd_phbands = PlotlyRowColDesc(row, col, nrows, ncols)
+                rcd_phdos = PlotlyRowColDesc(row, col + 1, nrows, ncols)
                 phbands.plotly_with_phdos(phdos, fig=fig, rcd_phbands=rcd_phbands, rcd_phdos=rcd_phdos,
                                           units=units, fontsize=fontsize,
                                           width_ratios=(2, 1), show=False)
@@ -4430,7 +4631,7 @@ class PhononBandsPlotter(NotebookWriter):
     @add_fig_kwargs
     def boxplot(self, mode_range=None, units="eV", swarm=False, **kwargs):
         """
-        Use seaborn_ to draw a box plot to show distributions of eigenvalues with respect to the band index.
+        Use seaborn_ to draw a box plot to show distribution of eigenvalues with respect to the band index.
         Band structures are drawn on different subplots.
 
         Args:
@@ -4462,7 +4663,7 @@ class PhononBandsPlotter(NotebookWriter):
     @add_fig_kwargs
     def combiboxplot(self, mode_range=None, units="eV", swarm=False, ax=None, **kwargs):
         """
-        Use seaborn_ to draw a box plot comparing the distributions of the frequencies.
+        Use seaborn_ to draw a box plot comparing the distribution of the frequencies.
         Phonon Band structures are drawn on the same plot.
 
         Args:
@@ -4473,18 +4674,17 @@ class PhononBandsPlotter(NotebookWriter):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: Keyword arguments passed to seaborn_ boxplot.
         """
-        frames = []
+        df_list = []
         for label, phbands in self.phbands_dict.items():
             # Get the dataframe, select bands and add column with label
             frame = phbands.get_dataframe()
             if mode_range is not None:
                 frame = frame[(frame["mode"] >= mode_range[0]) & (frame["mode"] < mode_range[1])]
             frame["label"] = label
-            frames.append(frame)
+            df_list.append(frame)
 
-        # Merge frames ignoring index (not meaningful here)
-        import pandas as pd
-        data = pd.concat(frames, ignore_index=True)
+        # Merge df_list ignoring index (not meaningful here)
+        data = pd.concat(df_list, ignore_index=True)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
@@ -4665,11 +4865,11 @@ class PhononDosPlotter(NotebookWriter):
             self.add_phdos(label, phdos, phdos_kwargs=phdos_kwargs)
 
     @property
-    def phdos_list(self):
+    def phdos_list(self) -> List[PhononDos]:
         """List of phonon DOSes"""
         return list(self._phdoses_dict.values())
 
-    def add_phdos(self, label, phdos, phdos_kwargs=None):
+    def add_phdos(self, label, phdos, phdos_kwargs=None) -> None:
         """
         Adds a DOS for plotting.
 
@@ -4763,13 +4963,13 @@ class PhononDosPlotter(NotebookWriter):
     @add_fig_kwargs
     def gridplot(self, units="eV", xlims=None, ylims=None, fontsize=8, **kwargs):
         """
-        Plot multiple DOSes on a grid.
+        Plot multiple DOSes on a grid with matplotlib.
 
         Args:
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
-            fontsize: Legend and title fontsize.
+            fontsize: Axis_label and subtitle fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -4805,11 +5005,51 @@ class PhononDosPlotter(NotebookWriter):
 
         return fig
 
+    @add_plotly_fig_kwargs
+    def gridplotly(self, units="eV", xlims=None, ylims=None, fontsize=12, **kwargs):
+        """
+        Plot multiple DOSes on a grid with plotly.
+
+        Args:
+            units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+            fontsize: Axis_label and subtitle fontsize.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        titles = list(self._phdoses_dict.keys())
+        phdos_list = list(self._phdoses_dict.values())
+
+        nrows, ncols = 1, 1
+        numeb = len(phdos_list)
+        if numeb > 1:
+            ncols = 2
+            nrows = numeb // ncols + numeb % ncols
+
+        # Build Grid Fig
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=titles, sharex=True, sharey=True)
+
+        x_unit = abu.phunit_tag(units, unicode=True)
+        y_unit = abu.phdos_label_from_units(units, unicode=True)
+        for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
+            row, col = divmod(i, ncols)
+            rcd = PlotlyRowColDesc(row, col, nrows, ncols)
+            phdos.plotly_dos_idos(fig, rcd=rcd, units=units, trace_name=label, showlegend=False)
+            fig.layout['xaxis'+str(rcd.iax)].title = {'text': 'Energy %s' % x_unit, "font": {"size" : fontsize}}
+            if col%ncols==0:
+                fig.layout['yaxis'+str(rcd.iax)].title = {"text": 'DOS %s' % y_unit, "font": {"size" : fontsize}}
+            fig.layout.annotations[rcd.iax-1].font.size = fontsize
+            plotly_set_lims(fig, xlims, "x")
+            plotly_set_lims(fig, ylims, "y")
+
+        return fig
+
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
                              quantities="all", fontsize=8, **kwargs):
         """
-        Plot thermodynamic properties from the phonon DOS within the harmonic approximation.
+        Plot thermodynamic properties from the phonon DOS within the harmonic approximation
+        for all the files in the plotter with matplotlib.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -4820,7 +5060,7 @@ class PhononDosPlotter(NotebookWriter):
                 thermodynamic quantities will be given on a per-unit-cell basis.
             quantities: List of strings specifying the thermodynamic quantities to plot.
                 Possible values in ["internal_energy", "free_energy", "entropy", "c_v"].
-            fontsize: Legend and title fontsize.
+            fontsize: Legend, axis_label and subtitles fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -4854,6 +5094,68 @@ class PhononDosPlotter(NotebookWriter):
             ax.set_xlabel("T (K)", fontsize=fontsize)
             if iax == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_plotly_fig_kwargs
+    def plotly_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
+                             quantities="all", fontsize=12, **kwargs):
+        """
+        Plot thermodynamic properties from the phonon DOS within the harmonic approximation
+        for all the files in the plotter with plotly.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num: int, optional Number of samples to generate. Default is 50.
+            units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
+            formula_units: the number of formula units per unit cell. If unspecified, the
+                thermodynamic quantities will be given on a per-unit-cell basis.
+            quantities: List of strings specifying the thermodynamic quantities to plot.
+                Possible values in ["internal_energy", "free_energy", "entropy", "c_v"].
+            fontsize: Legend, axis_label and subtitle fontsize.
+
+        Returns: |plotly.graph_objects.Figure|
+        """
+        quantities = list_strings(quantities) if quantities != "all" else \
+            ["internal_energy", "free_energy", "entropy", "cv"]
+
+        # Build grid of plots.
+        ncols, nrows = 1, 1
+        num_plots = len(quantities)
+        if num_plots > 1:
+            ncols = 2
+            nrows = num_plots // ncols + num_plots % ncols
+
+        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=quantities, sharex=True, sharey=False)
+
+        import plotly.colors as pcolors
+        l2color = pcolors.DEFAULT_PLOTLY_COLORS
+
+        for iq, qname in enumerate(quantities):
+            irow, icol = divmod(iq, ncols)
+            for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
+                opt = {"color": l2color[i]}
+                # Compute thermodynamic quantity associated to qname.
+                f1d = getattr(phdos, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
+                ys = f1d.values
+                if formula_units != 1: ys /= formula_units
+                if units == "Jmol": ys = ys * abu.e_Cb * abu.Avogadro
+                if iq == 0:
+                    fig.add_scatter(x=f1d.mesh, y=ys, mode="lines", name=label, legendgroup=label, showlegend=True,
+                                    line=opt, row=irow + 1, col=icol + 1)
+                else:
+                    fig.add_scatter(x=f1d.mesh, y=ys, mode="lines", name=label, legendgroup=label, showlegend=False,
+                                    line=opt, row=irow + 1, col=icol + 1)
+
+            fig.layout.annotations[iq].font.size = fontsize
+            fig.layout.legend.font.size = fontsize
+
+            iax = iq + 1
+            fig.layout['yaxis%u' % iax].title = {'text': _PLOTLY_THERMO_YLABELS[qname][units], 'font_size': fontsize}
+
+            if irow == nrows - 1:
+                fig.layout['xaxis%u' % iax].title = {'text': 'T (K)', 'font_size': fontsize}
 
         return fig
 
@@ -4894,17 +5196,14 @@ class PhononDosPlotter(NotebookWriter):
         #if self.has_same_formula():
         yield self.combiplot(show=False)
 
-    def plotly_expose(self, chart_studio=False, verbose=0, **kwargs):  # pragma: no cover
-        """This function *generates* a predefined list of plotly figures with minimal input from the user."""
-        raise NotImplementedError("plotly_expose")
-        #kwargs["show"] = False
-        #figs = []
-        #f = figs.append
-        #f(self.gridplotly(**kwargs))
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        #yield self.gridplotply(show=False)
+        #yield self.plotly_harmonic_thermo(show=False)
         #if self.has_same_formula():
-        #    f(self.combiplotly(**kwargs))
-
-        #push_to_chart_studio(figs) if chart_studio else plotlyfigs_to_browser(figs)
+        yield self.combiplotly(show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -4955,7 +5254,7 @@ class RobotWithPhbands(object):
     #    """Wraps gridplot method of |ElectronDosPlotter|. kwargs passed to gridplot."""
     #    return self.get_phdos_plotter().gridplot(**kwargs)
 
-    def get_phbands_plotter(self, filter_abifile=None, cls=None):
+    def get_phbands_plotter(self, filter_abifile=None, cls=None) -> PhononBandsPlotter:
         """
         Build and return an instance of |PhononBandsPlotter| or a subclass is cls is not None.
 
@@ -4972,7 +5271,7 @@ class RobotWithPhbands(object):
 
         return plotter
 
-    def get_phbands_dataframe(self, with_spglib=True):
+    def get_phbands_dataframe(self, with_spglib=True) -> pd.DataFrame:
         """
         Build a |pandas-dataframe| with the most important results available in the band structures.
         """

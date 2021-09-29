@@ -2,6 +2,7 @@
 import numpy as np
 import sys
 import abipy.data as abidata
+import abipy.core.abinit_units as abu
 
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.units import bohr_to_ang
@@ -183,8 +184,31 @@ xred       0.0000000000    0.0000000000    0.0000000000
         same = Structure.rocksalt(7.7030079150, ["Li", "F"], units="ang")
         self.assert_almost_equal(lif.lattice.a,  same.lattice.a)
 
+        # Test string with Abinit simplified format (structure variable in abivars format)
+        mgb2 = Structure.from_abistring("""
+# MgB2 lattice structure.
+natom   3
+acell   2*3.086  3.523 Angstrom
+rprim   0.866025403784439  0.5  0.0
+       -0.866025403784439  0.5  0.0
+        0.0                0.0  1.0
+
+# Atomic positions
+xred_symbols
+ 0.0  0.0  0.0 Mg
+ 1/3  2/3  0.5 B
+ 2/3  1/3  0.5 B
+""")
+        print(mgb2)
+        assert len(mgb2) == 3
+        assert mgb2.formula == "Mg1 B2"
+        self.assert_almost_equal(mgb2.lattice.angles, (90.0, 90.0, 120.00000000000001))
+        self.assert_almost_equal(mgb2.lattice.volume * abu.Ang_Bohr ** 3, 196.07928976151663)
+
         si = Structure.from_mpid("mp-149")
         assert si.formula == "Si2"
+        with self.assertRaises(ValueError):
+            Structure.from_mpid("foobar")
 
         # Test abiget_spginfo
         d = si.abiget_spginfo(tolsym=None, pre="abi_")

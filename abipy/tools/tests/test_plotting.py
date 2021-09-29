@@ -6,12 +6,18 @@ import numpy as np
 from abipy import abilab
 import abipy.data as abidata
 from abipy.tools.plotting import *
-from abipy.tools.plotting import is_mpl_figure, is_plotly_figure
+from abipy.tools.plotting import is_mpl_figure, is_plotly_figure, latex_greek_2unicode
 from abipy.core.testing import AbipyTest
 
 
 class TestPlotting(AbipyTest):
     """Test plotting module."""
+
+    def test_tools(self):
+        """Testing plotting tools"""
+        assert latex_greek_2unicode("alpha") == "α"
+        assert latex_greek_2unicode("$lambda $") == "λ"
+        assert latex_greek_2unicode(r"$ \lambda $") == "λ"
 
     def test_set_axlims(self):
         """Testing set_axlims."""

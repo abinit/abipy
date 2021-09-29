@@ -85,8 +85,7 @@ Usage example:
     abiopen.py FILE -eweb    => Generate matplotlib figures, show them in the $BROWSER.
     abiopen.py FILE -ply     => Generate plotly figures automatically. Show them in the $BROWSER.
                                 Note that not all FILEs support plotly.
-    abiopen.py FILE -pn      => Generate GUI in web BROWSER to interact with FILE
-                                Requires panel package (WARNING: still under development!)
+    abiopen.py FILE -pn      => Generate GUI in web BROWSER to interact with FILE. Requires panel package.
     abiopen.py FILE -nb      => Generate jupyter-lab notebook.
     abiopen.py FILE -cnb     => Generate classic jupyter notebook.
 
@@ -132,15 +131,15 @@ def get_parser(with_epilog=False):
     # print option
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
 
-    # panel option
+    # panel options
     parser.add_argument("-pn", '--panel', action='store_true', default=False,
                         help="Open Dashboard in web browser, requires panel package.")
-
     parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
                         help="Specify template for panel dasboard." +
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
+    parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
 
     # Expose option.
     parser.add_argument('-e', '--expose', action='store_true', default=False,
@@ -161,6 +160,32 @@ def get_parser(with_epilog=False):
             help='Generate plotly plots in $BROWSER instead of matplotlib. WARNING: Not all the features are supported.')
 
     return parser
+
+
+def serve_kwargs_from_options(options):
+
+    #address = "localhost"
+    if options.no_browser:
+        print("""
+Use:
+
+    ssh -N -f -L localhost:{port}:localhost:{port} username@your_remote_cluster
+
+for port forwarding.
+""")
+
+    import abipy.panels as mod
+    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
+
+    return dict(
+        debug=options.verbose > 0,
+        show=not options.no_browser,
+        port=options.port,
+        static_dirs={"/assets": assets_path},
+        #address=address,
+        #websocket_origin="{address}:{port}",
+    )
+
 
 
 @prof_main
@@ -215,6 +240,10 @@ def main():
     if options.filepath.endswith(".json"):
         return handle_json(options)
 
+    if os.path.basename(options.filepath) == "flows.db":
+        from abipy.flowtk.launcher import print_flowsdb_file
+        return print_flowsdb_file(options.filepath)
+
     if not options.notebook:
         abifile = abilab.abiopen(options.filepath)
 
@@ -256,16 +285,17 @@ def main():
             return 0
 
         elif options.panel:
-            import matplotlib
-            matplotlib.use("Agg")
-            abilab.abipanel()
-
             if not hasattr(abifile, "get_panel"):
                 raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
 
+            import matplotlib
+            matplotlib.use("Agg")
+            pn = abilab.abipanel()
+
             app = abifile.get_panel(template=options.panel_template)
-            app.show(debug=options.verbose > 0)
-            return 0
+            serve_kwargs = serve_kwargs_from_options(options)
+
+            return pn.serve(app, **serve_kwargs)
 
         # Start ipython shell with namespace
         # Use embed because I don't know how to show a header with start_ipython.
@@ -310,15 +340,13 @@ def handle_json(options):
         return 0
 
     elif options.panel:
-        # Visualize JSON document in panel dashboard
-        import json
-        import panel as pn
-        with open(options.filepath, "rt") as fh:
-            d = json.load(fh)
-        json_pane = pn.pane.JSON(d, name='JSON', height=300, width=500)
-        app = pn.Row(json_pane.controls(jslink=True), json_pane)
-        app.show()
-        return 0
+        # Visualize JSON document in panel dashboard.
+        pn = abilab.abipanel()
+        with abilab.abiopen(options.filepath) as json_file:
+            app = json_file.get_panel()
+
+        serve_kwargs = serve_kwargs_from_options(options)
+        return pn.serve(app, **serve_kwargs)
 
     else:
         if options.print:
@@ -341,6 +369,18 @@ def handle_json(options):
         IPython.embed(header="""
 The object initialized from JSON (MSONable) is associated to the `data` python variable.
 """)
+
+    return 0
+
+
+def handle_flowsdb_file(options):
+    """Handle flows.db file."""
+    import pandas as pd
+    import sqlite3
+    with sqlite3.connect(options.filepath) as con:
+        df = pd.read_sql_query("SELECT * FROM flows", con)
+        abilab.print_dataframe(df, title=options.filepath)
+    return 0
 
 
 if __name__ == "__main__":

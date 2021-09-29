@@ -4,7 +4,7 @@ K-path from IBZ
 ===============
 
 This example shows how to extract energies along a k-path
-from a calculation done with a (relatively dense) IBZ sampling.
+from a calculation done with a (dense) IBZ sampling.
 """
 from abipy.abilab import abiopen
 import abipy.data as abidata
@@ -18,7 +18,7 @@ with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gs_file:
 print(ebands_ibz.kpoints)
 
 # Build new ebands with energies along G-X-L-G path.
-# Smooth bands require dense meshes.
+# Smooth bands require dense k-meshes.
 r = ebands_ibz.with_points_along_path(knames=["G", "X", "L", "G"])
 
 print(r.ebands)

@@ -1724,7 +1724,6 @@ class KpointsReaderMixin(object):
         weights = self.read_kweights()
         ksampling = self.read_ksampling_info()
 
-        #if ksampling.kptopt < 0:
         if ksampling.kptopt < 0 or np.all(weights == 1):
             # We have a path in the BZ.
             kpath = Kpath(structure.reciprocal_lattice, frac_coords, ksampling=ksampling)
@@ -1981,4 +1980,5 @@ def build_segments(k0_list, npts, step, red_dirs, reciprocal_lattice):
 
     # Cart --> Frac
     out = reciprocal_lattice.get_fractional_coords(kpts)
+
     return np.reshape(out, (len(k0_list), len(red_dirs) * npts, 3))

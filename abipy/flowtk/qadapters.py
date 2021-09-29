@@ -11,6 +11,7 @@ This programmatic interface is used by the `TaskManager` for optimizing the para
 of the run before submitting the job (Abinit provides the autoparal option that
 allows one to get a list of parallel configuration and their expected efficiency).
 """
+from __future__ import annotations
 
 import sys
 import os
@@ -24,6 +25,7 @@ from . import qutils as qu
 
 from collections import namedtuple
 from subprocess import Popen, PIPE
+from typing import Optional, List, Tuple, Any
 from pymatgen.util.io_utils import AtomicFile
 from monty.string import is_string, list_strings
 from monty.collections import AttrDict
@@ -61,13 +63,13 @@ class SubmitResults(namedtuple("SubmitResult", "qid, out, err, process")):
     """
 
 
-class MpiRunner(object):
+class MpiRunner:
     """
     This object provides an abstraction for the mpirunner provided
     by the different MPI libraries. It's main task is handling the
     different syntax and options supported by the different mpirunners.
     """
-    def __init__(self, name, type=None, options=""):
+    def __init__(self, name: str, type=None, options: str = ""):
         """
         Args:
             name (str): Name of the mpirunner e.g. mpirun, mpiexec, srun ...
@@ -78,12 +80,17 @@ class MpiRunner(object):
         self.type = None
         self.options = str(options)
 
-    def string_to_run(self, qad, executable, stdin=None, stdout=None, stderr=None, exec_args=None):
+    def string_to_run(self, qad: QueueAdapter, executable: str,
+                      stdin: Optional[str] = None,
+                      stdout: Optional[str] = None,
+                      stderr: Optional[str] = None,
+                      exec_args: Optional[List[str]] = None
+                      ):
         """
         Build and return a string with the command required to launch `executable` with the qadapter `qad`.
 
         Args
-            qad: Qadapter instance.
+            qad: QueueAdapter instance.
             executable (str): Executable name or path
             stdin (str): Name of the file to be used as standard input. None means no redirection.
             stdout (str): Name of the file to be used as standard output. None means no redirection.
@@ -151,7 +158,7 @@ class OmpEnv(AttrDict):
     ]
 
     @classmethod
-    def as_ompenv(cls, obj):
+    def as_ompenv(cls, obj: Any) -> OmpEnv:
         """Convert an object into a OmpEnv"""
         if isinstance(obj, cls): return obj
         if obj is None: return cls()
@@ -176,12 +183,12 @@ class OmpEnv(AttrDict):
         if err_msg:
             raise ValueError(err_msg)
 
-    def export_str(self):
+    def export_str(self) -> str:
         """Return a string with the bash statements needed to setup the OMP env."""
         return "\n".join("export %s=%s" % (k, v) for k, v in self.items())
 
 
-class Hardware(object):
+class Hardware:
     """
     This object collects information on the hardware available in a given queue.
 
@@ -220,48 +227,49 @@ class Hardware(object):
         return "\n".join(lines)
 
     @property
-    def num_cores(self):
+    def num_cores(self) -> int:
         """Total number of cores available"""
         return self.cores_per_socket * self.sockets_per_node * self.num_nodes
 
     @property
-    def cores_per_node(self):
+    def cores_per_node(self) -> int:
         """Number of cores per node."""
         return self.cores_per_socket * self.sockets_per_node
 
     @property
-    def mem_per_core(self):
+    def mem_per_core(self) -> float:
         """Memory available on a single node."""
         return self.mem_per_node / self.cores_per_node
 
-    def can_use_omp_threads(self, omp_threads):
+    def can_use_omp_threads(self, omp_threads: int) -> bool:
         """True if omp_threads fit in a node."""
         return self.cores_per_node >= omp_threads
 
-    def divmod_node(self, mpi_procs, omp_threads):
+    def divmod_node(self, mpi_procs: int, omp_threads: int) -> Tuple[int, int]:
         """Use divmod to compute (num_nodes, rest_cores)"""
         return divmod(mpi_procs * omp_threads, self.cores_per_node)
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return {'num_nodes': self.num_nodes,
                 'sockets_per_node': self.sockets_per_node,
                 'cores_per_socket': self.cores_per_socket,
                 'mem_per_node': str(Memory(val=self.mem_per_node, unit='Mb'))}
 
     @classmethod
-    def from_dict(cls, dd):
-        return cls(num_nodes=dd['num_nodes'],
-                   sockets_per_node=dd['sockets_per_node'],
-                   cores_per_socket=dd['cores_per_socket'],
-                   mem_per_node=dd['mem_per_node'])
+    def from_dict(cls, d: dict) -> Hardware:
+        return cls(num_nodes=d['num_nodes'],
+                   sockets_per_node=d['sockets_per_node'],
+                   cores_per_socket=d['cores_per_socket'],
+                   mem_per_node=d['mem_per_node'])
 
 
-class _ExcludeNodesFile(object):
+class _ExcludeNodesFile:
     """
     This file contains the list of nodes to be excluded.
     Nodes are indexed by queue name.
     """
     DIRPATH = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
+
     FILEPATH = os.path.join(DIRPATH, "exclude_nodes.json")
 
     def __init__(self):
@@ -271,8 +279,8 @@ class _ExcludeNodesFile(object):
                 with open(self.FILEPATH, "w") as fh:
                     json.dump({}, fh)
 
-    def read_nodes(self, qname):
-        with open(self.FILEPATH, "w") as fh:
+    def read_nodes(self, qname: str):
+        with open(self.FILEPATH, "r") as fh:
             return json.load(fh).get(qname, [])
 
     def add_nodes(self, qname, nodes):
@@ -368,12 +376,12 @@ class QueueAdapter(MSONable, metaclass=abc.ABCMeta):
     MaxNumLaunchesError = MaxNumLaunchesError
 
     @classmethod
-    def all_qtypes(cls):
+    def all_qtypes(cls) -> List[str]:
         """Return sorted list with all qtypes supported."""
         return sorted([subcls.QTYPE for subcls in all_subclasses(cls)])
 
     @classmethod
-    def autodoc(cls):
+    def autodoc(cls) -> str:
         return """
 # Dictionary with info on the hardware available on this queue.
 hardware:
@@ -498,7 +506,7 @@ limits:
         # Final consistency check.
         self.validate_qparams()
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         """
         Provides a simple though not complete dict serialization of the object (OMP missing, not all limits are
         kept in the dictionary, ... other things to be checked)
@@ -531,7 +539,7 @@ limits:
                 }
 
     @classmethod
-    def from_dict(cls, dd):
+    def from_dict(cls, dd: dict) -> QueueAdapter:
         priority = dd.pop('priority')
         hardware = dd.pop('hardware')
         queue = dd.pop('queue')
@@ -550,7 +558,7 @@ limits:
             raise ValueError("Found unknown keywords:\n%s" % list(dd.keys()))
         return qa
 
-    def validate_qparams(self):
+    def validate_qparams(self) -> None:
         """
         Check if the keys specified by the user in qparams are supported.
 
@@ -572,7 +580,7 @@ limits:
         if err_msg:
             raise ValueError(err_msg)
 
-    def _parse_limits(self, d):
+    def _parse_limits(self, d: dict) -> None:
         # Time limits.
         self.set_timelimit(qu.timelimit_parser(d.pop("timelimit")))
         tl_hard = d.pop("timelimit_hard",None)
@@ -602,7 +610,7 @@ limits:
         if d:
             raise ValueError("Found unknown keyword(s) in limits section:\n %s" % list(d.keys()))
 
-    def _parse_job(self, d):
+    def _parse_job(self, d: dict) -> None:
         setup = d.pop("setup", None)
         if is_string(setup): setup = [setup]
         self.setup = setup[:] if setup is not None else []
@@ -638,7 +646,7 @@ limits:
         if d:
             raise ValueError("Found unknown keyword(s) in job section:\n %s" % list(d.keys()))
 
-    def _parse_queue(self, d):
+    def _parse_queue(self, d: dict) -> None:
         # Init params
         qparams = d.pop("qparams", None)
         self._qparams = copy.deepcopy(qparams) if qparams is not None else {}
@@ -661,7 +669,7 @@ limits:
         return "\n".join(lines)
 
     @property
-    def qparams(self):
+    def qparams(self) -> dict:
         """Dictionary with the parameters used to construct the header."""
         return self._qparams
 
@@ -675,22 +683,22 @@ limits:
         return re.findall(r"\$\$\{(\w+)\}", self.QTEMPLATE)
 
     @property
-    def has_mpi(self):
+    def has_mpi(self) -> bool:
         """True if we are using MPI"""
         return bool(self.mpi_runner)
 
     @property
-    def has_omp(self):
+    def has_omp(self) -> bool:
         """True if we are using OpenMP threads"""
         return hasattr(self, "omp_env") and bool(getattr(self, "omp_env"))
 
     @property
-    def num_cores(self):
+    def num_cores(self) -> int:
         """Total number of cores employed"""
         return self.mpi_procs * self.omp_threads
 
     @property
-    def omp_threads(self):
+    def omp_threads(self) -> int:
         """Number of OpenMP threads."""
         if self.has_omp:
             return self.omp_env["OMP_NUM_THREADS"]
@@ -698,26 +706,26 @@ limits:
             return 1
 
     @property
-    def pure_mpi(self):
+    def pure_mpi(self) -> bool:
         """True if only MPI is used."""
         return self.has_mpi and not self.has_omp
 
     @property
-    def pure_omp(self):
+    def pure_omp(self) -> bool:
         """True if only OpenMP is used."""
         return self.has_omp and not self.has_mpi
 
     @property
-    def hybrid_mpi_omp(self):
+    def hybrid_mpi_omp(self) -> bool:
         """True if we are running in MPI+Openmp mode."""
         return self.has_omp and self.has_mpi
 
     @property
-    def run_info(self):
+    def run_info(self) -> str:
         """String with info on the run."""
         return "MPI: %d, OMP: %d" % (self.mpi_procs, self.omp_threads)
 
-    def deepcopy(self):
+    def deepcopy(self) -> QueueAdapter:
         """Deep copy of the object."""
         return copy.deepcopy(self)
 
@@ -728,12 +736,12 @@ limits:
                      mem_per_proc=self.mem_per_proc, timelimit=self.timelimit))
         return len(self.launches)
 
-    def remove_launch(self, index):
+    def remove_launch(self, index: int) -> None:
         """Remove launch with the given index."""
         self.launches.pop(index)
 
     @property
-    def num_launches(self):
+    def num_launches(self) -> int:
         """Number of submission tried with this adapter so far."""
         return len(self.launches)
 
@@ -745,7 +753,7 @@ limits:
         else:
             return None
 
-    def validate(self):
+    def validate(self) -> None:
         """Validate the parameters of the run. Raises self.Error if invalid parameters."""
         errors = []
         app = errors.append
@@ -771,60 +779,60 @@ limits:
         if errors:
             raise self.Error(str(self) + "\n".join(errors))
 
-    def set_omp_threads(self, omp_threads):
+    def set_omp_threads(self, omp_threads: int) -> None:
         """Set the number of OpenMP threads."""
         self.omp_env["OMP_NUM_THREADS"] = omp_threads
 
     @property
-    def mpi_procs(self):
+    def mpi_procs(self) -> int:
         """Number of CPUs used for MPI."""
         return self._mpi_procs
 
-    def set_mpi_procs(self, mpi_procs):
+    def set_mpi_procs(self, mpi_procs: int) -> None:
         """Set the number of MPI processes to mpi_procs"""
         self._mpi_procs = mpi_procs
 
     @property
-    def qname(self):
+    def qname(self) -> str:
         """The name of the queue."""
         return self._qname
 
-    def set_qname(self, qname):
+    def set_qname(self, qname: str) -> None:
         """Set the name of the queue."""
         self._qname = qname
 
-    # todo this assumes only one wall time. i.e. the one in the mananager file is the one always used.
+    # todo this assumes only one wall time. i.e. the one in the manager file is the one always used.
     # we should use the standard walltime to start with but also allow to increase the walltime
 
     @property
-    def timelimit(self):
+    def timelimit(self) -> float:
         """Returns the walltime in seconds."""
         return self._timelimit
 
     @property
-    def timelimit_hard(self):
+    def timelimit_hard(self) -> float:
         """Returns the walltime in seconds."""
         return self._timelimit_hard
 
-    def set_timelimit(self, timelimit):
+    def set_timelimit(self, timelimit: float) -> None:
         """Set the start walltime in seconds, fix method may increase this one until timelimit_hard is reached."""
         self._timelimit = timelimit
 
-    def set_timelimit_hard(self, timelimit_hard):
+    def set_timelimit_hard(self, timelimit_hard: float) -> None:
         """Set the maximal possible walltime in seconds."""
         self._timelimit_hard = timelimit_hard
 
     @property
-    def mem_per_proc(self):
+    def mem_per_proc(self) -> float:
         """The memory per process in megabytes."""
         return self._mem_per_proc
 
     @property
-    def master_mem_overhead(self):
+    def master_mem_overhead(self) -> float:
         """The memory overhead for the master process in megabytes."""
         return self._master_mem_overhead
 
-    def set_mem_per_proc(self, mem_mb):
+    def set_mem_per_proc(self, mem_mb: float) -> None:
         """
         Set the memory per process in megabytes. If mem_mb <=0, min_mem_per_proc is used.
         """
@@ -851,15 +859,14 @@ limits:
         return Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "Mb")
 
     @abc.abstractmethod
-    def cancel(self, job_id):
+    def cancel(self, job_id: int) -> int:
         """
         Cancel the job.
 
         Args:
             job_id: Job identifier.
 
-        Returns:
-            Exit status.
+        Returns: Exit status.
         """
 
     def can_run_pconf(self, pconf):
@@ -982,8 +989,9 @@ limits:
 
         return '\n'.join(clean_template)
 
-    def get_script_str(self, job_name, launch_dir, executable, qout_path, qerr_path,
-                       stdin=None, stdout=None, stderr=None, exec_args=None):
+    def get_script_str(self, job_name: str, launch_dir: str,
+                       executable: str, qout_path: str, qerr_path: str,
+                       stdin=None, stdout=None, stderr=None, exec_args=None) -> str:
         """
         Returns a (multi-line) String representing the queue script, e.g. PBS script.
         Uses the template_file along with internal parameters to create the script.
@@ -1055,7 +1063,7 @@ limits:
 
         return qheader + se.get_script_str() + "\n"
 
-    def submit_to_queue(self, script_file):
+    def submit_to_queue(self, script_file: str):
         """
         Public API: wraps the concrete implementation _submit_to_queue
 
@@ -1083,7 +1091,7 @@ limits:
         return QueueJob.from_qtype_and_id(self.QTYPE, s.qid, self.qname), s.process
 
     @abc.abstractmethod
-    def _submit_to_queue(self, script_file):
+    def _submit_to_queue(self, script_file: str):
         """
         Submits the job to the queue, probably using subprocess or shutil
         This method must be provided by the concrete classes and will be called by submit_to_queue
@@ -1118,7 +1126,7 @@ limits:
         return njobs
 
     @abc.abstractmethod
-    def _get_njobs_in_queue(self, username):
+    def _get_njobs_in_queue(self, username: str):
         """
         Concrete Subclasses must implement this method. Return (njobs, process)
         """
@@ -1212,13 +1220,14 @@ class ShellAdapter(QueueAdapter):
 $${qverbatim}
 """
 
-    def cancel(self, job_id):
+    def cancel(self, job_id: int):
         return os.system("kill -9 %d" % job_id)
 
-    def _submit_to_queue(self, script_file):
-        # submit the job, return process and pid.
+    def _submit_to_queue(self, script_file: str) -> SubmitResults:
+        # Submit the job, return process and pid.
         process = Popen(("/bin/bash", script_file), stderr=PIPE)
-        return SubmitResults(qid=process.pid, out='no out in shell submission', err='no err in shell submission', process=process)
+        return SubmitResults(qid=process.pid, out='no out in shell submission',
+                             err='no err in shell submission', process=process)
 
     def _get_njobs_in_queue(self, username):
         return None, None
@@ -1261,32 +1270,32 @@ class SlurmAdapter(QueueAdapter):
 $${qverbatim}
 """
 
-    def set_qname(self, qname):
+    def set_qname(self, qname: str) -> None:
         super().set_qname(qname)
         if qname:
             self.qparams["partition"] = qname
 
-    def set_mpi_procs(self, mpi_procs):
+    def set_mpi_procs(self, mpi_procs: int) -> None:
         """Set the number of CPUs used for MPI."""
         super().set_mpi_procs(mpi_procs)
         self.qparams["ntasks"] = mpi_procs
 
-    def set_omp_threads(self, omp_threads):
+    def set_omp_threads(self, omp_threads: int) -> None:
         super().set_omp_threads(omp_threads)
         self.qparams["cpus_per_task"] = omp_threads
 
-    def set_mem_per_proc(self, mem_mb):
+    def set_mem_per_proc(self, mem_mb: float) -> None:
         """Set the memory per process in megabytes"""
         super().set_mem_per_proc(mem_mb)
         self.qparams["mem_per_cpu"] = self.mem_per_proc
         # Remove mem if it's defined.
         #self.qparams.pop("mem", None)
 
-    def set_timelimit(self, timelimit):
+    def set_timelimit(self, timelimit: float) -> None:
         super().set_timelimit(timelimit)
         self.qparams["time"] = qu.time2slurm(timelimit)
 
-    def cancel(self, job_id):
+    def cancel(self, job_id: int) -> int:
         return os.system("scancel %d" % job_id)
 
     def optimize_params(self, qnodes=None):
@@ -1318,13 +1327,10 @@ $${qverbatim}
         #    self.qparams.pop("mem", None)
         #return {}
 
-    def _submit_to_queue(self, script_file):
+    def _submit_to_queue(self, script_file: str) -> SubmitResults:
         """Submit a job script to the queue."""
-        if sys.version_info[0] < 3:
-            process = Popen(['sbatch', script_file], stdout=PIPE, stderr=PIPE)
-        else:
-            # need string not bytes so must use universal_newlines
-            process = Popen(['sbatch', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        # need string not bytes so must use universal_newlines
+        process = Popen(['sbatch', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
 
@@ -1338,6 +1344,7 @@ $${qverbatim}
             except Exception:
                 # probably error parsing job code
                 logger.critical('Could not parse job id following slurm...')
+
         return SubmitResults(qid=queue_id, out=out, err=err, process=process)
 
     def exclude_nodes(self, nodes):
@@ -1355,13 +1362,10 @@ $${qverbatim}
         except (KeyError, IndexError):
             raise self.Error('qadapter failed to exclude nodes')
 
-    def _get_njobs_in_queue(self, username):
-        if sys.version_info[0] < 3:
-            process = Popen(['squeue', '-o "%u"', '-u', username], stdout=PIPE, stderr=PIPE)
-        else:
-            # need string not bytes so must use universal_newlines
-            process = Popen(['squeue', '-o "%u"', '-u', username], stdout=PIPE, stderr=PIPE,
-                            universal_newlines=True)
+    def _get_njobs_in_queue(self, username: str):
+        # need string not bytes so must use universal_newlines
+        process = Popen(['squeue', '-o "%u"', '-u', username], stdout=PIPE, stderr=PIPE,
+                        universal_newlines=True)
 
         out, err = process.communicate()
         njobs = None
@@ -1400,7 +1404,7 @@ class PbsProAdapter(QueueAdapter):
 $${qverbatim}
 """
 
-    def set_qname(self, qname):
+    def set_qname(self, qname: str) -> None:
         super().set_qname(qname)
         if qname:
             self.qparams["queue"] = qname
@@ -1414,7 +1418,7 @@ $${qverbatim}
         super().set_mem_per_proc(mem_mb)
         #self.qparams["mem"] = self.mem_per_proc
 
-    def cancel(self, job_id):
+    def cancel(self, job_id: int) -> int:
         return os.system("qdel %d" % job_id)
 
     def optimize_params(self, qnodes=None):
@@ -1586,7 +1590,7 @@ $${qverbatim}
                 pot_ncpus_all_slaves = chunks_slaves*ncpus_per_slave
                 if pot_ncpus_all_slaves >= self.mpi_procs-1:
                     explicit_last_slave = True
-                    chunks_slaves = chunks_slaves-1
+                    chunks_slaves = chunks_slaves - 1
                     chunk_last_slave = 1
                     ncpus_master = 1
                     ncpus_last_slave = self.mpi_procs - 1 - chunks_slaves*ncpus_per_slave
@@ -1683,11 +1687,8 @@ $${qverbatim}
 
     def _submit_to_queue(self, script_file):
         """Submit a job script to the queue."""
-        if sys.version_info[0] < 3:
-            process = Popen(['qsub', script_file], stdout=PIPE, stderr=PIPE)
-        else:
-            # need string not bytes so must use universal_newlines
-            process = Popen(['qsub', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        # need string not bytes so must use universal_newlines
+        process = Popen(['qsub', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         # grab the return code. PBS returns 0 if the job was successful
@@ -1702,11 +1703,8 @@ $${qverbatim}
         return SubmitResults(qid=queue_id, out=out, err=err, process=process)
 
     def _get_njobs_in_queue(self, username):
-        if sys.version_info[0] < 3:
-            process = Popen(['qstat', '-a', '-u', username], stdout=PIPE, stderr=PIPE)
-        else:
-            # need string not bytes so must use universal_newlines
-            process = Popen(['qstat', '-a', '-u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        # need string not bytes so must use universal_newlines
+        process = Popen(['qstat', '-a', '-u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         njobs = None
@@ -1833,16 +1831,13 @@ $${qverbatim}
         # Same convention as pbspro e.g. [hours:minutes:]seconds
         self.qparams["walltime"] = qu.time2pbspro(timelimit)
 
-    def cancel(self, job_id):
+    def cancel(self, job_id: int) -> int:
         return os.system("qdel %d" % job_id)
 
     def _submit_to_queue(self, script_file):
         """Submit a job script to the queue."""
-        if sys.version_info[0] < 3:
-            process = Popen(['qsub', script_file], stdout=PIPE, stderr=PIPE)
-        else:
-            # need string not bytes so must use universal_newlines
-            process = Popen(['qsub', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        # need string not bytes so must use universal_newlines
+        process = Popen(['qsub', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         # grab the returncode. SGE returns 0 if the job was successful
@@ -1862,11 +1857,8 @@ $${qverbatim}
         raise self.Error('qadapter failed to exclude nodes, not implemented yet in sge')
 
     def _get_njobs_in_queue(self, username):
-        if sys.version_info[0] < 3:
-            process = Popen(['qstat', '-u', username], stdout=PIPE, stderr=PIPE)
-        else:
-            # need string not bytes so must use universal_newlines
-            process = Popen(['qstat', '-u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        # need string not bytes so must use universal_newlines
+        process = Popen(['qstat', '-u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         njobs = None
@@ -1928,16 +1920,13 @@ $${qverbatim}
     def exclude_nodes(self, nodes):
         raise self.Error('qadapter failed to exclude nodes, not implemented yet in moad')
 
-    def cancel(self, job_id):
+    def cancel(self, job_id: int) -> int:
         return os.system("canceljob %d" % job_id)
 
     def _submit_to_queue(self, script_file):
         """Submit a job script to the queue."""
-        if sys.version_info[0] < 3:
-            process = Popen(['msub', script_file], stdout=PIPE, stderr=PIPE)
-        else:
-            # need string not bytes so must use universal_newlines
-            process = Popen(['msub', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        # need string not bytes so must use universal_newlines
+        process = Popen(['msub', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         queue_id = None
@@ -1953,11 +1942,8 @@ $${qverbatim}
         return SubmitResults(qid=queue_id, out=out, err=err, process=process)
 
     def _get_njobs_in_queue(self, username):
-        if sys.version_info[0] < 3:
-            process = Popen(['showq', '-s -u', username], stdout=PIPE, stderr=PIPE)
-        else:
-            # need string not bytes so must use universal_newlines
-            process = Popen(['showq', '-s -u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        # need string not bytes so must use universal_newlines
+        process = Popen(['showq', '-s -u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         njobs = None
@@ -2028,7 +2014,7 @@ $${qverbatim}
         super().set_timelimit(timelimit)
         self.qparams["wall_clock_limit"] = qu.time2loadlever(timelimit)
 
-    def cancel(self, job_id):
+    def cancel(self, job_id: int) -> int:
         return os.system("llcancel %d" % job_id)
 
     def bgsize_rankspernode(self):
@@ -2048,13 +2034,10 @@ $${qverbatim}
 
         return {"bg_size": bg_size}
 
-    def _submit_to_queue(self, script_file):
+    def _submit_to_queue(self, script_file: str):
         """Submit a job script to the queue."""
-        if sys.version_info[0] < 3:
-            process = Popen(['llsubmit', script_file], stdout=PIPE, stderr=PIPE)
-        else:
-            # need string not bytes so must use universal_newlines
-            process = Popen(['llsubmit', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        # need string not bytes so must use universal_newlines
+        process = Popen(['llsubmit', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         # grab the return code. llsubmit returns 0 if the job was successful
@@ -2073,12 +2056,9 @@ $${qverbatim}
 
         return SubmitResults(qid=queue_id, out=out, err=err, process=process)
 
-    def _get_njobs_in_queue(self, username):
-        if sys.version_info[0] < 3:
-            process = Popen(['llq', '-u', username], stdout=PIPE, stderr=PIPE)
-        else:
-            # need string not bytes so must use universal_newlines
-            process = Popen(['llq', '-u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    def _get_njobs_in_queue(self, username: str):
+        # need string not bytes so must use universal_newlines
+        process = Popen(['llq', '-u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         njobs = None

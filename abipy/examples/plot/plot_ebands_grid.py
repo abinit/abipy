@@ -24,8 +24,11 @@ print(frame)
 
 #%%
 # To create a grid plot use:
-
 plotter.gridplot(with_gaps=True)
+
+#%%
+# Plotly version:
+plotter.gridplotly(with_gaps=True)
 
 #%%
 # To plot a grid with band structures + DOS, use the optional argument `edos_objects`
@@ -41,3 +44,7 @@ plotter.add_ebands("Si", ref_file("si_nscf_GSR.nc"), edos=ref_file("si_scf_GSR.n
 plotter.add_ebands("Same data", ref_file("si_nscf_GSR.nc"), edos=ref_file("si_scf_GSR.nc"))
 # sphinx_gallery_thumbnail_number = 2
 plotter.gridplot()
+
+#%%
+# Plotly version:
+plotter.gridplotly()

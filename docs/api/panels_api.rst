@@ -61,6 +61,16 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+
+:mod:`nodes` Module
+-------------------
+
+.. automodule:: abipy.panels.nodes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`outputs` Module
 ---------------------
 
@@ -77,14 +87,6 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`pipelines` Module
------------------------
-
-.. automodule:: abipy.panels.pipelines
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`sigeph` Module
 ---------------------
 
@@ -97,6 +99,30 @@ panels Package
 -----------------------
 
 .. automodule:: abipy.panels.structure
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`tasks` Module
+-------------------
+
+.. automodule:: abipy.panels.tasks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`viewers` Module
+---------------------
+
+.. automodule:: abipy.panels.viewers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`works` Module
+-------------------
+
+.. automodule:: abipy.panels.works
    :members:
    :undoc-members:
    :show-inheritance:

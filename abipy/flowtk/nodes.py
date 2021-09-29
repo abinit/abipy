@@ -2,6 +2,7 @@
 """
 This module defines the Node base class inherited by Task, Work and Flow objects.
 """
+from __future__ import annotations
 
 import sys
 import os
@@ -9,9 +10,12 @@ import time
 import collections
 import abc
 import numpy as np
+import pandas as pd
 
 from collections import OrderedDict
 from pprint import pprint
+from typing import List, Any, Union
+from monty.json import jsanitize
 from pymatgen.util.io_utils import AtomicFile
 from pydispatch import dispatcher
 from monty.termcolor import colored
@@ -74,13 +78,13 @@ class Status(int):
         return self._STATUS2STR[self]
 
     @classmethod
-    def as_status(cls, obj):
+    def as_status(cls, obj: Any) -> Status:
         """Convert obj into Status."""
         if obj is None: return None
         return obj if isinstance(obj, cls) else cls.from_string(obj)
 
     @classmethod
-    def from_string(cls, s):
+    def from_string(cls, s: string) -> str:
         """Return a `Status` instance from its string representation."""
         for num, text in cls._STATUS2STR.items():
             if text == s:
@@ -89,21 +93,21 @@ class Status(int):
             raise ValueError("Wrong string %s" % s)
 
     @classmethod
-    def all_status_strings(cls):
+    def all_status_strings(cls) -> List[str]:
         """List of strings with all possible values status."""
         return [info[1] for info in cls._STATUS_INFO]
 
     @property
-    def is_critical(self):
+    def is_critical(self) -> bool:
         """True if status is critical."""
         return str(self) in ("AbiCritical", "QCritical", "Unconverged", "Error")
 
     @property
-    def color_opts(self):
+    def color_opts(self) -> dict:
         return self._STATUS2COLOR_OPTS[self]
 
     @property
-    def colored(self):
+    def colored(self) -> str:
         """Return colorized text used to print the status if the stream supports it."""
         return colored(str(self), **self.color_opts)
 
@@ -151,21 +155,21 @@ class Dependency(object):
         return "node %s will produce: %s " % (str(self.node), str(self.exts))
 
     @property
-    def info(self):
+    def info(self) -> str:
         return str(self.node)
 
     @property
-    def node(self):
+    def node(self) -> Node:
         """The |Node| associated to the dependency."""
         return self._node
 
     @property
-    def status(self):
+    def status(self) -> Status:
         """The status of the dependency, i.e. the status of the |Node|."""
         return self.node.status
 
     @lazy_property
-    def products(self):
+    def products(self) -> List[Product]:
         """List of output files produces by self."""
         _products = []
         for ext in self.exts:
@@ -220,7 +224,7 @@ class Product(object):
     A product represents an output file produced by ABINIT instance.
     This file is needed to start another `Task` or another `Work`.
     """
-    def __init__(self, ext, path):
+    def __init__(self, ext: str, path: str):
         """
         Args:
             ext: ABINIT file extension
@@ -233,7 +237,7 @@ class Product(object):
         self.file = File(path)
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> Product:
         """Build a :class:`Product` instance from a filepath."""
         # Find the abinit extension.
         for i in range(len(filepath)):
@@ -249,11 +253,11 @@ class Product(object):
         return "File=%s, Extension=%s, " % (self.file.path, self.ext)
 
     @property
-    def filepath(self):
+    def filepath(self) -> str:
         """Absolute path of the file."""
         return self.file.path
 
-    def connecting_vars(self):
+    def connecting_vars(self) -> dict:
         """
         Returns a dictionary with the ABINIT variables that
         must be used to make the code use this file.
@@ -422,6 +426,7 @@ def check_spectator(node_method):
     Decorator for |Node| methods. Raise `SpectatorNodeError`.
     """
     from functools import wraps
+
     @wraps(node_method)
     def wrapper(*args, **kwargs):
         node = args[0]
@@ -492,6 +497,7 @@ class Node(metaclass=abc.ABCMeta):
 
     def __init__(self):
         self._in_spectator_mode = False
+
         # Node identifier.
         self._node_id = get_newnode_id()
 
@@ -506,6 +512,19 @@ class Node(metaclass=abc.ABCMeta):
 
         # Actions performed to fix abicritical events.
         self._corrections = NodeCorrections()
+
+        # String in markdown syntax that may be used to add extra info in human-readable format.
+        # If set, a README.md file will be produced in the working directory of the node.
+        self.readme_md = None
+
+        # A string with a message that may be set by the user
+        # Mainly used for building a columns in the SQLite Table when using AbiPy workers.
+        # Use set_user_message to set this variable.
+        self._user_message = ""
+
+        # This object can be used to store metadata about the node
+        # The content will be saved in json format in the working directory of the node.
+        self.abipy_meta_json = None
 
         # Set to true if the node has been finalized.
         self._finalized = False
@@ -558,7 +577,7 @@ class Node(metaclass=abc.ABCMeta):
             return self.__class__.__name__.lower() == class_or_string.lower()
 
     @classmethod
-    def as_node(cls, obj):
+    def as_node(cls, obj: Any) -> Union[Node, None]:
         """
         Convert obj into a Node instance.
 
@@ -578,7 +597,7 @@ class Node(metaclass=abc.ABCMeta):
             raise TypeError("Don't know how to convert %s to Node instance." % obj)
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         The name of the node
         (only used for facilitating its identification in the user interface).
@@ -605,7 +624,7 @@ class Node(metaclass=abc.ABCMeta):
             # current working directory may not be defined!
             return self.workdir
 
-    def set_name(self, name):
+    def set_name(self, name: str) -> None:
         """Set the name of the Node."""
         self._name = name
 
@@ -614,32 +633,58 @@ class Node(metaclass=abc.ABCMeta):
         """Node identifier."""
         return self._node_id
 
+    def set_readme(self, md_string: str) -> None:
+        """
+        Set the value of readme_md.
+        """
+        self.readme_md = str(md_string)
+
+    def set_abipy_meta_json(self, data: dict) -> None:
+        """
+        Set the value of abipy_meta_json
+        """
+        self.abipy_meta_json = jsanitize(data, strict=False)
+        if not isinstance(self.abipy_meta_json, dict):
+            raise TypeError(f"abipy_meta_json should be a dict but got {type(self.abipy_meta_json)}")
+
+    def set_user_message(self, user_message: str) -> None:
+        """
+        Set the value of user_message
+        """
+        self._user_message = str(user_message)
+
+    @property
+    def user_message(self) -> str:
+        return self._user_message
+
     @check_spectator
-    def set_node_id(self, node_id):
+    def set_node_id(self, node_id) -> None:
         """Set the node identifier. Use it carefully!"""
         self._node_id = node_id
 
     @property
-    def finalized(self):
+    def finalized(self) -> bool:
         """True if the `Node` has been finalized."""
         return self._finalized
 
     @finalized.setter
-    def finalized(self, boolean):
+    def finalized(self, boolean: bool) -> None:
         self._finalized = boolean
         self.history.info("Finalized set to %s" % self._finalized)
 
     @property
-    def in_spectator_mode(self):
+    def in_spectator_mode(self) -> bool:
+        """True if we are in spectator mode."""
         return self._in_spectator_mode
 
     @in_spectator_mode.setter
-    def in_spectator_mode(self, mode):
+    def in_spectator_mode(self, mode: bool) -> None:
+        """Set the value of in_spectator_mode"""
         self._in_spectator_mode = bool(mode)
         #self.history.info("in_spectator_mode set to %s" % mode)
 
     @property
-    def corrections(self):
+    def corrections(self) -> List[dict]:
         """
         List of dictionaries with infornation on the actions performed to solve `AbiCritical` Events.
         Each dictionary contains the `AbinitEvent` who triggered the correction and
@@ -648,10 +693,10 @@ class Node(metaclass=abc.ABCMeta):
         return self._corrections
 
     @property
-    def num_corrections(self):
+    def num_corrections(self) -> int:
         return len(self.corrections)
 
-    def log_correction(self, event, action):
+    def log_correction(self, event, action) -> None:
         """
         This method should be called once we have fixed the problem associated to this event.
         It adds a new entry in the correction history of the node.
@@ -670,30 +715,30 @@ class Node(metaclass=abc.ABCMeta):
         ))
 
     @property
-    def is_file(self):
+    def is_file(self) -> bool:
         """True if this node is a file"""
         return isinstance(self, FileNode)
 
     @property
-    def is_task(self):
+    def is_task(self) -> bool:
         """True if this node is a Task"""
         from .tasks import Task
         return isinstance(self, Task)
 
     @property
-    def is_work(self):
+    def is_work(self) -> bool:
         """True if this node is a Work"""
         from .works import Work
         return isinstance(self, Work)
 
     @property
-    def is_flow(self):
+    def is_flow(self) -> bool:
         """True if this node is a Flow"""
         from .flows import Flow
         return isinstance(self, Flow)
 
     @property
-    def deps(self):
+    def deps(self) -> List[Dependency]:
         """
         List of :class:`Dependency` objects defining the dependencies
         of this `Node`. Empty list if this |Node| does not have dependencies.
@@ -774,11 +819,11 @@ class Node(metaclass=abc.ABCMeta):
 
         return [d.status for d in self.deps]
 
-    def depends_on(self, other):
+    def depends_on(self, other: None) -> bool:
         """True if this node depends on the other node."""
         return other in [d.node for d in self.deps]
 
-    def find_parent_with_ext(self, ext):
+    def find_parent_with_ext(self, ext) -> Node:
         """
         Return the parent (usually a |Task|) that produces the file with extension `ext`.
         Raises ValueError if multiple parents are found.
@@ -795,11 +840,11 @@ class Node(metaclass=abc.ABCMeta):
 
         return parent
 
-    def get_parents(self):
+    def get_parents(self) -> List[Node]:
         """Return the list of nodes in the |Flow| required by this |Node|"""
         return [d.node for d in self.deps]
 
-    def get_children(self):
+    def get_children(self) -> List[Node]:
         """
         Return the list of nodes in the |Flow| that depends on this |Node|
 
@@ -819,7 +864,7 @@ class Node(metaclass=abc.ABCMeta):
                 if task.depends_on(self): children.append(task)
         return children
 
-    def str_deps(self):
+    def str_deps(self) -> str:
         """Return the string representation of the dependencies of the node."""
         lines = []
         app = lines.append
@@ -830,7 +875,7 @@ class Node(metaclass=abc.ABCMeta):
 
         return "\n".join(lines)
 
-    def get_vars_dataframe(self, *varnames):
+    def get_vars_dataframe(self, *varnames) -> pd.DataFrame:
         """
         Return pandas DataFrame with the value of the variables specified in `varnames`.
         Can be used for task/works/flow. It's recursive!
@@ -840,7 +885,6 @@ class Node(metaclass=abc.ABCMeta):
             flow.get_vars_dataframe("ecut", "ngkpt")
             work.get_vars_dataframe("acell", "usepawu")
         """
-        import pandas as pd
         if self.is_task:
             df = pd.DataFrame([{v: self.input.get(v, None) for v in varnames}], index=[self.name], columns=varnames)
             df["class"] = self.__class__.__name__
@@ -936,7 +980,7 @@ class Node(metaclass=abc.ABCMeta):
 
         self._event_handlers = handlers
 
-    def show_event_handlers(self, stream=sys.stdout, verbose=0):
+    def show_event_handlers(self, stream=sys.stdout, verbose=0) -> None:
         """Print to `stream` the event handlers installed for this flow."""
         lines = ["List of event handlers installed:"]
         for handler in self.event_handlers:
@@ -948,7 +992,7 @@ class Node(metaclass=abc.ABCMeta):
         stream.write("\n".join(lines))
         stream.write("\n")
 
-    def send_signal(self, signal):
+    def send_signal(self, signal) -> None:
         """
         Send signal from this node to all connected receivers unless the node is in spectator mode.
 
@@ -965,14 +1009,24 @@ class Node(metaclass=abc.ABCMeta):
         self.history.debug("Node %s broadcasts signal %s" % (self, signal))
         dispatcher.send(signal=signal, sender=self)
 
-    def write_json_in_outdir(self, filename, data):
+    def write_json_in_outdir(self, filename: str, data: dict) -> str:
         """
         Write data to json file of basename filename inside the outdir directory of the node.
         Support MSONable objects. Return path of json file.
         """
-        from monty.json import jsanitize
         data = jsanitize(data, strict=False)
         path = self.outdir.path_in(filename)
+        json_pretty_dump(data, path)
+
+        return path
+
+    def write_json_in_workdir(self, filename: str, data: dict) -> str:
+        """
+        Write data to json file of basename filename inside the outdir directory of the node.
+        Support MSONable objects. Return path of json file.
+        """
+        data = jsanitize(data, strict=False)
+        path = os.path.join(self.workdir, filename)
         json_pretty_dump(data, path)
 
         return path
@@ -1021,19 +1075,19 @@ class FileNode(Node):
             return "<%s, node_id=%s, path=%s>" % (self.__class__.__name__, self.node_id, self.filepath)
 
     @lazy_property
-    def basename(self):
+    def basename(self) -> str:
         """Basename of the file."""
         return os.path.basename(self.filepath)
 
     @property
-    def products(self):
+    def products(self) -> List[Product]:
         return [Product.from_file(self.filepath)]
 
-    def opath_from_ext(self, ext):
+    def opath_from_ext(self, ext) -> str:
         return self.filepath
 
     @property
-    def status(self):
+    def status(self) -> Status:
         return self.S_OK if os.path.exists(self.filepath) else self.S_ERROR
 
     def check_status(self):
@@ -1252,7 +1306,7 @@ class NodeCorrections(list):
     """Iterable storing the correctios performed by the :class:`EventHandler`"""
     #TODO
     # Correction should have a human-readable message
-    # and a list of operatins in JSON format (Modder?) so that
+    # and a list of operations in JSON format (Modder?) so that
     # we can read them and re-apply the corrections to another task if needed.
 
     #def count_event_class(self, event_class):
@@ -1296,7 +1350,7 @@ def init_counter():
             _COUNTER = int(s)
 
 
-def get_newnode_id():
+def get_newnode_id() -> int:
     """
     Returns a new node identifier used for |Task|, |Work| and |Flow| objects.
 
@@ -1305,6 +1359,9 @@ def get_newnode_id():
         The id is unique inside the same python process so be careful when
         Works and Tasks are constructed at run-time or when threads are used.
     """
+    #import uuid
+    #return uuid.uuid4()
+
     init_counter()
 
     global _COUNTER

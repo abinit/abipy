@@ -10,6 +10,10 @@ from abipy.flowtk.qadapters import QueueAdapter, SlurmAdapter, OmpEnv
 from abipy.flowtk import qutils as qu
 
 
+def safe_load(string):
+    return yaml.YAML(typ='safe', pure=True).load(string)
+
+
 class OmpEnvTest(AbipyTest):
     def test_base(self):
         assert OmpEnv(OMP_NUM_THREADS=1).OMP_NUM_THREADS == "1"
@@ -40,7 +44,7 @@ class ParseTimestr(AbipyTest):
 
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class QadapterTest(AbipyTest):
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 1
 queue:
     qtype: slurm
@@ -171,7 +175,7 @@ hardware:
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class ShellAdapterTest(AbipyTest):
     """Test suite for Shell adapter."""
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 1
 queue:
     qname: localhost
@@ -220,7 +224,7 @@ source ~/env1.sh
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class SlurmAdapterTest(AbipyTest):
     """Test suite for Slurm adapter."""
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 5
 queue:
   qtype: slurm
@@ -306,7 +310,7 @@ mpirun --bind-to None -n 4 executable < stdin > stdout 2> stderr
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class PbsProadapterTest(AbipyTest):
     """Test suite for PbsPro adapter."""
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 1
 queue:
     qtype: pbspro
@@ -324,7 +328,7 @@ hardware:
     sockets_per_node: 2
     cores_per_socket: 4
     mem_per_node: 8 Gb""")
-    QDICT_SHARED = yaml.safe_load("""\
+    QDICT_SHARED = safe_load("""\
 priority: 1
 queue:
     qtype: pbspro
@@ -345,7 +349,7 @@ hardware:
     sockets_per_node: 2
     cores_per_socket: 12
     mem_per_node: 48000 Mb""")
-    QDICT_EXCLUSIVE = yaml.safe_load("""\
+    QDICT_EXCLUSIVE = safe_load("""\
 priority: 1
 queue:
     qtype: pbspro

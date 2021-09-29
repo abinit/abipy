@@ -13,13 +13,11 @@ automated by just issuing in the terminal::
     abiopen.py FILE --expose
 
 to generate a predefined list of **matplotlib** plots.
-To activate the plotly version use:
+To activate the plotly version (if available) use:
 
 .. code-block:: shell
 
     abiopen.py FILE --plotly
-
-although at the time of writing not all the files support this protocol.
 
 Note also that one can generate jupyter-lab notebooks directly from the command line with
 abiopen.py_ and the command::

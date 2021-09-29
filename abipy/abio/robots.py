@@ -3,13 +3,17 @@
 This module defines the Robot BaseClass. Robots operates on multiple files and provide helper
 functions to plot the data e.g. convergence studies and to build pandas dataframes from the output files.
 """
+from __future__ import annotations
+
 import sys
 import os
 import inspect
 import itertools
 import numpy as np
+import pandas as pd
 
 from collections import OrderedDict, deque
+from typing import List, ClassVar, Callable, Union
 from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
@@ -54,14 +58,14 @@ class Robot(NotebookWriter):
             self.add_file(label, abifile)
 
     @classmethod
-    def get_supported_extensions(self):
+    def get_supported_extensions(self) -> List[str]:
         """List of strings with extensions supported by Robot subclasses."""
         # This is needed to have all subclasses.
         from abipy.abilab import Robot
         return sorted([cls.EXT for cls in Robot.__subclasses__()])
 
     @classmethod
-    def class_for_ext(cls, ext):
+    def class_for_ext(cls, ext: str) -> ClassVar:
         """Return the Robot subclass associated to the given extension."""
         for subcls in cls.__subclasses__():
             if subcls.EXT in (ext, ext.upper()):
@@ -77,7 +81,7 @@ class Robot(NotebookWriter):
                          str(cls.get_supported_extensions()))
 
     @classmethod
-    def from_dir(cls, top, walk=True, abspath=False):
+    def from_dir(cls, top: str, walk: bool = True, abspath: bool = False) -> Robot:
         """
         This class method builds a robot by scanning all files located within directory `top`.
         This method should be invoked with a concrete robot class, for example:
@@ -94,7 +98,7 @@ class Robot(NotebookWriter):
         return new
 
     @classmethod
-    def from_dirs(cls, dirpaths, walk=True, abspath=False):
+    def from_dirs(cls, dirpaths: List[str], walk: bool = True, abspath: bool = False) -> Robot:
         """
         Similar to `from_dir` but accepts a list of directories instead of a single directory.
 
@@ -110,7 +114,7 @@ class Robot(NotebookWriter):
         return new
 
     @classmethod
-    def from_dir_glob(cls, pattern, walk=True, abspath=False):
+    def from_dir_glob(cls, pattern: str, walk: bool = True, abspath: bool = False) -> Robot:
         """
         This class method builds a robot by scanning all files located within the directories
         matching `pattern` as implemented by glob.glob
@@ -132,7 +136,7 @@ class Robot(NotebookWriter):
         return new
 
     @classmethod
-    def _open_files_in_dir(cls, top, walk):
+    def _open_files_in_dir(cls, top: str, walk: bool):
         """Open files in directory tree starting from `top`. Return list of Abinit files."""
         if not os.path.isdir(top):
             raise ValueError("%s: no such directory" % str(top))
@@ -153,7 +157,7 @@ class Robot(NotebookWriter):
         return items
 
     @classmethod
-    def class_handles_filename(cls, filename):
+    def class_handles_filename(cls, filename: str) -> bool:
         """True if robot class handles filename."""
         # Special treatment of AnaddbNcRobot
         if cls.EXT == "anaddb" and os.path.basename(filename).lower() == "anaddb.nc":
@@ -163,7 +167,7 @@ class Robot(NotebookWriter):
                 filename.endswith("." + cls.EXT))  # This for .abo
 
     @classmethod
-    def from_files(cls, filenames, labels=None, abspath=False):
+    def from_files(cls, filenames, labels=None, abspath=False) -> Robot:
         """
         Build a Robot from a list of `filenames`.
         if labels is None, labels are automatically generated from absolute paths.
@@ -192,7 +196,7 @@ class Robot(NotebookWriter):
         return new
 
     @classmethod
-    def from_flow(cls, flow, outdirs="all", nids=None, ext=None, task_class=None):
+    def from_flow(cls, flow, outdirs="all", nids=None, ext=None, task_class=None) -> Robot:
         """
         Build a robot from a |Flow| object.
 
@@ -286,7 +290,7 @@ class Robot(NotebookWriter):
 
             self.add_file(label, filepath)
 
-    def scan_dir(self, top, walk=True):
+    def scan_dir(self, top: str, walk: bool = True) -> int:
         """
         Scan directory tree starting from ``top``. Add files to the robot instance.
 
@@ -304,7 +308,7 @@ class Robot(NotebookWriter):
 
         return count
 
-    def add_file(self, label, abifile, filter_abifile=None):
+    def add_file(self, label, abifile, filter_abifile=None) -> None:
         """
         Add a file to the robot with the given label.
 
@@ -369,7 +373,12 @@ class Robot(NotebookWriter):
         root = os.getcwd()
         return [os.path.relpath(p, root) for p in paths]
 
-    def pop_label(self, label):
+    def remove(self):
+        """Close the file handle, remove the file from disk for each file in the robot."""
+        for abifile in self.abifiles:
+            abifile.remove()
+
+    def pop_label(self, label: str) -> None:
         """
         Remove file with the given ``label`` and close it.
         """
@@ -382,7 +391,7 @@ class Robot(NotebookWriter):
                     print("Exception while closing: ", abifile.filepath)
                     print(exc)
 
-    def change_labels(self, new_labels, dryrun=False):
+    def change_labels(self, new_labels: List[str], dryrun: bool = False) -> dict:
         """
         Change labels of the files.
 
@@ -409,7 +418,7 @@ class Robot(NotebookWriter):
 
         return new2old
 
-    def remap_labels(self, function, dryrun=False):
+    def remap_labels(self, function: Callable, dryrun: bool = False) -> dict:
         """
         Change labels of the files by executing ``function``
 
@@ -476,7 +485,7 @@ class Robot(NotebookWriter):
         return self._abifiles.items()
 
     @property
-    def labels(self):
+    def labels(self) -> List[str]:
         """
         List of strings used to create labels in matplotlib figures when plotting results
         taked from multiple files. By default, labels is initialized with the path of the files in the robot.
@@ -501,7 +510,7 @@ class Robot(NotebookWriter):
         """Invoked by str."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = ["%s with %d files in memory:\n" % (self.__class__.__name__, len(self.abifiles))]
         app = lines.append
@@ -511,7 +520,7 @@ class Robot(NotebookWriter):
 
         return "\n".join(lines)
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         """Integration with jupyter_ notebooks."""
         return '<ol start="0">\n{}\n</ol>'.format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
 
@@ -520,7 +529,7 @@ class Robot(NotebookWriter):
         """List of netcdf files."""
         return list(self._abifiles.values())
 
-    def has_different_structures(self, rtol=1e-05, atol=1e-08):
+    def has_different_structures(self, rtol=1e-05, atol=1e-08) -> str:
         """
         Check if structures are equivalent,
         return string with info about differences (if any).
@@ -558,7 +567,7 @@ class Robot(NotebookWriter):
     #    else:
     #        return [duck.getattrd(abifile, func_or_string)(*args, **kwargs) for abifile in self.abifiles]
 
-    def is_sortable(self, aname, raise_exc=False):
+    def is_sortable(self, aname: str, raise_exc: bool = False) -> bool:
         """
         Return True if ``aname`` is an attribute of the netcdf file
         If raise_exc is True, AttributeError with an explicit message is raised.
@@ -628,7 +637,8 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         else:
             return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
 
-    def sortby(self, func_or_string, reverse=False, unpack=False):
+    def sortby(self, func_or_string: Union[Callable, str, None],
+               reverse: bool = False, unpack: bool = False) -> List[tuple]:
         """
         Sort files in the robot by ``func_or_string``.
 
@@ -646,7 +656,9 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         labelfile_list = list(self.items())
         return self._sortby_labelfile_list(labelfile_list, func_or_string, reverse=reverse, unpack=unpack)
 
-    def group_and_sortby(self, hue, func_or_string):
+    def group_and_sortby(self,
+                         hue: Union[Callable, str],
+                         func_or_string: Union[Callable, str, None]) -> List[HueGroup]:
         """
         Group files by ``hue`` and, inside each group` sort items by ``func_or_string``.
 
@@ -690,7 +702,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         return groups
 
-    def close(self):
+    def close(self) -> None:
         """
         Close all files that have been opened by the Robot.
         """
@@ -780,17 +792,17 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         abifiles = self.abifiles if filter_abifile is not None else list(filter(filter_abifile, self.abifiles))
         return dataframes_from_structures(struct_objects=abifiles, **kwargs)
 
-    def get_lattice_dataframe(self, **kwargs):
+    def get_lattice_dataframe(self, **kwargs) -> pd.DataFrame:
         """Return |pandas-DataFrame| with lattice parameters."""
         dfs = self.get_structure_dataframes(**kwargs)
         return dfs.lattice
 
-    def get_coords_dataframe(self, **kwargs):
+    def get_coords_dataframe(self, **kwargs) -> pd.DataFrame:
         """Return |pandas-DataFrame| with atomic positions."""
         dfs = self.get_structure_dataframes(**kwargs)
         return dfs.coords
 
-    def get_params_dataframe(self, abspath=False):
+    def get_params_dataframe(self, abspath: bool = False) -> pd.DataFrame:
         """
         Return |pandas-DataFrame| with the most important parameters.
         that are usually subject to convergence studies.
@@ -808,7 +820,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             row_names.append(label)
 
         row_names = row_names if abspath else self._to_relpaths(row_names)
-        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     ##############################################
@@ -837,7 +848,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             return str(func_or_string)
 
     @add_fig_kwargs
-    def plot_convergence(self, item, sortby=None, hue=None, ax=None, fontsize=8, **kwargs):
+    def plot_convergence(self, item: Union[str, Callable],
+                         sortby=None, hue=None, ax=None, fontsize=8, **kwargs):
         """
         Plot the convergence of ``item`` wrt the ``sortby`` parameter.
         Values can optionally be grouped by ``hue``.
@@ -903,7 +915,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         return fig
 
     @add_fig_kwargs
-    def plot_convergence_items(self, items, sortby=None, hue=None, fontsize=6, **kwargs):
+    def plot_convergence_items(self, items: List[Union[str, Callable]],
+                               sortby=None, hue=None, fontsize=6, **kwargs):
         """
         Plot the convergence of a list of ``items`` wrt to the ``sortby`` parameter.
         Values can optionally be grouped by ``hue``.
@@ -1086,7 +1099,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
 class HueGroup(object):
     """
-    This small object is used by ``group_and_sortby`` to store information abouth the group.
+    This small object is used by ``group_and_sortby`` to store information about the group.
     """
 
     def __init__(self, hvalue, xvalues, abifiles, labels):

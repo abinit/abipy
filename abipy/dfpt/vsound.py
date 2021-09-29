@@ -1,16 +1,20 @@
 # coding: utf-8
 """Tools to compute speed of sound."""
+from __future__ import annotations
+
 import math
 import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
+from typing import List
+from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvectors
 from abipy.abio.inputs import AnaddbInput
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible, get_fig_plotly, get_figs_plotly, \
-    add_plotly_fig_kwargs, plotlyfigs_to_browser, PlotlyRowColDesc
+    add_plotly_fig_kwargs, PlotlyRowColDesc
 from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
 
 
@@ -45,19 +49,20 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         self._structure = structure
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object"""
         return self._structure
 
     @property
-    def n_directions(self):
+    def n_directions(self) -> int:
         """Number of directions."""
         return len(self.directions)
 
     @classmethod
     def from_ddb(cls, ddb_path, directions=None, labels=None, num_points=20, qpt_norm=0.1,
-                 ignore_neg_freqs=True, asr=2, chneut=1, dipdip=1, ngqpt=None, spell_check=True,
-                 anaddb_kwargs=None, verbose=0, mpi_procs=1, workdir=None, manager=None):
+                 ignore_neg_freqs=True, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
+                 ngqpt=None, spell_check=True, anaddb_kwargs=None, verbose=0, mpi_procs=1, workdir=None, manager=None,
+                 return_input=False):
         """
         Creates and instance of the object. Runs anaddb along the specified
         directions or the standard directions in the standard paths given
@@ -71,18 +76,20 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             labels (list): list of string with the name of the directions.
             num_points (int): number of points calculated along each direction and used to
                 fit the speed of sound.
-            qpt_norm (float): Norm of the largest point in fractional coordinates for
+            qpt_norm (float): Norm of the largest q-point in fractional coordinates for
                 each of the directions considered.
-            ignore_neg_freqs (bool): if True points with negative frequencies will not be
+            ignore_neg_freqs (bool): if True, q-points with negative frequencies will not be
                 considered in the fit, in order to ignore inaccuracies in the long range
                 behavior.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).
             anaddb_kwargs: additional kwargs for anaddb.
             verbose: verbosity level. Set it to a value > 0 to get more information.
             mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file.
+            return_input: True if the |AnaddbInput| object should be returned as 2nd argument
 
         Returns: an instance of SoundVelocity
         """
@@ -101,6 +108,8 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                 asr=asr,
                 chneut=chneut,
                 dipdip=dipdip,
+                dipquad=dipquad,
+                quadquad=quadquad,
             )
 
             if not directions:
@@ -142,10 +151,13 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
             phbst_path = task.outpath_from_ext("PHBST")
 
-            return cls.from_phbst(phbst_path, ignore_neg_freqs=ignore_neg_freqs, labels=labels)
+            new = cls.from_phbst(phbst_path, ignore_neg_freqs=ignore_neg_freqs, labels=labels)
+            return new if not return_input else (new, inp)
 
     @classmethod
-    def from_phbst(cls, phbst_path, ignore_neg_freqs=True, labels=None):
+    def from_phbst(cls, phbst_path: str,
+                   ignore_neg_freqs: bool = True,
+                   labels: List[str] = None) -> SoundVelocity:
         """
         Creates an instance of the object starting interpolating the acoustic frequencies
         from a PHBST netcdf file.
@@ -265,7 +277,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         return cls(directions=directions, sound_velocities=sound_velocities, mode_types=mode_types,
                    structure=structure, labels=labels, phfreqs=all_acoustic_freqs, qpts=all_qpts)
 
-    def get_dataframe(self):
+    def get_dataframe(self) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the data of the speed of sound.
         """

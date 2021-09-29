@@ -19,6 +19,11 @@ TODO list:
             NscfTask: {scale_max_cores: 0.5, scale_timelimit: 0.2}
             KerangeTask: {max_cores: 2, timelimit: 0:5:0}
 
+  You should be able to specify the Qadapter as well.
+
+* Recheck autoparal code in abinit. For the DFPT part, the computation of the weights is clearly 
+  wrong because with nkpt 128 Abinit suggests to use nprocs 130 !!!!!!
+
 * Implement Task modifier i.e. operations that change the input file if some condition occurs.
   This extra logic is require to handle problematic cases in which for instance the ScfTask does not converge
   and modification in the input file are required
@@ -69,6 +74,9 @@ TODO list:
 
 * Check whether it's possible to reduce the memory of the SIGRES file wihouth brealing backward compatibility.
   eigvec_qp = self.read_variable("eigvec_qp") scales quite badly with nands
+
+* Migrate to pyproject.toml. Implement script to generate requirements.yml
+  Very likely `conda install --file requirements-optional.txt` is now broken to the introduction of `-r`.
 
 
 ## Medium priority

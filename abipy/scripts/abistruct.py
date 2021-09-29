@@ -59,9 +59,9 @@ Usage example:
                                               and save "abisanitized" structure to file.
   abistruct.py conventional FILE           => Read structure from FILE, generate conventional structure
                                               following doi:10.1016/j.commatsci.2010.05.010
-  abistruct.py proto FILE                 => Read structure from FILE, find possible crystallographic prototypes:
-                                             in the AFLOW library of crystallographic prototypes.
-                                             http://doi.org/10.1016/j.commatsci.2017.01.017
+  abistruct.py proto FILE                  => Read structure from FILE, find possible crystallographic prototypes
+                                              in the AFLOW library of crystallographic prototypes.
+                                              See http://doi.org/10.1016/j.commatsci.2017.01.017
 
 ##################
 # Conversion tools
@@ -129,8 +129,8 @@ Usage example:
                                               to change output format. `-f None` to disable structure output.
   abistruct.py mp_pd FILE-or-elements      => Generate phase diagram with entries from the Materials Project.
   abistruct.py mp_ebands FILE             => Fetch electron band structure from MP database. Print gaps.
-                                              Accept FILE with structure if ebands fro structure is wanted
-                                              or mp id e.g. "mp-149 or list of elements e.g `Li-Fe-O` or chemical formula.
+                                             Accept FILE with structure if ebands from structure is wanted
+                                             or mp id e.g. "mp-149 or list of elements e.g `Li-Fe-O` or chemical formula.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input/output, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
@@ -351,6 +351,11 @@ closest points in this particular structure. This is usually what you want in a 
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
+    p_panel.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
+    p_panel.add_argument('--no-browser', action='store_true', default=False,
+                           help=("Start the bokeh server to serve the panel app "
+                                 "but don't open the notebook in the browser.\n"
+                                 "Use this option to connect remotely from localhost to the machine running the kernel"))
 
     # Subparser for kpath.
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
@@ -486,6 +491,31 @@ ehull < show_unstable will be shown.""")
         help="Read structures from HIST.nc or XDATCAR. Print structures in Xcrysden AXSF format to stdout.")
 
     return parser
+
+
+def serve_kwargs_from_options(options):
+
+    #address = "localhost"
+    if options.no_browser:
+        print("""
+Use:
+
+    ssh -N -f -L localhost:{port}:localhost:{port} username@your_remote_cluster
+
+for port forwarding.
+""")
+
+    import abipy.panels as mod
+    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
+
+    return dict(
+        debug=options.verbose > 0,
+        show=not options.no_browser,
+        port=options.port,
+        static_dirs={"/assets": assets_path},
+        #address=address,
+        #websocket_origin="{address}:{port}",
+    )
 
 
 @prof_main
@@ -768,10 +798,10 @@ def main():
 
     elif options.command == "panel":
         structure = abilab.Structure.from_file(options.filepath)
-        abilab.abipanel()
+        pn = abilab.abipanel()
+        serve_kwargs = serve_kwargs_from_options(options)
         app = structure.get_panel(template=options.panel_template)
-        app.show(debug=options.verbose > 0)
-        return 0
+        return pn.serve(app, **serve_kwargs)
 
     elif options.command == "visualize":
         structure = abilab.Structure.from_file(options.filepath)

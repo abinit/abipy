@@ -58,6 +58,9 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
+        'abipy.panels': [
+            "assets/img/*",
+        ],
         'abipy.data': [
             "cifs/*.cif",
             "pseudos/*",
@@ -154,7 +157,8 @@ install_requires = [
     "matplotlib",
     "seaborn",
     "plotly",
-    #"chart-studio",
+    "ipython",
+    "chart-studio",
     #panel
 ]
 
@@ -203,7 +207,7 @@ if __name__ == "__main__":
     print("""
 Please read the following if you are about to use AbiPy for the first time:
 
-Abipy needs to know about the cluster/computer you are running on.
+AbiPy needs to know about the cluster/computer you are running on.
 This information is provided via two Yaml configuration files: manager.yml and scheduler.yml.
 These files must be located either in ~/.abinit/abipy or in the working directory in which you execute the flow.
 Examples are provided in abipy/data/managers.
@@ -211,7 +215,10 @@ See also the HTML page:
 
     http://abinit.github.io/abipy/workflows/manager_examples.html
 
-TIP: Use `abicheck.py --with-flow` to validate the final configuration before running large calculations.
+TIPS:
+
+    1) Issue `rehash` in the shell if the AbiPy scripts cannot be found after the installation
+    2) Use `abicheck.py --with-flow` to validate the final configuration before running large calculations.
 
 Have fun!
 """)

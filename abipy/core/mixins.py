@@ -1,11 +1,14 @@
 # coding: utf-8
 """This module provides mixin classes"""
+from __future__ import annotations
+
 import abc
 import os
 import collections
 import tempfile
 import pickle
 import numpy as np
+import pandas as pd
 
 from time import ctime
 from monty.os.path import which
@@ -30,7 +33,7 @@ class BaseFile(metaclass=abc.ABCMeta):
     Abstract base class defining the methods that must be implemented
     by the concrete classes representing the different files produced by ABINIT.
     """
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         self._filepath = os.path.abspath(filepath)
 
         # Save stat values
@@ -51,12 +54,12 @@ class BaseFile(metaclass=abc.ABCMeta):
         return cls(filepath)
 
     @property
-    def filepath(self):
+    def filepath(self) -> str:
         """Absolute path of the file."""
         return self._filepath
 
     @property
-    def relpath(self):
+    def relpath(self) -> str:
         """Relative path."""
         try:
             return os.path.relpath(self.filepath)
@@ -65,16 +68,16 @@ class BaseFile(metaclass=abc.ABCMeta):
             return self.filepath
 
     @property
-    def basename(self):
+    def basename(self) -> str:
         """Basename of the file."""
         return os.path.basename(self.filepath)
 
     @property
-    def filetype(self):
+    def filetype(self) -> str:
         """String defining the filetype."""
         return self.__class__.__name__
 
-    def filestat(self, as_string=False):
+    def filestat(self, as_string: bool = False) -> dict:
         """
         Dictionary with file metadata, if ``as_string`` is True, a string is returned.
         """
@@ -83,7 +86,7 @@ class BaseFile(metaclass=abc.ABCMeta):
         return "\n".join("%s: %s" % (k, v) for k, v in d.items())
 
     @abc.abstractmethod
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
 
     def __enter__(self):
@@ -93,12 +96,16 @@ class BaseFile(metaclass=abc.ABCMeta):
         """Activated at the end of the with statement. It automatically closes the file."""
         self.close()
 
+    def remove(self) -> None:
+        """Close the file handle, remove the file from disk."""
+        self.close()
+        try:
+            os.remove(self.filepath)
+        except FileNotFoundError:
+            pass
+
 
 class TextFile(BaseFile):
-
-    #@classmethood
-    #def from_string(cls, s):
-    #    return cls.from_file(filepath)
 
     def __enter__(self):
         # Open the file
@@ -113,16 +120,53 @@ class TextFile(BaseFile):
         """File object open in read-only mode."""
         return open(self.filepath, mode="rt")
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         try:
             self._file.close()
         except Exception:
             pass
 
-    def seek(self, offset, whence=0):
+    def seek(self, offset, whence: int = 0) -> None:
         """Set the file's current position, like stdio's fseek()."""
         self._file.seek(offset, whence)
+
+    def get_panel(self, **kwargs):
+        import panel as pn
+        import panel.widgets as pnw
+
+        root, ext = os.path.splitext(self.basename)
+        text = open(self.filepath, "rt").read()
+        if not text: text = "This file is empty!"
+
+        # Use Markdown for selected extensions else Ace editor.
+        if ext and len(ext) > 1: ext = ext[1:]
+        ext2format = dict(sh="shell", py="python", stdin="shell", stdout="shell", stderr="shell")
+
+        if ext in ext2format:
+            fmt = ext2format[ext]
+            obj = pn.pane.Markdown(f"```{fmt}\n{text}\n```", sizing_mode="stretch_both")
+        else:
+            obj = pnw.Ace(value=text, language='text', readonly=True,
+                          sizing_mode='stretch_width', height=1200)
+
+        return pn.Column(f"## File: {self.filepath}",
+                         obj,
+                         pn.layout.Divider(),
+                         sizing_mode="stretch_width")
+
+
+class JsonFile(TextFile):
+    """
+    A TextFile containing JSON data.
+    Provides get_panel method so that we can visualize the file with `abiopen.py FILE --panel`
+    """
+
+    def get_panel(self, **kwargs):
+        import json
+        from abipy.panels.viewers import JSONViewer
+        with self:
+            return JSONViewer(json.load(self._file))
 
 
 class AbinitNcFile(BaseFile):
@@ -133,7 +177,7 @@ class AbinitNcFile(BaseFile):
     """
 
     @classmethod
-    def from_binary_string(cls, bstring):
+    def from_binary_string(cls, bstring) -> AbinitNcFile:
         """
         Build object from a binary string with the netcdf data.
         Useful for implementing GUIs in which widgets returns binary data.
@@ -144,52 +188,65 @@ class AbinitNcFile(BaseFile):
             fh.write(bstring)
             return cls.from_file(tmp_path)
 
-    def ncdump(self, *nc_args, **nc_kwargs):
+    def ncdump(self, *nc_args, **nc_kwargs) -> str:
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
 
     @lazy_property
-    def abinit_version(self):
+    def abinit_version(self) -> str:
         """String with the abinit version: three digits separated by comma."""
         return self.reader.rootgrp.getncattr("abinit_version")
 
     @abc.abstractproperty
-    def params(self):
+    def params(self) -> dict:
         """
         :class:`OrderedDict` with the convergence parameters
         Used to construct |pandas-DataFrames|.
         """
 
-    def get_dims_dataframe(self, path="/"):
+    def get_dims_dataframe(self, as_dict=False, path="/") -> pd.DataFrame:
         """
         Return: |pandas-Dataframe| with the dimensions defined in the `path` group.
+            or dict if as_dict is True.
         """
         grp = self.reader.rootgrp if path == "/" else self.path2group[path]
         d = {k: len(v) for k, v in grp.dimensions.items()}
-        # Since this is a Series but we want a dataframe to faciliate interoperability.
+
+        if as_dict: return d
+
+        # Since this is a Series but we want a dataframe to facilitate interoperability.
         # we have to call init with additional kwargs.
-        import pandas as pd
         return pd.DataFrame.from_dict(d, orient='index', columns=['value'])
 
-    #def get_abinit_input_str(self, path="/"):
-    #    group = self.reader.rootgrp if path == "/" else self.path2group[path]
-    #    input_string = group.get_varname_set("input_string")
-    #    return input_string
-    #    from abipy.abio.inputs import AbinitInput
-    #    return AbinitInput(structure, pseudos, pseudo_dir=None, abi_kwargs=None)
+    def get_input_string(self) -> str:
+        """
+        Read and return input string stored in the netcdf.
+        Only nc files generared by Abinit9 have this variable.
+        """
+        if "input_string" in self.reader.rootgrp.variables:
+            return self.reader.read_string("input_string")
+        else:
+            return "Nc file does not contain `input_string`"
+
+    def get_ncfile_view(self, **kwargs):
+        """
+        Return panel Parameterized object with widgets to visualize
+        netcdf dimensions and variables.
+        """
+        from abipy.panels.core import NcFileViewer
+        return NcFileViewer(self).get_ncfile_view(**kwargs)
 
 
 class AbinitFortranFile(BaseFile):
     """
-    Abstract class representing a fortran file containing output data from abinit.
+    Abstract class representing a Fortran file containing output data from abinit.
     """
-    def close(self):
-        pass
+    def close(self) -> None:
+        """nop, just to fulfill the abstract interface."""
 
 
 class CubeFile(BaseFile):
     """
-
     .. attribute:: structure
 
         |Structure| object
@@ -207,7 +264,7 @@ class CubeFile(BaseFile):
         super().__init__(filepath)
         self.structure, self.mesh, self.data = cube_read_structure_mesh_data(self.filepath)
 
-    def close(self):
+    def close(self) -> None:
         """nop, just to fulfill the abstract interface."""
 
     #@classmethod
@@ -218,7 +275,9 @@ class CubeFile(BaseFile):
 
 
 class Has_Structure(metaclass=abc.ABCMeta):
-    """Mixin class for |AbinitNcFile| containing crystallographic data."""
+    """
+    Mixin class for |AbinitNcFile| containing crystallographic data.
+    """
 
     @abc.abstractproperty
     def structure(self):
@@ -233,7 +292,7 @@ class Has_Structure(metaclass=abc.ABCMeta):
     # To maintain backward compatbility
     show_bz = plot_bz
 
-    def export_structure(self, filepath):
+    def export_structure(self, filepath: str):
         """
         Export the structure on file.
 
@@ -241,7 +300,7 @@ class Has_Structure(metaclass=abc.ABCMeta):
         """
         return self.structure.export(filepath)
 
-    def visualize_structure_with(self, appname):
+    def visualize_structure_with(self, appname: str):
         """
         Visualize the crystalline structure with the specified visualizer.
 
@@ -320,37 +379,37 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         """Returns the |ElectronBands| object."""
 
     @property
-    def nsppol(self):
+    def nsppol(self) -> int:
         """Number of spin polarizations"""
         return self.ebands.nsppol
 
     @property
-    def nspinor(self):
+    def nspinor(self) -> int:
         """Number of spinors"""
         return self.ebands.nspinor
 
     @property
-    def nspden(self):
+    def nspden(self) -> int:
         """Number of indepedendent spin-density components."""
         return self.ebands.nspden
 
     @property
-    def mband(self):
+    def mband(self) -> int:
         """Maximum number of bands."""
         return self.ebands.mband
 
     @property
-    def nband(self):
+    def nband(self) -> int:
         """Maximum number of bands."""
         return self.ebands.nband
 
     @property
-    def nelect(self):
+    def nelect(self) -> float:
         """Number of electrons per unit cell"""
         return self.ebands.nelect
 
     @property
-    def nkpt(self):
+    def nkpt(self) -> int:
         """Number of k-points."""
         return self.ebands.nkpt
 
@@ -363,7 +422,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
     def tsmear(self):
         return self.ebands.smearing.tsmear_ev.to("Ha")
 
-    def get_ebands_params(self):
+    def get_ebands_params(self) -> dict:
         """:class:`OrderedDict` with the convergence parameters."""
         return collections.OrderedDict([
             ("nsppol", self.nsppol),
@@ -390,7 +449,8 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         with_gaps = not self.ebands.has_metallic_scheme
         if self.ebands.kpoints.is_path:
             yield self.ebands.plot(with_gaps=with_gaps, show=False)
-            yield self.ebands.kpoints.plot(show=False)
+            if len(self.ebands.kpoints) > 1:
+                yield self.ebands.kpoints.plot(show=False)
         else:
             edos = self.ebands.get_edos()
             yield self.ebands.plot_with_edos(edos, with_gaps=with_gaps, show=False)
@@ -399,14 +459,14 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
     def yield_ebands_plotly_figs(self, **kwargs):
         """*Generates* a predefined list of plotly figures with minimal input from the user."""
         with_gaps = not self.ebands.has_metallic_scheme
+
         if self.ebands.kpoints.is_path:
             yield self.ebands.plotly(with_gaps=with_gaps, show=False)
-            yield self.ebands.kpoints.plotly(show=False)
-            yield self.ebands.kpoints.plot(show=False)
+            if len(self.ebands.kpoints) > 1:
+                yield self.ebands.kpoints.plotly(show=False)
         else:
             edos = self.ebands.get_edos()
-            # TODO
-            #yield self.ebands.plotly_with_edos(edos, with_gaps=with_gaps, show=False)
+            yield self.ebands.plotly_with_edos(edos, with_gaps=with_gaps, show=False)
             yield edos.plotly(show=False)
 
     def expose_ebands(self, slide_mode=False, slide_timeout=None, expose_web=False, **kwargs):
@@ -446,7 +506,7 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
     def phbands(self):
         """Returns the |PhononBands| object."""
 
-    def get_phbands_params(self):
+    def get_phbands_params(self) -> dict:
         """:class:`OrderedDict` with the convergence parameters."""
         return collections.OrderedDict([
             ("nqpt", len(self.phbands.qpoints)),
@@ -491,7 +551,9 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
 
 
 class NcDumper(object):
-    """Wrapper object for the ncdump tool."""
+    """
+    Wrapper object for the ncdump tool.
+    """
 
     def __init__(self, *nc_args, **nc_kwargs):
         """
@@ -503,7 +565,7 @@ class NcDumper(object):
         self.nc_kwargs = nc_kwargs
         self.ncdump = which("ncdump")
 
-    def dump(self, filepath):
+    def dump(self, filepath: str) -> str:
         """Returns a string with the output of ncdump."""
         if self.ncdump is None:
             return "Cannot find ncdump tool in $PATH"
@@ -760,7 +822,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
         """
 
     @classmethod
-    def pickle_load(cls, filepath):
+    def pickle_load(cls, filepath: str):
         """
         Loads the object from a pickle file.
         """
@@ -846,13 +908,12 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
 
             return template.show()
 
-    def plotly_expose(self, **kwargs): # chart_studio=False, verbose=0,
+    def plotly_expose(self, **kwargs):
         """
         This function *generates* a predefined list of plotly figures with minimal input from the user.
-        Relies on yield_plotly_figs implemented by the subclass to generate the figures.
+        Relies on the yield_plotly_figs method implemented by the subclass in order to generate the figures.
         """
         #print("in plotly expose")
-
         pn, template = self._get_panel_and_template()
         pn.config.sizing_mode = 'stretch_width'
         from abipy.panels.core import mpl, ply
@@ -872,7 +933,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
             if hasattr(template.main, "append"):
                 template.main.append(p)
             else:
-                # Assume .main area acts like a panel GridSpec
+                # Assume main area acts like a panel GridSpec
                 row_slice = slice(3 * row, 3 * (row + 1))
                 if col == 0: template.main[row_slice, :6] = p
                 if col == 1: template.main[row_slice, 6:] = p

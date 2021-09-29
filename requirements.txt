@@ -16,3 +16,7 @@ netCDF4
 matplotlib
 seaborn
 plotly
+ipython
+chart-studio
+click
+#python-daemon

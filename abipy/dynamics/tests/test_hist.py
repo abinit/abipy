@@ -71,6 +71,10 @@ class HistFileTest(AbipyTest):
             assert hist.plot(show=False)
             assert hist.plot_energies(show=False)
 
+        if self.has_plotly():
+            assert hist.plotly(template="plotly_dark", show=False)
+            assert hist.plotly_energies(show=False)
+
         # Test notebook generation.
         if self.has_nbformat():
             hist.write_notebook(nbpath=self.get_tmpname(text=True))

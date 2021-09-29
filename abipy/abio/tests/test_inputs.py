@@ -38,7 +38,7 @@ class TestAbinitInput(AbipyTest):
         assert inp.get("foo", "bar") == "bar" and inp.pop("foo", "bar") == "bar"
         assert inp.comment is None
         inp.set_comment("This is a comment")
-        assert inp.comment == "This is a comment"
+        assert inp.comment == "# This is a comment"
         assert inp.isnc and not inp.ispaw
         assert not inp.decorators
         assert len(inp.structure) == 2 and inp.num_valence_electrons == 8
@@ -50,8 +50,9 @@ class TestAbinitInput(AbipyTest):
         with self.assertRaises(inp.Error): inp._check_nsppol_nspinor(3, 1)
         with self.assertRaises(inp.Error): inp._check_nsppol_nspinor(2, 2)
         with self.assertRaises(inp.Error): inp._check_nsppol_nspinor(1, 4)
+        with self.assertRaises(inp.Error): inp.set_cutoffs_for_accuracy("normal")
 
-        # unless we deactive spell_check
+        # unless we deactivate spell_check
         assert inp.spell_check
         inp.set_spell_check(False)
         inp["foo"] = 1
@@ -79,13 +80,15 @@ class TestAbinitInput(AbipyTest):
         assert inp.to_string(sortmode="a", with_structure=False, with_pseudos=False, mode="html")
         assert inp._repr_html_()
 
-        inp.set_vars(ecut=5, toldfe=1e-6)
+        inp.set_vars(ecut=5, toldfe=1e-6, comment="hello")
         assert inp["ecut"] == 5
+        assert inp.comment == "# hello"
         inp.set_vars_ifnotin(ecut=-10)
         assert inp["ecut"] == 5
         assert inp.scf_tolvar == ("toldfe", inp["toldfe"])
 
         inp.write(filepath=self.get_tmpname(text=True))
+        assert inp.make_targz().endswith(".tar.gz")
 
         # Cannot change structure variables directly.
         with self.assertRaises(inp.Error):
@@ -97,6 +100,10 @@ class TestAbinitInput(AbipyTest):
         with self.assertRaises(KeyError):
             inp.remove_vars("foo", strict=True)
         assert not inp.remove_vars("foo", strict=False)
+
+        with self.assertRaises(inp.Error):
+            # Pseudos do not provide hints
+            inp.set_cutoffs_for_accuracy("normal")
 
         # Test deepcopy and remove_vars.
         inp["bdgw"] = [1, 2]
@@ -150,6 +157,8 @@ class TestAbinitInput(AbipyTest):
 
         new_inp.set_vars(shiftk=[0, 0, 0, 0.5, 0, 0, 0, 0, 0.5])
         assert new_inp["nshiftk"] == 3
+        other_inp = new_inp.new_with_vars(ph_qpath=[0, 0, 0, 0.5, 0, 0])
+        assert other_inp["ph_nqpath"] == 2
 
     def test_input_errors(self):
         """Testing typical AbinitInput Error"""
@@ -315,7 +324,11 @@ class TestAbinitInput(AbipyTest):
         assert np.all(ibz.points == [[ 0.,  0.,  0.], [0.5,  0.,  0.], [0.5, 0.5, 0.]])
         assert np.all(ibz.weights == [0.125,  0.5,  0.375])
 
-        # This to test what happes with wrong inputs and Abinit errors.
+        scr_ibz = inp_si.abiget_scr_ibz()
+        assert np.all(scr_ibz.points == [[ 0.,  0.,  0.], [0.5,  0.,  0.], [0.5, 0.5, 0.]])
+        assert np.all(scr_ibz.weights == [0.125,  0.5,  0.375])
+
+        # This to test what happens with wrong inputs and Abinit errors.
         wrong = inp_si.deepcopy()
         removed = wrong.pop_vars("ecut")
         assert "ecut" not in wrong
@@ -342,6 +355,8 @@ class TestAbinitInput(AbipyTest):
                               {'idir': 2, 'ipert': 3, 'qpt': [0.5, 0.0, 0.0]},
                               {'idir': 3, 'ipert': 3, 'qpt': [0.5, 0.0, 0.0]}]
         for a, b in zip(irred_perts, irred_perts_values):
+            # The nkpt_rbz entry was added in Abinit v9.5 but it's not used by AbiPy.
+            if "nkpt_rbz" in a: b["nkpt_rbz"] = a["nkpt_rbz"]
             self.assertDictEqual(a, b)
 
         # Test abiget_autoparal_pconfs
@@ -448,6 +463,10 @@ class TestAbinitInput(AbipyTest):
             tolvrs=1.0e-10,
         )
 
+        assert gs_inp.is_input and not gs_inp.is_multidataset
+        multi = gs_inp.replicate(2)
+        assert multi.ndtset == 2 and multi.is_multidataset and not multi.is_input
+
         # Test make_nscf_kptopt0_input
         nscf_inp = gs_inp.make_nscf_kptopt0_input(kpts=[1, 2, 3, 4, 5, 6])
         assert "ngkpt" not in nscf_inp and "shiftk" not in nscf_inp
@@ -486,6 +505,8 @@ class TestAbinitInput(AbipyTest):
         assert len(multi) == 3
         assert all(inp["kptopt"] == 0 for inp in multi)
         assert all(inp["nkpt"] == 2 for inp in multi)
+        assert multi.is_multidataset and not multi.is_input
+        assert multi.make_targz().endswith(".tar.gz")
 
         inp0, inp1, inp2 = multi
         assert inp0["iscf"] == -2
@@ -538,6 +559,20 @@ class TestAbinitInput(AbipyTest):
         # Validate with Abinit
         self.abivalidate_multi(bec_inputs)
 
+        #######################
+        # dynamical quadrupoles
+        #######################
+        quad_input = gs_inp.make_quad_input()
+        assert quad_input["kptopt"] == 2
+        assert quad_input["optdriver"] == 10
+        assert quad_input["lw_qdrpl"] == 1
+        assert quad_input["useylm"] == 1
+        assert quad_input["nstep"] == 100
+
+        # Validate with Abinit
+        # This is expected to fail since we have NC pseudos with NLCC.
+        #self.abivalidate_input(quad_input)
+
         #############
         # DDK methods
         #############
@@ -558,6 +593,16 @@ class TestAbinitInput(AbipyTest):
             assert inp["kptopt"] == 3
             assert inp["nstep"] == 1
             assert inp["nline"] == 1
+
+        #############
+        # DKDK methods
+        #############
+        dkdk_input = gs_inp.make_dkdk_input()
+        assert dkdk_input["kptopt"] == 2
+        assert dkdk_input["rf2_dkdk"] == 1
+        assert dkdk_input["useylm"] == 1
+        # Validate with Abinit
+        self.abivalidate_input(dkdk_input)
 
         #############
         # DDE methods
@@ -592,19 +637,53 @@ class TestAbinitInput(AbipyTest):
         # Validate with Abinit
         self.abivalidate_multi(strain_inputs)
 
+        ###############
+        # EPH mobility
+        ###############
+
+        nscf_inp = gs_inp.new_with_vars(iscf=-2, tolwfr=1e-5, comment="this is just to have a NSCF input.")
+        sigma_erange = sigma_kerange = [0, 1.0]
+        sigma_ngkpt = [4, 4, 4]
+        kerange_inputs = nscf_inp.make_wfk_kerange_inputs(sigma_kerange, sigma_ngkpt, einterp=(1, 5, 0, 0))
+        inp_0, inp_1 = kerange_inputs
+        assert inp_0["wfk_task"] == '"wfk_kpts_erange"'
+        assert "iscf" not in inp_0
+        assert inp_0["sigma_erange"] == sigma_erange
+        assert inp_0["kptopt"] == 1
+        assert inp_0["sigma_ngkpt"] == sigma_ngkpt
+
+        assert inp_1["iscf"] == -2
+        assert inp_1["kptopt"] == 0
+        assert inp_1["ngkpt"] == sigma_ngkpt
+
+        self.abivalidate_multi(kerange_inputs)
+
+        ddb_ngqpt = [4, 4, 4]
+        tmesh = [0, 300, 10]
+
+        trans_inp = nscf_inp.make_eph_transport_input(ddb_ngqpt, sigma_erange, tmesh, kptopt=2, eph_ngqpt_fine=None,
+                                                      mixprec=1, boxcutmin=1.1, ibte_prep=0, ibte_niter=200,
+                                                      ibte_abs_tol=1e-3)
+        assert trans_inp["optdriver"] == 7
+        assert trans_inp["eph_task"] == -4
+        assert trans_inp["kptopt"] == 2
+        assert trans_inp["eph_ngqpt_fine"] == trans_inp["ngkpt"]
+
+        self.abivalidate_input(trans_inp)
+
         #####################
         # Non-linear methods
         ####################
-        if self.has_abinit(version='8.3.2'):
-            dte_inputs = gs_inp.make_dte_inputs(phonon_pert=True, skip_permutations=True, ixc=3)
-            print("dte inputs\n", dte_inputs)
-            assert len(dte_inputs) == 8
-            assert np.all(dte_inputs[0]["d3e_pert2_dir"] == [1, 0, 0])
-            assert np.all(dte_inputs[3]["d3e_pert1_atpol"] == [2, 2])
-            assert all(np.all(inp["optdriver"] == 5 for inp in dte_inputs))
+        #if self.has_abinit(version='8.3.2'):
+        dte_inputs = gs_inp.make_dte_inputs(phonon_pert=True, skip_permutations=True, ixc=3)
+        #print("dte inputs\n", dte_inputs)
+        assert len(dte_inputs) == 8
+        assert np.all(dte_inputs[0]["d3e_pert2_dir"] == [1, 0, 0])
+        assert np.all(dte_inputs[3]["d3e_pert1_atpol"] == [2, 2])
+        assert all(np.all(inp["optdriver"] == 5 for inp in dte_inputs))
 
-            # Validate with Abinit
-            self.abivalidate_multi(dte_inputs)
+        # Validate with Abinit
+        self.abivalidate_multi(dte_inputs)
 
     def test_input_check_sum(self):
         """Testing the hash method of AbinitInput"""
@@ -701,8 +780,9 @@ class TestMultiDataset(AbipyTest):
         assert multi[0].structure == multi[1].structure
         assert multi[0].structure is not multi[1].structure
 
-        multi.set_vars(ecut=2)
+        multi.set_vars(ecut=2, comment="hello")
         assert all(inp["ecut"] == 2 for inp in multi)
+        assert all(inp.comment == "# hello" for inp in multi)
         self.assert_equal(multi.get("ecut"), [2, 2])
 
         df = multi.get_vars_dataframe("ecut", "foobar")
@@ -737,7 +817,8 @@ class TestMultiDataset(AbipyTest):
         assert multi._repr_html_()
 
         inp.write(filepath=self.tmpfileindir("run.abi"))
-        multi.write(filepath=self.tmpfileindir("run.abi"))
+        multi.write(filepath=self.tmpfileindir("run.abi"), split=True)
+        multi.write(filepath=self.tmpfileindir("run.abi"), split=False)
 
         new_multi = MultiDataset.from_inputs([inp for inp in multi])
         assert new_multi.ndtset == multi.ndtset
@@ -760,7 +841,7 @@ class TestMultiDataset(AbipyTest):
         #self.assertMSONable(multi)
 
         # Test tags
-        new_multi.add_tags([GROUND_STATE, RELAX], [0,2])
+        new_multi.add_tags([GROUND_STATE, RELAX], [0, 2])
         assert len(new_multi[0].tags) == 2
         sub_multi = new_multi.filter_by_tags(GROUND_STATE)
         assert len(sub_multi) == 2
@@ -785,7 +866,7 @@ class AnaddbInputTest(AbipyTest):
         assert inp.get("brav") == 1
 
         self.serialize_with_pickle(inp, test_eq=False)
-        #self.assertMSONable(inp, test_if_subclass=False)
+        self.assertMSONable(inp)
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
@@ -920,7 +1001,7 @@ class TestCut3DInput(AbipyTest):
         cut3d_input.write(self.get_tmpname(text=True))
 
         self.serialize_with_pickle(cut3d_input, test_eq=False)
-        self.assertMSONable(cut3d_input, test_if_subclass=False)
+        self.assertMSONable(cut3d_input)
 
     def test_generation_methods(self):
         cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
