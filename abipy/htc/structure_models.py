@@ -39,6 +39,8 @@ class StructureData(AbipyModel):
     #source_type: str = Field(..., "source type e.g. MP for the materials project")
     #meta: Dict[str, Any] = Field(None)
 
+    #custom_data = Dict[str, Any] = Field(None, description="Pseudopotential specifications.")
+
     #hall:
 
     crystal_system: CrystalSystem = Field(

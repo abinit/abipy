@@ -41,6 +41,11 @@ class _BasePhononFlowModel(FlowModel):
 
     phonon_data: PhononData = Field(None, description="Results produced by the Phonon calculation")
 
+    #gsr_gfsd: GridFsDesc = Field(None, description="Link to a GridFS entry.")
+    #ddb_gfsd: GridFsDesc = Field(None, description="Link to a GridFS entry.")
+    with_dvdb: bool = Field(True, description="False if the DVDB file should not be added to GridFs")
+    #dvdb_gfsd: GridFsDesc = Field(None, description="Link to a GridFS entry.")
+
     def build_flow(self, workdir: str, manager: TaskManager) -> PhononFlow:
         """
         Build an AbiPy Flow using the input data available in the model and return it.
@@ -49,6 +54,7 @@ class _BasePhononFlowModel(FlowModel):
             workdir: Working directory provided by the caller.
             manager: |TaskManager| object.
         """
+        # TODO: Add option to compute bands, get_dvdb filepath!
         return PhononFlow.from_scf_input(workdir, self.scf_input,
                                          ph_ngqpt=(2, 2, 2),
                                          #ph_ngqpt=(4, 4, 4),
@@ -64,7 +70,11 @@ class _BasePhononFlowModel(FlowModel):
             self.scf_data = GsData.from_gsr(gsr)
 
         with flow.open_final_ddb() as ddb:
+            #self.ddb_gfsd = GridFsDesc(filepath=ddb.filepath)
             self.phonon_data = PhononData.from_ddb(ddb)
+
+        #if self.with_dvdb
+        #self.dvdb_gfsd = GridFsDesc(filepath=dvdb_filepath)
 
     @classmethod
     def get_common_queries(cls) -> List[dict]:

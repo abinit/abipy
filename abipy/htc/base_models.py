@@ -7,6 +7,7 @@ import json
 import os
 import inspect
 import time
+
 #import numpy as np
 
 from typing import List, Any, Type, TypeVar, Optional, Iterable
@@ -18,6 +19,7 @@ from bson.objectid import ObjectId
 from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.collection import Collection
+from gridfs import GridFS
 from monty.json import MontyEncoder, MontyDecoder, MSONable
 from pymatgen.util.serialization import pmg_serialize
 from pymatgen.core import __version__ as pmg_version
@@ -120,6 +122,9 @@ class AbipyModel(BaseModel, MSONable):
             EventReport: lambda o: monty_trick(o),
         }
 
+        # whether to populate models with the value property of enums, rather than the raw enum.
+        #use_enum_values = True
+
         #json_loads = monty_json_loads
         #json_dumps = monty_json_dumps
 
@@ -161,19 +166,25 @@ class AbipyModel(BaseModel, MSONable):
 
     @classmethod
     def from_json_file(cls: Type[M], filepath: str) -> M:
-        """Helper function to reconstruct the model from a json file."""
+        """
+        Helper function to reconstruct the model from a json file.
+        """
         with open(filepath, "rt") as fp:
             return cls.from_json(fp.read())
 
     @classmethod
     def from_json(cls: Type[M], json_string: str) -> M:
-        """Helper function to reconstruct the model from a json string."""
+        """
+        Helper function to reconstruct the model from a json string.
+        """
         new = monty_json_loads(json_string)
         if isinstance(new, cls): return new
         return cls(**new)
 
     def json_write(self, filepath: str, **kwargs) -> None:
-        """Helper function to write a json string with the model to file."""
+        """
+        Helper function to write a json string with the model to file.
+        """
         with open(filepath, "wt") as fp:
             #fp.write(self.json(**kwargs))
             fp.write(self.to_json(**kwargs))
@@ -182,23 +193,86 @@ class AbipyModel(BaseModel, MSONable):
     #def get_panel_view(self):
     #    """Return panel object with a view of the model"""
 
-class GridFsFileDesc(AbipyModel):
-    pass
+    def yaml_dump(self):
+        import ruamel.yaml as yaml
+        json_string = self.to_json()
+        return yaml.safe_dump(yaml.safe_load(json_string), default_flow_style=False)
 
-    #filename: this is an optional field that is a human readable identification for the file.
-    #uploadDate: field of type Date which stores the date the document was first stored.
-    #metadata: this is an optional field that holds additional information that one wants to store.
 
-    #gridfs_collection: str
-    #gridfs_oid: str:
+class GridFsDesc(AbipyModel):
+    """
+    Submodel storing the link to a GridFS document.
+    """
+
+    filepath: str = Field(..., description="Full path to the file")
+
+    gridfs_oid: ObjectId = Field(None, description="ID of the file in the GridFS collection.")
+
+    gridfs_collection_name: str = Field(None, description="Name of the GridFS collection.")
+
+    def gridfs_insert(self, connector: MongoConnector) -> ObjectID:
+        """
+        Insert the file in the GridFS collection and update the model with ObjectID
+        of the file in the GridFS collection.
+        """
+        # Should add: parent_id, parent_collection
+        fs, fs_collname = connector.get_gridfs_and_name()
+
+        metadata = dict(
+            parent_collection = connector.collection_name,
+            filename=os.path.basename(self.filepath),
+            filepath=self.filepath,
+        )
+
+        with open(self.filepath, "rb") as fh:
+           self.gridfs_oid = fs.put(fh, **metadata)
+           self.gridfs_collection_name = fs_collname
+
+        return self.gridfs_oid
+
+    def abiopen(self, connector: MongoConnector):
+        """
+        Get binary data from the GridFS collection, write buffer to temporary file
+        and use ``abiopen`` to open the file.
+        """
+        if self.gridfs_oid is None:
+            raise RuntimeError("gridfs_ois is None, this means that the model has not been inserted in GridFS")
+
+        fs, fs_collname = connector.get_gridfs_and_name()
+        grid_out = fs.get(self.gridfs_oid)
+
+        from tempfile import mkstemp #, TemporaryFile, NamedTemporaryFile
+        _, filepath = mkstemp(suffix=grid_out.filename)
+        with open(filepath, "wb") as fh:
+            fh.write(grid_out.read())
+
+        from abipy.abilab import abiopen
+        return abiopen(filepath)
+
+
+#class GridFsDescList(AbipyModel):
+#    """
+#    This model should be used for defining a list of GridFs descriptors.
+#    This is required as in ... we use introspection to find all the GridFSDesc submodels
+#    included in the FlowModel and we only look for GridFSDesc or GridFsDescList.
+#    """
+#
+#    __root__: List[GridFSDesc] = Field(..., description="List of GridFsDesc entries")
+#
+#    def __iter__(self):
+#        return iter(self.__root__)
+#
+#    def __getitem__(self, item):
+#        return self.__root__[item]
+
 
 
 class MongoConnector(AbipyModel):
     """
     Stores the parameters used to connect to the MongoDB server and the name of
-    the default collection used to perform CRUD operations.
+    the collection used to perform CRUD operations.
     This object is usually instanciated from the AbiPy configuration file that defines the host,
-    post, dbname, username and password.
+    port, dbname, username and password.
     Note, however, that we don't store the name of the collection in the configuration file.
     so the user has to specify it explictly when calling ``from_abipy_config``.
     """
@@ -263,13 +337,9 @@ class MongoConnector(AbipyModel):
 - Host: {self.host}
 - Port: {self.port}
 - Database: {self.dbname}
-- Default collection: {self.collection_name}
+- Collection: {self.collection_name}
 - User: {self.username}
 """
-
-    #def get_panel_view(self):
-    #    import panel as pn
-    #    return pn.pane.HTML(self._repr_markdown_())
 
     def get_client(self) -> MongoClient:
         """
@@ -317,11 +387,15 @@ class MongoConnector(AbipyModel):
         db = self.get_db()
         return db[collection_name or self.collection_name]
 
-    def get_gridfs(self):
+    def get_gridfs_and_name(self, collection_name: Optional[str] = None, ret_collname=False, **kwargs) -> Tuple[GridFS, str]:
+        """
+        Returns GridFS collection. Use automatically generated name.
+        """
         db = self.get_db()
-        fs = gridfs.GridFS(db, collection='fs')
-        #b = fs.put(fs.get(a), filename="foo", bar="baz")
-        return fs
+        coll_name = f"gridfs_{self.collection_name}" if collection_name is None else collection_name
+        fs = GridFS(db, collection=coll_name, **kwargs)
+        return fs, coll_name
+
 
     #def insert_models(models: List[MongoModel], collection_name: Optional[str] = None)) -> List[ObjectId]:
     #    """
@@ -352,13 +426,17 @@ class MongoConnector(AbipyModel):
         """
         collection = self.get_collection()
         from .flow_models import FlowModel
-        flow_model = FlowModel.get_subclass_from_collection(collection)
+        flow_model_cls = FlowModel.get_subclass_from_collection(collection)
         from abipy.panels.core import abipanel
         from abipy.panels.mongo_gui import MongoGui
         abipanel()
-        app = MongoGui(self, flow_model).get_app()
+        app = MongoGui(self, flow_model_cls).get_app()
         import panel as pn
         pn.serve(app, **serve_kwargs)
+
+    #def get_panel_view(self):
+    #    import panel as pn
+    #    return pn.pane.HTML(self._repr_markdown_())
 
 
 class MockedMongoConnector(MongoConnector):
@@ -367,13 +445,24 @@ class MockedMongoConnector(MongoConnector):
     """
 
     def get_client(self) -> MongoClient:
+        # Cache the client also in the Mock so that we use the same mocked instances.
+        if self._client is not None:
+            return self._client
+
         import mongomock
-        return mongomock.MongoClient()
+        self._client = mongomock.MongoClient()
+        return self._client
 
     #def get_collection(self, collection_name: Optional[str] = None) -> Collection:
     #    return mongomock.MongoClient().db.collection
 
+    def get_gridfs_and_name(self, collection_name: Optional[str] = None, **kwargs) -> Tuple[GridFS, str]:
+        from mongomock.gridfs import enable_gridfs_integration
+        enable_gridfs_integration()
+        return super().get_gridfs_and_name(collection_name=collection_name, **kwargs)
 
+
+#class TopLevelModel(AbipyModel):
 class MongoModel(AbipyModel):
     """
     Provides tiny wrappers around the MongoDB API.
@@ -387,18 +476,15 @@ class MongoModel(AbipyModel):
         pmg_version, description="The version of pymatgen this document was built with"
     )
 
-    #build_date: datetime = Field(
-    #    default_factory=datetime.utcnow,
-    #    description="The build date for this document",
-    #)
-
     @classmethod
     def from_mongo_oid(cls, oid: ObjectId, collection: Collection):
         """
-        Return a model instance for the ObjectId oid and the collection.
+        Return a model instance for the ObjectId oid and the MongoDB collection.
         """
-        data = collection.find_one(filter={'_id': oid})
-        if data is None: return data
+        data = collection.find_one({'_id': oid})
+        if not data:
+            raise ValueError(f"Cannot find {self.__class__.__name__} model in collection: {collection}")
+
         data.pop("_id")
         data = AbipyDecoder().process_decoded(data)
 
@@ -435,29 +521,29 @@ class MongoModel(AbipyModel):
         Perform a full update of the document given the ObjectId in the collection.
         """
         # TODO: Implement Atomic transaction
-        old_doc = collection.find_one(filter={'_id': oid})
-        if old_doc is None:
-            raise RuntimeError(f"Cannot find document with ObjectId: {oid}")
+        old_doc = collection.find_one({'_id': oid})
+        if not old_doc:
+            raise ValueError(f"Cannot find document with ObjectId: {oid}")
 
         new_doc = json.loads(self.json())
         old_doc.update(new_doc)
 
         collection.replace_one({"_id": oid}, new_doc, upsert=False)
 
-    def backup_oid_collection_name(self, oid: ObjectId, collection_name: str) -> str:
-        """
-        Write a backup file in the abipy HOME directory. Return path to the file.
+    #def backup_oid_collection_name(self, oid: ObjectId, collection_name: str) -> str:
+    #    """
+    #    Write a backup file in the abipy HOME directory. Return path to the file.
 
-        Useful if the MongoDB server goes down and the AbipyWorker needs
-        to save the results somewhere on the filesystem.
-        """
-        bkp_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "bkp_models")
-        if not os.path.isdir(bkp_dir): os.mkdir(bkp_dir)
-        filename = f"{collection_name}_{str(oid)}"
-        filepath = os.path.join(bkp_dir, filename)
-        with open(filepath, "wt") as fp:
-            fp.write(self.json())
-            return filepath
+    #    Useful if the MongoDB server goes down and the AbipyWorker needs
+    #    to save the results somewhere on the filesystem.
+    #    """
+    #    bkp_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "bkp_models")
+    #    if not os.path.isdir(bkp_dir): os.mkdir(bkp_dir)
+    #    filename = f"{collection_name}_{str(oid)}"
+    #    filepath = os.path.join(bkp_dir, filename)
+    #    with open(filepath, "wt") as fp:
+    #        fp.write(self.json())
+    #        return filepath
 
 #def read_backup_oid_collection_name(cls, oid, collection_name):
 #    bkp_dir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "bkk_models")
