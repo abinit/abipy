@@ -384,6 +384,10 @@ class MongoConnector(AbipyModel):
         return db.list_collections()
 
     def gridfs_put_filepath(self, filepath: str) -> GridFsDesc:
+        """
+        Insert a file in the default GridFs collection.
+        Build and return a GridFsDesc instance with metadata and the OID.
+        """
 
         fs, fs_collname = self.get_gridfs_and_name()
 
@@ -404,7 +408,7 @@ class MongoConnector(AbipyModel):
         and use ``abiopen`` to open the file.
         """
         if gfsd.oid is None:
-            raise RuntimeError("gridfs_ois is None, this means that the model has not been inserted in GridFS")
+            raise RuntimeError("gridfs_ois is None, this means that the file has not been inserted in GridFS")
 
         fs, fs_collname = self.get_gridfs_and_name()
         grid_out = fs.get(gfsd.oid)

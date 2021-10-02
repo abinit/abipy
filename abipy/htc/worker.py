@@ -357,7 +357,8 @@ class AbipyWorker:
             if self.num_exceptions_in_build_flow_from_mongodb > 0:
                 self.num_exceptions_in_build_flow_from_mongodb -= 1
 
-        except Exception:
+        except Exception as exc:
+            print(exc)
             self.num_exceptions_in_build_flow_from_mongodb += 1
 
         if self.num_exceptions_in_build_flow_from_mongodb > self.MAX_NUM_EXCS_IN_BUILDFLOW:
@@ -377,7 +378,7 @@ class AbipyWorker:
         if self.flowid2_oid_model:
             node_ids = list(self.flowid2_oid_model.keys())
             rows = self.flow_scheduler.get_sql_rows_with_node_ids(node_ids)
-            print("Found rows", rows)
+            #print("Found rows", rows)
 
             for row in rows:
                 flow_id = row["flow_id"]
@@ -388,18 +389,19 @@ class AbipyWorker:
                     model.postprocess_flow_and_update_collection(flow, oid, mongo_connector)
                     self.flowid2_oid_model.pop(flow_id)
                 else:
-                    print("Should handle row with status", row["status"])
+                    pass
+                    #print("Should handle row with status", row["status"])
 
         # TODO: Implement Pipelines?
         # Use atomic update of the models so that we can have multiple workers possibly on
         # different machines fetching and updating documents in the same collection.
-        print("Finding runnable_oid_models")
+        #print("Finding runnable_oid_models")
         oid_flowmodel_list = self.flow_model_cls.find_runnable_oid_models(collection, limit=5)
         if not oid_flowmodel_list: return
         print("in build_flow_from_mongodb, found", len(oid_flowmodel_list), "flows in database")
 
         for oid, model in oid_flowmodel_list:
-            print("Running model:", repr(model))
+            #print("Running model:", repr(model))
             now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             workdir = tempfile.mkdtemp(prefix=f"Flow-{now}", dir=self.scratch_dir)
 
