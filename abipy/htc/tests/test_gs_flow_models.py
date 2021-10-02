@@ -7,7 +7,7 @@ from abipy.core.testing import AbipyTest
 from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands
 from abipy.flowtk import TaskManager, Flow
-from abipy.htc.base_models import mongo_insert_models
+from abipy.htc.base_models import mongo_insert_models, MockedMongoConnector
 from abipy.htc.structure_models import StructureData
 from abipy.htc.pseudos_models import PseudoSpecs
 from abipy.htc.gs_models import GsData, NscfData
@@ -19,9 +19,12 @@ class TestFlowModels(AbipyTest):
 
     def test_ebands_flow_model(self):
         """Testing EbandsFlowModelWithParams."""
-        si = Structure.from_file(abidata.ref_file("refs/si_ebands/run.abi"))
+        collection_name = "dummy_collection_name"
+        mocked_connector = MockedMongoConnector(host="example.com", port=27017, collection_name=collection_name)
         pseudos_specs = PseudoSpecs.from_repo_table_name("ONCVPSP-PBEsol-SR-PDv0.4", "standard")
-        collection: Collection = mongomock.MongoClient().db.collection
+
+        si = Structure.from_file(abidata.ref_file("refs/si_ebands/run.abi"))
+        collection = mocked_connector.get_collection()
 
         # This should raise as the collection does not contain the magic document with the FlowModel class.
         with self.assertRaises(RuntimeError):
@@ -81,8 +84,17 @@ class TestFlowModels(AbipyTest):
             assert flow.workdir == workdir
             assert flow[0][0].manager is not None
 
-            model.scf_data = GsData.from_gsr_filepath(abidata.ref_file("si_scf_GSR.nc"))
-            model.nscf_kpath_data = NscfData.from_gsr_filepath(abidata.ref_file("si_nscf_GSR.nc"))
+            collection_name = "dummy_collection_name"
+            mocked_connector = MockedMongoConnector(host="example.com", port=27017, collection_name=collection_name)
+
+            with_gsr = True
+            #with_gsr = False
+
+            model.scf_data = GsData.from_gsr_filepath(abidata.ref_file("si_scf_GSR.nc"), mocked_connector, with_gsr)
+            #print(model.scf_data.json())
+            #assert 0
+            model.nscf_kpath_data = NscfData.from_gsr_filepath(abidata.ref_file("si_nscf_GSR.nc"),
+                                                               mocked_connector, with_gsr)
 
             # Save the updated model
             model.mongo_full_update_oid(oid, collection)

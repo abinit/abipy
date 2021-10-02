@@ -1,4 +1,6 @@
-"""pydantic models for storing results of ground-state calculations."""
+"""
+pydantic models storing results of ground-state calculations.
+"""
 from __future__ import annotations
 
 #from abc import ABC, abstractmethod
@@ -7,14 +9,14 @@ from typing import List
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.ebands import ElectronBands
 from abipy.dynamics.hist import HistFile
-from .base_models import AbipyModel
+from .base_models import AbipyModel, GridFsDesc
 
 # TODO Add dictionary with metavariables TAGS
 # mpid:
 
-class _ModelWithEbands(AbipyModel):
+class _ModelWithGsr(AbipyModel):
     """
-    Base model with an ElectronBands object and other important quantiies such as
+    Base model with an ElectronBands object and other important quantities such as
     the Fermi level and the band gaps.
     """
 
@@ -26,24 +28,26 @@ class _ModelWithEbands(AbipyModel):
 
     #fermie_ev: float = Field(..., description="Fermi level in eV.")
 
-    #gsr_file_desc: GridFsFileDesc
+    gsr_gfsd: GridFsDesc = Field(None, description="Metadata needed to retrieve the GSR.nc file from GridFS. "
+                                                   "None if the GSR file is not stored")
+
+    @classmethod
+    def from_gsr_filepath(cls, gsr_filepath: str, mongo_connector: MongoConnector, with_gsr: bool):
+        """
+        Fill the model from the GSR filepath.
+        """
+        with GsrFile(gsr_filepath) as gsr:
+            return cls.from_gsr(gsr, mongo_connector, with_gsr)
 
 
-class NscfData(_ModelWithEbands):
+
+class NscfData(_ModelWithGsr):
     """
     Model for NSCF calculations.
     """
 
     @classmethod
-    def from_gsr_filepath(cls, gsr_filepath: str):
-        """
-        Fill the model from the GSR filepath.
-        """
-        with GsrFile(gsr_filepath) as gsr:
-            return cls.from_gsr(gsr)
-
-    @classmethod
-    def from_gsr(cls, gsr: GsrFile) -> NscfData:
+    def from_gsr(cls, gsr: GsrFile, mongo_connector: MongoConnector, with_gsr: bool) -> NscfData:
         """
         Fill the model from a |GsrFile|
         """
@@ -54,10 +58,13 @@ class NscfData(_ModelWithEbands):
             ebands=gsr.ebands,
         )
 
+        if with_gsr:
+            kwargs["gsr_gfsd"] = mongo_connector.gridfs_put_filepath(gsr.filepath)
+
         return cls(**kwargs)
 
 
-class _ScfBaseModel(_ModelWithEbands):
+class _ScfBaseModel(_ModelWithGsr):
     """
     Model for SCF calculations providing energy, forces, and stress tensor besides
     the electronic band dispersion.
@@ -94,15 +101,7 @@ class GsData(_ScfBaseModel):
     """
 
     @classmethod
-    def from_gsr_filepath(cls, gsr_filepath: str):
-        """
-        Fill the model from the GSR filepath.
-        """
-        with GsrFile(gsr_filepath) as gsr:
-            return cls.from_gsr(gsr)
-
-    @classmethod
-    def from_gsr(cls, gsr: GsrFile) -> GsData:
+    def from_gsr(cls, gsr: GsrFile, mongo_connector: MongoConnector, with_gsr: bool) -> NscfData:
         """
         Fill the model from a |GsrFile|
         """
@@ -125,62 +124,65 @@ class GsData(_ScfBaseModel):
             #cart_forces_ev_over_ang=
         ))
 
+        if with_gsr:
+            kwargs["gsr_gfsd"] = mongo_connector.gridfs_put_filepath(gsr.filepath)
+
         return cls(**kwargs)
 
 
-class RelaxData(_ScfBaseModel):
-    """
-    Model for Structural relaxation calculations
-    Store energy, forces, stress tensor, Fermi level, band gaps for the final configuration
-    (from _ScfBaseModel) as well as additional lists with the evolution of the most important
-    physical parameters as each relaxation step.
-    """
-    num_iterations: int = Field(..., description="Number of relaxation steps.")
-
-    etotal_ev_hist: List[float] = Field(..., description="Energies in eV at the different relaxation steps.")
-
-    pressure_gpa_hist: List[float] = Field(..., description="Pressure in GPa at the different relaxation steps.")
-
-    angles_hist: List[List[float]] = Field(...,
-                                           description="Lattice angles in degrees at the different relaxation steps.")
-
-    lenghts_ang_hist: List[List[float]] = Field(...,
-                                                description="Lattice lenghts in Ang at the different relaxation steps.")
-
-    volume_ang3_hist: List[float] = Field(...,
-                                          description="Unit cell volume in Ang**3 at the different relaxation steps.")
-
-    @classmethod
-    def from_hist_gsr_filepaths(cls, hist_filepath: str, gsr_filepath: str) -> RelaxData:
-        """
-        Fill the model from a HIST.nc filepath.
-        """
-        with HistFile(hist_filepath) as hist_file, GsrFile(gsr_filepath) as gsr_file:
-            return cls.from_hist_gsr(hist_file, gsr_file)
-
-    @classmethod
-    def from_hist_gsr(cls, hist: HistFile, gsr_file: GsrFile) -> RelaxData:
-        """
-        Fill the model from a |HistFile|
-        """
-        raise NotImplementedError()
-        #    # TODO
-        #    kwargs = dict()
-        #    # TODO: Use "cartesian_forces_eV/Ang" and get rid of ArrayWithUnits
-        #    gsr.ebands.structure.remove_site_property("cartesian_forces")
-        #    kwargs = dict(
-        #        ebands=gsr.ebands,
-        #        is_scf_run=gsr.is_scf_run,
-        #    )
-
-        #    kwargs.update(dict(
-        #        pressure_gpa=gsr.pressure,
-        #        abs_pressure_gpa=abs(gsr.pressure),
-        #        max_force_ev_over_ang=gsr.max_force,
-        #        energy=float(gsr.energy),
-        #        energy_per_atom=float(gsr.energy_per_atom),
-        #        #cart_stress_tensor_gpa=
-        #        #cart_forces_ev_over_ang=
-        #    ))
-
-        #    return cls(**kwargs)
+#class RelaxData(_ScfBaseModel):
+#    """
+#    Model for Structural relaxation calculations
+#    Store energy, forces, stress tensor, Fermi level, band gaps for the final configuration
+#    (from _ScfBaseModel) as well as additional lists with the evolution of the most important
+#    physical parameters as each relaxation step.
+#    """
+#    num_iterations: int = Field(..., description="Number of relaxation steps.")
+#
+#    etotal_ev_hist: List[float] = Field(..., description="Energies in eV at the different relaxation steps.")
+#
+#    pressure_gpa_hist: List[float] = Field(..., description="Pressure in GPa at the different relaxation steps.")
+#
+#    angles_hist: List[List[float]] = Field(...,
+#                                           description="Lattice angles in degrees at the different relaxation steps.")
+#
+#    lenghts_ang_hist: List[List[float]] = Field(...,
+#                                                description="Lattice lenghts in Ang at the different relaxation steps.")
+#
+#    volume_ang3_hist: List[float] = Field(...,
+#                                          description="Unit cell volume in Ang**3 at the different relaxation steps.")
+#
+#    @classmethod
+#    def from_hist_gsr_filepaths(cls, hist_filepath: str, gsr_filepath: str) -> RelaxData:
+#        """
+#        Fill the model from a HIST.nc filepath.
+#        """
+#        with HistFile(hist_filepath) as hist_file, GsrFile(gsr_filepath) as gsr_file:
+#            return cls.from_hist_gsr(hist_file, gsr_file)
+#
+#    @classmethod
+#    def from_hist_gsr(cls, hist: HistFile, gsr_file: GsrFile) -> RelaxData:
+#        """
+#        Fill the model from a |HistFile|
+#        """
+#        raise NotImplementedError()
+#        #    # TODO
+#        #    kwargs = dict()
+#        #    # TODO: Use "cartesian_forces_eV/Ang" and get rid of ArrayWithUnits
+#        #    gsr.ebands.structure.remove_site_property("cartesian_forces")
+#        #    kwargs = dict(
+#        #        ebands=gsr.ebands,
+#        #        is_scf_run=gsr.is_scf_run,
+#        #    )
+#
+#        #    kwargs.update(dict(
+#        #        pressure_gpa=gsr.pressure,
+#        #        abs_pressure_gpa=abs(gsr.pressure),
+#        #        max_force_ev_over_ang=gsr.max_force,
+#        #        energy=float(gsr.energy),
+#        #        energy_per_atom=float(gsr.energy_per_atom),
+#        #        #cart_stress_tensor_gpa=
+#        #        #cart_forces_ev_over_ang=
+#        #    ))
+#
+#        #    return cls(**kwargs)

@@ -385,7 +385,7 @@ class AbipyWorker:
                     print("In completed")
                     flow = Flow.from_file(row["workdir"])
                     oid, model = self.flowid2_oid_model[flow_id]
-                    model.postprocess_flow_and_update_collection(flow, oid, collection)
+                    model.postprocess_flow_and_update_collection(flow, oid, mongo_connector)
                     self.flowid2_oid_model.pop(flow_id)
                 else:
                     print("Should handle row with status", row["status"])

@@ -9,7 +9,7 @@ from abipy.abio.inputs import AbinitInput
 from abipy.panels.core import ply
 from abipy.panels.viewers import JSONViewer
 from abipy.flowtk import TaskManager, Flow
-from .base_models import GridFsDesc
+from .base_models import MongoConnector, GridFsDesc
 from .flow_models import FlowModel, CommonQuery
 from .gs_models import GsData, NscfData  #, RelaxData
 
@@ -41,32 +41,24 @@ class _BaseEbandsFlowModel(FlowModel):
 
     nscf_kmesh_data: NscfData = Field(None, description="Results produced by the GS NSCF run.")
 
-    #store_gsr_files: bool = Field(False, description="Set it to True to save the GSR files in GridFS.")
+    with_gsr: bool = Field(False, description="Set it to True to save the GSR files in GridFS.")
 
-    #scf_gsr_gfsd: GridFsDesc = Field(None, description="Link to a GridFS entry.")
 
-    #nscf_kpath_gsr_gfsd: GridFsDesc = Field(None, description="Link to a GridFS entry.")
-
-    #nscf_kmesh_gsr_gfsd: GridFsDesc = Field(None, description="Link to a GridFS entry.")
-
-    def postprocess_flow(self, flow: Flow) -> None:
+    def postprocess_flow(self, flow: Flow, mongo_connector: MongoConnector) -> None:
         """
         Analyze the flow and fills the model with output results.
+        MongoConnector should be used only to insert files in GridFs as the final insertion is done by the caller.
         This function is called by the AbiPy Worker if the flow completed successfully.
         """
         with flow[0][0].open_gsr() as gsr:
-            self.scf_data = GsData.from_gsr(gsr)  # with_gsr=True
-            #if self.store_gsr_files:
-            #    self.scf_gsr_gfsd = GridFsDesc(filepath=gsr.filepath)
+            self.scf_data = GsData.from_gsr(gsr, mongo_connector, self.with_gsr)
 
         with flow[0][1].open_gsr() as gsr:
-            self.nscf_kpath_data = NscfData.from_gsr(gsr)
-            #if self.store_gsr_files:
-            #    self.nscf_kpath_gsr_gfsd = GridFsDesc(filepath=gsr.filepath)
+            self.nscf_kpath_data = NscfData.from_gsr(gsr, mongo_connector, self.with_gsr)
 
         if self.dos_input is not None:
             with flow[0][2].open_gsr() as gsr:
-                self.nscf_kmesh_data = NscfData.from_gsr(gsr)
+                self.nscf_kmesh_data = NscfData.from_gsr(gsr, mongo_connector, self.with_gsr)
 
     def get_panel_view(self):
         """

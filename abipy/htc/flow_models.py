@@ -17,7 +17,7 @@ from abipy.flowtk.tasks import Task
 from abipy.flowtk.events import EventReport
 from abipy.flowtk import TaskManager, Work, Flow
 from abipy.abio.inputs import AbinitInput
-from .base_models import AbipyModel, MongoModel, cls2dict, AbipyDecoder, QueryResults
+from .base_models import AbipyModel, MongoModel, cls2dict, AbipyDecoder, QueryResults, MongoConnector
 from .structure_models import StructureData
 from .pseudos_models import PseudoSpecs
 
@@ -453,50 +453,51 @@ class FlowModel(MongoModel, ABC):
             # Update document in the MongoDB collection.
             self.mongo_full_update_oid(oid, collection)
 
-    def find_all_gridfs_descs(self):
-        desc_list = []
-        for k, v in self:
-            #print(type(k), type(v))
-            #print(k, v)
-            if isinstance(v, GridFsDesc):
-                desc_list.append(v)
-                continue
+    #def find_all_gridfs_descs(self):
+    #    desc_list = []
+    #    for k, v in self:
+    #        #print(type(k), type(v))
+    #        #print(k, v)
+    #        if isinstance(v, GridFsDesc):
+    #            desc_list.append(v)
+    #            continue
 
-            elif isinstance(v, BaseModel):
-                sub_list = find_all_gridfs_descs(v)
-                desc_list.extend(sub_list)
+    #        elif isinstance(v, BaseModel):
+    #            sub_list = find_all_gridfs_descs(v)
+    #            desc_list.extend(sub_list)
 
-        return desc_list
+    #    return desc_list
 
-    def gridfs_upload_files(self, mongo_connector):
-        desc_list = self.find_all_gridfs_descs()
+    #def gridfs_upload_files(self, mongo_connector):
+    #    desc_list = self.find_all_gridfs_descs()
 
-        oid_list = []
-        for desc in desc_lis:
-            oid = desc.gridfs_insert(mongo_connector)
-            oid_list.append(oid)
+    #    oid_list = []
+    #    for desc in desc_lis:
+    #        oid = desc.gridfs_insert(mongo_connector)
+    #        oid_list.append(oid)
 
-        return oid_list
+    #    return oid_list
 
     @abstractmethod
-    def postprocess_flow(self, flow: Flow) -> None:
+    def postprocess_flow(self, flow: Flow, mongo_connector: MongoConnector) -> None:
         """
         Postprocess the Flow and update the model with output results.
+        MongoConnector should be used only to insert files in GridFs as the final insertion is done by the caller.
         Must be implemented in the concrete subclass.
         """
 
     def postprocess_flow_and_update_collection(self, flow: Flow, oid: ObjectId,
-                                               collection: Collection) -> None:
+                                               mongo_connector: MongoConnector) -> None:
         """
         API used by the AbiPy Worker to postprocess a Flow from the model.
-        Wraps the postprocess_flow method implented in the subclass to add extra
-        operations on the model, error handling and finally the insertion in the collection.
+        Wraps the postprocess_flow method implemented in the subclass to add extra
+        operations on the model, error handling and finally the insertion in the collection of the model.
         """
         flow_data = self.flow_data
-        #collection = connector.get_collection()
+        collection = mongo_connector.get_collection()
         #gridfs_collection = connector.get_gridfs_collection()
         try:
-            self.postprocess_flow(flow)
+            self.postprocess_flow(flow, mongo_connector)
             flow_data.exec_status = ExecStatus.completed
         except Exception:
             flow_data.exec_status = ExecStatus.errored

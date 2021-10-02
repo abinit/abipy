@@ -130,36 +130,26 @@ class TestAbipyBaseModels(AbipyTest):
 
         # Testing GridFsDesc
         import abipy.data as abidata
-        #ddb_filepath = abidata.ref_file("AlAs_444_nobecs_DDB")
         test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
         ddb_filepath = os.path.join(test_dir, "AlAs_444_nobecs_DDB")
         assert ddb_filepath
 
-        desc = GridFsDesc(filepath=ddb_filepath)
-        assert desc.filepath == ddb_filepath
-        assert str(desc)
-        assert desc.json()
-        with self.assertRaises(RuntimeError):
-            desc.abiopen(mocked_connector)
-
         # Insert the DDB in GridFs.
-        assert desc.gridfs_oid is None
-        assert desc.gridfs_collection_name is None
-        oid = desc.gridfs_insert(mocked_connector)
-        #oid = mocked_connector.gridfs_insert(desc)
-        assert desc.gridfs_oid == oid
-        assert desc.gridfs_collection_name == fs_collname
+        gfsd = mocked_connector.gridfs_put_filepath(ddb_filepath)
+        assert gfsd.oid is not None
+        assert gfsd.filepath == ddb_filepath
+        assert gfsd.collection_name == fs_collname
+        assert str(gfsd)
+        assert gfsd.json()
         assert fs.exists({"filename": os.path.basename(ddb_filepath)})
         assert fs.exists({"filepath": ddb_filepath})
         assert fs.exists({"parent_collection": collection_name})
 
         # Extract the DDB from GridFs and open it with abiopen.
-        #with mocked_connector.abiopen(desc) as ddb:
-        with desc.abiopen(mocked_connector) as ddb:
+        with mocked_connector.abiopen_gfsd(gfsd) as ddb:
             assert ddb.structure
 
         gsr_filepath = abidata.ref_file("si_scf_GSR.nc")
-        desc = GridFsDesc(filepath=gsr_filepath)
-        desc.gridfs_insert(mocked_connector)
-        with desc.abiopen(mocked_connector) as gsr:
+        gfsd = mocked_connector.gridfs_put_filepath(gsr_filepath)
+        with mocked_connector.abiopen_gfsd(gfsd) as gsr:
             assert gsr.ebands.structure

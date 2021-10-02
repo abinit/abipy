@@ -62,5 +62,5 @@ class TestWorker(AbipyTest):
             remove(worker_dir)
 
         clients = WorkerClients.lscan(dirpath=None)
-        with self.assertRaises(ValueError)
+        with self.assertRaises(ValueError):
             clients.select_from_worker_name(worker_name)

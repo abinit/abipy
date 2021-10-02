@@ -110,7 +110,8 @@ class AbipyModel(BaseModel, MSONable):
         # Subclasses will inherit these json_encoders.
         json_encoders = {
             ModelMetaclass: lambda cls: cls2dict(cls),
-            ObjectId: lambda oid: str(oid),
+            #ObjectId: lambda oid: str(oid),
+            ObjectId: lambda oid: monty_trick(oid),
             #np.ndarray: lambda arr: arr.tolist(),
             #UUID: lambda uuid: str(uuid),
             Element: lambda o: monty_trick(o),
@@ -201,53 +202,16 @@ class AbipyModel(BaseModel, MSONable):
 
 class GridFsDesc(AbipyModel):
     """
-    Submodel storing the link to a GridFS document.
+    This submodel lives in a standard MongoDB collection and stores all the information
+    needed to retrieve a file from a GridFs collection.
+    Users do not need to instanciate this object directly.
     """
 
-    filepath: str = Field(..., description="Full path to the file")
+    filepath: str = Field(..., description="Absolute path to the file (depends on the host where the file has been produced")
 
-    gridfs_oid: ObjectId = Field(None, description="ID of the file in the GridFS collection.")
+    oid: ObjectId = Field(..., description="ID of the file in the GridFS collection.")
 
-    gridfs_collection_name: str = Field(None, description="Name of the GridFS collection.")
-
-    def gridfs_insert(self, connector: MongoConnector) -> ObjectID:
-        """
-        Insert the file in the GridFS collection and update the model with ObjectID
-        of the file in the GridFS collection.
-        """
-        # Should add: parent_id, parent_collection
-        fs, fs_collname = connector.get_gridfs_and_name()
-
-        metadata = dict(
-            parent_collection = connector.collection_name,
-            filename=os.path.basename(self.filepath),
-            filepath=self.filepath,
-        )
-
-        with open(self.filepath, "rb") as fh:
-           self.gridfs_oid = fs.put(fh, **metadata)
-           self.gridfs_collection_name = fs_collname
-
-        return self.gridfs_oid
-
-    def abiopen(self, connector: MongoConnector):
-        """
-        Get binary data from the GridFS collection, write buffer to temporary file
-        and use ``abiopen`` to open the file.
-        """
-        if self.gridfs_oid is None:
-            raise RuntimeError("gridfs_ois is None, this means that the model has not been inserted in GridFS")
-
-        fs, fs_collname = connector.get_gridfs_and_name()
-        grid_out = fs.get(self.gridfs_oid)
-
-        from tempfile import mkstemp #, TemporaryFile, NamedTemporaryFile
-        _, filepath = mkstemp(suffix=grid_out.filename)
-        with open(filepath, "wb") as fh:
-            fh.write(grid_out.read())
-
-        from abipy.abilab import abiopen
-        return abiopen(filepath)
+    collection_name: str = Field(..., description="Name of the GridFS collection in which the file is stored.")
 
 
 #class GridFsDescList(AbipyModel):
@@ -396,7 +360,6 @@ class MongoConnector(AbipyModel):
         fs = GridFS(db, collection=coll_name, **kwargs)
         return fs, coll_name
 
-
     #def insert_models(models: List[MongoModel], collection_name: Optional[str] = None)) -> List[ObjectId]:
     #    """
     #    Insert list of models in a collection. Return list of objectid
@@ -419,6 +382,40 @@ class MongoConnector(AbipyModel):
         """
         db = self.get_db()
         return db.list_collections()
+
+    def gridfs_put_filepath(self, filepath: str) -> GridFsDesc:
+
+        fs, fs_collname = self.get_gridfs_and_name()
+
+        metadata = dict(
+            filename=os.path.basename(filepath),
+            filepath=filepath,
+            parent_collection = self.collection_name,
+        )
+
+        with open(filepath, "rb") as fh:
+           oid = fs.put(fh, **metadata)
+
+        return GridFsDesc(filepath=filepath, oid=oid, collection_name=fs_collname)
+
+    def abiopen_gfsd(self, gfsd: GridFSDesc):
+        """
+        Get binary data from the GridFS collection, write buffer to temporary file
+        and use ``abiopen`` to open the file.
+        """
+        if gfsd.oid is None:
+            raise RuntimeError("gridfs_ois is None, this means that the model has not been inserted in GridFS")
+
+        fs, fs_collname = self.get_gridfs_and_name()
+        grid_out = fs.get(gfsd.oid)
+
+        from tempfile import mkstemp #, TemporaryFile, NamedTemporaryFile
+        _, filepath = mkstemp(suffix=grid_out.filename)
+        with open(filepath, "wb") as fh:
+            fh.write(grid_out.read())
+
+        from abipy.abilab import abiopen
+        return abiopen(filepath)
 
     def open_mongoflow_gui(self, **serve_kwargs):
         """
@@ -487,6 +484,8 @@ class MongoModel(AbipyModel):
 
         data.pop("_id")
         data = AbipyDecoder().process_decoded(data)
+
+        #if "scf_data" in data: print(data["scf_data"])
 
         return cls(**data)
 
