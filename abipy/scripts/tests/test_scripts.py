@@ -515,3 +515,14 @@ class TestAbipsp(ScriptTest):
         r = env.run(self.script, "avail", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
         r = env.run(self.script, "list", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
         # Cannot test other commands as they perform installation
+
+
+class TestAbidb(ScriptTest):
+    script = os.path.join(script_dir, "abidb.py")
+
+    def test_abidb(self):
+        """Testing abips.py script"""
+        env = self.get_env()
+        # Cannot test other commands as we need a MongoDB server
+        #r = env.run(self.script, "avail", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
