@@ -9,11 +9,13 @@ class TestPseudosSpecs(AbipyTest):
 
     def test_api(self):
         """Testing PseudoSpecs API."""
+        # FIXME: This requires an installed repo
         repo_name = "ONCVPSP-PBEsol-SR-PDv0.4"
         specs = PseudoSpecs.from_repo_table_name(repo_name, "standard")
         assert specs.repo_name == repo_name
         assert specs.table_name == "standard"
         assert specs.ps_generator == "ONCVPSP"
+        assert specs.ps_type == "NC"
         assert specs.xc_name == "PBEsol"
         assert specs.relativity_type == "SR"
         assert specs.project_name == "PD"

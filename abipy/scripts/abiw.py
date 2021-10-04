@@ -137,7 +137,6 @@ def get_parser(with_epilog=False):
     p_mongo_start = subparsers.add_parser(
         "mongo_start", parents=[copts_parser, serve_parser, worker_selector_with_default],
         help="Create and start new AbiPy worker connected to a MongoDB database containing FlowModels.")
-    #p_mongo_start.add_argument("collection_name", type=str,
     p_mongo_start.add_argument("-c", "--collection-name", type=str,
                                default="",
                                #required=True,
@@ -145,6 +144,9 @@ def get_parser(with_epilog=False):
     p_mongo_start.add_argument("-s", "--scratch-dir", type=str, default=None,
                                help="Scratch directory in which Flows will be generated. "
                                     "If not given, use value from ~/.abinit/abipy/config.yml")
+
+    p_mongo_start.add_argument("--local-db", action='store_true', default=False,
+                                help="Assume MongoDB server is running on the localhost with the default port.")
 
     p_mongo_gui = subparsers.add_parser("mongo_gui", parents=[copts_parser, worker_selector, serve_parser],
                                         help="Start MongoGUI.")
@@ -326,13 +328,13 @@ def main():
         print("global abipy config options:\n", config)
 
     if options.command == "new":
-        mongo_connector = None
+        mng_connector = None
         if options.collection_name:
-            mongo_connector = MongoConnector.from_abipy_config(collection_name=options.collection_name)
-            print(mongo_connector)
+            mng_connector = MongoConnector.from_abipy_config(collection_name=options.collection_name)
+            print(mng_connector)
 
         scratch_dir = get_scratch_dir()
-        worker = AbipyWorker.new_with_name(options.worker_name, scratch_dir, mongo_connector=mongo_connector)
+        worker = AbipyWorker.new_with_name(options.worker_name, scratch_dir, mng_connector=mng_connector)
         print(worker)
         WorkerClients.lscan()
         return 0
@@ -366,8 +368,11 @@ def main():
         return 0
 
     elif options.command == "mongo_start":
-        mongo_connector = MongoConnector.from_abipy_config(collection_name=options.collection_name)
-        print(mongo_connector)
+        if options.local_db:
+            mng_connector = MongoConnector.for_localhost(collection_name=options.collection_name)
+        else:
+            mng_connector = MongoConnector.from_abipy_config(collection_name=options.collection_name)
+        print(mng_connector)
 
         if not options.collection_name:
             # If the collection is not specified, contact the MongoDB server to get the list of
@@ -375,7 +380,7 @@ def main():
             print("Use the `-c COLLECTION_NAME` option to specify the MongoDB collection from which\n"
                   "FlowModel documents will be fetched by the AbiPy Worker.\n"
                   "Choose among the following collections:\n")
-            for i, cname in enumerate(mongo_connector.list_collection_names()):
+            for i, cname in enumerate(mng_connector.list_collection_names()):
                 print(f"\t[{i+1}]", cname)
             return 1
 
@@ -388,7 +393,7 @@ def main():
         errors = []
         eapp = errors.append
         for local_client in WorkerClients.lscan():
-            other_connector = local_client.worker_state.mongo_connector
+            other_connector = local_client.worker_state.mng_connector
             if other_connector is None: continue
 
             if options.collection_name == other_connector.collection_name:
@@ -419,7 +424,7 @@ def main():
 
         # Create the AbiPyWorker and start serving.
         scratch_dir = get_scratch_dir()
-        worker = AbipyWorker.new_with_name(worker_name, scratch_dir, mongo_connector=mongo_connector)
+        worker = AbipyWorker.new_with_name(worker_name, scratch_dir, mng_connector=mng_connector)
 
         return serve(worker, options)
 
@@ -465,10 +470,10 @@ def main():
     elif options.command == "status":
 
         if options.worker_names:
+            from pandas.io.json import read_json
             for worker_name in options.worker_names:
                 client = all_clients.select_from_worker_name(worker_name)
                 json_status = client.get_json_status()
-                from pandas.io.json import read_json
                 json_status["dataframe"] = read_json(json_status["dataframe"]) #, date_format='iso')  #, date_unit="ns")
                 print_dataframe(json_status["dataframe"], title="\nWorker Status:\n")
 
@@ -492,12 +497,12 @@ def main():
 
     elif options.command == "mongo_gui":
         client = all_clients.select_from_worker_name(options.worker_name)
-        mongo_connector = client.worker_state.mongo_connector
-        if mongo_connector is None:
+        mng_connector = client.worker_state.mng_connector
+        if mng_connector is None:
             raise ValueError(f"The AbiPy worker {options.worker_name} is not running in MongoDB mode!")
-        print(mongo_connector)
+        print(mng_connector)
         serve_kwargs = serve_kwargs_from_options(options)
-        mongo_connector.open_mongoflow_gui(**serve_kwargs)
+        mng_connector.open_mongoflow_gui(**serve_kwargs)
 
     #elif options.command == "all_gui":
 

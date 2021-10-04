@@ -19,7 +19,7 @@ class TestWorker(AbipyTest):
                                            scratch_dir="/tmp",
                                            scheduler_path=None,
                                            manager_path=None,
-                                           mongo_connector=None,
+                                           mng_connector=None,
                                            verbose=1)
         assert repr(worker)
         assert str(worker)

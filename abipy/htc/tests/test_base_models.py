@@ -3,6 +3,7 @@ Tests for base_models module.
 """
 #from pprint import pprint
 import os
+import zlib
 import mongomock
 
 from typing import List
@@ -11,15 +12,15 @@ from pymatgen.core.structure import Structure as pmg_Structure
 from abipy.core.testing import AbipyTest
 from abipy.core.structure import Structure as abi_Structure
 from abipy.abio.inputs import AbinitInput
-from abipy.htc.base_models import (AbipyModel, MongoConnector, MockedMongoConnector, QueryResults, GridFsDesc,
-        MongoModel, mongo_insert_models)
+from abipy.htc.base_models import (AbipyModel, MongoConnector, MockedMongoConnector, QueryResults, GfsFileDesc,
+        TopLevelModel, mng_insert_models)
 
 
 class SubModel(AbipyModel):
     abi_structure: abi_Structure
 
 
-class TopModel(MongoModel):
+class Top(TopLevelModel):
     pmg_structure: pmg_Structure
     submodel: SubModel
     class_type: ModelMetaclass = SubModel
@@ -36,7 +37,7 @@ class TestAbipyBaseModels(AbipyTest):
 
         sub_model = SubModel(abi_structure=abi_structure)
         abinit_input = self.get_gsinput_si()
-        top_model = TopModel(pmg_structure=pmg_structure, submodel=sub_model,
+        top_model = Top(pmg_structure=pmg_structure, submodel=sub_model,
                              abinit_input=abinit_input, items=[4.2, 5.3, 6.0])
 
 
@@ -45,13 +46,13 @@ class TestAbipyBaseModels(AbipyTest):
 
         # Test pydantic API
         pydantic_json_string = top_model.json()
-        assert "TopModel" not in pydantic_json_string
+        assert "Top" not in pydantic_json_string
 
         monty_json_string = top_model.to_json()
-        assert "TopModel" in monty_json_string
+        assert "Top" in monty_json_string
 
         monty_dict = top_model.as_dict()
-        same_top_model = TopModel.from_dict(monty_dict)
+        same_top_model = Top.from_dict(monty_dict)
 
         assert same_top_model.class_type is SubModel
 
@@ -64,18 +65,18 @@ class TestAbipyBaseModels(AbipyTest):
         #assert 0
 
         collection = mongomock.MongoClient().db.collection
-        oid = top_model.mongo_insert(collection)
+        oid = top_model.mng_insert(collection)
         assert oid
-        same_model = TopModel.from_mongo_oid(oid, collection)
+        same_model = Top.from_oid(oid, collection)
         assert same_model.pmg_structure == pmg_structure
-        same_model.mongo_full_update_oid(oid, collection)
+        same_model.mng_full_update_oid(oid, collection)
 
         models = [top_model, same_model]
-        oids = mongo_insert_models(models, collection)
+        oids = mng_insert_models(models, collection)
         assert len(oids) == 2
 
         query = {}
-        qr = TopModel.mongo_find(query, collection)
+        qr = Top.mng_find(query, collection)
         assert bool(qr) and len(qr) == 3
         assert len(qr.models) == 3
         assert set(qr.oids) == set(oids + [oid])
@@ -98,6 +99,10 @@ class TestAbipyBaseModels(AbipyTest):
         assert repr(connector)
         assert str(connector)
 
+        new_conn = connector.new_with_collection_name("foobar")
+        assert new_conn.host == connector.host
+        assert new_conn.collection_name == "foobar"
+
     def test_query_results_api(self):
         query = {"_id": "foo"}
         qr = QueryResults.empty_from_query(query)
@@ -112,13 +117,11 @@ class TestAbipyBaseModels(AbipyTest):
         assert str(mocked_connector)
         assert repr(mocked_connector)
         collection = mocked_connector.get_collection()
-        assert collection
-        #print(collection)
         assert collection.insert_one({"foo": 1, "bar": "foo"})
 
         fs, fs_collname = mocked_connector.get_gridfs_and_name()
 
-        assert fs_collname == f"gridfs_{collection_name}"
+        assert fs_collname == f"{collection_name}_gridfs"
         buf = b"hello world"
         oid = fs.put(buf)
         assert fs.get(oid).read() == buf
@@ -128,28 +131,53 @@ class TestAbipyBaseModels(AbipyTest):
         #assert collection_name in mocked_connector.list_collection_names()
         #assert 0
 
-        # Testing GridFsDesc
+        # Testing GfsFileDesc
         import abipy.data as abidata
         test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
         ddb_filepath = os.path.join(test_dir, "AlAs_444_nobecs_DDB")
         assert ddb_filepath
 
         # Insert the DDB in GridFs.
-        gfsd = mocked_connector.gridfs_put_filepath(ddb_filepath)
-        assert gfsd.oid is not None
-        assert gfsd.filepath == ddb_filepath
-        assert gfsd.collection_name == fs_collname
-        assert str(gfsd)
-        assert gfsd.json()
-        assert fs.exists({"filename": os.path.basename(ddb_filepath)})
-        assert fs.exists({"filepath": ddb_filepath})
-        assert fs.exists({"parent_collection": collection_name})
+        for zlib_level in [zlib.Z_DEFAULT_COMPRESSION, zlib.Z_NO_COMPRESSION]:
+            gfsd = mocked_connector.gfs_put_filepath(ddb_filepath, zlib_level=zlib_level)
+            assert gfsd.oid is not None
+            assert gfsd.filepath == ddb_filepath
+            assert gfsd.collection_name == fs_collname
+            assert gfsd.zlib_level == zlib_level
+            assert str(gfsd)
+            assert gfsd.json()
+            assert fs.exists({"filename": os.path.basename(ddb_filepath)})
+            assert fs.exists({"filepath": ddb_filepath})
 
-        # Extract the DDB from GridFs and open it with abiopen.
-        with mocked_connector.abiopen_gfsd(gfsd) as ddb:
-            assert ddb.structure
+            # Extract the DDB from GridFs and open it with abiopen.
+            with mocked_connector.abiopen_gfsd(gfsd) as ddb:
+                assert ddb.structure
 
+        # Insert a netcdf file.
         gsr_filepath = abidata.ref_file("si_scf_GSR.nc")
-        gfsd = mocked_connector.gridfs_put_filepath(gsr_filepath)
-        with mocked_connector.abiopen_gfsd(gfsd) as gsr:
-            assert gsr.ebands.structure
+        for zlib_level in [zlib.Z_DEFAULT_COMPRESSION, zlib.Z_NO_COMPRESSION]:
+            gfsd = mocked_connector.gfs_put_filepath(gsr_filepath, zlib_level=zlib_level)
+            assert gfsd.oid is not None
+            assert gfsd.zlib_level == zlib_level
+            with mocked_connector.abiopen_gfsd(gfsd) as gsr:
+                assert gsr.ebands.structure
+
+        # Insert a MSONable object
+        for zlib_level in [zlib.Z_DEFAULT_COMPRESSION, zlib.Z_NO_COMPRESSION]:
+            gfsd = mocked_connector.gfs_put_mson_obj(gsr.ebands, zlib_level=zlib_level)
+            assert gfsd.zlib_level == zlib_level
+            saved_ebands = mocked_connector.gfs_get_mson_obj(gfsd)
+            assert saved_ebands.nsppol == gsr.ebands.nsppol
+            assert saved_ebands.structure.formula == gsr.ebands.structure.formula
+
+        #assert 0
+
+        # Test drop_collection
+        from unittest.mock import patch
+        with patch('abipy.tools.iotools.get_input', return_value='no'):
+            assert not mocked_connector.drop_collection(ask_for_confirmation=True)
+
+        with patch('abipy.tools.iotools.get_input', return_value='yes'):
+            assert mocked_connector.drop_collection(ask_for_confirmation=True)
+
+        assert mocked_connector.drop_collection(ask_for_confirmation=False)

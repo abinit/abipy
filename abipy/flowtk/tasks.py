@@ -9,13 +9,14 @@ import shutil
 import collections
 import abc
 import copy
-import ruamel.yaml as yaml
+import pandas as pd
+#import ruamel.yaml as yaml
 from io import StringIO
 import numpy as np
 
 from pprint import pprint
 from itertools import product
-from typing import List, Any
+from typing import List, Any, Union
 from monty.string import is_string, list_strings
 from monty.termcolor import colored, cprint
 from monty.collections import AttrDict
@@ -66,6 +67,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Tools and helper functions.
+
 
 def straceback():
     """Returns a string with the traceback."""
@@ -247,7 +249,7 @@ class ParalHints(collections.abc.Iterable):
         self._confs = [ParalConf(**d) for d in confs]
 
     @classmethod
-    def from_mpi_omp_lists(cls, mpi_procs, omp_threads):
+    def from_mpi_omp_lists(cls, mpi_procs: int, omp_threads: int) -> ParalHints:
         """
         Build a list of Parallel configurations from two lists
         containing the number of MPI processes and the number of OpenMP threads
@@ -401,7 +403,7 @@ class ParalHints(collections.abc.Iterable):
             logger.info("Applying vars_condition %s" % str(policy.vars_condition))
             hints.select_with_condition(policy.vars_condition, key="vars")
 
-            # Undo change if no configuration fullfills the requirements.
+            # Undo change if no configuration fulfills the requirements.
             if not hints:
                 hints = bkp_hints
                 logger.warning("Empty list of configurations after policy.vars_condition")
@@ -1486,7 +1488,7 @@ class Task(Node, metaclass=abc.ABCMeta):
     def num_launches(self) -> int:
         """
         Number of launches performed. This number includes both possible ABINIT restarts
-        as well as possible launches done due to errors encountered with the resource manager
+        and possible launches done due to errors encountered with the resource manager
         or the hardware/software."""
         return sum(q.num_launches for q in self.manager.qads)
 
@@ -2640,7 +2642,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         return fg
 
-    def get_dataframe(self, as_dict=False):
+    def get_dataframe(self, as_dict: bool = False) -> Union[pd.DataFrame, dict]:
         """
         Return pandas dataframe with task info or dictionary if as_dict is True.
         This function should be called after task.get_status to update the status.
@@ -2674,7 +2676,6 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         if as_dict: return d
 
-        import pandas as pd
         return pd.DataFrame(d, index=[0])
 
 

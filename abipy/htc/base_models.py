@@ -7,13 +7,14 @@ import json
 import os
 import inspect
 import time
+import zlib
 
 #import numpy as np
 
-from typing import List, Any, Type, TypeVar, Optional, Iterable
+from typing import List, Any, Type, TypeVar, Optional, Iterable, Tuple
 #from uuid import UUID
 #from pprint import pprint
-from pydantic import BaseModel, Field, PrivateAttr, root_validator
+from pydantic import BaseModel, Field, PrivateAttr, root_validator  # , SecretStr
 from pydantic.main import ModelMetaclass
 from bson.objectid import ObjectId
 from pymongo import MongoClient
@@ -28,6 +29,7 @@ from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.periodic_table import Element
 from abipy.core.release import __version__ as abipy_version
 from abipy.core.structure import Structure
+from abipy.tools.iotools import ask_yes_no
 from abipy.abio.inputs import AbinitInput
 from abipy.electrons.ebands import ElectronBands
 from abipy.flowtk.events import EventReport
@@ -200,35 +202,27 @@ class AbipyModel(BaseModel, MSONable):
         return yaml.safe_dump(yaml.safe_load(json_string), default_flow_style=False)
 
 
-class GridFsDesc(AbipyModel):
+class GfsDesc(AbipyModel):
     """
+    Base model with metadata needed to retriveve an entry from GridFs
     This submodel lives in a standard MongoDB collection and stores all the information
-    needed to retrieve a file from a GridFs collection.
-    Users do not need to instanciate this object directly.
+    Users do not need to instanciate this object directly as they should use the
+    API provided by MongoConnector.
     """
-
-    filepath: str = Field(..., description="Absolute path to the file (depends on the host where the file has been produced")
 
     oid: ObjectId = Field(..., description="ID of the file in the GridFS collection.")
 
     collection_name: str = Field(..., description="Name of the GridFS collection in which the file is stored.")
 
+    zlib_level: int = Field(..., description="zlib compression level")
 
-#class GridFsDescList(AbipyModel):
-#    """
-#    This model should be used for defining a list of GridFs descriptors.
-#    This is required as in ... we use introspection to find all the GridFSDesc submodels
-#    included in the FlowModel and we only look for GridFSDesc or GridFsDescList.
-#    """
-#
-#    __root__: List[GridFSDesc] = Field(..., description="List of GridFsDesc entries")
-#
-#    def __iter__(self):
-#        return iter(self.__root__)
-#
-#    def __getitem__(self, item):
-#        return self.__root__[item]
 
+class GfsFileDesc(GfsDesc):
+    """
+    A Descriptor for files in GridFs.
+    """
+
+    filepath: str = Field(..., description="Absolute path to the file (depends on the host where the file has been produced")
 
 
 class MongoConnector(AbipyModel):
@@ -247,7 +241,8 @@ class MongoConnector(AbipyModel):
 
     dbname: str = Field("abipy", description="MongoDB database")
 
-    collection_name: str = Field(..., description="MongoDB collection")
+    collection_name: str = Field(..., description="Default MongoDB collection")
+    #gfs_collection_name: str = Field(..., description="Default GridFs collection")
 
     username: str = Field(None, description="User name for MongDB authentication. Implies password.")
 
@@ -280,6 +275,14 @@ class MongoConnector(AbipyModel):
         d.update(kwargs)
 
         return cls(**d)
+
+    def new_with_collection_name(self, collection_name: str) -> MongoConnector:
+        """
+        Create a new MongoConnector with a different collection_name
+        """
+        d = self.dict()
+        d["collection_name"] = collection_name
+        return self.__class__(**d)
 
     @root_validator
     def check_username_and_password(cls, values):
@@ -346,7 +349,8 @@ class MongoConnector(AbipyModel):
 
     def get_collection(self, collection_name: Optional[str] = None) -> Collection:
         """
-        Returns MongoDB collection from its name. Use default collection if ``collection_name`` is None.
+        Returns MongoDB collection from its name.
+        Use default collection if ``collection_name`` is None.
         """
         db = self.get_db()
         return db[collection_name or self.collection_name]
@@ -356,17 +360,17 @@ class MongoConnector(AbipyModel):
         Returns GridFS collection. Use automatically generated name.
         """
         db = self.get_db()
-        coll_name = f"gridfs_{self.collection_name}" if collection_name is None else collection_name
+        coll_name = f"{self.collection_name}_gridfs" if collection_name is None else collection_name
         fs = GridFS(db, collection=coll_name, **kwargs)
         return fs, coll_name
 
-    #def insert_models(models: List[MongoModel], collection_name: Optional[str] = None)) -> List[ObjectId]:
+    #def insert_models(models: List[TopLevelModel], collection_name: Optional[str] = None)) -> List[ObjectId]:
     #    """
     #    Insert list of models in a collection. Return list of objectid
     #    Use default collection if collection_name is None.
     #    """
     #    collection = self.get_collection(collection_name=collection_name)
-    #    return mongo_insert_models(models, collection)
+    #    return mng_insert_models(models, collection)
 
     def list_collection_names(self) -> List[str]:
         """
@@ -383,51 +387,135 @@ class MongoConnector(AbipyModel):
         db = self.get_db()
         return db.list_collections()
 
-    def gridfs_put_filepath(self, filepath: str) -> GridFsDesc:
+    def drop_collection(self, ask_for_confirmation=True) -> bool:
+        """
+        Drop the collection and the GridFs associated to it.
+        If ask_for_confirmation is True (default), the user is prompted for confirmation.
+        """
+        if ask_for_confirmation:
+            confirm = ask_yes_no("Do you really want to drop collection: {self.collection_name} and the associated GridFs?",
+                                 default=None)  # pragma: no cover
+            if not confirm:
+                print("Command aborted by user. Your collection is safe.")
+                return False
+
+        db = self.get_db()
+        collection = self.get_collection()
+        fs, fs_collname = self.get_gridfs_and_name()
+
+        db.drop_collection(f"{fs_collname}.chunks")
+        db.drop_collection(f"{fs_collname}.files")
+        collection.drop()
+        print("The MongoDB collection and the associated GridFs collections have been removed")
+
+        return True
+
+    def gfs_put_mson_obj(self, obj, zlib_level=zlib.Z_DEFAULT_COMPRESSION) -> GfsDesc:
+        """
+        Insert a MSONable object in GridFS
+        """
+        s = monty_json_dumps(obj)
+        encoding = "utf-8"
+        if zlib_level != zlib.Z_NO_COMPRESSION:
+            s = zlib.compress(s.encode(encoding), level=zlib_level)
+
+        metadata = {
+            "@module": obj.__class__.__module__,
+             "@class": obj.__class__.__name__,
+             "zlib_level": zlib_level,
+             "encoding": encoding,
+        }
+
+        #print(f"with zlib_level {zlib_level} len(s): {len(s)}")
+        fs, fs_collname = self.get_gridfs_and_name()
+        oid = fs.put(s, **metadata)
+
+        return GfsDesc(oid=oid, collection_name=fs_collname, zlib_level=zlib_level)
+
+    def gfs_get_mson_obj(self, gfsd: GfsDesc) -> Any:
+        """
+        Get a MSONable object from GridFS.
+        """
+        if gfsd.oid is None:
+            raise RuntimeError("gfsd.oid is None, this means that the object has not been inserted in GridFS")
+
+        fs, fs_collname = self.get_gridfs_and_name()
+        # FIXME
+        assert fs_collname == gfsd.collection_name
+
+        grid_out = fs.get(gfsd.oid)
+        s = grid_out.read()
+        if gfsd.zlib_level != zlib.Z_NO_COMPRESSION:
+            s = zlib.decompress(s)
+
+        return monty_json_loads(s)
+
+    def gfs_put_filepath(self, filepath: str, zlib_level: int = zlib.Z_DEFAULT_COMPRESSION) -> GfsFileDesc:
         """
         Insert a file in the default GridFs collection.
-        Build and return a GridFsDesc instance with metadata and the OID.
+        Build and return a GfsFileDesc instance with metadata and the id.
         """
-
         fs, fs_collname = self.get_gridfs_and_name()
 
         metadata = dict(
             filename=os.path.basename(filepath),
             filepath=filepath,
-            parent_collection = self.collection_name,
+            zlib_level=zlib_level,
         )
 
-        with open(filepath, "rb") as fh:
-           oid = fs.put(fh, **metadata)
+        if zlib_level == zlib.Z_NO_COMPRESSION:
+            # This requires less memory as GridFs will get data from file.
+            with open(filepath, "rb") as fh:
+               oid = fs.put(fh, **metadata)
+        else:
+            # Here we need to read all the content in order to compress.
+            with open(filepath, "rb") as fh:
+                s = zlib.compress(fh.read(), level=zlib_level)
+                oid = fs.put(s, **metadata)
 
-        return GridFsDesc(filepath=filepath, oid=oid, collection_name=fs_collname)
+        return GfsFileDesc(filepath=filepath, oid=oid, collection_name=fs_collname, zlib_level=zlib_level)
 
-    def abiopen_gfsd(self, gfsd: GridFSDesc):
+    def mktmp_filepath(self, gfsd: GfsFileDesc) -> str:
         """
-        Get binary data from the GridFS collection, write buffer to temporary file
-        and use ``abiopen`` to open the file.
+        Fetch the file from GridFs, write it to a temporay file and return the filepath.
         """
         if gfsd.oid is None:
-            raise RuntimeError("gridfs_ois is None, this means that the file has not been inserted in GridFS")
+            raise RuntimeError("gfsd.oid is None, this means that the file has not been inserted in GridFS")
 
         fs, fs_collname = self.get_gridfs_and_name()
+        # FIXME
+        assert fs_collname == gfsd.collection_name
+
         grid_out = fs.get(gfsd.oid)
 
         from tempfile import mkstemp #, TemporaryFile, NamedTemporaryFile
         _, filepath = mkstemp(suffix=grid_out.filename)
         with open(filepath, "wb") as fh:
-            fh.write(grid_out.read())
+            s = grid_out.read()
+            if grid_out.zlib_level != zlib.Z_NO_COMPRESSION:
+                s = zlib.decompress(s)
+            fh.write(s)
 
+        return filepath
+
+    def abiopen_gfsd(self, gfsd: GfsFileDesc):
+        """
+        Get binary data from the GridFS collection, write buffer to temporary file
+        and use ``abiopen`` to open the file.
+        """
         from abipy.abilab import abiopen
+        filepath = self.mktmp_filepath(gfsd)
         return abiopen(filepath)
 
-    def open_mongoflow_gui(self, **serve_kwargs):
+    def open_mongoflow_gui(self, flow_model_cls=None, **serve_kwargs):
         """
         Start panel GUI that allows the user to inspect the results stored in the collection.
         """
-        collection = self.get_collection()
-        from .flow_models import FlowModel
-        flow_model_cls = FlowModel.get_subclass_from_collection(collection)
+        if flow_model_cls is None:
+            collection = self.get_collection()
+            from .flow_models import FlowModel
+            flow_model_cls = FlowModel.get_subclass_from_collection(collection)
+
         from abipy.panels.core import abipanel
         from abipy.panels.mongo_gui import MongoGui
         abipanel()
@@ -446,7 +534,7 @@ class MockedMongoConnector(MongoConnector):
     """
 
     def get_client(self) -> MongoClient:
-        # Cache the client also in the Mock so that we use the same mocked instances.
+        # Cache the client also in the Mock so that we use the same mocked instance.
         if self._client is not None:
             return self._client
 
@@ -463,8 +551,7 @@ class MockedMongoConnector(MongoConnector):
         return super().get_gridfs_and_name(collection_name=collection_name, **kwargs)
 
 
-#class TopLevelModel(AbipyModel):
-class MongoModel(AbipyModel):
+class TopLevelModel(AbipyModel):
     """
     Provides tiny wrappers around the MongoDB API.
     """
@@ -478,13 +565,13 @@ class MongoModel(AbipyModel):
     )
 
     @classmethod
-    def from_mongo_oid(cls, oid: ObjectId, collection: Collection):
+    def from_oid(cls, oid: ObjectId, collection: Collection):
         """
-        Return a model instance for the ObjectId oid and the MongoDB collection.
+        Return the model from the ObjectId oid and the MongoDB collection.
         """
         data = collection.find_one({'_id': oid})
         if not data:
-            raise ValueError(f"Cannot find {self.__class__.__name__} model in collection: {collection}")
+            raise ValueError(f"Cannot find {cls.__name__} model in collection: {collection}")
 
         data.pop("_id")
         data = AbipyDecoder().process_decoded(data)
@@ -494,7 +581,7 @@ class MongoModel(AbipyModel):
         return cls(**data)
 
     @classmethod
-    def mongo_find(cls, query: dict, collection: Collection, **kwargs) -> QueryResults:
+    def mng_find(cls, query: dict, collection: Collection, **kwargs) -> QueryResults:
         """
         Find the models in the collection matching the mongodb query.
         """
@@ -509,17 +596,17 @@ class MongoModel(AbipyModel):
 
         return QueryResults(oids, models, query)
 
-    def mongo_insert(self, collection: Collection) -> ObjectId:
+    def mng_insert(self, collection: Collection) -> ObjectId:
         """
         Insert the model in the collection. Return ObjectId.
         """
-        # self.json build a JSON string: pydantic handles the serialization of pydantic entries
-        # while arbitrary types (e.g. Strucuture) are encoded using json_encoders.
+        # self.json build a JSON string: pydantic handles the serialization of the pydantic models
+        # while arbitrary types (e.g. Structure) are encoded using json_encoders.
         # json loads allows us to get the final dictionary to be inserted in the MongoDB collection.
         doc = json.loads(self.json())
         return collection.insert_one(doc).inserted_id
 
-    def mongo_full_update_oid(self, oid: ObjectId, collection: Collection) -> None:
+    def mng_full_update_oid(self, oid: ObjectId, collection: Collection) -> None:
         """
         Perform a full update of the document given the ObjectId in the collection.
         """
@@ -555,7 +642,7 @@ class MongoModel(AbipyModel):
 #    return cls.from_json_file(filepath)
 
 
-def mongo_insert_models(models: List[MongoModel], collection: Collection, verbose: int = 0) -> List[ObjectId]:
+def mng_insert_models(models: List[AbipyModel], collection: Collection, verbose: int = 0) -> List[ObjectId]:
     """
     Insert list of models in a collection. If verbose > 0, print elasped time.
     Return: list of ObjectId

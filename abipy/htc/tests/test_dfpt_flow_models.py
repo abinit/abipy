@@ -4,8 +4,6 @@ from abipy.htc.pseudos_models import PseudoSpecs
 from abipy.htc.structure_models import StructureData
 from abipy.htc.dfpt_flow_models import PhononFlowModelWithParams, PhononFlowModelWithInput
 
-
-
 def make_scf_input(structure, pseudos, accuracy, paral_kgb=0):
     """
     This function constructs the input file for the GS calculation:
@@ -42,13 +40,12 @@ def make_scf_input(structure, pseudos, accuracy, paral_kgb=0):
     return gs_inp
 
 
-
 class TestPhononFlowModels(AbipyTest):
 
     def test_phonon_flow_model_with_input(self):
 
-        mongo_connector = MockedMongoConnector.for_localhost(collection_name="phbands")
-        collection = mongo_connector.get_collection()
+        mng_connector = MockedMongoConnector.for_localhost(collection_name="phbands")
+        collection = mng_connector.get_collection()
 
         # Pseudopotential specifications.
         pseudos_specs = PseudoSpecs.from_repo_table_name("ONCVPSP-PBE-SR-PDv0.4", "standard")
@@ -76,5 +73,5 @@ class TestPhononFlowModels(AbipyTest):
             #print(model)
             #models.append(model)
 
-        #mongo_insert_models(models, collection, verbose=1)
-        #mongo_connector_insert_models(models)
+        #mng_insert_models(models, collection, verbose=1)
+        #mng_connector_insert_models(models)

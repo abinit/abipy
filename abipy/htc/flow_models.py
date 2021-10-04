@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import traceback
-
-import pandas as pd
+import sys
 import logging
+import functools
+import pandas as pd
 
 from datetime import datetime
 from pprint import pformat
@@ -17,7 +18,7 @@ from abipy.flowtk.tasks import Task
 from abipy.flowtk.events import EventReport
 from abipy.flowtk import TaskManager, Work, Flow
 from abipy.abio.inputs import AbinitInput
-from .base_models import AbipyModel, MongoModel, cls2dict, AbipyDecoder, QueryResults, MongoConnector
+from .base_models import AbipyModel, TopLevelModel, cls2dict, AbipyDecoder, QueryResults, MongoConnector, GfsFileDesc
 from .structure_models import StructureData
 from .pseudos_models import PseudoSpecs
 
@@ -26,23 +27,24 @@ logger = logging.getLogger(__name__)
 
 class CommonQuery(BaseModel):
 
-    query: dict
+    query: dict = Field(..., description="MongoDB filter")
 
-    projection: Union[None, list, dict]
+    projection: Union[None, list, dict] = Field(..., description="MongoDB projection")
 
-    info: str
+    info: str = Field(..., description="String with a human-reable description of the query")
 
-    def to_string(self, title: Optional[str] = None) ->  str:
+    def to_string(self, title: Optional[str] = None, verbose: int = 0) ->  str:
         lines = []
         app = lines.append
         if title is None:
             app(f"=== {self.__class__.__name__} ===")
         else:
             app(title)
-        app(f"Info: {self.info}")
-        app("filter:")
+        app(f"{self.info}")
+        app("MongoDB filter:")
         app(pformat(self.query))
-        app("projection:")
+        #if verbose:
+        app("MongoDB projection:")
         app(pformat(self.projection))
         app("")
 
@@ -52,14 +54,42 @@ class CommonQuery(BaseModel):
         return self.to_string()
 
     def find(self, collection: Collection, **kwargs):
-        #print(self)
         return collection.find(self.query, self.projection, **kwargs)
 
-    def get_dataframe(self, collection: Collection, **kwargs) -> pd.DataFrame:
-        cursor = self.find(collection, **kwargs)
-        #for doc in cursor: print(doc)
+    def get_dataframe(self, collection: Collection, try_short_keys: bool = False, **kwargs) -> pd.DataFrame:
+        """
+        Args:
+            shor_keys:
+                WARNING don't use this option if you need reproducible results
+        """
+
+        def can_use_short_colnames(names):
+            """
+            We usually receive column names of the form `foo.bar`, `foo.hello`.
+            This function detects if it possible to use the string after the last "." as column name.
+            without incurring in duplication.
+            """
+            d = {}
+            for name in names:
+                i = name.rfind(".")
+                if i != -1 and i != len(name) - 1:
+                    d[name] = name[i + 1:]
+                else:
+                    d[name] = name
+
+            can_shorten = len(set(d.values())) == len(names)
+            return can_shorten, d
+
         # https://towardsdatascience.com/all-pandas-json-normalize-you-should-know-for-flattening-json-13eae1dfb7dd
-        return pd.json_normalize(list(cursor))
+        cursor = self.find(collection, **kwargs)
+        df = pd.json_normalize(list(cursor))
+
+        if try_short_keys:
+            can_use, mapper = can_use_short_colnames(df.keys())
+            if can_use:
+                df = df.rename(columns=mapper)
+
+        return df
 
 
 class _NodeData(AbipyModel):
@@ -85,29 +115,37 @@ class TaskData(_NodeData):
     """
 
     input: AbinitInput = Field(..., description="Abinit input object")
-    #output_str: str = Field(..., description="Abinit input")
-    #log_str: str = Field(..., description="Abinit input")
 
-    report: EventReport = Field(..., description="Number of warnings")
+    #name: str: Field(..., description="Name of the Task e.g. w0_t0")
 
-    num_warnings: int = Field(..., description="Number of warnings")
+    num_warnings: int = Field(..., description="Number of warnings found the in log file")
 
     num_errors: int = Field(..., description="Number of errors")
 
-    num_comments: int = Field(..., description="Number of comments")
+    num_comments: int = Field(..., description="Number of comments found in the log file")
 
-    #num_restarts: int = Field(..., description="Number of comments")
+    num_restarts: int = Field(..., description="Number of restarts performed by AbiPy")
+
+    num_corrections: int = Field(..., description="Number of correction performed by AbiPy")
+
+    report: EventReport = Field(..., description="Number of warnings")
+
+    #abinit_abort_file_str: str = Field(None, description="Number of warnings")
+
+    mpi_procs: int = Field(..., description="Number of MPI processes used by the Task")
+
+    omp_threads: int = Field(..., description="Number of OpenMP threads. -1 if not used.")
 
     #cpu_time: float = Field(..., description="CPU-time in seconds")
-
     #wall_time: float = Field(..., description="Wall-time in seconds")
+    #history: List[str] = Field(..., description="Task history. List of strings logged by AbiPy")
 
-    #mpi_nprocs: int = Field(..., description="Number of MPI processes")
+    out_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the output file from GridFS.")
 
-    #omp_nthreads: int = Field(..., description="Number of OpenMP threads. -1 if not used.")
+    log_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the log file from GridFS.")
 
     @classmethod
-    def from_task(cls, task: Task) -> TaskData:
+    def from_task(cls, task: Task, mng_connector: MongoConnector, with_out: bool, with_log: bool) -> TaskData:
         """
         Build the model from an AbiPy |Task|
         """
@@ -117,21 +155,26 @@ class TaskData(_NodeData):
         # TODO: Handle None!
         report = task.get_event_report()
         data["report"] = report
-        #data["report"] = report.as_dict()
         for a in ("num_errors", "num_comments", "num_warnings"):
             data[a] = getattr(report, a)
 
         data.update(dict(
-            #task.mpi_procs
-            #task.omp_threads,
             #"%.1f" % task.mem_per_proc.to("Gb"))))
             ##(task.num_launches,
-            #task.num_restarts,
-            #task.num_corrections),
+            num_restarts=task.num_restarts,
+            num_corrections=task.num_corrections,
             #stime,
             #task.node_id]))
             #task.status
+            mpi_procs=task.mpi_procs,
+            omp_threads=task.omp_threads,
         ))
+
+        if with_out:
+            data["out_gfsd"] = mng_connector.gfs_put_filepath(task.output_file.path)
+
+        if with_log:
+            data["log_gfsd"] = mng_connector.gfs_put_filepath(task.log_file.path)
 
         return cls(**data)
 
@@ -141,26 +184,38 @@ class WorkData(_NodeData):
     Data Model associated to an AbiPy |Work|
     """
 
-    #__root__: List[TaskData] = Field(..., description="List of TaskData")
-
     tasks_data: List[TaskData] = Field(..., description="List of TaskData")
 
     @classmethod
-    def from_work(cls, work: Work) -> WorkData:
+    def from_work(cls, work: Work, mng_connector: MongoConnector, with_out: bool, with_log: bool) -> WorkData:
         """
         Build the model from a AbiPy |Work| instance.
         """
         data = cls.get_data_for_node(work)
-        data["tasks_data"] = [TaskData.from_task(task) for task in work]
+        data["tasks_data"] = [TaskData.from_task(task, mng_connector, with_out, with_log) for task in work]
 
         return cls(**data)
 
-    #def __iter__(self):
-    #    return iter(self.__root__)
+    def summarize(self, verbose: int = 0, stream=sys.stdout) -> None:
+        def p(string: str) -> None:
+            print(string, file=stream)
 
-    #def __getitem__(self, item):
-    #    return self.__root__[item]
+        df = self.get_dataframe()
+        p(df)
 
+    def get_dataframe(self) -> pd.DataFrame:
+        rows = []
+        anames = [
+            "num_warnings", "num_errors", "num_comments", "num_restarts", "num_corrections",
+            "mpi_procs", "omp_threads"
+            #"cpu_time", "wall_time"
+
+        ]
+
+        for task_data in self.tasks_data:
+            rows.append({k: getattr(task_data, k) for k in anames})
+
+        return pd.DataFrame(rows)
 
 
 class ExecStatus(str, Enum):
@@ -177,6 +232,19 @@ class ExecStatus(str, Enum):
     #    return key in cls.__members__
 
 
+#def aggregation_classmethod(method):
+#    """
+#    """
+#    #@functools.wraps(method)
+#    #def decorated(*args, **kwargs):
+#    #    cls = args[0]
+#    #    cls._aggregation_class_method_names.append(method.__name__)
+#
+#    class_method = classmethod(method)
+#    print("hello")
+#    return class_method
+
+
 class FlowData(AbipyModel):
     """
     Submodel storing the status the Flow and additional metadata.
@@ -185,14 +253,14 @@ class FlowData(AbipyModel):
     """
     exec_status: ExecStatus = ExecStatus.init
 
-    worker_name: str = Field(None, description="The name of th AbiPy worker running this Flow.")
+    worker_name: str = Field(None, description="The name of the AbiPy worker executing this Flow.")
 
-    worker_hostname: str = Field(None, description="The name of the machine running this Flow.")
+    worker_hostname: str = Field(None, description="The name of the machine executing this Flow.")
 
     workdir: str = Field(None, description="The directory where the Flow is executed.")
 
     created_at: datetime = Field(
-        description="Timestamp for when this material document was first created",
+        description="Timestamp for when this document was first created",
         default_factory=datetime.utcnow,
     )
 
@@ -201,9 +269,41 @@ class FlowData(AbipyModel):
         description="Timestamp for the most recent calculation update for this property",
     )
 
-    tracebacks: List[str] = Field([], description="List of exception tracebacks")
+    tracebacks: List[str] = Field([], description="List of exception tracebacks produced by the AbiPy Worker")
 
-    #works_data: List[WorkData] = Field(..., description="")
+    works_data: List[WorkData] = Field([], description="List of WorkData objects")
+
+    # Private class attributes
+    _aggregation_class_method_names: List[str] = []
+
+    def summarize(self, verbose: int = 0, stream=sys.stdout) -> None:
+        """
+
+        Args:
+            verbose: Verbosity level.
+            stream: File-like object, Default: sys.stdout
+        """
+        def p(string: str) -> None:
+            print(string, file=stream)
+
+        p(f"AbiPyWorker: {self.worker_name}@{self.worker_hostname}")
+        p(f"Workdir: {self.workdir}")
+        p(f"Created at:   {self.created_at}")
+        p(f"Completed at: {self.completed_at}")
+        p(f"ExecStatus: {self.exec_status.value}")
+
+        if self.tracebacks:
+            p("WARNING racebacks is not empty:")
+            for trace in self.tracebacks:
+                p(trace)
+                p(80 * "*", "\n")
+            return
+
+        for work_data in self.works_data:
+            work_data.summarize(verbose=verbose, stream=stream)
+            #p(work_data)
+            #df = work_data.get_dataframe()
+            #print(df)
 
 
 #class __FlowData(_NodeData):
@@ -229,12 +329,11 @@ class FlowData(AbipyModel):
 FM = TypeVar('FM', bound='FlowModel')
 
 # TODO: Add support for:
-#   - duplicated FlowModels
-#   - GridFS
+#   - Detecting duplicated FlowModels
 
 
 
-class FlowModel(MongoModel, ABC):
+class FlowModel(TopLevelModel, ABC):
     """
     Abstract class for models associated to a Flow calculation performed by an AbiPy Worker.
     This model implements the businness logic to create a Flow from a MongoDB collection
@@ -264,6 +363,10 @@ class FlowModel(MongoModel, ABC):
     in_structure_data: StructureData = Field(..., description="Input structure and associated metadata. Used ")
 
     pseudos_specs: PseudoSpecs = Field(..., description="Pseudopotential specifications.")
+
+    with_out: bool = Field(False, description="True if the main output files should be added to GridFS.")
+
+    with_log: bool = Field(False, description="True if the log files should be added to GridFS.")
 
     # Private class attributes
     _magic_key: ClassVar[str] = "_flow_model_"
@@ -328,12 +431,18 @@ class FlowModel(MongoModel, ABC):
         return sub_class
 
     @classmethod
-    def mongo_get_flowdata(cls, oid: ObjectId, collection: Collection, **kwargs) -> FlowData:
+    def mongo_get_flow_data(cls, oid: ObjectId, collection: Collection, **kwargs) -> FlowData:
+        """
+        Return the FlowData submodel given the ObjectId of the MongoDB document.
+        """
         d = collection.find_one({"_id": ObjectId(oid)}, projection=["flow_data"], **kwargs)
-        return FlowData(**d["flow_data"])
+        if d is None:
+            raise ValueError(f"Cannot find ObjectID {oid} in {repr(collection)}")
+        data = AbipyDecoder().process_decoded(d["flow_data"])
+        return FlowData(**data)
 
     @classmethod
-    def mongo_find_completed_oids(cls, collection: Collection, **kwargs) -> List[ObjectId]:
+    def mng_find_completed_oids(cls, collection: Collection, **kwargs) -> List[ObjectId]:
         """
         Find all the models in collection that are completed.
         Return: list of ObjectId.
@@ -360,7 +469,7 @@ class FlowModel(MongoModel, ABC):
         return status2oids
 
     @classmethod
-    def find_runnable_oid_models(cls, collection: Collection, **kwargs: object) -> List[Tuple[ObjectId, FlowModel]]:
+    def find_runnable_oid_models(cls, collection: Collection, **kwargs) -> List[Tuple[ObjectId, FlowModel]]:
         """
         Return list of (oid, model) tuple with the models that are ready to run.
         """
@@ -420,6 +529,9 @@ class FlowModel(MongoModel, ABC):
         Must be implemented in the concrete subclass.
         """
 
+    # TODO: Replace arguments with a Context object or introduce Plan object
+    # to support multiple collections from which one can fetch input data if needed.
+
     def build_flow_and_update_collection(self, workdir: str, oid: ObjectId,
                                          collection: Collection, abipy_worker) -> Union[Flow, None]:
         """
@@ -451,68 +563,47 @@ class FlowModel(MongoModel, ABC):
 
         finally:
             # Update document in the MongoDB collection.
-            self.mongo_full_update_oid(oid, collection)
-
-    #def find_all_gridfs_descs(self):
-    #    desc_list = []
-    #    for k, v in self:
-    #        #print(type(k), type(v))
-    #        #print(k, v)
-    #        if isinstance(v, GridFsDesc):
-    #            desc_list.append(v)
-    #            continue
-
-    #        elif isinstance(v, BaseModel):
-    #            sub_list = find_all_gridfs_descs(v)
-    #            desc_list.extend(sub_list)
-
-    #    return desc_list
-
-    #def gridfs_upload_files(self, mongo_connector):
-    #    desc_list = self.find_all_gridfs_descs()
-
-    #    oid_list = []
-    #    for desc in desc_lis:
-    #        oid = desc.gridfs_insert(mongo_connector)
-    #        oid_list.append(oid)
-
-    #    return oid_list
+            self.mng_full_update_oid(oid, collection)
 
     @abstractmethod
-    def postprocess_flow(self, flow: Flow, mongo_connector: MongoConnector) -> None:
+    def postprocess_flow(self, flow: Flow, mng_connector: MongoConnector) -> None:
         """
         Postprocess the Flow and update the model with output results.
-        MongoConnector should be used only to insert files in GridFs as the final insertion is done by the caller.
+        MongoConnector should be used only to insert files in GridFs
+        as the final insertion is done by the caller.
         Must be implemented in the concrete subclass.
         """
 
-    def postprocess_flow_and_update_collection(self, flow: Flow, oid: ObjectId,
-                                               mongo_connector: MongoConnector) -> None:
+    def postprocess_flow_and_update_db(self, flow: Flow, oid: ObjectId, mng_connector: MongoConnector) -> None:
         """
         API used by the AbiPy Worker to postprocess a Flow from the model.
         Wraps the postprocess_flow method implemented in the subclass to add extra
         operations on the model, error handling and finally the insertion in the collection of the model.
         """
         flow_data = self.flow_data
-        collection = mongo_connector.get_collection()
-        #gridfs_collection = connector.get_gridfs_collection()
+        collection = mng_connector.get_collection()
+
         try:
-            self.postprocess_flow(flow, mongo_connector)
+            self.postprocess_flow(flow, mng_connector)
+
+            # Builds works_data entry.
+            for work in flow:
+                w_data = WorkData.from_work(work, mng_connector, self.with_out, self.with_log)
+                flow_data.works_data.append(w_data)
+
             flow_data.exec_status = ExecStatus.completed
+
         except Exception:
             flow_data.exec_status = ExecStatus.errored
             flow_data.tracebacks.append(traceback.format_exc())
+
         finally:
             #print("in postprocessing_flow_and_update_collection with status:", flow_data.exec_status)
             flow_data.completed_at = datetime.utcnow()
-            # NB: The call to gridfs must be done before calling mongo_full_update_oid in
-            # order to have the oids of the gridfs files in the model.
-            #gridfs_oids = self.gridfs_upload_files(gridfs_collection,
-            #                                       parent_oid=oid, parent_collection_name=collection)
-            self.mongo_full_update_oid(oid, collection)
+            self.mng_full_update_oid(oid, collection)
 
     @classmethod
-    def mongo_get_crystal_systems_incoll(cls, collection: Collection, **kwargs) -> List[int]:
+    def mng_get_crystal_systems_incoll(cls, collection: Collection, **kwargs) -> List[int]:
         """
         Return list of crystal systems in collection
         kwargs are passed to pymongo `create_index`
@@ -522,18 +613,17 @@ class FlowModel(MongoModel, ABC):
         return [k for k in collection.distinct(key) if k is not None]
 
     @classmethod
-    def mongo_find_by_crystal_system(cls, crystal_system: str, collection: Collection, **kwargs) -> QueryResults:
+    def mng_find_by_crystal_system(cls, crystal_system: str, collection: Collection, **kwargs) -> QueryResults:
         """
         Filter documents in the collection according to the crystal system.
         kwargs are passed to mongo.find.
         """
         key = "in_structure_data.crystal_system"
         collection.create_index(key)
-        query = {key: crystal_system}
-        return cls.mongo_find(query, collection, **kwargs)
+        return cls.mng_find({key: crystal_system}, collection, **kwargs)
 
     @classmethod
-    def mongo_get_spg_numbers_incoll(cls, collection: Collection, **kwargs) -> List[int]:
+    def mng_get_spg_numbers_incoll(cls, collection: Collection, **kwargs) -> List[int]:
         """
         Return list if all space group numbers found in the collection.
         """
@@ -542,26 +632,24 @@ class FlowModel(MongoModel, ABC):
         return [k for k in collection.distinct(key) if k is not None]
 
     @classmethod
-    def mongo_find_by_spg_number(cls, spg_number: int, collection: Collection, **kwargs) -> QueryResults:
+    def mng_find_by_spg_number(cls, spg_number: int, collection: Collection, **kwargs) -> QueryResults:
         """
         Filter documents in the collection according to the space group number.
         kwargs are passed to mongo.find.
         """
         key = "in_structure_data.spg_number"
         collection.create_index(key)
-        query = {key: int(spg_number)}
-        return cls.mongo_find(query, collection, **kwargs)
+        return cls.mng_find({key: int(spg_number)}, collection, **kwargs)
 
     @classmethod
-    def mongo_find_by_formula(cls, formula_pretty: str, collection: Collection, **kwargs) -> QueryResults:
+    def mng_find_by_formula(cls, formula_pretty: str, collection: Collection, **kwargs) -> QueryResults:
         """
         Filter documents in the collection according to the formula.
         kwargs are passed to pymongo `collection.find`.
         """
         key = "in_structure_data.formula_pretty"
         collection.create_index(key)
-        query = {key: formula_pretty}
-        return cls.mongo_find(query, collection, **kwargs)
+        return cls.mng_find({key: formula_pretty}, collection, **kwargs)
 
     @classmethod
     @abstractmethod
@@ -576,23 +664,22 @@ class FlowModel(MongoModel, ABC):
     def get_panel_view(self):
         """Return panel object with a view of the model."""
 
+    @classmethod
+    def mng_aggregate_in_struct(cls, collection: Collection) -> pd.DataFrame:
+        """
+        Aggregate input structures.
+        """
+        rows = []
+        for oid in cls.mng_find_completed_oids(collection):
+            d = collection.find_one({"_id": oid}, projection=["in_structure_data"])
+            structure_data = StructureData(**d["in_structure_data"])
+            row = {"_id": oid}
+            row.update(structure_data.dict(exclude={"structure"}))
+            rows.append(row)
+
+        return pd.DataFrame(rows)
+
     #@abstractmethod
     #@classmethod
     #def get_aggregate_panel_ui(cls, collection: Collection):
     #    """Return panel object with a view of the model."""
-
-    @classmethod
-    def mongo_aggregate_in_structures(cls, collection: Collection) -> pd.DataFrame:
-        oids = cls.mongo_find_completed_oids(collection)
-        projection = {"_id": 1, "in_structure_data": 1}
-        rows = []
-        for oid in oids:
-            doc = collection.find_one({"_id": oid}, projection)
-            structure_data = StructureData(**doc["in_structure_data"])
-            d = structure_data.dict()
-            d.pop("structure")
-            d["_id"] = doc["_id"]
-            rows.append(d)
-
-        return pd.DataFrame(rows).set_index("_id")
-

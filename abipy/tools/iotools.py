@@ -56,6 +56,17 @@ class ExitStackWithFiles(ExitStack):
         return self.files.__getitem__(slice)
 
 
+def get_input(prompt):
+    """
+    Wraps python builtin input so that we can easily mock it in unit tests using:
+
+        from unittest.mock import patch
+        with patch('abipy.tools.iotools.get_input', return_value='no'):
+            do_something_that_uses_get_input
+    """
+    return input(prompt)
+
+
 def ask_yes_no(prompt: str, default=None):  # pragma: no cover
     """
     Ask a question and return a boolean (y/n) answer.
@@ -73,7 +84,7 @@ def ask_yes_no(prompt: str, default=None):  # pragma: no cover
     ans = None
     while ans not in answers.keys():
         try:
-            ans = input(prompt + ' ').lower()
+            ans = get_input(prompt + ' ').lower()
             if not ans:
                 # response was an empty string
                 ans = default
@@ -91,7 +102,7 @@ def ask_yes_no(prompt: str, default=None):  # pragma: no cover
 
 def _user_wants_to_exit(): # pragma: no cover
     try:
-        answer = input("Do you want to continue [Y/n]")
+        answer = get_input("Do you want to continue [Y/n]")
     except EOFError:
         return True
 

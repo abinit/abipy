@@ -73,14 +73,19 @@ class StructureData(AbipyModel):
 
     # Structure metadata
     nsites: int = Field(None, description="Total number of sites in the structure")
+
     #elements: List[Element] = Field(None, description="List of elements in the material")
+
     nelements: int = Field(None, title="Number of Elements")
+
     composition: Composition = Field(None, description="Full composition for the material")
+
     composition_reduced: Composition = Field(
         None,
         title="Reduced Composition",
         description="Simplified representation of the composition",
     )
+
     formula_pretty: str = Field(
         None,
         title="Pretty Formula",

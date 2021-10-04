@@ -74,6 +74,9 @@ def get_parser(with_epilog=False):
                                #required=True,
                                help="Name of the MongDB collection used to store FlowModels.")
 
+    copts_parser.add_argument("--local-db", action='store_true', default=False,
+                              help="Assume MongoDB server is running on the localhost with the default port.")
+
     #serve_parser = argparse.ArgumentParser(add_help=False)
     #serve_parser.add_argument("-a", "--address", type=str, default="localhost", help="Address")
     #serve_parser.add_argument("-p", "--port", type=int, default=0,
@@ -92,10 +95,10 @@ def get_parser(with_epilog=False):
 
     p_status = subparsers.add_parser("status", parents=[copts_parser], help=abidb_status.__doc__)
 
-    p_in_structure = subparsers.add_parser("in_structure", parents=[copts_parser], help=abidb_in_structure.__doc__)
+    p_aggreg = subparsers.add_parser("aggreg", parents=[copts_parser], help=abidb_aggreg.__doc__)
 
-    p_flowdata = subparsers.add_parser("flowdata", parents=[copts_parser], help=abidb_flowdata.__doc__)
-    p_flowdata.add_argument("oid", type=str, help="Document ID")
+    p_flow_data = subparsers.add_parser("flow_data", parents=[copts_parser], help=abidb_flow_data.__doc__)
+    p_flow_data.add_argument("oid", type=str, help="Document ID")
 
     p_cq = subparsers.add_parser("cq", parents=[copts_parser], help=abidb_cq.__doc__)
     p_cq.add_argument("cq_inds", nargs="*",
@@ -126,8 +129,8 @@ def get_parser(with_epilog=False):
     #                           help="Scratch directory in which Flows will be generated. "
     #                                "If not given, use value from ~/.abinit/abipy/config.yml")
 
-    #p_mongo_gui = subparsers.add_parser("mongo_gui", parents=[copts_parser, worker_selector, serve_parser],
-    #                                    help="Start MongoGUI.")
+    p_mongo_gui = subparsers.add_parser("mongo_gui", parents=[copts_parser], # , serve_parser],
+                                        help="Start MongoGUI.")
 
     return parser
 
@@ -142,30 +145,30 @@ def get_parser(with_epilog=False):
 #        sort = None
 
 
-#def serve_kwargs_from_options(options):
-#
-#    print("""
-#Use:
-#
-#    ssh -N -f -L localhost:{port}:localhost:{port} username@your_remote_cluster
-#
-#to activate port forwarding.
-#""")
-#
-#    import abipy.panels as mod
-#    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
-#
-#    d = dict(
-#        debug=options.verbose > 0,
-#        #show=False,
-#        port=options.port,
-#        static_dirs={"/assets": assets_path},
-#        address=options.address,
-#        websocket_origin="*",
-#        panel_template="FastList",
-#    )
-#    #print("serve_kwargs:\n", pformat(d), "\n")
-#    return d
+def serve_kwargs_from_options(options):
+
+    print("""
+Use:
+
+    ssh -N -f -L localhost:{port}:localhost:{port} username@your_remote_cluster
+
+to activate port forwarding.
+""")
+
+    import abipy.panels as mod
+    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
+
+    d = dict(
+        debug=options.verbose > 0,
+        #show=False,
+        #port=options.port,
+        static_dirs={"/assets": assets_path},
+        #address=options.address,
+        websocket_origin="*",
+        panel_template="FastList",
+    )
+    #print("serve_kwargs:\n", pformat(d), "\n")
+    return d
 
 
 #def serve(worker, options):
@@ -187,7 +190,7 @@ def get_parser(with_epilog=False):
 
 class Context(BaseModel):
 
-    mongo_connector: MongoConnector
+    mng_connector: MongoConnector
 
     collection: Collection
 
@@ -198,7 +201,11 @@ class Context(BaseModel):
 
 
 def abidb_list(options, ctx: Context):
-    print(ctx.mongo_connector.list_collection_names())
+    coll_names = ctx.mng_connector.list_collection_names()
+    coll_names = [cn for cn in coll_names if not cn.startswith("gridfs_")]
+    print("List of MongoDB collections:\n")
+    for cname in coll_names:
+        print("- ", cname)
 
     return 0
 
@@ -222,16 +229,30 @@ def abidb_status(options, ctx: Context):
     return 0
 
 
-def abidb_in_structure(options, ctx: Context):
-    df = ctx.fmodel_cls.mongo_aggregate_in_structures(ctx.collection)
-    print_dataframe(df)
+def abidb_aggreg(options, ctx: Context):
+    # Find all "mng_aggregate_" class method
+    import inspect
+    def predicate(value):
+        return inspect.ismethod(value) and value.__name__.startswith("mng_aggregate")
+
+    for name, value in inspect.getmembers(ctx.fmodel_cls, predicate):
+        print(name, value)
+        df = value(ctx.collection)
+        print_dataframe(df)
+
+    #df = ctx.fmodel_cls.mng_aggregate_in_struct(ctx.collection)
+
     return 0
 
 
-def abidb_flowdata(options, ctx: Context):
-    flow_data = ctx.fmodel_cls.mongo_get_flowdata(options.oid, ctx.collection)
-    #print(flow_data)
-    print(flow_data.yaml_dump())
+def abidb_flow_data(options, ctx: Context):
+    flow_data = ctx.fmodel_cls.mongo_get_flow_data(options.oid, ctx.collection)
+    #print(repr(flow_data))
+    #print(flow_data.yaml_dump())
+    flow_data.summarize(verbose=options.verbose)
+    #for work_data in flow_data.works_data:
+    #    print(work_data)
+
     return 0
 
 
@@ -242,10 +263,11 @@ def abidb_cq(options, ctx: Context):
     if not options.cq_inds:
         print("Printing list of predefined queries with their index as `cg_inds` argument is not given\n")
         for i, query in enumerate(queries):
-            print(query.to_string(title=f"== Index: {i} ==="))
+            print(query.to_string(title=f"== Index: {i} ===", verbose=options.verbose))
 
         print("Use e.g. `abidb.py cq 0 1` to execute queries with a given index")
         print("      or `abidb.py cq all` to select all")
+        print("Use -v to print extra info")
         return 0
 
     cg_inds = set(options.cq_inds)
@@ -254,12 +276,10 @@ def abidb_cq(options, ctx: Context):
     else:
         cg_inds = set([int(c) for c in cg_inds])
 
-    print(cg_inds)
-
     for i, query in enumerate(queries):
         if i not in cg_inds: continue
-        print(query)
-        df = query.get_dataframe(ctx.collection)
+        print(query.to_string(verbose=options.verbose))
+        df = query.get_dataframe(ctx.collection, try_short_keys=True)
         print(df)
         #print_dataframe(df)
 
@@ -274,6 +294,11 @@ def abidb_schema(options, ctx: Context):
     import ruamel.yaml as yaml
     print(yaml.safe_dump(schema, default_flow_style=False))
     return 0
+
+
+def abidb_mongo_gui(options, ctx: Context):
+    serve_kwargs = serve_kwargs_from_options(options)
+    ctx.mng_connector.open_mongoflow_gui(flow_model_cls=ctx.fmodel_cls, **serve_kwargs)
 
 
 @prof_main
@@ -295,6 +320,10 @@ def main():
         print(exc)
         show_examples_and_exit(error_code=1)
 
+    if not options.command:
+        print("command argument is required!")
+        show_examples_and_exit(error_code=1)
+
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
@@ -303,10 +332,25 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
+   #try:
+   #     import argcomplete
+   #     argcomplete.autocomplete(parser)
+   #     # This supports bash autocompletion. To enable this:
+   #     #
+   #     #   pip install argcomplete,
+   #     #   activate-global-python-argcomplete
+   #     #
+   #     #  or add
+   #     #      eval "$(register-python-argcomplete abidb)"
+   #     #
+   #     # into your .bash_profile or .bashrc
+   # except ImportError:
+   #     pass
+
     if not options.collection_name:
         # Take it from external file
 
-        print(f"Taking the collection name from file: {MAGIC_COLLECTION_FILENAME} as the `-c` option is not used")
+        print(f"Taking collection_name from: {MAGIC_COLLECTION_FILENAME} as `-c` option is not used")
         try:
             with open(MAGIC_COLLECTION_FILENAME, "rt") as fh:
                 options.collection_name = fh.read().strip()
@@ -320,13 +364,13 @@ def main():
                   )
             return 1
 
-    #if options.use_localhost:
-    #mongo_connector = MongoConnector.for_localhost(collection_name=options.collection_name)
+    if options.local_db:
+        mng_connector = MongoConnector.for_localhost(collection_name=options.collection_name)
+    else:
+        mng_connector = MongoConnector.from_abipy_config(collection_name=options.collection_name)
+    print(mng_connector)
 
-    mongo_connector = MongoConnector.from_abipy_config(collection_name=options.collection_name)
-    print(mongo_connector)
-
-    collection = mongo_connector.get_collection()
+    collection = mng_connector.get_collection()
     fmodel_cls = FlowModel.get_subclass_from_collection(collection)
 
     ctx = Context(**locals())

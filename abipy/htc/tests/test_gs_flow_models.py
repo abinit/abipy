@@ -7,7 +7,7 @@ from abipy.core.testing import AbipyTest
 from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands
 from abipy.flowtk import TaskManager, Flow
-from abipy.htc.base_models import mongo_insert_models, MockedMongoConnector
+from abipy.htc.base_models import mng_insert_models, MockedMongoConnector
 from abipy.htc.structure_models import StructureData
 from abipy.htc.pseudos_models import PseudoSpecs
 from abipy.htc.gs_models import GsData, NscfData
@@ -72,7 +72,7 @@ class TestFlowModels(AbipyTest):
             assert model.scf_data is None
             assert model.nscf_kpath_data is None
 
-            oid = model.mongo_insert(collection)
+            oid = model.mng_insert(collection)
             assert oid
 
             workdir = self.mkdtemp()
@@ -97,10 +97,10 @@ class TestFlowModels(AbipyTest):
                                                                mocked_connector, with_gsr)
 
             # Save the updated model
-            model.mongo_full_update_oid(oid, collection)
+            model.mng_full_update_oid(oid, collection)
 
             # Now retrieve the same model from the collection.
-            same_model = EbandsFlowModelWithParams.from_mongo_oid(oid, collection)
+            same_model = EbandsFlowModelWithParams.from_oid(oid, collection)
             assert isinstance(same_model.scf_data, GsData)
             assert model.scf_data.pressure_gpa == float(same_model.scf_data.pressure_gpa)
             assert isinstance(same_model.scf_data.ebands, ElectronBands)
@@ -116,20 +116,20 @@ class TestFlowModels(AbipyTest):
             #assert same_model.structure == structure
             #print(same_model.scf_data.ebands.structure)
 
-        systems = EbandsFlowModelWithParams.mongo_get_crystal_systems_incoll(collection)
+        systems = EbandsFlowModelWithParams.mng_get_crystal_systems_incoll(collection)
         assert systems == ["Cubic"]
-        spg_numbers = EbandsFlowModelWithParams.mongo_get_spg_numbers_incoll(collection)
+        spg_numbers = EbandsFlowModelWithParams.mng_get_spg_numbers_incoll(collection)
         assert spg_numbers == [227]
 
-        qr = EbandsFlowModelWithParams.mongo_find_by_formula("Si", collection)
+        qr = EbandsFlowModelWithParams.mng_find_by_formula("Si", collection)
         assert qr and qr.models[0].in_structure_data.structure.composition.reduced_formula == "Si"
 
-        qr = EbandsFlowModelWithParams.mongo_find_by_spg_number(1, collection)
+        qr = EbandsFlowModelWithParams.mng_find_by_spg_number(1, collection)
         assert not qr
-        qr = EbandsFlowModelWithParams.mongo_find_by_spg_number(227, collection)
+        qr = EbandsFlowModelWithParams.mng_find_by_spg_number(227, collection)
         assert qr and qr.models[0].in_structure_data.spg_number == 227
 
-        qr = EbandsFlowModelWithParams.mongo_find_by_crystal_system("Cubic", collection)
+        qr = EbandsFlowModelWithParams.mng_find_by_crystal_system("Cubic", collection)
         assert qr and qr.models[0].in_structure_data.crystal_system == "Cubic"
 
         oid_models = EbandsFlowModelWithParams.find_runnable_oid_models(collection, limit=1)
@@ -143,7 +143,7 @@ class TestFlowModels(AbipyTest):
         assert not status2oids[ExecStatus.completed]
         assert len(status2oids[ExecStatus.init]) == collection.count_documents({}) - 1
 
-        oids = mongo_insert_models(model_list, collection, verbose=1)
+        oids = mng_insert_models(model_list, collection, verbose=1)
         assert len(oids) == len(model_list)
 
         #import tempfile
@@ -169,5 +169,5 @@ class TestFlowModels(AbipyTest):
                                           in_structure_data=in_structure_data, pseudos_specs=pseudos_specs)
 
         collection: Collection = mongomock.MongoClient().db.collection
-        oid = model.mongo_insert(collection)
+        oid = model.mng_insert(collection)
         assert oid

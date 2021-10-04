@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-#import logging
 import panel as pn
 
-from typing import List # , Tuple, ClassVar, Union, TypeVar, Type, Dict  #, Optional, Any, Type,
+from typing import List
 from pydantic import Field, root_validator
 from abipy.abio.inputs import AbinitInput
 from abipy.panels.core import ply
 from abipy.panels.viewers import JSONViewer
+from abipy.abio.factories import ebands_input
 from abipy.flowtk import TaskManager, Flow
-from .base_models import MongoConnector, GridFsDesc
+from abipy.flowtk.flows import bandstructure_flow
+from .base_models import MongoConnector, GfsFileDesc
 from .flow_models import FlowModel, CommonQuery
-from .gs_models import GsData, NscfData  #, RelaxData
+from .gs_models import GsData, NscfData, RelaxData
 
-#logger = logging.getLogger(__name__)
 
 
 class _BaseEbandsFlowModel(FlowModel):
@@ -35,30 +35,31 @@ class _BaseEbandsFlowModel(FlowModel):
     # Output
     ########
 
-    scf_data: GsData = Field(None, description="Results produced by the GS SCF run.")
+    scf_data: GsData = Field(None, description="Results produced by the SCF run.")
 
-    nscf_kpath_data: NscfData = Field(None, description="Results produced by the GS NSCF run.")
+    nscf_kpath_data: NscfData = Field(None, description="Results produced by the NSCF run with a k-path.")
 
-    nscf_kmesh_data: NscfData = Field(None, description="Results produced by the GS NSCF run.")
+    nscf_kmesh_data: NscfData = Field(None, description="Results produced by the NSCF run with a k-mesh.")
 
-    with_gsr: bool = Field(False, description="Set it to True to save the GSR files in GridFS.")
+    with_gsr: bool = Field(False, description="Set it to True to save the GSR file in GridFS.")
 
+    #with_den: bool = Field(False, description="Set it to True to save the DEN file in GridFS.")
 
-    def postprocess_flow(self, flow: Flow, mongo_connector: MongoConnector) -> None:
+    def postprocess_flow(self, flow: Flow, mng_connector: MongoConnector) -> None:
         """
         Analyze the flow and fills the model with output results.
         MongoConnector should be used only to insert files in GridFs as the final insertion is done by the caller.
         This function is called by the AbiPy Worker if the flow completed successfully.
         """
         with flow[0][0].open_gsr() as gsr:
-            self.scf_data = GsData.from_gsr(gsr, mongo_connector, self.with_gsr)
+            self.scf_data = GsData.from_gsr(gsr, mng_connector, self.with_gsr)
 
         with flow[0][1].open_gsr() as gsr:
-            self.nscf_kpath_data = NscfData.from_gsr(gsr, mongo_connector, self.with_gsr)
+            self.nscf_kpath_data = NscfData.from_gsr(gsr, mng_connector, self.with_gsr)
 
         if self.dos_input is not None:
             with flow[0][2].open_gsr() as gsr:
-                self.nscf_kmesh_data = NscfData.from_gsr(gsr, mongo_connector, self.with_gsr)
+                self.nscf_kmesh_data = NscfData.from_gsr(gsr, mng_connector, self.with_gsr)
 
     def get_panel_view(self):
         """
@@ -102,55 +103,60 @@ class _BaseEbandsFlowModel(FlowModel):
     @classmethod
     def get_common_queries(cls) -> List[CommonQuery]:
         """
-        Return list of dictionaries with the MongoDB queries typically used to filter results.
-        Empty list if no suggestion is available. Mainly used by the panel-based GUI.
+        Return list of dictionaries with the MongoDB queries typically used to filter documents for this model.
+        Empty list if no suggestion is available.
         """
+        p_gpa = 2.0
+        max_force = 1e-4
+
         return [
             CommonQuery(
                 query={"$or": [
-                    {"scf_data.abs_pressure_gpa": {"$gt": 2}},
+                    {"scf_data.abs_pressure_gpa": {"$gt": p_gpa}},
                     {"scf_data.max_force_ev_over_ang": {"$gt": 1e-4}}]
                 },
-                projection=["scf_data.abs_pressure_gpa", "scf_data.max_force_ev_over_ang"],
-                info="Filter systems with large pressure or large forces",
+                projection=["in_structure_data.formula_pretty",
+                            "scf_data.abs_pressure_gpa", "scf_data.max_force_ev_over_ang",
+                           ],
+                info=f"Filter `{cls.__name__}` documents with pressure > {p_gpa} GPa "
+                     f"or absolute max force > {max_force} eV/Ang",
                 )
         ]
 
     #@classmethod
     #def mongo_aggregate_egaps(cls, collection: Collection) -> pd.DataFrame:
-    #    fundamental_gap_projection = {
-    #        "scf_data.fundamental_gap": 1,
-    #        "nscf_kpath_data.fundamental_gap": 1,
-    #        "nscf_kmesh_data.fundamental_gap": 1,
-    #    }
+        #oids = cls.mng_find_completed_oids(collection)
+        #    projection = [
+        #        "in_structure_data
+        #    }
+        #
+        #    fund_gap_projection = [
+        #        "scf_data.fundamental_gap",
+        #        "nscf_kpath_data.fundamental_gap",
+        #        "nscf_kmesh_data.fundamental_gap",
+        #    ]
 
-    #    direct_gap_projection = {
-    #        "scf_data.direct_gap": 1,
-    #        "nscf_kpath_data.direct_gap": 1,
-    #        "nscf_kmesh_data.direct_gap": 1,
-    #    }
+        #    direct_gap_projection = {
+        #        "scf_data.direct_gap",
+        #        "nscf_kpath_data.direct_gap",
+        #        "nscf_kmesh_data.direct_gap",
+        #    }
 
-    #    projection = {
-    #        "_id": 1,
-    #        "in_structure_data": 1
-    #    }
-    #    projection.update(fundamental_gap_projection)
-    #    projection.update(direct_gap_projection)
+        #    projection.extend(fundamental_gap_projection + direct_gap_projection)
 
-    #    oids = cls.mongo_find_completed_oids(collection)
-    #    rows = []
-    #    for oid in oids:
-    #        doc = collection.find_one({"_id": oid}, projection)
-    #        structure_data = AbipyDecoder().process_decoded(doc["in_structure_data"])
-    #        #structure_data = cls.decode(doc["in_structure_data"])
-    #        row = structure_data.dict4pandas()
-    #        # Here I need a tool to access foo.bar instead of d["foo"]["bar"]
-    #        row["fund_gap"] = min(doc[key] for key in fundamental_gap_projection)
-    #        row["direct_gap"] = min(doc[key] for key in direct_gap_projection)
+        #    oids = cls.mng_find_completed_oids(collection)
+        #    rows = []
+        #    for oid in oids:
+        #        doc = collection.find_one({"_id": oid}, projection)
+        #        structure_data = AbipyDecoder().process_decoded(doc["in_structure_data"])
+        #        #structure_data = cls.decode(doc["in_structure_data"])
+        #        row = structure_data.dict4pandas()
+        #        # Here I need a tool to access foo.bar instead of d["foo"]["bar"]
+        #        row["fund_gap"] = min(doc[key] for key in fundamental_gap_projection)
+        #        row["direct_gap"] = min(doc[key] for key in direct_gap_projection)
+        #        rows.append(row)
 
-    #        rows.append(row)
-
-    #    return pd.DataFrame(rows)
+        #    return pd.DataFrame(rows)
 
 
 class EbandsFlowModelWithParams(_BaseEbandsFlowModel):
@@ -192,7 +198,6 @@ class EbandsFlowModelWithParams(_BaseEbandsFlowModel):
 
         Return: |Flow| object.
         """
-        from abipy.abio.factories import ebands_input
         pseudos = self.pseudos_specs.get_pseudos()
 
         multi = ebands_input(self.in_structure_data.structure, pseudos,
@@ -211,14 +216,13 @@ class EbandsFlowModelWithParams(_BaseEbandsFlowModel):
         else:
             self.scf_input, self.nscf_input = multi.split_datasets()
 
-        from abipy.flowtk.flows import bandstructure_flow
         return bandstructure_flow(workdir, self.scf_input, self.nscf_input,
                                   dos_inputs=self.dos_input, manager=manager)
 
 
 class EbandsFlowModelWithInputs(_BaseEbandsFlowModel):
     """
-    More flexible model for band structure calculations that requires AbinitInput objects
+    More flexible model for band structure calculations that requires |AbinitInput| objects
     generated by the user before building the model.
     """
 
@@ -239,6 +243,5 @@ class EbandsFlowModelWithInputs(_BaseEbandsFlowModel):
 
         Return: |Flow| object.
         """
-        from abipy.flowtk.flows import bandstructure_flow
         return bandstructure_flow(workdir, self.scf_input, self.nscf_input,
                                   dos_inputs=self.dos_input, manager=manager)

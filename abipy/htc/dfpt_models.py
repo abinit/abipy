@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from pydantic import Field
 from abipy.dfpt.ddb import DdbFile
-from .base_models import AbipyModel, MongoConnector, GridFsDesc
+from .base_models import AbipyModel, MongoConnector, GfsFileDesc
 
 
 class PhononData(AbipyModel):
@@ -17,10 +17,10 @@ class PhononData(AbipyModel):
     #phdos: PhononDos = Field(..., description="DDB string")
 
     #ddb_string: str = Field(..., description="String with the content of the DDB file")
-    ddb_gfsd: GridFsDesc = Field(None, description="Metadata needed to retrieve the DDB file from GridFS.")
+    ddb_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the DDB file from GridFS.")
 
     @classmethod
-    def from_ddb(cls, ddb: DdbFile, mongo_connector: MongoConnector) -> PhononData:
+    def from_ddb(cls, ddb: DdbFile, mng_connector: MongoConnector) -> PhononData:
         """
         Build the model from a DdbFile.
         """
@@ -28,7 +28,7 @@ class PhononData(AbipyModel):
             #ddb_string=ddb.get_string(),
         )
 
-        kwargs["ddb_gfsd"] = mongo_connector.gridfs_put_filepath(ddb.filepath)
+        kwargs["ddb_gfsd"] = mng_connector.gfs_put_filepath(ddb.filepath)
 
         # TODO: Add Msonable protocol to phbands and phdos.
         #with ddb.anaget_phbst_and_phdos_files() as g:

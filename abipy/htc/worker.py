@@ -242,7 +242,7 @@ class WorkerState(AbipyModel):
     uuid: str = Field(default_factory=_str_uuid,
                       description="AbipyWorker ID. Used by the client to detect server restart.")
 
-    mongo_connector: MongoConnector = Field(None, description="Name of the collection and connection parameters")
+    mng_connector: MongoConnector = Field(None, description="Name of the collection and connection parameters")
 
 
 class AbipyWorker:
@@ -261,7 +261,7 @@ class AbipyWorker:
     def __init__(self, name: str, sched_options: dict, scratch_dir: str,
                  address: str = "localhost", port: int = 0,
                  manager: Optional[TaskManager] = None,
-                 mongo_connector: Optional[MongoConnector] = None):
+                 mng_connector: Optional[MongoConnector] = None):
         """
         Args:
             name: The name of the AbipyWorker. Must be unique across machines.
@@ -273,20 +273,20 @@ class AbipyWorker:
                  Allows specifying a specific port
                  Port 0 means to select an arbitrary unused port
             manager:
-            mongo_connector:
+            mng_connector:
         """
         self.name = name
         self.address, self.port = address, port
         self.pid = os.getpid()
         self.manager = manager
-        self.mongo_connector = mongo_connector
+        self.mng_connector = mng_connector
         self.flow_model_cls = None
         self.num_exceptions_in_build_flow_from_mongodb = 0
         self.flowid2_oid_model = {}
 
-        if self.mongo_connector:
+        if self.mng_connector:
             # Get the FlowMode subclass from the DB collection.
-            collection = self.mongo_connector.get_collection()
+            collection = self.mng_connector.get_collection()
             self.flow_model_cls = FlowModel.get_subclass_from_collection(collection)
 
         # url --> callables returning panel objects.
@@ -373,7 +373,7 @@ class AbipyWorker:
             raise ValueError("The AbipyWorker should have a flow_model_cls when running with a MongDB database.")
 
         # TODO: Improve error handling.
-        collection = self.mongo_connector.get_collection()
+        collection = self.mng_connector.get_collection()
 
         if self.flowid2_oid_model:
             node_ids = list(self.flowid2_oid_model.keys())
@@ -386,7 +386,7 @@ class AbipyWorker:
                     print("In completed")
                     flow = Flow.from_file(row["workdir"])
                     oid, model = self.flowid2_oid_model[flow_id]
-                    model.postprocess_flow_and_update_collection(flow, oid, mongo_connector)
+                    model.postprocess_flow_and_update_db(flow, oid, self.mng_connector)
                     self.flowid2_oid_model.pop(flow_id)
                 else:
                     pass
@@ -432,16 +432,16 @@ class AbipyWorker:
         sched_options = yaml_safe_load_path(os.path.join(config_dir, "scheduler.yml"))
         manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml"))
 
-        # TODO: mongo_connector, flow_model_cls
+        # TODO: mng_connector, flow_model_cls
         return cls(state.name, sched_options, state.scratch_dir,
                    address=state.address, port=state.port, manager=manager,
-                   mongo_connector=state.mongo_connector)
+                   mng_connector=state.mng_connector)
 
     @classmethod
     def new_with_name(cls, worker_name: str, scratch_dir: str,
                       scheduler_path: Optional[str] = None,
                       manager_path: Optional[str] = None,
-                      mongo_connector=None, verbose=1) -> AbipyWorker:
+                      mng_connector=None, verbose=1) -> AbipyWorker:
         """
         Create a new AbiPyWorker.
 
@@ -450,7 +450,7 @@ class AbipyWorker:
             scratch_dir:
             scheduler_path:
             manager_path:
-            mongo_connector:
+            mng_connector:
             verbose:
         """
         config_dir = os.path.join(ABIPY_DIRPATH, f"worker_{worker_name}")
@@ -503,7 +503,7 @@ to update the list of local clients.
                 name=worker_name,
                 status=WorkerStatusEnum.init,
                 scratch_dir=scratch_dir,
-                mongo_connector=mongo_connector,
+                mng_connector=mng_connector,
         )
 
         worker_state.json_write(os.path.join(config_dir, "state.json"), indent=2)
@@ -549,10 +549,10 @@ to update the list of local clients.
         sched_options = yaml_safe_load_path(os.path.join(config_dir, "scheduler.yml"))
         manager = TaskManager.from_file(os.path.join(config_dir, "manager.yml"))
 
-        # TODO: manager, mongo_connector, flow_model_cls
+        # TODO: manager, mng_connector, flow_model_cls
         # Should be stored in state.json so that we can restart.
         new = cls(state.name, sched_options, state.scratch_dir, address=state.address, port=state.port,
-                  manager=manager, mongo_connector=state.mongo_connector)
+                  manager=manager, mng_connector=state.mng_connector)
 
         print("Remember to execute lscan (rscan) to update the list of local (remote) clients...")
         return new
@@ -571,7 +571,7 @@ to update the list of local clients.
             address=self.address,
             port=self.port,
             scratch_dir=self.scratch_dir,
-            mongo_connector=self.mongo_connector,
+            mng_connector=self.mng_connector,
         )
 
         state.json_write(filepath)
@@ -633,13 +633,14 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         return pn.pane.Alert(f"Cannot find Flow with node id: {flow_id}", alert_type="danger")
 
     def shutdown_server(self, message: str) -> None:
+        """Shutdown the AbipyWorker."""
         self.write_state_file(status="dead")
         #self.flow_scheduler.stop()
 
         # If we are connected to a MongoDB collection, we try to log the problem in the database.
         #if self.flow_model_cls is not None:
         #    try:
-        #        collection = self.mongo_connector.get_collection()
+        #        collection = self.mng_connector.get_collection()
         #        self.flow_model_cls.register_worker_exception(self, collection)
         #    except:
         #        pass
@@ -686,7 +687,7 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
 
         if self.flow_model_cls is not None:
             print("Abipy Worker will try to connect to the MongoDB server using:")
-            print(self.mongo_connector)
+            print(self.mng_connector)
             print("Using FlowModel class:", self.flow_model_cls)
             print("Connecting every", self.MONGO_PERIODIC_CALLBACK_TIME_MS, "ms")
             from tornado.ioloop import PeriodicCallback
@@ -1225,12 +1226,12 @@ to create it""")
             if "status" in state:
                 state["status"] = state["status"].value  #.colored_str()
 
-            mongo_connector_dict = state.pop("mongo_connector", None)
-            if mongo_connector_dict is not None:
-                # Add the most important info from the mongo_connector.
+            mng_connector_dict = state.pop("mng_connector", None)
+            if mng_connector_dict is not None:
+                # Add the most important info from the mng_connector.
                 # Prepend some keys with `mongo_prefix`.
                 remap = {"host": "mongo_host", "dbname": "mongo_dbname", "collection_name": None}
-                mongo_info = {k: mongo_connector_dict[k] for k in remap}
+                mongo_info = {k: mng_connector_dict[k] for k in remap}
                 for k, new_key in remap.items():
                     if new_key is None: continue
                     mongo_info[new_key] = mongo_info.pop(k)
