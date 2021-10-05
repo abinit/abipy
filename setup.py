@@ -152,7 +152,7 @@ install_requires = [
     "numpy",
     "scipy",
     "spglib",
-    "pymatgen>=2022.0.4",
+    "pymatgen>=2022.0.14",
     "netCDF4",
     "matplotlib",
     "seaborn",
