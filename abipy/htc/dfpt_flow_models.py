@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-#import logging
-
 from typing import List  # , Tuple, ClassVar, Union, TypeVar, Type, Dict  #, Optional, Any, Type,
 from pydantic import Field, validator
 from abipy.abio.inputs import AbinitInput
@@ -9,9 +7,7 @@ from abipy.flowtk import TaskManager, PhononFlow
 from .base_models import MongoConnector, GfsFileDesc
 from .gs_models import GsData
 from .dfpt_models import PhononData
-from .flow_models import FlowModel
-
-#logger = logging.getLogger(__name__)
+from .flow_models import FlowModel, PresetQuery
 
 
 class _BasePhononFlowModel(FlowModel):
@@ -52,6 +48,7 @@ class _BasePhononFlowModel(FlowModel):
     #ddb_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the DDB file from GridFS.")
 
     with_dvdb: bool = Field(True, description="False if the DVDB file should not be added to GridFs")
+
     dvdb_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the DVDB Fortran file from GridFS.")
 
     def build_flow(self, workdir: str, manager: TaskManager) -> PhononFlow:
@@ -66,8 +63,11 @@ class _BasePhononFlowModel(FlowModel):
         return PhononFlow.from_scf_input(workdir, self.scf_input,
                                          ph_ngqpt=(2, 2, 2),
                                          #ph_ngqpt=(4, 4, 4),
-                                         with_becs=self.with_becs, with_quad=self.with_quad,
-                                         with_flexoe=self.with_flexoe, manager=manager)
+                                         with_becs=self.with_becs,
+                                         with_quad=self.with_quad,
+                                         with_flexoe=self.with_flexoe,
+                                         manager=manager,
+                                         )
 
     def postprocess_flow(self, flow: PhononFlow, mng_connector: MongoConnector) -> None:
         """
@@ -79,23 +79,24 @@ class _BasePhononFlowModel(FlowModel):
             self.scf_data = GsData.from_gsr(gsr, mng_connector, with_gsr=False)
 
         # Add DEN and POT files
-        #self.gsden_gfsd = mng_connector.gfs_put_filepath(dvdb_filepath)
-        #self.gspot_gfsd = mng_connector.gfs_put_filepath(dvdb_filepath)
+        #self.gsden_gfsd = mng_connector.gfs_put_filepath(gsden_filepath)
+        #self.gspot_gfsd = mng_connector.gfs_put_filepath(gspot_filepath)
 
         with flow.open_final_ddb() as ddb:
             self.phonon_data = PhononData.from_ddb(ddb, mng_connector)
 
         #if self.with_dvdb:
-        #    dbdb_filepath = None
+        #    dvdb_filepath = None
         #    self.dvdb_gfsd = mng_connector.gfs_put_filepath(dvdb_filepath)
 
     @classmethod
-    def get_common_queries(cls) -> List[dict]:
+    def get_preset_queries(cls) -> List[PresetQuery]:
+        """
+        Return list of dictionaries with the MongoDB queries typically used to filter documents for this model.
+        Empty list if no suggestion is available.
+        """
         return [
-            #{"$and": [
-            #    {"scf_data.abs_pressure_gpa:": {"$gt": 2}},
-            #    {"scf_data.max_force_ev_over_ang": {"$gt": 1e-6}}]
-            #},
+            PresetQuery.for_large_forces_or_high_pressure("scf_data", cls),
         ]
 
     def get_panel_view(self):

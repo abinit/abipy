@@ -71,8 +71,8 @@ class MongoGui(AbipyParameterized):
         self.common_queries_btn.on_click(self.on_common_queries_btn)
         options = []
         # TODO: Fixme
-        #if hasattr(self.flow_model_cls, "get_common_queries"):
-        #    options = [json.dumps(q) for q in self.flow_model_cls.get_common_queries()]
+        C#if hasattr(self.flow_model_cls, "get_preset_queries"):
+        #    options = [json.dumps(q) for q in self.flow_model_cls.get_preset_queries()]
         self.common_queries_wdg = pnw.Select(name="Common MongoDB queries", options=options)
 
         md = pn.pane.Markdown("## Perform MongoDB queries using one of the widgets below:")

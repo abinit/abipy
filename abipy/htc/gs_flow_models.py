@@ -11,7 +11,7 @@ from abipy.abio.factories import ebands_input
 from abipy.flowtk import TaskManager, Flow
 from abipy.flowtk.flows import bandstructure_flow
 from .base_models import MongoConnector, GfsFileDesc
-from .flow_models import FlowModel, CommonQuery
+from .flow_models import FlowModel, PresetQuery
 from .gs_models import GsData, NscfData, RelaxData
 
 
@@ -101,26 +101,13 @@ class _BaseEbandsFlowModel(FlowModel):
         )
 
     @classmethod
-    def get_common_queries(cls) -> List[CommonQuery]:
+    def get_preset_queries(cls) -> List[PresetQuery]:
         """
         Return list of dictionaries with the MongoDB queries typically used to filter documents for this model.
         Empty list if no suggestion is available.
         """
-        p_gpa = 2.0
-        max_force = 1e-4
-
         return [
-            CommonQuery(
-                query={"$or": [
-                    {"scf_data.abs_pressure_gpa": {"$gt": p_gpa}},
-                    {"scf_data.max_force_ev_over_ang": {"$gt": 1e-4}}]
-                },
-                projection=["in_structure_data.formula_pretty",
-                            "scf_data.abs_pressure_gpa", "scf_data.max_force_ev_over_ang",
-                           ],
-                info=f"Filter `{cls.__name__}` documents with pressure > {p_gpa} GPa "
-                     f"or absolute max force > {max_force} eV/Ang",
-                )
+            PresetQuery.for_large_forces_or_high_pressure("scf_data", cls)
         ]
 
     #@classmethod

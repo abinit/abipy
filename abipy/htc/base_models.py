@@ -585,7 +585,7 @@ class TopLevelModel(AbipyModel):
         """
         Find the models in the collection matching the mongodb query.
         """
-        cursor = collection.find(filter=query, **kwargs)
+        cursor = collection.find(query, **kwargs)
 
         oids, models = [], []
         decoder = AbipyDecoder()

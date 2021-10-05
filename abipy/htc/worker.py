@@ -240,9 +240,9 @@ class WorkerState(AbipyModel):
 
     #uuid: UUID = Field(default_factory=uuid4)
     uuid: str = Field(default_factory=_str_uuid,
-                      description="AbipyWorker ID. Used by the client to detect server restart.")
+                      description="AbipyWorker ID. Used by the client to detect if the server has restarted.")
 
-    mng_connector: MongoConnector = Field(None, description="Name of the collection and connection parameters")
+    mng_connector: MongoConnector = Field(None, description="MongoDB connection parameters and name of default collection")
 
 
 class AbipyWorker:
@@ -633,7 +633,9 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         return pn.pane.Alert(f"Cannot find Flow with node id: {flow_id}", alert_type="danger")
 
     def shutdown_server(self, message: str) -> None:
-        """Shutdown the AbipyWorker."""
+        """
+        Shutdown the AbipyWorker.
+        """
         self.write_state_file(status="dead")
         #self.flow_scheduler.stop()
 

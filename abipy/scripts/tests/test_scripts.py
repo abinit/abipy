@@ -501,8 +501,8 @@ class TestAbiw(ScriptTest):
     def test_abiw(self):
         """Testing abiw.py script"""
         env = self.get_env()
-        # Note that ldiscover has side effect as it updates the list of local servers.
-        r = env.run(self.script, "ldiscover", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        # Note that lscan has side effect as it updates the list of local servers.
+        r = env.run(self.script, "lscan", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
         r = env.run(self.script, "clients", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 

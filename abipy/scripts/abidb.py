@@ -258,7 +258,7 @@ def abidb_flow_data(options, ctx: Context):
 
 def abidb_cq(options, ctx: Context):
 
-    queries = ctx.fmodel_cls.get_common_queries()
+    queries = ctx.fmodel_cls.get_preset_queries()
 
     if not options.cq_inds:
         print("Printing list of predefined queries with their index as `cg_inds` argument is not given\n")
