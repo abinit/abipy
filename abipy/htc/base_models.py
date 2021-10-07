@@ -193,7 +193,7 @@ class AbipyModel(BaseModel, MSONable):
             fp.write(self.to_json(**kwargs))
 
     #@abstractmethod
-    #def get_panel_view(self):
+    #def get_panel_view(self, mng_connector: MongoConnector):
     #    """Return panel object with a view of the model"""
 
     def yaml_dump(self):
@@ -364,13 +364,36 @@ class MongoConnector(AbipyModel):
         fs = GridFS(db, collection=coll_name, **kwargs)
         return fs, coll_name
 
-    #def insert_models(models: List[TopLevelModel], collection_name: Optional[str] = None)) -> List[ObjectId]:
-    #    """
-    #    Insert list of models in a collection. Return list of objectid
-    #    Use default collection if collection_name is None.
-    #    """
-    #    collection = self.get_collection(collection_name=collection_name)
-    #    return mng_insert_models(models, collection)
+    def insert_flow_models(self, models: List[TopLevelModel], verbose: int = 0) -> List[ObjectId]:
+        """
+        Insert list of FlowModels in collection.
+        Return list of objectid
+        """
+        # Sanity check. We need a list of FlowModel objects of the same type.
+        cls = models[0].__class__
+        if any(m.__class__ is not cls for m in models):
+            raise ValueError(f"All models must belong to the same class {models[0].__class__}")
+
+        if not hasattr(cls, "_magic_key"):
+            raise TypeError("Expecting FlowModel subclass with `_magic_key, got {cls.__name__}")
+
+        new_dict = cls2dict(cls)
+        collection = self.get_collection()
+
+        cnt, oid = 0, None
+        for doc in collection.find({cls._magic_key: {"$exists": True}}):
+            oid = doc.pop("_id")
+            old_dict = doc.get(cls._magic_key)
+            cnt += 1
+            if new_dict != old_dict:
+                raise TypeError(f"Cannot register new Model {new_dict}\n"
+                                f"Collection is already associated to the FlowModel {old_dict}")
+
+        if cnt == 0:
+            # Create new document with FlowModel class if not already present.
+            collection.insert_one({cls._magic_key: new_dict})
+
+        return mng_insert_models(models, collection)
 
     def list_collection_names(self) -> List[str]:
         """
@@ -406,7 +429,7 @@ class MongoConnector(AbipyModel):
         db.drop_collection(f"{fs_collname}.chunks")
         db.drop_collection(f"{fs_collname}.files")
         collection.drop()
-        print("The MongoDB collection and the associated GridFs collections have been removed")
+        print("The MongoDB collection and the associated GridFs collection have been removed")
 
         return True
 
@@ -523,7 +546,7 @@ class MongoConnector(AbipyModel):
         import panel as pn
         pn.serve(app, **serve_kwargs)
 
-    #def get_panel_view(self):
+    #def get_panel_view(self, mng_connector: MongoConnector):
     #    import panel as pn
     #    return pn.pane.HTML(self._repr_markdown_())
 

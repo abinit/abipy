@@ -93,7 +93,7 @@ class PseudoSpecs(_PseudosProvider):
 
 class MongoDbPseudos(_PseudosProvider):
     """
-    A rather advanced provider that takes pseudopotentials by IDs from a MongoDB collection.
+    A rather specialized provider that takes pseudopotentials by IDs from a MongoDB collection.
     This approach is used for testing/validanting "unofficial" pseudos.
     """
 

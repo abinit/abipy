@@ -36,7 +36,7 @@ class AbipyConfig(BaseModel):
 
     mongo_host: str = Field(None, description="Host address e.g. 'localhost'")
 
-    mongo_port: int = Field(None, description="MongoDB server port e.g. 27017")
+    mongo_port: int = Field(27017, description="MongoDB server port e.g. 27017")
 
     mongo_dbname: str = Field(None, description="MongoDB database")
 

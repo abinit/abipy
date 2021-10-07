@@ -24,13 +24,21 @@ def display_qr(method):
 
 
 class MongoGui(AbipyParameterized):
+    """
+    A MongoGUI is connected to MongoDB collection FlowModel documents (actually, a concrete
+    subclass of FlowModel) via a MongoConnector.
+    The GUI uses the abstract protocol of the FlowModel to provide widgets to filter
+    analyze, aggregate and visualize the results.
+    The abstract protocol should be already enough to cover the most important cases.
+    In needed, one can define a subclass of MongoGUI providing extra tools to interact with that
+    particular FlowModel.
+    """
 
     def __init__(self, mng_connector: MongoConnector, flow_model_cls: Type[FlowModel]):
         super().__init__()
         self.mng_connector = mng_connector
         self.flow_model_cls = flow_model_cls
 
-        self.limit = 0
         self.build_ui()
 
     #def collection(self):
@@ -40,6 +48,8 @@ class MongoGui(AbipyParameterized):
         # This is the part that should be abstracted out
         # so that one can implement customized subclasses
         # that rely on model.get_panel_view
+
+        self.limit = 0
 
         self.filter_query = pnw.LiteralInput(name='MongoDB filter (python dict)',
                                              placeholder="e.g. {'key': value}", type=dict,
@@ -67,13 +77,13 @@ class MongoGui(AbipyParameterized):
         self.filter_by_crystal_system_btn = pnw.Button(name="Run query", button_type='primary')
         self.filter_by_crystal_system_btn.on_click(self.on_filter_by_crystal_system_btn)
 
-        self.common_queries_btn = pnw.Button(name="Run query", button_type='primary')
-        self.common_queries_btn.on_click(self.on_common_queries_btn)
+        self.preset_queries_btn = pnw.Button(name="Run query", button_type='primary')
+        self.preset_queries_btn.on_click(self.on_preset_queries_btn)
         options = []
         # TODO: Fixme
-        C#if hasattr(self.flow_model_cls, "get_preset_queries"):
+        #if hasattr(self.flow_model_cls, "get_preset_queries"):
         #    options = [json.dumps(q) for q in self.flow_model_cls.get_preset_queries()]
-        self.common_queries_wdg = pnw.Select(name="Common MongoDB queries", options=options)
+        self.preset_queries_wdg = pnw.Select(name="Pommon MongoDB queries", options=options)
 
         md = pn.pane.Markdown("## Perform MongoDB queries using one of the widgets below:")
 
@@ -83,7 +93,7 @@ class MongoGui(AbipyParameterized):
             pn.Row(self.spg_number_wdg, self.formula_wdg),
             pn.Row(self.filter_by_spg_number_btn, self.filter_by_formula_btn),
             self.crystal_system_wdg, self.filter_by_crystal_system_btn,
-            self.common_queries_wdg, self.common_queries_btn,
+            self.preset_queries_wdg, self.preset_queries_btn,
             #sizing_mode="stretch_width",
         )
 
@@ -97,6 +107,7 @@ class MongoGui(AbipyParameterized):
                               sizing_mode="stretch_width")
 
     def get_app(self):
+        """Build and return the application."""
         template = pn.template.FastListTemplate
         #template = pn.template.BootstrapTemplate
         #template = pn.template.ReactTemplate
@@ -112,6 +123,7 @@ class MongoGui(AbipyParameterized):
 
     @display_qr
     def on_filter_by_spg_number_btn(self, _):
+        """Filter documents by space group number."""
         spg_number = self.spg_number_wdg.value
         collection = self.mng_connector.get_collection()
         qr = self.flow_model_cls.mng_find_by_spg_number(spg_number, collection, limit=self.limit)
@@ -119,6 +131,7 @@ class MongoGui(AbipyParameterized):
 
     @display_qr
     def on_filter_by_formula_btn(self, _):
+        """Filter documents by formula."""
         reduced_formula = self.formula_wdg.value
         collection = self.mng_connector.get_collection()
         qr = self.flow_model_cls.mng_find_by_formula(reduced_formula, collection, limit=self.limit)
@@ -126,14 +139,19 @@ class MongoGui(AbipyParameterized):
 
     @display_qr
     def on_filter_by_crystal_system_btn(self, _):
+        """Filter documents by crystal system."""
         crystal_system = self.crystal_system_wdg.value
         collection = self.mng_connector.get_collection()
         qr = self.flow_model_cls.mng_find_by_crystal_system(crystal_system, collection, limit=self.limit)
         return qr
 
     @display_qr
-    def on_common_queries_btn(self, _):
-        query = self.common_queries_wdg.value
+    def on_preset_queries_btn(self, _):
+        """
+        Show the list of preset queries if not index is provided by the user
+        else perform the query and return the results.
+        """
+        query = self.preset_queries_wdg.value
         collection = self.mng_connector.get_collection()
         if query is None:
             return QueryResults.empty_from_query({})
@@ -143,16 +161,16 @@ class MongoGui(AbipyParameterized):
         return qr
 
     def _display_qr(self, qr):
+        """
+        Helper function that builds the view and update `self.out_area`.
+        """
         objects = []
         if qr:
             for model in qr.models:
-                objects.append(model.get_panel_view())
+                objects.append(model.get_panel_view(self.mng_connector))
         else:
             alert = pn.pane.Alert(f"No model found in collection for query: {qr.query}.",
                                   alert_type="danger")
             objects.append(alert)
 
         self.out_area.objects = objects
-
-
-#if __name__ == "__main__":

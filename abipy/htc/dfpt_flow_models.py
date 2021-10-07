@@ -99,7 +99,10 @@ class _BasePhononFlowModel(FlowModel):
             PresetQuery.for_large_forces_or_high_pressure("scf_data", cls),
         ]
 
-    def get_panel_view(self):
+    def get_panel_view(self, mng_connector: MongoConnector):
+        """
+        Return panel object with a view of the model.
+        """
         raise NotImplementedError()
 
 

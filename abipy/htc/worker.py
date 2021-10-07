@@ -245,6 +245,13 @@ class WorkerState(AbipyModel):
     mng_connector: MongoConnector = Field(None, description="MongoDB connection parameters and name of default collection")
 
 
+
+#class FlowContext(BaseModel):
+#    workdir: str
+#    manager: TaskManager
+#    mng_connector: MongoConnector
+
+
 class AbipyWorker:
     """
     An AbipyWorker is a bokeh web-server running on the same machine where Abipy Flows are executed.

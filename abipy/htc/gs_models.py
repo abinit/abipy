@@ -3,7 +3,6 @@ pydantic models storing results of ground-state calculations.
 """
 from __future__ import annotations
 
-#from abc import ABC, abstractmethod
 from pydantic import Field
 from typing import List
 from abipy.electrons.gsr import GsrFile
@@ -22,16 +21,21 @@ class _ModelWithGsr(AbipyModel):
 
     ebands: ElectronBands = Field(..., description="Electronic bands.")
 
-    ebands_gfsd: GfsDesc = Field(None, description="Metadata needed to retrieve the ebands object from GridFS.")
+    #fermie_ev: float = Field(..., description="Fermi level in eV.")
+
+    #is_metal: bool: float = Field(..., description="True if system is metallic")
 
     #fundamental_band_gap_ev: float = Field(..., description="Fundamental band gap in eV.")
 
     #direct_band_gap_ev: float = Field(..., description="Direct band gap in eV.")
 
-    #fermie_ev: float = Field(..., description="Fermi level in eV.")
+    #bandwidth_ev: float: Field(..., description="Bandwidth in eV.")
+
+    ebands_gfsd: GfsDesc = Field(None, description="Metadata needed to retrieve the ebands object from GridFS."
+                                                   "None if the ebands object is not stored")
 
     gsr_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the GSR.nc file from GridFS. "
-                                                    "None if the GSR.nc file should not be stored")
+                                                    "None if the GSR.nc is not stored")
 
     @classmethod
     def from_gsr_filepath(cls, gsr_filepath: str, mng_connector: MongoConnector, with_gsr: bool):
@@ -57,7 +61,7 @@ class NscfData(_ModelWithGsr):
 
         data = dict(
             ebands=gsr.ebands,
-            ebands_gfsd=mng_connector.gfs_put_mson_obj(gsr.ebands),
+            #ebands_gfsd=mng_connector.gfs_put_mson_obj(gsr.ebands),
         )
 
         if with_gsr:

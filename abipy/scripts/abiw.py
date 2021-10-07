@@ -22,8 +22,9 @@ def get_epilog():
 Usage example:
 
   abiw.py new WORKER_NAME        --> Create new worker
-  abiw.py start WORKER_NAME
-  abiw.py restart WORKER_NAME    -->
+  abiw.py start WORKER_NAME      --> Start worker
+  abiw.py restart WORKER_NAME    --> Restart worker
+
   abiw.py lscan                  --> Find workers available on the local machine
   abiw.py rscan HOST1 HOST2      --> Contact host(s) to get list of remote workers
   abiw.py status [names | all]
@@ -31,7 +32,6 @@ Usage example:
   abiw.py clients  --> List available clients
   abiw.py ladd_flows
   abiw.py send script.py DONE
-
 
   abiw.py gui
   abiw.py mongo_start
@@ -180,13 +180,15 @@ def get_parser(with_epilog=False):
     p_set_default = subparsers.add_parser("set_default", parents=[copts_parser, worker_selector],
                                           help="Change the default worker.")
 
-    # Subparser for status command.
+    # Subparser for all_status command.
     p_all_status = subparsers.add_parser("all_status", parents=[copts_parser],
                                           help="Return status af all workers.")
 
+    # Subparser for lscan command.
     p_lscan = subparsers.add_parser("lscan", parents=[copts_parser],
                                     help="Discover AbiPy workers on localhost.")
 
+    # Subparser for rscan command.
     p_rscan = subparsers.add_parser("rscan", parents=[copts_parser],
                                     help="Discover remote AbiPy workers.")
     p_rscan.add_argument("hostnames", nargs="*", type=str,
@@ -327,6 +329,8 @@ def main():
         print(options)
         print("global abipy config options:\n", config)
 
+    #_ = WorkerClients.lscan()
+
     if options.command == "new":
         mng_connector = None
         if options.collection_name:
@@ -463,7 +467,16 @@ def main():
 
     elif options.command == "lsend_flows":
         client = all_clients.select_from_worker_name(options.worker_name)
-        client.send_flow_dir(options.flow_dir, user_message=options.message)
+        options.flow_dir = os.path.abspath(options.flow_dir)
+
+        data = client.send_flow_dir(options.flow_dir, user_message=options.message)
+        retcode = data["returncode"]
+        if retcode:
+            print(data)
+        else:
+            print(f"Flowdir {options.flow_dir} sent to Worker: {options.worker_name}")
+
+        return retcode
 
     #elif options.command == "show":  show Workername
 

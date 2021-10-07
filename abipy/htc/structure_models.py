@@ -39,8 +39,6 @@ class StructureData(AbipyModel):
     #source_type: str = Field(..., "source type e.g. MP for the materials project")
     #meta: Dict[str, Any] = Field(None)
 
-    #custom_data = Dict[str, Any] = Field(None, description="Pseudopotential specifications.")
-
     #hall:
 
     crystal_system: CrystalSystem = Field(
@@ -91,16 +89,19 @@ class StructureData(AbipyModel):
         title="Pretty Formula",
         description="Cleaned representation of the formula",
     )
+
     formula_anonymous: str = Field(
         None,
         title="Anonymous Formula",
         description="Anonymized representation of the formula",
     )
+
     chemsys: str = Field(
         None,
         title="Chemical System",
         description="dash-delimited string of elements in the material",
     )
+
     volume: float = Field(
         None,
         title="Volume",
@@ -117,7 +118,7 @@ class StructureData(AbipyModel):
 
     structure: Structure = Field(..., description="Abipy Structure object.")
 
-    #custom_dict: Dict[str, Any] = Field(None, description="")
+    custom_data: Dict[str, Any] = Field(None, description="Dictionary containing custom data set by the user.")
 
     @classmethod
     def from_mpid(cls, material_id: str) -> StructureData:
@@ -134,24 +135,26 @@ class StructureData(AbipyModel):
         """
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer, spglib
 
-        #symprec = SETTINGS.SYMPREC
-        symprec = 0.1
-        sg = SpacegroupAnalyzer(structure, symprec=symprec)
-        symmetry: Dict[str, Any] = {"symprec": symprec}
+        # 0.1 is the value used in Materials Project. 5.0 is the default value for angles.
+        symprec, angle_tolerance = 0.1, 5.0
+        sg = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
+        #symmetry: Dict[str, Any] = {"symprec": symprec}
         if not sg.get_symmetry_dataset():
             sg = SpacegroupAnalyzer(structure, 1e-3, 1)
-            symmetry["symprec"] = 1e-3
+            #symmetry["symprec"] = 1e-3
 
-        symmetry.update(
-            {
+        #symmetry.update(
+        symmetry = {
                 "spg_symbol": sg.get_space_group_symbol(),
                 "spg_number": sg.get_space_group_number(),
                 "point_group": sg.get_point_group_symbol(),
                 "crystal_system": CrystalSystem(sg.get_crystal_system().title()),
                 "hall": sg.get_hall(),
                 "spglib_version": spglib.__version__,
+                "symprec": symprec,
+                "angle_tolerance": angle_tolerance,
             }
-        )
+        #)
 
         comp = structure.composition.remove_charges()
         elsyms = sorted(set([e.symbol for e in comp.elements]))
@@ -182,5 +185,5 @@ class StructureData(AbipyModel):
         return f"Structure: {self.formula_pretty}, {self.spg_symbol} ({self.spg_number}), " + \
                f"{self.crystal_system}, natom: {self.nsites}"
 
-    #def get_panel_view(self):
+    #def get_panel_view(self, mng_connector: MongoConnector):
     #    return

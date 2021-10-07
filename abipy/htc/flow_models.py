@@ -3,13 +3,10 @@ This module defines the FlowModel abstract class,
 
 All HTC Flow-based calculations show inherith from this class and the
 extend the implementation by adding new pydantic Fields and methods
-that are either required by the abstract interface or by the specification calculation that
-is being performed.
+that are either required by the abstract interface or by the specification calculation that is being performed.
 
 See FlowModel declaration for further details.
 """
-
-
 from __future__ import annotations
 
 import traceback
@@ -22,7 +19,7 @@ from datetime import datetime
 from pprint import pformat
 from enum import Enum
 from abc import ABC, abstractmethod
-from typing import List, Tuple, ClassVar, Union, TypeVar, Type, Dict, Optional #, Any, Type,
+from typing import List, Tuple, ClassVar, Union, TypeVar, Type, Dict, Optional, Any  # , Type,
 from pydantic import BaseModel, Field
 from bson.objectid import ObjectId
 from pymongo.collection import Collection
@@ -291,24 +288,10 @@ class ExecStatus(str, Enum):
     #    return key in cls.__members__
 
 
-#def aggregation_classmethod(method):
-#    """
-#    """
-#    #@functools.wraps(method)
-#    #def decorated(*args, **kwargs):
-#    #    cls = args[0]
-#    #    cls._aggregation_class_method_names.append(method.__name__)
-#
-#    class_method = classmethod(method)
-#    print("hello")
-#    return class_method
-
-
 class FlowData(AbipyModel):
     """
-    Submodel storing the status the Flow and additional metadata.
-    Users do not need to interact with FlowData explicitly as this operation
-    is delegated to the AbipyWorker.
+    Submodel storing the status the Flow and additional metadata related to the execution.
+    Users do not need to interact with FlowData explicitly as this operation is delegated to the AbipyWorker.
     """
     exec_status: ExecStatus = ExecStatus.init
 
@@ -319,21 +302,21 @@ class FlowData(AbipyModel):
     workdir: str = Field(None, description="The directory where the Flow is executed.")
 
     created_at: datetime = Field(
-        description="Timestamp for when this document was first created",
         default_factory=datetime.utcnow,
+        description="Timestamp for when this document was first created (UTC)",
     )
 
     completed_at: datetime = Field(
         None,
-        description="Timestamp for the most recent calculation update for this property",
+        description="Timestamp for the most recent calculation update for this property (UTC)",
     )
-
-    tracebacks: List[str] = Field([], description="List of exception tracebacks produced by the AbiPy Worker")
 
     works_data: List[WorkData] = Field([], description="List of WorkData objects")
 
+    tracebacks: List[str] = Field([], description="List of exception tracebacks produced by the AbiPy Worker")
+
     # Private class attributes
-    _aggregation_class_method_names: List[str] = []
+    #_aggregation_class_method_names: List[str] = []
 
     def summarize(self, verbose: int = 0, stream=sys.stdout) -> None:
         """
@@ -345,10 +328,11 @@ class FlowData(AbipyModel):
         def p(string: str) -> None:
             print(string, file=stream)
 
+        p(f"FlowModel: {self._class__.__name__}")
         p(f"AbiPyWorker: {self.worker_name}@{self.worker_hostname}")
         p(f"Workdir: {self.workdir}")
-        p(f"Created at:   {self.created_at}")
-        p(f"Completed at: {self.completed_at}")
+        p(f"Created at:   {self.created_at} (UTC)")
+        p(f"Completed at: {self.completed_at} (UTC)")
         p(f"ExecStatus: {self.exec_status.value}")
 
         if self.tracebacks:
@@ -385,16 +369,12 @@ class FlowData(AbipyModel):
 
 FM = TypeVar('FM', bound='FlowModel')
 
-# TODO: Add support for:
-#   - Detecting duplicated FlowModels
-
-
 
 class FlowModel(TopLevelModel, ABC):
     """
-    Abstract class for models associated to a Flow calculation performed by an AbiPy Worker.
+    Abstract base class for models associated to a Flow calculation performed by an AbiPy Worker.
     This model implements the businness logic to create a Flow from a MongoDB collection
-    post-process the results once the Flow is completed and the database insertion.
+    post-process the results once the Flow is completed and insert results in the MongoDB collection.
 
     Users are supposed to use this model to initialize a MongoDB collection with all
     the input arguments that will be used to generate the Flow and provide a concrete
@@ -421,20 +401,47 @@ class FlowModel(TopLevelModel, ABC):
 
     pseudos_specs: PseudoSpecs = Field(..., description="Pseudopotential specifications.")
 
-    with_out: bool = Field(False, description="True if the main output files should be added to GridFS.")
+    with_out: bool = Field(False, description="True if main output files should be added to GridFS.")
 
-    with_log: bool = Field(False, description="True if the log files should be added to GridFS.")
+    with_log: bool = Field(False, description="True if log files should be added to GridFS.")
+
+
+    # TODO: Add support for:
+    #   - Detecting duplicated FlowModels
+
+    #in_hash_value: str = Field(None, description="Hash value computed from the input data.
+    #                                              "Used to find duplicated documents in the collection")
+
+    #priority: int = Field(1, description="Priority associated to the calculation. Can be changed by the user at runtime)
+
+    custom_data: Dict[str, Any] = Field(None, description="Dictionary with custom entries set by the user.")
 
     # Private class attributes
     _magic_key: ClassVar[str] = "_flow_model_"
 
-    #in_hash: str = Field(..., description="")
-
-    #custom_data = Dict[str, Any] = Field(None, description="Pseudopotential specifications.")
+    #_json_for_eqtest: str
 
     #def __init__(self, **data):
     #    super().__init__(**data)
-    #    self.in_hash =
+    #    self.in_hash_value = hash(self.get_json_for_eqtest())
+
+    #def __eq__(self, other) -> bool:
+    #   if self.in_hash_value != other.in_hash_value: return False
+    #   if seif is other: return True
+    #   return self.get_json_for_eqtest() == other.get_json_for_eqtest()
+    #   return self._json_for_eqtest == other.json_for_eqtest
+
+    #def get_json_for_eqtest(self) -> str:
+    #    # Do not change the order of the keys.
+    #    keys = [
+    #        "in_structure_data.structure",
+    #        "pseudos_specs",
+    #    ]
+    #    data = {k: getattr(self, k) for k in keys}
+    #    return json.dumps(data)
+
+
+    # TODO: Remove this method. use mongo_connector.add_flow_models
 
     @classmethod
     def init_collection(cls: Type[FM], collection: Collection) -> ObjectId:
@@ -517,9 +524,8 @@ class FlowModel(TopLevelModel, ABC):
         collection.create_index(key)
         query = {key: {"$exists": True}}
         #if "add_filter" in kwargs: query.update(kwargs.get("add_filter"))
-        cursor = collection.find(query, projection=[key])
 
-        for doc in cursor:
+        for doc in collection.find(query, projection=[key]):
             status = ExecStatus(doc["flow_data"]["exec_status"])
             status2oids[status].append(doc["_id"])
 
@@ -539,11 +545,9 @@ class FlowModel(TopLevelModel, ABC):
         key = "flow_data.exec_status"
         collection.create_index(key)
         query = {key: ExecStatus.init.value}
-        cursor = collection.find(query, **kwargs)
-
         items = []
         decoder = AbipyDecoder()
-        for doc in cursor:
+        for doc in collection.find(query, **kwargs):
             oid = doc.pop("_id")
             doc = decoder.process_decoded(doc)
             model = cls(**doc)
@@ -570,14 +574,6 @@ class FlowModel(TopLevelModel, ABC):
     def is_errored(self):
         """True if the model is in `errored` state"""
         return self.flow_data.exec_status == ExecStatus.errored
-
-    #def create_indexes(self, collection: Collection):
-    #    creates an index if an index of the same specification does not already exist.
-    #    from pymongo import IndexModel, ASCENDING, DESCENDING
-    #    index1 = IndexModel([("hello", DESCENDING),
-    #                         ("world", ASCENDING)], name="hello_world")
-    #    index2 = IndexModel([("goodbye", DESCENDING)])
-    #    collection.create_indexes([index1, index2])
 
     @abstractmethod
     def build_flow(self, workdir: str, manager: TaskManager) -> Flow:
@@ -719,13 +715,13 @@ class FlowModel(TopLevelModel, ABC):
         """
 
     @abstractmethod
-    def get_panel_view(self):
+    def get_panel_view(self, mng_connector: MongoConnector):
         """Return panel object with a view of the model."""
 
     @classmethod
     def mng_aggregate_in_struct(cls, collection: Collection) -> pd.DataFrame:
         """
-        Aggregate input structures.
+        Aggregate input structures in collection. Return Dataframe.
         """
         rows = []
         for oid in cls.mng_find_completed_oids(collection):
@@ -741,3 +737,11 @@ class FlowModel(TopLevelModel, ABC):
     #@classmethod
     #def get_aggregate_panel_ui(cls, collection: Collection):
     #    """Return panel object with a view of the model."""
+
+    #def create_indexes(self, collection: Collection):
+    #    creates an index if an index of the same specification does not already exist.
+    #    from pymongo import IndexModel, ASCENDING, DESCENDING
+    #    index1 = IndexModel([("hello", DESCENDING),
+    #                         ("world", ASCENDING)], name="hello_world")
+    #    index2 = IndexModel([("goodbye", DESCENDING)])
+    #    collection.create_indexes([index1, index2])

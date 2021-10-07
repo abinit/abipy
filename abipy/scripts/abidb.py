@@ -100,8 +100,8 @@ def get_parser(with_epilog=False):
     p_flow_data = subparsers.add_parser("flow_data", parents=[copts_parser], help=abidb_flow_data.__doc__)
     p_flow_data.add_argument("oid", type=str, help="Document ID")
 
-    p_cq = subparsers.add_parser("cq", parents=[copts_parser], help=abidb_cq.__doc__)
-    p_cq.add_argument("cq_inds", nargs="*",
+    p_pq = subparsers.add_parser("pq", parents=[copts_parser], help=abidb_pq.__doc__)
+    p_pq.add_argument("pq_inds", nargs="*",
                       help="Index or indices of query."
                            "If not given, the full list of available queries is returned."
                            "If `all` all registered queries are executed."
@@ -256,21 +256,24 @@ def abidb_flow_data(options, ctx: Context):
     return 0
 
 
-def abidb_cq(options, ctx: Context):
+def abidb_pq(options, ctx: Context):
+    """
+    Execute preset queries on the collection.
+    """
 
     queries = ctx.fmodel_cls.get_preset_queries()
 
-    if not options.cq_inds:
+    if not options.pq_inds:
         print("Printing list of predefined queries with their index as `cg_inds` argument is not given\n")
         for i, query in enumerate(queries):
             print(query.to_string(title=f"== Index: {i} ===", verbose=options.verbose))
 
-        print("Use e.g. `abidb.py cq 0 1` to execute queries with a given index")
-        print("      or `abidb.py cq all` to select all")
+        print("Use e.g. `abidb.py pq 0 1` to execute queries with a given index")
+        print("      or `abidb.py pq all` to select all")
         print("Use -v to print extra info")
         return 0
 
-    cg_inds = set(options.cq_inds)
+    cg_inds = set(options.pq_inds)
     if "all" in cg_inds:
         cg_inds = set(range(len(queries)))
     else:
@@ -287,6 +290,9 @@ def abidb_cq(options, ctx: Context):
 
 
 def abidb_schema(options, ctx: Context):
+    """
+    Show FlowModel schema.
+    """
 
     #print(fmodel_cls)
     #print(fmodel_cls.schema_json(indent=2))
@@ -297,6 +303,7 @@ def abidb_schema(options, ctx: Context):
 
 
 def abidb_mongo_gui(options, ctx: Context):
+    """Start GUI."""
     serve_kwargs = serve_kwargs_from_options(options)
     ctx.mng_connector.open_mongoflow_gui(flow_model_cls=ctx.fmodel_cls, **serve_kwargs)
 

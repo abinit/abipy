@@ -1544,7 +1544,7 @@ class ElectronBands(Has_Structure):
                 gaps.append(lumo_sk.eig - homo_sk.eig)
 
             # Find the index of the k-point where the direct gap is located.
-            # If there multiple k-points along the path, prefer the one in the center
+            # If there are multiple k-points along the path, prefer the one in the center
             # If not possible e.g. direct at G with G-X-L-G path avoid points on the right border of the graph
             gaps = np.array(gaps)
             kinds = np.where(gaps == gaps.min())[0]
