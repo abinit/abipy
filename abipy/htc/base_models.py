@@ -128,9 +128,12 @@ class AbipyModel(BaseModel, MSONable):
         # whether to populate models with the value property of enums, rather than the raw enum.
         #use_enum_values = True
 
+
+        # make pydantic raise a ValidationError if Model get unexpected arguments.
+        extra = "forbid"
+
         #json_loads = monty_json_loads
         #json_dumps = monty_json_dumps
-
 
     @classmethod
     def from_dict(cls: Type[M], d: dict) -> M:
@@ -364,37 +367,6 @@ class MongoConnector(AbipyModel):
         fs = GridFS(db, collection=coll_name, **kwargs)
         return fs, coll_name
 
-    def insert_flow_models(self, models: List[TopLevelModel], verbose: int = 0) -> List[ObjectId]:
-        """
-        Insert list of FlowModels in collection.
-        Return list of objectid
-        """
-        # Sanity check. We need a list of FlowModel objects of the same type.
-        cls = models[0].__class__
-        if any(m.__class__ is not cls for m in models):
-            raise ValueError(f"All models must belong to the same class {models[0].__class__}")
-
-        if not hasattr(cls, "_magic_key"):
-            raise TypeError("Expecting FlowModel subclass with `_magic_key, got {cls.__name__}")
-
-        new_dict = cls2dict(cls)
-        collection = self.get_collection()
-
-        cnt, oid = 0, None
-        for doc in collection.find({cls._magic_key: {"$exists": True}}):
-            oid = doc.pop("_id")
-            old_dict = doc.get(cls._magic_key)
-            cnt += 1
-            if new_dict != old_dict:
-                raise TypeError(f"Cannot register new Model {new_dict}\n"
-                                f"Collection is already associated to the FlowModel {old_dict}")
-
-        if cnt == 0:
-            # Create new document with FlowModel class if not already present.
-            collection.insert_one({cls._magic_key: new_dict})
-
-        return mng_insert_models(models, collection)
-
     def list_collection_names(self) -> List[str]:
         """
         "Return list of strings with all collection names in the database.
@@ -410,20 +382,26 @@ class MongoConnector(AbipyModel):
         db = self.get_db()
         return db.list_collections()
 
-    def drop_collection(self, ask_for_confirmation=True) -> bool:
+    def drop_collection(self, ask_for_confirmation: bool = True) -> bool:
         """
         Drop the collection and the GridFs associated to it.
         If ask_for_confirmation is True (default), the user is prompted for confirmation.
         """
         if ask_for_confirmation:
-            confirm = ask_yes_no("Do you really want to drop collection: {self.collection_name} and the associated GridFs?",
-                                 default=None)  # pragma: no cover
+            confirm = ask_yes_no(
+                    f"Do you really want to drop collection: `{self.collection_name}` and the associated GridFs? [y/n]",
+                    default=None)
             if not confirm:
                 print("Command aborted by user. Your collection is safe.")
                 return False
 
         db = self.get_db()
         collection = self.get_collection()
+        #if collection.count_documents({}) == 0:
+        #    print(f"Empty collection: `{collection.name}`")
+        #    return True
+
+        print(f"Dropping collection: `{collection.name}`")
         fs, fs_collname = self.get_gridfs_and_name()
 
         db.drop_collection(f"{fs_collname}.chunks")
@@ -433,7 +411,7 @@ class MongoConnector(AbipyModel):
 
         return True
 
-    def gfs_put_mson_obj(self, obj, zlib_level=zlib.Z_DEFAULT_COMPRESSION) -> GfsDesc:
+    def gfs_put_mson_obj(self, obj, zlib_level: int = zlib.Z_DEFAULT_COMPRESSION) -> GfsDesc:
         """
         Insert a MSONable object in GridFS
         """
@@ -444,9 +422,9 @@ class MongoConnector(AbipyModel):
 
         metadata = {
             "@module": obj.__class__.__module__,
-             "@class": obj.__class__.__name__,
-             "zlib_level": zlib_level,
-             "encoding": encoding,
+            "@class": obj.__class__.__name__,
+            "zlib_level": zlib_level,
+            "encoding": encoding,
         }
 
         #print(f"with zlib_level {zlib_level} len(s): {len(s)}")
@@ -478,6 +456,9 @@ class MongoConnector(AbipyModel):
         Insert a file in the default GridFs collection.
         Build and return a GfsFileDesc instance with metadata and the id.
         """
+        if not filepath:
+            raise ValueError("Expecting nonnull filepath but got `{filepath}`")
+
         fs, fs_collname = self.get_gridfs_and_name()
 
         metadata = dict(
@@ -549,6 +530,53 @@ class MongoConnector(AbipyModel):
     #def get_panel_view(self, mng_connector: MongoConnector):
     #    import panel as pn
     #    return pn.pane.HTML(self._repr_markdown_())
+
+    ############################
+    # FlowModel specific methods
+    ############################
+
+    def insert_flow_models(self, models: List[TopLevelModel], verbose: int = 0) -> List[ObjectId]:
+        """
+        Insert list of FlowModels in collection.
+        Return list of objectid
+        """
+        # Sanity check. We need a list of FlowModel objects of the same type.
+        cls = models[0].__class__
+        if any(m.__class__ is not cls for m in models):
+            raise ValueError(f"All models must belong to the same class {models[0].__class__}")
+
+        if not hasattr(cls, "_magic_key"):
+            raise TypeError("Expecting FlowModel subclass with `_magic_key, got {cls.__name__}")
+
+        new_dict = cls2dict(cls)
+        collection = self.get_collection()
+
+        cnt, oid = 0, None
+        for doc in collection.find({cls._magic_key: {"$exists": True}}):
+            doc.pop("_id")
+            old_dict = doc.get(cls._magic_key)
+            cnt += 1
+            if new_dict != old_dict:
+                raise TypeError(f"Cannot register new FlowModel:\n\n\t{new_dict}\n\n"
+                                f"as collection `{collection.name}` is already associated to FlowModel:\n\n\t{old_dict}")
+
+        if cnt == 0:
+            # Create new document with FlowModel class if not already present.
+            collection.insert_one({cls._magic_key: new_dict})
+
+        return mng_insert_models(models, collection)
+
+    def find_err_oid_flowmodels(self) -> Iterable[Tuple]:
+        collection = self.get_collection()
+
+        from .flow_models import FlowModel
+        flow_model_cls = FlowModel.get_subclass_from_collection(collection)
+
+        query = {"flow_data.exec_status": "Errored"}
+        for doc in collection.find(query):
+            data = AbipyDecoder().process_decoded(doc)
+            oid = data.pop("_id")
+            yield (oid, flow_model_cls(**data))
 
 
 class MockedMongoConnector(MongoConnector):
@@ -631,7 +659,7 @@ class TopLevelModel(AbipyModel):
 
     def mng_full_update_oid(self, oid: ObjectId, collection: Collection) -> None:
         """
-        Perform a full update of the document given the ObjectId in the collection.
+        Perform a full update of the document given the ObjectId `oid` in `collection`.
         """
         # TODO: Implement Atomic transaction
         old_doc = collection.find_one({'_id': oid})
@@ -681,7 +709,7 @@ def mng_insert_models(models: List[AbipyModel], collection: Collection, verbose:
 
 class QueryResults:
     """
-    Stores the results of a MongoDB query.
+    Stores the results of a MongoDB query in the form of modelds instead of plain dictionaries.
     """
 
     def __init__(self, oids: List[ObjectId], models: List[AbipyModel], query: dict) -> None:

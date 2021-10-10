@@ -35,11 +35,11 @@ from abipy.tools.printing import print_dataframe
 from abipy.tools import duck
 from abipy.tools.iotools import yaml_safe_load_path
 from abipy.flowtk.flows import Flow
-from abipy.flowtk.tasks import TaskManager
+from abipy.flowtk.tasks import TaskManager, set_user_config_taskmanager
 from abipy.flowtk.launcher import MultiFlowScheduler
 from .tools import pid_exists, port_is_open, find_free_port
 from .base_models import AbipyModel, Field, MongoConnector, AbipyEncoder
-from .flow_models import FlowModel
+
 
 # This should become a global variable used in all the other modules to facilitate unit tests.
 ABIPY_DIRPATH = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
@@ -294,6 +294,7 @@ class AbipyWorker:
         if self.mng_connector:
             # Get the FlowMode subclass from the DB collection.
             collection = self.mng_connector.get_collection()
+            from .flow_models import FlowModel
             self.flow_model_cls = FlowModel.get_subclass_from_collection(collection)
 
         # url --> callables returning panel objects.
@@ -374,7 +375,7 @@ class AbipyWorker:
     def _build_flow_from_mongodb(self) -> None:
         """
         Periodic callback executed by the primary thread to fetch new calculations from
-        the MongoDB collection when then AbipyWorker is running with a "flow_model_cls".
+        the MongoDB collection when then AbipyWorker is running with a `flow_model_cls`
         """
         if self.flow_model_cls is None:
             raise ValueError("The AbipyWorker should have a flow_model_cls when running with a MongDB database.")
@@ -393,7 +394,7 @@ class AbipyWorker:
                     print("In completed")
                     flow = Flow.from_file(row["workdir"])
                     oid, model = self.flowid2_oid_model[flow_id]
-                    model.postprocess_flow_and_update_db(flow, oid, self.mng_connector)
+                    model.postprocess_flow_and_update_db(flow, oid, self)
                     self.flowid2_oid_model.pop(flow_id)
                 else:
                     pass
@@ -412,7 +413,7 @@ class AbipyWorker:
             now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             workdir = tempfile.mkdtemp(prefix=f"Flow-{now}", dir=self.scratch_dir)
 
-            flow = model.build_flow_and_update_collection(workdir, oid, collection, self)
+            flow = model.build_flow_and_update_collection(workdir, oid, self)
             if flow is None: continue
             self.flow_scheduler.add_flow(flow, user_message="")  # m.user_message ?
             self.flowid2_oid_model[flow.node_id] = (oid, model)
@@ -448,7 +449,7 @@ class AbipyWorker:
     def new_with_name(cls, worker_name: str, scratch_dir: str,
                       scheduler_path: Optional[str] = None,
                       manager_path: Optional[str] = None,
-                      mng_connector=None, verbose=1) -> AbipyWorker:
+                      mng_connector=None, verbose: int = 1) -> AbipyWorker:
         """
         Create a new AbiPyWorker.
 
@@ -564,7 +565,7 @@ to update the list of local clients.
         print("Remember to execute lscan (rscan) to update the list of local (remote) clients...")
         return new
 
-    def write_state_file(self, status: str = "dead", filepath=None) -> str:
+    def write_state_file(self, status: str = "dead", filepath: Optional[str] = None) -> str:
         """
         Write/update the state.json file of the worker.
         """
@@ -662,6 +663,11 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         """
         Start the webserver.
         """
+        # Change the default manager returned by TaskManager.from_user_config.
+        # so that we always use the manager in the AbipyWorker directory when costructing new Flows.
+        assert self.manager is not None, "TaskManager should not be None"
+        set_user_config_taskmanager(self.manager)
+
         # Register function atexit to update the state.json file if the worker gets killed.
         # Note that the callback won't be executed if we receive SIGKILL (kill -9)
         # or if an exception is raised in write_state_file or in any other registered callback.

@@ -6,7 +6,7 @@ from __future__ import annotations
 import os
 
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseSettings, Field
 from monty.json import jsanitize
 from abipy.tools.iotools import yaml_safe_load
 
@@ -25,9 +25,11 @@ def get_config() -> AbipyConfig:
     return _CONFIG
 
 
-class AbipyConfig(BaseModel):
+class AbipyConfig(BaseSettings):
     """
     Pydantic model with the global configuration options.
+    Since we inherit from BaseSettings, it is possible to use env variables to specify the values.
+    See https://pydantic-docs.helpmanual.io/usage/settings/
     """
 
     mongo_username: str = Field(None, description="User name for MongDB authentication. Implies password.")
@@ -43,6 +45,11 @@ class AbipyConfig(BaseModel):
     worker_scratchdir: str = Field(None, description="Scratch directory used by AbipyWorkers to generate Flows")
 
     remote_hosts_for_workers: List[str] = Field(None, description="List of remote hosts used to run AbipyWorkers")
+
+    class Config:
+        case_sensitive = False
+        #env_prefix = 'abipy_'  # defaults to no prefix, i.e. ""
+
 
     @classmethod
     def from_yaml_file(cls, filepath: Optional[str] = None) -> AbipyConfig:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pymatgen.io.abinit.abiobjects as aobj
+import abipy.core.abinit_units as abu
 import abipy.abio.input_tags as atags
 
 from enum import Enum
@@ -13,9 +14,9 @@ from monty.collections import AttrDict
 from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder, MSONable
 from pymatgen.util.serialization import pmg_serialize
+from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
-import abipy.core.abinit_units as abu
 
 
 __all__ = [
@@ -1131,12 +1132,12 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
     return abinit_input
 
 
-def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal") -> AbinitInput:
+def ebands_from_gsinput(gs_input, nband=None, ndivsm=15, accuracy="normal") -> AbinitInput:
     """
     Return an |AbinitInput| object to compute a band structure from a GS SCF input.
 
     Args:
-        gsinput:
+        gs_input:
         nband:
         ndivsm:
         accuracy:
@@ -1144,13 +1145,13 @@ def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal") -> Ab
     Return: |AbinitInput|
     """
     # create a copy to avoid messing with the previous input
-    bands_input = gsinput.deepcopy()
+    bands_input = gs_input.deepcopy()
 
     bands_input.pop_irdvars()
 
-    nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, gsinput.structure)
+    nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, gs_input.structure)
     if nband is None:
-        nband = gsinput.get("nband", gsinput.structure.num_valence_electrons(gsinput.pseudos)) + 10
+        nband = gs_input.get("nband", gs_input.structure.num_valence_electrons(gs_input.pseudos)) + 10
 
     bands_input.set_vars(nscf_ksampling.to_abivars())
     bands_input.set_vars(nband=nband, iscf=-2)
@@ -1159,10 +1160,10 @@ def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal") -> Ab
     return bands_input
 
 
-def dos_from_gsinput(gsinput, dos_kppa, nband=None, accuracy="normal", pdos=False):
+def dos_from_gsinput(gs_input, dos_kppa, nband=None, accuracy="normal", pdos=False):
 
     # create a copy to avoid messing with the previous input
-    dos_input = gsinput.deepcopy()
+    dos_input = gs_input.deepcopy()
     dos_input.pop_irdvars()
 
     dos_ksampling = aobj.KSampling.automatic_density(dos_input.structure, dos_kppa, chksymbreak=0)
@@ -1177,9 +1178,9 @@ def dos_from_gsinput(gsinput, dos_kppa, nband=None, accuracy="normal", pdos=Fals
     return dos_input
 
 
-def ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
+def ioncell_relax_from_gsinput(gs_input, accuracy="normal"):
 
-    ioncell_input = gsinput.deepcopy()
+    ioncell_input = gs_input.deepcopy()
     ioncell_input.pop_irdvars()
 
     ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)
@@ -1189,9 +1190,9 @@ def ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
     return ioncell_input
 
 
-def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=1):
+def hybrid_oneshot_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange=1):
 
-    hybrid_input = gsinput.deepcopy()
+    hybrid_input = gs_input.deepcopy()
     hybrid_input.pop_irdvars()
 
     functional = functional.lower()
@@ -1219,9 +1220,9 @@ def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=
     return hybrid_input
 
 
-def hybrid_scf_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=1):
+def hybrid_scf_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange=1):
 
-    hybrid_input = hybrid_oneshot_input(gsinput=gsinput, functional=functional, ecutsigx=ecutsigx, gw_qprange=gw_qprange)
+    hybrid_input = hybrid_oneshot_input(gs_input=gs_input, functional=functional, ecutsigx=ecutsigx, gw_qprange=gw_qprange)
 
     hybrid_input['gwcalctyp'] += 10
 
@@ -1295,7 +1296,7 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
     multi.extend(multi_dde)
 
     if use_phonons:
-        multi_ph = gs_inp.make_ph_inputs_qpoint([0,0,0], ph_tol, manager=manager)
+        multi_ph = gs_inp.make_ph_inputs_qpoint([0, 0, 0], ph_tol, manager=manager)
         multi_ph.add_tags(atags.PH_Q_PERT)
         multi.extend(multi_ph)
 

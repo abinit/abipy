@@ -30,6 +30,7 @@ from abipy.abio.inputs import AbinitInput
 from .base_models import AbipyModel, TopLevelModel, cls2dict, AbipyDecoder, QueryResults, MongoConnector, GfsFileDesc
 from .structure_models import StructureData
 from .pseudos_models import PseudoSpecs
+from .worker import AbipyWorker
 
 logger = logging.getLogger(__name__)
 
@@ -118,12 +119,12 @@ class PresetQuery(BaseModel):
 
     @classmethod
     def for_large_forces_or_high_pressure(cls, root_name: str, model_cls: Type[TopLevelModel],
-                                          force_ev_ang: float = 1e-4, p_gpa: float = 2.0):
+            force_ev_ang: float = 1e-4, p_gpa: float = 2.0) -> PresetQuery:
         """
         Find documents with large forces or large pressure.
 
         Args:
-            root_name: Usually `scf_data`. Uses results stored in a GsData submodel
+            root_name: Usually `scf_data`. Uses results stored in a ScfData submodel
         """
         #assert "." not in root_name "Nested fields are not supported"
         model_field = model_cls.__fields__[root_name]
@@ -132,7 +133,7 @@ class PresetQuery(BaseModel):
         abs_pressure_gpa = f"{root_name}.abs_pressure_gpa"
         max_force = f"{root_name}.max_force_ev_over_ang"
 
-        #assert model_field.type_ is GsData
+        #assert model_field.type_ is ScfData
         #for f in [abs_pressure, max_force]:
         #    assert f in model_field.type_
 
@@ -146,6 +147,25 @@ class PresetQuery(BaseModel):
                      f"or max |force| > {force_ev_ang} eV/Ang",
                 )
 
+    @classmethod
+    def for_collinear_magnetic(cls, root_name: str, model_cls: Type[TopLevelModel]) -> PresetQuery:
+        """
+        Find documents with non-zero collinear magnetization"
+
+        Args:
+            root_name: Usually `scf_data`. Uses results stored in a ScfData submodel
+        """
+        #assert "." not in root_name "Nested fields are not supported"
+        #model_field = model_cls.__fields__[root_name]
+
+        # Build query strings from root_name.
+        key = f"{root_name}.collinear_mag"
+
+        return cls(
+                query={key: {"$nin": [None, 0.0]}},
+                projection=["in_structure_data.formula_pretty", key],
+                info=f"Filter `{model_cls.__name__}` documents with non-zero collinear magnetization"
+                )
 
 
 class _NodeData(AbipyModel):
@@ -328,7 +348,7 @@ class FlowData(AbipyModel):
         def p(string: str) -> None:
             print(string, file=stream)
 
-        p(f"FlowModel: {self._class__.__name__}")
+        p(f"FlowModel: {self.__class__.__name__}")
         p(f"AbiPyWorker: {self.worker_name}@{self.worker_hostname}")
         p(f"Workdir: {self.workdir}")
         p(f"Created at:   {self.created_at} (UTC)")
@@ -405,6 +425,10 @@ class FlowModel(TopLevelModel, ABC):
 
     with_log: bool = Field(False, description="True if log files should be added to GridFS.")
 
+    #previous_flow_oids: List[ObjectId] = Field(
+    #    None,
+    #   description="List of ObjectId associated to documents in the some collection that are connected to this one. "
+    #               "May be used to implement convergence studies and/or relaxations with different settings "
 
     # TODO: Add support for:
     #   - Detecting duplicated FlowModels
@@ -483,9 +507,9 @@ class FlowModel(TopLevelModel, ABC):
             cnt += 1
 
         if cnt == 0:
-            raise RuntimeError(f"Cannot find document with magic key: {cls._magic_key}")
+            raise RuntimeError(f"Cannot find document with magic key: `{cls._magic_key}` in collection: `{collection.name}`")
         if cnt > 1:
-            raise RuntimeError(f"Found {cnt} documents with magic key: {cls._magic_key}")
+            raise RuntimeError(f"Found {cnt} documents with magic key: `{cls._magic_key}` in collection: `{collection.name}`")
 
         sub_class = AbipyDecoder().process_decoded(data)
 
@@ -511,13 +535,13 @@ class FlowModel(TopLevelModel, ABC):
         Find all the models in collection that are completed.
         Return: list of ObjectId.
         """
-        d = cls.mongo_get_status2oids(collection, **kwargs)
+        d = cls.mng_get_status2oids(collection, **kwargs)
         return d[ExecStatus.completed]
 
     @classmethod
-    def mongo_get_status2oids(cls, collection: Collection, **kwargs) -> Dict[ExecStatus, List[ObjectId]]:
+    def mng_get_status2oids(cls, collection: Collection, **kwargs) -> Dict[ExecStatus, List[ObjectId]]:
         """
-        Return dictionary mapping the Execution status to the list of list of ObjectId.
+        Return dictionary mapping the Execution status to the list of ObjectId.
         """
         status2oids = {e: [] for e in ExecStatus}
         key = "flow_data.exec_status"
@@ -576,7 +600,7 @@ class FlowModel(TopLevelModel, ABC):
         return self.flow_data.exec_status == ExecStatus.errored
 
     @abstractmethod
-    def build_flow(self, workdir: str, manager: TaskManager) -> Flow:
+    def build_flow(self, workdir: str, worker: AbipyWorker) -> Flow:
         """
         Use the data stored in the model to build and return a Flow to the AbipyWorker.
         Must be implemented in the concrete subclass.
@@ -585,25 +609,27 @@ class FlowModel(TopLevelModel, ABC):
     # TODO: Replace arguments with a Context object or introduce Plan object
     # to support multiple collections from which one can fetch input data if needed.
 
-    def build_flow_and_update_collection(self, workdir: str, oid: ObjectId,
-                                         collection: Collection, abipy_worker) -> Union[Flow, None]:
+    def build_flow_and_update_collection(self, workdir: str, oid: ObjectId, worker: AbipyWorker) -> Union[Flow, None]:
         """
         This is the API used by the AbiPyWorker to build a Flow from the model.
-        Wraps build_flow implemented by the subclass to perform extra operations on the
-        model, exception handling and the final insertion in the collection.
+
+        It Wraps the ``build_flow`` method implemented by the subclass in order to perform extra operations
+        on the model, exception handling and the final insertion in the MongoDB collection.
         """
+        collection = worker.mng_connector.get_collection()
+
         #self.flow_data = flow_data = FlowData()
         flow_data = self.flow_data
 
         # Set the workdir of the Flow in the model.
         flow_data.workdir = workdir
-        flow_data.worker_name = abipy_worker.name
+        flow_data.worker_name = worker.name
         from socket import gethostname
         flow_data.worker_hostname = gethostname()
 
         try:
             # Call the method provided by the concrete class to build the Flow.
-            flow = self.build_flow(workdir, abipy_worker.manager)
+            flow = self.build_flow(workdir, worker)
             flow_data.exec_status = ExecStatus.built
             return flow
 
@@ -620,7 +646,7 @@ class FlowModel(TopLevelModel, ABC):
             self.mng_full_update_oid(oid, collection)
 
     @abstractmethod
-    def postprocess_flow(self, flow: Flow, mng_connector: MongoConnector) -> None:
+    def postprocess_flow(self, flow: Flow, worker: AbipyWorker) -> None:
         """
         Postprocess the Flow and update the model with output results.
         MongoConnector should be used only to insert files in GridFs
@@ -628,17 +654,18 @@ class FlowModel(TopLevelModel, ABC):
         Must be implemented in the concrete subclass.
         """
 
-    def postprocess_flow_and_update_db(self, flow: Flow, oid: ObjectId, mng_connector: MongoConnector) -> None:
+    def postprocess_flow_and_update_db(self, flow: Flow, oid: ObjectId, worker: AbipyWorker) -> None:
         """
         API used by the AbiPy Worker to postprocess a Flow from the model.
         Wraps the postprocess_flow method implemented in the subclass to add extra
         operations on the model, error handling and finally the insertion in the collection of the model.
         """
         flow_data = self.flow_data
+        mng_connector = worker.mng_connector
         collection = mng_connector.get_collection()
 
         try:
-            self.postprocess_flow(flow, mng_connector)
+            self.postprocess_flow(flow, worker)
 
             # Builds works_data entry.
             for work in flow:

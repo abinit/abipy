@@ -10,7 +10,7 @@ from abipy.flowtk import TaskManager, Flow
 from abipy.htc.base_models import mng_insert_models, MockedMongoConnector
 from abipy.htc.structure_models import StructureData
 from abipy.htc.pseudos_models import PseudoSpecs
-from abipy.htc.gs_models import GsData, NscfData
+from abipy.htc.gs_models import ScfData, NscfData
 from abipy.htc.flow_models import FlowModel, ExecStatus
 from abipy.htc.gs_flow_models import EbandsFlowModelWithParams, EbandsFlowModelWithInputs
 
@@ -90,7 +90,8 @@ class TestFlowModels(AbipyTest):
             with_gsr = True
             #with_gsr = False
 
-            model.scf_data = GsData.from_gsr_filepath(abidata.ref_file("si_scf_GSR.nc"), mocked_connector, with_gsr)
+            model.scf_data = ScfData.from_gsr_filepath(abidata.ref_file("si_scf_GSR.nc"),
+                                                       mocked_connector, with_gsr)
             #print(model.scf_data.json())
             #assert 0
             model.nscf_kpath_data = NscfData.from_gsr_filepath(abidata.ref_file("si_nscf_GSR.nc"),
@@ -101,7 +102,7 @@ class TestFlowModels(AbipyTest):
 
             # Now retrieve the same model from the collection.
             same_model = EbandsFlowModelWithParams.from_oid(oid, collection)
-            assert isinstance(same_model.scf_data, GsData)
+            assert isinstance(same_model.scf_data, ScfData)
             assert model.scf_data.pressure_gpa == float(same_model.scf_data.pressure_gpa)
             assert isinstance(same_model.scf_data.ebands, ElectronBands)
             assert isinstance(same_model.nscf_kpath_data.ebands, ElectronBands)
@@ -138,7 +139,7 @@ class TestFlowModels(AbipyTest):
         #flow = runnable_model.build_flow()
         #assert runnable_model.exec_status == ""
 
-        status2oids = EbandsFlowModelWithParams.mongo_get_status2oids(collection)
+        status2oids = EbandsFlowModelWithParams.mng_get_status2oids(collection)
         assert not status2oids[ExecStatus.errored]
         assert not status2oids[ExecStatus.completed]
         assert len(status2oids[ExecStatus.init]) == collection.count_documents({}) - 1
@@ -162,12 +163,17 @@ class TestFlowModels(AbipyTest):
         in_structure_data = StructureData.from_structure(scf_input.structure)
         pseudos_specs = PseudoSpecs.from_repo_table_name("ONCVPSP-PBEsol-SR-PDv0.4", "standard")
 
+        collection_name = "dummy_collection_name"
+        mocked_connector = MockedMongoConnector(host="example.com", port=27017, collection_name=collection_name)
+
         with self.assertRaises(ValueError):
             EbandsFlowModelWithInputs(in_structure_data=in_structure_data, pseudos_specs=pseudos_specs)
 
         model = EbandsFlowModelWithInputs(scf_input=scf_input, nscf_input=nscf_input,
                                           in_structure_data=in_structure_data, pseudos_specs=pseudos_specs)
 
-        collection: Collection = mongomock.MongoClient().db.collection
-        oid = model.mng_insert(collection)
-        assert oid
+        #collection: Collection = mongomock.MongoClient().db.collection
+        #oid = model.mng_insert(collection)
+        #assert oid
+        oid_list = mocked_connector.insert_flow_models([model])
+        assert len(oid_list) == 1

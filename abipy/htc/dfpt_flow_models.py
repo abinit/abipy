@@ -5,7 +5,7 @@ from pydantic import Field, validator
 from abipy.abio.inputs import AbinitInput
 from abipy.flowtk import TaskManager, PhononFlow
 from .base_models import MongoConnector, GfsFileDesc
-from .gs_models import GsData
+from .gs_models import ScfData
 from .dfpt_models import PhononData
 from .flow_models import FlowModel, PresetQuery
 
@@ -22,72 +22,88 @@ class _BasePhononFlowModel(FlowModel):
     # Input
     ########
 
-    scf_input: AbinitInput = Field(..., description="Input for the initial SCF run")
-
     with_becs: bool = Field(..., description="Activate computation of Born effective charges.")
 
     with_quad: bool = Field(..., description="Activate calculation of dynamical quadrupoles.")
 
     with_flexoe: bool = Field(False, description="Activate computation of the flexoelectric tensor.")
 
+    with_gsden: bool = Field(True, description="Set it to True to save the DEN file in GridFS.")
+
+    with_gspot: bool = Field(True, description="Set it to True to save the POT file in GridFS.")
+
+    with_dvdb: bool = Field(True, description="False if the DVDB file should not be added to GridFs")
+
+    ########################################
+    # Input/Output depending on the subclass
+    ########################################
+
+    scf_input: AbinitInput = Field(..., description="Input for the initial SCF run")
+
     ########
     # Output
     ########
 
-    scf_data: GsData = Field(None, description="Results produced by the GS SCF run.")
+    scf_data: ScfData = Field(None, description="Results produced by the initial GS SCF run.")
 
     phonon_data: PhononData = Field(None, description="Results produced by the Phonon calculation")
 
-    #gsr_gfsd: GfsFileDesc = Field(None, description="Link to a GridFS entry.")
-    #with_den: bool = Field(True, description="Set it to True to save the DEN file in GridFS.")
-    #with_pot: bool = Field(True, description="Set it to True to save the POT file in GridFS.")
+    gsden_gfsd: GfsFileDesc = Field(None, description="Pointer to the GS DEN file in GridFS.")
 
-    #gsden_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the DVDB Fortran file from GridFS.")
-    #gspot_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the DVDB Fortran file from GridFS.")
+    gspot_gfsd: GfsFileDesc = Field(None, description="Pointer to the GS KS POT file in GridFS.")
 
-    #ddb_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the DDB file from GridFS.")
+    ddb_gfsd: GfsFileDesc = Field(None, description="Pointer to the DDB file from GridFS.")
 
-    with_dvdb: bool = Field(True, description="False if the DVDB file should not be added to GridFs")
+    dvdb_gfsd: GfsFileDesc = Field(None, description="Pointer to the DVDB Fortran file in GridFS.")
 
-    dvdb_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the DVDB Fortran file from GridFS.")
-
-    def build_flow(self, workdir: str, manager: TaskManager) -> PhononFlow:
+    def build_flow(self, workdir: str, worker: AbipyWorker) -> PhononFlow:
         """
-        Build an AbiPy Flow using the input data available in the model and return it.
-
-        Args:
-            workdir: Working directory provided by the caller.
-            manager: |TaskManager| object.
+        Build an AbiPy Flow in workdir using the input data available in the model and return it.
         """
         # TODO: Add option to compute bands, get_dvdb filepath!
-        return PhononFlow.from_scf_input(workdir, self.scf_input,
+        flow = PhononFlow.from_scf_input(workdir, self.scf_input,
                                          ph_ngqpt=(2, 2, 2),
                                          #ph_ngqpt=(4, 4, 4),
                                          with_becs=self.with_becs,
                                          with_quad=self.with_quad,
                                          with_flexoe=self.with_flexoe,
-                                         manager=manager,
                                          )
 
-    def postprocess_flow(self, flow: PhononFlow, mng_connector: MongoConnector) -> None:
+        # Make sure Abinit writes the output files required by the model
+        scf_input = flow[0][0].input
+        if self.with_gsden: scf_input.set_vars(prtden=1)
+        if self.with_gspot: scf_input.set_vars(prtpot=1)
+
+        return flow
+
+    def postprocess_flow(self, flow: PhononFlow, worker: AbipyWorker) -> None:
         """
         Analyze the flow and fills the model with output results.
         MongoConnector should be used only to insert files in GridFs as the final insertion is done by the caller.
         This function is called by the worker if the flow completed successfully.
         """
-        with flow[0][0].open_gsr() as gsr:
-            self.scf_data = GsData.from_gsr(gsr, mng_connector, with_gsr=False)
+        mng_connector = worker.mng_connector
 
-        # Add DEN and POT files
-        #self.gsden_gfsd = mng_connector.gfs_put_filepath(gsden_filepath)
-        #self.gspot_gfsd = mng_connector.gfs_put_filepath(gspot_filepath)
+        scf_task = flow[0][0]
+        with scf_task.open_gsr() as gsr:
+            self.scf_data = ScfData.from_gsr(gsr, mng_connector, with_gsr=False)
+
+        # Add DEN and POT files to GridFs.
+        if self.with_gsden:
+            self.gsden_gfsd = mng_connector.gfs_put_filepath(scf_task.outdir.need_abiext("DEN"))
+
+        if self.with_gspot:
+            self.gspot_gfsd = mng_connector.gfs_put_filepath(scf_task.outdir.need_abiext("POT"))
 
         with flow.open_final_ddb() as ddb:
             self.phonon_data = PhononData.from_ddb(ddb, mng_connector)
+            self.ddb_gfsd = mng_connector.gfs_put_filepath(ddb.filepath)
 
-        #if self.with_dvdb:
-        #    dvdb_filepath = None
-        #    self.dvdb_gfsd = mng_connector.gfs_put_filepath(dvdb_filepath)
+        if self.with_dvdb:
+            # Add to GridDF the DVDB required for e-ph computations.
+            ph_work = flow[1]
+            dvdb_filepath = ph_work.outdir.need_abiext("DVDB")
+            self.dvdb_gfsd = mng_connector.gfs_put_filepath(dvdb_filepath)
 
     @classmethod
     def get_preset_queries(cls) -> List[PresetQuery]:
@@ -97,6 +113,7 @@ class _BasePhononFlowModel(FlowModel):
         """
         return [
             PresetQuery.for_large_forces_or_high_pressure("scf_data", cls),
+            #PresetQuery.unstable_ph_modes("phonon_data", cls),
         ]
 
     def get_panel_view(self, mng_connector: MongoConnector):

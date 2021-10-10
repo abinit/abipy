@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from pydantic import Field
 from abipy.dfpt.ddb import DdbFile
-from .base_models import AbipyModel, MongoConnector, GfsFileDesc, GfsDesc
+from .base_models import AbipyModel #, MongoConnector, GfsFileDesc, GfsDesc
 
 
 class PhononData(AbipyModel):
@@ -13,21 +13,21 @@ class PhononData(AbipyModel):
     #min_phfreq_ev: float = Field(..., description="Minimum phonon frequency in eV. Includes 'negative' values")
     #max_phfreq_ev: float = Field(..., description="Maximum phonon frequency in eV.")
 
-    ddb_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the DDB file from GridFS.")
+    #ddb_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the DDB file from GridFS.")
 
     #phbands: PhononBands = Field(..., description="DDB string")
     #phdos: PhononDos = Field(..., description="DDB string")
 
-    #phbands_gfsd: GfsDesc = Field(None, description="Metadata needed to retrieve the PhononBands object from GridFS.")
-    #phdos_gfsd: GfsDesc = Field(None, description="Metadata needed to retrieve the PhononDos object from GridFS.")
+    #phbands_gfsd: GfsDesc = Field(None, description="Pointer to the PhononBands object in GridFS.")
+    #phdos_gfsd: GfsDesc = Field(None, description="Pointer to the PhononDos object in GridFS.")
 
     @classmethod
     def from_ddb(cls, ddb: DdbFile, mng_connector: MongoConnector) -> PhononData:
         """
-        Build the model from a DdbFile `ddb` and upload files to GridFs using `mng_connector`.
+        Build the model from a DdbFile `ddb`.
         """
         data = dict(
-            ddb_gfsd=mng_connector.gfs_put_filepath(ddb.filepath)
+            #ddb_gfsd=mng_connector.gfs_put_filepath(ddb.filepath)
         )
 
         # TODO: Add Msonable protocol to phbands and phdos.

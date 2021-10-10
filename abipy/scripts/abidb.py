@@ -14,6 +14,7 @@ from pprint import pprint  #, pformat
 from pydantic import BaseModel
 from pymongo.collection import Collection
 from monty.functools import prof_main
+from monty.termcolor import cprint
 from abipy.core.release import __version__
 #from abipy.core.config import get_config
 from abipy.tools.printing import print_dataframe
@@ -100,8 +101,8 @@ def get_parser(with_epilog=False):
     p_flow_data = subparsers.add_parser("flow_data", parents=[copts_parser], help=abidb_flow_data.__doc__)
     p_flow_data.add_argument("oid", type=str, help="Document ID")
 
-    p_pq = subparsers.add_parser("pq", parents=[copts_parser], help=abidb_pq.__doc__)
-    p_pq.add_argument("pq_inds", nargs="*",
+    p_preq = subparsers.add_parser("preq", parents=[copts_parser], help=abidb_preq.__doc__)
+    p_preq.add_argument("pre_inds", nargs="*",
                       help="Index or indices of query."
                            "If not given, the full list of available queries is returned."
                            "If `all` all registered queries are executed."
@@ -114,6 +115,10 @@ def get_parser(with_epilog=False):
                          help="List number of documents returned by the query, 0 means ALL docs matching the query!")
 
     p_schema = subparsers.add_parser("schema", parents=[copts_parser], help=abidb_schema.__doc__)
+
+    p_drop = subparsers.add_parser("drop", parents=[copts_parser], help=abidb_drop.__doc__)
+
+    p_show_err = subparsers.add_parser("show_err", parents=[copts_parser], help=abidb_show_err.__doc__)
 
     #p_info_oid = subparsers.add_parser("info_oid", parents=[copts_parser], help=abidb_info_oid.__doc__)
 
@@ -194,7 +199,7 @@ class Context(BaseModel):
 
     collection: Collection
 
-    fmodel_cls: Type[FlowModel]
+    flow_model_cls: Type[FlowModel]
 
     class Config:
         arbitrary_types_allowed = True
@@ -222,7 +227,7 @@ def abidb_query(options, ctx: Context):
 
 
 def abidb_status(options, ctx: Context):
-    status2oids = ctx.fmodel_cls.mongo_get_status2oids(ctx.collection)
+    status2oids = ctx.flow_model_cls.mng_get_status2oids(ctx.collection)
     for status, oids in status2oids.items():
         print(str(status), len(oids))
 
@@ -235,18 +240,18 @@ def abidb_aggreg(options, ctx: Context):
     def predicate(value):
         return inspect.ismethod(value) and value.__name__.startswith("mng_aggregate")
 
-    for name, value in inspect.getmembers(ctx.fmodel_cls, predicate):
+    for name, value in inspect.getmembers(ctx.flow_model_cls, predicate):
         print(name, value)
         df = value(ctx.collection)
         print_dataframe(df)
 
-    #df = ctx.fmodel_cls.mng_aggregate_in_struct(ctx.collection)
+    #df = ctx.flow_model_cls.mng_aggregate_in_struct(ctx.collection)
 
     return 0
 
 
 def abidb_flow_data(options, ctx: Context):
-    flow_data = ctx.fmodel_cls.mongo_get_flow_data(options.oid, ctx.collection)
+    flow_data = ctx.flow_model_cls.mongo_get_flow_data(options.oid, ctx.collection)
     #print(repr(flow_data))
     #print(flow_data.yaml_dump())
     flow_data.summarize(verbose=options.verbose)
@@ -256,24 +261,24 @@ def abidb_flow_data(options, ctx: Context):
     return 0
 
 
-def abidb_pq(options, ctx: Context):
+def abidb_preq(options, ctx: Context):
     """
     Execute preset queries on the collection.
     """
 
-    queries = ctx.fmodel_cls.get_preset_queries()
+    queries = ctx.flow_model_cls.get_preset_queries()
 
-    if not options.pq_inds:
+    if not options.preq_inds:
         print("Printing list of predefined queries with their index as `cg_inds` argument is not given\n")
         for i, query in enumerate(queries):
             print(query.to_string(title=f"== Index: {i} ===", verbose=options.verbose))
 
-        print("Use e.g. `abidb.py pq 0 1` to execute queries with a given index")
-        print("      or `abidb.py pq all` to select all")
+        print("Use e.g. `abidb.py preq 0 1` to execute queries with a given index")
+        print("      or `abidb.py preq all` to select all")
         print("Use -v to print extra info")
         return 0
 
-    cg_inds = set(options.pq_inds)
+    cg_inds = set(options.preq_inds)
     if "all" in cg_inds:
         cg_inds = set(range(len(queries)))
     else:
@@ -293,19 +298,42 @@ def abidb_schema(options, ctx: Context):
     """
     Show FlowModel schema.
     """
-
-    #print(fmodel_cls)
-    #print(fmodel_cls.schema_json(indent=2))
-    schema = ctx.fmodel_cls.schema()
+    #print(flow_model_cls)
+    #print(flow_model_cls.schema_json(indent=2))
+    schema = ctx.flow_model_cls.schema()
     import ruamel.yaml as yaml
     print(yaml.safe_dump(schema, default_flow_style=False))
     return 0
 
 
+def abidb_drop(options, ctx: Context):
+    """
+    Drop the specified MongoDB collection and the associated GridFs collections (use it wisely!)
+    """
+    return ctx.mng_connector.drop_collection(ask_for_confirmation=True)
+
+
+def abidb_show_err(options, ctx: Context):
+    """
+    Show errored Flows
+    """
+    cnt = 0
+    #for flow_model in ctx.flow_model_cls.find_err_flow_models(ctx.mng_connector):
+    for (oid, flow_model) in ctx.mng_connector.find_err_oid_flowmodels():
+        cnt += 1
+        print(f"Traceback for FlowModel: `{flow_model.__class__.__name__}` with oid: {oid}")
+        for t in flow_model.flow_data.tracebacks:
+            cprint(t, color="red")
+
+    return 0
+
+
 def abidb_mongo_gui(options, ctx: Context):
-    """Start GUI."""
+    """
+    Start GUI.
+    """
     serve_kwargs = serve_kwargs_from_options(options)
-    ctx.mng_connector.open_mongoflow_gui(flow_model_cls=ctx.fmodel_cls, **serve_kwargs)
+    ctx.mng_connector.open_mongoflow_gui(flow_model_cls=ctx.flow_model_cls, **serve_kwargs)
 
 
 @prof_main
@@ -378,7 +406,7 @@ def main():
     print(mng_connector)
 
     collection = mng_connector.get_collection()
-    fmodel_cls = FlowModel.get_subclass_from_collection(collection)
+    flow_model_cls = FlowModel.get_subclass_from_collection(collection)
 
     ctx = Context(**locals())
 

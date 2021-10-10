@@ -254,15 +254,33 @@ class Directory:
 
         return sorted(filepaths)
 
+    def need_abiext(self, ext: str) -> str:
+        """
+        Returns the absolute path of the ABINIT file with extension `ext`.
+        Support both Fortran files and netcdf files. In the later case,
+        we check whether a file with extension ext + ".nc" is present in the directory.
+
+        Raises: FileNotFoundError if file cannot be found.
+        """
+        path = self.has_abiext(ext, single_file=True)
+        if not path:
+            raise FileNotFoundError(f"Cannot find file with extension: `{ext}` in directory `{repr(self)}`")
+
+        return path
+
     def has_abiext(self, ext: str, single_file: bool = True) -> str:
         """
-        Returns the absolute path of the ABINIT file with extension ext.
+        Returns the absolute path of the ABINIT file with extension `ext`.
         Support both Fortran files and netcdf files. In the later case,
-        we check whether a file with extension ext + ".nc" is present
-        in the directory. Returns empty string is file is not present.
+        we check whether a file with extension ext + ".nc" is present in the directory.
+        Returns empty string is file is not present.
+
+        Args:
+            ext: File extension. `.nc` is not needed unless you enforce netcdf format.
+            single_file: If None, allow for multiple matches and return the first one.
 
         Raises:
-            `ValueError` if multiple files with the given ext are found.
+            `ValueError` if multiple files with the given extention `ext` are found and `single_file` is True.
             This implies that this method is not compatible with multiple datasets.
         """
         if ext != "abo":

@@ -4,6 +4,7 @@ from abipy.htc.pseudos_models import PseudoSpecs
 from abipy.htc.structure_models import StructureData
 from abipy.htc.dfpt_flow_models import PhononFlowModelWithParams, PhononFlowModelWithInput
 
+
 def make_scf_input(structure, pseudos, accuracy, paral_kgb=0):
     """
     This function constructs the input file for the GS calculation:
@@ -45,7 +46,7 @@ class TestPhononFlowModels(AbipyTest):
     def test_phonon_flow_model_with_input(self):
 
         mng_connector = MockedMongoConnector.for_localhost(collection_name="phbands")
-        collection = mng_connector.get_collection()
+        #collection = mng_connector.get_collection()
 
         # Pseudopotential specifications.
         pseudos_specs = PseudoSpecs.from_repo_table_name("ONCVPSP-PBE-SR-PDv0.4", "standard")
@@ -60,18 +61,23 @@ class TestPhononFlowModels(AbipyTest):
         for i, structure in enumerate(structures):
             in_structure_data = StructureData.from_structure(structure)
 
-            if i == 0: PhononFlowModelWithParams.init_collection(collection)
+            #m = PhononFlowModelWithParams(in_structure_data=in_structure_data,
+            #                              pseudos_specs=pseudos_specs,
+            #                              with_becs=False,
+            #                              with_quad=False
+            #                              )
+
             scf_input = make_scf_input(structure, pseudos, accuracy="normal")
 
-            #model = PhononFlowModelWithParams(in_structure_data=in_structure_data,
-            #                        scf_input=scf_input,
-            #                        pseudos_specs=pseudos_specs,
-            #                        with_becs=False, with_quad=False)
+            m = PhononFlowModelWithInput(
+                    in_structure_data=in_structure_data,
+                    scf_input=scf_input,
+                    pseudos_specs=pseudos_specs,
+                    with_becs=False,
+                    with_quad=False
+            )
 
-            #PhononFlowModelWithInput
+            #print(m)
+            models.append(m)
 
-            #print(model)
-            #models.append(model)
-
-        #mng_insert_models(models, collection, verbose=1)
-        #mng_connector_insert_models(models)
+        mng_connector.insert_flow_models(models)

@@ -1,15 +1,16 @@
 """
 Pydantic models storing Structure objects and associated metadata
 
-Some of these models are inspired to emmet or we try to field names and models that should be compatible.
+Some of these models are inspired to emmet or we try to use field names and models
+that can be easily converted into each other if needed.
 """
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, Any  # List,
+from typing import Dict, Any, List
 from pydantic import Field
 from pymatgen.core.composition import Composition
-#from pymatgen.core.periodic_table import Element
+from pymatgen.core.periodic_table import Element
 from abipy.core.structure import Structure
 from abipy.htc.base_models import AbipyModel
 
@@ -67,12 +68,17 @@ class StructureData(AbipyModel):
         description="The precision given to spglib to determine the symmetry of this lattice",
     )
 
+    angle_tolerance: float = Field(
+        None,
+        description="Tolerance on the angles",
+    )
+
     spglib_version: str = Field(None, title="SPGLib version")
 
     # Structure metadata
     nsites: int = Field(None, description="Total number of sites in the structure")
 
-    #elements: List[Element] = Field(None, description="List of elements in the material")
+    elements: List[Element] = Field(None, description="List of elements in the material")
 
     nelements: int = Field(None, title="Number of Elements")
 
@@ -140,8 +146,8 @@ class StructureData(AbipyModel):
         sg = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
         #symmetry: Dict[str, Any] = {"symprec": symprec}
         if not sg.get_symmetry_dataset():
-            sg = SpacegroupAnalyzer(structure, 1e-3, 1)
-            #symmetry["symprec"] = 1e-3
+            symprec, angle_tolerance = 1e-3, 51
+            sg = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
 
         #symmetry.update(
         symmetry = {
@@ -149,7 +155,7 @@ class StructureData(AbipyModel):
                 "spg_number": sg.get_space_group_number(),
                 "point_group": sg.get_point_group_symbol(),
                 "crystal_system": CrystalSystem(sg.get_crystal_system().title()),
-                "hall": sg.get_hall(),
+                #"hall": sg.get_hall(),
                 "spglib_version": spglib.__version__,
                 "symprec": symprec,
                 "angle_tolerance": angle_tolerance,
@@ -157,12 +163,12 @@ class StructureData(AbipyModel):
         #)
 
         comp = structure.composition.remove_charges()
-        elsyms = sorted(set([e.symbol for e in comp.elements]))
+        elsyms = sorted(set([str(e.symbol) for e in comp.elements]))
         #symmetry = SymmetryData.from_structure(structure)
 
         data = {
             "nsites": structure.num_sites,
-            #"elements": elsyms,
+            "elements": elsyms,
             "nelements": len(elsyms),
             "composition": comp,
             "composition_reduced": comp.reduced_composition,

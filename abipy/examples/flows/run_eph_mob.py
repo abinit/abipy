@@ -25,8 +25,8 @@ def build_flow(options):
 
     # Initialize the tmesh, sigma_kerange, sigma_erange and dense meshes for the eph integrations
     tmesh = [300, 300, 1]
-    sigma_kerange = [0, 0.5 * abu.eV_Ha] # 0.5 eV range for the WFK of electrons
-    sigma_erange = [0, 0.25 * abu.eV_Ha] # 0.25 eV range for the EPH computation for electrons
+    sigma_kerange = [0, 0.5 * abu.eV_Ha]  # 0.5 eV range for the WFK of electrons
+    sigma_erange = [0, 0.25 * abu.eV_Ha]  # 0.25 eV range for the EPH computation for electrons
     dense_meshes = [[30, 30, 30],
                     [40, 40, 40]]
 
@@ -35,7 +35,7 @@ def build_flow(options):
     pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
 
     # Ground-state computation for 1) the phonons and 2) the WFK generation
-    scf_input = abilab.AbinitInput(structure, pseudos=pseudos)
+    scf_input = abilab.AbinitInput(structure, pseudos)
 
     scf_input.set_vars(
         nband=8,
@@ -75,13 +75,15 @@ def build_flow(options):
     flow.register_work(work0)
 
     # Add the phonon work to the flow
+    # with_quad is set to False because non-linear core correction is not supported.
     ddb_ngqpt = [4, 4, 4]
     ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints=ddb_ngqpt,
                                               is_ngqpt=True, with_becs=True, with_quad=False)
     flow.register_work(ph_work)
 
-    # We loop over the dense meshes
+    # We loop over the dense k-meshes
     for i, sigma_ngkpt in enumerate(dense_meshes):
+
         # Use the kerange trick to generate a WFK file
         multi = nscf_input.make_wfk_kerange_inputs(sigma_kerange=sigma_kerange,
                                                    sigma_ngkpt=sigma_ngkpt)

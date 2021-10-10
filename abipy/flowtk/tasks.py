@@ -517,10 +517,12 @@ class FixQueueCriticalError(Exception):
 _USER_CONFIG_TASKMANAGER = None
 
 
-def set_user_config_taskmanager(manager: TaskManager) -> None:
-    """Change the default manager returned by TaskManager.from_user_config."""
+def set_user_config_taskmanager(task_manager: TaskManager) -> None:
+    """
+    Change the default manager returned by TaskManager.from_user_config.
+    """
     global _USER_CONFIG_TASKMANAGER
-    _USER_CONFIG_TASKMANAGER = manager
+    _USER_CONFIG_TASKMANAGER = task_manager
 
 
 class TaskManager(MSONable):
