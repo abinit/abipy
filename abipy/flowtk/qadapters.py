@@ -443,7 +443,7 @@ limits:
                            # This is a soft limit, in the sense that the qadapter may use a configuration
                            # that does not fulfill this requirement. In case of failure, it will try to use the
                            # smallest number of nodes compatible with the optimal configuration.
-                           # Use `force_nodes` to enfore entire nodes allocation.
+                           # Use `force_nodes` to enforce entire nodes allocation.
                            # `shared` mode does not enforce any constraint (DEFAULT: shared).
     max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
 """
@@ -476,8 +476,8 @@ limits:
             priority is a non-negative integer used to order the qadapters. The :class:`TaskManager` will
                 try to run jobs on the qadapter with the highest priority if possible
         """
-        # TODO
-        #task_classes
+        # Keep a reference to the input kwargs
+        #self.kwargs = kwargs
 
         # Make defensive copies so that we can change the values at runtime.
         kwargs = copy.deepcopy(kwargs)
@@ -580,6 +580,11 @@ limits:
         if err_msg:
             raise ValueError(err_msg)
 
+    #def update_limits(self, d: dict) -> None
+    #    new_limits = self.kwargs["limits"]
+    #    new_limits.update(d)   # This changes kwargs but this is what we want
+    #    self._parse_limits(new_limits)
+
     def _parse_limits(self, d: dict) -> None:
         # Time limits.
         self.set_timelimit(qu.timelimit_parser(d.pop("timelimit")))
@@ -606,6 +611,16 @@ limits:
         self.allocation = d.pop("allocation", "shared")
         if self.allocation not in ("nodes", "force_nodes", "shared"):
             raise ValueError("Wrong value for `allocation` option")
+
+        #self.limits_for_task_class = d.pop("limits_for_task_class", {})
+        #if self.limits_for_task_class:
+        #    if not isinstance(self.limits_for_task_class, dict):
+        #        raise TypeError(f"In limits_for_task_class: Expecting dictionary TaskClassName -> dict with limits"
+        #                        f"Got {type(self.limits_for_task_class)}")
+        #    for k, v in self.limits_for_task_class:
+        #        if not isinstance(v, dict):
+        #            raise TypeError(f"In limits_for_task_class: Expecting dictionary with limits"
+        #                            f"Got {type(v)}")
 
         if d:
             raise ValueError("Found unknown keyword(s) in limits section:\n %s" % list(d.keys()))

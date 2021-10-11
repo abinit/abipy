@@ -1452,8 +1452,16 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.qout_file = File(os.path.join(self.workdir, "queue.qout"))
 
     def set_manager(self, manager: TaskManager) -> None:
-        """Set the |TaskManager| used to launch the Task."""
+        """Set the |TaskManager| used to launch this Task."""
         self.manager = manager.deepcopy()
+
+        #cls_name = self.__class__.__name__
+        #for qad in self.manager.qadapters:
+        #    new_limits = qad.limits_for_task_class.get(cls_name, None)
+        #    if new_limits:
+        #        qad.update_limits(new_limits)
+        #        print(f"Changing limits for {cls_name}, using {new_limits}")
+        #        qad._parse_limits(new_limits)
 
     @property
     def work(self):
