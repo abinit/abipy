@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-This script allows the user to submit the calculations contained in the `Flow`.
-It provides a command line interface as well as a graphical interface based on wxpython.
+The abirun.py script allows the user to submit the calculations contained in an AbiPy `Flow`.
+It provides a command line interface as well graphical interfaces.
 """
 import sys
 import os
@@ -830,7 +830,7 @@ def main():
             print(abinit_build.info)
         return 0
 
-    # Abiopen does not need flow
+    # Abiopen does not need a flow
     if options.command == "abiopen":
         return cli_abiopen(options, options.flowdir)
 
@@ -870,12 +870,12 @@ def main():
             for w_pos, work in enumerate(flow):
                 if os.path.basename(work.workdir) == wname: break
             else:
-                raise RuntimeError("Cannot find work from name %s" % wname)
+                raise RuntimeError(f"Cannot find work from name: {wname}")
 
             for t_pos, task in enumerate(flow[w_pos]):
                 if os.path.basename(task.workdir) == tname: break
             else:
-                raise RuntimeError("Cannot find task from name %s" % tname)
+                raise RuntimeError(f"Cannot find task from name: {tname}")
 
             # Create options.nids here
             options.nids = set([flow[w_pos].node_id, flow[w_pos][t_pos].node_id])
@@ -885,7 +885,7 @@ def main():
             for w_pos, work in enumerate(flow):
                 if os.path.basename(work.workdir) == wname: break
             else:
-                raise RuntimeError("Cannot find work from name %s" % wname)
+                raise RuntimeError(f"Cannot find work from name: {wname}")
 
             # Create options.nids here
             options.nids = set([flow[w_pos].node_id] + [task.node_id for task in flow[w_pos]])
@@ -901,7 +901,7 @@ def main():
             options.task_status = Status.as_status("QCritical")
 
         # Change the manager of the errored tasks.
-        print("Resetting tasks with status: %s" % options.task_status)
+        print(f"Resetting tasks with status: {options.task_status}")
         for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
             task.reset()
             task.set_manager(new_manager)
@@ -950,11 +950,13 @@ def main():
             flow.show_event_handlers(verbose=options.verbose)
 
     elif options.command == "single":
+        cprint("abirun.py single is deprecated and will be removed in Abipy v1.0. Use `scheduler`", color="red")
         nlaunch = flow.single_shot()
         if nlaunch: flow.show_status()
         cprint("Number of tasks launched: %d" % nlaunch, "yellow")
 
     elif options.command == "rapid":
+        cprint("abirun.py rapid is deprecated and will be removed in Abipy v1.0. Use `scheduler`", color="red")
         nlaunch = flow.rapidfire(max_nlaunch=options.max_nlaunch, max_loops=1, sleep_time=5)
         if nlaunch: flow.show_status()
         cprint("Number of tasks launched: %d" % nlaunch, "yellow")
@@ -1067,7 +1069,7 @@ def main():
         flow.pickle_dump()
 
     elif options.command == "move":
-        print("Will move flow to %s..." % options.dest)
+        print("Moving flow to: %s ..." % options.dest)
         flow.chroot(options.dest)
         flow.move(options.dest)
 
@@ -1101,7 +1103,7 @@ def main():
         time_parser = flow.parse_timing(nids=select_nids(flow, options))
         print(time_parser)
         df = time_parser.summarize()
-        abilab.print_dataframe(df, title="output o time_parse.summarize():")
+        abilab.print_dataframe(df, title="output of time_parse.summarize():")
 
     #elif options.command == "qstat":
     #    print("Warning: this option is still under development.")
@@ -1236,7 +1238,7 @@ def main():
                 elif plot_mode == "combiplot":
                     robot.combiplot()
                 else:
-                    raise ValueError("Invalid value of plot_mode: %s" % str(plot_mode))
+                    raise ValueError(f"Invalid value of plot_mode: {plot_mode}")
 
     elif options.command == "notebook":
         return flow.write_open_notebook(options.foreground)
@@ -1270,8 +1272,6 @@ def main():
     # TODO
     #elif options.command == "debug_restart":
     #    flow_debug_restart_tasks(flow, nids=select_nids(flow, options), verbose=options.verbose)
-
-    #elif options.command == "clone_task":
 
     elif options.command == "group":
         d = defaultdict(list)
@@ -1333,8 +1333,7 @@ def main():
         else:
             graph = node.get_graphviz(engine=options.engine)
 
-        # Add this liine to print the DOT string
-        # Can be used with e.g. http://viz-js.com/
+        # Add this liine to print the DOT string. Can be used with e.g. http://viz-js.com/
         if options.verbose: print(graph)
 
         graph.view(directory=directory, cleanup=False)
@@ -1358,7 +1357,7 @@ def main():
             print("")
 
     else:
-        raise RuntimeError("Don't know what to do with command %s!" % options.command)
+        raise ValueError(f"Don't know what to do with command {options.command}!")
 
     return retcode
 

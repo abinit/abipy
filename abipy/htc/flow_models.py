@@ -167,6 +167,37 @@ class PresetQuery(BaseModel):
                 info=f"Filter `{model_cls.__name__}` documents with non-zero collinear magnetization"
                 )
 
+    @classmethod
+    def for_semiconductors(cls, root_name: str, model_cls: Type[TopLevelModel],
+                           min_gap_ev=0.1) -> PresetQuery:
+        """
+        Find documents with non-zero collinear magnetization"
+
+        Args:
+            root_name: Usually `nscf_data`. Uses results stored in a NscfData submodel
+        """
+        #assert "." not in root_name "Nested fields are not supported"
+        #model_field = model_cls.__fields__[root_name]
+
+        # Build query strings from root_name.
+        key = f"{root_name}.fundamental_gap_ev"
+
+        return cls(
+                query={key: {"$gt": min_gap}},
+                projection=["in_structure_data.formula_pretty", key,
+                            f"{root_name}.direct_gap_ev",
+                ],
+                info=f"Filter `{model_cls.__name__}` documents with non-zero collinear magnetization"
+                )
+
+
+
+
+
+
+
+
+
 
 class _NodeData(AbipyModel):
 

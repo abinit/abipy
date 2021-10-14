@@ -39,6 +39,15 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
     get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
 
 
+__all__ = [
+    "ElectronBands",
+    "ElectronDos",
+    "dataframe_from_ebands",
+    "ElectronBandsPlotter",
+    "ElectronDosPlotter",
+]
+
+
 SUBSCRIPT_UNICODE = {
                 "0": "₀",
                 "1": "₁",
@@ -51,15 +60,6 @@ SUBSCRIPT_UNICODE = {
                 "8": "₈",
                 "9": "₉",
             }
-
-
-__all__ = [
-    "ElectronBands",
-    "ElectronDos",
-    "dataframe_from_ebands",
-    "ElectronBandsPlotter",
-    "ElectronDosPlotter",
-]
 
 
 class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
@@ -451,7 +451,7 @@ class ElectronBands(Has_Structure):
                   nelect=None, has_timerev=True,
                   nspinor=1, nspden=None, line_mode=True) -> ElectronBands:
         """
-        Read bandstructure data corresponding to a materials project ``material_id``.
+        Read band structure data corresponding to a materials project ``material_id``.
         and return Abipy ElectronBands object. Return None if bands are not available.
 
         Args:
@@ -543,6 +543,47 @@ class ElectronBands(Has_Structure):
         self.smearing = {} if smearing is None else smearing
         self.nelect = float(nelect)
         self.fermie = float(fermie)
+
+        # Now I try to understand if we are dealing with a semiconductor or a metal
+        # by using meta variables and the input fermie.
+        # The algorithm may fail if we are dealing with a semimetal but in the internal implementation
+        # we only discern between systems with/without an energy gap.
+        # Note that in the case of NSCF calculations the fermie is taken from the previous SCF run
+        # hence we assume the user used the same value of occopt both in the SCF and in the NSCF run
+        # although the NSCF run does not need occopt.
+        # This is automatically enforced if you use AbiPy flows but it's not guaranteed if the user
+        # uses his/her own input files.
+
+        if self.smearing and self.smearing.occopt == 1 and self.nsppol == 1 and self.nspden == 1:
+            # This is the simplest case as the calculation has been done assuming a non-magnetic semiconductor
+            # so there must be a gap.
+            # On the other hand, in a NSCF run with a k-path it may happen that the HOMO energy
+            # taken from the GS SCF run underestimates the real HOMO level.
+            # For instance, the GS-SCF may have been done with a shifted k-mesh whereas
+            # the true HOMO derived from the k-path is at Gamma.
+            # Calling set_fermie_to_vbm should fix this.
+
+            self.set_fermie_to_vbm()
+            self.is_metal = False
+
+        else:
+            #print("This is a wannabe metal")
+            # This flag is true if the system must be metallic in a single particle theory
+            is_bloch_metal = self.nsppol == 1 and self.nspinor == 1 and self.nelect % 2 != 0
+
+            self.is_metal = True
+            if not is_bloch_metal:
+                # Use the input fermie to understand if there's an energy gap.
+                max_occ = 2.0 / (self.nsppol * self.nspinor)
+                trial_occs = np.where(self.eigens > self.fermie, 0, max_occ)
+                self.is_metal = False
+
+                for ik in range(self.nkpt):
+                    nele_k = trial_occs[:, ik].sum()
+                    #print(nele_k)
+                    if nele_k != self.nelect:
+                        self.is_metal = True
+                        break
 
     @property
     def structure(self) -> Structure:
@@ -683,24 +724,29 @@ class ElectronBands(Has_Structure):
             cprint("ebands.smearing is not defined, assuming has_metallic_scheme = False", "red")
             return False
 
-    def set_fermie_to_vbm(self):
+    def set_fermie_to_vbm(self) -> float:
         """
         Set the Fermi energy to the valence band maximum (VBM).
         Useful when the initial fermie energy comes from a GS-SCF calculation
         that may underestimate the Fermi energy because e.g. the IBZ sampling
         is shifted whereas the true VMB is at Gamma.
 
-        Return: New fermi energy in eV.
+        Return: New Fermi energy in eV.
 
         .. warning:
 
             Assume spin-unpolarized band energies.
         """
+        if self.nsppol == 2:
+            raise ValueError(f"set_fermie_to_vbm assumes nsppol == 1 while it is: {self.nsppol}")
+        if self.nspden != 1:
+            raise ValueError(f"set_fermie_to_vbm assumes nspden == 1 while it is: {self.nspden}")
+
         iv = int(self.nelect * self.nspinor) // 2 - 1
         new_fermie = self.eigens[:, :, iv].max()
         return self.set_fermie(new_fermie)
 
-    def set_fermie_from_edos(self, edos, nelect=None):
+    def set_fermie_from_edos(self, edos, nelect=None) -> float:
         """
         Set the Fermi level using the integrated DOS computed in edos.
 
@@ -1236,10 +1282,10 @@ class ElectronBands(Has_Structure):
     def from_pymatgen(cls, pmg_bands, nelect, weights=None, has_timerev=True,
                       ksampling=None, smearing=None, nspinor=1, nspden=None) -> ElectronBands:
         """
-        Convert a pymatgen bandstructure object to an Abipy |ElectronBands| object.
+        Convert a pymatgen band structure object to an Abipy |ElectronBands| object.
 
         Args:
-            pmg_bands: pymatgen bandstructure object.
+            pmg_bands: pymatgen band structure object.
             nelect: Number of electrons in unit cell.
             weights: List of K-points weights (normalized to one, same order as pmg_bands.kpoints).
                 This argument is optional but recommended when ``pmg_bands`` represents an IBZ sampling.
@@ -1255,7 +1301,7 @@ class ElectronBands(Has_Structure):
 
         .. warning::
 
-            The Abipy bandstructure contains more information than the pymatgen object so
+            The Abipy band structure contains more information than the pymatgen object so
             the conversion is not complete, especially if you rely on the default values.
             Please read carefylly the docstring and the code and use the optional arguments to pass
             additional data required by AbiPy if you need a complete conversion.
@@ -1351,7 +1397,7 @@ class ElectronBands(Has_Structure):
 
     def to_pymatgen(self):
         """
-        Return a pymatgen bandstructure object from an Abipy |ElectronBands| object.
+        Return a pymatgen band structure object from an Abipy |ElectronBands| object.
         """
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
         assert np.all(self.nband_sk == self.nband_sk[0, 0])
@@ -1369,10 +1415,12 @@ class ElectronBands(Has_Structure):
         if self.kpoints.is_path:
             labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
             return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, self.fermie,
-                                         labels_dict, coords_are_cartesian=False, structure=self.structure, projections=None)
+                                         labels_dict, coords_are_cartesian=False,
+                                         structure=self.structure, projections=None)
         else:
             return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, self.fermie,
-                                 labels_dict=None, coords_are_cartesian=False, structure=self.structure, projections=None)
+                                 labels_dict=None, coords_are_cartesian=False,
+                                 structure=self.structure, projections=None)
 
     def _electron_state(self, spin, kpoint, band):
         """
@@ -1488,20 +1536,14 @@ class ElectronBands(Has_Structure):
 
         return lumos
 
-    #def is_metal(self, spin)
-    #    """True if this spin channel is metallic."""
-    #    if not self.has_metallic_scheme: return False
-    #    for k in self.kidxs:
-    #        # Find leftmost value greater than x.
-    #        b = find_gt(self.eigens[spin,k,:], self.fermie)
-    #        if self.eigens[spin,k,b] < self.fermie + 0.01:
-    #            return True
-
-    #def is_semimetal(self, spin)
-    #    """True if this spin channel is semi-metal."""
-    #    fun_gaps = self.fundamental_gaps
+    #def get_nkpts_in_ewin(self, e0: float, ewin_ev: float = 1e-4):
+    #   """Return the number of k-points inside an energy window centered at e0 of width `ewin_ev`."""
+    #    count = 0
     #    for spin in self.spins:
-    #       if abs(fun_gaps.ene) <  TOL_EGAP
+    #        for ik in self.kidxs:
+    #            if any(abs(self.eigens[spin, ik] - e0) < tol_ev): count += 1
+    #    return count
+
 
     def get_edge_state(self, vbm_or_cbm, spin=None):
 
@@ -1528,12 +1570,12 @@ class ElectronBands(Has_Structure):
         return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
     @property
-    def fundamental_gaps(self):
+    def fundamental_gaps(self) -> List[ElectronTransition]:
         """List of :class:`ElectronTransition` with info on the fundamental gaps for each spin."""
         return [ElectronTransition(self.homos[spin], self.lumos[spin]) for spin in self.spins]
 
     @property
-    def direct_gaps(self):
+    def direct_gaps(self) -> List[ElectronTransition]:
         """List of `nsppol` :class:`ElectronTransition` with info on the direct gaps for each spin."""
         dirgaps = self.nsppol * [None]
         for spin in self.spins:
@@ -1579,7 +1621,8 @@ class ElectronBands(Has_Structure):
             for s in numl:
                 formula = formula.replace(s, SUBSCRIPT_UNICODE[s])
 
-        if enough_bands and not self.has_metallic_scheme:
+        #if enough_bands and not self.has_metallic_scheme:
+        if enough_bands and not self.is_metal:
             if self.nsppol == 1:
                 s = "%s: %s = %.2f, %s = %.2f (eV)" % (
                     formula,
@@ -1658,7 +1701,8 @@ class ElectronBands(Has_Structure):
         def indent(s):
             return "    " + s.replace("\n", "\n    ")
 
-        if not self.has_metallic_scheme:
+        #if not self.has_metallic_scheme:
+        if not self.is_metal:
             enough_bands = (self.mband > self.nspinor * self.nelect // 2)
             for spin in self.spins:
                 if self.nsppol == 2: app(">>> For spin %s" % spin)
@@ -1684,7 +1728,7 @@ class ElectronBands(Has_Structure):
                 except Exception:
                     pass
 
-            app("TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor\n")
+            #app("TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor\n")
 
         if with_kpoints:
             app(self.kpoints.to_string(verbose=verbose, title="K-points"))
@@ -1714,12 +1758,12 @@ class ElectronBands(Has_Structure):
         new_kpoints = KpointList(self.structure.reciprocal_lattice, new_kcoords,
                                  weights=None, names=None, ksampling=self.kpoints.ksampling)
 
-        # Extract eigevanlues and occupation factors associated to irred k-points.
+        # Extract eigenvalues and occupation factors associated to irred k-points.
         new_eigens = self.eigens[:, irred_map, :].copy()
         new_occfacts = self.occfacts[:, irred_map, :].copy()
 
         return self.__class__(self.structure, new_kpoints, new_eigens, self.fermie, new_occfacts,
-                              self.nelect, self.nspinor, self.nspden)
+                              self.nelect, self.nspinor, self.nspden, smearing=self.smearing)
 
     def spacing(self, axis=None):
         """
@@ -2602,7 +2646,7 @@ class ElectronBands(Has_Structure):
             edos: An instance of |ElectronDos|.
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
                 The values are the labels. e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
-            ax_list: The axes for the bandstructure plot and the DOS plot. If ax_list is None, a new figure
+            ax_list: The axes for the band structure plot and the DOS plot. If ax_list is None, a new figure
                 is created and the two axes are automatically generated.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
@@ -2679,7 +2723,7 @@ class ElectronBands(Has_Structure):
             edos: An instance of |ElectronDos|.
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
                 The values are the labels. e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
-            fig: The |plotly.graph_objects.Figure| with two distinct plots for the bandstructure plot and the DOS plot.
+            fig: The |plotly.graph_objects.Figure| with two distinct plots for the band structure plot and the DOS plot.
                 If fig is None, a new figure is created.
             band_rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
                 of the band subplot in the grid.
@@ -3622,7 +3666,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 or one of the abipy object with an ``ebands`` attribute or a |ElectronBands| object.
             edos_objects: List of objects from which the electron DOSes are extracted.
                 Accept filepaths or |ElectronDos| objects. If edos_objects is not None,
-                each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
+                each subplot in the grid contains a band structure with DOS else a simple band structure plot.
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
 
                 - ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
@@ -3716,7 +3760,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 or one of the abipy object with an ``ebands`` attribute or a |ElectronBands| object.
             edos_objects: List of objects from which the electron DOSes are extracted.
                 Accept filepaths or |ElectronDos| objects. If edos_objects is not None,
-                each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
+                each subplot in the grid contains a band structure with DOS else a simple band structure plot.
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
 
                 - ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
@@ -3731,7 +3775,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 -  None: Don't shift energies, equivalent to e0=0
 
             with_dos: True if DOS should be printed.
-            with_gaps: True to add markesr and arrows showing the fundamental and the direct gap.
+            with_gaps: True to add markers and arrows showing the fundamental and the direct gap.
             max_phfreq: Max phonon frequency in eV to activate scatterplot showing
                 possible phonon absorptions/emission processes based on energy-conservation alone.
                 All final states whose energy is within +- max_phfreq of the initial state are included.
@@ -4097,14 +4141,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             nspden=self.read_nspden(),
             nband_sk=self.read_nband_sk(),
             smearing=self.read_smearing(),
-            )
-
-        # This is to solve the typical problem in semiconductors that shows up
-        # when the Fermi level from the GS run computed with a shifted k-mesh
-        # underestimates the CBM at Gamma.
-        #if ebands.nsppol == 1 and ebands.nspden == 1 and
-        if ebands.smearing.occopt == 1:
-            ebands.set_fermie_to_vbm()
+        )
 
         return ebands
 
@@ -4140,11 +4177,14 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         """Fermi level in eV."""
         return units.Energy(self.read_value("fermi_energy"), "Ha").to("eV")
 
-    def read_nelect(self):
-        """Number of valence electrons."""
+    def read_nelect(self) -> float:
+        """
+        Number of valence electrons. Note that it's a float because we may have added
+        extra fractional charge to the unit cell with a compensanting background.
+        """
         return self.read_value("number_of_electrons")
 
-    def read_smearing(self):
+    def read_smearing(self) -> Smearing:
         """Returns a :class:`Smearing` instance with info on the smearing technique."""
         occopt = int(self.read_value("occopt"))
         scheme = self.read_string("smearing_scheme")

@@ -16,7 +16,6 @@ TODO list:
             # Accept absolute values or `scale_name` syntax to scale `name` (mutually exclusive)
             # If a new limit is not specified, the global value is used.
             #
-            NscfTask: {scale_max_cores: 0.5, scale_timelimit: 0.2}
             KerangeTask: {max_cores: 2, timelimit: 0:5:0}
 
   You should be able to specify the Qadapter as well.

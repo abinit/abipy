@@ -446,7 +446,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
 
     def yield_ebands_figs(self, **kwargs):
         """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
-        with_gaps = not self.ebands.has_metallic_scheme
+        with_gaps = not self.ebands.is_metal
         if self.ebands.kpoints.is_path:
             yield self.ebands.plot(with_gaps=with_gaps, show=False)
             if len(self.ebands.kpoints) > 1:
@@ -458,7 +458,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
 
     def yield_ebands_plotly_figs(self, **kwargs):
         """*Generates* a predefined list of plotly figures with minimal input from the user."""
-        with_gaps = not self.ebands.has_metallic_scheme
+        with_gaps = not self.ebands.is_metal
 
         if self.ebands.kpoints.is_path:
             yield self.ebands.plotly(with_gaps=with_gaps, show=False)

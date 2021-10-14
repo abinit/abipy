@@ -220,7 +220,7 @@ def main():
         else:
             print(flowtk.TaskManager.autodoc())
             print("qtype supported: %s" % flowtk.all_qtypes())
-            print("Use `abidoc.py manager slurm` to have the list of qparams for slurm.\n")
+            print("Use:\n\n\tabidoc.py manager slurm\n\nto show the list of qparams for slurm.\n")
 
             if qtype is not None:
                 print("QPARAMS for %s" % qtype)

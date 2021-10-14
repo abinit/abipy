@@ -17,6 +17,7 @@ from abipy import flowtk
 
 class FlowUnitTest(AbipyTest):
     """Provides helper function for testing Abinit flows."""
+
     MANAGER = """\
 policy:
     autoparal: 1
@@ -33,6 +34,10 @@ qadapters:
         min_cores: 4
         max_cores: 12
         #condition: {"$eq": {omp_threads: 2}}
+        limits_for_task_class: {
+           DdkTask: {min_cores: 2, max_cores: 30},
+           KerangeTask: {timelimit: 0:10:00, max_mem_per_proc: 1 Gb},
+        }
       hardware:
         num_nodes: 10
         sockets_per_node: 1
@@ -47,16 +52,6 @@ qadapters:
             LD_LIBRARY_PATH: /home/user/NAPS/intel13/lib:$LD_LIBRARY_PATH
         mpi_runner: mpirun
 
-# Connection to the MongoDb database (optional)
-db_connector:
-    database: abinit
-    collection: test
-    #host: 0.0.0.0
-    #port: 8080
-    #user: gmatteo
-    #password: helloworld
-
-batch_adapter: *batch
 """
     def setUp(self):
         """Initialization phase."""
@@ -67,6 +62,8 @@ batch_adapter: *batch
 
         # Create the TaskManager.
         self.manager = TaskManager.from_string(self.MANAGER)
+
+        set_user_config_taskmanager(self.manager)
 
         # Fake input file
         from abipy.abio.inputs import AbinitInput
@@ -81,6 +78,7 @@ batch_adapter: *batch
 
     def tearDown(self):
         """Delete workdir"""
+        set_user_config_taskmanager(None)
         shutil.rmtree(self.workdir)
 
 
@@ -146,11 +144,26 @@ class FlowTest(FlowUnitTest):
         # Build a workflow containing two tasks depending on task0_w0
         work = Work()
         assert work.is_work
-        work.register(self.fake_input)
-        work.register(self.fake_input)
+
+        ddk_task_with_custom_limits = work.register_ddk_task(self.fake_input)
+        kerange_task_with_custom_limits = work.register_kerange_task(self.fake_input)
+
+        assert not hasattr(ddk_task_with_custom_limits, "manager")
+
+        m = kerange_task_with_custom_limits.manager
+        assert m.policy.autoparal == 0
+        assert m.mpi_procs == 1
+        assert m.qads[0].max_mem_per_proc == 1024
+        # This does not work as expected but the most importan thing is that
+        # autoparal has been set to 0 and the other values have been updated.
+        #assert m.qads[0].min_cores == 1
+        #assert m.qads[0].max_cores == 1
+
         assert len(work) == 2
 
         flow.register_work(work, deps={task0_w0: "WFK"})
+        assert not hasattr(ddk_task_with_custom_limits, "manager")
+
         assert flow.is_flow
         assert len(flow) == 2
 
@@ -161,6 +174,10 @@ class FlowTest(FlowUnitTest):
 
         # Allocate internal tables
         flow.allocate()
+
+        assert hasattr(ddk_task_with_custom_limits, "manager")
+        assert ddk_task_with_custom_limits.manager.qads[0].min_cores == 2, "should have custom value"
+        assert ddk_task_with_custom_limits.manager.qads[0].max_cores == 30, "should have custom value"
 
         # Check dependecies.
         #task0_w1 = flow[1][0]

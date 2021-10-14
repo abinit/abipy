@@ -361,9 +361,8 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
 
 class NodeContainer(metaclass=abc.ABCMeta):
     """
-    Mixin classes for `Work` and `Flow` objects providing helper functions
-    to register tasks in the container. The helper function call the
-    `register` method of the container.
+    Mixin classes for `Work` and `Flow` objects providing helper functions to register tasks in the container.
+    The helper function call the `register` method of the container.
     """
     # Abstract protocol for containers
 
@@ -444,9 +443,10 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_effmass_task(self, *args, **kwargs) -> EffMassTask:
         """Register a effective mass task."""
         kwargs["task_class"] = EffMassTask
-        # FIXME: Hack to run it in sequential because effmass task does not support parallelism.
         kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
-        return self.register_task(*args, **kwargs)
+        task = self.register_task(*args, **kwargs)
+        task.history.info("Enforcing sequential execution as effmass task does not support MPI")
+        return task
 
     def register_scr_task(self, *args, **kwargs) -> ScrTask:
         """Register a screening task."""
@@ -482,39 +482,47 @@ class NodeContainer(metaclass=abc.ABCMeta):
         """Register an electron-phonon task."""
         kwargs["task_class"] = EphTask
         eph_inp = args[0]
-        if eph_inp.get("eph_frohlichm", 0) != 0 or abs(eph_inp.get("eph_task", 0)) == 15:
-            # FIXME: Hack to run task in sequential since this calculation does
-            # not support MPI with nprocs > 1.
-            seq_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)
-            kwargs.update({"manager": seq_manager})
+        eph_task = eph_inp.get("eph_task", 0)
+        msg = ""
 
-        if eph_inp.get("eph_task", 0) == -4:
+        if eph_inp.get("eph_frohlichm", 0) != 0 or abs(eph_task) == 15:
+            msg = "Enforcing sequential execution as MPI with nprocs > 1 is not supported"
+            kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
+
+        if eph_task == -4:
+            # Computation of imaginary part of Sigma_eph.
+            msg = "For an optimal memory distribution, the number of MPI procs should be a multiple of 3*natom."
             manager = TaskManager.from_user_config()
-            max_cores = manager.qadapter.max_cores
             min_cores = manager.qadapter.min_cores
+            max_cores = manager.qadapter.max_cores
             natom3 = 3 * len(eph_inp.structure)
-            nprocs = max(max_cores - max_cores % natom3, min_cores)
-            new_manager = manager.new_with_fixed_mpi_omp(nprocs, 1)
-            kwargs.update({"manager": new_manager})
+            mpi_procs = max(max_cores - max_cores % natom3, min_cores)
+            kwargs.update({"manager": manager.new_with_fixed_mpi_omp(mpi_procs, 1)})
 
-        if eph_inp.get("eph_task", 0) == 9:
+        if eph_task == 9:
+            # Kubo spectral function from SIGEPH.nc file.
             nkptgw = eph_inp.vars["nkptgw"]
             manager = TaskManager.from_user_config()
             max_cores = manager.qadapter.max_cores
-            nprocs = max_cores
+            mpi_procs = max_cores
+            msg = "Enforcing mpi_procs = max_cores as autoparal is not yet implemented"
             if max_cores > nkptgw:
-                nprocs = nkptgw
-            new_manager = manager.new_with_fixed_mpi_omp(nprocs, 1)
-            kwargs.update({"manager": new_manager})
+                msg = "Enforcing mpi_procs = nkptgw"
+                mpi_procs = nkptgw
 
-        return self.register_task(*args, **kwargs)
+            kwargs.update({"manager": manager.new_with_fixed_mpi_omp(mpi_procs, 1)})
+
+        task = self.register_task(*args, **kwargs)
+        if msg: task.history.info(msg)
+        return task
 
     def register_kerange_task(self, *args, **kwargs) -> KerangeTask:
         """ Register a kerange task."""
         kwargs["task_class"] = KerangeTask
-        seq_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)
-        kwargs.update({"manager": seq_manager})
-        return self.register_task(*args, **kwargs)
+        kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
+        task = self.register_task(*args, **kwargs)
+        task.history.info("Enforcing sequential execution as Kerange is not MPI parallelized although it's fast.")
+        return task
 
     def walknset_vars(self, task_class=None, *args, **kwargs):
         """
@@ -571,7 +579,7 @@ class Work(BaseWork, NodeContainer):
             self.set_manager(manager)
 
     def set_manager(self, manager: TaskManager):
-        """Set the |TaskManager| to use to launch the |Task|."""
+        """Set the |TaskManager| to be used to launch the |Task|."""
         self.manager = manager.deepcopy()
         for task in self:
             task.set_manager(manager)
@@ -698,7 +706,7 @@ class Work(BaseWork, NodeContainer):
 
         return counter
 
-    def allocate(self, manager=None):
+    def allocate(self, manager=None) -> None:
         """
         This function is called once we have completed the initialization
         of the |Work|. It sets the manager of each task (if not already done)

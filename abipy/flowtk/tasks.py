@@ -527,12 +527,14 @@ def set_user_config_taskmanager(task_manager: TaskManager) -> None:
 
 class TaskManager(MSONable):
     """
-    A `TaskManager` is responsible for the generation of the job script and the submission
-    of the task, as well as for the specification of the parameters passed to the resource manager
-    (e.g. Slurm, PBS ...) and/or the run-time specification of the ABINIT variables governing the parallel execution.
-    A `TaskManager` delegates the generation of the submission script and the submission of the task to the :class:`QueueAdapter`.
-    A `TaskManager` has a :class:`TaskPolicy` that governs the specification of the parameters for the parallel executions.
-    Ideally, the TaskManager should be the **main entry point** used by the task to deal with job submission/optimization
+    A `TaskManager` is responsible for the generation of the job script,
+    the specification of the parameters passed to the resource manager (e.g. Slurm, PBS, etc).
+    and the submission of the task.
+    A `TaskManager` uses a `QueueAdapter` to perform most of this work
+    A `TaskManager` has a :class:`TaskPolicy` object that governs the specification of the parameters for
+    the parallel executions.
+    Ideally, the TaskManager should be the **main entry point** used by the task
+    to deal with job submission/optimization
     """
     YAML_FILE = "manager.yml"
 
@@ -770,13 +772,20 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
     def new_with_fixed_mpi_omp(self, mpi_procs: int, omp_threads: int) -> TaskManager:
         """
         Return a new `TaskManager` in which autoparal has been disabled.
-        The jobs will be executed with `mpi_procs` MPI processes and `omp_threads` OpenMP threads.
-        Useful for generating input files for benchmarks.
+        The Task will be executed with `mpi_procs` MPI processes and `omp_threads` OpenMP threads.
+        Useful for generating input files for benchmarks or enforcing a certain number of procs
+        if the Task does not support autoparal.
         """
         new = self.deepcopy()
         new.policy.autoparal = 0
         new.set_mpi_procs(mpi_procs)
         new.set_omp_threads(omp_threads)
+
+        # Change min/max cores just to be consistent.
+        for qad in new._qads:
+            qad.min_cores = mpi_procs * omp_threads
+            qad.max_cores = mpi_procs * omp_threads
+
         return new
 
     @property
@@ -786,7 +795,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
     @property
     def qads(self) -> List[QueueAdapter]:
-        """List of :class:`QueueAdapter` objects sorted according to priorities (highest comes first)"""
+        """List of :class:`QueueAdapter` objects sorted according to priorities (highest one comes first)"""
         return self._qads
 
     @property
@@ -859,7 +868,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         #self.set_mem_per_proc(pconf.mem_per_proc)
         return pconf
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -1015,7 +1024,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         try:
             self.qadapter.more_mem_per_proc()
         except QueueAdapterError:
-            # here we should try to switch to an other qadapter
+            # here we should try to switch to another qadapter
             raise ManagerIncreaseError('manager failed to increase mem')
 
     def increase_ncpus(self):
@@ -1026,7 +1035,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         try:
             self.qadapter.more_cores()
         except QueueAdapterError:
-            # here we should try to switch to an other qadapter
+            # here we should try to switch to another qadapter
             raise ManagerIncreaseError('manager failed to increase ncpu')
 
     def increase_resources(self):
@@ -1039,21 +1048,21 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         try:
             self.qadapter.more_mem_per_proc()
         except QueueAdapterError:
-            # here we should try to switch to an other qadapter
+            # here we should try to switch to another qadapter
             raise ManagerIncreaseError('manager failed to increase resources')
 
     def exclude_nodes(self, nodes):
         try:
             self.qadapter.exclude_nodes(nodes=nodes)
         except QueueAdapterError:
-            # here we should try to switch to an other qadapter
+            # here we should try to switch to another qadapter
             raise ManagerIncreaseError('manager failed to exclude nodes')
 
     def increase_time(self):
         try:
             self.qadapter.more_time()
         except QueueAdapterError:
-            # here we should try to switch to an other qadapter
+            # here we should try to switch to another qadapter
             raise ManagerIncreaseError('manager failed to increase time')
 
 
@@ -1090,10 +1099,6 @@ class AbinitBuild(object):
 
         # Generate a shell script to execute `abinit -b`
         stdout = os.path.join(workdir, "run.abo")
-
-        #stdin = os.path.join(workdir, "run.files")
-        #with open(stdin, "wt") as fh:
-        #    fh.write("foo")
 
         script = manager.qadapter.get_script_str(
             job_name="abinit_b",
@@ -1452,16 +1457,17 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.qout_file = File(os.path.join(self.workdir, "queue.qout"))
 
     def set_manager(self, manager: TaskManager) -> None:
-        """Set the |TaskManager| used to launch this Task."""
+        """
+        Set the |TaskManager| used to launch this Task.
+        Also, change the limits in the QueueAdapters if task class is found in `limits_for_task_class`.
+        """
         self.manager = manager.deepcopy()
 
-        #cls_name = self.__class__.__name__
-        #for qad in self.manager.qadapters:
-        #    new_limits = qad.limits_for_task_class.get(cls_name, None)
-        #    if new_limits:
-        #        qad.update_limits(new_limits)
-        #        print(f"Changing limits for {cls_name}, using {new_limits}")
-        #        qad._parse_limits(new_limits)
+        cls_name = self.__class__.__name__
+        for qad in self.manager.qads:
+            tclass_limits = qad.limits_for_task_class.get(cls_name, None)
+            if tclass_limits:
+                qad.update_limits(tclass_limits)
 
     @property
     def work(self):
@@ -1614,7 +1620,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         Disable autoparal and force execution with `mpi_procs` MPI processes
         and `omp_threads` OpenMP threads. Useful for generating benchmarks.
-        or for dealing with tasks that do not support autoparal.
+        or for dealing with calculations that do not support autoparal.
         """
         manager = self.manager if hasattr(self, "manager") else self.flow.manager
         self.manager = manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
@@ -2278,6 +2284,7 @@ class Task(Node, metaclass=abc.ABCMeta):
             self.set_status(self.S_ABICRITICAL, msg=msg)
             return parser.report_exception(ofile.path, exc)
 
+    # FIXME: Remove this API
     def get_results(self, **kwargs):
         """
         Returns :class:`NodeResults` instance.
@@ -2357,6 +2364,7 @@ class Task(Node, metaclass=abc.ABCMeta):
             self.files_file.write(self.filesfile_string)
 
         self.input_file.write(self.make_input())
+
         self.manager.write_jobfile(self)
 
         # Add README.md file if set
@@ -3351,6 +3359,60 @@ class GsTask(AbinitTask):
             self.history.critical("Exception while reading GSR file at %s:\n%s" % (gsr_path, str(exc)))
             return None
 
+    def change_ks_solver_params_if_needed(self, is_scf_cycle: bool) -> None:
+        """
+        This method is called every time we perform a restart of the Task.
+        It changes some parameters governing the KS eigenvalue solver in order to facilitate
+        convergence without necessarily making the calculation faster.
+        Note that we operate on the algorithmic aspects without changing the physics or
+        the convergence criteria.
+
+        Args:
+            is_scf_cycle: True if this is a SCF calculation else NSCF run.
+        """
+        self.history.info("Changing some parameters of the KS solver as iteration did not converge...")
+
+        # Increase number of iterations if below 30.
+        nstep = self.input.get("nstep", 30)
+        if nstep <= 30:
+            self.set_vars(nstep=50)
+
+        # Deactivate RMM-DIIS if we are using it as CG/LOBPCG are more stable.
+        rmm_diis = self.input.get("rmm_diis", 0)
+        if rmm_diis != 0:
+            self.set_vars(rmm_diis=0)
+
+        # Increase nnsclo if this is the first restart.
+        nnsclo = self.input.get("nnsclo", 0)
+        if self.num_restarts == 0 and nnsclo == 0:
+            self.setvars(nnsclo=2)
+
+        # Increase nline gradually as this is gonna increase the wall-time. Don't go beyond 8.
+        nline = self.input.get("nline", 4)
+        if 8 > nline >= 4:
+            self.set_vars(nline=nline + 2)
+
+        with self.open_gsr() as gsr:
+            ebands = gsr.ebands
+
+        fundamental_gap_ev, direct_gap_ev = 0.0, 0.0
+        if not gsr.ebands.is_metal:
+            fundamental_gap_ev = min(gap.energy for gap in gsr.ebands.fundamental_gaps)
+            direct_gap_ev = min(gap.energy for gap in gsr.ebands.direct_gaps)
+
+        #if is_scf_cycle:
+        #    # Try to understand if system has energy gap and change the value of diemac accordingly
+        #    diemac = self.input.get("diemac", 1e6)
+        #    if not gsr.ebands.is_metal:
+        #       new_diemac = diemac_from_gap(gap)
+        #       self.set_vars(diemac=diemac)
+        #else:
+        #    # NSCF case. Perhaps the problem is due to nbdbuf that is too small
+        #    nbdbuf = self.input.get("nbdbuf", 0)
+        #    if nbdbuf <= 8
+        #       nbdbuf = 8
+        #       self.set_vars(nbdbuf=nbdbuf)
+
 
 class ScfTask(GsTask):
     """
@@ -3381,6 +3443,9 @@ class ScfTask(GsTask):
 
         # Now we can resubmit the job.
         self.history.info("Will restart from %s", restart_file)
+
+        #self.change_ks_solver_params_if_needed(self, is_scf_cycle=True)
+
         return self._restart()
 
     def inspect(self, **kwargs):
@@ -3399,17 +3464,6 @@ class ScfTask(GsTask):
             return scf_cycle.plot(**kwargs)
 
         return None
-
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-
-        # Open the GSR file and add its data to results.out
-        with self.open_gsr() as gsr:
-            results["out"].update(gsr.as_dict())
-            # Add files to GridFS
-            results.register_gridfs_files(GSR=gsr.filepath)
-
-        return results
 
     def add_ebands_task_to_work(self, work, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10):
         """
@@ -3522,18 +3576,10 @@ To avoid this problem specify nbdbuf in the input file and adjust nband accordin
 
         # Now we can resubmit the job.
         self.history.info("Will restart from %s", restart_file)
+
+        #self.change_ks_solver_params_if_needed(self, is_scf_cycle=False)
+
         return self._restart()
-
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-
-        # Read the GSR file.
-        with self.open_gsr() as gsr:
-            results["out"].update(gsr.as_dict())
-            # Add files to GridFS
-            results.register_gridfs_files(GSR=gsr.filepath)
-
-        return results
 
 
 class RelaxTask(GsTask, ProduceHist):
@@ -3653,17 +3699,6 @@ class RelaxTask(GsTask, ProduceHist):
 
         else:
             raise ValueError("Wrong value for what %s" % what)
-
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-
-        # Open the GSR file and add its data to results.out
-        with self.open_gsr() as gsr:
-            results["out"].update(gsr.as_dict())
-            # Add files to GridFS
-            results.register_gridfs_files(GSR=gsr.filepath)
-
-        return results
 
     def reduce_dilatmx(self, target=1.01):
         actual_dilatmx = self.get_inpvar('dilatmx', 1.)
@@ -3923,10 +3958,6 @@ class DdeTask(DfptTask):
 
     color_rgb = np.array((61, 158, 255)) / 255
 
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-        return results.register_gridfs_file(DDB=(self.outdir.has_abiext("DDE"), "t"))
-
 
 class DteTask(DfptTask):
     """Task for DTE calculations."""
@@ -3936,10 +3967,6 @@ class DteTask(DfptTask):
     def start(self, **kwargs):
         kwargs['autoparal'] = False
         return super().start(**kwargs)
-
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-        return results.register_gridfs_file(DDB=(self.outdir.has_abiext("DDE"), "t"))
 
 
 class DdkTask(DfptTask):
@@ -3955,10 +3982,6 @@ class DdkTask(DfptTask):
         # The price to pay is that we have to handle the DDK extension in make_links.
         # See DfptTask.make_links
         self.outdir.symlink_abiext('1WF', 'DDK')
-
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-        return results.register_gridfs_file(DDK=(self.outdir.has_abiext("DDK"), "t"))
 
 
 class DkdkTask(DfptTask):
@@ -4015,10 +4038,6 @@ class PhononTask(DfptTask):
         if scf_cycle is not None:
             if "title" not in kwargs: kwargs["title"] = str(self)
             return scf_cycle.plot(**kwargs)
-
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-        return results.register_gridfs_files(DDB=(self.outdir.has_abiext("DDB"), "t"))
 
 
 class ElasticTask(DfptTask):
@@ -4184,16 +4203,6 @@ class SigmaTask(ManyBodyTask):
         else:
             raise RuntimeError("Cannot find SIGRES file!")
 
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-
-        # Open the SIGRES file and add its data to results.out
-        with self.open_sigres() as sigres:
-            #results["out"].update(sigres.as_dict())
-            results.register_gridfs_files(SIGRES=sigres.filepath)
-
-        return results
-
 
 class BseTask(ManyBodyTask):
     """
@@ -4304,16 +4313,6 @@ class BseTask(ManyBodyTask):
         except Exception as exc:
             self.history.critical("Exception while reading MDF file at %s:\n%s" % (mdf_path, str(exc)))
             return None
-
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-
-        with self.open_mdf() as mdf:
-            #results["out"].update(mdf.as_dict())
-            #epsilon_infinity optical_gap
-            results.register_gridfs_files(MDF=mdf.filepath)
-
-        return results
 
 
 class OpticTask(Task):
@@ -4426,9 +4425,6 @@ class OpticTask(Task):
         Optic allows the user to specify the paths of the input file.
         hence we don't need to create symbolic links.
         """
-
-    def get_results(self, **kwargs):
-        return super().get_results(**kwargs)
 
     def fix_abicritical(self):
         """
@@ -4836,8 +4832,6 @@ class AnaddbTask(Task):
         phdos_path = self.outpath_from_ext("PHDOS.nc")
         return PhdosFile(phdos_path)
 
-    def get_results(self, **kwargs):
-        return super().get_results(**kwargs)
 
 
 #class BoxcuttedPhononTask(PhononTask):

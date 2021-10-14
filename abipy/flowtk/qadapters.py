@@ -384,6 +384,7 @@ class QueueAdapter(MSONable, metaclass=abc.ABCMeta):
     def autodoc(cls) -> str:
         return """
 # Dictionary with info on the hardware available on this queue.
+
 hardware:
     num_nodes:           # Number of nodes available on this queue (integer, MANDATORY).
     sockets_per_node:    # Number of sockets per node (integer, MANDATORY).
@@ -392,6 +393,7 @@ hardware:
                          # `num_nodes * sockets_per_node * cores_per_socket`.
 
 # Dictionary with the options used to prepare the enviroment before submitting the job
+
 job:
     setup:                # List of commands (strings) executed before running (DEFAULT: empty)
     omp_env:              # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
@@ -400,16 +402,17 @@ job:
     shell_env:            # Dictionary with shell environment variables.
     mpi_runner:           # MPI runner. Possible values in ["mpirun", "mpiexec", "srun", None]
                           # DEFAULT: None i.e. no mpirunner is used.
-    mpi_runner_options    # String with optional options passed to the `mpi_runner` e.g. "--bind-to None"
+    mpi_runner_options:   # String with optional options passed to the `mpi_runner` e.g. "--bind-to None"
     shell_runner:         # Used for running small sequential jobs on the front-end. Set it to None
                           # if mpirun or mpiexec are not available on the fron-end. If not
                           # given, small sequential jobs are executed with `mpi_runner`.
-    shell_runner_options  # Similar to mpi_runner_options but for the runner used on the front-end.
+    shell_runner_options: # Similar to mpi_runner_options but for the runner used on the front-end.
     pre_run:              # List of commands (strings) executed before the run (DEFAULT: empty)
     post_run:             # List of commands (strings) executed after the run (DEFAULT: empty)
 
-# dictionary with the name of the queue and optional parameters
+# dictionary with the name of the queue and other optional parameters
 # used to build/customize the header of the submission script.
+
 queue:
     qtype:                # String defining the qapapter type e.g. slurm, shell ...
     qname:                # Name of the submission queue (string, MANDATORY)
@@ -420,32 +423,40 @@ queue:
                           # Use ``qverbatim`` to pass additional options that are not included in the template.
 
 # dictionary with the constraints that must be fulfilled in order to run on this queue.
+
 limits:
-    min_cores:             # Minimum number of cores (integer, DEFAULT: 1)
-    max_cores:             # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
-                           # it's the limit beyond which the scheduler will not accept the job (MANDATORY).
-    hint_cores:            # The limit used in the initial setup of jobs.
-                           # Fix_Critical method may increase this number until max_cores is reached
-    min_mem_per_proc:      # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
-                           # (DEFAULT: hardware.mem_per_core)
-    max_mem_per_proc:      # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
-                           # (DEFAULT: hardware.mem_per_node)
-    timelimit:             # Initial time-limit. Accepts time according to slurm-syntax i.e:
-                           # "days-hours" or "days-hours:minutes" or "days-hours:minutes:seconds" or
-                           # "minutes" or "minutes:seconds" or "hours:minutes:seconds",
-    timelimit_hard:        # The hard time-limit for this queue. Same format as timelimit.
-                           # Error handlers could try to submit jobs with increased timelimit
-                           # up to timelimit_hard. If not specified, timelimit_hard == timelimit
-    condition:             # MongoDB-like condition (DEFAULT: empty, i.e. not used)
-    allocation:            # String defining the policy used to select the optimal number of CPUs.
-                           # possible values are in ["nodes", "force_nodes", "shared"]
-                           # "nodes" means that we should try to allocate entire nodes if possible.
-                           # This is a soft limit, in the sense that the qadapter may use a configuration
-                           # that does not fulfill this requirement. In case of failure, it will try to use the
-                           # smallest number of nodes compatible with the optimal configuration.
-                           # Use `force_nodes` to enforce entire nodes allocation.
-                           # `shared` mode does not enforce any constraint (DEFAULT: shared).
-    max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+    min_cores:               # Minimum number of cores (integer, DEFAULT: 1)
+    max_cores:               # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
+                             # it's the limit beyond which the scheduler will not accept the job (MANDATORY).
+    hint_cores:              # The limit used in the initial setup of jobs.
+                             # Fix_Critical method may increase this number until max_cores is reached
+    min_mem_per_proc:        # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
+                             # (DEFAULT: hardware.mem_per_core)
+    max_mem_per_proc:        # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
+                             # (DEFAULT: hardware.mem_per_node)
+    timelimit:               # Initial time-limit. Accepts time according to slurm-syntax i.e:
+                             # "days-hours" or "days-hours:minutes" or "days-hours:minutes:seconds" or
+                             # "minutes" or "minutes:seconds" or "hours:minutes:seconds",
+    timelimit_hard:          # The hard time-limit for this queue. Same format as timelimit.
+                             # Error handlers could try to submit jobs with increased timelimit
+                             # up to timelimit_hard. If not specified, timelimit_hard == timelimit
+    condition:               # MongoDB-like condition (DEFAULT: empty, i.e. not used)
+    allocation:              # String defining the policy used to select the optimal number of CPUs.
+                             # possible values are in ["nodes", "force_nodes", "shared"]
+                             # "nodes" means that we should try to allocate entire nodes if possible.
+                             # This is a soft limit, in the sense that the qadapter may use a configuration
+                             # that does not fulfill this requirement. In case of failure, it will try to use the
+                             # smallest number of nodes compatible with the optimal configuration.
+                             # Use `force_nodes` to enforce entire nodes allocation.
+                             # `shared` mode does not enforce any constraint (DEFAULT: shared).
+    max_num_launches:        # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+    limits_for_task_class:   # Dictionary mapping Task class names to a dictionary with limits to be used
+                             # for this particular Task. Example (mind white spaces):
+                             #
+                             #     limits_for_task_class: {
+                             #        NscfTask: {min_cores: 1, max_cores: 10},
+                             #        KerangeTask: {min_cores: 1, max_cores: 1, max_mem_per_proc: 1 Gb},
+                             #     }
 """
 
     def __init__(self, **kwargs):
@@ -477,7 +488,7 @@ limits:
                 try to run jobs on the qadapter with the highest priority if possible
         """
         # Keep a reference to the input kwargs
-        #self.kwargs = kwargs
+        self.kwargs = kwargs
 
         # Make defensive copies so that we can change the values at runtime.
         kwargs = copy.deepcopy(kwargs)
@@ -580,10 +591,14 @@ limits:
         if err_msg:
             raise ValueError(err_msg)
 
-    #def update_limits(self, d: dict) -> None
-    #    new_limits = self.kwargs["limits"]
-    #    new_limits.update(d)   # This changes kwargs but this is what we want
-    #    self._parse_limits(new_limits)
+    def update_limits(self, d: dict) -> None:
+        """
+        Update the `limits` section using the data from dict `d`.
+        """
+        # This changes the initial kwargs but this is required for serialization purposes.
+        new_limits = self.kwargs["limits"]
+        new_limits.update(d)
+        self._parse_limits(new_limits)
 
     def _parse_limits(self, d: dict) -> None:
         # Time limits.
@@ -612,15 +627,16 @@ limits:
         if self.allocation not in ("nodes", "force_nodes", "shared"):
             raise ValueError("Wrong value for `allocation` option")
 
-        #self.limits_for_task_class = d.pop("limits_for_task_class", {})
-        #if self.limits_for_task_class:
-        #    if not isinstance(self.limits_for_task_class, dict):
-        #        raise TypeError(f"In limits_for_task_class: Expecting dictionary TaskClassName -> dict with limits"
-        #                        f"Got {type(self.limits_for_task_class)}")
-        #    for k, v in self.limits_for_task_class:
-        #        if not isinstance(v, dict):
-        #            raise TypeError(f"In limits_for_task_class: Expecting dictionary with limits"
-        #                            f"Got {type(v)}")
+        # Handle limits_for_task_class and perform very basic validation.
+        self.limits_for_task_class = d.pop("limits_for_task_class", {})
+        if self.limits_for_task_class:
+            if not isinstance(self.limits_for_task_class, dict):
+                raise TypeError(f"In limits_for_task_class: Expecting dictionary TaskClassName -> dict with limits"
+                                f"Got {type(self.limits_for_task_class)}")
+            for k, v in self.limits_for_task_class.items():
+                if not isinstance(v, dict):
+                    raise TypeError(f"In limits_for_task_class: Expecting dictionary with limits"
+                                    f"Got {type(v)}")
 
         if d:
             raise ValueError("Found unknown keyword(s) in limits section:\n %s" % list(d.keys()))

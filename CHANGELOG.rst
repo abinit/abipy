@@ -1,6 +1,14 @@
 
+Release 0.9.3:
+
+    * Add new option to TaskManager (`limits_for_task_class`) to specify custom limits 
+      depending on the name of the task class. See `abidoc.py manager` for syntax
+    * Deprecate `single` and `rapid` commands of abirun.py.
+
+
 Release 0.9.2:
 
+   * Require pymatgen >= 2022.0.14
    * Add abiview.py ifermi_fs
    * G0W0WithQptdmFlow is deprecated and will be removed in v 0.9.3
    * Add abigui.py script

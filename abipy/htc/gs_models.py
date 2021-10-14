@@ -31,15 +31,13 @@ class _ModelWithGsr(AbipyModel):
 
     nspden: int = Field(..., description="Number of independent spin components in density")
 
-    #fermie_ev: float = Field(..., description="Fermi level in eV.")
+    fermie_ev: float = Field(..., description="Fermi energy in eV.")
 
-    #is_metal: bool = Field(..., description="True if system is metallic")
+    is_metal: bool = Field(..., description="True if system is metallic")
 
-    #fundamental_band_gap_ev: float = Field(None, description="Fundamental band gap in eV.")
+    fundamental_gap_ev: float = Field(None, description="Fundamental band gap in eV (min over spins, if any).")
 
-    #direct_band_gap_ev: float = Field(None, description="Direct band gap in eV.")
-
-    #bandwidth_ev: float: Field(..., description="Bandwidth in eV.")
+    direct_gap_ev: float = Field(None, description="Direct band gap in eV (min over spins, if any).")
 
     ebands_gfsd: GfsDesc = Field(None, description="Pointer to the ElectronBands object in GridFS")
 
@@ -63,6 +61,11 @@ class _ModelWithGsr(AbipyModel):
         #    "nsppol", "nspinor", "nspden",
         #]
 
+        fundamental_gap_ev, direct_gap_ev = 0.0, 0.0
+        if not gsr.ebands.is_metal:
+            fundamental_gap_ev = min(gap.energy for gap in gsr.ebands.fundamental_gaps)
+            direct_gap_ev = min(gap.energy for gap in gsr.ebands.direct_gaps)
+
         data = dict(
             nkpt=len(gsr.ebands.kpoints),
             nsppol=gsr.nsppol,
@@ -70,6 +73,10 @@ class _ModelWithGsr(AbipyModel):
             nspden=gsr.nspden,
             ebands=gsr.ebands,
             ebands_gfsd=mng_connector.gfs_put_mson_obj(gsr.ebands),
+            is_metal=gsr.ebands.is_metal,
+            fermie_ev=gsr.ebands.fermie,
+            fundamental_gap_ev=fundamental_gap_ev,
+            direct_gap_ev=direct_gap_ev,
         )
 
         if with_gsr:

@@ -236,6 +236,10 @@ limits:
   timelimit: 10:00
   min_cores: 3
   max_cores: 16
+  limits_for_task_class: {
+    ScfTask: {min_cores: 1, max_cores: 1},
+    KerangeTask: {min_cores: 1, max_cores: 2},
+  }
 job:
   mpi_runner: mpirun
   mpi_runner_options: --bind-to None
@@ -267,6 +271,7 @@ hardware:
         assert qad.has_mpi and not qad.has_omp
         assert (qad.mpi_procs, qad.omp_threads) == (3, 1)
         assert qad.priority == 5 and qad.num_launches == 0 and qad.last_launch is None
+
 
         qad.set_mpi_procs(4)
 
@@ -305,6 +310,16 @@ mpirun --bind-to None -n 4 executable < stdin > stdout 2> stderr
         #assert 0
         #qad.set_omp_threads(1)
         #assert qad.has_omp
+
+        # Test limits_for_task_class and update limits API.
+        assert "ScfTask" in qad.limits_for_task_class
+        limits_for_task = qad.limits_for_task_class["KerangeTask"]
+        assert limits_for_task["min_cores"] == 1
+        assert limits_for_task["max_cores"] == 2
+        assert qad.max_cores == 16
+        qad.update_limits(limits_for_task)
+        assert qad.min_cores == limits_for_task["min_cores"]
+        assert qad.max_cores == limits_for_task["max_cores"]
 
 
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")

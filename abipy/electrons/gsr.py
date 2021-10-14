@@ -271,15 +271,19 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
+        verbose = kwargs.get("verbose", 0)
         for fig in self.yield_ebands_figs(**kwargs): yield fig
-        for fig in self.yield_structure_figs(**kwargs): yield fig
+        if verbose:
+            for fig in self.yield_structure_figs(**kwargs): yield fig
 
     def yield_plotly_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of plotly figures with minimal input from the user.
         """
+        verbose = kwargs.get("verbose", 0)
         for fig in self.yield_ebands_plotly_figs(**kwargs): yield fig
-        for fig in self.yield_structure_plotly_figs(**kwargs): yield fig
+        if verbose:
+            for fig in self.yield_structure_plotly_figs(**kwargs): yield fig
 
     def write_notebook(self, nbpath=None):
         """

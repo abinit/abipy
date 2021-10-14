@@ -5,8 +5,7 @@ from abipy.core.testing import AbipyTest
 from abipy.flowtk.tasks import *
 from abipy.flowtk.tasks import TaskPolicy, ParalHints
 
-test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",
-                        'test_files', "abinit")
+test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", 'test_files', "abinit")
 
 
 class TaskManagerTest(AbipyTest):
@@ -38,16 +37,6 @@ qadapters:
             PATH: /home/user/tmp_intel13/src/98_main/:/home/user//NAPS/intel13/bin:$PATH
             LD_LIBRARY_PATH: /home/user/NAPS/intel13/lib:$LD_LIBRARY_PATH
         mpi_runner: mpirun
-
-# Connection to the MongoDb database (optional)
-db_connector:
-    enabled: no
-    database: abinit
-    collection: test
-    #host: 0.0.0.0
-    #port: 8080
-    #user: gmatteo
-    #password: helloworld
 """
     def test_base(self):
         """
@@ -61,11 +50,13 @@ db_connector:
         assert slurm_manager.num_cores == 4
         assert slurm_manager.mpi_procs == 4
         assert slurm_manager.omp_threads == 1
+        assert slurm_manager.has_queue
 
         # Make a simple shell manager that will inherit the initial configuration.
         shell_manager = slurm_manager.to_shell_manager(mpi_procs=1)
         assert shell_manager.mpi_procs == 1
         assert shell_manager.num_cores == 1
+        assert not shell_manager.has_queue
 
         # check that the initial slurm_manger has not been modified
         assert slurm_manager.num_cores == 4
@@ -74,6 +65,14 @@ db_connector:
         self.serialize_with_pickle(slurm_manager, test_eq=False)
 
         self.assertMSONable(slurm_manager)
+
+        fixed_manager = slurm_manager.new_with_fixed_mpi_omp(mpi_procs=5, omp_threads=2)
+        assert fixed_manager.policy.autoparal == 0
+        assert fixed_manager.mpi_procs == 5
+        assert fixed_manager.num_cores == 10
+        for qad in fixed_manager.qads:
+            assert qad.min_cores == 10
+            assert qad.max_cores == 10
 
 
 class ParalHintsTest(AbipyTest):

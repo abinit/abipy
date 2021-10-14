@@ -23,7 +23,7 @@ fast:
     description: "Fast protocol"
     cutoff_stringency: "low"
 
-    gs_scf:
+    gs_scf_specs:
       meta_params:
         kppa: 500
       abivars:
@@ -36,7 +36,7 @@ moderate:
     description: "Moderate protocol"
     cutoff_stringency: "normal"
 
-    gs_scf:
+    gs_scf_specs:
       meta_params:
         kppa: 1000
       abivars:
@@ -53,7 +53,7 @@ moderate:
         print(fast)
         assert fast.description == "Fast protocol"
         assert fast.cutoff_stringency == "low"
-        gs_scf = fast.gs_scf
+        gs_scf = fast.gs_scf_specs
         assert gs_scf.abivars["rmm_diis"] == 1
         assert gs_scf.abivars["tolvrs"] == 1.0e-7
         assert gs_scf.meta_params["kppa"] == 500
@@ -62,7 +62,7 @@ moderate:
         print(moderate)
         assert moderate.cutoff_stringency == "normal"
         assert moderate.description == "Moderate protocol"
-        gs_scf = moderate.gs_scf
+        gs_scf = moderate.gs_scf_specs
         assert gs_scf.abivars["rmm_diis"] == 1
         assert gs_scf.abivars["tolvrs"] == 1.0e-9
         assert gs_scf.meta_params["kppa"] == 1000
