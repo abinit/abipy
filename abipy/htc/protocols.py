@@ -183,6 +183,67 @@ class Protocol(AbipyModel):
     #    pseudos_specs = values.get("pseudos_specs")
     #    return values
 
+    @classmethod
+    def from_file(cls, filepath: str) -> Protocol:
+        with open(filepath, "rt") as fh:
+            data = yaml.safe_load(fh)
+            return cls.parse_Data(data)
+
+    @classmethod
+    def from_yaml_string(cls, yaml_string: str) -> Protocol:
+        data = yaml.safe_load(yaml_string)
+        return cls.parse_data(data)
+
+    def parse_data(cls, document) -> Protocol:
+
+        # Get global abinit variables first.
+        global_abivars = document.pop("global_abivars", {})
+        for k in global_abivars:
+            if not is_abivar(k):
+                raise ValueError(f"Uknown variable: `{k}` found in global_abivars section.")
+
+        # Get pseudo specifications and build model.
+        d = document.pop("pseudo_specs", None)
+        if d is None:
+            raise ValueError(f"Cannot find `pseudo_specs` section in document")
+        pseudo_specs = PseudoSpecs.from_repo_table_name(d["repo_name"], d["table_name"])
+
+        protocols = {}
+        for k in list(document.keys()):
+            d = document.pop(k)
+            if not isinstance(d, dict):
+                raise TypeError(f"For key {k}: expecting dictionary, got {type(d)}")
+            protocols[k] = d
+
+        # Add global variables
+        # This means that one can always override the value per entry
+
+        for k, d in protocols.items():
+
+           extend_map = {}
+
+           for t in _registered_tasks:
+               if t not in d: continue
+               if "meta_params" not in d[t]: d[t]["meta_params"] = {}
+               if "abivars" not in d[t]: d[t]["abivars"] = {}
+               new_dict = global_abivars.copy()
+               new_dict.update(d[t]["abivars"])
+               d[t]["abivars"] = new_dict
+               if "extends" in d[t]:
+                   extend_map[t] = d[t]["extends"]
+
+           for t, super_name in extend_map.items():
+               super_doc = d[super_name]
+               new_metaparams = super_doc["meta_params"].copy()
+               new_metaparams.update(d[t]["meta_params"])
+               d[t]["meta_params"] = new_metaparams
+               new_abivars = super_doc["abivars"].copy()
+               new_abivars.update(d[t]["abivars"])
+               d[t]["abivars"] = new_abivars
+
+        self.protocols = {k: Protocol(pseudo_specs=pseudo_specs, **data) for k, data in protocols.items()}
+        #return cls((**data)
+
     def __init__(self, **data):
         super().__init__(**data)
         self.validate_instance()
@@ -292,5 +353,6 @@ class ProtocolParser:
 
 
 if __name__ == "__main__":
-    parser = ProtocolParser.from_file("protocol.yml")
-    print(parser)
+    #parser = ProtocolParser.from_file("protocol.yml")
+    proto = Protocol.from_file("protocol.yml")
+    print(proto)
