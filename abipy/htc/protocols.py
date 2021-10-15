@@ -2,12 +2,11 @@
 """
 from __future__ import annotations
 
-from ruamel import yaml
-
-#from abc import ABC, abstractmethod
 from typing import Dict, Any, Literal, List
+from ruamel import yaml
 from pydantic import Field, root_validator
-from abipy.abio.abivars import is_abivar  #, is_anaddb_var
+from abipy.abio.inputs import AbinitInput
+from abipy.abio.abivars import is_abivar
 from abipy.htc.base_models import AbipyModel
 from abipy.htc.pseudos_models import PseudoSpecs
 
@@ -158,7 +157,7 @@ class Protocol(AbipyModel):
     """
     description: str = Field(..., description="Human readable description of the protocol.")
 
-    cutoff_stringency: Literal["low", "normal", "high"] = Field(..., description="")
+    #cutoff_stringency: Literal["low", "normal", "high"] = Field(..., description="")
 
     pseudo_specs: PseudoSpecs = Field(..., description="Pseudopotential Specs")
 
@@ -187,62 +186,63 @@ class Protocol(AbipyModel):
     def from_file(cls, filepath: str) -> Protocol:
         with open(filepath, "rt") as fh:
             data = yaml.safe_load(fh)
-            return cls.parse_Data(data)
+            return cls.parse_data(data)
 
     @classmethod
     def from_yaml_string(cls, yaml_string: str) -> Protocol:
         data = yaml.safe_load(yaml_string)
         return cls.parse_data(data)
 
-    def parse_data(cls, document) -> Protocol:
+    @classmethod
+    def parse_data(cls, data) -> Protocol:
+        data = data.copy()
+
+        description = data.pop("description", None)
+        if description is None:
+            raise ValueError(f"Cannot find `description` section in data")
 
         # Get global abinit variables first.
-        global_abivars = document.pop("global_abivars", {})
-        for k in global_abivars:
-            if not is_abivar(k):
-                raise ValueError(f"Uknown variable: `{k}` found in global_abivars section.")
+        global_abivars = data.pop("global_abivars", {})
 
         # Get pseudo specifications and build model.
-        d = document.pop("pseudo_specs", None)
+        d = data.pop("pseudo_specs", None)
         if d is None:
-            raise ValueError(f"Cannot find `pseudo_specs` section in document")
+            raise ValueError(f"Cannot find `pseudo_specs` section in data")
         pseudo_specs = PseudoSpecs.from_repo_table_name(d["repo_name"], d["table_name"])
 
-        protocols = {}
-        for k in list(document.keys()):
-            d = document.pop(k)
-            if not isinstance(d, dict):
-                raise TypeError(f"For key {k}: expecting dictionary, got {type(d)}")
-            protocols[k] = d
+        specs = {}
+        for spec_name in _registered_specs:
+            specs[spec_name] = data.pop(spec_name, None)
+
+        if data:
+            raise ValueError("Found unknown sections with keys: `{list(data.keys)}`")
 
         # Add global variables
         # This means that one can always override the value per entry
+        extend_map = {}
+        for spec_name, d in specs.items():
+            for n in ["meta_params", "abivars"]:
+                if n not in d: d[n] = {}
+            new_dict = global_abivars.copy()
+            new_dict.update(d["abivars"])
+            d["abivars"] = new_dict
+            extends = d.pop("extends", None)
+            if extends:
+                extend_map[spec_name] = str(extends)
 
-        for k, d in protocols.items():
+        # Implement "extends" syntax.
+        for spec_name, super_name in extend_map.items():
+            super_d = d[super_name]
+            #new_metaps = super_d["meta_params"].copy()
+            #new_metaps.update(d[spec_name]["meta_params"])
+            #d[spec_name]["meta_params"] = new_metaps
+            #new_abivars = super_d["abivars"].copy()
+            #new_abivars.update(d[spec_name]["abivars"])
+            #d[spec_name]["abivars"] = new_abivars
 
-           extend_map = {}
-
-           for t in _registered_tasks:
-               if t not in d: continue
-               if "meta_params" not in d[t]: d[t]["meta_params"] = {}
-               if "abivars" not in d[t]: d[t]["abivars"] = {}
-               new_dict = global_abivars.copy()
-               new_dict.update(d[t]["abivars"])
-               d[t]["abivars"] = new_dict
-               if "extends" in d[t]:
-                   extend_map[t] = d[t]["extends"]
-
-           for t, super_name in extend_map.items():
-               super_doc = d[super_name]
-               new_metaparams = super_doc["meta_params"].copy()
-               new_metaparams.update(d[t]["meta_params"])
-               d[t]["meta_params"] = new_metaparams
-               new_abivars = super_doc["abivars"].copy()
-               new_abivars.update(d[t]["abivars"])
-               d[t]["abivars"] = new_abivars
-
-        self.protocols = {k: Protocol(pseudo_specs=pseudo_specs, **data) for k, data in protocols.items()}
-        #return cls((**data)
+        return cls(description=description, pseudo_specs=pseudo_specs,
+                   #cutoff_stringency=cutoff_stringency,
+                   **specs)
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -278,12 +278,12 @@ class Protocol(AbipyModel):
 
 
 
-_registered_tasks = [
+_registered_specs = [
         "gs_scf_specs",
         "gs_nscf_kpath_specs",
         "gs_nscf_kdos_specs",
         "relax_specs",
-        "dfpt_specs",
+        #"dfpt_specs",
 ]
 
 
@@ -328,7 +328,7 @@ class ProtocolParser:
 
            extend_map = {}
 
-           for t in _registered_tasks:
+           for t in _registered_specs:
                if t not in d: continue
                if "meta_params" not in d[t]: d[t]["meta_params"] = {}
                if "abivars" not in d[t]: d[t]["abivars"] = {}
@@ -356,3 +356,9 @@ if __name__ == "__main__":
     #parser = ProtocolParser.from_file("protocol.yml")
     proto = Protocol.from_file("protocol.yml")
     print(proto)
+
+    from abipy.data.ucells import structure_from_ucell
+    structures = [structure_from_ucell(name) for name in ("Si",)] # "Si-shifted")]
+    for structure in structures:
+        scf_inp = proto.get_gs_scf_input(structure)
+        print(scf_inp)
