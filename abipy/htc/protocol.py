@@ -2,9 +2,12 @@
 """
 from __future__ import annotations
 
+import os
+
 from typing import Dict, Any, Literal, List
 from ruamel import yaml
 from pydantic import Field, root_validator
+from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.abivars import is_abivar
 from abipy.htc.base_models import AbipyModel
@@ -143,12 +146,25 @@ class RelaxSpecs(_Specs):
     ]
 
 
-#class PhononSpecs(_Specs):
-#    """DFPT relaxation."""
-#
-#    _supported_meta_params = [
-#        "qppa",
-#    ]
+class PhononSpecs(_Specs):
+    """Specifications for phonon calculations."""
+
+    _supported_meta_params = [
+        "qppa",
+    ]
+
+
+KNOWN_SPECS = [
+        "gs_scf_specs",
+        "gs_nscf_kpath_specs",
+        "gs_nscf_kdos_specs",
+        "relax_specs",
+        #"phonon_specs",
+]
+
+
+# Absolute path to the directory with yaml files.
+PROTO_DIRPATH = os.path.join(os.path.dirname(__file__), "protocols")
 
 
 class Protocol(AbipyModel):
@@ -184,17 +200,42 @@ class Protocol(AbipyModel):
 
     @classmethod
     def from_file(cls, filepath: str) -> Protocol:
+        """Build a protocol object from a Yaml file."""
         with open(filepath, "rt") as fh:
             data = yaml.safe_load(fh)
             return cls.parse_data(data)
 
     @classmethod
     def from_yaml_string(cls, yaml_string: str) -> Protocol:
+        """Build a protocol object from a string in Yaml format."""
         data = yaml.safe_load(yaml_string)
         return cls.parse_data(data)
 
     @classmethod
-    def parse_data(cls, data) -> Protocol:
+    def from_name(cls, name: str) -> Protocol:
+        """Build a protocol from the name of the Yaml file in the Abipy library."""
+        filepath = os.path.join(PROTO_DIRPATH, name)
+        return cls.from_file(filepath)
+
+    @classmethod
+    def get_registered_protocols(cls, name: str) -> List[Protocol]:
+        """
+        Return list of all registered protocols.
+        """
+        yaml_files = [f for f in os.path.listdir(PROTO_DIRPATH) if f.endswith(".yml")]
+
+        protocols = []
+        for y in yaml_files:
+            proto = cls.from_file(os.path.join(PROTO_DIRPATH, y))
+            protocols.append(proto)
+
+        return protocols
+
+    @classmethod
+    def parse_data(cls, data: dict) -> Protocol:
+        """
+        Parse dictionary and return Protocol.
+        """
         data = data.copy()
 
         description = data.pop("description", None)
@@ -211,16 +252,17 @@ class Protocol(AbipyModel):
         pseudo_specs = PseudoSpecs.from_repo_table_name(d["repo_name"], d["table_name"])
 
         specs = {}
-        for spec_name in _registered_specs:
+        for spec_name in KNOWN_SPECS:
             specs[spec_name] = data.pop(spec_name, None)
 
         if data:
-            raise ValueError("Found unknown sections with keys: `{list(data.keys)}`")
+            raise ValueError(f"Found unknown sections with keys: `{list(data.keys())}`")
 
         # Add global variables
         # This means that one can always override the value per entry
         extend_map = {}
         for spec_name, d in specs.items():
+            if d is None: continue
             for n in ["meta_params", "abivars"]:
                 if n not in d: d[n] = {}
             new_dict = global_abivars.copy()
@@ -252,13 +294,24 @@ class Protocol(AbipyModel):
         cls_name = self.__class__.__name__
         #raise ValueError(f"In {cls_name}: unknown meta_parameter `{meta_name}`")
 
-    def get_gs_scf_input(self, structure):
+
+    ####################
+    # Factory functions.
+    ####################
+
+    def get_gs_scf_input(self, structure: Structure) -> AbinitInput:
+        """
+        Build and return an input for a GS SCF calculation for the given structure
+        """
         pseudos = self.pseudo_specs.get_pseudos()
         scf_inp = AbinitInput(structure, pseudos)
         scf_inp.set_vars(**self.gs_scf_specs.abivars)
         return scf_inp
 
-    def get_ebands_input(self, structure):
+    def get_ebands_input(self, structure: Structure):
+        """
+        Build and return list of inputs for a GS SCF + NSCF for the given structure
+        """
         scf_inp = self.get_gs_scf_input(structure)
         specs = self.gs_nscf_kpath_specs
         if specs is None:
@@ -268,92 +321,19 @@ class Protocol(AbipyModel):
         return [scf_inp, nscf_inp]
         #return MultiDataset.from_inputs([self, self])
 
-    #def get_relax_input(self, structure):
-    #   scf_inp = self.get_gs_scf_input(structure)
-    #   specs = self.relax_specs
-    #   if specs is None:
-    #        raise ValueError("structure relaxations require the specifications of `relax_specs`")
-    #    relax_input
-    #    return relax_input
-
-
-
-_registered_specs = [
-        "gs_scf_specs",
-        "gs_nscf_kpath_specs",
-        "gs_nscf_kdos_specs",
-        "relax_specs",
-        #"dfpt_specs",
-]
-
-
-class ProtocolParser:
-
-    @classmethod
-    def from_file(cls, filepath: str) -> ProtocolParser:
-        with open(filepath, "rt") as fh:
-            document = yaml.safe_load(fh)
-            return cls(document)
-
-    @classmethod
-    def from_yaml_string(cls, yaml_string: str) -> ProtocolParser:
-        document = yaml.safe_load(yaml_string)
-        return cls(document)
-
-    def __init__(self, document: dict) -> None:
-
-        # Get global abinit variables first.
-        global_abivars = document.pop("global_abivars", {})
-        for k in global_abivars:
-            if not is_abivar(k):
-                raise ValueError(f"Uknown variable: `{k}` found in global_abivars section.")
-
-        # Get pseudo specifications and build model.
-        d = document.pop("pseudo_specs", None)
-        if d is None:
-            raise ValueError(f"Cannot find `pseudo_specs` section in document")
-        pseudo_specs = PseudoSpecs.from_repo_table_name(d["repo_name"], d["table_name"])
-
-        protocols = {}
-        for k in list(document.keys()):
-            d = document.pop(k)
-            if not isinstance(d, dict):
-                raise TypeError(f"For key {k}: expecting dictionary, got {type(d)}")
-            protocols[k] = d
-
-        # Add global variables
-        # This means that one can always override the value per entry
-
-        for k, d in protocols.items():
-
-           extend_map = {}
-
-           for t in _registered_specs:
-               if t not in d: continue
-               if "meta_params" not in d[t]: d[t]["meta_params"] = {}
-               if "abivars" not in d[t]: d[t]["abivars"] = {}
-               new_dict = global_abivars.copy()
-               new_dict.update(d[t]["abivars"])
-               d[t]["abivars"] = new_dict
-               if "extends" in d[t]:
-                   extend_map[t] = d[t]["extends"]
-
-           for t, super_name in extend_map.items():
-               super_doc = d[super_name]
-               new_metaparams = super_doc["meta_params"].copy()
-               new_metaparams.update(d[t]["meta_params"])
-               d[t]["meta_params"] = new_metaparams
-               new_abivars = super_doc["abivars"].copy()
-               new_abivars.update(d[t]["abivars"])
-               d[t]["abivars"] = new_abivars
-
-        self.protocols = {k: Protocol(pseudo_specs=pseudo_specs, **data) for k, data in protocols.items()}
-
-    #def get_protocol(self, name):
+    def get_relax_input(self, structure: Structure) -> AbinitInput:
+        """
+        Build and return an input to relax the input structure
+        """
+        scf_inp = self.get_gs_scf_input(structure)
+        specs = self.relax_specs
+        if specs is None:
+             raise ValueError("structure relaxations require the specifications of `relax_specs`")
+        #relax_input
+        #return relax_input
 
 
 if __name__ == "__main__":
-    #parser = ProtocolParser.from_file("protocol.yml")
     proto = Protocol.from_file("protocol.yml")
     print(proto)
 
