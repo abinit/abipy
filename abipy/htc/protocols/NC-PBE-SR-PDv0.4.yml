@@ -1,0 +1,68 @@
+info: "Protocol to relax a structure with low precision at minimal computational cost for testing purposes."
+
+#cutoff_stringency: "low"
+
+pseudo_specs:
+  repo_name: "ONCVPSP-PBE-SR-PDv0.4"
+  table_name: "standard"
+  #cutoff_accuracy: "low"
+
+# Variables common to all the protocols. Can be overridden in the abivars section.
+global_abivars:
+  nsppol: 1
+  nspden: 1
+  nspinor: 1
+  occopt: 7   # Gaussian smearing
+  fband: 2.00 # increase the number of bands to > fband * natoms
+  nstep: 50
+  paral_kgb: 1
+  rmm_diis: 1
+  expert_user: 1
+
+
+gs_scf_specs:
+  meta_params:
+    #kpoints_distance: 0.25
+    kppa: 500
+  abivars:
+    #ngkpt: [3, 3, 3]  # This is not compatible with kppa
+    nshiftk: 1
+    shiftk: [[0.0, 0.0, 0.0]]
+    tolvrs: 1.0e-7 
+    tsmear: 0.008 # Ha
+
+gs_nscf_kpath_specs:
+  #meta_params:
+  #  kppa: 200
+  abivars:
+    ndivsm: 20
+    tolwfr: 1.0e-14
+
+
+gs_nscf_kdos_specs:
+  meta_params:
+    #kpoints_distance: 0.25
+    kppa: 1000
+  abivars:
+    nshiftk: 1
+    shiftk: [[0.0, 0.0, 0.0]]
+    tolwfr: 1.0e-14 
+
+
+relax_specs:
+  #extends: "gs_scf_specs"
+  abivars:
+    # default to relaxing atoms only
+    optcell: 0    # do not optimize the cell, Abinit default
+    ionmov: 22    # optimize ionic positions with L-BFGS
+    dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
+    ecutsm: 0.00  # don't smear the energy cutoff, Abinit default
+
+
+#phonon_specs:
+#  extends: "gs_scf_specs"
+#  meta_params:
+#    qppa: 1000
+#    ddk_tolwfr:
+#    with_becs: yes
+#    with_quad: no

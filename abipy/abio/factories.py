@@ -157,14 +157,15 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
 def _get_shifts(shift_mode, structure):
     """
     Gives the shifts based on the selected shift mode and on the symmetry of the structure.
+
     G: Gamma centered
     M: Monkhorst-Pack ((0.5, 0.5, 0.5))
     S: Symmetric. Respects the chksymbreak with multiple shifts
-    O: OneSymmetric. Respects the chksymbreak with a single shift (as in 'S' if a single shift is given, gamma
-        centered otherwise.
+    O: OneSymmetric. Respects the chksymbreak with a single shift (as in 'S' if a single shift is given,
+       gamma-centered otherwise.
 
-    Note: for some cases (e.g. body centered tetragonal), both the Symmetric and OneSymmetric may fail to satisfy the
-        ``chksymbreak`` condition (Abinit input variable).
+    Note: for some cases (e.g. body centered tetragonal), both the Symmetric and OneSymmetric
+        may fail to satisfy the ``chksymbreak`` condition (Abinit input variable).
     """
     if shift_mode == ShiftMode.GammaCentered:
         return ((0, 0, 0))
@@ -640,7 +641,8 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     #     sigma_nband = nscf_nband_nscf
 
     if 'cd' in response_models:
-        hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None, freqremax=None, nfreqim=None,
+        hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None,
+                                        freqremax=None, nfreqim=None,
                                         freqremin=None)
     scr_inputs = []
     sigma_inputs = []

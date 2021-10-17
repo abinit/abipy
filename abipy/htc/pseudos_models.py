@@ -4,6 +4,7 @@ from __future__ import annotations
 
 #from typing import List  # Dict, Tuple
 from abc import ABC, abstractmethod
+from pprint import pformat
 from pydantic import BaseModel, Field, validator
 from bson.objectid import ObjectId
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
@@ -65,6 +66,11 @@ class PseudoSpecs(_PseudosProvider):
         data.update({aname: getattr(repo, aname) for aname in attr_list})
 
         return cls(**data)
+
+    def __str__(self) -> str:
+        return pformat(self.dict())
+        #lines = []
+        #return "\n".join(lines)
 
     @validator("relativity_type")
     def validate_relativity_type(cls, value):

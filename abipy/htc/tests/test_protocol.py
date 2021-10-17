@@ -23,6 +23,11 @@ class TestProtocol(AbipyTest):
     def test_protocol_api(self):
         """Testing Protocol API."""
 
+        all_protocols = Protocol.get_all_abipy_protocols()
+        assert len(all_protocols) > 0
+        proto = Protocol.from_name("NC-PBE-SR-PDv0.4.yml")
+        assert str(proto)
+
         yaml_string = """
 # Variables common to all the protocols
 global_abivars:
@@ -36,7 +41,7 @@ pseudo_specs:
   repo_name: "ONCVPSP-PBEsol-SR-PDv0.4"
   table_name: "standard"
 
-description: "Fast protocol"
+info: "Fast protocol"
 #cutoff_stringency: "low"
 
 gs_scf_specs:
@@ -49,7 +54,7 @@ gs_scf_specs:
     tsmear: 0.008 # Ha
 
 #moderate:
-#    description: "Moderate protocol"
+#    info: "Moderate protocol"
 #    cutoff_stringency: "normal"
 #
 #    gs_scf_specs:
@@ -65,7 +70,7 @@ gs_scf_specs:
 
         proto = Protocol.from_yaml_string(yaml_string)
 
-        assert proto.description == "Fast protocol"
+        assert proto.info == "Fast protocol"
         #assert proto.cutoff_stringency == "low"
         specs = proto.gs_scf_specs
         assert specs.abivars["rmm_diis"] == 1
@@ -75,7 +80,7 @@ gs_scf_specs:
         #moderate = proto.protocols["moderate"]
         #print(moderate)
         #assert moderate.cutoff_stringency == "normal"
-        #assert moderate.description == "Moderate protocol"
+        #assert moderate.info == "Moderate protocol"
         #gs_scf = moderate.gs_scf_specs
         #assert gs_scf.abivars["rmm_diis"] == 1
         #assert gs_scf.abivars["tolvrs"] == 1.0e-9

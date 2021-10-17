@@ -535,34 +535,77 @@ class MongoConnector(AbipyModel):
     # FlowModel specific methods
     ############################
 
+    def init_flow_model_collection(self, flow_model_cls, protocol=None) -> None:
+
+        if not hasattr(flow_model_cls, "_magic_key"):
+            raise TypeError(f"Expecting FlowModel subclass with `_magic_key, got {flow_mode_cls.__name__}")
+
+        new_dict = cls2dict(flow_model_cls)
+        if protocol:
+            new_dict.update({"protocol": protocol.dict()})
+
+        collection = self.get_collection()
+
+        cnt, oid = 0, None
+        for doc in collection.find({flow_model_cls._magic_key: {"$exists": True}}):
+            doc.pop("_id")
+            old_dict = doc.get(flow_model_cls._magic_key)
+            cnt += 1
+            #if new_dict != old_dict:
+            #    raise TypeError(f"Cannot register new FlowModel:\n\n\t{new_dict}\n\n"
+            #                    f"as collection `{collection.name}` is already associated to FlowModel:\n\n"
+            #                    f"\t{old_dict}")
+
+        if cnt != 0:
+            raise ValueError("Collection is already init")
+
+        # Create new document with FlowModel class if not already present.
+        collection.insert_one({flow_model_cls._magic_key: new_dict})
+
+    #def get_flow_model_cls_and_protocol(self):
+    #    collection = self.get_collection()
+
+    #    key = flow_model_cls._magic_key
+
+    #    cnt, oid = 0, None
+    #    for doc in collection.find({key: {"$exists": True}}):
+    #        doc.pop("_id")
+             #data = AbipyDecoder().process_decoded(doc)
+    #        old_dict = doc.get(key)
+    #        cnt += 1
+
+    #    return flow_model_cls, protocol
+
     def insert_flow_models(self, models: List[TopLevelModel], verbose: int = 0) -> List[ObjectId]:
         """
         Insert list of FlowModels in collection.
         Return list of objectid
         """
+        flow_model_cls = models[0].__class__
+
         # Sanity check. We need a list of FlowModel objects of the same type.
-        cls = models[0].__class__
-        if any(m.__class__ is not cls for m in models):
+        if any(m.__class__ is not flow_model_cls for m in models):
             raise ValueError(f"All models must belong to the same class {models[0].__class__}")
 
-        if not hasattr(cls, "_magic_key"):
-            raise TypeError("Expecting FlowModel subclass with `_magic_key, got {cls.__name__}")
+        if not hasattr(flow_model_cls, "_magic_key"):
+            raise TypeError(f"Expecting FlowModel subclass with `_magic_key, got {flow_mode_cls.__name__}")
 
-        new_dict = cls2dict(cls)
+        new_dict = cls2dict(flow_model_cls)
+
         collection = self.get_collection()
-
         cnt, oid = 0, None
-        for doc in collection.find({cls._magic_key: {"$exists": True}}):
+        for doc in collection.find({flow_model_cls._magic_key: {"$exists": True}}):
             doc.pop("_id")
-            old_dict = doc.get(cls._magic_key)
+            old_dict = doc.get(flow_model_cls._magic_key)
             cnt += 1
             if new_dict != old_dict:
                 raise TypeError(f"Cannot register new FlowModel:\n\n\t{new_dict}\n\n"
-                                f"as collection `{collection.name}` is already associated to FlowModel:\n\n\t{old_dict}")
+                                f"as collection `{collection.name}` is already associated to FlowModel:\n\n"
+                                f"\t{old_dict}")
 
         if cnt == 0:
             # Create new document with FlowModel class if not already present.
-            collection.insert_one({cls._magic_key: new_dict})
+            collection.insert_one({flow_model_cls._magic_key: new_dict})
 
         return mng_insert_models(models, collection)
 

@@ -563,8 +563,8 @@ class ElectronBands(Has_Structure):
             # the true HOMO derived from the k-path is at Gamma.
             # Calling set_fermie_to_vbm should fix this.
 
-            self.set_fermie_to_vbm()
             self.is_metal = False
+            self.set_fermie_to_vbm()
 
         else:
             #print("This is a wannabe metal")
@@ -743,6 +743,10 @@ class ElectronBands(Has_Structure):
             raise ValueError(f"set_fermie_to_vbm assumes nspden == 1 while it is: {self.nspden}")
 
         iv = int(self.nelect * self.nspinor) // 2 - 1
+        if iv >= self.mband:
+            iv = self.mband - 1
+            cprint("mband = {self.mband} is not large enough to include the VBM", "red")
+
         new_fermie = self.eigens[:, :, iv].max()
         return self.set_fermie(new_fermie)
 

@@ -61,6 +61,9 @@ def find_package_data():
         'abipy.panels': [
             "assets/img/*",
         ],
+        'abipy.htc': [
+            "protocols/*.yml",
+        ],
         'abipy.data': [
             "cifs/*.cif",
             "pseudos/*",
@@ -87,7 +90,7 @@ def find_package_data():
             "sio2_screening/*",
             "znse_phonons/*",
         ],
-        'abipy.gui.awx': ['images/*'],
+        #'abipy.gui.awx': ['images/*'],
     }
 
     return package_data
@@ -159,7 +162,9 @@ install_requires = [
     "plotly",
     "ipython",
     "chart-studio",
-    #panel
+    #pydantic,
+    #pymongo,
+    #panel,
 ]
 
 with_wxpython = False

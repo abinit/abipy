@@ -17,9 +17,11 @@ from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy.core.release import __version__
 #from abipy.core.config import get_config
+from abipy.core.structure import Structure
 from abipy.tools.printing import print_dataframe
 from abipy.htc.base_models import MongoConnector
 from abipy.htc.flow_models import FlowModel
+from abipy.htc.protocol import Protocol
 
 
 MAGIC_COLLECTION_FILENAME = "_abidb_collection"
@@ -32,6 +34,9 @@ Usage example:
 
   abidb.py list
   abidb.py stats -c COLLECTION_NAME
+
+  abidb.py init -c COLLECTION_NAME -f FLOW_MODEL_CLASS -p PROTOCOL_NAME
+  abidb.py add  -c COLLECTION_NAME -p PROTOCOL_NAME si.cif gaas.cif
 
 
 TIP: If you are using a single collection and you don't want to specify the collection name with `-c`
@@ -92,7 +97,21 @@ def get_parser(with_epilog=False):
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
-    p_list = subparsers.add_parser("list", parents=[copts_parser], help="List collections")
+    p_list = subparsers.add_parser("list", parents=[copts_parser], help=abidb_list.__doc__)
+
+    p_init = subparsers.add_parser("init", parents=[copts_parser], help=abidb_init.__doc__)
+    p_init.add_argument("-p", "--protocol", type=str, default=None,
+                        help="Protocol name or path to Yaml file with protocol. "
+                             "Empty to print all avaiable protocols."
+                        )
+    p_init.add_argument("-f", "--flow-model-name", type=str, default=None,
+                        help="Name of FlowModel class. Empty to print all available models."
+                        )
+
+    p_add = subparsers.add_parser("add", parents=[copts_parser], help=abidb_add.__doc__)
+    p_add.add_argument("files", nargs="+", help="list of files from which structures are read.")
+    p_add.add_argument("-mp", action="store_true", default=False,
+                        help="Interpret files as list materials project IDs instead of filepaths")
 
     p_status = subparsers.add_parser("status", parents=[copts_parser], help=abidb_status.__doc__)
 
@@ -206,11 +225,94 @@ class Context(BaseModel):
 
 
 def abidb_list(options, ctx: Context):
+    """
+    List MongoDB collections.
+    """
     coll_names = ctx.mng_connector.list_collection_names()
     coll_names = [cn for cn in coll_names if not cn.startswith("gridfs_")]
     print("List of MongoDB collections:\n")
     for cname in coll_names:
         print("- ", cname)
+
+    return 0
+
+
+#def abidb_info(options, ctx: Context):
+
+
+def abidb_init(options, mng_connector):  #, ctx: Context):
+    """
+    Initialize a MongoDB collection to perform calculations with a given FlowModel and (default) protocol.
+    """
+    if not options.protocol:
+        print("Printing all registered protocols and then exit\n")
+        for p in Protocol.get_all_abipy_protocols():
+            #print(p)
+            print(repr(p))
+        return 0
+
+    elif os.path.exists(options.protocol):
+        # Read protocol from an user-provided Yaml file
+        protocol = Protocol.from_file(options.protocol)
+
+    else:
+        # Get official protocol from its name
+        protocol = Protocol.from_name(options.protocol)
+
+    print("Using protocol:\n", protocol)
+    #print(protocol.info)
+    #from abipy.htc import get_all_flow_models_with_protocol
+
+    if not options.flow_model_name:
+        print("Printing all FlowModelWithProtocol and exit as flow_model_name is not given...")
+        #for flow_model_cls in get_all_flow_model_cls_with_protocol()
+        #   print(flow_mode_cls)
+        return 0
+
+    #flow_model_cls = get_all_flow_model_cls_with_protocol(cls_name=options.flow_model_name)[0]
+    #print(f"Using {flow_model_cls}")
+    #mng_connector.init_flow_model_collection(flow_model_cls, protocol=protocol)
+
+    return 0
+
+
+def abidb_add(options, mng_connector):  #, ctx: Context):
+    """
+    Convenient command line interface to add FlowModel object to a MongoDB collection
+    starting from a list of external files with structural info or mp-ids.
+    """
+    if options.mp:
+        # Get structures from the Materials Project website via MP ids.
+        structures = [Structures.from_mpid(mpid) for p in options.files]
+    else:
+        # Get structures from external files.
+        structures = [Structure.from_file(p) for p in options.files]
+
+    # Retrieve class and protocol from collection.
+    #flow_model_cls, protocol = mng_connector.get_flow_model_cls_and_protocol()
+
+    # Allow the user to change the protocol
+    if options.protocol:
+        if os.path.exists(options.protocol):
+            # Read protocol from user-provided Yaml file.
+            new_protocol = Protocol.from_file(options.protocol)
+        else:
+            # Get official protocol from name.
+            new_protocol = Protocol.from_name(options.protocol)
+
+        print("replacing initial protocol with new_protocol")
+        protocol = new_protocol
+
+    print("Using protocol:")
+    print(protocol)
+
+    flow_models = []
+    for structure in structures:
+        m = flow_model_cls.from_structure_and_protocol(structure, protocol)
+        flow_models.append(m)
+
+    # Inser FlowModels in the collection
+    mng_connector.insert_flow_models(flow_models, verbose=1)
 
     return 0
 
@@ -263,9 +365,8 @@ def abidb_flow_data(options, ctx: Context):
 
 def abidb_preq(options, ctx: Context):
     """
-    Execute preset queries on the collection.
+    Execute preset queries on the given collection.
     """
-
     queries = ctx.flow_model_cls.get_preset_queries()
 
     if not options.preq_inds:
@@ -382,9 +483,17 @@ def main():
    # except ImportError:
    #     pass
 
+    if options.local_db:
+        mng_connector = MongoConnector.for_localhost(collection_name=options.collection_name)
+    else:
+        mng_connector = MongoConnector.from_abipy_config(collection_name=options.collection_name)
+    print(mng_connector)
+
+    if options.command in ("init", "add"):
+        return globals()[f"abidb_{options.command}"](options, mng_connector) #, ctx)
+
     if not options.collection_name:
         # Take it from external file
-
         print(f"Taking collection_name from: {MAGIC_COLLECTION_FILENAME} as `-c` option is not used")
         try:
             with open(MAGIC_COLLECTION_FILENAME, "rt") as fh:
@@ -392,18 +501,12 @@ def main():
                 print(f"collection_name set to: {options.collection_name}")
 
         except FileNotFoundError:
-            print(f"\nCannot find `{MAGIC_COLLECTION_FILENAME}`\n"
+            raise RuntimeError(
+                  f"\nCannot find `{MAGIC_COLLECTION_FILENAME}`\n"
                   f"If you don't want to specify the collection name on the command line with `-c COLL_NAME`\n",
                   f"you need to create a `{MAGIC_COLLECTION_FILENAME}` file in the current working directory\n"
                   f"with one line giving the name of the MongoDB collection that should be used."
                   )
-            return 1
-
-    if options.local_db:
-        mng_connector = MongoConnector.for_localhost(collection_name=options.collection_name)
-    else:
-        mng_connector = MongoConnector.from_abipy_config(collection_name=options.collection_name)
-    print(mng_connector)
 
     collection = mng_connector.get_collection()
     flow_model_cls = FlowModel.get_subclass_from_collection(collection)

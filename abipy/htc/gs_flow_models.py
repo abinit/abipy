@@ -174,9 +174,9 @@ class HasProtocol(AbipyModel):
 
     protocol: Protocol = Field(..., description="Protocol used to generate input files")
 
-    def from_structure_and_protocol(cls, structure: Structure, protocol, **kwargs):
+    def from_structure_and_protocol(cls, structure: Structure, protocol: Protocol, **kwargs):
         """
-        Build the FlowModel from a structure and the protocol.
+        Build a FlowModel from a structure and the protocol.
         """
         data = dict(
                 in_structure_data=StructureData.from_structure(structure),
@@ -184,6 +184,7 @@ class HasProtocol(AbipyModel):
                 protocol=protocol
         )
         data.update(kwargs)
+
         return cls(**data)
 
 
@@ -218,8 +219,12 @@ class EbandsFlowModelWithParams(_EbandsFlowModel):
         Build an AbiPy Flow in `workdir` using the input data available in the model and return it.
         """
         pseudos = self.pseudos_specs.get_pseudos()
+        structure = self.in_structure_data.structure
 
-        multi = ebands_input(self.in_structure_data.structure, pseudos,
+        #self.protocol.get_gs_scf_input(structure)
+        #self.scf_input, self.nscf_input = self.protocol.get_ebands_input(structure)
+
+        multi = ebands_input(structure, pseudos,
                              kppa=self.kppa, nscf_nband=None, ndivsm=self.ndivsm,
                              #ecut=6, pawecutdg=None,
                              scf_nband=None, accuracy="normal",
