@@ -228,7 +228,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         """
         Remove the variables listed in keys.
         Return dictionary with the variables that have been removed.
-        Unlike remove_vars, no exception is raised if the variables are not in the input.
+        Unlike ``remove_vars``, no exception is raised if the variables are not in the input.
 
         Args:
             keys: string or list of strings with variable names.
@@ -1542,9 +1542,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return tolvar, value
 
-    def make_ebands_input(self, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10) -> AbinitInput:
+    def make_ebands_input(self, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10,
+                          nbdbuf=None, nstep=100) -> AbinitInput:
         """
-        Generate an input file for a NSCF band structure calculation from a GS SCF input.
+        Generate an input file for a NSCF band structure calculation along k-path from a GS SCF input.
 
         Args:
             ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
@@ -1554,13 +1555,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 as ndivsm > 0 may produce a very large number of wavevectors.
             tolwfr: Tolerance on residuals for NSCF calculation.
             nscf_nband: Number of bands for NSCF calculation. If None, use nband + nb_extra
-            nb_extra: Extra bandd to to be added to input nband if nscf_nband is None.
+            nb_extra: Extra bands to to be added to input nband if nscf_nband is None.
         """
         nscf_input = self.deepcopy()
-        nscf_input.pop_vars(["ngkpt", "shiftk"])
+        nscf_input.pop_vars(["ngkpt", "nshiftk", "shiftk"])
         nscf_input.pop_tolerances()
 
-        # Define k-path.
+        # Define k-path from ndivsm.
         if ndivsm > 0:
             nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, self.structure)
             nscf_input.set_vars(nscf_ksampling.to_abivars())
@@ -1568,7 +1569,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             kpts = kpoints_from_line_density(self.structure, abs(ndivsm))
             nscf_input.set_vars(kptopt=0, nkpt=len(kpts), kpt=kpts)
 
+        #nbdbuf = None
         if nscf_nband is None:
+            # Get number of bands from input file taking into account *5 syntax
             nb = self["nband"]
             has_star = False
             if duck.is_string(nb):
@@ -1581,7 +1584,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             nscf_nband = nb + nb_extra
             if has_star: nscf_nband = f"*{nscf_nband}"
 
+            # Add buffer
+            if nbdbuf is None:
+                nbdbuf = nb_extra - 4
+                if nbdbuf <= 0: nbdbuf = None
+
         nscf_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr,
+                            nbdbuf=nbdbuf, nstep=nstep,
                             comment="Input file for NSCF band structure calculation from a GS SCF input.")
 
         return nscf_input
@@ -1615,10 +1624,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             tolwfr: Tolerance on residuals.
         """
         nscf_input = self.deepcopy()
-        nscf_input.pop_vars(["ngkpt", "shiftk"])
+        nscf_input.pop_vars(["ngkpt", "ngkpt", "shiftk"])
         nscf_input.pop_tolerances()
         kpts = np.reshape(kpts, (-1, 3))
-        nscf_input.set_vars(tolwfr=tolwfr, kptopt=0, iscf=-2, nkpt=len(kpts), kpt=kpts)
+        nscf_input.set_vars(tolwfr=tolwfr, kptopt=0, iscf=iscf, nkpt=len(kpts), kpt=kpts)
         nscf_input.set_comment("Input file for NSCF run from a GS SCF input with explicit list of k-points")
 
         return nscf_input
@@ -1636,7 +1645,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             tolwfr: Tolerance on residuals.
         """
         multi = MultiDataset.replicate_input(input=self, ndtset=3)
-        multi.pop_vars(["ngkpt", "shiftk", "iscf"])
+        multi.pop_vars(["ngkpt", "nshiftk", "shiftk", "iscf"])
         multi.pop_tolerances()
 
         kpts = np.reshape(kpts, (-1, 3))

@@ -1,52 +1,54 @@
-info: "Protocol to relax a structure with low precision at minimal computational cost for testing purposes."
+info: |
+  Protocol to generate input files for NC calculations. 
+  Use GGA-PBE scalar-relativistic pseudos from the PseudoDojo project.
+  Cutoff energies and tolerances are automatically defined according to the value of `accuracy`. 
 
-#cutoff_stringency: "low"
+accuracy: "normal"
 
-pseudo_specs:
+pseudos_specs:
   repo_name: "ONCVPSP-PBE-SR-PDv0.4"
   table_name: "standard"
-  #cutoff_accuracy: "low"
 
-# Variables common to all the protocols. Can be overridden in the abivars section.
+# Variables common to all the calculations. 
+# Can be overridden in the abivars section.
 global_abivars:
   nsppol: 1
   nspden: 1
   nspinor: 1
-  occopt: 7   # Gaussian smearing
-  fband: 2.00 # increase the number of bands to > fband * natoms
+  #fband: 2.00 # increase the number of bands to > fband * natoms
   nstep: 50
   paral_kgb: 1
   rmm_diis: 1
   expert_user: 1
+  occopt: 7   # Gaussian smearing
+  tsmear: 0.008 # Ha
 
 
 gs_scf_specs:
   meta_params:
-    #kpoints_distance: 0.25
     kppa: 500
-  abivars:
+    #kpoints_distance: 0.25
+    #abivars:
     #ngkpt: [3, 3, 3]  # This is not compatible with kppa
-    nshiftk: 1
-    shiftk: [[0.0, 0.0, 0.0]]
-    tolvrs: 1.0e-7 
-    tsmear: 0.008 # Ha
+    #nshiftk: 1
+    #shiftk: [[0.0, 0.0, 0.0]]
+    #tolvrs: 1.0e-7 
+    #tsmear: 0.008 # Ha
 
 gs_nscf_kpath_specs:
-  #meta_params:
-  #  kppa: 200
   abivars:
     ndivsm: 20
-    tolwfr: 1.0e-14
+    #tolwfr: 1.0e-14
 
 
 gs_nscf_kdos_specs:
   meta_params:
-    #kpoints_distance: 0.25
     kppa: 1000
-  abivars:
-    nshiftk: 1
-    shiftk: [[0.0, 0.0, 0.0]]
-    tolwfr: 1.0e-14 
+    #kpoints_distance: 0.25
+    #abivars:
+    #  nshiftk: 1
+    #  shiftk: [[0.0, 0.0, 0.0]]
+    #  tolwfr: 1.0e-14 
 
 
 relax_specs:

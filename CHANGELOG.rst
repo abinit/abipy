@@ -1,3 +1,8 @@
+Release 0.9.4:
+
+    * Add ``ndivsm`` argument to PhononWork and EffMassLineWork to activate band 
+      structure computation along k-path.
+
 
 Release 0.9.3:
 

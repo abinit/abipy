@@ -154,7 +154,7 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
     return int(nband)
 
 
-def _get_shifts(shift_mode, structure):
+def _get_shifts(shift_mode: str, structure: Structure):
     """
     Gives the shifts based on the selected shift mode and on the symmetry of the structure.
 

@@ -20,16 +20,16 @@ from monty.fnmatch import WildCard
 from monty.dev import deprecated
 from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
-from . import wrappers
-from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status #, check_spectator
-from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
+from abipy.flowtk import wrappers
+from abipy.flowtk.nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status #, check_spectator
+from abipy.flowtk.tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
                     DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask,
                     EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 
-from .utils import Directory
-from .netcdf import ETSF_Reader, NetcdfReader
-from .abitimer import AbinitTimerParser
+from abipy.flowtk.utils import Directory
+from abipy.flowtk.netcdf import ETSF_Reader, NetcdfReader
+from abipy.flowtk.abitimer import AbinitTimerParser
 
 __author__ = "Matteo Giantomassi"
 __copyright__ = "Copyright 2013, The Materials Project"
@@ -1609,7 +1609,7 @@ class PhononWork(Work, MergeDdb):
     @classmethod
     def from_scf_task(cls, scf_task, qpoints, is_ngqpt=False, with_becs=False,
                       with_quad=False, with_flexoe=False, with_dvdb=True,
-                      tolerance=None, ddk_tolerance=None,
+                      tolerance=None, ddk_tolerance=None, ndivsm=0,
                       prtwf=-1, manager=None) -> PhononWork:
         """
         Construct a `PhononWork` from a |ScfTask| object.
@@ -1632,10 +1632,16 @@ class PhononWork(Work, MergeDdb):
                 None to use AbiPy default.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if with_becs.
                 None to use AbiPy default.
+            ndivsm: If different from zero, activate computation of electron band structure.
+                if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two high symmetry k-points that are very close
+                as ndivsm > 0 may produce a very large number of wavevectors.
             prtwf: Controls the output of the first-order WFK.
                 By default we set it to -1 when q != 0 so that AbiPy is still able
                 to restart the DFPT task if the calculation is not converged (worst case scenario)
-                but we avoid the output of the 1-st WFK if the calculation converged successfully.
+                but we avoid the output of the 1-st order WFK if the calculation converged successfully.
                 Non-linear DFT applications should not be affected since they assume q == 0.
             manager: |TaskManager| object.
         """
@@ -1666,17 +1672,22 @@ class PhononWork(Work, MergeDdb):
                 if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
                 new.register_phonon_task(ph_inp, deps={scf_task: "WFK"})
 
+        new.ebands_task = None
+        if ndivsm != 0:
+            new.ebands_task = scf_task.add_ebands_task_to_work(new, ndivsm=ndivsm)
+
         return new
 
     @classmethod
     def from_scf_input(cls, scf_input, qpoints, is_ngqpt=False, with_becs=False,
                        with_quad=False, with_flexoe=False,
                        with_dvdb=True, tolerance=None,
-                       ddk_tolerance=None, prtwf=-1, manager=None) -> PhononWork:
+                       ddk_tolerance=None, ndivsm=0, prtwf=-1, manager=None) -> PhononWork:
         """
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation. A new |ScfTask| is created and added to the Work.
-        This API should be used if the DDB of the GS task should be merged.
+        This API should be used if the DDB of the GS task with the forces should be merged.
+        This is needed for the computation of relaxed-atom elastic constants.
         """
         if is_ngqpt:
             qpoints = scf_input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=1).points
@@ -1706,6 +1717,10 @@ class PhononWork(Work, MergeDdb):
                 if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
                 new.register_phonon_task(ph_inp, deps={scf_task: "WFK"})
 
+        new.ebands_task = None
+        if ndivsm != 0:
+            new.ebands_task = scf_task.add_ebands_task_to_work(new, ndivsm=ndivsm)
+
         return new
 
     #@check_spectator
@@ -1716,7 +1731,11 @@ class PhononWork(Work, MergeDdb):
         the final DDB file in the outdir of the |Work|.
         """
         # Merge DDB files.
-        out_ddb = self.merge_ddb_files(only_dfpt_tasks=False)
+        exclude_tasks = []
+        if self.ebands_task is not None:
+            exclude_tasks = [self.ebands_task]
+
+        out_ddb = self.merge_ddb_files(only_dfpt_tasks=False, exclude_tasks=exclude_task)
 
         if getattr(self, "with_dvdb", True):
             # Merge DVDB files (use getattr to maintain backward compability with pickle).

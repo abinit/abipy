@@ -67,13 +67,16 @@ def build_flow(options):
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     # Multiple calculations with different step for finite difference.
+    # Use ndivsm != 0 at the first iteration to compute band structure along
     for i, step in enumerate((0.01, 0.005)):
         if i == 0: den_node = None
         work = EffMassLineWork.from_scf_input(scf_input, k0_list=(0, 0, 0),
                                               step=step, npts=10,
                                               red_dirs=[[1, 0, 0], [1, 1, 0]],
-                                              cart_dirs=[[1, 0, 0], [1, 1, 1], [1, 1, 0]],
+                                              #cart_dirs=[[1, 0, 0], [1, 1, 1], [1, 1, 0]],
+                                              ndivsm=-20 if i == 0 else 0,
                                               den_node=den_node)
+
         # Will start from the DEN file produced in the first iteration.
         if i == 0: den_node = work[0]
         flow.register_work(work)

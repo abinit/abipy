@@ -27,10 +27,11 @@ from abipy.flowtk.tasks import Task
 from abipy.flowtk.events import EventReport
 from abipy.flowtk import TaskManager, Work, Flow
 from abipy.abio.inputs import AbinitInput
-from .base_models import AbipyModel, TopLevelModel, cls2dict, AbipyDecoder, QueryResults, MongoConnector, GfsFileDesc
-from .structure_models import StructureData
-from .pseudos_models import PseudoSpecs
-from .worker import AbipyWorker
+from abipy.htc.base_models import (AbipyModel, TopLevelModel, cls2dict, AbipyDecoder,
+        QueryResults, MongoConnector, GfsFileDesc)
+from abipy.htc.structure_models import StructureData
+from abipy.htc.pseudos_models import PseudoSpecs
+from abipy.htc.worker import AbipyWorker
 
 logger = logging.getLogger(__name__)
 

@@ -80,7 +80,7 @@ def build_flow(options):
     )
 
     # At the time of writing, Q* calculations are implemented only for
-    # NC LDA scalar-relativistic pseudos without non-linear core correction.
+    # NC scalar-relativistic pseudos without non-linear core correction.
     # This section shows how to use the Pseudo API to perform this kind of check
     # before runnnig the calculation.
     for pseudo in scf_input.pseudos:
@@ -89,8 +89,6 @@ def build_flow(options):
             raise RuntimeError("Only NC pseudos are compatible with Q*")
         if pseudo.has_nlcc:
             raise RuntimeError("NLCC is not compatible with Q*")
-        if pseudo.xc.type != "LDA":
-            raise RuntimeError("Only LDA is compatible with Q*")
 
     # Initialize the flow
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
@@ -98,10 +96,10 @@ def build_flow(options):
     # Compute phonons on the ddb_ngqpt q-mesh.
     # Include Born effective charges and dynamical quadrupoles via `with_quad=True`.
     #
-    ddb_ngqpt = [1, 1, 1]
-    #ddb_ngqpt = [4, 4, 4]
-    ph_work = flowtk.PhononWork.from_scf_input(scf_input, qpoints=ddb_ngqpt,
-                                               is_ngqpt=True, with_becs=True, with_quad=True)
+    #ddb_ngqpt = [1, 1, 1]
+    ddb_ngqpt = [2, 2, 2]
+    ph_work = flowtk.PhononWork.from_scf_input(scf_input, qpoints=ddb_ngqpt, is_ngqpt=True,
+                                               with_becs=True, with_quad=True, ndivsm=5)
 
     # Add the phonon work to the flow
     flow.register_work(ph_work)

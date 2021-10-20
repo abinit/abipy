@@ -676,17 +676,24 @@ class Kpoint(SlotPickleMixin):
         elif m == "fracart":
             return "%s, %s" % (self.tos(m="fract"), self.tos(m="cart"))
         else:
-            raise ValueError("Invalid mode: `%s`" % str(m))
+            raise ValueError(f"Invalid mode: {m}")
 
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
-        s = "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        if verbose == 0 :
+            s = "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        elif verbose == 1:
+            s = "[%+.6f, %+.6f, %+.6f]" % tuple(self.frac_coords)
+        else:
+            s = "[%+.9f, %+.9f, %+.9f]" % tuple(self.frac_coords)
+
         if self.name is not None:
             s += ", name: %s" % self.name
         if self._weight is not None: s += ", weight: %.3f" % self.weight
+
         return s
 
     # Kpoint algebra.
@@ -1981,4 +1988,8 @@ def build_segments(k0_list, npts, step, red_dirs, reciprocal_lattice):
     # Cart --> Frac
     out = reciprocal_lattice.get_fractional_coords(kpts)
 
-    return np.reshape(out, (len(k0_list), len(red_dirs) * npts, 3))
+    out = np.reshape(out, (len(k0_list), len(red_dirs) * npts, 3))
+
+    # Set small values to zero.
+    out = np.where(np.abs(out) > 1e-12, out, 0.0)
+    return out

@@ -14,10 +14,11 @@ from abipy.panels.core import ply
 from abipy.abio.factories import ebands_input
 from abipy.flowtk import TaskManager, Flow
 from abipy.flowtk.flows import bandstructure_flow
-from .base_models import AbipyModel, MongoConnector, GfsFileDesc
-from .flow_models import FlowModel, PresetQuery
-from .gs_models import ScfData, NscfData, RelaxData
-from .worker import AbipyWorker
+from abipy.htc.base_models import AbipyModel, MongoConnector, GfsFileDesc
+from abipy.htc.structure_models import StructureData
+from abipy.htc.flow_models import FlowModel, PresetQuery
+from abipy.htc.gs_models import ScfData, NscfData, RelaxData
+from abipy.htc.worker import AbipyWorker
 
 
 class _EbandsFlowModel(FlowModel, ABC):
@@ -174,6 +175,7 @@ class HasProtocol(AbipyModel):
 
     protocol: Protocol = Field(..., description="Protocol used to generate input files")
 
+    @classmethod
     def from_structure_and_protocol(cls, structure: Structure, protocol: Protocol, **kwargs):
         """
         Build a FlowModel from a structure and the protocol.
@@ -186,6 +188,40 @@ class HasProtocol(AbipyModel):
         data.update(kwargs)
 
         return cls(**data)
+
+
+class EbandsFlowModelWithProtocol(_EbandsFlowModel, HasProtocol):
+    """
+    This model defines the input arguments used to build a Flow for band structure calculations
+    as well as the sub models used to store the final results.
+    """
+
+    def build_flow(self, workdir: str, worker: AbipyWorker) -> Flow:
+        """
+        Build an AbiPy Flow in `workdir` using the input data available in the model and return it.
+        """
+        structure = self.in_structure_data.structure
+        self.scf_input, self.nscf_input = self.protocol.get_ebands_input(structure)
+
+        #pseudos = self.pseudos_specs.get_pseudos()
+        #multi = ebands_input(structure, pseudos,
+        #                     kppa=self.kppa, nscf_nband=None, ndivsm=self.ndivsm,
+        #                     #ecut=6, pawecutdg=None,
+        #                     scf_nband=None, accuracy="normal",
+        #                     spin_mode=self.spin_mode,
+        #                     smearing=self.smearing, charge=self.charge,
+        #                     scf_algorithm=None, dos_kppa=self.dos_kppa,
+        #                     )
+
+        #multi.set_vars(paral_kgb=self.paral_kgb)
+
+        #if self.dos_kppa is not None:
+        #    self.scf_input, self.nscf_input, self.dos_input = multi.split_datasets()
+        #else:
+        #    self.scf_input, self.nscf_input = multi.split_datasets()
+
+        return bandstructure_flow(workdir, self.scf_input, self.nscf_input)
+                                  #dos_inputs=self.dos_input)
 
 
 class EbandsFlowModelWithParams(_EbandsFlowModel):

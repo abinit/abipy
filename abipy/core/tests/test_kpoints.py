@@ -106,6 +106,8 @@ class TestKpoint(AbipyTest):
         X = Kpoint([0.5, 0, 0], lattice)
         K = Kpoint([1/3, 1/3, 1/3], lattice)
         repr(X); str(X)
+        assert X.to_string(verbose=0)
+        assert X.to_string(verbose=1)
         assert X.to_string(verbose=2)
         assert X.tos(m="fract")
         assert X.tos(m="cart")

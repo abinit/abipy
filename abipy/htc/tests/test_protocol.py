@@ -19,6 +19,8 @@ class TestProtocol(AbipyTest):
 
         specs = GsScfSpecs(meta_params={"kppa": 1000}, abivars={"ecut": 10})
         assert specs.abivars["ecut"] == 10
+        assert specs.spin_mode == "unpolarized"
+        #assert specs.smearing == "unpolarized"
 
     def test_protocol_api(self):
         """Testing Protocol API."""
@@ -29,49 +31,40 @@ class TestProtocol(AbipyTest):
         assert str(proto)
 
         yaml_string = """
+info: "Fast protocol"
+
 # Variables common to all the protocols
 global_abivars:
-  fband: 2.00  # increase the number of bands to > fband * natoms
+  #fband: 2.00  # increase the number of bands to > fband * natoms
   nstep: 100
   paral_kgb: 1
   rmm_diis: 1
   expert_user: 1
+  occopt: 7     # Gaussian smearing
+  tsmear: 0.008 # Ha
 
-pseudo_specs:
+pseudos_specs:
   repo_name: "ONCVPSP-PBEsol-SR-PDv0.4"
   table_name: "standard"
 
-info: "Fast protocol"
-#cutoff_stringency: "low"
+accuracy: "normal"
 
 gs_scf_specs:
   meta_params:
     kppa: 500
   abivars:
-    nshiftk: 1
-    shiftk: [[0.0, 0.0, 0.0]]
     tolvrs: 1.0e-7
-    tsmear: 0.008 # Ha
 
-#moderate:
-#    info: "Moderate protocol"
-#    cutoff_stringency: "normal"
-#
-#    gs_scf_specs:
-#      meta_params:
-#        kppa: 1000
-#      abivars:
-#        #kpoints_distance: 0.20
-#        nshiftk: 1
-#        shiftk: [[0.0, 0.0, 0.0]]
-#        tolvrs: 1.0e-9
-#        tsmear: 0.008  # Ha
+gs_nscf_kpath_specs:
+  abivars:
+    ndivsm: 20
+    #tolwfr: 1.0e-14
 """
 
         proto = Protocol.from_yaml_string(yaml_string)
 
         assert proto.info == "Fast protocol"
-        #assert proto.cutoff_stringency == "low"
+        assert proto.accuracy == "normal"
         specs = proto.gs_scf_specs
         assert specs.abivars["rmm_diis"] == 1
         assert specs.abivars["tolvrs"] == 1.0e-7
@@ -86,10 +79,10 @@ gs_scf_specs:
         #assert gs_scf.abivars["tolvrs"] == 1.0e-9
         #assert gs_scf.meta_params["kppa"] == 1000
 
-        #from abipy.data.ucells import structure_from_ucell
-        #structures = [structure_from_ucell(name) for name in ("Si",)] # "Si-shifted")]
-        #scf_inp = proto.get_gs_scf_input(structure)
-        #self.abivalidate_inp(scf_inp)
+        from abipy.data.ucells import structure_from_ucell
+        structure = structure_from_ucell("Si")
+        scf_inp = proto.get_gs_scf_input(structure)
+        self.abivalidate_input(scf_inp)
 
-        #with self.assertRaises(ValueError)
-        #proto.get_ebands_input(structure)
+        scf_inp, nscf_inp = proto.get_ebands_input(structure)
+        self.abivalidate_multi([scf_inp, nscf_inp])

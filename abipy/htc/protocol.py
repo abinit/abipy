@@ -7,10 +7,11 @@ import os
 from pprint import pformat
 from typing import Dict, Any, Literal, List
 from ruamel import yaml
-from pydantic import Field, root_validator
+from pydantic import Field, root_validator, PrivateAttr
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.abivars import is_abivar
+from abipy.abio.factories import gs_input, ebands_input
 from abipy.htc.base_models import AbipyModel
 from abipy.htc.pseudos_models import PseudoSpecs
 
@@ -25,7 +26,7 @@ class MetaParam(AbipyModel):
 
 
 _ALL_METAPARAMS = {
-    "kppa": MetaParam(name="kppa", exclude_abivars=["nkpt", "ngkpt", "kptprlatt"]),
+    "kppa": MetaParam(name="kppa", exclude_abivars=["nkpt", "ngkpt", "kptrlatt"]),
     "qppa": MetaParam(name="qppa"),
 }
 
@@ -38,24 +39,37 @@ class _Specs(AbipyModel):
 
     abivars: Dict[str, Any] = Field(
             default_factory=dict,
-            description="Dictionary with Abinit variables")
+            description="Dictionary with extra Abinit variables that will be added to the AbinitInput")
 
-    #_supported_meta_params = [
-    #    "kppa",
-    #]
+    spin_mode: str = Field(..., description="Spin polarization mode")
 
     # Private attributes
-    #_secret_value: str = PrivateAttr()
+    #_smearing: str = PrivateAttr()
 
     def __init__(self, **data):
-        super().__init__(**data)
-        self.validate_instance()
+
+        abivars = data["abivars"]
+        nsppol = abivars.pop("nsppol", 1)
+        nspinor = abivars.pop("nspinor", 1)
+        nspden = abivars.pop("nspden", 1)
+
+        from pymatgen.io.abinit.abiobjects import _mode2spinvars  #  SpinMode
+        for spin_mode, var in _mode2spinvars.items():
+            if (nsppol == var.nsppol and nspinor == var.nspinor and nspden == var.nspden):
+                break
+        else:
+            raise ValueError(f"Cannot find spin_mode associated to\n"
+                             f"nsppol: {nsppol}, nspinor: {nspinor}, nspden: {nspden}")
 
         #from pymatgen.io.abinit.abiobjects import Smearing
-        #occopt = int(self.abivars.get("occopt", 1))
-        #tsmear = self.abivars.get("tsmear", 0.01)
+        #occopt = int(abivars.pop("occopt", 1))
+        #tsmear = abivars.pop("tsmear", 0.01)
         #tsmear = float(tsmear)
-        #self.smearing = Smearing(occopt, tsmear)
+        #smearing = Smearing(occopt, tsmear)
+
+        super().__init__(spin_mode=spin_mode, **data)
+        self.validate_instance()
+
 
     def __str__(self) -> str:
         lines = []
@@ -95,24 +109,15 @@ class _Specs(AbipyModel):
             for mp in meta.require_meta:
                 raise ValueError(f"In {cls_name}: metavariable `{meta_name}` requires `{mp}`")
 
-    @property
-    def spin_mode(self):
-        nsppol = self.abivars.get("nsppol", 1)
-        nspinor = self.abivars.get("nspinor", 1)
-        nspden = self.abivars.get("nspden", 1)
+        if "fband" and "nband" in self.abivars:
+            raise ValueError("fband and nband cannot be used together.")
 
-        from pymatgen.io.abinit.abiobjects import _mode2spinvars #SpinMode
-        for spin_name, spin_mode in _mode2spinvars.items():
-            if (nsppol == spin_mode.nsppol and
-                nspinor == spin_mode.nspinor and
-                nspden == spin_mode.nspden):
-                return spin_name
-
-        raise ValueError(f"Cannot find spin_mode associated to nsppol: {nsppol}, nspinor: {nspinor}, nspden: {nspden}")
 
     @root_validator
     def check_abivars(cls, values):
-        """Make sure the names specified in the abivars section are valid."""
+        """
+        Make sure the names specified in the abivars section are valid.
+        """
         for k in values.get("abivars"):
             if not is_abivar(k):
                 raise ValueError(f"Unknown Abinit variable: `{k}`")
@@ -216,17 +221,17 @@ class Protocol(AbipyModel):
     """
     A protocol contains meta parameters used to generate input files
     """
+    info: str = Field(..., description="Human readable string with the description of the protocol.")
+
     #name: str =  Field(..., description=".")
 
-    #md5: str = Field(..., description="Human readable string with thedescription of the protocol.")
+    #md5: str = Field(..., description="")
 
-    info: str = Field(..., description="Human readable string with thedescription of the protocol.")
+    accuracy: Literal["low", "normal", "high"] = Field(..., description="")
 
-    #cutoff_stringency: Literal["low", "normal", "high"] = Field(..., description="")
+    pseudos_specs: PseudoSpecs = Field(..., description="Pseudopotential Specs")
 
-    pseudo_specs: PseudoSpecs = Field(..., description="Pseudopotential Specs")
-
-    gs_scf_specs: GsScfSpecs = Field(None, description="Specs for GS SCF calculation")
+    gs_scf_specs: GsScfSpecs = Field(..., description="Specs for GS SCF calculation")
 
     gs_nscf_kpath_specs: GsNscfKpathSpecs = Field(
             None,
@@ -236,7 +241,9 @@ class Protocol(AbipyModel):
             None,
             description="Specs for NSCF calculations with k-mesh to compute DOS")
 
-    relax_specs: RelaxSpecs = Field(None, description="Specs for structural relaxations")
+    relax_specs: RelaxSpecs = Field(
+            None,
+            description="Specs for structural relaxations")
 
     # validators
     #_normalize_name = validator('name', allow_reuse=True)(normalize)
@@ -244,7 +251,7 @@ class Protocol(AbipyModel):
 
     #@root_validator
     #def check_pseudo_specs(cls, values):
-    #    pseudo_specs = values.get("pseudo_specs")
+    #    pseudos_specs = values.get("pseudos_specs")
     #    return values
 
     @classmethod
@@ -262,7 +269,7 @@ class Protocol(AbipyModel):
 
     @classmethod
     def from_name(cls, name: str) -> Protocol:
-        """Build a protocol from the name of the Yaml file in the Abipy library."""
+        """Build a protocol object from the name of the Yaml file in the AbiPy library."""
         filepath = os.path.join(PROTO_DIRPATH, name)
         return cls.from_file(filepath)
 
@@ -293,16 +300,20 @@ class Protocol(AbipyModel):
 
         info = data.pop("info", None)
         if info is None:
-            raise ValueError(f"Cannot find `info` section in data")
+            raise ValueError(f"Cannot find `info` key in document")
+
+        accuracy = data.pop("accuracy", None)
+        if accuracy is None:
+            raise ValueError(f"Cannot find `accuracy` section in document")
 
         # Get global abinit variables first.
         global_abivars = data.pop("global_abivars", {})
 
         # Get pseudo specifications and build model.
-        d = data.pop("pseudo_specs", None)
+        d = data.pop("pseudos_specs", None)
         if d is None:
-            raise ValueError(f"Cannot find `pseudo_specs` section in data")
-        pseudo_specs = PseudoSpecs.from_repo_table_name(d["repo_name"], d["table_name"])
+            raise ValueError(f"Cannot find `pseudos_specs` section in data")
+        pseudos_specs = PseudoSpecs.from_repo_table_name(d["repo_name"], d["table_name"])
 
         specs = {}
         for spec_name in KNOWN_SPECS:
@@ -335,9 +346,7 @@ class Protocol(AbipyModel):
             #new_abivars.update(d[spec_name]["abivars"])
             #d[spec_name]["abivars"] = new_abivars
 
-        return cls(info=info, pseudo_specs=pseudo_specs,
-                   #cutoff_stringency=cutoff_stringency,
-                   **specs)
+        return cls(info=info, accuracy=accuracy, pseudos_specs=pseudos_specs, **specs)
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -353,7 +362,7 @@ class Protocol(AbipyModel):
     def __str__(self) -> str:
         lines = [f"info:\n{self.info}"]
         app = lines.append
-        app(f"pseudos: {self.pseudo_specs}")
+        app(f"pseudos: {self.pseudos_specs}")
 
         for spec_name in KNOWN_SPECS:
             spec = getattr(self, spec_name)
@@ -371,53 +380,70 @@ class Protocol(AbipyModel):
         """
         Build and return an input for a GS SCF calculation for the given structure
         """
-        pseudos = self.pseudo_specs.get_pseudos()
-        specs = self.gs_scf_specs
-        scf_inp = AbinitInput(structure, pseudos)
-        # Add abivars section.
-        scf_inp.set_vars(**specs.abivars)
+        pseudos = self.pseudos_specs.get_pseudos()
+        scf_specs = self.gs_scf_specs
+
+        scf_inp = gs_input(structure, pseudos,
+                           #kppa=scf_specs.kppa,
+                           ecut=None, pawecutdg=None, scf_nband=None,
+                           accuracy=self.accuracy,
+                           spin_mode=scf_specs.spin_mode,
+                           smearing="fermi_dirac:0.1 eV",
+                           charge=0.0,
+                           )
+
+        # Add extra abivars
+        scf_inp.set_vars(**scf_specs.abivars)
+
         return scf_inp
 
     def get_ebands_input(self, structure: Structure):
         """
         Build and return list of inputs for a GS SCF + NSCF for the given structure
         """
-        pseudos = self.pseudo_specs.get_pseudos()
+        pseudos = self.pseudos_specs.get_pseudos()
 
-        scf_inp = self.get_gs_scf_input(structure)
-        specs = self.gs_nscf_kpath_specs
-        if specs is None:
-            raise ValueError("band structure calculation requires the specifications of `gs_nscf_kpath_specs`")
+        scf_specs = self.gs_scf_specs
+        nscf_specs = self.gs_nscf_kpath_specs
+        if nscf_specs is None:
+            raise ValueError("band structure calculation requires the specification of `gs_nscf_kpath_specs`")
 
         multi = ebands_input(structure, pseudos,
-                             kppa=self.kppa, nscf_nband=None, ndivsm=self.ndivsm,
-                             #ecut=6, pawecutdg=None,
-                             scf_nband=None, accuracy="normal",
+                             kppa=self.kppa,
+                             nscf_nband=None,
+                             ndivsm=self.ndivsm,
+                             ecut=None, pawecutdg=None,
+                             scf_nband=None,
+                             accuracy=self.accuracy,
                              spin_mode=self.spin_mode,
-                             smearing=self.smearing, charge=self.charge,
-                             scf_algorithm=None, dos_kppa=self.dos_kppa,
+                             smearing=self.smearing,
+                             charge=self.charge,
+                             #dos_kppa=self.dos_kppa,
                              )
 
         #nscf_inp = scf_inp.make_ebands_input(ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10)
-        #nscf_inp.set_vars(**specs.abivars)
+        scf_inp, nscf_inp = multi.split_datasets()
+
+        # Add extra abivars
+        scf_inp.set_vars(**self.gs_scf_specs.abivars)
+        nscf_inp.set_vars(**self.gs_nscf_specs.abivars)
 
         return scf_inp, nscf_inp
-        #return MultiDataset.from_inputs([self, self])
 
-    def get_relax_input(self, structure: Structure) -> AbinitInput:
-        """
-        Build and return an input to relax the input structure
-        """
-        scf_inp = self.get_gs_scf_input(structure)
-        specs = self.relax_specs
-        if specs is None:
-             raise ValueError("structure relaxations require the specifications of `relax_specs`")
-        relax_input = None
-        return relax_input
+    #def get_relax_input(self, structure: Structure) -> AbinitInput:
+    #    """
+    #    Build and return an input to relax the input structure
+    #    """
+    #    scf_inp = self.get_gs_scf_input(structure)
+    #    relax_specs = self.relax_specs
+    #    if relax_specs is None:
+    #         raise ValueError("structure relaxations require the specifications of `relax_specs`")
+    #    relax_input = None
+    #    return relax_input
 
 
 if __name__ == "__main__":
-    proto = Protocol.from_file("protocol.yml")
+    proto = Protocol.from_file("protocols/NC-PBE-SR-PDv0.4.yml")
     print(proto)
 
     from abipy.data.ucells import structure_from_ucell

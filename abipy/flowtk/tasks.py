@@ -3467,7 +3467,7 @@ class ScfTask(GsTask):
 
     def add_ebands_task_to_work(self, work, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10):
         """
-        Generate an NSCF task form band structure calculation from a GS SCF task and add it to the work.
+        Generate an NSCF task for band structure calculation from a GS SCF task and add it to the work.
 
         Args:
             work:
@@ -3700,7 +3700,7 @@ class RelaxTask(GsTask, ProduceHist):
         else:
             raise ValueError("Wrong value for what %s" % what)
 
-    def reduce_dilatmx(self, target=1.01):
+    def reduce_dilatmx(self, target: float = 1.01):
         actual_dilatmx = self.get_inpvar('dilatmx', 1.)
         new_dilatmx = actual_dilatmx - min((actual_dilatmx - target), actual_dilatmx * 0.05)
         self.set_vars(dilatmx=new_dilatmx)

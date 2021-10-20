@@ -87,8 +87,11 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
         return not (self == other)
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose: int = 0) -> str:
         return "spin: %d, kpt: %s, band: %d, eig: %.3f, occ: %.3f" % (
-            self.spin, self.kpoint, self.band, self.eig, self.occ)
+            self.spin, self.kpoint.to_string(verbose=verbose), self.band, self.eig, self.occ)
 
     @property
     def skb(self):
@@ -204,8 +207,8 @@ class ElectronTransition(object):
         """String representation."""
         lines = []; app = lines.append
         app("Energy: %.3f (eV)" % self.energy)
-        app("Initial state: %s" % str(self.in_state))
-        app("Final state:   %s" % str(self.out_state))
+        app("Initial state: %s" % self.in_state.to_string(verbose=verbose))
+        app("Final state:   %s" % self.out_state.to_string(verbose=verbose))
 
         return "\n".join(lines)
 
@@ -749,6 +752,10 @@ class ElectronBands(Has_Structure):
 
         new_fermie = self.eigens[:, :, iv].max()
         return self.set_fermie(new_fermie)
+
+    #def set_fermie_to_midgap(self) -> float:
+    #    new_fermie =
+    #    return self.set_fermie(new_fermie)
 
     def set_fermie_from_edos(self, edos, nelect=None) -> float:
         """
@@ -1713,26 +1720,33 @@ class ElectronBands(Has_Structure):
                 if enough_bands:
                     # This can fail so we have to catch the exception.
                     try:
-                        app("Direct gap:\n%s" % indent(str(self.direct_gaps[spin])))
-                        app("Fundamental gap:\n%s" % indent(str(self.fundamental_gaps[spin])))
+                        s = indent(self.direct_gaps[spin].to_string(verbose=verbose))
+                        app(f"Direct gap:\n{s}")
+                        s = indent(self.fundamental_gaps[spin].to_string(verbose=verbose))
+                        app(f"Fundamental gap:\n{s}")
                     except Exception as exc:
                         app("WARNING: Cannot compute direct and fundamental gap.")
                         if verbose: app("Exception:\n%s" % str(exc))
 
                 app("Bandwidth: %.3f (eV)" % self.bandwidths[spin])
                 if verbose:
-                    app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
+                    s = indent(self.lomos[spin].to_string(verbose=verbose))
+                    app(f"Valence minimum located at:\n{s}")
 
-                app("Valence maximum located at:\n%s" % indent(str(self.homos[spin])))
+                s = indent(self.homos[spin].to_string(verbose=verbose))
+                app(f"Valence maximum located at:\n{s}")
 
                 try:
                     # Cannot assume enough states for this!
-                    app("Conduction minimum located at:\n%s" % indent(str(self.lumos[spin])))
-                    app("")
+                    s = indent(self.lumos[spin].to_string(verbose=verbose))
+                    app(f"Conduction minimum located at:\n{s}\n")
                 except Exception:
                     pass
 
             #app("TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor\n")
+
+            if not verbose:
+                app("TIP: Use `--verbose` to print k-point coordinates with more digits")
 
         if with_kpoints:
             app(self.kpoints.to_string(verbose=verbose, title="K-points"))

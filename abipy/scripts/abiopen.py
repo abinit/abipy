@@ -250,6 +250,7 @@ def main():
         if options.print:
             # Print object to terminal.
             if hasattr(abifile, "to_string"):
+                #print(f"Calling {abifile.__class__}.to_string with verbose: {verbose}")
                 print(abifile.to_string(verbose=options.verbose))
             else:
                 print(abifile)
