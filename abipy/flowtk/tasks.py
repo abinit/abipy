@@ -1639,12 +1639,10 @@ class Task(Node, metaclass=abc.ABCMeta):
     def _on_ok(self):
         # Fix output file names.
         self.fix_ofiles()
+        self.finalized = True
 
         # Get results
         results = self.on_ok()
-
-        self.finalized = True
-
         return results
 
     #@check_spectator
@@ -1655,10 +1653,8 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         Returns:
             Dictionary that must contain at least the following entries:
-                returncode:
-                    0 on success.
-                message:
-                    a string that should provide a human-readable description of what has been performed.
+                returncode: 0 on success.
+                message: a string that should provide a human-readable description of what has been performed.
         """
         return dict(returncode=0, message="Calling on_all_ok of the base class!")
 
@@ -1684,8 +1680,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         Called by restart once we have finished preparing the task for restarting.
 
-        Return:
-            True if task has been restarted
+        Return: True if task has been restarted
         """
         self.set_status(self.S_READY, msg="Restarted on %s" % time.asctime())
 
@@ -1936,16 +1931,15 @@ class Task(Node, metaclass=abc.ABCMeta):
             self._on_done()
 
         if status == self.S_OK:
-            # Finalize the task.
-            if not self.finalized:
-                self._on_ok()
 
-                # here we remove the output files of the task and of its parents.
+            if not self.finalized: self._on_ok()
+
+            # Note that _on_ok might have changed the status.
+            if self.status == self.S_OK:
                 if self.gc is not None and self.gc.policy == "task":
+                    # remove the output files of the task and of its parents.
                     self.clean_output_files()
 
-            if self.status == self.S_OK:
-                # Because _on_ok might have changed the status.
                 self.send_signal(self.S_OK)
 
         return status
@@ -3701,7 +3695,7 @@ class RelaxTask(GsTask, ProduceHist):
             raise ValueError("Wrong value for what %s" % what)
 
     def reduce_dilatmx(self, target: float = 1.01):
-        actual_dilatmx = self.get_inpvar('dilatmx', 1.)
+        actual_dilatmx = self.get_inpvar("dilatmx", 1.0)
         new_dilatmx = actual_dilatmx - min((actual_dilatmx - target), actual_dilatmx * 0.05)
         self.set_vars(dilatmx=new_dilatmx)
 

@@ -1162,7 +1162,7 @@ class RelaxWork(Work):
             actual_dilatmx = self.ioncell_task.get_inpvar('dilatmx', 1.)
             if self.target_dilatmx < actual_dilatmx:
                 self.ioncell_task.reduce_dilatmx(target=self.target_dilatmx)
-                self.history.info('Converging dilatmx. Value reduce from {} to {}.'
+                self.history.info('Converging dilatmx. Value reduced from {} to {}.'
                             .format(actual_dilatmx, self.ioncell_task.get_inpvar('dilatmx')))
                 self.ioncell_task.restart()
 
@@ -1732,10 +1732,10 @@ class PhononWork(Work, MergeDdb):
         """
         # Merge DDB files.
         exclude_tasks = []
-        if self.ebands_task is not None:
+        if getattr(self, "ebands_task", None) is not None:
             exclude_tasks = [self.ebands_task]
 
-        out_ddb = self.merge_ddb_files(only_dfpt_tasks=False, exclude_tasks=exclude_task)
+        out_ddb = self.merge_ddb_files(only_dfpt_tasks=False, exclude_tasks=exclude_tasks)
 
         if getattr(self, "with_dvdb", True):
             # Merge DVDB files (use getattr to maintain backward compability with pickle).
