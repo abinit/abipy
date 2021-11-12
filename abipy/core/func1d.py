@@ -279,11 +279,9 @@ class Function1D(object):
         if stop is None: stop = len(self.values) + 1
         x, y = self.mesh[start:stop], self.values[start:stop]
         from scipy.integrate import cumtrapz
-        integ = cumtrapz(y, x=x)
-        pad_intg = np.zeros(len(y))
-        pad_intg[1:] = integ
+        integ = cumtrapz(y, x=x, initial=0.0)
 
-        return self.__class__(x, pad_intg)
+        return self.__class__(x, integ)
 
     @lazy_property
     def spline(self):

@@ -12,6 +12,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict, namedtuple
 from collections.abc import Iterable
@@ -288,7 +289,8 @@ class Smearing(AttrDict):
                 raise ValueError("Mandatory key %s must be provided" % str(mkey))
 
     def __str__(self):
-        return "smearing scheme: %s (occopt %d), tsmear_eV: %.3f" % (self.scheme, self.occopt, self.tsmear_ev)
+        return "smearing scheme: %s (occopt %d), tsmear_eV: %.3f, tsmear Kelvin: %.1f" % (
+                    self.scheme, self.occopt, self.tsmear_ev, self.tsmear_ev / abu.kb_eVK )
 
     @property
     def has_metallic_scheme(self):
@@ -1730,16 +1732,19 @@ class ElectronBands(Has_Structure):
 
                 app("Bandwidth: %.3f (eV)" % self.bandwidths[spin])
                 if verbose:
-                    s = indent(self.lomos[spin].to_string(verbose=verbose))
-                    app(f"Valence minimum located at:\n{s}")
+                    lomo = self.lomos[spin]
+                    s = indent(lomo.to_string(verbose=verbose))
+                    app(f"Valence minimum located at kpt index {lomo.kidx}:\n{s}")
 
-                s = indent(self.homos[spin].to_string(verbose=verbose))
-                app(f"Valence maximum located at:\n{s}")
+                homo = self.homos[spin]
+                s = indent(homo.to_string(verbose=verbose))
+                app(f"Valence maximum located at kpt index {homo.kidx}:\n{s}")
 
                 try:
                     # Cannot assume enough states for this!
-                    s = indent(self.lumos[spin].to_string(verbose=verbose))
-                    app(f"Conduction minimum located at:\n{s}\n")
+                    lumo = self.lumos[spin]
+                    s = indent(lumo.to_string(verbose=verbose))
+                    app(f"Conduction minimum located at kpt index {lumo.kidx}:\n{s}\n")
                 except Exception:
                     pass
 
