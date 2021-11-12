@@ -19,6 +19,8 @@ class DeltaSCF():
         """ Create the object from a json file containing the path to netcdf files)"""
 
         with open(json_path) as f:
+
+
             data = json.load(f)
 
         if 'meta' in data:
