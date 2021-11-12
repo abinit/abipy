@@ -67,7 +67,7 @@ def get_phonons_abipy_order(phonopy_supercell_instance):
     # put the phonons eigenvectors in the abipy ordering
 
     structure_phonopy = get_pmg_structure(phonopy_supercell_instance.unitcell)  # phonopy structure
-    structure_abipy = structure_supercell_phonopy.get_sorted_structure()  # to be checked twice
+    structure_abipy = structure_phonopy.get_sorted_structure()  # to be checked twice
     # reasoning is that structure.get_sorted_structure() gives the same order than make_supercell() of abipy
     mapping = structure_matcher.StructureMatcher(primitive_cell=False).get_mapping(superset=structure_phonopy,
                                                                                    subset=structure_abipy)
