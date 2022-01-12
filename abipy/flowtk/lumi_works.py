@@ -2,7 +2,6 @@
 """Work subclasses for the computation of luminescent properties."""
 
 from .works import Work
-from abipy.lumi.deltaSCF import DeltaSCF
 from abipy.abilab import abiopen
 
 class LumiWork(Work):
