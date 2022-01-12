@@ -20,7 +20,6 @@ class DeltaSCF():
 
         with open(json_path) as f:
 
-
             data = json.load(f)
 
         if 'meta' in data:
@@ -48,10 +47,13 @@ class DeltaSCF():
                 Ag_energy = gsr_file.energy
             with abiopen(Agstar_path) as gsr_file:
                 Agstar_energy = gsr_file.energy
+                forces_ex=gsr_file.cart_forces
             with abiopen(Aestar_path) as gsr_file:
                 Aestar_energy = gsr_file.energy
             with abiopen(Ae_path) as gsr_file:
                 Ae_energy = gsr_file.energy
+                forces_gs=gsr_file.cart_forces
+
 
         else:
             with abiopen(gs_relax_path) as gsr_file:
@@ -65,6 +67,8 @@ class DeltaSCF():
 
         return cls(structuregs=structure_gs,
                    structureex=structure_ex,
+                   forces_gs=forces_gs,
+                   forces_ex=forces_ex,
                    AgEnergy=Ag_energy,
                    AgstarEnergy=Agstar_energy,
                    AestarEnergy=Aestar_energy,
@@ -77,13 +81,16 @@ class DeltaSCF():
         """ Create the object from a list of netcdf files in the order (Ag,Agstar,Aestar,Ae)"""
         energies=[]
         structures=[]
+        forces=[]
         for path in filepaths:
             with abiopen(path) as gsr_file:
                 energies.append(gsr_file.energy)
                 structures.append(gsr_file.structure)
-
+                forces.append(gsr_file.cart_forces)
         return cls(structuregs=structures[0],
                    structureex=structures[2],
+                   forces_gs=forces[3],
+                   forces_ex=forces[1],
                    AgEnergy=energies[0],
                    AgstarEnergy=energies[1],
                    AestarEnergy=energies[2],
@@ -97,23 +104,30 @@ class DeltaSCF():
         """
         energies=[]
         structures=[]
+        forces=[]
         for path in filepaths:
             with abiopen(path) as gsr_file:
                 energies.append(gsr_file.energy)
                 structures.append(gsr_file.structure)
+                forces.append(gsr_file.cart_forces)
 
         return cls(structuregs=structures[0],
                    structureex=structures[1],
+                   forces_gs=None,
+                   forces_ex=None,
                    AgEnergy=energies[0],
                    AgstarEnergy=None,
                    AestarEnergy=energies[1],
                    AeEnergy=None,)
 
 
-    def __init__(self,structuregs,structureex,AgEnergy,AgstarEnergy,AestarEnergy,AeEnergy,meta=None):
+    def __init__(self,structuregs,structureex,forces_gs,forces_ex,
+                 AgEnergy,AgstarEnergy,AestarEnergy,AeEnergy,meta=None):
         """
         :param structuregs: relaxed ground state structure
         :param structureex: relaxed excited state structure
+        :param forces_gs: forces in the gs
+        :param forces_ex: forces in the ex
         :param AgEnergy
         :param AgstarEnergy
         :param AestarEnergy
@@ -123,6 +137,8 @@ class DeltaSCF():
 
         self.structuregs=structuregs
         self.structureex=structureex
+        self.forces_gs=forces_gs
+        self.forces_ex=forces_ex
         self.AgEnergy=AgEnergy
         self.AgstarEnergy=AgstarEnergy
         self.AestarEnergy=AestarEnergy
@@ -138,6 +154,12 @@ class DeltaSCF():
 
     def structure_ex(self):
         return self.structureex
+
+#    def forces_gs(self):
+#        return self.forces_gs
+
+#    def forces_ex(self):
+#        return self.forces_ex
 
     def natom(self):
         """Number of atoms in structure."""
@@ -159,8 +181,9 @@ class DeltaSCF():
         d={}
         d["symbol"]=stru.species[index].name
         d["mass"]=self.amu_list()[index]
-        d[r"$\Delta R^2$"]=sum(self.diff_pos()[index]**2)
+        d[r"$\Delta R$"]=(sum(self.diff_pos()[index]**2))**(0.5)
         d[r"$\Delta Q^2$"]=self.amu_list()[index]*sum(self.diff_pos()[index]**2)
+        d[r"$\Delta F$"]=(sum(self.forces_gs[index]**2))**(0.5)
         d["dist. from defect"]=stru[index].distance(other=stru[def_index])
 
         return d
@@ -381,7 +404,7 @@ class DeltaSCF():
         clb=plt.colorbar(sc)
         clb.set_label(r'$\Delta Q^2$ per atom')
 
-    def plot_dr_distance(self,defect_symbol,colors=["r","g","b","c","m"]):
+    def plot_dr_distance(self,defect_symbol,colors=["k","r","g","b","c","m"]):
         symbols=self.structuregs.symbol_set
         dfs = []
         xs = []
@@ -391,14 +414,36 @@ class DeltaSCF():
         for i, symbol in enumerate(symbols):
             dfs.append(df.loc[df['symbol'] == symbol])
             xs.append(dfs[i]["dist. from defect"])
-            ys.append(dfs[i]["$\\Delta R^2$"])
+            ys.append(dfs[i]["$\\Delta R$"])
 
         f = plt.figure()
 
         for i, symbol in enumerate(symbols):
             plt.stem(xs[i], ys[i], label=symbol, linefmt=colors[i], markerfmt="o" + colors[i])
             plt.xlabel(r'Distance from defect ($\AA$)')
-            plt.ylabel(r'$\Delta R ^2$ ($\AA^2$)')
+            plt.ylabel(r'$\Delta R $ ($\AA$)')
+            plt.legend()
+
+        return f
+
+    def plot_dF_distance(self,defect_symbol,colors=["k","r","g","b","c","m"]):
+        symbols=self.structuregs.symbol_set
+        dfs = []
+        xs = []
+        ys = []
+        df=self.get_dataframe_atoms(defect_symbol=defect_symbol)
+
+        for i, symbol in enumerate(symbols):
+            dfs.append(df.loc[df['symbol'] == symbol])
+            xs.append(dfs[i]["dist. from defect"])
+            ys.append(dfs[i]["$\\Delta F$"])
+
+        f = plt.figure()
+
+        for i, symbol in enumerate(symbols):
+            plt.stem(xs[i], ys[i], label=symbol, linefmt=colors[i], markerfmt="o" + colors[i])
+            plt.xlabel(r'Distance from defect ($\AA$)')
+            plt.ylabel(r'$\Delta F$ ($eV/\AA$)')
             plt.legend()
 
         return f

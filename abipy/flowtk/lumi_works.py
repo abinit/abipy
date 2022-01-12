@@ -195,6 +195,101 @@ class LumiWork(Work):
 
             return super().on_all_ok()
 
+class LumiWork_relaxations(Work):
+    """
+    This Work implements Fig 1 of https://arxiv.org/abs/2010.00423.
+
+    Client code is responsible for the preparation of the supercell and
+    of the GS SCF input files with the fixed electronic occupations associated to the two configurations.
+    By default, the work computes the two relaxed structures and the four total energies
+    corresponding to the Ag, Ag*, Ae*, Ae configurations. Optionally, one can activate the computation of
+    four electronic band structures. See docstring of from_scf_inputs for further info.
+    """
+
+    @classmethod
+    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, relax_kwargs_gs, relax_kwargs_ex, meta=None, manager=None):
+        """
+        Args:
+            gs_scf_inp: |AbinitInput| representing a GS SCF run for the ground-state.
+            ex_scf_inp: |AbinitInput| representing a GS SCF run for the excited-state.
+            relax_kwargs_gs: Dictonary with input variables to be added to gs_scf_inp
+                when generating input files for ground state structural relaxations.
+            relax_kwargs_ex: Dictonary with input variables to be added to ex_scf_inp
+                when generating input files for excited state structural relaxations.
+            ndivsm: Activates the computation of band structure if different from zero.
+                if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two high symmetry k-points that are very close
+                as ndivsm > 0 may produce a very large number of wavevectors.
+            nb_extra: Number of extra bands added to the input nband when computing band structures (ndivsm != 0).
+            tolwfr: Tolerance of the residuals used for the NSCF band structure calculations.
+            four_points : if True, compute the two relaxations and the four points energies.
+                If false, only the two relaxations.
+            meta : dict corresponding to the metadata of a lumiwork (supercell size, dopant type,...)
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        new = cls(manager=manager)
+
+        # Templates for GS SCF calculations.
+        new.gs_scf_inp = gs_scf_inp
+        new.ex_scf_inp = ex_scf_inp
+
+        # Save paramenters for the generation of input files at runtime.
+        new.relax_kwargs_gs = relax_kwargs_gs
+        new.relax_kwargs_ex = relax_kwargs_ex
+
+        #new.four_points = four_points
+        #new.ndivsm = int(ndivsm)
+        #new.tolwfr = tolwfr
+        #new.nb_extra = int(nb_extra)
+        new.meta=meta
+
+        # Relaxation for the Ag configuration.
+        new.gs_relax_task = new.register_relax_task(gs_scf_inp.new_with_vars(relax_kwargs_gs))
+        new.ex_relax_task = new.register_relax_task(ex_scf_inp.new_with_vars(relax_kwargs_ex))
+
+        # Internal counter used in on_all_ok to drive the differ steps of the calculations.
+        #new.iteration_step = 0
+
+        # JSON-compatible dictionary storing the most important results of the Work. (relaxations and 4 pts results
+        # are separated)
+        # Results will be stored in the `lumi_4pts.json` file in the outdata directory of the Work
+        # so that one can easily implement additional post-processing tools.
+        new.json_data = {}
+        # Write json file in the outdir of the work
+        #new.json_data["meta"] = meta
+
+        # with self.gs_relax_task.open_gsr() as gsr:
+        #new.json_data["gs_relax_filepath"] = new.gs_relax_task.gsr_path
+
+        # with self.ex_relax_task.open_gsr() as gsr:
+        #new.json_data["ex_relax_filepath"] = new.ex_relax_task.gsr_path
+
+       #new.write_json_in_outdir("lumi.json", new.json_data)
+
+        return new
+
+    def on_all_ok(self):
+        """
+        This method is called when all the works in the flow have reached S_OK.
+
+        """
+        self.json_data["meta"] = self.meta
+
+        # with self.gs_relax_task.open_gsr() as gsr:
+        self.json_data["gs_relax_filepath"] = self.gs_relax_task.gsr_path
+
+        # with self.ex_relax_task.open_gsr() as gsr:
+        self.json_data["ex_relax_filepath"] = self.ex_relax_task.gsr_path
+
+        # Write json file in the outdir of the work
+        self.write_json_in_outdir("lumi_relaxations.json", self.json_data)
+
+        return super().on_all_ok()
+
+
+
 
 class LumiWorkFromRelax(Work):
     """
@@ -203,7 +298,7 @@ class LumiWorkFromRelax(Work):
     """
 
     @classmethod
-    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, gs_structure, ex_structure , ndivsm=0, nb_extra=10,
+    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, gs_structure, ex_structure, ndivsm=0, nb_extra=10,
                         tolwfr=1e-12, manager=None):
         """
         Args:
@@ -254,6 +349,7 @@ class LumiWorkFromRelax(Work):
         aestar_scf_inp = new.ex_scf_inp.new_with_structure(ex_structure)
         new.aestar_scf_task = new.register_scf_task(aestar_scf_inp)
 
+
         # Build GS SCF input for the Ag* configuration:
         # use same structure as Ag but with excited occupation factors.
         ae_scf_inp = new.gs_scf_inp.new_with_structure(ex_structure)
@@ -274,30 +370,3 @@ class LumiWorkFromRelax(Work):
                                                              tolwfr=new.tolwfr, nb_extra=new.nb_extra)
 
         return new
-
-    def on_all_ok(self):
-        """
-        This method is called when all the works in the flow have reached S_OK.
-
-        """
-        # Get Ag total energy.
-        with self.ag_scf_task.open_gsr() as gsr:
-            self.json_data["Ag_gsr_filepath"] = gsr.filepath
-
-        # Get Agstar total energy.
-        with self.agstar_scf_task.open_gsr() as gsr:
-            self.json_data["Agstar_gsr_filepath"] = gsr.filepath
-
-        # Get Aestar total energy.
-        with self.aestar_scf_task.open_gsr() as gsr:
-            self.json_data["Aestar_gsr_filepath"] = gsr.filepath
-
-        # Get Aestar total energy.
-        with self.ae_scf_task.open_gsr() as gsr:
-            self.json_data["Ae_gsr_filepath"] = gsr.filepath
-
-        # Write json file in the outdir of the work
-        self.write_json_in_outdir("lumi_4pts.json", self.json_data)
-
-        return super().on_all_ok()
-
