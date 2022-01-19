@@ -92,53 +92,66 @@ def get_phonons_mapped_and_spcell_structure(supercell_size,prim_DDB):
     structure=get_supercell_structure_from_phonopy_instance(phonopy_instance)
     return ph_freq,ph_vec,structure
 
-def get_matching_dSCF_phonon_spcell(dSCF_specell,supercell_size_dSCF,phonon_spcell,supercell_size_phonon):
-
-    prim_matrix=phonon_spcell.lattice.matrix/supercell_size_phonon
-    inv_prim_matrix=np.linalg.inv(prim_matrix)
-
-    super_fracs_phonon=np.dot(phonon_spcell.cart_coords,inv_prim_matrix)
-    super_fracs_dSCF=np.dot(dSCF_specell.cart_coords,inv_prim_matrix)
-
-    super_fracs_phonon_center = super_fracs_phonon.copy()
-    super_fracs_dSCF_center = super_fracs_dSCF.copy()
-
-    # centering both structures
-
-    for i in range(len(super_fracs_dSCF_center)):
-        if super_fracs_dSCF[i][0] > supercell_size_dSCF[0] / 2:
-            super_fracs_dSCF_center[i][0] = super_fracs_dSCF[i][0] - supercell_size_dSCF[0]
-
-        if super_fracs_dSCF[i][1] > supercell_size_dSCF[1] / 2:
-            super_fracs_dSCF_center[i][1] = super_fracs_dSCF[i][1] - supercell_size_dSCF[1]
-
-        if super_fracs_dSCF[i][2] > supercell_size_dSCF[2] / 2:
-            super_fracs_dSCF_center[i][2] = super_fracs_dSCF[i][2] - supercell_size_dSCF[2]
-
-    for i in range(len(super_fracs_phonon_center)):
-        if super_fracs_phonon[i][0] > supercell_size_phonon[0] / 2:
-            super_fracs_phonon_center[i][0] = super_fracs_phonon[i][0] - supercell_size_phonon[0]
-
-        if super_fracs_phonon[i][1] > supercell_size_phonon[1] / 2:
-            super_fracs_phonon_center[i][1] = super_fracs_phonon[i][1] - supercell_size_phonon[1]
-
-        if super_fracs_phonon[i][2] > supercell_size_phonon[2] / 2:
-            super_fracs_phonon_center[i][2] = super_fracs_phonon[i][2] - supercell_size_phonon[2]
-
+def get_matching_dSCF_phonon_spcell(dSCF_spcell,phonon_spcell):
+    dSCF_spcell_cart=dSCF_spcell.cart_coords
+    phonon_spcell_cart=phonon_spcell.cart_coords
     # perform the matching
     mapping = []
-    for i, site_1 in enumerate(dSCF_specell):  # subset structure
+    for i, site_1 in enumerate(dSCF_spcell):  # subset structure
         for j, site_2 in enumerate(phonon_spcell):  # superset structure
-            if max(abs(super_fracs_dSCF_center[i] - super_fracs_phonon_center[j])) < 0.01:
+            if max(abs(dSCF_spcell_cart[i] - phonon_spcell_cart[j])) < 0.2 :
                 mapping.append(j)
     print(mapping)
     print(len(mapping))
     return mapping
 
 
-def get_forces_on_phonon_supercell(dSCF_supercell,dSCF_size,phonon_supercell,phonon_size,forces_dSCF):
+    #
+    # prim_matrix=phonon_spcell.lattice.matrix/supercell_size_phonon
+    # inv_prim_matrix=np.linalg.inv(prim_matrix)
+    #
+    # super_fracs_phonon=np.dot(phonon_spcell.cart_coords,inv_prim_matrix)
+    # super_fracs_dSCF=np.dot(dSCF_specell.cart_coords,inv_prim_matrix)
+    #
+    # super_fracs_phonon_center = super_fracs_phonon.copy()
+    # super_fracs_dSCF_center = super_fracs_dSCF.copy()
+    #
+    # # centering both structures
+    #
+    # for i in range(len(super_fracs_dSCF_center)):
+    #     if super_fracs_dSCF[i][0] > supercell_size_dSCF[0] / 2:
+    #         super_fracs_dSCF_center[i][0] = super_fracs_dSCF[i][0] - supercell_size_dSCF[0]
+    #
+    #     if super_fracs_dSCF[i][1] > supercell_size_dSCF[1] / 2:
+    #         super_fracs_dSCF_center[i][1] = super_fracs_dSCF[i][1] - supercell_size_dSCF[1]
+    #
+    #     if super_fracs_dSCF[i][2] > supercell_size_dSCF[2] / 2:
+    #         super_fracs_dSCF_center[i][2] = super_fracs_dSCF[i][2] - supercell_size_dSCF[2]
+    #
+    # for i in range(len(super_fracs_phonon_center)):
+    #     if super_fracs_phonon[i][0] > supercell_size_phonon[0] / 2:
+    #         super_fracs_phonon_center[i][0] = super_fracs_phonon[i][0] - supercell_size_phonon[0]
+    #
+    #     if super_fracs_phonon[i][1] > supercell_size_phonon[1] / 2:
+    #         super_fracs_phonon_center[i][1] = super_fracs_phonon[i][1] - supercell_size_phonon[1]
+    #
+    #     if super_fracs_phonon[i][2] > supercell_size_phonon[2] / 2:
+    #         super_fracs_phonon_center[i][2] = super_fracs_phonon[i][2] - supercell_size_phonon[2]
+    #
+    # # perform the matching
+    # mapping = []
+    # for i, site_1 in enumerate(dSCF_specell):  # subset structure
+    #     for j, site_2 in enumerate(phonon_spcell):  # superset structure
+    #         if max(abs(super_fracs_dSCF_center[i] - super_fracs_phonon_center[j])) < 0.02:
+    #             mapping.append(j)
+    # print(mapping)
+    # print(len(mapping))
+    # return mapping
+
+
+def get_forces_on_phonon_supercell(dSCF_supercell,phonon_supercell,forces_dSCF):
     forces_in_supercell = np.zeros(shape=(len(phonon_supercell), 3))
-    mapping=get_matching_dSCF_phonon_spcell(dSCF_supercell,dSCF_size,phonon_supercell,phonon_size)
+    mapping=get_matching_dSCF_phonon_spcell(dSCF_supercell,phonon_supercell)
     for i in range(len(mapping)):
         forces_in_supercell[mapping[i]]=forces_dSCF[i]
 

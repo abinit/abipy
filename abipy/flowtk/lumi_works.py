@@ -105,12 +105,12 @@ class LumiWork(Work):
             # Build GS SCF input for the Ag configuration:
             # use same structure as Ag with ground occupation factors.
             ag_scf_inp = self.gs_scf_inp.new_with_structure(ag_relaxed_structure)
-            self.ag_scf_task = self.register_scf_task(ag_scf_inp)#,deps={self.gs_relax_task: "DEN"})
+            self.ag_scf_task = self.register_scf_task((ag_scf_inp),deps={self.gs_relax_task: "DEN"})
 
             # Build GS SCF input for the Ag* configuration:
             # use same structure as Ag but with excited occupation factors.
             agstar_scf_inp = self.ex_scf_inp.new_with_structure(ag_relaxed_structure)
-            self.agstar_scf_task = self.register_scf_task(agstar_scf_inp)#,deps={self.gs_relax_task: "DEN"})
+            self.agstar_scf_task = self.register_scf_task((agstar_scf_inp),deps={self.gs_relax_task: "DEN"})
 
             # Get Aestar relaxed structure.
             #with self.ex_relax_task.open_gsr() as gsr:
@@ -121,12 +121,12 @@ class LumiWork(Work):
             # Build ex SCF input for the Aestar configuration:
             # use same structure as Aestar with excited occupation factors.
             aestar_scf_inp = self.ex_scf_inp.new_with_structure(aestar_relaxed_structure)
-            self.aestar_scf_task = self.register_scf_task(aestar_scf_inp)#,deps={self.ex_relax_task: "DEN"})
+            self.aestar_scf_task = self.register_scf_task((aestar_scf_inp),deps={self.ex_relax_task: "DEN"})
 
             # Build GS SCF task for the Ae configuration:
             # use same structure as Aestar but with ground occupation factors.
             ae_scf_inp = self.gs_scf_inp.new_with_structure(aestar_relaxed_structure)
-            self.ae_scf_task = self.register_scf_task(ae_scf_inp)#,deps={self.ex_relax_task: "DEN"})
+            self.ae_scf_task = self.register_scf_task((ae_scf_inp),deps={self.ex_relax_task: "DEN"})
 
 
             if self.ndivsm != 0:
@@ -238,34 +238,14 @@ class LumiWork_relaxations(Work):
         new.relax_kwargs_gs = relax_kwargs_gs
         new.relax_kwargs_ex = relax_kwargs_ex
 
-        #new.four_points = four_points
-        #new.ndivsm = int(ndivsm)
-        #new.tolwfr = tolwfr
-        #new.nb_extra = int(nb_extra)
         new.meta=meta
 
         # Relaxation for the Ag configuration.
         new.gs_relax_task = new.register_relax_task(gs_scf_inp.new_with_vars(relax_kwargs_gs))
         new.ex_relax_task = new.register_relax_task(ex_scf_inp.new_with_vars(relax_kwargs_ex))
 
-        # Internal counter used in on_all_ok to drive the differ steps of the calculations.
-        #new.iteration_step = 0
 
-        # JSON-compatible dictionary storing the most important results of the Work. (relaxations and 4 pts results
-        # are separated)
-        # Results will be stored in the `lumi_4pts.json` file in the outdata directory of the Work
-        # so that one can easily implement additional post-processing tools.
         new.json_data = {}
-        # Write json file in the outdir of the work
-        #new.json_data["meta"] = meta
-
-        # with self.gs_relax_task.open_gsr() as gsr:
-        #new.json_data["gs_relax_filepath"] = new.gs_relax_task.gsr_path
-
-        # with self.ex_relax_task.open_gsr() as gsr:
-        #new.json_data["ex_relax_filepath"] = new.ex_relax_task.gsr_path
-
-       #new.write_json_in_outdir("lumi.json", new.json_data)
 
         return new
 
@@ -298,7 +278,7 @@ class LumiWorkFromRelax(Work):
 
     @classmethod
     def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, gs_structure, ex_structure, ndivsm=0, nb_extra=10,
-                        tolwfr=1e-12, manager=None):
+                        tolwfr=1e-12, meta=None ,gs_DEN_file=None, ex_DEN_file=None,manager=None):
         """
         Args:
             gs_scf_inp: |AbinitInput| representing a GS SCF run for the ground-state.
@@ -317,6 +297,7 @@ class LumiWorkFromRelax(Work):
         """
         new = cls(manager=manager)
 
+        new.meta=meta
         new.gs_structure=gs_structure
         new.ex_structure=ex_structure
 
@@ -337,22 +318,22 @@ class LumiWorkFromRelax(Work):
         # Build GS SCF input for the Ag configuration:
         # use same structure as Ag but with ground occupation factors
         ag_scf_inp = new.gs_scf_inp.new_with_structure(gs_structure)
-        new.ag_scf_task = new.register_scf_task(ag_scf_inp)
+        new.ag_scf_task = new.register_scf_task(ag_scf_inp,deps={gs_DEN_file: "DEN"})
 
         # Build GS SCF input for the Ag* configuration:
         # use same structure as Ag but with excited occupation factors.
         agstar_scf_inp = new.ex_scf_inp.new_with_structure(gs_structure)
-        new.agstar_scf_task = new.register_scf_task(agstar_scf_inp)
+        new.agstar_scf_task = new.register_scf_task(agstar_scf_inp,deps={gs_DEN_file: "DEN"})
 
         # Build ex SCF input for the Aestar configuration:
         aestar_scf_inp = new.ex_scf_inp.new_with_structure(ex_structure)
-        new.aestar_scf_task = new.register_scf_task(aestar_scf_inp)
+        new.aestar_scf_task = new.register_scf_task(aestar_scf_inp,deps={ex_DEN_file: "DEN"})
 
 
         # Build GS SCF input for the Ag* configuration:
         # use same structure as Ag but with excited occupation factors.
         ae_scf_inp = new.gs_scf_inp.new_with_structure(ex_structure)
-        new.ae_scf_task = new.register_scf_task(ae_scf_inp)
+        new.ae_scf_task = new.register_scf_task(ae_scf_inp,deps={ex_DEN_file: "DEN"})
 
         if new.ndivsm != 0:
             # Compute band structure for Ag configuration.
@@ -369,3 +350,30 @@ class LumiWorkFromRelax(Work):
                                                              tolwfr=new.tolwfr, nb_extra=new.nb_extra)
 
         return new
+
+    def on_all_ok(self):
+
+        self.json_data["meta"] = self.meta
+
+
+        # Get Ag total energy.
+        # with self.ag_scf_task.open_gsr() as gsr:
+        self.json_data["Ag_gsr_filepath"] = self.ag_scf_task.gsr_path
+
+        # Get Agstar total energy.
+        # with self.ex_relax_task.open_gsr() as gsr:
+        self.json_data["Agstar_gsr_filepath"] = self.agstar_scf_task.gsr_path
+
+        # Get Aestar total energy.
+        # with self.aestar_scf_task.open_gsr() as gsr:
+        self.json_data["Aestar_gsr_filepath"] = self.aestar_scf_task.gsr_path
+
+        # Get Aestar total energy.
+        # with self.ae_scf_task.open_gsr() as gsr:
+        self.json_data["Ae_gsr_filepath"] = self.ae_scf_task.gsr_path
+
+        # Write json file in the outdir of the work
+        self.write_json_in_outdir("lumi.json", self.json_data)
+
+        return super().on_all_ok()
+

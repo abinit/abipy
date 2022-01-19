@@ -13,14 +13,12 @@ class Lineshape():
     """
 
     @classmethod
-    def from_embedded_method(cls,E_zpl,prim_DDB,phonon_spcell_size,dSCF_structure,dSCF_size,forces_dSCF):
+    def from_embedded_method(cls,E_zpl,prim_DDB,phonon_spcell_size,dSCF_structure,forces_dSCF):
 
         ph_freq,ph_vec,structure_phonons=phonon_folding.get_phonons_mapped_and_spcell_structure(phonon_spcell_size,prim_DDB)
 
         forces=phonon_folding.get_forces_on_phonon_supercell(dSCF_supercell=dSCF_structure,
-                                                             dSCF_size=dSCF_size,
                                                              phonon_supercell=structure_phonons,
-                                                             phonon_size=phonon_spcell_size,
                                                              forces_dSCF=forces_dSCF)
 
         return cls(E_zpl=E_zpl,
