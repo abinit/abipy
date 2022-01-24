@@ -791,7 +791,6 @@ class AbipyParameterized(param.Parameterized):
     @staticmethod
     def get_abifile_from_file_input(file_input, use_structure=False):
         #print("filename", file_input.filename, "\nvalue", file_input.value)
-
         workdir = tempfile.mkdtemp()
 
         fd, tmp_path = tempfile.mkstemp(suffix=file_input.filename)
@@ -932,8 +931,6 @@ https://codepen.io/matthewcain/pen/ZepbeR
   visibility: visible;
 }
 </style>
-
-
 
 <script>
 

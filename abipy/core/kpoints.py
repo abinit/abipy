@@ -664,17 +664,29 @@ class Kpoint(SlotPickleMixin):
             s += " %s" % self.name
         return s
 
-    def tos(self, m="fract"):
+    def tos(self, m="fract", scale=False):
         """
         Return string with fractional or cartesian coords depending
         on mode `m` in ("fract", "cart", "fracart")
         """
+        def rescale(vec):
+            #return vec
+            if not scale: return vec
+            vec = np.array(vec)
+            abs_dens = np.abs(np.array([v for v in vec if v != 0.0]))
+            if len(abs_dens) == 0: return vec
+            d = min(v for v in abs_dens if v != 0)
+            outs = vec / d
+            #print("outs", outs, np.all(np.mod(outs, 1) == 0))
+            if np.all(np.mod(outs, 1) == 0): return outs
+            return vec
+
         if m == "fract":
-            return "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+            return "[%.3f, %.3f, %.3f]" % tuple(rescale(self.frac_coords))
         elif m == "cart":
-            return "(%+.3f, %+.3f, %+.3f)" % tuple(self.cart_coords)
+            return "(%.3f, %.3f, %.3f)" % tuple(rescale(self.cart_coords))
         elif m == "fracart":
-            return "%s, %s" % (self.tos(m="fract"), self.tos(m="cart"))
+            return "%s, %s" % (self.tos(m="fract", scale=scale), self.tos(m="cart", scale=scale))
         else:
             raise ValueError(f"Invalid mode: {m}")
 
