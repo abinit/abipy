@@ -358,7 +358,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return aio.AseAtomsAdaptor.get_atoms(self)
 
     @classmethod
-    def boxed_molecule(cls, pseudos, cart_coords, acell=3*(10,)) -> Structure:
+    def boxed_molecule(cls, pseudos, cart_coords, acell=3 * (10,)) -> Structure:
         """
         Creates a molecule in a periodic box of lengths acell [Bohr]
 
