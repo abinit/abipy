@@ -1,7 +1,7 @@
 # coding: utf-8
 """
-Objects to compute electronic effective masses via finite differences starting
-from an |ElectronBands| object containing energie along segments passing through the k-point of interest.
+This module provides objects to compute electronic effective masses via finite differences starting from a GSR
+file with KS energies defined along segments passing through the k-point of interest.
 """
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
 
-from typing import List
+from typing import List, Union
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure, Has_ElectronBands
@@ -22,7 +22,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig
 class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
     """
     This objects provides a high-level API to compute electronic effective masses
-    via finite differences starting from an |ElectronBands| object.
+    via finite differences starting from a netcdf file with an |ElectronBands| object.
 
     Usage example:
 
@@ -32,7 +32,9 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         emana = EffMassAnalyzer.from_file("out_GSR.nc")
         print(emana)
         emana.select_vbm()
+        #emana.select_cbm()
         #emana.select_kpoint_band(kpoint=[0, 0, 0], band=3)
+
         #amana.summarize()
         emana.plot_emass()
 
@@ -43,7 +45,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
     @classmethod
     def from_file(cls, filepath: str) -> EffMassAnalyzer:
         """
-        Initialize the object from a netcdf file with an ebands object.
+        Initialize the object from a netcdf file providing an |ElectronBands| object, usually a GSR file.
         """
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
@@ -71,22 +73,32 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
     def to_string(self, verbose: int = 0) -> str:
         """
-        Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
+        Human-readable string with useful info such as band gaps, position of HOMO, LOMO, etc.
 
         Args:
             verbose: Verbosity level.
         """
         return self.ebands.to_string(with_structure=True, with_kpoints=True, verbose=verbose)
 
-    def select_kpoint_band(self, kpoint, band, spin=0, degtol_ev=1e-3):
+    @property
+    def ebands(self) -> ElectronBands:
+        """|ElectronBands| object."""
+        return self._ebands
+
+    @property
+    def structure(self) -> Structure:
+        """|Structure| object."""
+        return self.ebands.structure
+
+    def select_kpoint_band(self, kpoint, band: int, spin: int = 0, degtol_ev: float = 1e-3):
         """
         Construct line segments based on the k-point ``kpoint`` and the band index ``band``.
         This is the most flexible interface and allows one to include extra bands
         by increasing the value of `degtol_ev`.
 
         Args:
-            kpoint: Fractional coordinates or |Kpoint| object.
-            band: Band index
+            kpoint: Fractional coordinates or |Kpoint| object or index of the k-point.
+            band: Band index.
             spin: Spin index.
             degtol_ev: Include all bands at this k-point whose energy differ from the one at
                 (kpoint, band) less that ``degtol_ev`` in eV.
@@ -101,17 +113,21 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         band_inds_k = len(ik_indices) * [band_inds_k]
         self._build_segments(spin, ik_indices, band_inds_k)
 
-    def select_cbm(self, spin=0, degtol_ev=1e-3):
-        """Select conduction band minimum."""
+    def select_cbm(self, spin: int = 0, degtol_ev: float = 1e-3) -> None:
+        """
+        Select conduction band minimum.
+        """
         ik_indices, band_inds_k = self._select(["cbm"], spin, degtol_ev)
         self._build_segments(spin, ik_indices, band_inds_k)
 
-    def select_vbm(self, spin=0, degtol_ev=1e-3):
-        """Select valence band maximum."""
+    def select_vbm(self, spin: int = 0, degtol_ev: float = 1e-3) -> None:
+        """
+        Select valence band maximum.
+        """
         ik_indices, band_inds_k = self._select(["vbm"], spin, degtol_ev)
         self._build_segments(spin, ik_indices, band_inds_k)
 
-    def select_band_edges(self, spin=0, degtol_ev=1e-3):
+    def select_band_edges(self, spin: int = 0, degtol_ev: float = 1e-3) -> None:
         """Select conduction band minimum and valence band maximum."""
         ik_indices, band_inds_k = self._select(["cbm", "vbm"], spin, degtol_ev)
         self._build_segments(spin, ik_indices, band_inds_k)
@@ -137,7 +153,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             band = lumo.band
             lumo_iks = self.kpoints.get_all_kindices(lumo.kpoint)
             #lumo_iks = np.flatnonzero(abs(self.ebands.eigens[spin, :, lumo.band] - lumo.eig) < 1e-4)
-            print("lumo_iks:", lumo_iks)
+            #print("lumo_iks:", lumo_iks)
             ik = lumo_iks[0]
             e0 = self.ebands.eigens[spin, ik, lumo.band]
             lumo_bands = [be[0] for be in enumerate(self.ebands.eigens[spin, ik]) if abs(be[1] - e0) <= degtol_ev]
@@ -174,27 +190,22 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
             self.segments.append(Segment(ik, spin, line, bids, self.ebands))
 
-    @property
-    def ebands(self) -> ElectronBands:
-        """|ElectronBands| object."""
-        return self._ebands
-
-    @property
-    def structure(self) -> Structure:
-        """|Structure| object."""
-        return self.ebands.structure
-
-    def _consistency_check(self):
+    def _consistency_check(self) -> None:
         if not self.segments:
             methods = ", ".join(["select_cbm", "select_vbm", "select_band_edges", "select_kpoint_band"])
             raise RuntimeError("You must call one among: `%s`\nto build segments before analyzing data." % methods)
 
-    def summarize(self, acc=4):
+    def summarize(self, acc_list=(2, 4, 6, 8)) -> None:
+        """
+        Compute effective masses with different accuracies and print results in tabular format.
+        Useful to understand is results are sensitive to the number of points in the finite difference.
+        Note however that numerical differentiation is performed with the same delta_k step.
+        """
         self._consistency_check()
         for segment in self.segments:
-            df = segment.get_dataframe_with_accuracies(acc_list=[acc])
-            title = "k: %s, spin: %s, nbands: %d" % (repr(segment.k0), segment.spin, segment.nb)
-            #label="direction: %s" % segment.kdir.tos(m="fracart") if ib == 0 else None)
+            df = segment.get_dataframe_with_accuracies(acc_list=acc_list)
+            title = "k: %s, spin: %s, nbands in segment: %d, step: %.3f Ang-1\n(reduced/cart) direction: %s\n" % (
+                    repr(segment.k0), segment.spin, segment.nb, segment.dk, segment.kdir.tos(m="fracart", scale=True))
             print_dataframe(df, title=title)
             #print("")
 
@@ -205,12 +216,12 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
     @add_fig_kwargs
     def plot_emass(self, acc=4, sharey=True, fontsize=6, colormap="viridis", **kwargs):
         """
-        Plot electronic dispersion and quadratic curve based on the
+        Plot electronic dispersion and quadratic approximant based on the
         effective masses computed along each segment.
 
         Args:
             acc:
-            sharey: True if y axis (energy) should be shared.
+            sharey: True if y axis (energies) should be shared.
             fontsize: legend and title fontsize.
             colormap: matplotlib colormap
         """
@@ -266,7 +277,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             for ib in range(segment.nb):
                 ax.plot(segment.kpoint_indices + pad, segment.energies_bk[ib],
                         linestyle=":", marker=markers[ib], markersize=2, color=color,
-                        label="direction: %s" % segment.kdir.tos(m="fracart") if ib == 0 else None)
+                        label="direction: %s" % segment.kdir.tos(m="fracart", scale=True) if ib == 0 else None)
             pad += 10
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
@@ -278,16 +289,16 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
 class Segment:
     """
-    This object stores the energies along a particular segment.
-    Provides methods to compute effective masses.
+    This object stores the KS energies along a particular segment in k-space passing through k0.
+    Provides methods to compute effective masses at k0 via finite differences.
     """
     def __init__(self, ik: int, spin: int, line, band_inds: List[int], ebands: ElectronBands):
         """
         Args:
-            ik: index of k0 k-point in ebands.eigens
+            ik: index of the k0 k-point in ebands.eigens
             spin: spin index
-            line: indices of k-points forming the segment (index in ebands.kpoints)
-            band_inds:
+            line: indices of k-points forming the segment (index in ebands.kpoints list)
+            band_inds: List of bands in ebands.eigens.
             ebands: |ElectronBands| object.
         """
         self.ik = ik
@@ -317,7 +328,7 @@ class Segment:
         self.nb, self.nk = self.energies_bk.shape
         self.ebands = ebands
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "k0: %s, kdir: %s, dk: %.3f (Ang-1)" % (repr(self.k0), repr(self.kdir), self.dk)
 
     def to_string(self, verbose: int = 0) -> str:
@@ -326,17 +337,17 @@ class Segment:
         app("k-point: %s, nband: %s, spin: %d" % (self.k0.to_string(verbose=verbose), self.nb, self.spin))
         return "\n".join(lines)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def get_fd_emass_d2(self, enes_kline, acc):
+    def get_fd_emass_d2(self, enes_kline, acc: int) -> tuple:
         # Note the use of self.kpos so that the stencil is centered on the kpos index
         # if we have points of both sides.
         d2 = finite_diff(enes_kline, self.dk, order=2, acc=acc, index=self.kpos)
         emass = 1. / (d2.value * (units.eV_to_Ha / units.bohr_to_ang ** 2))
         return emass, d2
 
-    def get_dataframe_with_accuracies(self, acc_list=(2, 4, 6, 8)) -> pd.DataFrame:
+    def get_dataframe_with_accuracies(self, acc_list: Tuple[int] = (2, 4, 6, 8)) -> pd.DataFrame:
         """
         Build and return a |pandas-Dataframe| with effective masses computed with different accuracies (npts)
         """
@@ -345,8 +356,12 @@ class Segment:
             emass_dict = {}
             for ib, enes_kline in enumerate(self.energies_bk):
                 #print("enes_kline", enes_kline)
-                emass, d2 = self.get_fd_emass_d2(enes_kline, acc)
-                emass_dict["m%d" % ib] = emass
+                try:
+                    emass, d2 = self.get_fd_emass_d2(enes_kline, acc)
+                    emass_dict["effm_b%d" % ib] = emass
+                except (ValueError, KeyError) as exc:
+                    #cprint(exc, color="red")
+                    emass_dict["effm_b%d" % ib] = None
 
             od = {"acc": acc, "npts": d2.npts}
             od.update(emass_dict)
@@ -355,7 +370,7 @@ class Segment:
         return pd.DataFrame(rows, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot_emass(self, acc=4, ax=None, fontsize=8, colormap="viridis", **kwargs):
+    def plot_emass(self, acc: int = 4, ax=None, fontsize: int = 8, colormap: str = "viridis", **kwargs):
         """
         Plot band dispersion and quadratic approximation.
 
@@ -382,7 +397,8 @@ class Segment:
                 emass, d2 = self.get_fd_emass_d2(enes_kline, acc)
             except Exception as exc:
                 cprint("Exception for segment: %s" % str(self), "red")
-                raise exc
+                continue
+                #raise exc
 
             ys = ((self.kmk0_2 * units.bohr_to_ang ** 2) / (2 * emass)) * \
                   units.Ha_to_eV + self.energies_bk[ib, self.kpos]
@@ -393,19 +409,8 @@ class Segment:
         ax.axvline(self.kpos, c="r", ls=":", lw=2)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
         title = r"${\bf k}_0$: %s, direction: %s, step: %.3f $\AA^{-1}$" % (
-                repr(self.k0), self.kdir.tos(m="fract"), self.dk)
+                repr(self.k0), self.kdir.tos(m="fracart", scale=True), self.dk)
         ax.set_title(title, fontsize=fontsize)
         ax.set_ylabel('Energy (eV)')
 
         return fig
-
-
-#class MultipleEffMassAnalyzer:
-#
-#    @classmethod
-#    def from_files(cls, filepaths):
-#        """Initialize the object from a list of files providing an |ElectronBands| object."""
-#        return cls([ElectronBands.from_file(f, copy=False) for f in list_strings(filepaths)])
-#
-#    def __init__(self, eband_list)
-#        self.eband_list = eband_list

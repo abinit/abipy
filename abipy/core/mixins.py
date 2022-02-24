@@ -623,8 +623,8 @@ class HasNotebookTools(object):
 
         Args:
             nbpath: If nbpath is None, a temporay file is created.
-            foreground: By default, jupyter is executed in background and stdout, stderr are redirected.
-            to devnull. Use foreground to run the process in foreground
+                foreground: By default, jupyter is executed in background and stdout, stderr are redirected.
+                to devnull. Use foreground to run the process in foreground
             classic_notebook: True to use the classic notebook instead of jupyter-lab (default)
             no_browser: Start the jupyter server to serve the notebook but don't open the notebook in the browser.
                         Use this option to connect remotely from localhost to the machine running the kernel
@@ -669,7 +669,6 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
             app_path = app_path + " notebook "
 
         if not no_browser:
-
             if foreground:
                 return os.system("%s %s" % (app_path, nbpath))
             else:

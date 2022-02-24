@@ -35,7 +35,7 @@ REPOS_ROOT = os.environ.get("ABIPY_PSREPOS_ROOT",
 
 def get_repos_root() -> str:
     """
-    Return the path to the installation directory. Create the directory if needed.
+    Return the path to the installation directory. Create directory if needed.
     """
     if not os.path.exists(REPOS_ROOT):
         os.mkdir(REPOS_ROOT)
@@ -61,12 +61,13 @@ def decode_pseudopath(filepath: str) -> str:
 def download_repo_from_url(url: str, save_dirpath: str,
                            chunk_size: int = 2 * 1024**2, verbose: int = 0) -> None:
     """
+    Dowload file from url.
 
     Args:
-        url:
-        save_dirpath:
-        chunk_size:
-        verbose:
+        url: The url from which the targz is taken.
+        save_dirpath: The directory in which the tarball is unpacked.
+        chunk_size: Chunk size used for downloading the file.
+        verbose: Verbosity level
     """
     path = urlsplit(url).path
     filename = posixpath.basename(path)
@@ -164,12 +165,12 @@ class PseudosRepo(abc.ABC):
                  version: str, url: str):
         """
         Args:
-            ps_generator:
-            xc_name:
-            relativity_type:
-            project_name:
-            version:
-            url:
+            ps_generator: Name of the pseudopotential generator
+            xc_name: XC functional.
+            relativity_type: SR for scalar-relativistic or FR for fully relativistic.
+            project_name: Name of the project associated to this repository.
+            version: Version string.
+            url: URL from which the targz will be taken.
         """
         if relativity_type not in {"SR", "FR"}:
             raise ValueError(f"Invalid relativity_type: {relativity_type}")

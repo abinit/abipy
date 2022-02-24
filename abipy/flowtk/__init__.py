@@ -160,5 +160,6 @@ Usage example:
     parser.add_argument("-a", "--abivalidate", default=False, action="store_true", help="Call Abinit to validate input files.")
     parser.add_argument("-t", "--tempdir", default=False, action="store_true", help="Execute flow in temporary directory.")
     parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
+    parser.add_argument("-e", "--extra", default=None, help="Extra argument passed to the script.")
 
     return parser

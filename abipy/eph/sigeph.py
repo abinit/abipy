@@ -988,23 +988,23 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Return a mapping of the kpoints at which the self energy was calculated and the ibz
         i.e. the list of k-points in the band structure used to construct the self-energy.
         """
-        # TODO: This field is not available in the netcdf file.
-        if (len(self.sigma_kpoints) == len(self.ebands.kpoints) and
-            all(k1 == k2 for (k1, k2) in zip(self.sigma_kpoints, self.ebands.kpoints))):
-            return np.arange(len(self.sigma_kpoints))
-
-        # Generic case
-        # Map sigma_kpoints to ebands.kpoints
-        kcalc2ibz = np.empty(self.nkcalc, dtype=int)
-        for ikc, sigkpt in enumerate(self.sigma_kpoints):
-            kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
-
-        #assert np.all(kcalc2ibz == self.reader.read_value("kcalc2ibz")[0] - 1)
-        return kcalc2ibz
-
         # nctkarr_t("kcalc2ibz", "int", "nkcalc, six")
         kcalc2ibz_map = self.reader.read_value("kcalc2ibz")
         return kcalc2ibz_map[0] - 1
+
+        # TODO: This field is not available in the netcdf file.
+        #if (len(self.sigma_kpoints) == len(self.ebands.kpoints) and
+        #    all(k1 == k2 for (k1, k2) in zip(self.sigma_kpoints, self.ebands.kpoints))):
+        #    return np.arange(len(self.sigma_kpoints))
+
+        ## Generic case
+        ## Map sigma_kpoints to ebands.kpoints
+        #kcalc2ibz = np.empty(self.nkcalc, dtype=int)
+        #for ikc, sigkpt in enumerate(self.sigma_kpoints):
+        #    kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
+
+        ##assert np.all(kcalc2ibz == self.reader.read_value("kcalc2ibz")[0] - 1)
+        #return kcalc2ibz
 
     @lazy_property
     def ibz2kcalc(self):
@@ -1012,7 +1012,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Mapping IBZ --> K-points in self-energy.
         Set to -1 if IBZ k-point not present.
         """
-        ibz2kcalc = np.ones(len(self.ebands.kpoints), dtype=int)
+        ibz2kcalc = -np.ones(len(self.ebands.kpoints), dtype=int)
         for ikc, ik_ibz in enumerate(self.kcalc2ibz):
             ibz2kcalc[ik_ibz] = ikc
         return ibz2kcalc
@@ -1957,15 +1957,11 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             integ = cumtrapz(yw, x=phmesh, initial=0.0) * abu.Ha_THz
             yw = yw * abu.Ha_THz / abu.Ha_meV
 
-            ax.plot(phmesh_mev,
-                    yw,
-                    color=color,
-                    label="T = %.1f K" % self.tmesh[itemp],
+            ax.plot(phmesh_mev, yw,
+                    color=color, label="T = %.1f K" % self.tmesh[itemp],
                    )
 
-            other_ax.plot(
-                    phmesh_mev,
-                    integ,
+            other_ax.plot(phmesh_mev, integ,
                     color=color,
                    )
 
@@ -2048,8 +2044,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             for b, e in enumerate(enes_ikc_b[ikc, :nb]):
                 for itemp, erange in enumerate(erange_itemp):
                     if erange[1] >= e >= erange[0]:
+                        #data_tw[itemp] += var[spin, ikc, irta] * wtk
                         data_tw[itemp] += vals_kc_btw[ikc, b, itemp] * wtk
                         states_counter_t[itemp] += 1
+
+        #for itemp, count in enumerate(states_counter_t):
+        #    data_tw[itemp] /= count
 
         # Now plot the results.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -2063,17 +2063,13 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             integ = cumtrapz(yw, x=phmesh, initial=0.0) * abu.Ha_THz
             yw = yw * abu.Ha_THz / abu.Ha_meV
 
-            ax.plot(phmesh_mev,
-                    yw,
-                    color=color,
-                    label="T = %.1f K" % self.tmesh[itemp],
+            ax.plot(phmesh_mev, yw,
+                    color=color, label="T = %.1f K" % self.tmesh[itemp],
                    )
 
-            other_ax.plot(
-                    phmesh_mev,
-                    integ,
-                    color=color,
-                   )
+            other_ax.plot(phmesh_mev, integ,
+                          color=color,
+                         )
 
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ (meV)")
@@ -2082,8 +2078,6 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         #if "title" not in kwargs:
-        #    title = "K-point: %s, band: %d, spin: %d, T=%.1f K" % (
-        #            repr(self.kpoint), self.band, self.spin, self.tmesh[itemp])
         #    ax.set_title(title)
 
         return fig
