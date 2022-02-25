@@ -1650,6 +1650,40 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return ifcs if not return_input else (ifcs, inp)
 
+    def anaget_nlo(self, anaddb_kwargs=None, voigt=True, verbose=0,
+                   mpi_procs=1, workdir=None, manager=None, return_input=False):
+        """
+        Execute anaddb to compute the nonlinear optical coefficients.
+
+        Args:
+            voigt: if True, returns the NLO tensor in the Voigt notation (3x6 tensor).
+                   else, a 3x3x3 tensor is returned
+            mpi_procs: Number of MPI processes to use.
+            workdir: Working directory. If None, a temporary directory is created.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information
+            anaddb_kwargs: additional kwargs for anaddb
+            return_input: True if the |AnaddbInput| object should be returned as 2nd argument
+
+        Returns:
+            A 2nd or 3rd rank tensor containing the nonlinear coefficients.
+        """
+       
+
+        inp = AnaddbInput.dfpt(self.structure, dte=True, anaddb_kwargs=anaddb_kwargs)
+
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
+
+        from abipy.dfpt.anaddbnc import AnaddbNcFile
+        anaddbnc_path = task.outpath_from_ext("anaddb.nc")
+        anaddbnc = AnaddbNcFile(anaddbnc_path)
+        dij = anaddbnc.dchide
+
+        if voigt:
+            return dij.voigt if not return_input else (dij.voigt, inp) 
+        else:
+            return dij if not return_input else (dij, inp)
+
     def anaget_phonopy_ifc(self, ngqpt=None, supercell_matrix=None, asr=0, chneut=0, dipdip=0,
                            manager=None, workdir=None, mpi_procs=1, symmetrize_tensors=False,
                            output_dir_path=None, prefix_outfiles="", symprec=1e-5, set_masses=False,
