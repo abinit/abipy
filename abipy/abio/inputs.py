@@ -1789,6 +1789,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
                 iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
             )
+            ddk_input.pop_vars("dfpt_sciss")
 
             ddk_input.pop_tolerances()
             ddk_input.set_vars(tolerance, comment="Input file for DDK calculation.")

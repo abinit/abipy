@@ -466,6 +466,11 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_dte_task(self, *args, **kwargs) -> DteTask:
         """Register a Dte task."""
         kwargs["task_class"] = DteTask
+        # DteTask sets autoparal to 0 but we need more procs
+        manager = TaskManager.from_user_config()
+        max_cores = manager.qadapter.max_cores
+        new_manager = manager.new_with_fixed_mpi_omp(max_cores, 1)
+        kwargs.update({"manager": new_manager})
         return self.register_task(*args, **kwargs)
 
     def register_bec_task(self, *args, **kwargs) -> BecTask:
