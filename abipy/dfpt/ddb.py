@@ -1668,7 +1668,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Returns:
             A 2nd or 3rd rank tensor containing the nonlinear coefficients.
         """
-       
 
         inp = AnaddbInput.dfpt(self.structure, dte=True, anaddb_kwargs=anaddb_kwargs)
 
@@ -1676,11 +1675,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         from abipy.dfpt.anaddbnc import AnaddbNcFile
         anaddbnc_path = task.outpath_from_ext("anaddb.nc")
-        anaddbnc = AnaddbNcFile(anaddbnc_path)
-        dij = anaddbnc.dchide
+        with AnaddbNcFile(anaddbnc_path) as anaddbnc:
+            dij = anaddbnc.dchide
 
         if voigt:
-            return dij.voigt if not return_input else (dij.voigt, inp) 
+            return dij.voigt if not return_input else (dij.voigt, inp)
         else:
             return dij if not return_input else (dij, inp)
 
