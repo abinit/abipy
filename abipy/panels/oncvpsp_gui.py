@@ -388,7 +388,7 @@ class OncvInput(AbipyParameterized):
         app(f"{self.atsym} {self.z} {self.nc} {self.nv} {self.iexc} {self.psfile}")
         app("# n l f (nc+nv lines)")
         for i, nlf in enumerate(self.nlf_list):
-            tag = "# end core" i + 1 == self.nc else ""
+            tag = "# end core" if i + 1 == self.nc else ""
             app(f"{nlf.n} {nlf.l} {nlf.f} {tag}")
 
         app("# PSEUDOPOTENTIAL AND OPTIMIZATION")
