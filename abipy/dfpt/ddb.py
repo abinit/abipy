@@ -1737,11 +1737,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         from abipy.dfpt.anaddbnc import AnaddbNcFile
         from abipy.dfpt.converters import abinit_to_phonopy
         anaddbnc_path = task.outpath_from_ext("anaddb.nc")
-        anaddbnc = AnaddbNcFile(anaddbnc_path)
 
-        phon = abinit_to_phonopy(anaddbnc=anaddbnc, supercell_matrix=supercell_matrix,
-                                 symmetrize_tensors=symmetrize_tensors, output_dir_path=output_dir_path,
-                                 prefix_outfiles=prefix_outfiles, symprec=symprec, set_masses=set_masses)
+        with AnaddbNcFile(anaddbnc_path) as anaddbnc:
+            phon = abinit_to_phonopy(anaddbnc=anaddbnc, supercell_matrix=supercell_matrix,
+                                     symmetrize_tensors=symmetrize_tensors, output_dir_path=output_dir_path,
+                                     prefix_outfiles=prefix_outfiles, symprec=symprec, set_masses=set_masses)
 
         return phon if not return_input else (phon, inp)
 
