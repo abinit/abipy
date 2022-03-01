@@ -1650,7 +1650,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return ifcs if not return_input else (ifcs, inp)
 
-    def anaget_nlo(self, anaddb_kwargs=None, voigt=True, verbose=0,
+    def anaget_nlo(self, anaddb_kwargs=None, voigt=True, verbose=0, units="pm/V",
                    mpi_procs=1, workdir=None, manager=None, return_input=False):
         """
         Execute anaddb to compute the nonlinear optical coefficients.
@@ -1662,6 +1662,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             workdir: Working directory. If None, a temporary directory is created.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
+            units: units used for the NLO tensor. Default is pm/V, but can be "au" atomic units
             anaddb_kwargs: additional kwargs for anaddb
             return_input: True if the |AnaddbInput| object should be returned as 2nd argument
 
@@ -1676,8 +1677,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         from abipy.dfpt.anaddbnc import AnaddbNcFile
         anaddbnc_path = task.outpath_from_ext("anaddb.nc")
-        anaddbnc = AnaddbNcFile(anaddbnc_path)
-        dij = anaddbnc.dchide
+        with AnaddbNcFile(anaddbnc_path) as anaddbnc:
+            dij = anaddbnc.dchide
+
+        if units=="pm/V":
+            dij *= 16 * np.pi**2 * abu.Bohr_Ang**2 * 1e-8 * abu.eps0 / abu.e_Cb
 
         if voigt:
             return dij.voigt if not return_input else (dij.voigt, inp) 
