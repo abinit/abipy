@@ -913,7 +913,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("Has Eliashberg function: %s" % (self.has_eliashberg_function))
         app("Has Spectral function: %s" % (self.has_spectral_function))
 
-        # Build Table with direct gaps. Only the results for the first and the last T are shown if not verbose.
+        # Build table with direct gaps. Only the results for the first and the last T are shown if not verbose.
         if verbose:
             it_list = list(range(self.ntemp))
         else:
@@ -988,23 +988,23 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Return a mapping of the kpoints at which the self energy was calculated and the ibz
         i.e. the list of k-points in the band structure used to construct the self-energy.
         """
-        # TODO: This field is not available in the netcdf file.
-        if (len(self.sigma_kpoints) == len(self.ebands.kpoints) and
-            all(k1 == k2 for (k1, k2) in zip(self.sigma_kpoints, self.ebands.kpoints))):
-            return np.arange(len(self.sigma_kpoints))
-
-        # Generic case
-        # Map sigma_kpoints to ebands.kpoints
-        kcalc2ibz = np.empty(self.nkcalc, dtype=int)
-        for ikc, sigkpt in enumerate(self.sigma_kpoints):
-            kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
-
-        #assert np.all(kcalc2ibz == self.reader.read_value("kcalc2ibz")[0] - 1)
-        return kcalc2ibz
-
         # nctkarr_t("kcalc2ibz", "int", "nkcalc, six")
         kcalc2ibz_map = self.reader.read_value("kcalc2ibz")
         return kcalc2ibz_map[0] - 1
+
+        # TODO: This field is not available in the netcdf file.
+        #if (len(self.sigma_kpoints) == len(self.ebands.kpoints) and
+        #    all(k1 == k2 for (k1, k2) in zip(self.sigma_kpoints, self.ebands.kpoints))):
+        #    return np.arange(len(self.sigma_kpoints))
+
+        ## Generic case
+        ## Map sigma_kpoints to ebands.kpoints
+        #kcalc2ibz = np.empty(self.nkcalc, dtype=int)
+        #for ikc, sigkpt in enumerate(self.sigma_kpoints):
+        #    kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
+
+        ##assert np.all(kcalc2ibz == self.reader.read_value("kcalc2ibz")[0] - 1)
+        #return kcalc2ibz
 
     @lazy_property
     def ibz2kcalc(self):
@@ -1012,7 +1012,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Mapping IBZ --> K-points in self-energy.
         Set to -1 if IBZ k-point not present.
         """
-        ibz2kcalc = np.ones(len(self.ebands.kpoints), dtype=int)
+        ibz2kcalc = -np.ones(len(self.ebands.kpoints), dtype=int)
         for ikc, ik_ibz in enumerate(self.kcalc2ibz):
             ibz2kcalc[ik_ibz] = ikc
         return ibz2kcalc
@@ -1918,6 +1918,172 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return fig
 
     @add_fig_kwargs
+    def plot_scratew_skb(self, spin, kpoint, band, rta_type="serta",
+                         ax=None, colormap="jet", fontsize=8, **kwargs):
+        """
+        Plot the spectral decomposition of the scattering rate for a single (spin, kpoint, state)
+        as a function of the phonon energy for all temperatures.
+
+        Args:
+            spin: Spin index (C convention, i.e >= 0).
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or integer defining the k-point in the kcalc array
+            band: band index. C convention so decremented by -1 wrt Fortran index.
+            rta_type: "serta" for SERTA linewidths or "mrta" for MRTA linewidths.
+            itemp_list: List of integers to select a particular temperature. None means all
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            colormap: matplotlib color map.
+            fontsize: legend and label fontsize.
+            kwargs: Keyword arguments passed to ax.plot
+
+        Returns: |matplotlib-Figure|
+        """
+        spin, ikc, ib, kpoint = self.reader.get_sigma_skb_kpoint(spin, kpoint, band)
+        irta = {"serta": 0, "mrta": 1}[rta_type]
+
+        # In Fortran, we have the netcdf variable:
+        # nctkarr_t("scratew", "dp", "phmesh_size, ntemp, max_nbcalc, two, nkcalc, nsppol")
+        var = self.reader.read_variable("scratew")
+        vals_tw = var[spin, ikc, irta, ib]
+        phmesh = self.reader.read_value("phmesh")
+        phmesh_mev = phmesh * abu.Ha_meV
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        other_ax = ax.twinx()
+        cmap = plt.get_cmap(colormap)
+        from scipy.integrate import cumtrapz
+
+        for itemp, yw in enumerate(vals_tw):
+            color = cmap(itemp / len(self.tmesh))
+            integ = cumtrapz(yw, x=phmesh, initial=0.0) * abu.Ha_THz
+            yw = yw * abu.Ha_THz / abu.Ha_meV
+
+            ax.plot(phmesh_mev, yw,
+                    color=color, label="T = %.1f K" % self.tmesh[itemp],
+                   )
+
+            other_ax.plot(phmesh_mev, integ,
+                    color=color,
+                   )
+
+        ax.grid(True)
+        ax.set_xlabel(r"$\omega$ (meV)")
+        ax.set_ylabel(r"$\partial_\omega \tau^{-1}_{nk}$")
+        other_ax.set_ylabel(r"$\tau^{-1}_{nk}(\omega)$ (THz)")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        if "title" not in kwargs:
+            ax.set_title("K-point: %s, band: %d, spin: %d (%s)" % (repr(kpoint), band, spin, rta_type.upper()))
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_scratew(self, cbm_or_vbm, kt_fact=3/2, ewin_mev=1.0, spin=0, rta_type="serta",
+                     ax=None, colormap="jet", fontsize=8, **kwargs):
+        """
+        Plot the spectral decomposition of the scattering rate
+        as a function of the phonon energy for all temperatures
+
+        Args:
+            cbm_or_vbm:
+            kt_fact
+            ewin_mev:
+            spin: Spin index (C convention, i.e >= 0).
+            rta_type: "serta" for SERTA linewidths or "mrta" for MRTA linewidths.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            colormap: matplotlib color map.
+            fontsize: legend and label fontsize.
+            kwargs: Keyword arguments passed to ax.plot
+
+        Returns: |matplotlib-Figure|
+        """
+        irta = {"serta": 0, "mrta": 1}[rta_type]
+
+        # Find the (n, k) states inside the energy window of half width `ewin_mev`
+        # The window is centered around e0 where e0 depends on the band edge and the temperature.
+        ebands = self.ebands
+        if cbm_or_vbm == "cbm":
+            edge = ebands.lumos[spin]
+            sign = +1
+
+        elif cbm_or_vbm == "vbm":
+            edge = ebands.homos[spin]
+            sign = -1
+
+        print(f"Using {cbm_or_vbm} edge:", edge)
+
+        # Compute erage for the different temperatures.
+        erange_itemp = []
+        for kt_ev in self.reader.ktmesh_ev:
+            e0 = edge.eig + sign * kt_ev * kt_fact
+            erange_itemp.append((e0 - ewin_mev / 1000, e0 + ewin_mev / 1000))
+
+        erange_itemp = np.array(erange_itemp)
+
+        # Extract weights for the kcalc k-points from the weights in the IBZ (kpoint_weights)
+        weights_ibz = self.reader.read_value("kpoint_weights")
+        weights_kcalc = [weights_ibz[ik_ibz] for ik_ibz in self.kcalc2ibz]
+
+        # These are the KS eigenvalues for the kcalc k-points.
+        # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
+        enes_ikc_b = self.reader.read_variable("ks_enes")[spin] * abu.Ha_eV
+
+        # In Fortran, we have the netcdf variable:
+        # nctkarr_t("scratew", "dp", "phmesh_size, ntemp, max_nbcalc, two, nkcalc, nsppol")
+        var = self.reader.read_variable("scratew")
+        vals_kc_btw = var[spin, :, irta]
+        phmesh = self.reader.read_value("phmesh")
+        phmesh_mev = phmesh * abu.Ha_meV
+
+        data_tw = np.zeros((len(erange_itemp), len(phmesh)))
+        states_counter_t = np.zeros(len(erange_itemp))
+
+        for ikc, kpoint in enumerate(self.sigma_kpoints):
+            nb = self.reader.nbcalc_sk[spin, ikc]
+            wtk = weights_kcalc[ikc]
+            # Find the e_nk inside the energy window and accumulate f(w) with IBZ weights.
+            for b, e in enumerate(enes_ikc_b[ikc, :nb]):
+                for itemp, erange in enumerate(erange_itemp):
+                    if erange[1] >= e >= erange[0]:
+                        #data_tw[itemp] += var[spin, ikc, irta] * wtk
+                        data_tw[itemp] += vals_kc_btw[ikc, b, itemp] * wtk
+                        states_counter_t[itemp] += 1
+
+        #for itemp, count in enumerate(states_counter_t):
+        #    data_tw[itemp] /= count
+
+        # Now plot the results.
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        other_ax = ax.twinx()
+        cmap = plt.get_cmap(colormap)
+        from scipy.integrate import cumtrapz
+
+        for itemp, yw in enumerate(data_tw):
+            print("Number of nk states found in energy window:", states_counter_t[itemp])
+            color = cmap(itemp / len(self.tmesh))
+            integ = cumtrapz(yw, x=phmesh, initial=0.0) * abu.Ha_THz
+            yw = yw * abu.Ha_THz / abu.Ha_meV
+
+            ax.plot(phmesh_mev, yw,
+                    color=color, label="T = %.1f K" % self.tmesh[itemp],
+                   )
+
+            other_ax.plot(phmesh_mev, integ,
+                          color=color,
+                         )
+
+        ax.grid(True)
+        ax.set_xlabel(r"$\omega$ (meV)")
+        ax.set_ylabel(r"$\partial_\omega \tau^{-1}_{avg}$")
+        other_ax.set_ylabel(r"$\tau^{-1}_{avg}(\omega)$ (THz)")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        #if "title" not in kwargs:
+        #    ax.set_title(title)
+
+        return fig
+
+
+    @add_fig_kwargs
     def plot_qpsolution_skb(self, spin, kpoint, band, itemp=0, with_int_aw=True,
                             ax_list=None, xlims=None, fontsize=8, **kwargs):
         """
@@ -1930,7 +2096,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Args:
             spin: Spin index (C convention, i.e >= 0).
-            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or integer defined the k-point in the kcalc array
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or integer defining the k-point in the kcalc array
             band: band index. C convention so decremented by -1 wrt Fortran index.
             itemp: Temperature index.
             with_int_aw: Plot cumulative integral of A(w).
@@ -1955,7 +2121,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Args:
             spin: Spin index (C convention, i.e >= 0).
-            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or integer defined the k-point in the kcalc array
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or integer defining the k-point in the kcalc array
             band: band index. C convention so decremented by -1 wrt Fortran index.
             itemp: Temperature index.
             with_int_aw: Plot cumulative integral of A(w).
@@ -2047,7 +2213,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Args:
             spin: Spin index
-            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or integer defined the k-point in the kcalc array
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or integer defining the k-point in the kcalc array
             band: band index. C convention so decremented by -1 wrt Fortran index.
             what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
@@ -2057,7 +2223,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Returns: |matplotlib-Figure|
         """
         if not self.has_eliashberg_function:
-            cprint("SIGEPH file does not have Eliashberg function", "red")
+            cprint("SIGEPH file does not contain Eliashberg function", "red")
             return None
 
         if what == "auto":
@@ -2192,12 +2358,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return fig
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the |SigEPhFile| either in a notebook or in panel app.
         """
         from abipy.panels.sigeph import SigEPhFilePanel
-        return SigEPhFilePanel(self).get_panel()
+        return SigEPhFilePanel(self).get_panel(**kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -2205,6 +2371,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Used in abiview.py to get a quick look at the results.
         """
         verbose = kwargs.pop("verbose", 0)
+
         if self.imag_only:
             for rta_type in ("serta", "mrta"):
                 yield self.plot_lws_vs_e0(rta_type=rta_type, show=False)
@@ -3178,9 +3345,9 @@ class SigmaPhReader(BaseEphReader):
         self.ngqpt = self.read_value("ngqpt")
 
         # T mesh and frequency meshes.
-        self.ktmesh = self.read_value("kTmesh")
-        self.tmesh = self.ktmesh / abu.kb_HaK
-        self.ktmesh *= abu.Ha_eV
+        self.ktmesh_ha = self.read_value("kTmesh")
+        self.tmesh = self.ktmesh_ha / abu.kb_HaK
+        self.ktmesh_ev = self.ktmesh_ha * abu.Ha_eV
 
         # The K-points where QP corrections have been calculated.
         structure = self.read_structure()
@@ -3206,7 +3373,14 @@ class SigmaPhReader(BaseEphReader):
 
     def get_sigma_skb_kpoint(self, spin, kpoint, band):
         """
-        Check k-point, band and spin index. Raise ValueError if invalid.
+        This method receives in input easy-to-use indices/arguments such as
+        the reduced coordinates of the k-point and/or the "global" band index the user would expect
+        if all bands were treated and returns the indices needed to access the internal netcdf arrays.
+        It also performs some basic consistency checks.
+
+        Raises: ValueError if invalid input.
+
+        Returns: (spin, ikcalc, band_kcalc, kpoint) where ikcalc and band_kcalc are the internal netcdf indices
         """
         ikc = self.sigkpt2index(kpoint)
 
@@ -3224,7 +3398,7 @@ class SigmaPhReader(BaseEphReader):
     def sigkpt2index(self, sigma_kpoint):
         """
         Returns the index of the self-energy k-point in sigma_kpoints
-        Used to access data in the arrays that are dimensioned [0:nkcalc]
+        Used to access data in the arrays that are dimensioned as [0:nkcalc].
         sigma_kpoint can be either an integer or list with reduced coordinates.
         """
         if duck.is_intlike(sigma_kpoint):

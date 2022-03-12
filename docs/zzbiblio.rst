@@ -6,6 +6,6 @@ Bibliography
 
 .. rubric:: References
 
-.. bibliography:: refs.bib
+.. bibliography:: abiref.bib
    :style: abipystyle
    :cited:

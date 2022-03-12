@@ -23,6 +23,7 @@ class OpticTest(AbipyTest):
             self.assert_almost_equal(optic.tolerance, 0.002)
             assert optic.reader.ntemp == 1
             assert optic.params["nspden"] == 1
+            assert optic.nband_sum == optic.nband
 
             assert optic.has_linopt
             assert optic.reader.computed_components["linopt"] == ["xx", "zz"]

@@ -1,10 +1,12 @@
 """
 This module gathers the most important classes and helper functions used for scripting.
 """
+import sys
 import os
 import collections
 
 from itertools import chain
+from typing import ClassVar, Optional, List, Union
 from tabulate import tabulate
 
 ####################
@@ -30,7 +32,7 @@ from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
 from abipy.core import restapi
 from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
   mp_match_structure, mp_search, cod_search)
-from abipy.core.mixins import CubeFile
+from abipy.core.mixins import TextFile, JsonFile, CubeFile
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.abio.robots import Robot
@@ -97,6 +99,14 @@ ext2file = collections.OrderedDict([
     (".ucell", Structure),
     ("POSCAR", Structure),
     (".cssr", Structure),
+    (".json", JsonFile),
+    (".py", TextFile),
+    (".sh", TextFile),
+    (".stdin", TextFile),
+    (".stderr", TextFile),
+    (".err", TextFile),
+    (".files", TextFile),
+    (".stdout", TextFile),
     (".cube", CubeFile),
     ("anaddb.nc", AnaddbNcFile),
     ("DEN", DensityFortranFile),
@@ -182,11 +192,15 @@ def abipanel(**kwargs):
     """
     Activate panel extensions used by AbiPy. Return panel module.
     """
-    from abipy.panels.core import abipanel
-    return abipanel(**kwargs)
+    try:
+        from abipy.panels.core import abipanel
+        return abipanel(**kwargs)
+    except ImportError as exc:
+        cprint("use `conda install panel` or `pip install panel` to install the python package.", "red")
+        raise exc
 
 
-def abifile_subclass_from_filename(filename):
+def abifile_subclass_from_filename(filename: str) -> ClassVar:
     """
     Returns the appropriate class associated to the given filename.
     """
@@ -206,12 +220,15 @@ def abifile_subclass_from_filename(filename):
         for ext, cls in abiext2ncfile.items():
             if filename.endswith(ext): return cls
 
-    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n\n%s" %
-        (filename, abiopen_ext2class_table()))
+    msg = f"""
+abiopen cannot handle this file as no phython class has been registered for file:\n`{filename}`\n\n
+This is the list of file extensions supported by abiopen:\n\n
+{abiopen_ext2class_table()}
+"""
     raise ValueError(msg)
 
 
-def dir2abifiles(top, recurse=True):
+def dir2abifiles(top: str, recurse: bool = True) -> dict:
     """
     Analyze the filesystem starting from directory `top` and
     return an ordered dictionary mapping the directory name to the list
@@ -235,7 +252,7 @@ def dir2abifiles(top, recurse=True):
     return collections.OrderedDict([(k, dl[k]) for k in sorted(dl.keys())])
 
 
-def isabifile(filepath):
+def isabifile(filepath: str) -> bool:
     """
     Return True if `filepath` can be opened with ``abiopen``.
     """
@@ -246,7 +263,7 @@ def isabifile(filepath):
         return False
 
 
-def abiopen(filepath):
+def abiopen(filepath: str):
     """
     Factory function that opens any file supported by abipy.
     File type is detected from the extension
@@ -287,6 +304,28 @@ def abiopen(filepath):
     return cls.from_file(filepath)
 
 
+def abirobot(filepaths: Union[str, List[str]]):
+    """
+    Factory function to create and return a Robot subclass from a list of filenames
+    The Robot subclass is detected from the extension of the first file hence
+    all files are assumed to have the same extension.
+
+    Args:
+        filepaths: List of strings with the filename.
+    """
+    from monty.string import list_strings
+    filepaths = list_strings(filepaths)
+    path = filepaths[0]
+    idx = path.rfind("_")
+    if idx == -1:
+        raise ValueError("Cannot find `_` in the first string")
+    ext = path[idx+1:]
+
+    cls = Robot.class_for_ext(ext)
+    robot = cls.from_files(filepaths)
+    return robot
+
+
 def display_structure(obj, **kwargs):
     """
     Use Jsmol to display a structure in the jupyter notebook.
@@ -310,7 +349,7 @@ def display_structure(obj, **kwargs):
     return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
 
 
-def mjson_load(filepath, **kwargs):
+def mjson_load(filepath: str, **kwargs) -> dict:
     """
     Read JSON file in MSONable format with MontyDecoder. Return dict with python objects.
     """
@@ -320,7 +359,7 @@ def mjson_load(filepath, **kwargs):
         return json.load(fh, cls=MontyDecoder, **kwargs)
 
 
-def mjson_loads(string, **kwargs):
+def mjson_loads(string: str, **kwargs) -> dict:
     """
     Read JSON string in MSONable format with MontyDecoder. Return dict with python objects.
     """
@@ -339,14 +378,25 @@ def mjson_write(d, filepath, **kwargs):
         json.dump(d, fh, cls=MontyEncoder, **kwargs)
 
 
-def software_stack():
+def software_stack(as_dataframe: bool = False):
     """
-    Import all the hard dependencies. Returns ordered dict: package --> string with version info.
+    Import all the hard dependencies and some optional packages.
+    Returns ordered dict: package --> string with version info or pandas dataframe if as_dataframe.
     """
     import platform
     system, node, release, version, machine, processor = platform.uname()
     # These packages are required
-    import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml
+    import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml, plotly
+
+    from importlib import import_module
+
+    def get_version(pkg_name):
+        """Return version of package from string."""
+        try:
+            mod = import_module(pkg_name)
+            return mod.__version__
+        except Exception:
+            return None
 
     try:
         from pymatgen.core import __version__ as pmg_version
@@ -363,20 +413,22 @@ def software_stack():
         ("apscheduler", apscheduler.version),
         ("pydispatch", pydispatch.__version__),
         ("yaml", yaml.__version__),
+        ("boken", get_version("bokeh")),
+        ("panel", get_version("panel")),
+        ("plotly", get_version("plotly")),
+        ("ase", get_version("ase")),
+        ("phonopy", get_version("phonopy")),
+        ("monty", get_version("monty")),
         ("pymatgen", pmg_version),
+        ("abipy", __version__),
     ])
 
-    # Optional but strongly suggested.
-    #try:
-    #    import matplotlib
-    #    d["matplotlib"] = "%s (backend: %s)" % (matplotlib.__version__, matplotlib.get_backend())
-    #except ImportError:
-    #    pass
-
-    return d
+    if not as_dataframe: return d
+    import pandas as pd
+    return pd.Series(data=d, name="version").to_frame().rename_axis("Package")
 
 
-def abicheck(verbose=0):
+def abicheck(verbose: int = 0) -> str:
     """
     This function tests if the most important ABINIT executables
     can be found in $PATH and whether the python modules needed
@@ -424,7 +476,7 @@ def abicheck(verbose=0):
     return "\n".join(err_lines)
 
 
-def install_config_files(workdir=None, force_reinstall=False):
+def install_config_files(workdir: Optional[str] = None, force_reinstall: Optional[bool] = False):
     """
     Install pre-defined configuration files for the TaskManager and the Scheduler
     in the workdir directory.

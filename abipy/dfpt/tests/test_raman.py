@@ -8,7 +8,7 @@ from abipy.dfpt.raman import Raman
 class RamanTest(AbipyTest):
 
     def test_raman(self):
-        """Testsing Raman."""
+        """Testing Raman object."""
 
         r = Raman.from_file(abidata.ref_file("AlAs_nl_dte_anaddb.nc"))
 

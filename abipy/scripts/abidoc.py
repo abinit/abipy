@@ -111,6 +111,10 @@ def get_parser(with_epilog=False):
     p_abibuild = subparsers.add_parser('abibuild', parents=[copts_parser],
         help="Show ABINIT build information and exit.")
 
+    # Subparser for links
+    p_urls = subparsers.add_parser('urls', parents=[copts_parser],
+        help="Produce Yaml file with varname --> ulrs.")
+
     return parser
 
 
@@ -140,7 +144,8 @@ def main():
 
     # Get the dabase of variables for codename.
     from abipy.abio.abivar_database.variables import get_codevars
-    vdb = get_codevars()[options.codename]
+    codevars = get_codevars()
+    vdb = codevars[options.codename]
 
     if options.command == "man":
         abilab.abinit_help(options.varname)
@@ -215,7 +220,7 @@ def main():
         else:
             print(flowtk.TaskManager.autodoc())
             print("qtype supported: %s" % flowtk.all_qtypes())
-            print("Use `abidoc.py manager slurm` to have the list of qparams for slurm.\n")
+            print("Use:\n\n\tabidoc.py manager slurm\n\nto show the list of qparams for slurm.\n")
 
             if qtype is not None:
                 print("QPARAMS for %s" % qtype)
@@ -230,6 +235,17 @@ def main():
             print("Use --verbose for additional info")
         else:
             print(abinit_build.info)
+
+    elif options.command == "urls":
+        d = {}
+        for codename in sorted(codevars.keys()):
+            variables = codevars[codename]
+            for varname, var in variables.items():
+                key = var.abivarname
+                key.replace("@", "_")
+                d[key] = f"[{var.name}]({var.website_url})"
+        from ruamel.yaml import YAML
+        YAML().dump(d, sys.stdout)
 
     else:
         raise ValueError("Don't know how to handle command %s" % options.command)

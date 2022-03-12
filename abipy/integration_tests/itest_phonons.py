@@ -160,7 +160,7 @@ def itest_phonon_restart(fwp):
         tolvrs=1.0e-5,
     )
 
-    multi = abilab.MultiDataset(structure=structure, 
+    multi = abilab.MultiDataset(structure=structure,
                                 pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
                                 ndtset=1 + len(qpoints))
 
@@ -220,7 +220,6 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
     Returns:
         :class:`Flow` object
     """
-    logger.critical("phonon_flow is deprecated and could give wrong results")
     if with_dde:
         with_ddk = True
 
@@ -252,7 +251,8 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
         dde_input.set_vars(qpt=[0, 0, 0], rfddk=1, rfelfd=2)
         dde_input_idir = dde_input.deepcopy()
         dde_input_idir.set_vars(rfdir=[1, 1, 1])
-        dde_task = flow.register_task(dde_input, deps={scf_task: 'WFK', ddk_task: 'DDK'}, task_class=flowtk.DdeTask)[0]
+        dde_task = flow.register_task(dde_input, deps={scf_task: 'WFK', ddk_task: 'DDK'},
+                                      task_class=flowtk.DdeTask)[0]
 
     if not isinstance(ph_inputs, (list, tuple)):
         ph_inputs = [ph_inputs]
@@ -284,7 +284,6 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
             raise
 
         logger.info(irred_perts)
-
         w.rmtree()
 
         # Now we can build the final list of works:

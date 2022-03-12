@@ -6,6 +6,8 @@ from monty.termcolor import cprint
 from pymatgen.io.abinit.abiobjects import *
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable, PseudoParser
 from pymatgen.io.abinit.netcdf import NetcdfReader
+
+from .abiinspect import GroundStateScfCycle, D2DEScfCycle, yaml_read_kpoints, yaml_read_irred_perts
 from .launcher import PyFlowScheduler, PyLauncher
 from .qadapters import show_qparams, all_qtypes
 from .wrappers import Mrgscr, Mrgddb, Cut3D, Fold2Bloch
@@ -16,12 +18,11 @@ from .works import *
 from .flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow, phonon_conv_flow,
     g0w0_flow, NonLinearCoeffFlow)
 from .abitimer import AbinitTimerParser, AbinitTimerSection
-from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, yaml_read_kpoints, yaml_read_irred_perts
-
 from .events import EventsParser, autodoc_event_handlers
 #from abipy.flowtk.works import *
 #from abipy.flowtk.gs_works import EosWork
-from abipy.flowtk.dfpt_works import ElasticWork, NscfDdksWork
+from .dfpt_works import ElasticWork, NscfDdksWork
+from .gw import ScreeningWork
 
 
 def flow_main(main):  # pragma: no cover
@@ -100,8 +101,6 @@ def flow_main(main):  # pragma: no cover
                 retcode = flow.make_scheduler().start()
                 if retcode == 0:
                     retcode = 0 if flow.all_ok else 1
-            elif options.batch:
-                retcode = flow.batch()
             else:
                 # Default behaviour.
                 retcode = flow.build_and_pickle_dump()
@@ -126,8 +125,24 @@ def build_flow_main_parser():
     """
     Build and return the parser used in the abipy/data/runs scripts.
     """
+
+    epilog = """\
+======================================================================================================
+Usage example:
+
+    script.py                           => Build flow without submitting it.
+    script.py -s                        => Build flow and start the scheduler
+    nohup script.py -s > log 2> err &   => Build flow, start the scheduler in background
+                                           This is the recommended approach for long-running calculations.
+                                           Thanks to `nohup`, it is possible to disconnect the terminal
+                                           without killing the scheduler.
+
+======================================================================================================
+"""
+
     import argparse
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(epilog=epilog,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
@@ -138,13 +153,13 @@ def build_flow_main_parser():
                              "working directory first then ~/.abinit/abipy/manager.yml.")
     parser.add_argument("-s", '--scheduler', action="store_true", default=False,
                         help="Run the flow with the scheduler")
-    parser.add_argument("-b", '--batch', action="store_true", default=False, help="Run the flow in batch mode")
-    parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
+    parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir (if any)")
     parser.add_argument("-p", "--plot", default=False, action="store_true", help="Plot flow with networkx.")
     parser.add_argument("-g", "--graphviz", default=False, action="store_true", help="Plot flow with graphviz.")
     parser.add_argument("-d", "--dry-run", default=False, action="store_true", help="Don't write directory with flow.")
     parser.add_argument("-a", "--abivalidate", default=False, action="store_true", help="Call Abinit to validate input files.")
     parser.add_argument("-t", "--tempdir", default=False, action="store_true", help="Execute flow in temporary directory.")
     parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
+    parser.add_argument("-e", "--extra", default=None, help="Extra argument passed to the script.")
 
     return parser

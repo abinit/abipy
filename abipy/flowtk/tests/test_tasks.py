@@ -5,8 +5,7 @@ from abipy.core.testing import AbipyTest
 from abipy.flowtk.tasks import *
 from abipy.flowtk.tasks import TaskPolicy, ParalHints
 
-test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",
-                        'test_files', "abinit")
+test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", 'test_files', "abinit")
 
 
 class TaskManagerTest(AbipyTest):
@@ -38,44 +37,42 @@ qadapters:
             PATH: /home/user/tmp_intel13/src/98_main/:/home/user//NAPS/intel13/bin:$PATH
             LD_LIBRARY_PATH: /home/user/NAPS/intel13/lib:$LD_LIBRARY_PATH
         mpi_runner: mpirun
-
-# Connection to the MongoDb database (optional)
-db_connector:
-    enabled: no
-    database: abinit
-    collection: test
-    #host: 0.0.0.0
-    #port: 8080
-    #user: gmatteo
-    #password: helloworld
 """
     def test_base(self):
         """
         Simple unit tests for Qadapter subclasses.
         A more complete coverage would require integration testing.
         """
-        aequal, atrue, afalse = self.assertEqual, self.assertTrue, self.assertFalse
         # Initialize the object from YAML file.
         slurm_manager = TaskManager.from_string(self.MANAGER)
 
         repr(slurm_manager); str(slurm_manager)
-        aequal(slurm_manager.num_cores, 4)
-        aequal(slurm_manager.mpi_procs, 4)
-        aequal(slurm_manager.omp_threads, 1)
-        afalse(slurm_manager.has_db)
+        assert slurm_manager.num_cores == 4
+        assert slurm_manager.mpi_procs == 4
+        assert slurm_manager.omp_threads == 1
+        assert slurm_manager.has_queue
 
         # Make a simple shell manager that will inherit the initial configuration.
         shell_manager = slurm_manager.to_shell_manager(mpi_procs=1)
-        aequal(shell_manager.mpi_procs, 1)
-        aequal(shell_manager.num_cores, 1)
+        assert shell_manager.mpi_procs == 1
+        assert shell_manager.num_cores == 1
+        assert not shell_manager.has_queue
 
         # check that the initial slurm_manger has not been modified
-        aequal(slurm_manager.num_cores, 4)
+        assert slurm_manager.num_cores == 4
 
         # Test pickle
         self.serialize_with_pickle(slurm_manager, test_eq=False)
 
         self.assertMSONable(slurm_manager)
+
+        fixed_manager = slurm_manager.new_with_fixed_mpi_omp(mpi_procs=5, omp_threads=2)
+        assert fixed_manager.policy.autoparal == 0
+        assert fixed_manager.mpi_procs == 5
+        assert fixed_manager.num_cores == 10
+        for qad in fixed_manager.qads:
+            assert qad.min_cores == 10
+            assert qad.max_cores == 10
 
 
 class ParalHintsTest(AbipyTest):
@@ -120,15 +117,14 @@ configurations:
 ...
 """
         tmpfile = self.tmpfile_write(s)
-        aequal = self.assertEqual
 
         # Parse the file with the configurations.
         confs = ParalHintsParser().parse(tmpfile)
-        print("all_confs:\n", confs)
-        aequal(confs.max_cores, 4)
-        aequal(confs.max_mem_per_proc, 15.77)
-        aequal(confs.max_speedup, 3.333333332)
-        aequal(confs.max_efficiency, 1.0)
+        str(confs)
+        assert confs.max_cores == 4
+        assert confs.max_mem_per_proc == 15.77
+        assert confs.max_speedup == 3.333333332
+        assert confs.max_efficiency == 1.0
         # Test as_dict, from_dict
         ParalHints.from_dict(confs.as_dict())
 
@@ -181,7 +177,7 @@ class AbinitBuildTest(AbipyTest):
     def test_abinit_build(self):
         from abipy.flowtk import AbinitBuild
         build = AbinitBuild()
-        print(build)
+        str(build)
         assert build.has_netcdf
         #assert not build.has_omp
         #assert build.has_mpi

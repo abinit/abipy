@@ -1,5 +1,7 @@
 # coding: utf-8
 """This module provides functions and classes related to Task objects."""
+from __future__ import annotations
+
 import os
 import time
 import datetime
@@ -7,12 +9,14 @@ import shutil
 import collections
 import abc
 import copy
-import ruamel.yaml as yaml
+import pandas as pd
+#import ruamel.yaml as yaml
 from io import StringIO
 import numpy as np
 
 from pprint import pprint
 from itertools import product
+from typing import List, Any, Union
 from monty.string import is_string, list_strings
 from monty.termcolor import colored, cprint
 from monty.collections import AttrDict
@@ -20,12 +24,13 @@ from monty.functools import lazy_property, return_none_if_raise
 from monty.json import MSONable
 from monty.fnmatch import WildCard
 from pymatgen.core.units import Memory
+from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.util.serialization import json_pretty_dump, pmg_serialize
 from abipy.core.globals import get_workdir
+from abipy.tools.iotools import yaml_safe_load
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
 from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
 from . import qutils as qu
-from .db import DBConnector
 from .nodes import Status, Node, NodeError, NodeResults, FileNode #, check_spectator
 from . import abiinspect
 from . import events
@@ -52,6 +57,7 @@ __all__ = [
     "ElasticTask",
     "SigmaTask",
     "EphTask",
+    "KerangeTask",
     "OpticTask",
     "AnaddbTask",
     "set_user_config_taskmanager",
@@ -61,16 +67,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Tools and helper functions.
-
-
-def yaml_safe_load(s):
-    return yaml.safe_load(s)
-    #return yaml.YAML(typ='safe', pure=True).load(s)
-
-
-def yaml_unsafe_load(s):
-    return yaml.load(s)
-    #return yaml.YAML(typ='unsafe', pure=True).load(s)
 
 
 def straceback():
@@ -183,28 +179,28 @@ class ParalConf(AttrDict):
         return stream.getvalue()
 
     @property
-    def num_cores(self):
+    def num_cores(self) -> int:
         return self.mpi_procs * self.omp_threads
 
     @property
-    def mem_per_proc(self):
+    def mem_per_proc(self) -> float:
         return self.mem_per_cpu
 
     @property
-    def mpi_procs(self):
+    def mpi_procs(self) -> int:
         return self.mpi_ncpus
 
     @property
-    def omp_threads(self):
+    def omp_threads(self) -> int:
         return self.omp_ncpus
 
     @property
-    def speedup(self):
+    def speedup(self) -> float:
         """Estimated speedup reported by ABINIT."""
         return self.efficiency * self.num_cores
 
     @property
-    def tot_mem(self):
+    def tot_mem(self) -> float:
         """Estimated total memory in Mbs (computed from mem_per_proc)"""
         return self.mem_per_proc * self.mpi_procs
 
@@ -221,10 +217,10 @@ class ParalHintsParser(object):
         # Used to push error strings.
         self._errors = collections.deque(maxlen=100)
 
-    def add_error(self, errmsg):
+    def add_error(self, errmsg: str) -> None:
         self._errors.append(errmsg)
 
-    def parse(self, filename):
+    def parse(self, filename: str) -> ParalHints:
         """
         Read the `AutoParal` section (YAML format) from filename.
         Assumes the file contains only one section.
@@ -253,7 +249,7 @@ class ParalHints(collections.abc.Iterable):
         self._confs = [ParalConf(**d) for d in confs]
 
     @classmethod
-    def from_mpi_omp_lists(cls, mpi_procs, omp_threads):
+    def from_mpi_omp_lists(cls, mpi_procs: int, omp_threads: int) -> ParalHints:
         """
         Build a list of Parallel configurations from two lists
         containing the number of MPI processes and the number of OpenMP threads
@@ -283,38 +279,38 @@ class ParalHints(collections.abc.Iterable):
         return repr(self)
 
     @lazy_property
-    def max_cores(self):
+    def max_cores(self) -> int:
         """Maximum number of cores."""
         return max(c.mpi_procs * c.omp_threads for c in self)
 
     @lazy_property
-    def max_mem_per_proc(self):
+    def max_mem_per_proc(self) -> float:
         """Maximum memory per MPI process."""
         return max(c.mem_per_proc for c in self)
 
     @lazy_property
-    def max_speedup(self):
+    def max_speedup(self) -> float:
         """Maximum speedup."""
         return max(c.speedup for c in self)
 
     @lazy_property
-    def max_efficiency(self):
+    def max_efficiency(self) -> float:
         """Maximum parallel efficiency."""
         return max(c.efficiency for c in self)
 
     @pmg_serialize
-    def as_dict(self, **kwargs):
+    def as_dict(self, **kwargs) -> dict:
         return {"info": self.info, "confs": self._confs}
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> ParalHints:
         return cls(info=d["info"], confs=d["confs"])
 
-    def copy(self):
+    def copy(self) -> ParalHints:
         """Shallow copy of self."""
         return copy.copy(self)
 
-    def select_with_condition(self, condition, key=None):
+    def select_with_condition(self, condition, key=None) -> None:
         """
         Remove all the configurations that do not satisfy the given condition.
 
@@ -335,17 +331,17 @@ class ParalHints(collections.abc.Iterable):
 
         self._confs = new_confs
 
-    def sort_by_efficiency(self, reverse=True):
+    def sort_by_efficiency(self, reverse=True) -> ParalHints:
         """Sort the configurations in place. items with highest efficiency come first"""
         self._confs.sort(key=lambda c: c.efficiency, reverse=reverse)
         return self
 
-    def sort_by_speedup(self, reverse=True):
+    def sort_by_speedup(self, reverse=True) -> ParalHints:
         """Sort the configurations in place. items with highest speedup come first"""
         self._confs.sort(key=lambda c: c.speedup, reverse=reverse)
         return self
 
-    def sort_by_mem_per_proc(self, reverse=False):
+    def sort_by_mem_per_proc(self, reverse=False) -> ParalHints:
         """Sort the configurations in place. items with lowest memory per proc come first."""
         # Avoid sorting if mem_per_cpu is not available.
         if any(c.mem_per_proc > 0.0 for c in self):
@@ -383,7 +379,7 @@ class ParalHints(collections.abc.Iterable):
     #    new_confs = [pconf for pconf in self if qadapter.can_run_pconf(pconf)]
     #    return self.__class__(info=self.info, confs=new_confs)
 
-    def get_ordered_with_policy(self, policy, max_ncpus):
+    def get_ordered_with_policy(self, policy, max_ncpus) -> ParalHints:
         """
         Sort and return a new list of configurations ordered according to the :class:`TaskPolicy` policy.
         """
@@ -407,7 +403,7 @@ class ParalHints(collections.abc.Iterable):
             logger.info("Applying vars_condition %s" % str(policy.vars_condition))
             hints.select_with_condition(policy.vars_condition, key="vars")
 
-            # Undo change if no configuration fullfills the requirements.
+            # Undo change if no configuration fulfills the requirements.
             if not hints:
                 hints = bkp_hints
                 logger.warning("Empty list of configurations after policy.vars_condition")
@@ -442,7 +438,7 @@ class TaskPolicy(object):
     and the conditions used to select the optimal configuration for the parallel run
     """
     @classmethod
-    def as_policy(cls, obj):
+    def as_policy(cls, obj: Any) -> TaskPolicy:
         """
         Converts an object obj into a `:class:`TaskPolicy. Accepts:
 
@@ -462,7 +458,7 @@ class TaskPolicy(object):
                 raise TypeError("Don't know how to convert type %s to %s" % (type(obj), cls))
 
     @classmethod
-    def autodoc(cls):
+    def autodoc(cls) -> str:
         return """
     autoparal:                # (integer). 0 to disable the autoparal feature (DEFAULT: 1 i.e. autoparal is on)
     condition:                # condition used to filter the autoparal configurations (Mongodb-like syntax).
@@ -521,28 +517,33 @@ class FixQueueCriticalError(Exception):
 _USER_CONFIG_TASKMANAGER = None
 
 
-def set_user_config_taskmanager(manager):
-    """Change the default manager returned by TaskManager.from_user_config."""
+def set_user_config_taskmanager(task_manager: TaskManager) -> None:
+    """
+    Change the default manager returned by TaskManager.from_user_config.
+    """
     global _USER_CONFIG_TASKMANAGER
-    _USER_CONFIG_TASKMANAGER = manager
+    _USER_CONFIG_TASKMANAGER = task_manager
 
 
 class TaskManager(MSONable):
     """
-    A `TaskManager` is responsible for the generation of the job script and the submission
-    of the task, as well as for the specification of the parameters passed to the resource manager
-    (e.g. Slurm, PBS ...) and/or the run-time specification of the ABINIT variables governing the parallel execution.
-    A `TaskManager` delegates the generation of the submission script and the submission of the task to the :class:`QueueAdapter`.
-    A `TaskManager` has a :class:`TaskPolicy` that governs the specification of the parameters for the parallel executions.
-    Ideally, the TaskManager should be the **main entry point** used by the task to deal with job submission/optimization
+    A `TaskManager` is responsible for the generation of the job script,
+    the specification of the parameters passed to the resource manager (e.g. Slurm, PBS, etc).
+    and the submission of the task.
+    A `TaskManager` uses a `QueueAdapter` to perform most of this work
+    A `TaskManager` has a :class:`TaskPolicy` object that governs the specification of the parameters for
+    the parallel executions.
+    Ideally, the TaskManager should be the **main entry point** used by the task
+    to deal with job submission/optimization
     """
     YAML_FILE = "manager.yml"
+
     USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
 
-    ENTRIES = {"policy", "qadapters", "db_connector", "batch_adapter"}
+    ENTRIES = {"policy", "qadapters"}
 
     @classmethod
-    def autodoc(cls):
+    def autodoc(cls) -> str:
         s = """
 # TaskManager configuration file (YAML Format)
 
@@ -554,11 +555,6 @@ qadapters:
     -  # qadapter_1
     -  # qadapter_2
 
-db_connector:
-    # Connection to MongoDB database (optional)
-
-batch_adapter:
-    # Adapter used to submit flows with batch script. (optional)
 
 ##########################################
 # Individual entries are documented below:
@@ -570,7 +566,7 @@ batch_adapter:
         return s
 
     @classmethod
-    def get_simple_manager(cls):
+    def get_simple_manager(cls) -> str:
 
         return """
 qadapters:
@@ -581,7 +577,7 @@ qadapters:
             qname: localhost
       job:
         mpi_runner: mpirun
-        pre_run:  
+        pre_run:
             # List of shell commands executed before running abinit
             # Change this part according to your Abinit installation and the location of the shared libs
             - export OMP_NUM_THREADS=1
@@ -598,7 +594,7 @@ qadapters:
 """
 
     @classmethod
-    def from_user_config(cls):
+    def from_user_config(cls) -> TaskManager:
         """
         Initialize the |TaskManager| from the YAML file 'manager.yaml'.
         Search first in the working directory and then in the AbiPy configuration directory.
@@ -622,15 +618,15 @@ Cannot locate `{cls.YAML_FILE}` neither in current directory nor in `{path}`
 
 !!! PLEASE READ THIS !!!
 
-    To run AbiPy flows you need a manager.yaml describing your computer/cluster 
+    To run AbiPy flows you need a manager.yaml describing your computer/cluster
     as well as the job submission engine being used (shell, Slurm, PBS, etc).
-    
+
     Examples are provided in the `abipy/data/managers` directory.
     Use `abidoc.py manager` to access the documentation from the terminal.
     See also https://abinit.github.io/abipy/workflows/manager_examples.html for examples.
-    
+
 A minimalistic example of manager.yml for a laptop with the shell engine is reported below:
-    
+
 {cls.get_simple_manager()}
 
 """, color="red"))
@@ -639,22 +635,23 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         return _USER_CONFIG_TASKMANAGER
 
     @classmethod
-    def from_file(cls, filename):
-        """Read the configuration parameters from the Yaml file filename."""
+    def from_file(cls, filepath: str) -> TaskManager:
+        """Read the configuration parameters from the Yaml file filepath."""
+        filepath = os.path.expanduser(filepath)
         try:
-            with open(filename, "rt") as fh:
+            with open(filepath, "rt") as fh:
                 return cls.from_dict(yaml_safe_load(fh))
         except Exception as exc:
-            print("Error while reading TaskManager parameters from %s\n" % filename)
+            print(f"Error while reading TaskManager parameters from {filepath}\n")
             raise
 
     @classmethod
-    def from_string(cls, s):
+    def from_string(cls, s: str) -> TaskManager:
         """Create an instance from string s containing a YAML dictionary."""
         return cls.from_dict(yaml_safe_load(s))
 
     @classmethod
-    def as_manager(cls, obj):
+    def as_manager(cls, obj: Any) -> TaskManager:
         """
         Convert obj into TaskManager instance. Accepts string, filepath, dictionary, `TaskManager` object.
         If obj is None, the manager is initialized from the user config file.
@@ -674,12 +671,12 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise TypeError("Don't know how to convert type %s to TaskManager" % type(obj))
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> TaskManager:
         """Create an instance from a dictionary."""
         return cls(**{k: v for k, v in d.items() if k in cls.ENTRIES})
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return copy.deepcopy(self._kwargs)
 
     def __init__(self, **kwargs):
@@ -687,7 +684,6 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         Args:
             policy:None
             qadapters: List of qadapters in YAML format
-            db_connector:Dictionary with data used to connect to the database (optional)
         """
         # Keep a copy of kwargs
         self._kwargs = copy.deepcopy(kwargs)
@@ -695,7 +691,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         self.policy = TaskPolicy.as_policy(kwargs.pop("policy", None))
 
         # Initialize database connector (if specified)
-        self.db_connector = DBConnector(**kwargs.pop("db_connector", {}))
+        #self.db_connector = DBConnector(**kwargs.pop("db_connector", {}))
 
         # Build list of QAdapters. Neglect entry if priority == 0 or `enabled: no"
         qads = []
@@ -720,21 +716,15 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
         self._qads, self._qadpos = tuple(qads), 0
 
-        # Initialize the qadapter for batch script submission.
-        d = kwargs.pop("batch_adapter", None)
-        self.batch_adapter = None
-        if d: self.batch_adapter = make_qadapter(**d)
-        #print("batch_adapter", self.batch_adapter)
-
         if kwargs:
             raise ValueError("Found invalid keywords in the taskmanager file:\n %s" % str(list(kwargs.keys())))
 
     @lazy_property
-    def abinit_build(self):
+    def abinit_build(self) -> AbinitBuild:
         """:class:`AbinitBuild` object with Abinit version and options used to build the code"""
         return AbinitBuild(manager=self)
 
-    def to_shell_manager(self, mpi_procs=1):
+    def to_shell_manager(self, mpi_procs: int = 1) -> TaskManager:
         """
         Returns a new |TaskManager| with the same parameters as self but replace the :class:`QueueAdapter`
         with a :class:`ShellAdapter` with mpi_procs so that we can submit the job without passing through the queue.
@@ -779,30 +769,37 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
         return new
 
-    def new_with_fixed_mpi_omp(self, mpi_procs, omp_threads):
+    def new_with_fixed_mpi_omp(self, mpi_procs: int, omp_threads: int) -> TaskManager:
         """
         Return a new `TaskManager` in which autoparal has been disabled.
-        The jobs will be executed with `mpi_procs` MPI processes and `omp_threads` OpenMP threads.
-        Useful for generating input files for benchmarks.
+        The Task will be executed with `mpi_procs` MPI processes and `omp_threads` OpenMP threads.
+        Useful for generating input files for benchmarks or enforcing a certain number of procs
+        if the Task does not support autoparal.
         """
         new = self.deepcopy()
         new.policy.autoparal = 0
         new.set_mpi_procs(mpi_procs)
         new.set_omp_threads(omp_threads)
+
+        # Change min/max cores just to be consistent.
+        for qad in new._qads:
+            qad.min_cores = mpi_procs * omp_threads
+            qad.max_cores = mpi_procs * omp_threads
+
         return new
 
     @property
-    def has_queue(self):
+    def has_queue(self) -> bool:
         """True if we are submitting jobs via a queue manager."""
         return self.qadapter.QTYPE.lower() != "shell"
 
     @property
-    def qads(self):
-        """List of :class:`QueueAdapter` objects sorted according to priorities (highest comes first)"""
+    def qads(self) -> List[QueueAdapter]:
+        """List of :class:`QueueAdapter` objects sorted according to priorities (highest one comes first)"""
         return self._qads
 
     @property
-    def qadapter(self):
+    def qadapter(self) -> QueueAdapter:
         """The qadapter used to submit jobs."""
         return self._qads[self._qadpos]
 
@@ -871,7 +868,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         #self.set_mem_per_proc(pconf.mem_per_proc)
         return pconf
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -881,60 +878,51 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             app("[Qadapter %d]\n%s" % (i, str(qad)))
         app("Qadapter selected: %d" % self._qadpos)
 
-        if self.has_db:
-            app("[MongoDB database]:")
-            app(str(self.db_connector))
-
         return "\n".join(lines)
 
     @property
-    def has_db(self):
-        """True if we are using MongoDB database"""
-        return bool(self.db_connector)
-
-    @property
-    def has_omp(self):
+    def has_omp(self) -> bool:
         """True if we are using OpenMP parallelization."""
         return self.qadapter.has_omp
 
     @property
-    def num_cores(self):
+    def num_cores(self) -> int:
         """Total number of CPUs used to run the task."""
         return self.qadapter.num_cores
 
     @property
-    def mpi_procs(self):
+    def mpi_procs(self) -> int:
         """Number of MPI processes."""
         return self.qadapter.mpi_procs
 
     @property
-    def mem_per_proc(self):
+    def mem_per_proc(self) -> float:
         """Memory per MPI process."""
         return self.qadapter.mem_per_proc
 
     @property
-    def omp_threads(self):
+    def omp_threads(self) -> int:
         """Number of OpenMP threads"""
         return self.qadapter.omp_threads
 
-    def deepcopy(self):
+    def deepcopy(self) -> TaskManager:
         """Deep copy of self."""
         return copy.deepcopy(self)
 
-    def set_mpi_procs(self, mpi_procs):
+    def set_mpi_procs(self, mpi_procs: int) -> None:
         """Set the number of MPI processes to use."""
         self.qadapter.set_mpi_procs(mpi_procs)
 
-    def set_omp_threads(self, omp_threads):
+    def set_omp_threads(self, omp_threads: int) -> None:
         """Set the number of OpenMp threads to use."""
         self.qadapter.set_omp_threads(omp_threads)
 
-    def set_mem_per_proc(self, mem_mb):
+    def set_mem_per_proc(self, mem_mb: float) -> None:
         """Set the memory (in Megabytes) per CPU."""
         self.qadapter.set_mem_per_proc(mem_mb)
 
     @property
-    def max_cores(self):
+    def max_cores(self) -> int:
         """
         Maximum number of cores that can be used.
         This value is mainly used in the autoparal part to get the list of possible configurations.
@@ -955,7 +943,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         """Cancel the job. Returns exit status."""
         return self.qadapter.cancel(job_id)
 
-    def write_jobfile(self, task, **kwargs):
+    def write_jobfile(self, task: Task, **kwargs) -> str:
         """
         Write the submission script. Return the path of the script
 
@@ -985,15 +973,14 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             task.job_file.chmod(0o740)
             return task.job_file.path
 
-    def launch(self, task, **kwargs):
+    def launch(self, task: Task, **kwargs):
         """
         Build the input files and submit the task via the :class:`Qadapter`
 
         Args:
             task: |Task| object.
 
-        Returns:
-            Process object.
+        Returns: Process object.
         """
         if task.status == task.S_LOCKED:
             raise ValueError("You shall not submit a locked task!")
@@ -1028,10 +1015,6 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             task.set_status(task.S_ERROR, msg="max_num_launches reached: %s" % str(exc))
             raise
 
-    def get_collection(self, **kwargs):
-        """Return the MongoDB collection used to store the results."""
-        return self.db_connector.get_collection(**kwargs)
-
     def increase_mem(self):
         # OLD
         # with GW calculations in mind with GW mem = 10,
@@ -1041,7 +1024,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         try:
             self.qadapter.more_mem_per_proc()
         except QueueAdapterError:
-            # here we should try to switch to an other qadapter
+            # here we should try to switch to another qadapter
             raise ManagerIncreaseError('manager failed to increase mem')
 
     def increase_ncpus(self):
@@ -1052,7 +1035,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         try:
             self.qadapter.more_cores()
         except QueueAdapterError:
-            # here we should try to switch to an other qadapter
+            # here we should try to switch to another qadapter
             raise ManagerIncreaseError('manager failed to increase ncpu')
 
     def increase_resources(self):
@@ -1065,21 +1048,21 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         try:
             self.qadapter.more_mem_per_proc()
         except QueueAdapterError:
-            # here we should try to switch to an other qadapter
+            # here we should try to switch to another qadapter
             raise ManagerIncreaseError('manager failed to increase resources')
 
     def exclude_nodes(self, nodes):
         try:
             self.qadapter.exclude_nodes(nodes=nodes)
         except QueueAdapterError:
-            # here we should try to switch to an other qadapter
+            # here we should try to switch to another qadapter
             raise ManagerIncreaseError('manager failed to exclude nodes')
 
     def increase_time(self):
         try:
             self.qadapter.more_time()
         except QueueAdapterError:
-            # here we should try to switch to an other qadapter
+            # here we should try to switch to another qadapter
             raise ManagerIncreaseError('manager failed to increase time')
 
 
@@ -1116,10 +1099,6 @@ class AbinitBuild(object):
 
         # Generate a shell script to execute `abinit -b`
         stdout = os.path.join(workdir, "run.abo")
-
-        #stdin = os.path.join(workdir, "run.files")
-        #with open(stdin, "wt") as fh:
-        #    fh.write("foo")
 
         script = manager.qadapter.get_script_str(
             job_name="abinit_b",
@@ -1212,9 +1191,12 @@ class AbinitBuild(object):
                 # Temporary hack for abinit v9
                 return True
 
+        print("self.info", self.info)
+
         # Parse info.
         # flavor options were used in Abinit v8
         for line in self.info.splitlines():
+            print(line)
             if "Version" in line: self.version = line.split()[-1]
             if "TRIO flavor" in line:
                 self.has_netcdf = "netcdf" in line
@@ -1239,7 +1221,7 @@ class AbinitBuild(object):
         # Temporary hack for abinit v9
         #from abipy.core.testing import cmp_version
         #if cmp_version(self.version, "9.0.0", op=">="):
-        #    self.has_netcdf = True
+        self.has_netcdf = True
 
     def __str__(self):
         lines = []
@@ -1470,13 +1452,22 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.outdir = Directory(os.path.join(self.workdir, "outdata"))
         self.tmpdir = Directory(os.path.join(self.workdir, "tmpdata"))
 
-        # stderr and output file of the queue manager. Note extensions.
+        # stderr and output file of the queue manager. Note file extensions.
         self.qerr_file = File(os.path.join(self.workdir, "queue.qerr"))
         self.qout_file = File(os.path.join(self.workdir, "queue.qout"))
 
-    def set_manager(self, manager):
-        """Set the |TaskManager| used to launch the Task."""
+    def set_manager(self, manager: TaskManager) -> None:
+        """
+        Set the |TaskManager| used to launch this Task.
+        Also, change the limits in the QueueAdapters if task class is found in `limits_for_task_class`.
+        """
         self.manager = manager.deepcopy()
+
+        cls_name = self.__class__.__name__
+        for qad in self.manager.qads:
+            tclass_limits = qad.limits_for_task_class.get(cls_name, None)
+            if tclass_limits:
+                qad.update_limits(tclass_limits)
 
     @property
     def work(self):
@@ -1498,7 +1489,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
     @lazy_property
     def pos(self):
-        """The position of the task in the |Flow|"""
+        """The position of the task inside the |Flow|"""
         for i, task in enumerate(self.work):
             if self == task:
                 return self.work.pos, i
@@ -1510,10 +1501,10 @@ class Task(Node, metaclass=abc.ABCMeta):
         return "w" + str(self.pos[0]) + "_t" + str(self.pos[1])
 
     @property
-    def num_launches(self):
+    def num_launches(self) -> int:
         """
         Number of launches performed. This number includes both possible ABINIT restarts
-        as well as possible launches done due to errors encountered with the resource manager
+        and possible launches done due to errors encountered with the resource manager
         or the hardware/software."""
         return sum(q.num_launches for q in self.manager.qads)
 
@@ -1545,7 +1536,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         return self.input.structure
 
     def make_input(self, with_header=False):
-        """Construct the input file of the calculation."""
+        """return string the input file of the calculation."""
         s = str(self.input)
         if with_header: s = str(self) + "\n" + s
         return s
@@ -1566,12 +1557,12 @@ class Task(Node, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def executable(self):
+    def executable(self) -> str:
         """
         Path to the executable associated to the task (internally stored in self._executable).
         """
 
-    def set_executable(self, executable):
+    def set_executable(self, executable: str) -> None:
         """Set the executable associate to this task."""
         self._executable = executable
 
@@ -1584,22 +1575,22 @@ class Task(Node, metaclass=abc.ABCMeta):
             return FakeProcess()
 
     @property
-    def is_abinit_task(self):
+    def is_abinit_task(self) -> bool:
         """True if this task is a subclass of AbinitTask."""
         return isinstance(self, AbinitTask)
 
     @property
-    def is_anaddb_task(self):
+    def is_anaddb_task(self) -> bool:
         """True if this task is a subclass of OpticTask."""
         return isinstance(self, AnaddbTask)
 
     @property
-    def is_optic_task(self):
+    def is_optic_task(self) -> bool:
         """True if this task is a subclass of OpticTask."""
         return isinstance(self, OpticTask)
 
     @property
-    def is_completed(self):
+    def is_completed(self) -> bool:
         """True if the task has been executed."""
         return self.status >= self.S_DONE
 
@@ -1629,15 +1620,16 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         Disable autoparal and force execution with `mpi_procs` MPI processes
         and `omp_threads` OpenMP threads. Useful for generating benchmarks.
+        or for dealing with calculations that do not support autoparal.
         """
         manager = self.manager if hasattr(self, "manager") else self.flow.manager
         self.manager = manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
 
-    #def set_max_ncores(self, max_ncores):
+    #def set_max_ncores(self, max_ncores, om_threads):
     #    """
     #    """
-    #    manager = self.manager if hasattr(self, "manager") else self.flow.manager
-    #    self.manager = manager.new_with_max_ncores(mpi_procs, omp_threads)
+    #    new_manager = self.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+    #    self.set_manager(new_manager)
 
     #@check_spectator
     def _on_done(self):
@@ -1647,12 +1639,10 @@ class Task(Node, metaclass=abc.ABCMeta):
     def _on_ok(self):
         # Fix output file names.
         self.fix_ofiles()
+        self.finalized = True
 
         # Get results
         results = self.on_ok()
-
-        self.finalized = True
-
         return results
 
     #@check_spectator
@@ -1663,10 +1653,8 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         Returns:
             Dictionary that must contain at least the following entries:
-                returncode:
-                    0 on success.
-                message:
-                    a string that should provide a human-readable description of what has been performed.
+                returncode: 0 on success.
+                message: a string that should provide a human-readable description of what has been performed.
         """
         return dict(returncode=0, message="Calling on_all_ok of the base class!")
 
@@ -1692,8 +1680,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         Called by restart once we have finished preparing the task for restarting.
 
-        Return:
-            True if task has been restarted
+        Return: True if task has been restarted
         """
         self.set_status(self.S_READY, msg="Restarted on %s" % time.asctime())
 
@@ -1944,16 +1931,15 @@ class Task(Node, metaclass=abc.ABCMeta):
             self._on_done()
 
         if status == self.S_OK:
-            # Finalize the task.
-            if not self.finalized:
-                self._on_ok()
 
-                # here we remove the output files of the task and of its parents.
+            if not self.finalized: self._on_ok()
+
+            # Note that _on_ok might have changed the status.
+            if self.status == self.S_OK:
                 if self.gc is not None and self.gc.policy == "task":
+                    # remove the output files of the task and of its parents.
                     self.clean_output_files()
 
-            if self.status == self.S_OK:
-                # Because _on_ok might have changed the status.
                 self.send_signal(self.S_OK)
 
         return status
@@ -2292,6 +2278,7 @@ class Task(Node, metaclass=abc.ABCMeta):
             self.set_status(self.S_ABICRITICAL, msg=msg)
             return parser.report_exception(ofile.path, exc)
 
+    # FIXME: Remove this API
     def get_results(self, **kwargs):
         """
         Returns :class:`NodeResults` instance.
@@ -2371,7 +2358,23 @@ class Task(Node, metaclass=abc.ABCMeta):
             self.files_file.write(self.filesfile_string)
 
         self.input_file.write(self.make_input())
+
         self.manager.write_jobfile(self)
+
+        # Add README.md file if set
+        readme_md = getattr(self, "readme_md", None)
+        if readme_md is not None:
+            with open(self.path_in_workdir("README.md"), "wt") as fh:
+                fh.write(readme_md)
+
+        # Add abipy_meta.json file if set
+        data = getattr(self, "abipy_meta_json", None)
+        if data is None: data = {}
+        if hasattr(self.input, "as_dict"):
+            data["_input"] = self.input.as_dict()
+        else:
+            print("WARNING: Input object does not provide as_dict method!")
+        self.write_json_in_workdir("abipy_meta.json", data)
 
     #@check_spectator
     def rmtree(self, exclude_wildcard=""):
@@ -2651,6 +2654,42 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         return fg
 
+    def get_dataframe(self, as_dict: bool = False) -> Union[pd.DataFrame, dict]:
+        """
+        Return pandas dataframe with task info or dictionary if as_dict is True.
+        This function should be called after task.get_status to update the status.
+        """
+        from abipy.tools.duck import getattrd
+        task_attrs = [
+            "node_id", "name", "status", "task_class",
+            "mpi_procs", "omp_threads",
+            "num_launches", "num_restarts", "num_corrections",
+            "queue_id", "qname",
+        ]
+
+        def _getattr(task, aname):
+            if aname == "task_class": return getattrd(task, "__class__.__name__")
+            attr = getattr(task, aname)
+            if aname == "status": return str(attr)
+            return attr
+
+        d = {aname: _getattr(self, aname) for aname in task_attrs}
+
+        timedelta = self.datetimes.get_runtime()
+        d["task_runtime_s"] = timedelta.total_seconds() if timedelta else -1
+        timedelta = self.datetimes.get_time_inqueue()
+        d["task_queue_time_s"] = timedelta.total_seconds() if timedelta else -1
+        d["submission_datetime"] = self.datetimes.submission
+        d["start_datetime"] = self.datetimes.start
+        d["end_datetime"] = self.datetimes.end
+
+        d["work_idx"] = self.pos[0]
+        d["task_widx"] = self.pos[1]
+
+        if as_dict: return d
+
+        return pd.DataFrame(d, index=[0])
+
 
 class DecreaseDemandsError(Exception):
     """
@@ -2665,7 +2704,7 @@ class AbinitTask(Task):
     Results = TaskResults
 
     @classmethod
-    def from_input(cls, input, workdir=None, manager=None):
+    def from_input(cls, input, workdir=None, manager=None) -> AbinitTask:
         """
         Create an instance of `AbinitTask` from an ABINIT input.
 
@@ -2677,7 +2716,7 @@ class AbinitTask(Task):
         return cls(input, workdir=workdir, manager=manager)
 
     @classmethod
-    def temp_shell_task(cls, inp, mpi_procs=1, workdir=None, manager=None):
+    def temp_shell_task(cls, inp, mpi_procs=1, workdir=None, manager=None) -> AbinitTask:
         """
         Build a Task with a temporary workdir. The task is executed via the shell with 1 MPI proc.
         Mainly used for invoking Abinit to get important parameters needed to prepare the real task.
@@ -2721,7 +2760,7 @@ class AbinitTask(Task):
             self.history.info("\n".join(logs))
 
     @property
-    def executable(self):
+    def executable(self) -> str:
         """Path to the executable required for running the Task."""
         try:
             return self._executable
@@ -2734,22 +2773,22 @@ class AbinitTask(Task):
         return self.input.pseudos
 
     @property
-    def isnc(self):
+    def isnc(self) -> bool:
         """True if norm-conserving calculation."""
         return self.input.isnc
 
     @property
-    def ispaw(self):
+    def ispaw(self) -> bool:
         """True if PAW calculation"""
         return self.input.ispaw
 
     @property
-    def is_gs_task(self):
+    def is_gs_task(self) -> bool:
         """True if task is GsTask subclass."""
         return isinstance(self, GsTask)
 
     @property
-    def is_dfpt_task(self):
+    def is_dfpt_task(self) -> bool:
         """True if task is a DftpTask subclass."""
         return isinstance(self, DfptTask)
 
@@ -2766,7 +2805,7 @@ class AbinitTask(Task):
         return None
 
     @property
-    def filesfile_string(self):
+    def filesfile_string(self) -> str:
         """String with the list of files and prefixes needed to execute ABINIT."""
         lines = []
         app = lines.append
@@ -2816,6 +2855,15 @@ class AbinitTask(Task):
         # paral_kgb is used only in the GS part.
         return paral_kgb == value and isinstance(self, GsTask)
 
+    def get_panel(self, **kwargs):
+        """
+        Build panel with widgets to interact with the Task either in a notebook or in panel app.
+        This is the implementation provided by the base class.
+        Subclasses may provide specialized implementations.
+        """
+        from abipy.panels.tasks import TaskPanel
+        return TaskPanel(task=self).get_panel(**kwargs)
+
     def _change_structure(self, new_structure):
         """Change the input structure."""
         # Compare new and old structure for logging purpose.
@@ -2851,7 +2899,7 @@ class AbinitTask(Task):
         self.input.set_structure(new_structure)
         #assert self.input.structure == new_structure
 
-    def autoparal_run(self):
+    def autoparal_run(self) -> int:
         """
         Find an optimal set of parameters for the execution of the task
         This method can change the ABINIT input variables and/or the
@@ -2993,7 +3041,7 @@ class AbinitTask(Task):
 
         return selected
 
-    def restart(self):
+    def restart(self) -> None:
         """
         general restart used when scheduler problems have been taken care of
         """
@@ -3237,7 +3285,7 @@ class AbinitTask(Task):
 
 class ProduceHist(object):
     """
-    Mixin class for a |Task| producing a HIST file.
+    Mixin class for a |Task| producing HIST files.
     Provide the method `open_hist` that reads and return a HIST file.
     """
     @property
@@ -3305,6 +3353,60 @@ class GsTask(AbinitTask):
             self.history.critical("Exception while reading GSR file at %s:\n%s" % (gsr_path, str(exc)))
             return None
 
+    def change_ks_solver_params_if_needed(self, is_scf_cycle: bool) -> None:
+        """
+        This method is called every time we perform a restart of the Task.
+        It changes some parameters governing the KS eigenvalue solver in order to facilitate
+        convergence without necessarily making the calculation faster.
+        Note that we operate on the algorithmic aspects without changing the physics or
+        the convergence criteria.
+
+        Args:
+            is_scf_cycle: True if this is a SCF calculation else NSCF run.
+        """
+        self.history.info("Changing some parameters of the KS solver as iteration did not converge...")
+
+        # Increase number of iterations if below 30.
+        nstep = self.input.get("nstep", 30)
+        if nstep <= 30:
+            self.set_vars(nstep=50)
+
+        # Deactivate RMM-DIIS if we are using it as CG/LOBPCG are more stable.
+        rmm_diis = self.input.get("rmm_diis", 0)
+        if rmm_diis != 0:
+            self.set_vars(rmm_diis=0)
+
+        # Increase nnsclo if this is the first restart.
+        nnsclo = self.input.get("nnsclo", 0)
+        if self.num_restarts == 0 and nnsclo == 0:
+            self.setvars(nnsclo=2)
+
+        # Increase nline gradually as this is gonna increase the wall-time. Don't go beyond 8.
+        nline = self.input.get("nline", 4)
+        if 8 > nline >= 4:
+            self.set_vars(nline=nline + 2)
+
+        with self.open_gsr() as gsr:
+            ebands = gsr.ebands
+
+        fundamental_gap_ev, direct_gap_ev = 0.0, 0.0
+        if not gsr.ebands.is_metal:
+            fundamental_gap_ev = min(gap.energy for gap in gsr.ebands.fundamental_gaps)
+            direct_gap_ev = min(gap.energy for gap in gsr.ebands.direct_gaps)
+
+        #if is_scf_cycle:
+        #    # Try to understand if system has energy gap and change the value of diemac accordingly
+        #    diemac = self.input.get("diemac", 1e6)
+        #    if not gsr.ebands.is_metal:
+        #       new_diemac = diemac_from_gap(gap)
+        #       self.set_vars(diemac=diemac)
+        #else:
+        #    # NSCF case. Perhaps the problem is due to nbdbuf that is too small
+        #    nbdbuf = self.input.get("nbdbuf", 0)
+        #    if nbdbuf <= 8
+        #       nbdbuf = 8
+        #       self.set_vars(nbdbuf=nbdbuf)
+
 
 class ScfTask(GsTask):
     """
@@ -3335,6 +3437,9 @@ class ScfTask(GsTask):
 
         # Now we can resubmit the job.
         self.history.info("Will restart from %s", restart_file)
+
+        #self.change_ks_solver_params_if_needed(self, is_scf_cycle=True)
+
         return self._restart()
 
     def inspect(self, **kwargs):
@@ -3354,20 +3459,9 @@ class ScfTask(GsTask):
 
         return None
 
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-
-        # Open the GSR file and add its data to results.out
-        with self.open_gsr() as gsr:
-            results["out"].update(gsr.as_dict())
-            # Add files to GridFS
-            results.register_gridfs_files(GSR=gsr.filepath)
-
-        return results
-
     def add_ebands_task_to_work(self, work, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10):
         """
-        Generate an NSCF task form band structure calculation from a GS SCF task and add it to the work.
+        Generate an NSCF task for band structure calculation from a GS SCF task and add it to the work.
 
         Args:
             work:
@@ -3428,6 +3522,17 @@ class NscfTask(GsTask):
         (in principle, it's possible to interpolate inside Abinit but tests revealed some numerical noise
         Here we change the input file of the NSCF task to have the same FFT mesh.
         """
+
+        # Print a warning if nbdbuf is not specified since Abinit default is usually too small.
+        if "nbdbuf" not in self.input:
+            msg = """
+nbdbuf is not specified in input, using `nbdbuf = 2 * nspinor` that may be too small!"
+As a consequence, the NSCF cycle may have problems to converge the last bands within nstep iterations.
+To avoid this problem specify nbdbuf in the input file and adjust nband accordingly.
+"""
+            cprint(msg, color="yellow")
+            self.history.warning(msg)
+
         for dep in self.deps:
             if "DEN" in dep.exts:
                 parent_task = dep.node
@@ -3465,18 +3570,10 @@ class NscfTask(GsTask):
 
         # Now we can resubmit the job.
         self.history.info("Will restart from %s", restart_file)
+
+        #self.change_ks_solver_params_if_needed(self, is_scf_cycle=False)
+
         return self._restart()
-
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-
-        # Read the GSR file.
-        with self.open_gsr() as gsr:
-            results["out"].update(gsr.as_dict())
-            # Add files to GridFS
-            results.register_gridfs_files(GSR=gsr.filepath)
-
-        return results
 
 
 class RelaxTask(GsTask, ProduceHist):
@@ -3490,7 +3587,7 @@ class RelaxTask(GsTask, ProduceHist):
 
     color_rgb = np.array((255, 61, 255)) / 255
 
-    def get_final_structure(self):
+    def get_final_structure(self) -> pmg_Structure:
         """Read the final structure from the GSR file."""
         try:
             with self.open_gsr() as gsr:
@@ -3597,19 +3694,8 @@ class RelaxTask(GsTask, ProduceHist):
         else:
             raise ValueError("Wrong value for what %s" % what)
 
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-
-        # Open the GSR file and add its data to results.out
-        with self.open_gsr() as gsr:
-            results["out"].update(gsr.as_dict())
-            # Add files to GridFS
-            results.register_gridfs_files(GSR=gsr.filepath)
-
-        return results
-
-    def reduce_dilatmx(self, target=1.01):
-        actual_dilatmx = self.get_inpvar('dilatmx', 1.)
+    def reduce_dilatmx(self, target: float = 1.01):
+        actual_dilatmx = self.get_inpvar("dilatmx", 1.0)
         new_dilatmx = actual_dilatmx - min((actual_dilatmx - target), actual_dilatmx * 0.05)
         self.set_vars(dilatmx=new_dilatmx)
 
@@ -3652,39 +3738,8 @@ class DfptTask(AbinitTask):
         events.ScfConvergenceWarning,
     ]
 
-    def __repr__(self):
-        # Get info about DFT perturbation from input file.
-        qpt = self.input.get("qpt", [0, 0, 0])
-        rfphon = self.input.get("rfphon", 0)
-        rfatpol = self.input.get("rfatpol", [1, 1])
-        rfelfd = self.input.get("rfelfd", 0)
-        rfstrs = self.input.get("rfstrs", 0)
-        rfdir = self.input.get("rfdir", [0, 0, 0])
-        irdddk = self.input.get("irdddk", 0)
-
-        dfpt_info = ""
-        if rfphon != 0:
-            dfpt_info = "qpt: {}, rfphon: {}, rfatpol: {}, rfdir: {}, irdddk: {}".format(
-                    qpt, rfphon, rfatpol, rfdir, irdddk)
-
-        elif rfelfd != 0:
-            dfpt_info = "qpt: {}, rfelfd: {} rfdir: {}, irdddk: {}".format(
-                    qpt, rfelfd, rfdir, irdddk)
-
-        elif rfstrs != 0:
-            dfpt_info = "qpt: {}, rfstrs: {}, rfdir: {}, irdddk: {}".format(
-                    qpt, rfstrs, rfdir, irdddk)
-
-        try:
-            return "<%s, node_id=%s, workdir=%s, %s>" % (
-                self.__class__.__name__, self.node_id, self.relworkdir, dfpt_info)
-        except AttributeError:
-            # this usually happens when workdir has not been initialized
-            return "<%s, node_id=%s, workdir=None, %s>" % (
-                self.__class__.__name__, self.node_id, dfpt_info)
-
     @property
-    def ddb_path(self):
+    def ddb_path(self) -> str:
         """Absolute path of the DDB file. Empty string if file is not present."""
         # Lazy property to avoid multiple calls to has_abiext.
         try:
@@ -3716,15 +3771,35 @@ class DfptTask(AbinitTask):
     def make_links(self):
         """
         Replace the default behaviour of make_links. More specifically, this method
-        implements the logic required to connect DFPT calculation to `DDK` files.
+        implements the logic required to connect DFPT calculation to e.g. `DDK` files.
         Remember that DDK is an extension introduced in AbiPy to deal with the
         irdddk input variable and the fact that the 3 files with du/dk produced by Abinit
         have a file extension constructed from the number of atom (e.g. 1WF[3natom +1]).
 
         AbiPy uses the user-friendly syntax deps={node: "DDK"} to specify that
         the children will read the DDK from `node` but this also means that
-        we have to implement extract logic to handle this case at runtime.
+        we have to implement extra logic to handle this case at runtime.
         """
+        natom = len(self.input.structure)
+        debug = False
+
+        def output_paths_from_regex(task, reg_string):
+            import re
+            reg = re.compile(reg_string)
+            out_filepaths = []
+            for path in task.outdir.list_filepaths():
+                if reg.match(os.path.basename(path)):
+                    out_filepaths.append(path)
+            return out_filepaths
+
+        def my_symlink(src, dst):
+            if debug: print("linking", dst, " to ", src)
+            if os.path.exists(dst):
+                #if os.path.realpath(dst) != src:
+                #    raise RuntimeError(f"{src} does not point to {dst}")
+                return
+            os.symlink(src, dst)
+
         for dep in self.deps:
             for d in dep.exts:
 
@@ -3744,7 +3819,34 @@ class DfptTask(AbinitTask):
 
                     infile = self.indir.path_in("in_1WF%d" % ddk_case)
                     if out_ddk.endswith(".nc"): infile = infile + ".nc"
-                    os.symlink(out_ddk, infile)
+
+                    my_symlink(out_ddk, infile)
+
+                elif d == "DKDK":
+                    # DKDK corresponds to ipert == dtset%natom + 10, see m_dfpt_looppert.
+                    # In principle we can have 9 entries although d_ij = d_ji
+                    #
+                    # for (ipert > = dtset%natom + 10) we have:
+                    # pertcase = idir + (ipert-dtset%natom-10)*9 + (dtset%natom+6)*3
+                    # and file extensions 1WFK[pertcase].
+                    #
+                    ipert = natom + 10
+                    possible_pertcases = [idir + (ipert - natom - 10) * 9 + (natom + 6) * 3 for idir in range(1, 10)]
+                    ext_list = ["1WF%d" % p for p in possible_pertcases]
+
+                    dkdk_task = dep.node
+                    dkdk_filepaths = []
+                    for ext in ext_list:
+                        p = dkdk_task.outdir.has_abiext(ext)
+                        if p: dkdk_filepaths.append(p)
+
+                    if not dkdk_filepaths:
+                        raise RuntimeError("%s didn't produce any DKDK file:" % dkdk_task)
+
+                    for out_path in dkdk_filepaths:
+                        infile = self.indir.path_in(os.path.basename(out_path))
+                        infile = infile.replace("out_", "in_", 1)
+                        my_symlink(out_path, infile)
 
                 elif d in ("WFK", "WFQ"):
                     gs_task = dep.node
@@ -3761,9 +3863,9 @@ class DfptTask(AbinitTask):
 
                     # Ensure link has .nc extension if iomode 3
                     if out_wfk.endswith(".nc"): bname = bname + ".nc"
-                    #print(d, out_wfk, "bname", bname)
                     if not os.path.exists(self.indir.path_in(bname)):
-                        os.symlink(out_wfk, self.indir.path_in(bname))
+                        infile = self.indir.path_in(bname)
+                        my_symlink(out_wfk, infile)
 
                 elif d == "DEN":
                     gs_task = dep.node
@@ -3773,27 +3875,31 @@ class DfptTask(AbinitTask):
                     infile = self.indir.path_in("in_DEN")
                     if out_wfk.endswith(".nc"): infile = infile + ".nc"
                     if not os.path.exists(infile):
-                        os.symlink(out_wfk, infile)
+                        my_symlink(out_wfk, infile)
 
                 elif d == "1WF":
-                    gs_task = dep.node
-                    out_wfk = gs_task.outdir.has_abiext("1WF")
-                    if not out_wfk:
-                        raise RuntimeError("%s didn't produce the 1WF file" % gs_task)
-                    dest = self.indir.path_in("in_" + out_wfk.split("_")[-1])
-                    if out_wfk.endswith(".nc"): dest = dest + ".nc"
-                    if not os.path.exists(dest):
-                        os.symlink(out_wfk, dest)
+                    dfpt_task = dep.node
+                    out_filepaths = output_paths_from_regex(dfpt_task, r"(\w+)_1WF(\d+)(\.nc)?")
+
+                    if not out_filepaths:
+                        raise RuntimeError("%s didn't produce the 1WF file" % dfpt_task)
+
+                    for out_path in out_filepaths:
+                        infile = self.indir.path_in(os.path.basename(out_path))
+                        infile = infile.replace("out_", "in_", 1)
+                        my_symlink(out_path, infile)
 
                 elif d == "1DEN":
-                    gs_task = dep.node
-                    out_wfk = gs_task.outdir.has_abiext("DEN")
-                    if not out_wfk:
-                        raise RuntimeError("%s didn't produce the 1DEN file" % gs_task)
-                    dest = self.indir.path_in("in_" + out_wfk.split("_")[-1])
-                    if out_wfk.endswith(".nc"): dest = dest + ".nc"
-                    if not os.path.exists(dest):
-                        os.symlink(out_wfk, dest)
+                    dfpt_task = dep.node
+                    out_filepaths = output_paths_from_regex(dfpt_task, r"(\w+)_DEN(\d+)(\.nc)?")
+
+                    if not out_filepaths:
+                        raise RuntimeError("%s didn't produce any 1DEN file" % dfpt_task)
+
+                    for out_path in out_filepaths:
+                        infile = self.indir.path_in(os.path.basename(out_path))
+                        infile = infile.replace("out_", "in_", 1)
+                        my_symlink(out_path, infile)
 
                 else:
                     raise ValueError("Don't know how to handle extension: %s" % str(dep.exts))
@@ -3846,10 +3952,6 @@ class DdeTask(DfptTask):
 
     color_rgb = np.array((61, 158, 255)) / 255
 
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-        return results.register_gridfs_file(DDB=(self.outdir.has_abiext("DDE"), "t"))
-
 
 class DteTask(DfptTask):
     """Task for DTE calculations."""
@@ -3859,10 +3961,6 @@ class DteTask(DfptTask):
     def start(self, **kwargs):
         kwargs['autoparal'] = False
         return super().start(**kwargs)
-
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-        return results.register_gridfs_file(DDB=(self.outdir.has_abiext("DDE"), "t"))
 
 
 class DdkTask(DfptTask):
@@ -3879,19 +3977,37 @@ class DdkTask(DfptTask):
         # See DfptTask.make_links
         self.outdir.symlink_abiext('1WF', 'DDK')
 
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-        return results.register_gridfs_file(DDK=(self.outdir.has_abiext("DDK"), "t"))
+
+class DkdkTask(DfptTask):
+    """Task for the computation of d2/dkdk wave functions"""
+    color_rgb = np.array((0, 122, 204)) / 255
 
 
 class BecTask(DfptTask):
     """
     Task for the calculation of Born effective charges.
-
-    bec_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
-    bec_deps.update({scf_task: "WFK"})
     """
     color_rgb = np.array((122, 122, 255)) / 255
+
+
+class QuadTask(DfptTask):
+    """
+    Task for the calculation of dynamical quadrupoles.
+    """
+    color_rgb = np.array((122, 122, 255)) / 255
+
+    def restart(self):
+        raise NotImplementedError("don't know how to restart dynamical quadrupoles")
+
+
+class FlexoETask(DfptTask):
+    """
+    Task for the calculation of Flexoelectric task..
+    """
+    color_rgb = np.array((122, 122, 255)) / 255
+
+    def restart(self):
+        raise NotImplementedError("don't know how to restart Flexoelectric calculations.")
 
 
 class EffMassTask(DfptTask):
@@ -3917,10 +4033,6 @@ class PhononTask(DfptTask):
             if "title" not in kwargs: kwargs["title"] = str(self)
             return scf_cycle.plot(**kwargs)
 
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-        return results.register_gridfs_files(DDB=(self.outdir.has_abiext("DDB"), "t"))
-
 
 class ElasticTask(DfptTask):
     """
@@ -3935,6 +4047,13 @@ class EphTask(AbinitTask):
     Class for electron-phonon calculations.
     """
     color_rgb = np.array((255, 128, 0)) / 255
+
+
+class KerangeTask(AbinitTask):
+    """
+    Class for kerange calculations.
+    """
+    color_rgb = np.array((255, 128, 128)) / 255
 
 
 class ManyBodyTask(AbinitTask):
@@ -4078,16 +4197,6 @@ class SigmaTask(ManyBodyTask):
         else:
             raise RuntimeError("Cannot find SIGRES file!")
 
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-
-        # Open the SIGRES file and add its data to results.out
-        with self.open_sigres() as sigres:
-            #results["out"].update(sigres.as_dict())
-            results.register_gridfs_files(SIGRES=sigres.filepath)
-
-        return results
-
 
 class BseTask(ManyBodyTask):
     """
@@ -4199,16 +4308,6 @@ class BseTask(ManyBodyTask):
             self.history.critical("Exception while reading MDF file at %s:\n%s" % (mdf_path, str(exc)))
             return None
 
-    def get_results(self, **kwargs):
-        results = super().get_results(**kwargs)
-
-        with self.open_mdf() as mdf:
-            #results["out"].update(mdf.as_dict())
-            #epsilon_infinity optical_gap
-            results.register_gridfs_files(MDF=mdf.filepath)
-
-        return results
-
 
 class OpticTask(Task):
     """
@@ -4263,7 +4362,7 @@ class OpticTask(Task):
         if "max_ncpus" in kwargs: self.input.set_vars(max_ncpus=kwargs["max_ncpus"])
 
     @property
-    def executable(self):
+    def executable(self) -> str:
         """Path to the executable required for running the :class:`OpticTask`."""
         try:
             return self._executable
@@ -4320,9 +4419,6 @@ class OpticTask(Task):
         Optic allows the user to specify the paths of the input file.
         hence we don't need to create symbolic links.
         """
-
-    def get_results(self, **kwargs):
-        return super().get_results(**kwargs)
 
     def fix_abicritical(self):
         """
@@ -4412,8 +4508,8 @@ class OpticTask(Task):
 
                 elif isinstance(error, MemoryCancelError):
                     # ask the qadapter to provide more resources, i.e. more cpu's so more total memory if the code
-                    # scales this should fix the memeory problem
-                    # increase both max and min ncpu of the autoparalel and rerun autoparalel
+                    # scales this should fix the memory problem
+                    # increase both max and min ncpu of the autoparal and rerun autoparal
                     if self.mem_scales:
                         try:
                             self.manager.increase_ncpus()
@@ -4617,7 +4713,8 @@ class AnaddbTask(Task):
 
     @classmethod
     def temp_shell_task(cls, inp, ddb_node, mpi_procs=1,
-                        gkk_node=None, md_node=None, ddk_node=None, workdir=None, manager=None):
+                        gkk_node=None, md_node=None, ddk_node=None,
+                        workdir=None, manager=None) -> AnaddbTask:
         """
         Build a |AnaddbTask| with a temporary workdir. The task is executed via
         the shell with 1 MPI proc. Mainly used for post-processing the DDB files.
@@ -4639,7 +4736,7 @@ class AnaddbTask(Task):
                    workdir=workdir, manager=manager.to_shell_manager(mpi_procs=mpi_procs))
 
     @property
-    def executable(self):
+    def executable(self) -> str:
         """Path to the executable required for running the |AnaddbTask|."""
         try:
             return self._executable
@@ -4647,7 +4744,7 @@ class AnaddbTask(Task):
             return "anaddb"
 
     @property
-    def filesfile_string(self):
+    def filesfile_string(self) -> str:
         """String with the list of files and prefixes needed to execute ABINIT."""
         lines = []
         app = lines.append
@@ -4663,7 +4760,7 @@ class AnaddbTask(Task):
         return "\n".join(lines)
 
     @property
-    def ddb_filepath(self):
+    def ddb_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input DDB file."""
         # This is not very elegant! A possible approach could to be path self.ddb_node.outdir!
         if isinstance(self.ddb_node, FileNode): return self.ddb_node.filepath
@@ -4671,7 +4768,7 @@ class AnaddbTask(Task):
         return path if path else "DDB_FILE_DOES_NOT_EXIST"
 
     @property
-    def md_filepath(self):
+    def md_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input MD file."""
         if self.md_node is None: return "MD_FILE_DOES_NOT_EXIST"
         if isinstance(self.md_node, FileNode): return self.md_node.filepath
@@ -4680,7 +4777,7 @@ class AnaddbTask(Task):
         return path if path else "MD_FILE_DOES_NOT_EXIST"
 
     @property
-    def gkk_filepath(self):
+    def gkk_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input GKK file."""
         if self.gkk_node is None: return "GKK_FILE_DOES_NOT_EXIST"
         if isinstance(self.gkk_node, FileNode): return self.gkk_node.filepath
@@ -4689,7 +4786,7 @@ class AnaddbTask(Task):
         return path if path else "GKK_FILE_DOES_NOT_EXIST"
 
     @property
-    def ddk_filepath(self):
+    def ddk_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input DKK file."""
         if self.ddk_node is None: return "DDK_FILE_DOES_NOT_EXIST"
         if isinstance(self.ddk_node, FileNode): return self.ddk_node.filepath
@@ -4729,8 +4826,6 @@ class AnaddbTask(Task):
         phdos_path = self.outpath_from_ext("PHDOS.nc")
         return PhdosFile(phdos_path)
 
-    def get_results(self, **kwargs):
-        return super().get_results(**kwargs)
 
 
 #class BoxcuttedPhononTask(PhononTask):

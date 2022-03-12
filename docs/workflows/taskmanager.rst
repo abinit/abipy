@@ -26,7 +26,7 @@ environment variables, load modules with ``module load``, run MPI applications w
 .. TIP::
 
     A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly 
-    from the abinit-channel_ on the anaconda cloud with::
+    from the conda-forge channel with::
 
         conda install abinit --channel abinit
 

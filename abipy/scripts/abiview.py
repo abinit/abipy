@@ -7,11 +7,12 @@ import sys
 import os
 import argparse
 
+from pprint import pformat
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExpose, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
+from abipy.tools.plotting import MplExpose, PanelExpose, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
 
 
 def handle_overwrite(path, options):
@@ -30,6 +31,11 @@ def df_to_clipboard(options, df):
         cprint("Copying dataframe to the system clipboard.", "green")
         cprint("This can be pasted into Excel, for example", "green")
         df.to_clipboard()
+
+
+class NegateAction(argparse.Action):
+    def __call__(self, parser, ns, values, option):
+        setattr(ns, self.dest, option[2:4] != 'no')
 
 
 #def abiview_fields(options):
@@ -124,10 +130,12 @@ def abiview_ebands(options):
         elif options.bxsf:
             outpath = options.filepath + ".bxsf"
             abifile.ebands.to_bxsf(handle_overwrite(outpath, options))
+        #elif options.plotly:
+        #    print(abifile.to_string(verbose=options.verbose))
         else:
             print(abifile.to_string(verbose=options.verbose))
             abifile.expose_ebands(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                                  verbose=options.verbose)
+                                  expose_web=options.expose_web, verbose=options.verbose)
 
         return 0
 
@@ -149,7 +157,8 @@ def abiview_skw(options):
 
 def abiview_fs(options):
     """
-    Extract eigenvalues in the IBZ from file and visualize Fermi surface with --appname
+    Extract eigenvalues in the IBZ from file and visualize Fermi surface with
+    the external application specified via --appname
     """
     with abilab.abiopen(options.filepath) as abifile:
         eb3d = abifile.ebands.get_ebands3d()
@@ -162,6 +171,31 @@ def abiview_fs(options):
             eb3d.mvplot_isosurfaces()
         else:
             raise ValueError("Unsupported value for --appname: %s" % str(options.appname))
+
+        return 0
+
+
+def abiview_ifermi_fs(options):
+    """
+    Use ifermi package to visualize the Fermi surface. Requires netcdf file with energies in the IBZ.
+    See <https://fermisurfaces.github.io/IFermi/>
+    """
+    with abilab.abiopen(options.filepath) as abifile:
+
+        kwargs = dict(
+            interpolation_factor=options.interpolation_factor,
+            mu=options.mu,
+            eref=options.eref,
+            wigner_seitz=options.wigner,
+            with_velocities=options.with_velocities,
+        )
+        print(abifile.ebands, "\n")
+        print("Building Fermi surface with options:\n\n", pformat(kwargs, indent=4), end=2*"\n")
+
+        r = abifile.ebands.get_ifermi_fs(**kwargs)
+        r.fs_plotter.get_plot(plot_type=options.plot_type).show()
+
+        #abifile.ebands.get_ifermi_slices(**kwargs)
 
         return 0
 
@@ -195,6 +229,7 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
             outpath = options.filepath + ".agr"
             phbands.to_xmgrace(handle_overwrite(outpath, options))
             return 0
+
         #elif options.bxsf:
         #    outpath = options.filepath + ".bxsf"
         #    phbands.to_bxsf(handle_overwrite(outpath, options))
@@ -204,34 +239,38 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
             return phbands.view_phononwebsite(browser=options.browser, verbose=options.verbose)
 
         elif options.plotly:
-            # plotly output
+            # Plotly + Panel version.
             phdos = phdos_file.phdos
-            figs = []
-            e = figs.append
-            e(phbands.plotly_with_phdos(phdos, units=units, show=False))
-            e(phdos.plotly(units=units, show=False))
-            push_to_chart_studio(figs) if options.chart_studio else plotlyfigs_to_browser(figs)
-
-        else:
-            # matplotlib output
-            phdos = phdos_file.phdos
-
-            with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
-                #e(phbands.expose())
-                #e(phdos.expose())
-                e(phbands.qpoints.plot(show=False))
-                e(phbands.plot_with_phdos(phdos, units=units, show=False))
+            with PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}") as e:
+                e(phbands.qpoints.plotly(show=False))
+                e(phbands.plotly_with_phdos(phdos, units=units, show=False))
+                e(phdos_file.plotly_pjdos_type(units=units, show=False))
+                e(phdos.plotly_harmonic_thermo(tstart=5, tstop=300, num=50, units="eV", formula_units=1,
+                                               quantities="all", show=False))
+                e(phdos.plotly(units=units, show=False))
                 e(phbands.plot_colored_matched(units=units, show=False))
                 e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
-                e(phdos.plot(units=units, show=False))
+                #push_to_chart_studio(figs) if options.chart_studio else plotlyfigs_to_browser(figs)
+
+        else:
+            phdos = phdos_file.phdos
+
+            if not options.expose_web:
+                # matplotlib figure and X-server.
+                e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+            else:
+                # panel version with matplotlib.
+                e = PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}")
+
+            with e:
+                e(phbands.qpoints.plot(show=False))
+                e(phbands.plot_with_phdos(phdos, units=units, show=False))
                 e(phdos_file.plot_pjdos_type(units=units, show=False))
-                #try
-                #    msq_dos = phdos_file.msq_dos
-                #except RuntimeError:
-                #    msq_dos = None
-                #if msq_dos is not None:
-                #    e(msq_dos.plot_uiso(show=False))
-                #    e(msq_dos.plot_uiso(show=False))
+                e(phbands.plot_colored_matched(units=units, show=False))
+                e(phdos.plot_harmonic_thermo(tstart=5, tstop=300, num=50, units="eV", formula_units=1,
+                             quantities="all", show=False))
+                e(phdos.plot(units=units, show=False))
+                e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
 
         phbst_file.close()
         phdos_file.close()
@@ -257,7 +296,7 @@ num_points: {num_points}, asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
     df = sv.get_dataframe()
     abilab.print_dataframe(df, title="Speed of sound for different directions:")
     df_to_clipboard(options, df)
-    sv.plot()
+    sv.plotly if options.plotly else sv.plot()
 
     return 0
 
@@ -278,7 +317,10 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
 
         gamma_ev = 1e-4
         print("Plotting dielectric tensor with constant phonon damping: %s (eV)" % gamma_ev)
-        tgen.plot_all(gamma_ev=gamma_ev)
+        if options.plotly:
+            tgen.plotly_all(gamma_ev=gamma_ev)
+        else:
+            tgen.plot_all(gamma_ev=gamma_ev)
 
     return 0
 
@@ -332,7 +374,7 @@ def abiview_ddb_quad(options):
 
         title = ddb.structure.formula
         renderer = "browser" if not options.chart_studio else "chart_studio"
-        plotter.combiplotly(renderer=renderee, title=title) if options.plotly else plotter.plot(title=title)
+        plotter.combiplotly(renderer=renderer, title=title) if options.plotly else plotter.plot(title=title)
 
     return 0
 
@@ -362,6 +404,29 @@ qpoint = {qpoint}
     return 0
 
 
+def abiview_ddb_qpt(options):
+    """
+    Compute ph-frequencies at the selected q-point without passing through the
+    Fourier interpolation of the interatomic force constants.
+    """
+    #    asr = 2; chneut = 1; dipdip = 1
+    #    print("""
+    #Computing interatomic force constants with
+    #asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
+    #""".format(**locals()))
+
+    with abilab.abiopen(options.filepath) as ddb:
+        # Execute anaddb to compute phbands without Fourier interpolation.
+        phbands, inp = ddb.anaget_phmodes_at_qpoint(qpoint=options.qpoint,
+                            asr=2, chneut=1, dipdip=1, ifcflag=0, return_input=True)
+        print(inp)
+        df = phbands.get_dataframe()
+        abilab.print_dataframe(df, title="Phonon frequencies:")
+        df_to_clipboard(options, df)
+
+    return 0
+
+
 def abiview_ddb_ifc(options):
     """
     Visualize interatomic force constants in real space.
@@ -376,7 +441,15 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
         # Execute anaddb to compute the interatomic force constants.
         ifc = ddb.anaget_ifc(asr=asr, chneut=chneut, dipdip=dipdip)
         #print(ifc)
-        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+
+        if not options.expose_web:
+            # matplotlib figure and X-server.
+            e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+        else:
+            # panel version
+            e = PanelExpose(title=f"Interatomic force constants of {phdos_file.structure.formula}")
+
+        with e:
             e(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", show=False))
             e(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", show=False))
             e(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", show=False))
@@ -489,12 +562,14 @@ Usage example:
     abiview.py ddb_asr                    ==>  Compute ph-bands from DDB with/wo acoustic rule.
                                                Plot results with matplotlib (default) or plotly (--plotly)
     abiview.py ddb_asr --plotly -cs       ==>  Compute ph-bands from DDB with/wo acoustic rule.
-                                               Plot results with plotly and push figure to plotly chart studio cloud.
-                                               See: https://chart-studio.plotly.com/
+                                               Plot results with plotly and push figure
+                                               to plotly chart studio cloud. See: https://chart-studio.plotly.com
     abiview.py ddb_dipdip                 ==>  Compute ph-bands from DDB with/wo dipole-dipole treatment.
                                                Plot results with matplotlib (default) or plotly (--plotly)
     abiview.py ddb_quad                   ==>  Compute ph-bands from DDB with/wo dipole-quadrupole terms.
                                                Plot results with matplotlib (default) or plotly (--plotly)
+    abiview.py ddb_qpt -q 0 0.5 0         ==>  Compute ph-frequencies at the selected q-point without passing
+                                               through the Fourier interpolation of the interatomic force constants.
     abiview.py ddb_ifc                    ==>  Visualize interatomic force constants in real space.
     abiview.py phbands out_PHBST.nc -web  ==>  Visualize ph-bands and displacements with phononwebsite.
 
@@ -537,6 +612,8 @@ def get_parser(with_epilog=False):
             help="Iterate over figures. Expose all figures at once if not given on the CLI.")
     slide_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
+    slide_parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
+            help='Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.')
 
     # Parent parser for commands that operating on pandas dataframes
     pandas_parser = argparse.ArgumentParser(add_help=False)
@@ -641,6 +718,26 @@ def get_parser(with_epilog=False):
     p_fs.add_argument("-a", "--appname", type=str, default="mpl",
         help="Application name. Possible options: mpl (matplotlib, default), xsf (xcrysden), mayavi.")
 
+    # Parent parser for ifermi commands
+    ifermi_parser = argparse.ArgumentParser(add_help=False)
+    ifermi_parser.add_argument("-i", '--interpolation-factor', default=8, type=float,
+        help="interpolation factor for band structure  [default: 8.0]")
+    ifermi_parser.add_argument("--eref", default="fermie", type=str, choices=['fermie', 'cbm', 'vbm'],
+        help="Energy reference for isosurface. `eref` and `mu` define the energy level: isoe = eref + mu"  +
+              "Use `fermie` for metals, `cbm` for the conduction band minimum, and `vbm` for the valence band maximum, " +
+             "[default: `fermie`]")
+    ifermi_parser.add_argument("-t", '--plot-type', default="plotly", choices=["plotly", "matplotlib", "mayavi"],
+        help="Plot type. Possible options: plotly (default), matplotlib, mayavi.")
+    ifermi_parser.add_argument('--wigner', '--no-wigner', dest='wigner', default=True, action=NegateAction, nargs=0,
+            help="Use the Wigner-Seitz cell or the reciprocal lattice parallelepiped. Default is: wigner")
+    ifermi_parser.add_argument("-vel", '--with-velocities', default=False, action="store_true",
+            help="Show color map with interpolated group velocities. Default is False.")
+
+    # Subparser for ifermi_fs command.
+    p_ifermi_fs = subparsers.add_parser('ifermi_fs', parents=[ifermi_parser, copts_parser], help=abiview_ifermi_fs.__doc__)
+    p_ifermi_fs.add_argument("-m", '--mu', default=0.0, type=float,
+        help="Offset in eV from the energy reference, eref, at which to calculate the isosurface. Default 0 i.e. use `eref`")
+
     # Subparser for ddb command.
     p_ddb = subparsers.add_parser('ddb', parents=[copts_parser, slide_parser, plotly_parser], help=abiview_ddb.__doc__)
     add_args(p_ddb, "xmgrace", "phononweb", "browser", "force")
@@ -673,7 +770,14 @@ def get_parser(with_epilog=False):
 
     # Subparser for ddb_ifc command.
     p_ddb_ifc = subparsers.add_parser('ddb_ifc', parents=[copts_parser, pandas_parser, slide_parser],
-                                     help=abiview_ddb_ifc.__doc__)
+                                      help=abiview_ddb_ifc.__doc__)
+
+    # Subparser for ddb_qpt command.
+    p_ddb_qpt = subparsers.add_parser('ddb_qpt', parents=[copts_parser, pandas_parser, slide_parser],
+                                      help=abiview_ddb_qpt.__doc__)
+
+    p_ddb_qpt.add_argument("-q", "--qpoint", nargs=3, type=float,
+        help="q-point in reduced coordinates e.g. `-q 0.25 0 0`. Default: 0, 0, 0", default=[0, 0, 0])
 
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, slide_parser], help=abiview_phbands.__doc__)

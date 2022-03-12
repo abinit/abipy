@@ -184,7 +184,7 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_maxw(self, scale="semilogy", ax=None, fontsize=8, **kwargs):
         """
-        Plot the decay of max_{r,idir,ipert} |W(R,r,idir,ipert)|
+        Plot the decay of max_{r,idir,ipert} `|W(R,r,idir,ipert)|`
         for the long-range and the short-range part.
 
         Args:

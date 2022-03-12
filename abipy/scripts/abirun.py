@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-This script allows the user to submit the calculations contained in the `Flow`.
-It provides a command line interface as well as a graphical interface based on wxpython.
+The abirun.py script allows the user to submit the calculations contained in an AbiPy `Flow`.
+It provides a command line interface as well graphical interfaces.
 """
 import sys
 import os
@@ -80,6 +80,7 @@ def select_nids(flow, options):
     """
     Return the list of node ids selected by the user via the command line interface.
     """
+    #print("options.nids:", options.nids)
     task_ids = [task.node_id for task in
                 flow.select_tasks(nids=options.nids, wslice=options.wslice, task_class=options.task_class)]
 
@@ -452,13 +453,6 @@ def get_parser(with_epilog=False):
     p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="Number of minutes to wait.")
     p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="Number of seconds to wait.")
 
-    # Subparser for batch command.
-    p_batch = subparsers.add_parser('batch', parents=[copts_parser], help="Run scheduler in batch script.")
-    p_batch.add_argument("-t", '--timelimit', default=None, help=("Time limit for batch script. "
-                         "Accept int with seconds or string with time given in the slurm convention: "
-                         "`days-hours:minutes:seconds`. If timelimit is None, the default value specified"
-                         " in the `batch_adapter` entry of `manager.yml` is used."))
-
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show status table.")
     p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int,
@@ -524,8 +518,19 @@ Default: o
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
 
-    p_panel = subparsers.add_parser('panel', parents=[copts_parser],
+    # Subparser for panel
+    p_panel = subparsers.add_parser('panel', parents=[copts_parser, flow_selector_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
+    p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
+                        help="Specify template for panel dasboard." +
+                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                             "Default: FastList"
+                        )
+    p_panel.add_argument('--no-browser', action='store_true', default=False,
+                        help=("Start the bokeh server to serve the panel app "
+                              "but don't open the app in the browser.\n"
+                              "Use this option to connect remotely from localhost to the machine running the server"))
+    p_panel.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
 
     # Subparser for new_manager.
     p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser],
@@ -537,6 +542,10 @@ Default: o
         help="Use unix tail to follow the main output files of the flow.")
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o", choices=["o", "l", "e"],
         help="What to follow: `o` for output (default), `l` for logfile, `e` for stderr.")
+
+    # Subparser for tail.
+    p_timeit = subparsers.add_parser('timeit', parents=[copts_parser, flow_selector_parser],
+        help="Extract timing data from Abinit output files.")
 
     # Subparser for qstat.
     # TODO: finalize the implementation
@@ -640,6 +649,16 @@ Default: o
     p_notebook.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
 
+    # TODO:
+    #parser.add_argument('--classic-notebook', "-cnb", action='store_true', default=False,
+    #                    help="Use classic jupyter notebook instead of jupyterlab.")
+    #parser.add_argument('--no-browser', action='store_true', default=False,
+    #                    help=("Start the jupyter server to serve the notebook "
+    #                          "but don't open the notebook in the browser.\n"
+    #                          "Use this option to connect remotely from localhost to the machine running the kernel"))
+    #parser.add_argument('--foreground', action='store_true', default=False,
+    #                    help="Run jupyter notebook in the foreground.")
+
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser],
         help="Embed IPython. Useful for advanced operations or debugging purposes.")
@@ -701,7 +720,7 @@ Default: o
     p_graphviz.add_argument("-e", "--engine", type=str, default="automatic",
         help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
             "Default: automatic i.e. the engine is automatically selected. See http://www.graphviz.org/pdf/dot.1.pdf "
-            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package"))
+            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package."))
     p_graphviz.add_argument("-d", '--dirtree', default=False, action="store_true",
         help='Visualize files and directories in workdir instead of tasks/works.')
 
@@ -711,6 +730,32 @@ Default: o
     p_listext.add_argument('listexts', nargs="*", default=[], help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
     return parser
+
+
+def serve_kwargs_from_options(options):
+
+    #address = "localhost"
+    if options.no_browser:
+        print("""
+Use:
+
+    ssh -N -f -L localhost:{port}:localhost:{port} username@your_remote_cluster
+
+for port forwarding.
+""")
+
+    import abipy.panels as mod
+    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
+
+    return dict(
+        debug=options.verbose > 0,
+        show=not options.no_browser,
+        port=options.port,
+        static_dirs={"/assets": assets_path},
+        #address=address,
+        #websocket_origin="{address}:{port}",
+    )
+
 
 
 @prof_main
@@ -785,7 +830,7 @@ def main():
             print(abinit_build.info)
         return 0
 
-    # Abiopen does not need flow
+    # Abiopen does not need a flow
     if options.command == "abiopen":
         return cli_abiopen(options, options.flowdir)
 
@@ -825,12 +870,12 @@ def main():
             for w_pos, work in enumerate(flow):
                 if os.path.basename(work.workdir) == wname: break
             else:
-                raise RuntimeError("Cannot find work from name %s" % wname)
+                raise RuntimeError(f"Cannot find work from name: {wname}")
 
             for t_pos, task in enumerate(flow[w_pos]):
                 if os.path.basename(task.workdir) == tname: break
             else:
-                raise RuntimeError("Cannot find task from name %s" % tname)
+                raise RuntimeError(f"Cannot find task from name: {tname}")
 
             # Create options.nids here
             options.nids = set([flow[w_pos].node_id, flow[w_pos][t_pos].node_id])
@@ -840,7 +885,7 @@ def main():
             for w_pos, work in enumerate(flow):
                 if os.path.basename(work.workdir) == wname: break
             else:
-                raise RuntimeError("Cannot find work from name %s" % wname)
+                raise RuntimeError(f"Cannot find work from name: {wname}")
 
             # Create options.nids here
             options.nids = set([flow[w_pos].node_id] + [task.node_id for task in flow[w_pos]])
@@ -856,7 +901,7 @@ def main():
             options.task_status = Status.as_status("QCritical")
 
         # Change the manager of the errored tasks.
-        print("Resetting tasks with status: %s" % options.task_status)
+        print(f"Resetting tasks with status: {options.task_status}")
         for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
             task.reset()
             task.set_manager(new_manager)
@@ -865,13 +910,27 @@ def main():
         return flow.build_and_pickle_dump()
 
     elif options.command == "panel":
-        try:
-            import panel  # noqa: F401
-        except ImportError as exc:
-            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
-            raise exc
+        pn = abilab.abipanel()
+        serve_kwargs = serve_kwargs_from_options(options)
 
-        flow.get_panel().show()
+        if options.nids is None:
+            # Start Multipage app for this flow.
+            from abipy.panels.flows import FlowMultiPageApp
+            FlowMultiPageApp(flow, options.panel_template).serve(**serve_kwargs)
+
+        else:
+            node_list = list(flow.iflat_nodes(nids=select_nids(flow, options)))
+            if len(node_list) > 1:
+                print("Got more than one node in node_list:")
+                print("Only the last node will be shown in the panel dashboard!\n")
+                for node in node_list:
+                    print(node)
+                print("")
+
+            node = node_list[-1]
+            app = node.get_panel(template=options.panel_template)
+            pn.serve(app, **serve_kwargs)
+
         return 0
 
     elif options.command == "events":
@@ -891,11 +950,13 @@ def main():
             flow.show_event_handlers(verbose=options.verbose)
 
     elif options.command == "single":
+        cprint("abirun.py single is deprecated and will be removed in Abipy v1.0. Use `scheduler`", color="red")
         nlaunch = flow.single_shot()
         if nlaunch: flow.show_status()
         cprint("Number of tasks launched: %d" % nlaunch, "yellow")
 
     elif options.command == "rapid":
+        cprint("abirun.py rapid is deprecated and will be removed in Abipy v1.0. Use `scheduler`", color="red")
         nlaunch = flow.rapidfire(max_nlaunch=options.max_nlaunch, max_loops=1, sleep_time=5)
         if nlaunch: flow.show_status()
         cprint("Number of tasks launched: %d" % nlaunch, "yellow")
@@ -914,9 +975,6 @@ def main():
 
         print(sched)
         return sched.start()
-
-    elif options.command == "batch":
-        return flow.batch(timelimit=options.timelimit)
 
     elif options.command == "status":
         # Select the method to call.
@@ -1011,7 +1069,7 @@ def main():
         flow.pickle_dump()
 
     elif options.command == "move":
-        print("Will move flow to %s..." % options.dest)
+        print("Moving flow to: %s ..." % options.dest)
         flow.chroot(options.dest)
         flow.move(options.dest)
 
@@ -1039,6 +1097,13 @@ def main():
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
                 cprint("Received KeyboardInterrupt from user\n", "yellow")
+
+    elif options.command == "timeit":
+        flow.check_status()
+        time_parser = flow.parse_timing(nids=select_nids(flow, options))
+        print(time_parser)
+        df = time_parser.summarize()
+        abilab.print_dataframe(df, title="output of time_parse.summarize():")
 
     #elif options.command == "qstat":
     #    print("Warning: this option is still under development.")
@@ -1090,7 +1155,7 @@ def main():
 
     elif options.command == "cycles":
         # Print cycles.
-        from pymatgen.io.abinit.abiinspect import CyclesPlotter
+        from abipy.flowtk.abiinspect import CyclesPlotter
         cls2plotter = OrderedDict()
         for task, cycle in flow.get_task_scfcycles(nids=select_nids(flow, options),
                                                    exclude_ok_tasks=options.exclude_ok_tasks):
@@ -1173,7 +1238,7 @@ def main():
                 elif plot_mode == "combiplot":
                     robot.combiplot()
                 else:
-                    raise ValueError("Invalid value of plot_mode: %s" % str(plot_mode))
+                    raise ValueError(f"Invalid value of plot_mode: {plot_mode}")
 
     elif options.command == "notebook":
         return flow.write_open_notebook(options.foreground)
@@ -1207,8 +1272,6 @@ def main():
     # TODO
     #elif options.command == "debug_restart":
     #    flow_debug_restart_tasks(flow, nids=select_nids(flow, options), verbose=options.verbose)
-
-    #elif options.command == "clone_task":
 
     elif options.command == "group":
         d = defaultdict(list)
@@ -1270,7 +1333,17 @@ def main():
         else:
             graph = node.get_graphviz(engine=options.engine)
 
+        # Add this liine to print the DOT string. Can be used with e.g. http://viz-js.com/
+        if options.verbose: print(graph)
+
         graph.view(directory=directory, cleanup=False)
+
+        if options.verbose > 1:
+            # Write graph to file in png format.
+            graph.format = "png"
+            graph.attr(dpi=str(300))
+            path = graph.render("graph", view=False, cleanup=False)
+            print("Saving png file to:", path)
 
     elif options.command == "listext":
         if not options.listexts:
@@ -1284,7 +1357,7 @@ def main():
             print("")
 
     else:
-        raise RuntimeError("Don't know what to do with command %s!" % options.command)
+        raise ValueError(f"Don't know what to do with command {options.command}!")
 
     return retcode
 

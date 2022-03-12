@@ -1,11 +1,26 @@
 # coding: utf-8
 """IO related utilities."""
+from __future__ import annotations
+
 import os
+import ruamel.yaml as yaml
 
 from contextlib import ExitStack
 from subprocess import call
+from typing import Any
 from monty.termcolor import cprint
 from monty.string import list_strings
+
+
+def yaml_safe_load(string: str) -> Any:
+    """Load Yaml string"""
+    return yaml.YAML(typ='safe', pure=True).load(string)
+
+
+def yaml_safe_load_path(filepath: str) -> Any:
+    """Load Yaml document from filepath"""
+    with open(filepath, "rt") as fh:
+        return yaml.YAML(typ='safe', pure=True).load(fh.read())
 
 
 class ExitStackWithFiles(ExitStack):
@@ -41,7 +56,18 @@ class ExitStackWithFiles(ExitStack):
         return self.files.__getitem__(slice)
 
 
-def ask_yes_no(prompt, default=None):  # pragma: no cover
+def get_input(prompt):
+    """
+    Wraps python builtin input so that we can easily mock it in unit tests using:
+
+        from unittest.mock import patch
+        with patch('abipy.tools.iotools.get_input', return_value='no'):
+            do_something_that_uses_get_input
+    """
+    return input(prompt)
+
+
+def ask_yes_no(prompt: str, default=None):  # pragma: no cover
     """
     Ask a question and return a boolean (y/n) answer.
 
@@ -54,16 +80,11 @@ def ask_yes_no(prompt, default=None):  # pragma: no cover
     Valid answers are: y/yes/n/no (match is not case sensitive).
     """
     # Fixes py2.x
-    try:
-        my_input = raw_input
-    except NameError:
-        my_input = input
-
     answers = {'y': True, 'n': False, 'yes': True, 'no': False}
     ans = None
     while ans not in answers.keys():
         try:
-            ans = my_input(prompt + ' ').lower()
+            ans = get_input(prompt + ' ').lower()
             if not ans:
                 # response was an empty string
                 ans = default
@@ -80,14 +101,8 @@ def ask_yes_no(prompt, default=None):  # pragma: no cover
 
 
 def _user_wants_to_exit(): # pragma: no cover
-    # Fixes py2.x
     try:
-        my_input = raw_input
-    except NameError:
-        my_input = input
-
-    try:
-        answer = my_input("Do you want to continue [Y/n]")
+        answer = get_input("Do you want to continue [Y/n]")
     except EOFError:
         return True
 
@@ -137,5 +152,5 @@ def input_from_editor(message=None):  # pragma: no cover
     fd, fname = mkstemp(text=True)
 
     Editor().edit_file(fname)
-    with open(fname) as fileobj:
+    with open(fname, "rt") as fileobj:
         return fileobj.read()

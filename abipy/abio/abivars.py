@@ -665,7 +665,7 @@ def structure_from_abistruct_fmt(string):
     """
     Parse geometrical information given in the structure:abivars format return Structure object
 
-    A typical input file in "structure:abivars" format looks like:
+    A typical input file in "structure:abivars" format looks like::
 
         # MgB2 lattice structure.
         natom   3
@@ -749,7 +749,7 @@ def structure_from_abistruct_fmt(string):
         v = xred[iatom]
         lines.append("%.16f %.16f %.16f" % (v[0], v[1], v[2]))
 
-    s =  "\n".join(head) + "\n" + "\n".join(lines) #; print(s)
+    s = "\n".join(head) + "\n" + "\n".join(lines) #; print(s)
 
     return AbinitInputFile.from_string(s).structure
 

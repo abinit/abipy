@@ -59,8 +59,13 @@ pytest -n 2 --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
 def style(ctx):
     with cd(ABIPY_ROOTDIR):
         ctx.run("pycodestyle 2>&1 | tee style.log", pty=True)
-        ctx.run("flake8 --count --show-source --statistics | tee -a style.log", pty=True)
         #ctx.run("pydocstyle abipy | tee -a style.log", pty=True)
+
+
+@task
+def flake(ctx):
+    with cd(ABIPY_ROOTDIR):
+        ctx.run("flake8 --count --show-source --statistics | tee -a style.log", pty=True)
 
 
 @task
@@ -89,6 +94,22 @@ def pygrep(ctx, pattern):
         cmd = 'grep -r -i --color --include "*.py" "%s" .' % pattern
         print("Executing:", cmd)
         ctx.run(cmd, pty=True)
+
+
+@task
+def update_vars(ctx, abinit_repo_path):
+    abinit_repo_path = os.path.abspath(abinit_repo_path)
+
+    dir_with_pyfiles = os.path.join(ABIPY_ROOTDIR, "abipy", "abio", "abivar_database")
+
+    local_files = [f for f in os.listdir(dir_with_pyfiles) if f.startswith("variables_")]
+    for local_file in local_files:
+        # "vimdiff $ABINIT_REPOPATH/abimkdocs/variables_abinit.py variables_abinit.py
+        source = os.path.join(abinit_repo_path, "abimkdocs", local_file)
+        cmd = f"vimdiff {source} {local_file}"
+        print(f"Executing: {cmd}")
+        os.system(cmd)
+
 
 #@task
 #def move_to_master(ctx):

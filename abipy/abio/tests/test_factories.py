@@ -5,9 +5,8 @@ from abipy.flowtk import Flow, RelaxWork, G0W0Work
 from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
-from abipy.abio.factories import BandsFromGsFactory, IoncellRelaxFromGsFactory, HybridOneShotFromGsFactory
-from abipy.abio.factories import ScfForPhononsFactory, PhononsFromGsFactory
-from abipy.abio.factories import PiezoElasticFactory, PiezoElasticFromGsFactory
+from abipy.abio.factories import (BandsFromGsFactory, IoncellRelaxFromGsFactory, HybridOneShotFromGsFactory,
+    ScfForPhononsFactory, PhononsFromGsFactory, PiezoElasticFactory, PiezoElasticFromGsFactory, ShiftMode)
 import json
 
 write_inputs_to_json = False
@@ -17,7 +16,6 @@ class ShiftModeTest(AbipyTest):
 
     def test_shiftmode(self):
         """Testing shiftmode"""
-        from abipy.abio.factories import ShiftMode
         gamma = ShiftMode.GammaCentered
         assert ShiftMode.from_object("G") == gamma
         assert ShiftMode.from_object(gamma) == gamma
@@ -39,6 +37,7 @@ class FactoryTest(AbipyTest):
     def test_gs_input(self):
         """Testing gs_input factory."""
         inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
+        assert inp["nband"] == 14
         self.abivalidate_input(inp)
 
         if False:
@@ -207,7 +206,7 @@ class FactoryTest(AbipyTest):
             if write_inputs_to_json:
                 with open(ref_file, mode='w') as fp:
                     json.dump(inp.as_dict(), fp, indent=2)
-            # self.assert_input_equallity(ref_file, inp)
+            # self.assert_input_equality(ref_file, inp)
 
         for inp in [item for sublist in inputs for item in sublist]:
             self.abivalidate_input(inp)
@@ -215,11 +214,11 @@ class FactoryTest(AbipyTest):
         # the rest is redundant now..
         self.assertEqual(len(inputs_flat), 24)
         nbands = [inp['nband'] for inp in inputs_flat]
-        print(nbands)
+        #print(nbands)
         ecuteps = [inp.get('ecuteps', None) for inp in inputs_flat]
-        print(ecuteps)
+        #print(ecuteps)
         ecuts = [inp.get('ecut', None) for inp in inputs_flat]
-        print(ecuts)
+        #print(ecuts)
 
         self.assertEqual(nbands, [10, 10, 10, 14, 14, 14, 10, 12, 14, 10, 12, 14, 10, 12, 14, 10, 12, 14, 10, 12, 14,
                                   10, 12, 14])
@@ -332,8 +331,11 @@ class FactoryTest(AbipyTest):
                         accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0,
                         scf_algorithm=None, shift_mode="Monkhorst-Pack")
 
+        assert inp["nband"] == 16
+
         with self.assertRaises(AssertionError):
             self.abivalidate_input(inp)
+
         inp["ecut"] = 2
         self.abivalidate_input(inp)
 

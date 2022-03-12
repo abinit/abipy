@@ -1,13 +1,16 @@
 # coding: utf-8
 """Objects to analyze the results stored in the GRUNS.nc file produced by anaddb."""
+from __future__ import annotations
 
 import numpy as np
 import os
 import abipy.core.abinit_units as abu
 import scipy.constants as const
+import pandas as pd
 
 from functools import lru_cache
 from collections import OrderedDict
+from typing import List
 from monty.string import marquee, list_strings
 from monty.termcolor import cprint
 from monty.collections import AttrDict
@@ -18,6 +21,7 @@ from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter, PhononDos, match_eigenvectors, get_dyn_mat_eigenvec
 from abipy.dfpt.ddb import DdbFile
 from abipy.iotools import ETSF_Reader
+from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
 from abipy.flowtk import AnaddbTask
 from abipy.tools.derivatives import finite_diff
@@ -50,27 +54,27 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     .. inheritance-diagram:: GrunsNcFile
     """
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> GrunsNcFile:
         """Initialize the object from a netcdf_ file"""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = GrunsReader(filepath)
 
-    def close(self):
+    def close(self) -> None:
         """Close file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         return {}
 
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -87,7 +91,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| corresponding to the central point V0."""
         return self.reader.structure
 
@@ -134,12 +138,12 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_phbands_on_qpath()
 
     @lazy_property
-    def structures(self):
+    def structures(self) -> List[Structure]:
         """List of structures"""
         return self.reader.read_structures()
 
     @lazy_property
-    def volumes(self):
+    def volumes(self) -> List[float]:
         """List of volumes"""
         return [s.volume for s in self.structures]
 
@@ -149,19 +153,19 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_value("gruns_phdispl_cart_qibz", cmode="c")
 
     @property
-    def nvols(self):
+    def nvols(self) -> int:
         """Number of volumes"""
         return len(self.structures)
 
     @lazy_property
-    def amu_symbol(self):
+    def amu_symbol(self) -> dict:
         """Atomic mass units"""
         amu_list = self.reader.read_value("atomic_mass_units")
         atomic_numbers = self.reader.read_value("atomic_numbers")
         amu = {Element.from_Z(at).symbol: a for at, a in zip(atomic_numbers, amu_list)}
         return amu
 
-    def to_dataframe(self):
+    def to_dataframe(self) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the following columns:
 
@@ -187,7 +191,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         dwdq = self.reader.read_value("gruns_dwdq_qibz")
         groupv = np.linalg.norm(dwdq, axis=-1)
 
-        import pandas as pd
         rows = []
         for iq in range(nqibz):
             for nu in range(natom3):
@@ -244,7 +247,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return fig
 
-    def get_plotter(self):
+    def get_plotter(self) -> PhononBandsPlotter:
         """
         Return an instance of |PhononBandsPlotter| that can be use to plot
         multiple phonon bands or animate the bands
@@ -525,8 +528,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Used in abiview.py to get a quick look at the results.
         """
         yield self.plot_phbands_with_gruns(show=False)
-        yield self.plot_doses(show=False)
         yield self.plot_gruns_scatter(show=False)
+        yield self.plot_doses(show=False)
         yield self.plot_gruns_bs(show=False)
 
     def write_notebook(self, nbpath=None):
@@ -835,7 +838,7 @@ class GrunsReader(ETSF_Reader):
     #nctkarr_t("gruns_rprimd", "dp", "three, three, gruns_nvols"), &
     #nctkarr_t("gruns_xred", "dp", "three, number_of_atoms, gruns_nvols") &
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
 
         # Read and store important quantities.
@@ -845,7 +848,7 @@ class GrunsReader(ETSF_Reader):
         # The index of the volume used for the finite difference.
         self.iv0 = self.read_value("gruns_iv0") - 1  #  F --> C
 
-    def read_doses(self):
+    def read_doses(self) -> AttrDict:
         """
         Return a |AttrDict| with the DOSes available in the file. Empty dict if
         DOSes are not available.
@@ -874,7 +877,7 @@ class GrunsReader(ETSF_Reader):
 
         return d
 
-    def read_phbands_on_qpath(self):
+    def read_phbands_on_qpath(self) -> List[PhononBands]:
         """
         Return a list of |PhononBands| computed at the different volumes.
         The ``iv0`` entry corresponds to the central point used to compute Grunesein parameters
@@ -917,7 +920,7 @@ class GrunsReader(ETSF_Reader):
 
         return phbands_qpath_vol
 
-    def read_amuz_dict(self):
+    def read_amuz_dict(self) -> dict:
         """
         Dictionary that associates the atomic number to the values of the atomic
         mass units used for the calculation.
@@ -932,7 +935,7 @@ class GrunsReader(ETSF_Reader):
 
         return amuz
 
-    def read_structures(self):
+    def read_structures(self) -> List[Structure]:
         """
         Resturns a list of structures at the different volumes
         """

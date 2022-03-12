@@ -1,7 +1,7 @@
 # coding: utf-8
 """Density/potential files in netcdf/fortran format."""
 import os
-import tempfile
+#import tempfile
 #import numpy as np
 
 from monty.string import marquee

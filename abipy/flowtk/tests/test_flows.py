@@ -7,7 +7,6 @@ import abipy.data as abidata
 from monty.functools import lazy_property
 from pymatgen.core.lattice import Lattice
 from abipy.core.structure import Structure
-from abipy.flowtk.launcher import BatchLauncher
 from abipy.flowtk.flows import *
 from abipy.flowtk.works import *
 from abipy.flowtk.tasks import *
@@ -16,30 +15,9 @@ from abipy import abilab
 from abipy import flowtk
 
 
-class FakeAbinitInput(object):
-    """Emulate an Abinit input."""
-    @lazy_property
-    def pseudos(self):
-        return [abidata.pseudo("14si.pspnc")]
-
-    @lazy_property
-    def structure(self):
-        coords = []
-        coords.append([0, 0, 0])
-        coords.append([0.75, 0.5, 0.75])
-        lattice = Lattice([[3.8401979337, 0.00, 0.00],
-                          [1.9200989668, 3.3257101909, 0.00],
-                          [0.00, -2.2171384943, 3.1355090603]])
-        return Structure(lattice, ["Si", "Si"], coords)
-
-    def get(self, key, default=None):
-        """The real AbinitInput is a dict-like object."""
-        if default is not None: return default
-        return key
-
-
 class FlowUnitTest(AbipyTest):
     """Provides helper function for testing Abinit flows."""
+
     MANAGER = """\
 policy:
     autoparal: 1
@@ -56,6 +34,10 @@ qadapters:
         min_cores: 4
         max_cores: 12
         #condition: {"$eq": {omp_threads: 2}}
+        limits_for_task_class: {
+           DdkTask: {min_cores: 2, max_cores: 30},
+           KerangeTask: {timelimit: 0:10:00, max_mem_per_proc: 1 Gb},
+        }
       hardware:
         num_nodes: 10
         sockets_per_node: 1
@@ -70,16 +52,6 @@ qadapters:
             LD_LIBRARY_PATH: /home/user/NAPS/intel13/lib:$LD_LIBRARY_PATH
         mpi_runner: mpirun
 
-# Connection to the MongoDb database (optional)
-db_connector:
-    database: abinit
-    collection: test
-    #host: 0.0.0.0
-    #port: 8080
-    #user: gmatteo
-    #password: helloworld
-
-batch_adapter: *batch
 """
     def setUp(self):
         """Initialization phase."""
@@ -91,11 +63,22 @@ batch_adapter: *batch
         # Create the TaskManager.
         self.manager = TaskManager.from_string(self.MANAGER)
 
+        set_user_config_taskmanager(self.manager)
+
         # Fake input file
-        self.fake_input = FakeAbinitInput()
+        from abipy.abio.inputs import AbinitInput
+        coords = []
+        coords.append([0, 0, 0])
+        coords.append([0.75, 0.5, 0.75])
+        lattice = Lattice([[3.8401979337, 0.00, 0.00],
+                          [1.9200989668, 3.3257101909, 0.00],
+                          [0.00, -2.2171384943, 3.1355090603]])
+        self.fake_input = AbinitInput(structure=Structure(lattice, ["Si", "Si"], coords),
+                                      pseudos=abidata.pseudo("14si.pspnc"))
 
     def tearDown(self):
         """Delete workdir"""
+        set_user_config_taskmanager(None)
         shutil.rmtree(self.workdir)
 
 
@@ -108,18 +91,37 @@ class FlowTest(FlowUnitTest):
         assert flow.isinstance(Flow)
         assert not flow.isinstance(None)
         assert not flow.has_scheduler
+        assert flow._status is None
+
+        assert not flow.user_message
+        message = "My message"
+        flow.set_user_message(message)
+        assert flow.user_message == message
+        assert flow.readme_md is None
+        flow.set_readme("## hello flow")
+        assert flow.readme_md == "## hello flow"
+        assert not flow.abipy_meta_json
+        flow.set_abipy_meta_json(dict(message="hello flow"))
+        assert "message" in flow.abipy_meta_json
+        with self.assertRaises(TypeError):
+            flow.set_abipy_meta_json(["hello flow"])
 
         # Build a work with a task
         work = flow.register_task(self.fake_input)
         assert work.is_work
         assert len(work.color_hex) == 7
         assert work.color_hex.startswith("#")
+        work.set_readme("## hello work")
+        work.set_abipy_meta_json(dict(message="hello work"))
+
         task0_w0 = work[0]
+        task0_w0.set_readme("## hello task0_w0")
+        task0_w0.set_abipy_meta_json(dict(message="hello task0_w0"))
+
         assert task0_w0.is_task
         str(task0_w0.status.colored)
         assert len(flow) == 1
         assert flow.num_tasks == 1
-        assert flow.has_db
 
         #print(task0_w0.input_structure)
         str(task0_w0.make_input)
@@ -130,7 +132,8 @@ class FlowTest(FlowUnitTest):
         assert len(task0_w0.history) == 1
         str(task0_w0.history)
         record = task0_w0.history.pop()
-        print(record, repr(record))
+        repr(record)
+        str(record)
         assert record.get_message(asctime=False) == "Hello world"
         assert len(task0_w0.history) == 0
         assert flow.select_tasks(nids=task0_w0.node_id)[0] == task0_w0
@@ -141,11 +144,26 @@ class FlowTest(FlowUnitTest):
         # Build a workflow containing two tasks depending on task0_w0
         work = Work()
         assert work.is_work
-        work.register(self.fake_input)
-        work.register(self.fake_input)
+
+        ddk_task_with_custom_limits = work.register_ddk_task(self.fake_input)
+        kerange_task_with_custom_limits = work.register_kerange_task(self.fake_input)
+
+        assert not hasattr(ddk_task_with_custom_limits, "manager")
+
+        m = kerange_task_with_custom_limits.manager
+        assert m.policy.autoparal == 0
+        assert m.mpi_procs == 1
+        assert m.qads[0].max_mem_per_proc == 1024
+        # This does not work as expected but the most importan thing is that
+        # autoparal has been set to 0 and the other values have been updated.
+        #assert m.qads[0].min_cores == 1
+        #assert m.qads[0].max_cores == 1
+
         assert len(work) == 2
 
         flow.register_work(work, deps={task0_w0: "WFK"})
+        assert not hasattr(ddk_task_with_custom_limits, "manager")
+
         assert flow.is_flow
         assert len(flow) == 2
 
@@ -156,6 +174,10 @@ class FlowTest(FlowUnitTest):
 
         # Allocate internal tables
         flow.allocate()
+
+        assert hasattr(ddk_task_with_custom_limits, "manager")
+        assert ddk_task_with_custom_limits.manager.qads[0].min_cores == 2, "should have custom value"
+        assert ddk_task_with_custom_limits.manager.qads[0].max_cores == 30, "should have custom value"
 
         # Check dependecies.
         #task0_w1 = flow[1][0]
@@ -216,8 +238,23 @@ class FlowTest(FlowUnitTest):
 
         # Test show_status
         flow.show_status()
+        df = flow.show_status(return_df=True)
         flow.show_tricky_tasks()
         flow.show_event_handlers()
+
+        assert task0_w0.pos == (0, 0)
+        d = task0_w0.get_dataframe(as_dict=True)
+        assert "status" in d
+        assert (d["work_idx"], d["task_widx"]) == task0_w0.pos
+        df = task0_w0.get_dataframe()
+        assert df["work_idx"][0] == task0_w0.pos[0]
+        assert df["task_widx"][0] == task0_w0.pos[1]
+
+        work0 = flow[0]
+        d_list = work0.get_dataframe(as_dict=True)
+        assert "status" in d_list[0]
+        df = work0.get_dataframe()
+        assert "status" in df
 
         df = flow.compare_abivars(varnames=["ecut", "natom"], printout=True, with_colors=True)
         assert "ecut" in df
@@ -243,6 +280,13 @@ class FlowTest(FlowUnitTest):
 
         if self.has_panel():
             assert hasattr(flow.get_panel(), "show")
+            assert hasattr(flow[0].get_panel(), "show")
+            assert hasattr(flow[0][0].get_panel(), "show")
+
+        flow.set_status(flow.S_ERROR, "This is a errored flow")
+        assert flow._status == flow.S_ERROR
+        assert flow.status == flow.S_ERROR
+
 
     def test_workdir(self):
         """Testing if one can use workdir=None in flow.__init__ and then flow.allocate(workdir)."""
@@ -371,54 +415,3 @@ class TestFlowInSpectatorMode(FlowUnitTest):
         #with self.assertRaises(task.SpectatorError): task._on_done()
         #with self.assertRaises(task.SpectatorError): task.on_ok()
         #with self.assertRaises(task.SpectatorError): task._on_ok()
-
-
-class TestBatchLauncher(FlowUnitTest):
-
-    def test_batchlauncher(self):
-        """Testing BatchLauncher methods."""
-        # Create the TaskManager.
-        manager = TaskManager.from_string(self.MANAGER)
-        print("batch_adapter", manager.batch_adapter)
-        assert manager.batch_adapter is not None
-
-        def build_flow_with_name(name):
-            """Build a flow with workdir None and the given name."""
-            flow = Flow(workdir=None, manager=self.manager)
-            flow.set_name(name)
-
-            flow.register_task(self.fake_input)
-            work = Work()
-            work.register_scf_task(self.fake_input)
-            flow.register_work(work)
-
-            return flow
-
-        tmpdir = tempfile.mkdtemp()
-        batch = BatchLauncher(workdir=tmpdir, manager=manager)
-        str(batch)
-
-        flow0 = build_flow_with_name("flow0")
-        flow1 = build_flow_with_name("flow1")
-        flow2_same_name = build_flow_with_name("flow1")
-
-        batch.add_flow(flow0)
-
-        # Cannot add the same flow twice.
-        with self.assertRaises(batch.Error):
-            batch.add_flow(flow0)
-
-        batch.add_flow(flow1)
-
-        # Cannot add two flows with the same name.
-        with self.assertRaises(batch.Error):
-            batch.add_flow(flow2_same_name)
-
-        batch.submit(dry_run=True)
-
-        for i, flow in enumerate([flow0, flow1]):
-            assert flow.workdir == os.path.join(batch.workdir, "flow%d" % i)
-
-        batch.pickle_dump()
-        batch_from_pickle = BatchLauncher.pickle_load(batch.workdir)
-        assert all(f1 == f2 for f1, f2 in zip(batch.flows, batch_from_pickle.flows))

@@ -21,7 +21,7 @@ class RelaxAndPhononWork(Work):
     @classmethod
     def from_scf_input(cls, scf_input, volumes, ngqpt, with_becs, optcell, ionmov, edos_ngkpt=None):
         """
-        Build the work from an |AbinitInput| for GS-SCF calculation.
+        Build the work from an |AbinitInput| representing a GS-SCF calculation.
 
         Args:
             scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.
@@ -40,7 +40,7 @@ class RelaxAndPhononWork(Work):
         work.volumes = np.array(volumes)
         work.with_becs = with_becs
 
-        # Create input for relaxation and register the relaxation task.
+        # Create input for relaxation and register the relaxation tasks.
         relax_template = scf_input.deepcopy()
         relax_template.pop_tolerances()
         relax_template.set_vars(tolvrs=1e-10, toldff=1.e-6, optcell=optcell, ionmov=ionmov)
@@ -103,7 +103,7 @@ class QhaFlow(Flow):
         Build a |Flow| for QHA calculations from an |AbinitInput| for GS-SCF calculations.
 
         Args:
-            workdir: Working directory.
+            workdir: Working directory of the flow.
             scf_input: |AbinitInput| for GS-SCF run used as template to generate the other inputs.
             volumes: List of volumes in Ang**3.
             ngqpt: Three integers defining the q-mesh for phonon calculation.
@@ -134,7 +134,7 @@ class QhaFlow(Flow):
         d = {}
         if self.metadata is not None: d.update({"metadata": self.metadata})
 
-        #QHA.from_files(cls, gsr_paths, phdos_paths)
+        # QHA.from_files(cls, gsr_paths, phdos_paths)
         # Build list of strings with path to the relevant output files ordered by V.
         d["gsr_relax_paths"] = [task.gsr_path for task in self.relax_and_phonon_work.relax_tasks_vol]
         d["ddb_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in self.relax_and_phonon_work.ph_works_vol]

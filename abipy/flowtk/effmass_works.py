@@ -38,8 +38,8 @@ class EffMassLineWork(Work):
 
     @classmethod
     def from_scf_input(cls, scf_input, k0_list, step=0.01, npts=15,
-                       red_dirs=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], cart_dirs=None,
-                       den_node=None, manager=None):
+                       red_dirs=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], ndivsm=-20,
+                       cart_dirs=None, den_node=None, manager=None):
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -53,6 +53,9 @@ class EffMassLineWork(Work):
             den_node: Path to the DEN file or Task object producing a DEN file.
                 Can be used to avoid the initial SCF calculation if a DEN file is already available.
                 If None, a GS calculation is performed.
+            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
             manager: |TaskManager| instance. Use default if None.
         """
         if npts < 3:
@@ -72,6 +75,11 @@ class EffMassLineWork(Work):
         scf_task = new.register_scf_task(scf_input) if den_node is None else Node.as_node(den_node)
 
         new.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
+
+        if ndivsm != 0:
+           ebands_inp = scf_input.make_ebands_input(ndivsm=ndivsm)
+           new.register_nscf_task(ebands_inp, deps={scf_task: "DEN"})
+
         return new
 
 
@@ -113,6 +121,7 @@ class EffMassDFPTWork(Work):
 
         nscf_task = new.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
         new.register_effmass_task(effmass_input, deps={scf_task: "DEN", nscf_task: "WFK"})
+
         return new
 
 

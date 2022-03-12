@@ -625,12 +625,18 @@ class RtaRobot(Robot, RobotWithEbands):
     #def get_mobility_mu_dataframe(self, eh=0, component='xx', itemp=0, spin=0, **kwargs):
 
     @add_fig_kwargs
-    def plot_mobility_kconv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+    def plot_mobility_kconv(self, eh=0, bte=('serta', 'mrta', 'ibte'), mode="full", component='xx', itemp=0, 
+                            spin=0, fontsize=14, ax=None, **kwargs):
         """
-        Plot the convergence of the mobility as a function of the number of k-points.
+        Plot the convergence of the mobility as a function of the number of k-points,
+        for different transport formalisms included in the computation.
 
         Args:
             eh: 0 for electrons, 1 for holes.
+            bte: list of transport formalism to plot (serta, mrta, ibte)
+            mode: mode for the convergence plot. 'full': normal plot of the mobility
+                                                 'relative': plot of the mobility relative to 
+                                                             the value obtained with the densest grid
             component: Cartesian component to plot ('xx', 'xy', ...)
             itemp: temperature index.
             spin: Spin index.
@@ -639,22 +645,32 @@ class RtaRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
         """
+
+        if 'ibte' in bte and not self.all_have_ibte:
+            print("At least some IBTE results are missing ! Will remove ibte from the bte list")
+            bte.remove('ibte')
+
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
         i, j = abu.s2itup(component)
         irta = 0
 
-        res, temps = []
+        res, temps = [], []
         for ncfile in self.abifiles:
-            #kptrlattx, kptrlatty, kptrlattz = ncfile.ngkpt
             kptrlatt = ncfile.reader.read_value("kptrlatt")
             kptrlattx = kptrlatt[0, 0]
             kptrlatty = kptrlatt[1, 1]
             kptrlattz = kptrlatt[2, 2]
-            # nctkarr_t('mobility_mu',"dp", "three, three, two, ntemp, nsppol, nrta")]
-            mobility = ncfile.reader.read_variable("mobility_mu")[irta, spin, itemp, eh, j, i]
-            #print(mobility)
-            res.append([kptrlattx, mobility])
+
+            mob_serta, mob_mrta, mob_ibte = -1, -1, -1
+            if 'serta' in bte:
+                mob_serta = ncfile.reader.read_variable("mobility_mu")[0, spin, itemp, eh, j, i]
+            if 'mrta' in bte:
+                mob_mrta = ncfile.reader.read_variable("mobility_mu")[1, spin, itemp, eh, j, i]
+            if 'ibte' in bte:
+                mob_ibte = ncfile.reader.read_variable("ibte_mob")[spin, itemp, eh, j, i]
+
+            res.append([kptrlattx, mob_serta, mob_mrta, mob_ibte])
             temps.append(ncfile.tmesh[itemp])
 
         res.sort(key=lambda t: t[0])
@@ -662,12 +678,11 @@ class RtaRobot(Robot, RobotWithEbands):
         #print(res)
 
         size = 14
-        ylabel = r"%s mobility (cm$^2$/(V$\cdot$s))" % {0: "Electron", 1: "Hole"}[eh]
+        if mode == 'relative':
+            ylabel = r"Relative %s mobility (%%)" % {0: "electron", 1: "hole"}[eh]
+        elif mode == 'full':
+            ylabel = r"%s mobility (cm$^2$/(V$\cdot$s))" % {0: "Electron", 1: "Hole"}[eh]
         ax.set_ylabel(ylabel, size=size)
-
-        #if "title" not in kwargs:
-        #    title = r"$\frac{1}{N_k} \sum_{nk} \delta(\epsilon - \epsilon_{nk})$"
-        #    ax.set_title(title, fontsize=fontsize)
 
         from fractions import Fraction
         ratio1 = Fraction(kptrlatty, kptrlattx)
@@ -680,7 +695,20 @@ class RtaRobot(Robot, RobotWithEbands):
         ax.set_xlabel(r'Homogeneous $N_k \times$ ' + text1 + r'$N_k \times$ ' + text2 + r'$N_k$ $\mathbf{k}$-point grid',
                       size=size)
 
-        ax.plot(res[:,0], res[:,1], **kwargs)
+        ax.set_title(component+" component, T = {0} K".format(ncfile.tmesh[itemp]),size=size)
+
+        if mode == 'relative':
+            for ires in [1,2,3]:
+                res[:,ires] = 100*(res[:,ires]-res[-1,ires])/res[-1,ires]
+
+        if 'serta' in bte:
+            ax.plot(res[:,0], res[:,1], '-ob', label='SERTA')
+        if 'mrta' in bte:
+            ax.plot(res[:,0], res[:,2], '-or', label='MRTA')
+        if 'ibte' in bte:
+            ax.plot(res[:,0], res[:,3], '-og', label='IBTE')
+
+        ax.set_xticks(res[:,0].astype(float))
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
@@ -773,7 +801,25 @@ class RtaRobot(Robot, RobotWithEbands):
         #if self.all_have_ibte:
         yield self.plot_ibte_mrta_serta_conv(show=False)
         yield self.plot_ibte_vs_rta_rho(show=False)
-        #self.plot_mobility_kconv(eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+
+        # Determine the independent component. For the time being,
+        # only consider the cubic case separately
+        abifile = self.abifiles[0]
+        if 'cubic' in abifile.structure.spget_summary():
+            components = ['xx']
+        else:
+            components = ['xx','yy','zz']
+
+        # Determine the type of carriers for which the mobility is computed
+        eh_list = []
+        if abifile.sigma_erange[0] > 0:
+            eh_list.append(1)
+        if abifile.sigma_erange[1] > 0:
+            eh_list.append(0)
+
+        for eh in eh_list:
+            for comp in components:
+                yield self.plot_mobility_kconv(eh=eh, component=comp, itemp=0, spin=0, show=False)
 
     #def get_panel(self):
     #    """
@@ -813,7 +859,7 @@ if __name__ == "__main__":
     #plt.tick_params(labelsize=14)
     #ax = plt.gca()
 
-    robot.plot_mobility_kconv(ax=None, color='k', label=r'$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$')
+    robot.plot_mobility_kconv(ax=None, color='k')
 
     #fileslist = ['conv_fine/k27x27x27/q27x27x27/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k30x30x30/q30x30x30/Sio_DS1_TRANSPORT.nc',

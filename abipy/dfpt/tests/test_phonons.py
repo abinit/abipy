@@ -129,7 +129,10 @@ class PhononBandsTest(AbipyTest):
 
         if self.has_plotly():
             assert phbands.plotly(units="cm-1", temp=300, show=False)
+            assert phbands.plotly_fatbands(units="ha", qlabels=qlabels, show=False)
+            assert phbands.plotly_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             #assert phbands.plotly_with_phdos(units="Thz", temp=300, show=False)
+            assert phbands.boxplotly(units="ev", mode_range=[2, 4], show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):
@@ -163,6 +166,7 @@ class PhononBandsTest(AbipyTest):
         if self.has_matplotlib():
             assert phbands.plot_longitudinal_fatbands(match_bands=True, show=False)
             assert phbands.plot_longitudinal_fraction([0., 0., 0.], idir=None, show=False)
+
 
 class PlotterTest(AbipyTest):
 
@@ -299,11 +303,15 @@ class PhononBandsPlotterTest(AbipyTest):
         assert df is not None
 
         if self.has_matplotlib():
-            assert plotter.combiplot(units="eV", show=True)
-            assert plotter.gridplot(units="meV", show=True)
-            assert plotter.boxplot(units="cm-1", show=True)
-            assert plotter.combiboxplot(units="Thz", show=True)
+            assert plotter.combiplot(units="eV", show=False)
+            assert plotter.gridplot(units="meV", show=False)
+            assert plotter.boxplot(units="cm-1", show=False)
+            assert plotter.combiboxplot(units="Thz", show=False)
             assert plotter.animate(show=False)
+
+        if self.has_matplotlib():
+            assert plotter.combiplotly(units="eV", show=False)
+            assert plotter.gridplotly(units="meV", show=False)
 
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -315,10 +323,14 @@ class PhononBandsPlotterTest(AbipyTest):
         plotter = PhononBandsPlotter(key_phbands=[("foo", phbst_paths[0]), ("bar", phbst_paths[1])])
 
         if self.has_matplotlib():
-            assert plotter.combiplot(units="EV", show=True)
-            assert plotter.gridplot(units="MEV", show=True)
-            assert plotter.boxplot(units="cm^-1", mode_range=[0, 3], swarm=True, show=True)
-            assert plotter.combiboxplot(units="THZ", mode_range=[0, 3], show=True)
+            assert plotter.combiplot(units="EV", show=False)
+            assert plotter.gridplot(units="MEV", show=False)
+            assert plotter.boxplot(units="cm^-1", mode_range=[0, 3], swarm=True, show=False)
+            assert plotter.combiboxplot(units="THZ", mode_range=[0, 3], show=False)
+
+        if self.has_plotly():
+            assert plotter.combiplotly(units="EV", show=False)
+            assert plotter.gridplotly(units="MEV", show=False)
 
 
 class PhononDosTest(AbipyTest):
@@ -328,7 +340,7 @@ class PhononDosTest(AbipyTest):
         phdos = PhononDos(mesh=[1, 2, 3], values=[4, 5, 6])
         assert phdos.mesh.tolist() == [1, 2, 3] and phdos.h == 1 and phdos.values.tolist() == [4, 5, 6]
         repr(phdos); str(phdos)
-        phdos.idos
+        assert phdos.idos
         with self.assertRaises(TypeError):
             PhononDos.as_phdos({}, {})
 
@@ -340,7 +352,7 @@ class PhononDosTest(AbipyTest):
         with open(tmp_path, "wb") as fh:
             pickle.dump(phdos, fh)
         same_phdos = PhononDos.as_phdos(tmp_path)
-        same_phdos == phdos
+        assert same_phdos == phdos
 
         phdos.to_pymatgen()
 

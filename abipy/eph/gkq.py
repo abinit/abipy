@@ -414,7 +414,7 @@ class GkqRobot(Robot, RobotWithEbands):
 
     @add_fig_kwargs
     def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
-                        ax=None, fontsize=8, eph_wtol=EPH_WTOL, **kwargs):
+                        ax=None, fontsize=8, eph_wtol=EPH_WTOL, kq_labels=False, **kwargs):
         r"""
         Plot the magnitude of the electron-phonon matrix elements <k+q, band_kq| Delta_{q\nu} V |k, band_k>
         for a given set of (band_kq, band, k) as a function of the q-point.
@@ -428,6 +428,7 @@ class GkqRobot(Robot, RobotWithEbands):
             nu_list: List of phonons modes to be selected (starts at 0). None to select all modes.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Label and title fontsize.
+            kq_labels: If True, use the label associated to k+q instead of q.
 
         Return: |matplotlib-Figure|
         """
@@ -452,8 +453,12 @@ class GkqRobot(Robot, RobotWithEbands):
             qpoint = abifile.qpoint
             #d3q_fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
 
-            name = qpoint.name if qpoint.name is not None else abifile.structure.findname_in_hsym_stars(qpoint)
-            if qpoint.name is not None:
+            if kq_labels:
+                name = abifile.structure.findname_in_hsym_stars(kpoint + qpoint)
+            else:
+                name = qpoint.name if qpoint.name is not None else abifile.structure.findname_in_hsym_stars(qpoint)
+
+            if name is not None:
                 xticks.append(iq)
                 xlabels.append(name)
 

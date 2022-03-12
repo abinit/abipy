@@ -1,19 +1,41 @@
+Release 0.9.4:
 
-Release 0.9.1: 
+    * Add ``ndivsm`` argument to PhononWork and EffMassLineWork to activate band 
+      structure computation along k-path.
 
-   * abiopen, abiview and abicom now supports --plotly to produce plotly figures in the local browser 
+
+Release 0.9.3:
+
+    * Add new option to TaskManager (`limits_for_task_class`) to specify custom limits 
+      depending on the name of the task class. See `abidoc.py manager` for syntax
+    * Deprecate `single` and `rapid` commands of abirun.py.
+
+
+Release 0.9.2:
+
+   * Require pymatgen >= 2022.0.14
+   * Add abiview.py ifermi_fs
+   * G0W0WithQptdmFlow is deprecated and will be removed in v 0.9.3
+   * Add abigui.py script
+   * Add abilab.abirobot function to create a Robot from a list of filepaths.
+   * Add plotly version of fatbands
+   * Support for dipquad and quadquad
+
+Release 0.9.1:
+
+   * Add  "-ew", "--expose-web",
+   * abiopen, abiview and abicomp now supports --plotly to produce plotly figures in the local browser
      and --chart-studio to push the figure to the chart studio service.
      Note that, at present, only DDB files support plotly.
-   * AbinitInput set_kpath and make_ebands_input now support negative values of ndivsm that 
+   * AbinitInput set_kpath and make_ebands_input now support negative values of ndivsm that
      are interpreted as line_density following pymatgen conventions.
-     This option is the recommended one if the k-path contains two consecutive high symmetry k-points 
+     This option is the recommended one if the k-path contains two consecutive high symmetry k-points
      that are very close as ndivsm > 0 may produce a very large number of wavevectors.
    * Preliminary support for plotly plots (phonons).
-   * AbinitInputParser now can parse strings in the input file and read structure is the `suctructre:abivars`
+   * AbinitInputParser now can parse strings in the input file and read structure is the `structure:abivars`
      syntax in used.
 
-
-Release 0.9.0: 
+Release 0.9.0:
 
     * Require pymatgen >= 2019.12.22
     * Integration with abinit 9.4.0
@@ -24,13 +46,12 @@ Release 0.9.0:
     * Use last version of apscheduler.
     * Minor bug fixes
     * New tools for Phonon and EPH calculations.
-    * Note that this is last AbiPy version supporting Abinit8.
+    * Note that this is the last AbiPy version supporting Abinit8.
       AbiPy version 1.0 will start to take advantage of features and ameliorations introduced in Abinit9
       We will also take the opportunity to refactor the code base so backward incompatibe changes in the API
       are expected in the next major version.
 
-
-Release 0.8.0: 
+Release 0.8.0:
 
     * Add abicheck.py --create-config option to install predefined yaml configuration files
     * Add support for NSCF calculations with meta-GGA.
@@ -70,7 +91,7 @@ Release:0.3.0 2017-12-26
       and ``flow-gallery`` with AbiPy flows are now automatically generated.
     * Add Shankland-Koelling-Wood Fourier interpolation scheme.
 
-Release 0.2.0 <2017-03-10>
+Release 0.2.0 2017-03-10
 
     This is the first official release in which we have reached a relatively stable API
     and a well-defined interface with the netcdf files produced by Abinit.

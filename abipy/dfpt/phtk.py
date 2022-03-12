@@ -240,8 +240,7 @@ def open_file_phononwebsite(filename, port=8000,
     # Create threads python
     server.url = 'http://{}:{}'.format(host, server.server_port)
     from threading import Thread
-    t = Thread(target=server.serve_forever)
-    t.daemon = True
+    t = Thread(target=server.serve_forever, daemon=True)
     t.start()
 
     # Open website with the file

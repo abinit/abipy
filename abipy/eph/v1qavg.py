@@ -14,7 +14,7 @@ from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 
 
-def _get_style(reim, what, marker=None, markersize=None, alpha=2.0):
+def _get_style(reim, what, marker=None, markersize=None, alpha=1.0):
     lw = 1
     symbol, linestyle, linewidth = {
         "v1scf_avg": (r"v1_{\bf q}", "-", lw),

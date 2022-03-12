@@ -377,7 +377,10 @@ def abicomp_phbands(options):
 
         # Select the plot method to call.
         if options.plot_mode == "panel":
-            plotter.get_panel().show(debug=options.verbose > 0)
+            pn = abilab.abipanel()
+            serve_kwargs = serve_kwargs_from_options(options)
+            app = plotter.get_panel(template=options.panel_template)
+            return pn.serve(app, **serve_kwargs)
 
         elif options.plot_mode != "None":
             plotfunc = getattr(plotter, options.plot_mode, None)
@@ -639,14 +642,15 @@ def _invoke_robot(options):
                                      no_browser=options.no_browser)
 
     elif options.panel:
-        abilab.abipanel()
-
-        if hasattr(robot, "get_panel"):
-            robot.get_panel().show()
-            return 0
-        else:
+        if not hasattr(robot, "get_panel"):
             cprint(f"`{type(robot)} does not provide get_panel method", color="red")
             return 1
+
+        pn = abilab.abipanel()
+
+        serve_kwargs = serve_kwargs_from_options(options)
+        app = robot.get_panel(template=options.panel_template)
+        return pn.serve(app, **serve_kwargs)
 
     elif options.print or options.expose:
         robot.trim_paths()
@@ -674,9 +678,9 @@ def _invoke_robot(options):
             if options.plotly:
                # plotly version.
                if hasattr(robot, "plotly_expose"):
-                   robot.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+                    robot.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
                else:
-                   cprint("<%s> does not implement plotly_expose method" % type(robot), color="red")
+                    cprint("<%s> does not implement plotly_expose method" % type(robot), color="red")
 
             elif hasattr(robot, "expose"):
                 # matplotlib version.
@@ -1085,6 +1089,12 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
     robot_parser.add_argument("-pn", '--panel', default=False, action="store_true",
                               help="Open GUI in web browser, requires panel package. WARNING: Experimental")
+    robot_parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
+                              help="Specify template for panel dasboard." +
+                                   "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                                   "Default: FastList"
+                              )
+    robot_parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
@@ -1124,6 +1134,31 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
         "Possible values: difflib (default), pygmentize (requires package)."))
 
     return parser
+
+
+def serve_kwargs_from_options(options):
+
+    #address = "localhost"
+    if options.no_browser:
+        print("""
+Use:
+
+    ssh -N -f -L localhost:{port}:localhost:{port} username@your_remote_cluster
+
+for port forwarding.
+""")
+
+    import abipy.panels as mod
+    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
+
+    return dict(
+        debug=options.verbose > 0,
+        show=not options.no_browser,
+        port=options.port,
+        static_dirs={"/assets": assets_path},
+        #address=address,
+        #websocket_origin="{address}:{port}",
+    )
 
 
 @prof_main

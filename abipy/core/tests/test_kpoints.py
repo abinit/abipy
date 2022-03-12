@@ -77,6 +77,7 @@ class TestHelperFunctions(AbipyTest):
                                  [0.4, 0.0, 0.0 ],
                                  [0.5, 0.0, 0.0 ]])
 
+
 class TestKpoint(AbipyTest):
     """Unit tests for Kpoint object."""
 
@@ -105,6 +106,8 @@ class TestKpoint(AbipyTest):
         X = Kpoint([0.5, 0, 0], lattice)
         K = Kpoint([1/3, 1/3, 1/3], lattice)
         repr(X); str(X)
+        assert X.to_string(verbose=0)
+        assert X.to_string(verbose=1)
         assert X.to_string(verbose=2)
         assert X.tos(m="fract")
         assert X.tos(m="cart")
@@ -282,6 +285,12 @@ class TestKpath(AbipyTest):
         #assert len(kpath.ds) == len(self) - 1
         #assert kpath.ksampling.kptopt == 1
         #self.assert_equal(kpath.ksampling.mpdivs, [4, 4, 4])
+
+        df = kpath.get_highsym_datataframe(with_cart_coords=True)
+        #print(df)
+        assert "G" in df["name"].values
+        assert "cart_coords" in df
+        self.assert_equal(df["frac_coords"][0], [0.0, 0.0, 0.0])
 
         assert Kpoint.from_name_and_structure("Gamma", structure) == kpath[0]
 

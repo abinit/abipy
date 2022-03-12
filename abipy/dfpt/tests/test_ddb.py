@@ -157,6 +157,7 @@ class DdbTest(AbipyTest):
         assert not ddb.has_internalstrain_terms()
         assert not ddb.has_piezoelectric_terms()
         assert not ddb.has_strain_terms()
+        assert not ddb.has_quadrupole_terms()
         assert ddb.has_at_least_one_atomic_perturbation()
 
         ref_qpoints = np.reshape([
@@ -199,8 +200,17 @@ class DdbTest(AbipyTest):
                 title="Phonon bands and DOS of %s" % phbands.structure.formula)
             assert phbands_file.plot_phbands(show=False)
 
+        if self.has_plotly():
+            assert phbands.plotly_with_phdos(phdos, show=False,
+                title="Phonon bands and DOS of %s" % phbands.structure.formula)
+
         if self.has_panel():
             assert hasattr(ddb.get_panel(), "show")
+
+        if self.has_phonopy():
+            phbands_file_phonopy, _ = ddb.anaget_phbst_and_phdos_files(verbose=1, with_phonopy_obj=True)
+            phonopy_obj = phbands_file_phonopy.phbands.phonopy_obj
+            assert phonopy_obj is not None
 
         # Get epsinf and becs
         r = ddb.anaget_epsinf_and_becs(chneut=1, verbose=1)
@@ -232,16 +242,16 @@ class DdbTest(AbipyTest):
         assert c.phdoses and c.plotter is not None
 
         # Execute anaddb to compute the interatomic force constants.
-        ifc = ddb.anaget_ifc()
+        ifc, inp = ddb.anaget_ifc(return_input=True)
         str(ifc); repr(ifc)
         assert ifc.to_string(verbose=2)
         assert ifc.structure == ddb.structure
         assert ifc.number_of_atoms == len(ddb.structure)
 
         if self.has_matplotlib():
-            assert ifc.plot_longitudinal_ifc(show=False)
-            assert ifc.plot_longitudinal_ifc_short_range(show=False)
-            assert ifc.plot_longitudinal_ifc_ewald(show=False)
+            assert ifc.plot_longitudinal_ifc(yscale="log", show=False)
+            assert ifc.plot_longitudinal_ifc_short_range(yscale="log", show=False)
+            assert ifc.plot_longitudinal_ifc_ewald(yscale="logit", show=False)
 
         # Test get_coarse.
         with ddb.get_coarse([2, 2, 2]) as coarse_ddb:
@@ -333,20 +343,22 @@ class DdbTest(AbipyTest):
             assert ddb.has_epsinf_terms(select="at_least_one_diagoterm")
             assert ddb.has_bec_terms()
 
-            if self.has_matplotlib():
-                plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
-                    nqsmall=2, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
-                str(plotter)
-                assert plotter.combiplot(show=False)
+            plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
+                nqsmall=2, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
+            str(plotter)
 
-                # Test nqsmall == 0
-                plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
-                    nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
-                assert plotter.gridplot(show=False)
+            if self.has_matplotlib(): assert plotter.combiplot(show=False)
 
-                plotter = ddb.anacompare_dipdip(chneut_list=(0, 1), asr=1,
-                    nqsmall=0, ndivsm=5, dos_method="gaussian", ngqpt=None, verbose=2)
-                assert plotter.gridplot(show=False)
+            # Test nqsmall == 0
+            plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
+                nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
+
+            if self.has_matplotlib(): assert plotter.gridplot(show=False)
+
+            plotter = ddb.anacompare_dipdip(chneut_list=(0, 1), asr=1,
+                nqsmall=0, ndivsm=5, dos_method="gaussian", ngqpt=None, verbose=2)
+
+            if self.has_matplotlib(): assert plotter.gridplot(show=False)
 
     def test_mgb2_ddbs_ngkpt_tsmear(self):
         """Testing multiple DDB files and gridplot_with_hue."""
@@ -381,6 +393,9 @@ class DdbTest(AbipyTest):
 
     def test_ddb_from_mprester(self):
         """Test creation methods for DdbFile and DdbRobot from MP REST API."""
+        with self.assertRaises(ValueError):
+            abilab.DdbFile.from_mpid("foobar")
+
         #ddb = abilab.DdbFile.from_mpid("mp-1138")
         ddb = abilab.DdbFile.from_mpid("mp-149")
         assert ddb.structure.formula == "Si2"
@@ -418,7 +433,8 @@ class DdbTest(AbipyTest):
             for qpoint in ddb.qpoints:
                 assert qpoint in ddb.computed_dynmat
 
-            raman = ddb.anaget_raman()
+            #assert ddb.has_raman_terms()
+            raman, inp = ddb.anaget_raman(return_input=True)
             # take the mean to avoid potential changes in the order of degenerate modes.
             sus_mean = raman.susceptibility[3:, 0, 1].mean()
             self.assertAlmostEqual(sus_mean, -0.002829737, places=5)
@@ -429,6 +445,47 @@ class DdbTest(AbipyTest):
             assert blocks[3]["qpt"] == None
             assert blocks[3]["dord"] == 3
             assert blocks[3]["qpt3"] == [[0.,] * 3] * 3
+
+    def test_ddb_with_quad(self):
+        """
+        Testing DDB files with dynamical quadrupoles and flexoelectric tensor.
+        """
+        with abilab.abiopen(abidata.ref_file("refs/LW_DDBs/tlw_5.quad_DDB")) as ddb:
+            assert ddb.has_lo_to_data()
+            assert ddb.has_epsinf_terms()
+            assert ddb.has_bec_terms(select="all")
+            assert not ddb.has_strain_terms()
+            assert not ddb.has_piezoelectric_terms()
+
+            assert ddb.has_quadrupole_terms()
+            df = ddb.get_quadrupole_raw_dataframe()
+
+            assert df is not None
+
+            plotter = ddb.anacompare_quad(asr=2, chneut=1, dipdip=-1, lo_to_splitting="automatic",
+                                          nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
+                                          verbose=1, mpi_procs=1)
+            assert len(plotter) == 3
+
+    def test_ddb_with_flexoe(self):
+        """
+        Testing DDB files with flexoelectric tensor.
+        """
+        with abilab.abiopen(abidata.ref_file("refs/LW_DDBs/tlw_2.flexo_DDB")) as ddb:
+            assert ddb.has_lo_to_data()
+            assert ddb.has_epsinf_terms()
+            assert ddb.has_bec_terms(select="all")
+            assert ddb.has_strain_terms()
+            assert ddb.has_piezoelectric_terms()
+
+            assert ddb.has_quadrupole_terms()
+            df = ddb.get_quadrupole_raw_dataframe()
+
+            #assert ddb.has_flexoe_terms()
+            #df = ddb.get_frexoe_raw_dataframe()
+            #assert df is not None
+
+            # TODO: anaget interface --> requires modifications in anaddb
 
 
 class DielectricTensorGeneratorTest(AbipyTest):

@@ -10,6 +10,10 @@ from abipy.flowtk.qadapters import QueueAdapter, SlurmAdapter, OmpEnv
 from abipy.flowtk import qutils as qu
 
 
+def safe_load(string):
+    return yaml.YAML(typ='safe', pure=True).load(string)
+
+
 class OmpEnvTest(AbipyTest):
     def test_base(self):
         assert OmpEnv(OMP_NUM_THREADS=1).OMP_NUM_THREADS == "1"
@@ -40,7 +44,7 @@ class ParseTimestr(AbipyTest):
 
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class QadapterTest(AbipyTest):
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 1
 queue:
     qtype: slurm
@@ -171,7 +175,7 @@ hardware:
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class ShellAdapterTest(AbipyTest):
     """Test suite for Shell adapter."""
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 1
 queue:
     qname: localhost
@@ -220,7 +224,7 @@ source ~/env1.sh
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class SlurmAdapterTest(AbipyTest):
     """Test suite for Slurm adapter."""
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 5
 queue:
   qtype: slurm
@@ -232,6 +236,10 @@ limits:
   timelimit: 10:00
   min_cores: 3
   max_cores: 16
+  limits_for_task_class: {
+    ScfTask: {min_cores: 1, max_cores: 1},
+    KerangeTask: {min_cores: 1, max_cores: 2},
+  }
 job:
   mpi_runner: mpirun
   mpi_runner_options: --bind-to None
@@ -264,6 +272,7 @@ hardware:
         assert (qad.mpi_procs, qad.omp_threads) == (3, 1)
         assert qad.priority == 5 and qad.num_launches == 0 and qad.last_launch is None
 
+
         qad.set_mpi_procs(4)
 
         s = qad.get_script_str("job_name", "/launch_dir", "executable", "qout_path", "qerr_path",
@@ -287,7 +296,7 @@ echo ${SLURM_JOB_NODELIST}
 ulimit -s unlimited
 
 # Load Modules
-module purge
+module --force purge
 module load intel/compilerpro/13.0.1.117 2>> mods.err
 module load fftw3/intel/3.3 2>> mods.err
 
@@ -302,11 +311,21 @@ mpirun --bind-to None -n 4 executable < stdin > stdout 2> stderr
         #qad.set_omp_threads(1)
         #assert qad.has_omp
 
+        # Test limits_for_task_class and update limits API.
+        assert "ScfTask" in qad.limits_for_task_class
+        limits_for_task = qad.limits_for_task_class["KerangeTask"]
+        assert limits_for_task["min_cores"] == 1
+        assert limits_for_task["max_cores"] == 2
+        assert qad.max_cores == 16
+        qad.update_limits(limits_for_task)
+        assert qad.min_cores == limits_for_task["min_cores"]
+        assert qad.max_cores == limits_for_task["max_cores"]
+
 
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class PbsProadapterTest(AbipyTest):
     """Test suite for PbsPro adapter."""
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 1
 queue:
     qtype: pbspro
@@ -324,7 +343,7 @@ hardware:
     sockets_per_node: 2
     cores_per_socket: 4
     mem_per_node: 8 Gb""")
-    QDICT_SHARED = yaml.safe_load("""\
+    QDICT_SHARED = safe_load("""\
 priority: 1
 queue:
     qtype: pbspro
@@ -345,7 +364,7 @@ hardware:
     sockets_per_node: 2
     cores_per_socket: 12
     mem_per_node: 48000 Mb""")
-    QDICT_EXCLUSIVE = yaml.safe_load("""\
+    QDICT_EXCLUSIVE = safe_load("""\
 priority: 1
 queue:
     qtype: pbspro

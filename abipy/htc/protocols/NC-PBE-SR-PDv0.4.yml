@@ -1,0 +1,70 @@
+info: |
+  Protocol to generate input files for NC calculations. 
+  Use GGA-PBE scalar-relativistic pseudos from the PseudoDojo project.
+  Cutoff energies and tolerances are automatically defined according to the value of `accuracy`. 
+
+accuracy: "normal"
+
+pseudos_specs:
+  repo_name: "ONCVPSP-PBE-SR-PDv0.4"
+  table_name: "standard"
+
+# Variables common to all the calculations. 
+# Can be overridden in the abivars section.
+global_abivars:
+  nsppol: 1
+  nspden: 1
+  nspinor: 1
+  #fband: 2.00 # increase the number of bands to > fband * natoms
+  nstep: 50
+  paral_kgb: 1
+  rmm_diis: 1
+  expert_user: 1
+  occopt: 7   # Gaussian smearing
+  tsmear: 0.008 # Ha
+
+
+gs_scf_specs:
+  meta_params:
+    kppa: 500
+    #kpoints_distance: 0.25
+    #abivars:
+    #ngkpt: [3, 3, 3]  # This is not compatible with kppa
+    #nshiftk: 1
+    #shiftk: [[0.0, 0.0, 0.0]]
+    #tolvrs: 1.0e-7 
+    #tsmear: 0.008 # Ha
+
+gs_nscf_kpath_specs:
+  abivars:
+    ndivsm: 20
+    #tolwfr: 1.0e-14
+
+
+gs_nscf_kdos_specs:
+  meta_params:
+    kppa: 1000
+    #kpoints_distance: 0.25
+    #abivars:
+    #  nshiftk: 1
+    #  shiftk: [[0.0, 0.0, 0.0]]
+    #  tolwfr: 1.0e-14 
+
+
+relax_specs:
+  #extends: "gs_scf_specs"
+  abivars:
+    # default to relaxing atoms only
+    optcell: 0    # do not optimize the cell, Abinit default
+    ionmov: 22    # optimize ionic positions with L-BFGS
+    dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
+    ecutsm: 0.00  # don't smear the energy cutoff, Abinit default
+
+
+#phonon_specs:
+#  extends: "gs_scf_specs"
+#  meta_params:
+#    qppa: 1000
+#    ddk_tolwfr:
+#    with_becs: yes
+#    with_quad: no

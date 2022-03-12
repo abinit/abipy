@@ -1,4 +1,7 @@
 # coding: utf-8
+import os
+import abipy.data as abidata
+
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.utils import *
 
@@ -12,6 +15,36 @@ from abipy.flowtk.utils import *
 #        #assert fixer.fix_paths('/foo/out_1WF5.nc') == {'/foo/out_1WF5.nc': '/foo/out_1WF.nc'}
 #        assert fixer.fix_paths('/foo/out_1DEN17') == {'/foo/out_1DEN17': '/foo/out_1DEN'}
 #        assert fixer.fix_paths('/foo/out_1DEN5.nc') == {'/foo/out_1DEN5.nc': '/foo/out_1DEN.nc'}
+
+
+
+class DirectorTest(AbipyTest):
+
+    def test_directory_api(self):
+        path1 = os.path.join(abidata.dirpath, "refs", "si_ebands")
+        direc1 = Directory(path1)
+        assert repr(direc1)
+        assert str(direc1)
+        assert direc1 == direc1
+        assert direc1 != Directory("/tmp")
+        assert direc1.path == path1
+        assert direc1.relpath == os.path.relpath(path1)
+        assert direc1.basename == os.path.basename(path1)
+        p = direc1.path_join("foo", "bar")
+        assert p == os.path.join(direc1.path, "foo", "bar")
+        assert direc1.exists
+
+        den_filepath = direc1.has_abiext("DEN")
+        assert den_filepath.endswith("si_DEN.nc")
+        assert direc1.need_abiext("DEN") == den_filepath
+
+        with self.assertRaises(ValueError):
+            # There are multiple WFK.nc files in the same directory
+            direc1.has_abiext("WFK")
+
+        with self.assertRaises(FileNotFoundError):
+            direc1.need_abiext("DDB")
+
 
 class RpnTest(AbipyTest):
 

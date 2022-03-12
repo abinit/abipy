@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Work for computing Grüneisen parameters with finite differences on DFPT phonons
+Work for computing the Grüneisen parameters with finite differences of DFPT phonons.
 
 WARNING: This code must be tested more carefully.
 """
@@ -12,7 +12,7 @@ from .works import Work, PhononWork
 
 class GruneisenWork(Work):
     """
-    This work computes the Grüneisen parameters (derivative of frequencies wrt Volume)
+    This work computes the Grüneisen parameters (derivative of frequencies wrt volume)
     using finite differences and the phonons obtained with the DFPT part of Abinit.
     The Anaddb input file needed to compute Grüneisen parameters will be generated
     in the outdata directory of the flow.
@@ -130,6 +130,9 @@ class GruneisenWork(Work):
 
         with open(self.flow.outdir.path_in("anaddb_gruns.files"), "wt") as fh:
             fh.write("\n".join(files_file))
+
+        #task = AbinitTask.temp_shell_task(anaddb_inp, workdir=work.outdir, manager=self.manager)
+        #task.start_and_wait(autoparal=False)
 
         #with_ebands = False
         #if with_ebands:

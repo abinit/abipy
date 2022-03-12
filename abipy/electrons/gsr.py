@@ -2,12 +2,15 @@
 """
 Interface to the GSR.nc_ file storing the Ground-state results and the electron band structure.
 """
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
+from typing import Optional
 from tabulate import tabulate
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
@@ -16,10 +19,10 @@ from monty.functools import lazy_property
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
-from abipy.tools.tensors import Stress
 from abipy.abio.robots import Robot
-from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
+from abipy.electrons.ebands import ElectronsReader, RobotWithEbands, ElectronBands
 
 
 __all__ = [
@@ -44,12 +47,13 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GsrFile
     """
+
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> GsrFile:
         """Initialize the object from a netcdf_ file."""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = r = GsrReader(filepath)
 
@@ -64,7 +68,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -90,17 +94,19 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return "\n".join(lines)
 
     @property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self._ebands
 
     @lazy_property
-    def is_scf_run(self):
+    def is_scf_run(self) -> bool:
         """True if the GSR has been produced by a SCF run."""
         # NOTE: We use kptopt to understand if we have a SCF/NSCF run
         # In principle one should use iscf but it's not available in the GSR.
-        #return int(self.reader.read_value("kptopt")) >= 0
-        return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
+        if "kptopt" in self.reader.rootgrp.variables:
+            return int(self.reader.read_value("kptopt")) >= 0
+        else:
+            return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
 
     @lazy_property
     def ecut(self):
@@ -113,7 +119,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return units.Energy(self.reader.read_value("pawecutdg"), "Ha")
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
@@ -129,50 +135,73 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def cart_forces(self):
-        """Cartesian forces in eV / Ang"""
-        return self.reader.read_cart_forces()
+        """
+        Cartesian forces in eV / Ang. None if forces are not available.
+        """
+        if self.is_scf_run:
+            return self.reader.read_cart_forces()
+        return None
 
     @lazy_property
     def max_force(self):
-        """Max cart force in eV / Ang"""
-        fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
+        """
+        Max absolute cartesian force in eV/Ang. None if forces are not available.
+        """
+        cart_forces = self.cart_forces
+        if cart_forces is None: return None
+
+        fmods = np.sqrt([np.dot(force, force) for force in cart_forces])
         return fmods.max()
 
     def force_stats(self, **kwargs):
         """
         Return a string with information on the forces.
+        Return None if forces are not available.
         """
-        fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
+        cart_forces = self.cart_forces
+        if cart_forces is None: return None
+
+        fmods = np.sqrt([np.dot(force, force) for force in cart_forces])
         imin, imax = fmods.argmin(), fmods.argmax()
 
         s = "\n".join([
-            "fsum: %s" % self.cart_forces.sum(axis=0),
+            "fsum: %s" % cart_forces.sum(axis=0),
             "mean: %s, std %s" % (fmods.mean(), fmods.std()),
-            "minimum at site %s, cart force: %s" % (self.structure.sites[imin], self.cart_forces[imin]),
-            "maximum at site %s, cart force: %s" % (self.structure.sites[imax], self.cart_forces[imax]),
+            "minimum at site %s, cart force: %s" % (self.structure.sites[imin], cart_forces[imin]),
+            "maximum at site %s, cart force: %s" % (self.structure.sites[imax], cart_forces[imax]),
         ])
 
         table = [["Site", "Cartesian Force", "Length"]]
         for i, fmod in enumerate(fmods):
-            table.append([self.structure.sites[i], self.cart_forces[i], fmod])
+            table.append([self.structure.sites[i], cart_forces[i], fmod])
         s += "\n" + tabulate(table)
 
         return s
 
     @lazy_property
     def cart_stress_tensor(self):
-        """Stress tensor in GPa."""
-        return self.reader.read_cart_stress_tensor()
+        """
+        Stress tensor in GPa. Return None if not available e.g. if NSCF run.
+        """
+        if self.is_scf_run:
+            return self.reader.read_cart_stress_tensor()
+        return None
 
     @lazy_property
     def pressure(self):
-        """Pressure in GPa."""
-        pressure = - self.cart_stress_tensor.trace() / 3
-        return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
+        """
+        Pressure in GPa. Return None if not available e.g. if NSCF run.
+        """
+        if self.is_scf_run:
+            pressure = - self.cart_stress_tensor.trace() / 3
+            return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
+        return None
 
     @lazy_property
     def residm(self):
-        """Maximum of the residuals"""
+        """
+        Maximum of the residuals
+        """
         return self.reader.read_value("residm")
 
     @lazy_property
@@ -189,7 +218,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return self.reader.read_energy_terms(unit="eV")
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["ecut"] = float(self.ecut)
@@ -197,11 +226,11 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         #    od["pawecutdg"] = float(self.pawecutdg)
         return od
 
-    def close(self):
+    def close(self) -> None:
         self.reader.close()
 
     # FIXME: This is deprecated. Must keep it to avoid breaking ScfTask.get_results
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return {}
 
     def get_computed_entry(self, inc_structure=True, parameters=None, data=None):
@@ -231,19 +260,30 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             return ComputedEntry(self.structure.composition, self.energy,
                                  parameters=parameters, data=data)
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the |GsrFile| either in a notebook or in panel app.
         """
         from abipy.panels.gsr import GsrFilePanel
-        return GsrFilePanel(self).get_panel()
+        return GsrFilePanel(gsr=self).get_panel(**kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        for fig in self.yield_structure_figs(**kwargs): yield fig
+        verbose = kwargs.get("verbose", 0)
         for fig in self.yield_ebands_figs(**kwargs): yield fig
+        if verbose:
+            for fig in self.yield_structure_figs(**kwargs): yield fig
+
+    def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of plotly figures with minimal input from the user.
+        """
+        verbose = kwargs.get("verbose", 0)
+        for fig in self.yield_ebands_plotly_figs(**kwargs): yield fig
+        if verbose:
+            for fig in self.yield_structure_plotly_figs(**kwargs): yield fig
 
     def write_notebook(self, nbpath=None):
         """
@@ -251,10 +291,21 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+        first_char = "" if self.has_panel() else "#"
 
         nb.cells.extend([
             nbv.new_code_cell("gsr = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(gsr)"),
+
+            # Add panel GUI but comment the python code if panel is not available.
+            nbv.new_markdown_cell("## Panel dashboard"),
+            nbv.new_code_cell(f"""\
+# Execute this cell to display the panel GUI (requires panel package).
+# To display the dashboard inside the browser use `abiopen.py FILE --panel`.
+
+{first_char}abilab.abipanel()
+{first_char}gsr.get_panel()
+"""),
             nbv.new_code_cell("gsr.ebands.plot();"),
             nbv.new_code_cell("gsr.ebands.kpoints.plot();"),
             nbv.new_code_cell("# gsr.ebands.plot_transitions(omega_ev=3.0, qpt=(0, 0, 0), atol_ev=0.1);"),
@@ -315,7 +366,7 @@ class EnergyTerms(AttrDict):
 
     __repr__ = __str__
 
-    def to_string(self, verbose=0, with_doc=True):
+    def to_string(self, verbose: int = 0, with_doc: bool = True) -> str:
         """String representation, with documentation if with_doc."""
         lines = [str(self.table)]
         if with_doc:
@@ -374,6 +425,7 @@ class GsrReader(ElectronsReader):
                 tensor[j, i] = c[3 + p]
             tensor *= abu.HaBohr3_GPa
 
+        from abipy.tools.tensors import Stress
         return Stress(tensor)
 
     def read_energy_terms(self, unit="eV"):
@@ -401,7 +453,7 @@ class GsrRobot(Robot, RobotWithEbands):
     """
     EXT = "GSR"
 
-    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs):
+    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the most important GS results.
         and the filenames as index.
@@ -503,7 +555,7 @@ class GsrRobot(Robot, RobotWithEbands):
         dataframe = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
         return dict2namedtuple(fits=fits, dataframe=dataframe)
 
-    def get_energyterms_dataframe(self, iref=None):
+    def get_energyterms_dataframe(self, iref: Optional[int] = None) -> pd.DataFrame:
         """
         Build and return dataframe with the different contributions to the total energy in eV
 
@@ -584,18 +636,11 @@ class GsrRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
 
-        Example:
+        Example::
 
              robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
         """
         return self.plot_convergence_items(items, sortby=sortby, hue=hue, fontsize=fontsize, show=False, **kwargs)
-
-    #def get_phasediagram_results(self):
-    #    from abipy.core.restapi import PhaseDiagramResults
-    #    entries = []
-    #    for label, gsr in self.items():
-    #        entries.append(gsr.get_computed_entry(inc_structure=True, parameters=None, data=None))
-    #    return PhaseDiagramResults(entries)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -606,12 +651,12 @@ class GsrRobot(Robot, RobotWithEbands):
         yield self.plot_gsr_convergence(show=False)
         for fig in self.get_ebands_plotter().yield_figs(): yield fig
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the |GsrRobot| either in a notebook or in panel app.
         """
         from abipy.panels.gsr import GsrRobotPanel
-        return GsrRobotPanel(self).get_panel()
+        return GsrRobotPanel(robot=self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """
