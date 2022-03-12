@@ -16,7 +16,7 @@ def DDB_to_phonopy_Gamma(DDB):
 
     ngqpt = DDB.guessed_ngqpt
 
-    phonopy_unit = DDB.anaget_phonopy_ifc(dipdip=1, asr=2, set_masses=True)
+    phonopy_unit = DDB.anaget_phonopy_ifc(dipdip=0, asr=1, set_masses=True)
     #    nac_unit=phonopy_unit.get_nac_params()# extract non anal infos
 
     # Phonopy structures
@@ -99,7 +99,7 @@ def get_matching_dSCF_phonon_spcell(dSCF_spcell,phonon_spcell):
     mapping = []
     for i, site_1 in enumerate(dSCF_spcell):  # subset structure
         for j, site_2 in enumerate(phonon_spcell):  # superset structure
-            if max(abs(dSCF_spcell_cart[i] - phonon_spcell_cart[j])) < 0.2 :
+            if max(abs(dSCF_spcell_cart[i] - phonon_spcell_cart[j])) < 0.3 :
                 mapping.append(j)
     print(mapping)
     print(len(mapping))

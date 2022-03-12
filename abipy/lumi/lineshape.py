@@ -77,7 +77,7 @@ class Lineshape():
         if self.use_forces==True:
             delta_forces=self.delta_forces().flatten() * 1.602176565E-9 # to Newtons
             for i in range(self.n_modes()):
-                if abs(self.ph_eigfreq[i]) < 1e-5 :# discard phonon freq with too low freq (avoid division by nearly 0)
+                if self.ph_eigfreq[i] < 1e-5 :# discard phonon freq with too low freq (avoid division by nearly 0)
                     Q_nu[i] = 0
                 else:
                     Q_nu[i] = (1/ph_eigfreq[i]**2) * np.sum( delta_forces/np.sqrt(masses) * np.real(ph_eigvector[i]) )
@@ -85,7 +85,9 @@ class Lineshape():
         else:
             for i in range(self.n_modes()):
                 Q_nu[i] = np.sum(np.sqrt(masses) * displacements * np.real(ph_eigvector[i]))
-                # equation (6) of Alkauskas, A. (2014) New Journal of Physics, 16(7), 073026.
+                # equation (6) of Alkauskas, A. (2014) New Journal of Physics, 16(7), 073026.`
+
+        Q_nu[0:3]=0 # acoustic modes are set to 0
         return Q_nu
 
 

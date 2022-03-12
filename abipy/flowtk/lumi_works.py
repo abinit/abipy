@@ -54,7 +54,7 @@ class LumiWork(Work):
         new.nb_extra = int(nb_extra)
         new.meta=meta
 
-        # Relaxation for the Ag configuration.
+        # Relaxation for the Ag configuration.`
         new.gs_relax_task = new.register_relax_task(gs_scf_inp.new_with_vars(relax_kwargs_gs))
 
         # Internal counter used in on_all_ok to drive the differ steps of the calculations.
