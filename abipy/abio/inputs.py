@@ -30,7 +30,7 @@ from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.abio.variable import InputVariable
-from abipy.abio.abivars import is_abivar, is_anaddb_var
+from abipy.abio.abivars import is_abivar, is_anaddb_var, format_string_abivars
 from abipy.abio.abivars_db import get_abinit_variables, get_anaddb_variables
 from abipy.tools import duck
 from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
@@ -99,6 +99,13 @@ _IRDVARS = {
     "ird1wf"
 }
 
+# variable and default values of the prefix used in abipy
+_DATA_PREFIX = {
+    "indata_prefix": "indata/in",
+    "tmpdata_prefix": "tmpdata/tmp",
+    "outdata_prefix": "outdata/out",
+}
+
 # FIXME __mul__ operator in pymatgen should allow for grouping atoms by individual cells
 # The present version group by image.
 #def _repeat_array(name, values, from_natom, numcells):
@@ -138,7 +145,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
     def __str__(self):
         return self.to_string()
 
-    def write(self, filepath: str = "run.abi") -> None:
+    def write(self, filepath: str = "run.abi", files_file: bool = True) -> None:
         """
         Write the input file to file ``filepath``.
         """
@@ -146,7 +153,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         if not os.path.exists(dirname): os.makedirs(dirname)
 
         with open(filepath, "wt") as fh:
-            fh.write(str(self))
+            fh.write(self.to_string(files_file=files_file))
 
     def make_targz(self, tarname: str = "input.tar.gz", **kwargs) -> str:
         """
@@ -266,7 +273,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         """Check if key is a valid name. Raise self.Error if not valid."""
 
     @abc.abstractmethod
-    def to_string(self) -> str:
+    def to_string(self, files_file: bool = True) -> str:
         """Returns string with the input."""
 
     def generate(self, **kwargs):
@@ -577,6 +584,10 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
             raise self.Error("You cannot set the value of a variable associated to the crystalline structure.\n"
                              "Use Structure objects to prepare the input file.")
 
+        if key in ("pp_dirpath", "pseudos"):
+            raise self.Error("You cannot set the value of a variable associated to the pseudopotentials.\n"
+                             "Use Pseudopotential objects to prepare the input file.")
+
         if self.spell_check and not is_abivar(key):
             raise self.Error("""
 Cannot find variable `%s` in internal database. If you believe this is not a typo, use:
@@ -696,7 +707,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return self._spell_check
 
     def to_string(self, sortmode="section", post=None, with_mnemonics=False, mode="text",
-                  with_structure=True, with_pseudos=True, exclude=None, verbose=0) -> str:
+                  with_structure=True, with_pseudos=True, exclude=None, verbose=0,
+                  files_file=True) -> str:
         r"""
         String representation.
 
@@ -715,6 +727,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             with_structure: False if section with structure variables should not be printed.
             with_pseudos: False if JSON section with pseudo data should not be added.
             exclude: List of variable names that should be ignored.
+            files_file: if True a string compatible with the presence of a files file
+                will be generated. Otherwise all the required variables will be added
+                to the string.
         """
         if mode == "html":
             import html
@@ -749,11 +764,17 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             keys = [k for k, v in self.items() if k not in exclude and v is not None]
             if sortmode == "a": keys = sorted(keys)
 
-            # Extract the items from the dict and add the geo variables at the end
+            # Extract the items from the dict and add the files file and geo variables at the end
             items = [(k, self[k]) for k in keys]
+
+            if not files_file:
+                for k, v in _DATA_PREFIX.items():
+                    if k not in self:
+                        items.append((k, v))
+                items.extend(list(self.pseudos_abivars.items()))
+
             if with_structure:
-                kws = dict(enforce_znucl=self.enforce_znucl, enforce_typat=self.enforce_typat)
-                items.extend(list(self.structure.to_abivars(**kws).items()))
+                items.extend(list(self.structure_abivars.items()))
 
             for name, value in items:
                 if mnemonics and value is not None:
@@ -762,12 +783,20 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 # Build variable, convert to string and append it
                 vname = name + post
                 if mode == "html": vname = var_database[name].html_link(label=vname)
+                value = format_string_abivars(vname, value, "abinit")
                 app(str(InputVariable(vname, value)))
 
         elif sortmode == "section":
             # Group variables by section.
             # Get dict mapping section_name --> list of variable names belonging to the section.
-            keys = [k for (k, v) in self.items() if k not in exclude and v is not None]
+            vars = dict(self)
+            if not files_file:
+                for k, v in _DATA_PREFIX.items():
+                    if k not in vars:
+                        vars[k] = v
+                vars.update(self.pseudos_abivars.items())
+
+            keys = [k for (k, v) in vars.items() if k not in exclude and v is not None]
             sec2names = var_database.group_by_varset(keys)
             w = 46
 
@@ -776,22 +805,21 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 app("####" + ("SECTION: %s" % sec).center(w - 1))
                 app(w * "#")
                 for name in names:
-                    value = self[name]
+                    value = vars[name]
                     if mnemonics and value is not None:
                         app(escape("#### <" + var_database[name].mnemonics + ">"))
 
                     # Build variable, convert to string and append it
                     vname = name + post
                     if mode == "html": vname = var_database[name].html_link(label=vname)
-
+                    value = format_string_abivars(vname, value, "abinit")
                     app(str(InputVariable(vname, value)))
 
             if with_structure:
                 app(w * "#")
                 app("####" + "STRUCTURE".center(w - 1))
                 app(w * "#")
-                kws = dict(enforce_znucl=self.enforce_znucl, enforce_typat=self.enforce_typat)
-                for name, value in self.structure.to_abivars(**kws).items():
+                for name, value in self.structure_abivars.items():
                     if mnemonics and value is not None:
                         app(escape("#### <" + var_database[name].mnemonics + ">"))
                     vname = name + post
@@ -825,6 +853,41 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         """Integration with jupyter notebooks."""
         return self.to_string(sortmode="section", with_mnemonics=False, mode="html",
                               with_structure=True, with_pseudos=False)
+
+    @property
+    def structure_abivars(self) -> dict:
+        """
+        A dictionary with the abivars related to the structure.
+        """
+        kws = dict(enforce_znucl=self.enforce_znucl, enforce_typat=self.enforce_typat)
+        return self.structure.to_abivars(**kws)
+
+    @property
+    def pseudos_abivars(self) -> dict:
+        """
+        A dictionary with the abivars related to the pseudopotentials.
+        """
+        znucl = self.structure_abivars["znucl"]
+        sorted_paths = []
+        for z in znucl:
+            for p in self.pseudos:
+                if p.Z == z:
+                    sorted_paths.append(p.filepath)
+                    break
+            else:
+                raise ValueError(f"Missing pseudo for znucl {z}")
+
+        if len(sorted_paths) > 1:
+            common_path = os.path.commonpath(sorted_paths)
+            relative_paths = [os.path.relpath(p, common_path) for p in sorted_paths]
+            abivars = dict(
+                pp_dirpath=common_path,
+                pseudos=relative_paths,
+            )
+        else:
+            abivars = dict(pseudos=sorted_paths[0])
+
+        return abivars
 
     @property
     def comment(self) -> Union[str, None]:
@@ -3041,13 +3104,16 @@ class MultiDataset(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, mode="text", verbose=0, with_pseudos=True) -> str:
+    def to_string(self, mode="text", verbose=0, with_pseudos=True, files_file=True) -> str:
         """
         String representation i.e. the ABINIT input file.
 
         Args:
             mode: Either ``text`` or ``html`` if HTML output with links is wanted.
             with_pseudos: False if JSON section with pseudo data should not be added.
+            files_file: if True a string compatible with the presence of a files file
+                will be generated. Otherwise all the required variables will be added
+                to the string.
         """
         if mode == "html":
             var_database = get_abinit_variables()
@@ -3072,17 +3138,24 @@ class MultiDataset(object):
                     if not isame:
                         break
                 if isame:
-                    global_vars.add(k0)
+                    global_vars.add((k0, v0))
             #print("global_vars vars", global_vars)
+
+            if not files_file:
+                for k, v in _DATA_PREFIX.items():
+                    if k not in self[0]:
+                        global_vars.append((k, v))
+                global_vars.update(list(self[0].pseudos_abivars.items()))
 
             w = 92
             if global_vars:
                 lines.append(w * "#")
                 lines.append("#### Global Variables.")
                 lines.append(w * "#")
-                for key in global_vars:
+                for key, value in global_vars:
                     vname = key if mode == "text" else var_database[key].html_link(label=key)
-                    lines.append(str(InputVariable(vname, self[0][key])))
+                    value = format_string_abivars(vname, value, "abinit")
+                    lines.append(str(InputVariable(vname, value)))
 
             has_same_structures = self.has_same_structures
             if has_same_structures:
@@ -3090,8 +3163,7 @@ class MultiDataset(object):
                 lines.append(w * "#")
                 lines.append("####" + ("STRUCTURE").center(w - 1))
                 lines.append(w * "#")
-                kws = dict(enforce_znucl=self[0].enforce_znucl, enforce_typat=self[0].enforce_typat)
-                for key, value in self[0].structure.to_abivars(**kws).items():
+                for key, value in self[0].structure_abivars.items():
                     vname = key if mode == "text" else var_database[key].html_link(label=key)
                     lines.append(str(InputVariable(vname, value)))
 
@@ -3772,7 +3844,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         """|Structure| object."""
         return self._structure
 
-    def to_string(self, sortmode=None, mode="text", verbose=0) -> str:
+    def to_string(self, sortmode=None, mode="text", verbose=0, files_file=True) -> str:
         """
         String representation.
 
@@ -3799,10 +3871,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             var_database = get_anaddb_variables()
 
         for vname in keys:
+            if files_file and any(p in vname for p in ("prefix", "file")):
+                continue
             value = self[vname]
             #root = "https://docs.abinit.org/variables/anaddb/"
             #if mode == "html": vname = root + "#%s" % vname
             if mode == "html": vname = var_database[vname].html_link(label=vname)
+            value = format_string_abivars(vname, value, "anaddb")
             app(str(InputVariable(vname, value)))
 
         return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")
@@ -3997,7 +4072,7 @@ class OpticInput(AbiAbstractInput, MSONable):
 
         return my_dict
 
-    def to_string(self, verbose: int = 0) -> str:
+    def to_string(self, verbose: int = 0, files_file: bool = True) -> str:
         """String representation."""
         table = []
         app = table.append

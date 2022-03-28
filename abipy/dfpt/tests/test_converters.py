@@ -162,6 +162,8 @@ class ConverterTest(AbipyTest):
         self.assertArrayAlmostEqual(ananc.epsinf, conv_nac["dielectric"], decimal=5)
 
     def test_tdep_lotosplitting(self):
+        self.skip_if_not_phonopy()
+
         tmp_dir = tempfile.mkdtemp()
         primitive = get_phonopy_structure(abilab.Structure.from_file(os.path.join(test_dir, "MgO_phonopy_POSCAR")))
         born_path = parse_BORN(primitive, filename=os.path.join(test_dir, "MgO_phonopy_BORN"))
@@ -170,6 +172,8 @@ class ConverterTest(AbipyTest):
         self.assertTrue(os.path.isfile(loto_path))
 
     def test_tdep_ddb(self):
+        self.skip_if_not_phonopy()
+
         tmp_dir = tempfile.mkdtemp()
         out_ddb_path = os.path.join(tmp_dir, "out_DDB")
 
