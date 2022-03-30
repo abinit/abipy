@@ -901,7 +901,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         #dvdb_add_lr = self.reader.read_value("dvdb_add_lr", default=None)
         app("sigma_ngkpt: %s, sigma_erange: %s" % (sigma_ngkpt, sigma_erange))
         app("Max bstart: %d, min bstop: %d" % (self.reader.max_bstart, self.reader.min_bstop))
-        app("Initial ab-initio q-mesh:\n\tddb_ngqpt: %s " % str(self.ddb_ngqpt)
+        app("Initial ab-initio q-mesh:\n\tddb_ngqpt: %s " % str(self.ddb_ngqpt))
         eph_ngqpt_fine = self.reader.read_value("eph_ngqpt_fine")
         if np.all(eph_ngqpt_fine == 0): eph_ngqpt_fine = self.ngqpt
         app("q-mesh for self-energy integration (eph_ngqpt_fine): %s" % (str(eph_ngqpt_fine)))

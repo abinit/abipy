@@ -1723,8 +1723,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         ph_inputs = MultiDataset.replicate_input(input=self, ndtset=len(perts))
         ph_inputs.pop_vars("iscf")
 
-        # Set kptopt depending on the q-points i.e use time-reversal if Gamma
-        kptopt = 2 if np.allclose(qpt, 0) else 3
+        # Set kptopt depending on the q-point i.e use time-reversal
+        # if q == Gamma and kptopt allows it.
+        scf_kptopt = self.get("kptopt", 1)
+        kptopt = 3
+        if np.allclose(qpt, 0) and scf_kptopt in (1, 2):
+            kptopt = 2
 
         # Note: this will work for phonons, but not for the other types of perturbations.
         for pert, ph_input in zip(perts, ph_inputs):
@@ -1994,6 +1998,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         # Important: this is needed to avoid Q* computations complaining about indkpt1
         if prepalw != 0: multi.set_vars(prepalw=prepalw)
 
+        scf_kptopt = self.get("kptopt", 1)
+        kptopt = 3
+        if scf_kptopt in (1, 2): kptopt = 2
+
         # See tutorespfn/Input/trf1_5.in dataset 3
         for pert, inp in zip(perts, multi):
             rfdir = 3 * [0]
@@ -2006,7 +2014,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 rfelfd=3,             # Activate the calculation of the electric field perturbation
                 nqpt=1,               # One wavevector is to be considered
                 qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=2,             # Take into account time-reversal symmetry.
+                kptopt=kptopt,        # Take into account time-reversal symmetry if allowed.
                 comment="Input file for BECs calculation.",
             )
 
