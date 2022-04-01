@@ -555,7 +555,7 @@ class EphSelfEnergy(object):
 
     @add_fig_kwargs
     def plot_tdep(self, itemps="all", zero_energy="e0", colormap="jet", ax_list=None,
-                  what_list=("re", "im", "spfunc"), with_frohl=False, xlims=None, fontsize=8, **kwargs):
+                  what_list=("re", "im", "spfunc"), with_frohl=False, xlims=None, ylims= None, fontsize=8, **kwargs):
         """
         Plot the real/imaginary part of self-energy as well as the spectral function for
         the different temperatures with a colormap.
@@ -570,6 +570,10 @@ class EphSelfEnergy(object):
             with_frohl: Visualize Frohlich contribution (if present).
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                 or scalar e.g. ``left``. If left (right) is None, default values are used.
+            ylims: Set the data limits for the y-axis. Accept list ( for real, imaginary or spectral function) of tuples e.g. ``[(left, right)]``
+                or tuple e.g. ``(left, right)`` for all graphics
+                or scalar e.g. ``left``. If left (right) is None, default values are used for all graphics.
+
             fontsize: legend and label fontsize.
             kwargs: Keyword arguments passed to ax.plot
 
@@ -584,6 +588,31 @@ class EphSelfEnergy(object):
         itemps, tlabels = self._get_itemps_labels(itemps)
         kw_color = kwargs.get("color", None)
         kw_label = kwargs.get("label", None)
+
+        if not isinstance(ax_list,np.ndarray):
+            ax_list = np.array([ax_list])
+        #try:
+        #    len(xlims)
+        #except TypeError:
+        #    xlims = [xlims]
+        try:
+            len(ylims)
+        except TypeError:
+            ylims = [ylims]
+
+        #if not any(isinstance(i, list) for i in xlims) or any(isinstance(i, tuple) for i in xlims) or any(isinstance(i, np.ndarray) for i in xlims):
+        #    xlims = [xlims]
+
+        if not any(isinstance(i, list) for i in ylims) or any(isinstance(i, tuple) for i in ylims) or any(isinstance(i, np.ndarray) for i in ylims):
+            ylims = [ylims]
+
+        #while len(xlims) < len(what_list):
+        #    xlims.append(xlims[-1])
+
+        while len(ylims) < len(what_list):
+            ylims.append(ylims[-1])
+
+
 
         for ix, (what, ax) in enumerate(zip(what_list, ax_list)):
             ax.grid(True)
@@ -603,7 +632,10 @@ class EphSelfEnergy(object):
                     )
 
             if ix == 0: ax.legend(loc="best", shadow=True, fontsize=fontsize)
+            #xl = xlims[ix]
+            yl = ylims[ix]
             set_axlims(ax, xlims, "x")
+            set_axlims(ax, yl, "y")
 
         if "title" not in kwargs:
             title = "K-point: %s, band: %d, spin: %d" % (repr(self.kpoint), self.band, self.spin)
@@ -3580,3 +3612,5 @@ class SigmaPhReader(BaseEphReader):
             qps_spin[spin] = QpTempList(qps)
 
         return tuple(qps_spin)
+
+
