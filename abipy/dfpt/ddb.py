@@ -1783,9 +1783,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose=verbose)
 
-        new_ddb_path = os.path.join(task.workdir, "run.abo_DDB")
-        if not os.path.exists(new_ddb_path):
-            new_ddb_path = os.path.join(task.workdir, "run_DDB")
+        new_ddb_path = os.path.join(task.outdir.path, "out_DDB")
 
         obj = self.__class__(new_ddb_path)
 

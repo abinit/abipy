@@ -145,7 +145,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
     def __str__(self):
         return self.to_string()
 
-    def write(self, filepath: str = "run.abi", files_file: bool = True) -> None:
+    def write(self, filepath: str = "run.abi", files_file: bool = False) -> None:
         """
         Write the input file to file ``filepath``.
         """
@@ -273,7 +273,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         """Check if key is a valid name. Raise self.Error if not valid."""
 
     @abc.abstractmethod
-    def to_string(self, files_file: bool = True) -> str:
+    def to_string(self, files_file: bool = False) -> str:
         """Returns string with the input."""
 
     def generate(self, **kwargs):
@@ -708,7 +708,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     def to_string(self, sortmode="section", post=None, with_mnemonics=False, mode="text",
                   with_structure=True, with_pseudos=True, exclude=None, verbose=0,
-                  files_file=True) -> str:
+                  files_file=False) -> str:
         r"""
         String representation.
 
@@ -3104,7 +3104,7 @@ class MultiDataset(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, mode="text", verbose=0, with_pseudos=True, files_file=True) -> str:
+    def to_string(self, mode="text", verbose=0, with_pseudos=True, files_file=False) -> str:
         """
         String representation i.e. the ABINIT input file.
 
@@ -3130,7 +3130,7 @@ class MultiDataset(object):
 
             # Don't repeat variable that are common to the different datasets.
             # Put them in the `Global Variables` section and exclude these variables in inp.to_string
-            global_vars = set()
+            global_vars = list()
             for k0, v0 in self[0].items():
                 isame = True
                 for i in range(1, self.ndtset):
@@ -3138,14 +3138,14 @@ class MultiDataset(object):
                     if not isame:
                         break
                 if isame:
-                    global_vars.add((k0, v0))
+                    global_vars.append((k0, v0))
             #print("global_vars vars", global_vars)
 
             if not files_file:
                 for k, v in _DATA_PREFIX.items():
                     if k not in self[0]:
                         global_vars.append((k, v))
-                global_vars.update(list(self[0].pseudos_abivars.items()))
+                global_vars.extend(self[0].pseudos_abivars.items())
 
             w = 92
             if global_vars:
@@ -3167,11 +3167,13 @@ class MultiDataset(object):
                     vname = key if mode == "text" else var_database[key].html_link(label=key)
                     lines.append(str(InputVariable(vname, value)))
 
+            global_vars_names = [v[0] for v in global_vars]
+
             for i, inp in enumerate(self):
                 header = "##### DATASET %d #####" % (i + 1)
                 is_last = (i == self.ndtset - 1)
                 s = inp.to_string(post=str(i + 1), with_pseudos=is_last and with_pseudos, mode=mode,
-                                  with_structure=not has_same_structures, exclude=global_vars)
+                                  with_structure=not has_same_structures, exclude=global_vars_names)
                 if s:
                     header = len(header) * "#" + "\n" + header + "\n" + len(header) * "#" + "\n"
                     s = "\n" + header + s + "\n"
@@ -3844,7 +3846,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         """|Structure| object."""
         return self._structure
 
-    def to_string(self, sortmode=None, mode="text", verbose=0, files_file=True) -> str:
+    def to_string(self, sortmode=None, mode="text", verbose=0, files_file=False) -> str:
         """
         String representation.
 
@@ -3869,6 +3871,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         if mode == "html":
             var_database = get_anaddb_variables()
+
+        if not files_file and "outdata_prefix" not in keys:
+            value = format_string_abivars("outdata_prefix", _DATA_PREFIX["outdata_prefix"], "anaddb")
+            app(str(InputVariable("outdata_prefix", value)))
 
         for vname in keys:
             if files_file and any(p in vname for p in ("prefix", "file")):
@@ -4072,7 +4078,7 @@ class OpticInput(AbiAbstractInput, MSONable):
 
         return my_dict
 
-    def to_string(self, verbose: int = 0, files_file: bool = True) -> str:
+    def to_string(self, verbose: int = 0, files_file: bool = False) -> str:
         """String representation."""
         table = []
         app = table.append

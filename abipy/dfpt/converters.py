@@ -86,7 +86,7 @@ def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, outp
     # and convert it to pymatgen
     phonon = Phonopy(phon_at, supercell_matrix, primitive_matrix=np.eye(3), nac_params=nac_params,
                      symprec=symprec)
-    phon_supercell = phonon.get_supercell()
+    phon_supercell = phonon.supercell
     supercell = get_pmg_structure(phon_supercell)
 
     abi_hall_num = s.abi_spacegroup.get_spglib_hall_number()
@@ -142,7 +142,7 @@ def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, outp
         n_points_f_list = len(f_list)
         ifcph[i, ind_match // n_points_f_list] = ifccc_loc[ind_match % n_points_f_list]
 
-    phonon.set_force_constants(ifcph)
+    phonon.force_constants = ifcph
     if symmetrize_tensors:
         phonon.symmetrize_force_constants()
 
@@ -150,7 +150,7 @@ def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, outp
         makedirs_p(output_dir_path)
 
         fc_filepath = os.path.join(output_dir_path, prefix_outfiles+"FORCE_CONSTANTS")
-        write_FORCE_CONSTANTS(phonon.get_force_constants(), fc_filepath, p2s_map=phonon.primitive.p2s_map)
+        write_FORCE_CONSTANTS(phonon.force_constants, fc_filepath, p2s_map=phonon.primitive.p2s_map)
 
         if becs is not None and epsinf is not None:
             born_filepath = os.path.join(output_dir_path, prefix_outfiles+"BORN")
@@ -285,7 +285,7 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
         force_constants = force_constants[:, sc_mapping]
 
     if force_constants is not None:
-        phonon.set_force_constants(force_constants)
+        phonon.force_constants = force_constants
     else:
         phonon.dataset = force_sets
         phonon.produce_force_constants()
@@ -293,7 +293,7 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
     if calculator:
         units = get_default_physical_units(calculator)
         fc_factor = get_force_constant_conversion_factor(units["force_constants_unit"], None)
-        phonon.set_force_constants(phonon.force_constants * fc_factor)
+        phonon.force_constants = phonon.force_constants * fc_factor
 
     if pseudos is None:
         from abipy.data.hgh_pseudos import HGH_TABLE

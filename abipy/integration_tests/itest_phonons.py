@@ -134,8 +134,8 @@ def itest_phonon_flow(fwp, tvars):
 
         # These output files should be produced in the task workdir.
         # Actually they should be in the outdir but anaddb uses different conventions.
-        assert len(atask.wdir.list_filepaths(wildcard="*PHBST.nc")) == 1
-        assert len(atask.wdir.list_filepaths(wildcard="*PHDOS.nc")) == 1
+        assert len(atask.outdir.list_filepaths(wildcard="*PHBST.nc")) == 1
+        assert len(atask.outdir.list_filepaths(wildcard="*PHDOS.nc")) == 1
 
 
 def itest_phonon_restart(fwp):

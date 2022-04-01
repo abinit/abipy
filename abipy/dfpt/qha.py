@@ -20,7 +20,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
     """
     Abstract class for the quasi-harmonic approximation analysis.
     Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
-    generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
+    generate an instance of phonopy.qha.core.QHA. These can be used to obtain other quantities and plots.
     Does not include electronic entropic contributions for metals.
     """
 
@@ -384,7 +384,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
 
     def get_phonopy_qha(self, tstart=0, tstop=2100, num=211, eos='vinet', t_max=None, energy_plot_factor=None):
         """
-        Creates an instance of phonopy.qha.QHA that can be used generate further plots and output data.
+        Creates an instance of phonopy.qha.core.QHA that can be used generate further plots and output data.
         The object is returned right after the construction. The "run()" method should be executed
         before getting results and plots.
         Notice that phonopy apparently requires the value of the 300 K temperature to be present
@@ -399,10 +399,10 @@ class AbstractQHA(metaclass=abc.ABCMeta):
             t_max: maximum temperature. Passed to phonopy's QHA.
             energy_plot_factor: factor multiplying the energies. Passed to phonopy's QHA.
 
-        Returns: An instance of phonopy.qha.QHA
+        Returns: An instance of phonopy.qha.core.QHA
         """
         try:
-            from phonopy.qha import QHA as QHA_phonopy
+            from phonopy.qha.core import QHA as QHA_phonopy
         except ImportError as exc:
             print("Phonopy is required to generate the QHA phonopy object")
             raise exc
@@ -426,7 +426,7 @@ class QHA(AbstractQHA):
     Object to extract results in the quasi-harmonic approximation from electronic and phonon calculations
     at different volumes.
     Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
-    generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
+    generate an instance of phonopy.qha.core.QHA. These can be used to obtain other quantities and plots.
     Does not include electronic entropic contributions for metals.
 
     .. rubric:: Inheritance Diagram
@@ -552,7 +552,7 @@ class QHA3PF(AbstractQHA):
     Object to extract results in the quasi-harmonic approximation from several electronic energies at different
     volumes and three phonon calculations.
     Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
-    generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
+    generate an instance of phonopy.qha.core.QHA. These can be used to obtain other quantities and plots.
     Does not include electronic entropic contributions for metals.
 
     .. rubric:: Inheritance Diagram
@@ -691,7 +691,7 @@ class QHA3P(AbstractQHA):
     Object to extract results in the quasi-harmonic approximation from several electronic energies at different
     volumes and three phonon calculations.
     Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
-    generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
+    generate an instance of phonopy.qha.core.QHA. These can be used to obtain other quantities and plots.
     Does not include electronic entropic contributions for metals.
 
     .. rubric:: Inheritance Diagram
