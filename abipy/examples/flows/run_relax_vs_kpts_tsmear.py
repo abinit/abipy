@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Relaxation of GaN with different K-meshes
-=========================================
+Relaxation of Al with different K-meshes and tsmear
+===================================================
 
 In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``optcell``)
 to find the equilibrium configuration of GaN (atomic positions and lattice vectors).

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow for convergence studies of e-DOS wrt ngkpt
-===============================================
+Convergence studies of e-DOS wrt ngkpt
+======================================
 
 This examples shows how to build a Flow to compute the
 band structure and the electron DOS of MgB2 with different k-point samplings.

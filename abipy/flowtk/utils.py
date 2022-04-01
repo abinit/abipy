@@ -487,6 +487,10 @@ class Directory:
 
 _EXT2VARS = {
     # File extension -> {varname: value}
+    # NB: Don't enforce the .nc file extension if Abinit supports both Fortran and netcdf files.
+    # For instance, use `in_POT` instead of `in_POT.nc` as this file can be produced in both formats.
+    # The in_POT syntax indeed can handle both cases as Abinit will first try to find a Fortran file
+    # with extension in_POT and then in_POT.nc if the file is not found.
     "DEN": {"irdden": 1},
     "WFK": {"irdwfk": 1},
     "WFQ": {"irdwfq": 1},
@@ -506,7 +510,7 @@ _EXT2VARS = {
     # Abinit does not implement getkden and irdkden but relies on irden
     "KDEN": {},  #{"irdkden": 1},
     "KERANGE.nc": {"getkerange_filepath": '"indata/in_KERANGE.nc"'},
-    "POT": {"getpot_filepath" : '"indata/in_POT.nc"'},
+    "POT": {"getpot_filepath" : '"indata/in_POT"'},
     "SIGEPH": {"getsigeph_filepath": '"indata/in_SIGEPH.nc"'},
     "DKDK": {},  # irddkdk is not defined.
     #"DKDE": {"getdkde": 1},

@@ -2180,7 +2180,7 @@ class Task(Node, metaclass=abc.ABCMeta):
             filepaths, exts = dep.get_filepaths_and_exts()
 
             for path, ext in zip(filepaths, exts):
-                self.history.info("Need path %s with ext %s" % (path, ext))
+                self.history.info(f"Need path `{path}` with extension: `{ext}`")
                 dest = self.ipath_from_ext(ext)
 
                 if not os.path.exists(path):
@@ -2195,7 +2195,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                 if path.endswith(".nc") and not dest.endswith(".nc"): # NC --> NC file
                     dest += ".nc"
 
-                # Link path to dest if dest link does not exist.
+                # Link path to dest if dest link does not exist
                 # else check that it points to the expected file.
                 self.history.debug("Linking path %s --> %s" % (path, dest))
                 if not os.path.exists(dest):

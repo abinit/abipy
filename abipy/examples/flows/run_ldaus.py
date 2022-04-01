@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow for LDA+U calculations
-===========================
+LDA+U calculations
+==================
 
 This example shows how to compute the LDA+U band structure of NiO
 with PAW for several values of U-J.
