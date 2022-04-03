@@ -96,10 +96,6 @@ class TestAbinitInput(AbipyTest):
         with self.assertRaises(inp.Error):
             inp.set_vars(unit_cell)
 
-        # Cannot change pseudos variables directly.
-        with self.assertRaises(inp.Error):
-            inp.set_vars(pseudos=["Si.psp"])
-
         with self.assertRaises(TypeError):
             inp.add_abiobjects({})
 
@@ -168,6 +164,9 @@ class TestAbinitInput(AbipyTest):
 
         new_inp["outdata_prefix"] = "some/path"
         assert "some/path" in new_inp.to_string()
+        assert len(new_inp.pseudos_abivars) == 1
+        new_inp["pseudos"] = ["si.psp"]
+        assert len(new_inp.pseudos_abivars) == 0
 
     def test_input_errors(self):
         """Testing typical AbinitInput Error"""

@@ -584,10 +584,6 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
             raise self.Error("You cannot set the value of a variable associated to the crystalline structure.\n"
                              "Use Structure objects to prepare the input file.")
 
-        if key in ("pp_dirpath", "pseudos"):
-            raise self.Error("You cannot set the value of a variable associated to the pseudopotentials.\n"
-                             "Use Pseudopotential objects to prepare the input file.")
-
         if self.spell_check and not is_abivar(key):
             raise self.Error("""
 Cannot find variable `%s` in internal database. If you believe this is not a typo, use:
@@ -865,8 +861,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     @property
     def pseudos_abivars(self) -> dict:
         """
-        A dictionary with the abivars related to the pseudopotentials.
+        A dictionary with the abivars related to the pseudopotentials extracted from
+        the path of the internal pseudopotentials. Empty if pseudopotential
+        related variables are already defined.
         """
+        if self.get("pseudos") or self.get("pp_dirpath"):
+            return {}
         znucl = self.structure_abivars["znucl"]
         sorted_paths = []
         for z in znucl:
