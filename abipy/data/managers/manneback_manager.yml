@@ -15,15 +15,15 @@ ObanIntel: &ObanIntel
    num_nodes: 3
    sockets_per_node: 4
    cores_per_socket: 8
-   mem_per_node: 256 Gb 
+   mem_per_node: 256 Gb
 
 # Environment, modules, and parameters used to launch jobs.
 job: &job
     mpi_runner: mpirun
     shell_env:
          PATH: "$HOME/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH"
-    pre_run: 
-        - "ulimit -s unlimited" 
+    pre_run:
+        - "ulimit -s unlimited"
         - "export OMP_NUM_THREADS=1"
         - "unset SLURM_CPUS_PER_TASK"
         - "module purge"
@@ -32,13 +32,13 @@ job: &job
 #policy:
 #   frozen_timeout: 0-12:0:0
 
-# List of qdapters. 
+# List of qdapters.
 qadapters:
   - priority: 1
     queue:
        qname: Def
        qtype: slurm
-       qparams: 
+       qparams:
                 # This nodes must be excluded because they are not compatible with the Abinit build (SIGILL error).
                 exclude_nodes: mb-neh[070,201-212],mb-har[001-014],mb-har[101-116],mb-opt[111-116],mb-har[121-140],mb-sab[004,040,007,101-102],mb-wes[251-252],mb-ivy[205,206,208]
     limits:

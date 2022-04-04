@@ -194,16 +194,21 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
             self[varname] = varvalue
 
         # Just to make life easier to the user, we update some dimensions
-        # if only the "array" part is specified in input.
+        # if only the "array" part with shape (dimname, 3) is given in input.
         vname_dimname = [
+            # arr_name, dim_name
             ("shiftk", "nshiftk"),
             ("ph_qpath", "ph_nqpath"),
+            ("kptgw", "nkptgw"),
         ]
 
         for vname, dimname in vname_dimname:
             if vname in kwargs:
-                # e.g. self["nshiftk"] = len(np.reshape(self["shiftk"], (-1, 3)))
-                self[dimname] = len(np.reshape(self[vname], (-1, 3)))
+                try:
+                    # e.g. self["nshiftk"] = len(np.reshape(self["shiftk"], (-1, 3)))
+                    self[dimname] = len(np.reshape(self[vname], (-1, 3)))
+                except ValueError as exc:
+                    raise ValueError(f"Wrong value for variable: `{vname}`, value: `{self[vname]}`") from exc
 
         return kwargs
 
@@ -1556,6 +1561,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             tolwfr: Tolerance on residuals for NSCF calculation.
             nscf_nband: Number of bands for NSCF calculation. If None, use nband + nb_extra
             nb_extra: Extra bands to to be added to input nband if nscf_nband is None.
+            nbdbuf: Number of states in buffer
+            nstep: Max number of NSCF iterations.
         """
         nscf_input = self.deepcopy()
         nscf_input.pop_vars(["ngkpt", "nshiftk", "shiftk"])
@@ -1595,7 +1602,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return nscf_input
 
-    def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None) -> AbinitInput:
+    def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None, nstep=100) -> AbinitInput:
         """
         Generate an input file for electron DOS calculation from a GS-SCF input.
 
@@ -1604,11 +1611,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             shiftk: List of k-mesh shifts.
             tolwfr: Tolerance on residuals for NSCF calculation
             nscf_nband: Number of bands for NSCF calculation. +10 if None.
+            nstep: Max number of NSCF iterations.
         """
         edos_input = self.deepcopy()
         edos_input.pop_tolerances()
         nscf_nband = self["nband"] + 10 if nscf_nband is None else nscf_nband
-        edos_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr)
+        edos_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr, nstep=nstep)
         edos_input.set_kmesh(ngkpt, shiftk)
         edos_input.set_comment("Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)")
 

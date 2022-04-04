@@ -24,9 +24,8 @@ job: &job
         PATH: $HOME/abinit/801-private/jureca_mpi/src/98_main:$PATH
     modules:
         - intel-para/2015.07
-    pre_run: "ulimit -s unlimited"
 
-# queues 
+# queues
 qadapters:
   - priority: 1
     #max_num_launches: 20

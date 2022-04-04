@@ -1,14 +1,13 @@
-qadapters: 
+qadapters:
     -
-      priority: 1 
+      priority: 1
       queue:
         qname: travis
         qtype: shell
       job:
         mpi_runner: mpirun
-        pre_run: 
+        pre_run:
             - source activate abinit-environment
-            - ulimit -s unlimited
       limits:
          min_cores: 1
          max_cores: 2

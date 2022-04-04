@@ -11,9 +11,8 @@ job: &job
         PATH: "$HOME/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH"
     modules:
         - intel/2015a
-    #pre_run: "ulimit -s unlimited"
 
-# queues 
+# queues
 qadapters:
   - priority: 1
     queue:

@@ -14,9 +14,8 @@ job: &job
     modules: # Abinit compiled with abiconfig settings
         - intel/2017b
         - netCDF-Fortran/4.4.4-intel-2017b
-    pre_run: "ulimit -s unlimited"
 
-# queues 
+# queues
 qadapters:
   - priority: 1
     queue:
