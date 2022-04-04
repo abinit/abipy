@@ -278,7 +278,7 @@ class LumiWorkFromRelax(Work):
 
     @classmethod
     def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, gs_structure, ex_structure, ndivsm=0, nb_extra=10,
-                        tolwfr=1e-12, meta=None ,gs_DEN_file=None, ex_DEN_file=None,manager=None):
+                        tolwfr=1e-12, meta=None ,manager=None):
         """
         Args:
             gs_scf_inp: |AbinitInput| representing a GS SCF run for the ground-state.
@@ -318,22 +318,22 @@ class LumiWorkFromRelax(Work):
         # Build GS SCF input for the Ag configuration:
         # use same structure as Ag but with ground occupation factors
         ag_scf_inp = new.gs_scf_inp.new_with_structure(gs_structure)
-        new.ag_scf_task = new.register_scf_task(ag_scf_inp,deps={gs_DEN_file: "DEN"})
+        new.ag_scf_task = new.register_scf_task(ag_scf_inp)
 
         # Build GS SCF input for the Ag* configuration:
         # use same structure as Ag but with excited occupation factors.
         agstar_scf_inp = new.ex_scf_inp.new_with_structure(gs_structure)
-        new.agstar_scf_task = new.register_scf_task(agstar_scf_inp,deps={gs_DEN_file: "DEN"})
+        new.agstar_scf_task = new.register_scf_task(agstar_scf_inp)
 
         # Build ex SCF input for the Aestar configuration:
         aestar_scf_inp = new.ex_scf_inp.new_with_structure(ex_structure)
-        new.aestar_scf_task = new.register_scf_task(aestar_scf_inp,deps={ex_DEN_file: "DEN"})
+        new.aestar_scf_task = new.register_scf_task(aestar_scf_inp)
 
 
         # Build GS SCF input for the Ag* configuration:
         # use same structure as Ag but with excited occupation factors.
         ae_scf_inp = new.gs_scf_inp.new_with_structure(ex_structure)
-        new.ae_scf_task = new.register_scf_task(ae_scf_inp,deps={ex_DEN_file: "DEN"})
+        new.ae_scf_task = new.register_scf_task(ae_scf_inp)
 
         if new.ndivsm != 0:
             # Compute band structure for Ag configuration.
