@@ -81,6 +81,15 @@ class EosWork(Work):
 
         return new_work
 
+    @classmethod
+    def from_inputs(cls, inputs):
+        """
+        Advanced interface to build a EosWork from an list of AbinitInputs.
+        """
+        new_work = cls(manager=manager)
+        new_work.input_volumes = [inp.structure.lattice.volume for inp in inputs]
+        return new_work
+
     def getnwrite_eosdata(self, write_json=True):
         """
         This method is called when all tasks reach S_OK. It reads the energies

@@ -1596,13 +1596,16 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 nbdbuf = nb_extra - 4
                 if nbdbuf <= 0: nbdbuf = None
 
-        nscf_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr,
-                            nbdbuf=nbdbuf, nstep=nstep,
+        nscf_input.set_vars(iscf=-2,
+                            nband=nscf_nband,
+                            tolwfr=tolwfr,
+                            nbdbuf=nbdbuf,
+                            nstep=nstep,
                             comment="Input file for NSCF band structure calculation from a GS SCF input.")
 
         return nscf_input
 
-    def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None, nstep=100) -> AbinitInput:
+    def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None, nb_extra=10, nstep=100) -> AbinitInput:
         """
         Generate an input file for electron DOS calculation from a GS-SCF input.
 
@@ -1610,13 +1613,18 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ngkpt: Number of divisions for the k-mesh.
             shiftk: List of k-mesh shifts.
             tolwfr: Tolerance on residuals for NSCF calculation
-            nscf_nband: Number of bands for NSCF calculation. +10 if None.
+            nscf_nband: Number of bands for NSCF calculation. If None, use nband + nb_extra
+            nb_extra: Extra bands to to be added to input nband if nscf_nband is None.
             nstep: Max number of NSCF iterations.
         """
         edos_input = self.deepcopy()
         edos_input.pop_tolerances()
-        nscf_nband = self["nband"] + 10 if nscf_nband is None else nscf_nband
-        edos_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr, nstep=nstep)
+        nscf_nband = self["nband"] + nb_extra if nscf_nband is None else nscf_nband
+        edos_input.set_vars(iscf=-2,
+                            nband=nscf_nband,
+                            tolwfr=tolwfr,
+                            nstep=nstep
+                            )
         edos_input.set_kmesh(ngkpt, shiftk)
         edos_input.set_comment("Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)")
 
@@ -4369,7 +4377,7 @@ def kpoints_from_line_density(structure, line_density, symprec=1e-2):
             that are very close as ndivsm > 0 may produce a very large number of wavevectors.
         symprec: Symmetry precision passed to spglib.
 
-    Return: (nkpt,3) numpy array with k-points in reduced coords.
+    Return: (nkpt, 3) numpy array with k-points in reduced coords.
     """
     if line_density <= 0:
         raise ValueError(f"Invalid line_density: {line_density}")
