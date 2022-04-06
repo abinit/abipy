@@ -82,12 +82,15 @@ class EosWork(Work):
         return new_work
 
     @classmethod
-    def from_inputs(cls, inputs):
+    def from_inputs(cls, inputs, manager=None):
         """
         Advanced interface to build a EosWork from an list of AbinitInputs.
         """
         new_work = cls(manager=manager)
         new_work.input_volumes = [inp.structure.lattice.volume for inp in inputs]
+        for scf_inp in inputs:
+            new_work.register_scf_task(scf_inp)
+
         return new_work
 
     def getnwrite_eosdata(self, write_json=True):
