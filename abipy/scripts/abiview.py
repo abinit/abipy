@@ -481,7 +481,7 @@ def abiview_phbands(options):
 
 def abiview_denpot(options):
     """
-    Plot DEN/POT files
+    Visualize netcdf DEN/POT files with --appname (default: Vesta). App must be in $PATH.
     """
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
@@ -491,9 +491,11 @@ def abiview_denpot(options):
                 cprint("Warning: expecting DENSITY file but received %s" % field.__class__.__name__, "yellow")
             chg_path = options.filepath + ".CHGCAR"
             field.to_chgcar(filename=handle_overwrite(chg_path, options))
-        #elif options.cube:
-        #    outpath = options.filepath + ".cube"
-        #    field.export_to_cube(filename=handle_overwrite(outpath, options), spin="total")
+
+        elif options.cube:
+            outpath = options.filepath + ".cube"
+            field.export_to_cube(filename=handle_overwrite(outpath, options), spin="total")
+
         else:
             abifile.field.visualize(appname=options.appname)
     return 0
@@ -552,6 +554,9 @@ Usage example:
     abiview.py skw out_GSR.nc                 ==> Interpolate IBZ energies with star-functions and plot
                                                   interpolated bands.
 
+    abiview.py denpot out_DEN.nc              ==> Visualize DEN/POT file with Vesta. Use `-a xcrysden` to change app.
+    abiview.py denpot out_DEN.nc --chgcar     ==> Convert DEN file to CHGCAR fileformat.
+
 #########
 # Phonons
 #########
@@ -583,10 +588,6 @@ Usage example:
 Use `abiview.py --help` for help and `abiview.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
-
-# TODO
-#abiview.py denpot out_DEN.nc              ==>  Visualize density with Vesta.
-#abiview.py denpot out_DEN.nc --chgcar     ==>  Convert DEN file into CHGCAR fileformat.
 
 
 def get_parser(with_epilog=False):
@@ -705,7 +706,7 @@ def get_parser(with_epilog=False):
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, slide_parser], help=abiview_ebands.__doc__)
     add_args(p_ebands, "xmgrace", "bxsf", "force")
 
-    # Subparser for ebands command.
+    # Subparser for skw command.
     p_skw = subparsers.add_parser('skw', parents=[copts_parser], help=abiview_skw.__doc__)
     p_skw.add_argument("-lp", "--lpratio", type=int, default=5,
         help=("Ratio between the number of star functions and the number of ab-initio k-points. "
@@ -789,12 +790,12 @@ def get_parser(with_epilog=False):
     p_lobster.add_argument("--prefix", type=str, default="", help="Prefix for lobster output files. Default: ''")
 
     # Subparser for denpot command.
-    #p_denpot = subparsers.add_parser('denpot', parents=[copts_parser], help=abiview_denpot.__doc__)
-    #p_denpot.add_argument("-a", "--appname", nargs="?", default=None, const="vesta",
-    #        help=("Application name. Default: vesta. "
-    #              "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
-    #p_denpot.add_argument("--chgcar", default=False, action="store_true", "Convert Density to CHGCAR format.")
-    #p_denpot.add_argument("--cube", default=False, action="store_true", "Convert Density/Potential to CUBE format.")
+    p_denpot = subparsers.add_parser('denpot', parents=[copts_parser], help=abiview_denpot.__doc__)
+    p_denpot.add_argument("-a", "--appname", type=str, default="vesta",
+            help=("Application name. Default: vesta. " +
+                  "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
+    p_denpot.add_argument("--chgcar", default=False, action="store_true", help="Convert Density to CHGCAR format.")
+    p_denpot.add_argument("--cube", default=False, action="store_true", help="Convert Density/Potential to CUBE format.")
 
     return parser
 
