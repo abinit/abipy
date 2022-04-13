@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow for phonons with DFPT
-==========================
+Phonons with DFPT
+=================
 
 This example shows how to compute the phonon band structure of AlAs with AbiPy flows.
 Symmetries are taken into account: only q-points in the IBZ are generated and

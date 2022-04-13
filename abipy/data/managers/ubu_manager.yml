@@ -1,11 +1,11 @@
 qadapters:
-    # List of qadapters objects 
+    # List of qadapters objects
     - priority: 1
       queue:
         qtype: shell
         qname: ubu
       job:
-        modules: 
+        modules:
            - ubu_intel_16.0_mpich
         mpi_runner: mpiexec
         # source a script to setup the environment.

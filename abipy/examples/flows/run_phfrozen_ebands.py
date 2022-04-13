@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow for e-Bands with frozen phonon
-===================================
+e-Bands with frozen phonon
+==========================
 
 Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)
 """

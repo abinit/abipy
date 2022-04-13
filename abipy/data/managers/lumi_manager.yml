@@ -1,0 +1,40 @@
+# LUMI hardware: https://docs.lumi-supercomputer.eu/
+# For the configuration file see:
+# https://github.com/abinit/abiconfig/blob/master/abiconfig/clusters/lumi_XXXX.ac
+hardware: &hardware
+  num_nodes: 1376
+  sockets_per_node: 2
+  cores_per_socket: 64
+  mem_per_node: 256Gb
+
+job: &job
+  mpi_runner: srun
+  shell_runner: None
+  shell_env: # Use your abinit exec
+    PATH: "$HOME/program/abinit-9.6.2/build_gnu/src/98_main/:$PATH"
+  modules: # Abinit compiled with abiconfig settings
+    - LUMI/21.08
+    - PrgEnv-gnu/8.1.0
+    - cray-libsci/21.08.1.2
+    - cray-mpich/8.1.8
+    - cray-hdf5/1.12.0.6
+    - cray-netcdf/4.7.4.6
+    - cray-fftw/3.3.8.11
+
+# queues
+qadapters:
+    - priority: 1
+      queue:
+        qtype: slurm
+        qname: small
+        qparams:
+          account: project_XXXXXX  # Your project here
+          #mail_type: FAIL
+          #mail_user: # Othere slurm options ...
+      limits:
+        timelimit: 0-12:00:00
+        min_cores: 1
+        max_cores: 128
+        max_num_launches: 10
+      hardware: *hardware
+      job: *job

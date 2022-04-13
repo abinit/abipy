@@ -5,7 +5,8 @@ A repo has a unique name that encodes the XC functional, relativity type, the ki
 The default root is ~/.abinit/pseudos although it is possible to change it via the ABIPY_PSREPOS_ROOT env variable
 
 Note that all pseudos in a repo share the same XC functional, the type (NC, PAW) and the
-treatment of relativistic corrections although one may have multiple pseudos for the same element.
+treatment of relativistic corrections although one might have multiple pseudos for the same element.
+
 Due to this ambiguity, a repo cannot be directly used for running calculations in an automatic fashion
 hence the user is supposed to specify both the `repo_name` and the `table_name` when constructing a `PseudoTable`.
 """

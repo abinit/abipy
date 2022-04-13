@@ -3,7 +3,8 @@ r"""
 Band structure w/wo magnetization
 =================================
 
-Calculation of the band structure of Fe with and without magnetization.
+Calculation of the band structure of Fe with and without magnetization,
+including L-projected (FATBANDS and FATDOS)
 See also <~abinit/tutorial/Input/tspin_1.in>
 """
 import os
@@ -13,13 +14,13 @@ import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
 
-def make_scf_nscf_inputs(nsppol, paral_kgb=1):
+def make_scf_input(nsppol, paral_kgb=1):
     """
-    Generate two input files for the GS and the NSCF run for given `nsppol`.
+    Generate input file for GS and given `nsppol`.
     """
     # Fe normal bcc structure for test of a ferromagnetic calculation
-    multi = abilab.MultiDataset(structure=data.structure_from_ucell("Fe-fm"),
-                                pseudos=data.pseudos("26fe.pspnc"), ndtset=2)
+    scf_input = abilab.AbinitInput(structure=data.structure_from_ucell("Fe-fm"),
+                                   pseudos=data.pseudos("26fe.pspnc"))
 
     # Global variables
     global_vars = dict(
@@ -30,23 +31,16 @@ def make_scf_nscf_inputs(nsppol, paral_kgb=1):
         tsmear=0.01,
         paral_kgb=paral_kgb,
     )
+
     if nsppol == 2:
         global_vars.update(spinat=[0.0, 0.0, 4.0])
 
-    multi.set_vars(global_vars)
+    scf_input.set_vars(global_vars)
 
-    # Dataset 1 (GS run)
-    multi[0].set_kmesh(ngkpt=[4,4,4], shiftk=[0.5,0.5,0.5])
-    multi[0].set_vars(tolvrs=1e-6)
+    scf_input.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0.5, 0.5, 0.5])
+    scf_input.set_vars(tolvrs=1e-6)
 
-    # Dataset 2 (NSCF run)
-    multi[1].set_kpath(ndivsm=4)
-    multi[1].set_vars(tolwfr=1e-8)
-
-    # Generate two input files for the GS and the NSCF run
-    scf_input, nscf_input = multi.split_datasets()
-
-    return scf_input, nscf_input
+    return scf_input
 
 
 def build_flow(options):
@@ -57,10 +51,11 @@ def build_flow(options):
     # Create the Flow.
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
-    # Create the task defining the calculation and run and register it in the flow
     for nsppol in [1, 2]:
-        scf_input, nscf_input = make_scf_nscf_inputs(nsppol)
-        work = flowtk.BandStructureWork(scf_input, nscf_input)
+        # Build a BandStructureWork from the scf_input with the given nsppol and add it to the flow
+        # L-projection (prtdos 3) is used by default.
+        scf_input = make_scf_input(nsppol)
+        work = flowtk.BandStructureWork.from_scf_input(scf_input, dos_ngkpt=(8, 8, 8))
         flow.register_work(work)
 
     return flow

@@ -28,6 +28,14 @@ eph Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`common` Module
+--------------------
+
+.. automodule:: abipy.eph.cumulant
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`eph_plotter` Module
 -------------------------
 

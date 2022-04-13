@@ -63,7 +63,8 @@ def build_flow(options):
             nbdbuf=2,
             occopt=3,
             iomode=1,
-            nstep=20)
+            nstep=20
+    )
 
     ngkpt = [4, 4, 4]
     ngkpt_fine = [8, 8, 8]
@@ -73,14 +74,13 @@ def build_flow(options):
     boxcutmin = 1.1
     mixprec = 1
 
-    #Kerange Variables
+    # Kerange Variables
     nbr_proc = 4
     ngqpt_fine = [16, 16, 16] # The sigma_ngkpt grid must be divisible by the qpt grid
     sigma_ngkpt = [16, 16, 16]
     einterp = [1, 5, 0, 0] # Star functions Interpolation
     sigma_erange = [-0.3, -0.3, "eV"] # Negative value for metals
 
-    # Nom de mon flow
     flow = flowtk.Flow(workdir=options.workdir)
 
     # Create inputs Object
@@ -108,7 +108,7 @@ def build_flow(options):
                                               tolerance={"tolvrs": 1e-8})
     flow.register_work(ph_work)
 
-    # Work 2: Conduc with Kerange
+    # Work 2: Conductivity with Kerange
     multi = conduc_kerange_from_inputs(scf_input=scf_input,
                                        nscf_input=nscf_input,
                                        tmesh=tmesh,

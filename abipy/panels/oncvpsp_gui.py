@@ -539,7 +539,9 @@ class OncvGui(AbipyParameterized):
 
     @classmethod
     def from_file(cls, path: str) -> OncvGui:
-        """Build the panel from a file with the oncvpsp input variables."""
+        """
+        Build an instance from a file with the oncvpsp input variables.
+        """
         return cls(oncv_input=OncvInput.from_file(path), in_filepath=path)
 
     def __init__(self, oncv_input, in_filepath="", **params):
@@ -611,7 +613,7 @@ class OncvGui(AbipyParameterized):
                          )
 
     def get_rc_widgets(self, oncv_input):
-        """Return widgets used to change the value of rc(l)"""
+        """Return widgets to change the value of rc(l)"""
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
         menu_button = pnw.MenuButton(name='Change rc(l)', items=menu_items, button_type='primary')
         menu_button.on_click(self.on_change_rc)
@@ -623,7 +625,7 @@ Here one can change the value of rc(l).
                             help_str)
 
     def get_qcut_widgets(self, oncv_input):
-        """Return widgets used to change the value of qc(l)"""
+        """Return widgets to change the value of qc(l)"""
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
         menu_button = pnw.MenuButton(name='Change qcut(l)', items=menu_items, button_type='primary')
         menu_button.on_click(self.on_change_qcut)
@@ -638,7 +640,7 @@ The present values are: {qc_l}
                             help_str)
 
     def get_debl_widgets(self, oncv_input):
-        """Return widgets used to change the value of debl(l)"""
+        """Return widgets to change the value of debl(l)"""
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
         menu_button = pnw.MenuButton(name='Change debl(l)', items=menu_items, button_type='primary')
         menu_button.on_click(self.on_change_debl)
@@ -650,7 +652,7 @@ Here one can change the value of debl(l) with fixed nproj(l).
                             help_str)
 
     def get_rc5_widgets(self, oncv_input):
-        """Return widgets used to change the value of rc5"""
+        """Return widgets to change the value of rc5"""
         btn = pnw.Button(name="Run", button_type='primary')
         btn.on_click(self.on_change_rc5)
         help_str = f"""
@@ -663,7 +665,7 @@ The present value of rc5 is {oncv_input.rc5} and min(rc) is: {oncv_input.get_min
                             help_str)
 
     def get_dvloc0_widgets(self, oncv_input):
-        """Return widgets used to change the value of dvloc0"""
+        """Return widgets to change the value of dvloc0"""
         btn = pnw.Button(name="Run", button_type='primary')
         btn.on_click(self.on_change_dvloc0)
         help_str = f"""
@@ -676,7 +678,7 @@ The present value of dvloc0 is {oncv_input.dvloc0} with lpopt: {oncv_input.lpopt
                             help_str)
 
     def get_rhomodel_widgets(self, oncv_input):
-        """Return widgets used to change the parameters for the model core charge"""
+        """Return widgets to change the parameters for the model core charge"""
         btn = pnw.Button(name="Run", button_type='primary')
         btn.on_click(self.on_change_rhomodel)
         help_str = f"""
@@ -754,7 +756,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, [f"qc = {qc:.2f}" for qc in qcut_values])
             col.append(grid)
 
@@ -806,7 +808,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
     def on_change_rc5(self, event):
         """
-        Change the value of rc5 for local part, run oncvpsp and show the results.
+        Change the value of rc5 for the local part, run oncvpsp and show the results.
         """
         with ButtonContext(event.obj), Loading(self.out_area):
             oncv_input = self.get_oncv_input()

@@ -194,16 +194,21 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
             self[varname] = varvalue
 
         # Just to make life easier to the user, we update some dimensions
-        # if only the "array" part is specified in input.
+        # if only the "array" part with shape (dimname, 3) is given in input.
         vname_dimname = [
+            # arr_name, dim_name
             ("shiftk", "nshiftk"),
             ("ph_qpath", "ph_nqpath"),
+            ("kptgw", "nkptgw"),
         ]
 
         for vname, dimname in vname_dimname:
             if vname in kwargs:
-                # e.g. self["nshiftk"] = len(np.reshape(self["shiftk"], (-1, 3)))
-                self[dimname] = len(np.reshape(self[vname], (-1, 3)))
+                try:
+                    # e.g. self["nshiftk"] = len(np.reshape(self["shiftk"], (-1, 3)))
+                    self[dimname] = len(np.reshape(self[vname], (-1, 3)))
+                except ValueError as exc:
+                    raise ValueError(f"Wrong value for variable: `{vname}`, value: `{self[vname]}`") from exc
 
         return kwargs
 
@@ -1556,6 +1561,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             tolwfr: Tolerance on residuals for NSCF calculation.
             nscf_nband: Number of bands for NSCF calculation. If None, use nband + nb_extra
             nb_extra: Extra bands to to be added to input nband if nscf_nband is None.
+            nbdbuf: Number of states in buffer
+            nstep: Max number of NSCF iterations.
         """
         nscf_input = self.deepcopy()
         nscf_input.pop_vars(["ngkpt", "nshiftk", "shiftk"])
@@ -1589,13 +1596,16 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 nbdbuf = nb_extra - 4
                 if nbdbuf <= 0: nbdbuf = None
 
-        nscf_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr,
-                            nbdbuf=nbdbuf, nstep=nstep,
+        nscf_input.set_vars(iscf=-2,
+                            nband=nscf_nband,
+                            tolwfr=tolwfr,
+                            nbdbuf=nbdbuf,
+                            nstep=nstep,
                             comment="Input file for NSCF band structure calculation from a GS SCF input.")
 
         return nscf_input
 
-    def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None) -> AbinitInput:
+    def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None, nb_extra=10, nstep=100) -> AbinitInput:
         """
         Generate an input file for electron DOS calculation from a GS-SCF input.
 
@@ -1603,12 +1613,18 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ngkpt: Number of divisions for the k-mesh.
             shiftk: List of k-mesh shifts.
             tolwfr: Tolerance on residuals for NSCF calculation
-            nscf_nband: Number of bands for NSCF calculation. +10 if None.
+            nscf_nband: Number of bands for NSCF calculation. If None, use nband + nb_extra
+            nb_extra: Extra bands to to be added to input nband if nscf_nband is None.
+            nstep: Max number of NSCF iterations.
         """
         edos_input = self.deepcopy()
         edos_input.pop_tolerances()
-        nscf_nband = self["nband"] + 10 if nscf_nband is None else nscf_nband
-        edos_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr)
+        nscf_nband = self["nband"] + nb_extra if nscf_nband is None else nscf_nband
+        edos_input.set_vars(iscf=-2,
+                            nband=nscf_nband,
+                            tolwfr=tolwfr,
+                            nstep=nstep
+                            )
         edos_input.set_kmesh(ngkpt, shiftk)
         edos_input.set_comment("Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)")
 
@@ -1723,8 +1739,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         ph_inputs = MultiDataset.replicate_input(input=self, ndtset=len(perts))
         ph_inputs.pop_vars("iscf")
 
-        # Set kptopt depending on the q-points i.e use time-reversal if Gamma
-        kptopt = 2 if np.allclose(qpt, 0) else 3
+        # Set kptopt depending on the q-point i.e use time-reversal
+        # if q == Gamma and kptopt allows it.
+        scf_kptopt = self.get("kptopt", 1)
+        kptopt = 3
+        if np.allclose(qpt, 0) and scf_kptopt in (1, 2):
+            kptopt = 2
 
         # Note: this will work for phonons, but not for the other types of perturbations.
         for pert, ph_input in zip(perts, ph_inputs):
@@ -1994,6 +2014,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         # Important: this is needed to avoid Q* computations complaining about indkpt1
         if prepalw != 0: multi.set_vars(prepalw=prepalw)
 
+        scf_kptopt = self.get("kptopt", 1)
+        kptopt = 3
+        if scf_kptopt in (1, 2): kptopt = 2
+
         # See tutorespfn/Input/trf1_5.in dataset 3
         for pert, inp in zip(perts, multi):
             rfdir = 3 * [0]
@@ -2006,7 +2030,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 rfelfd=3,             # Activate the calculation of the electric field perturbation
                 nqpt=1,               # One wavevector is to be considered
                 qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=2,             # Take into account time-reversal symmetry.
+                kptopt=kptopt,        # Take into account time-reversal symmetry if allowed.
                 comment="Input file for BECs calculation.",
             )
 
@@ -4353,7 +4377,7 @@ def kpoints_from_line_density(structure, line_density, symprec=1e-2):
             that are very close as ndivsm > 0 may produce a very large number of wavevectors.
         symprec: Symmetry precision passed to spglib.
 
-    Return: (nkpt,3) numpy array with k-points in reduced coords.
+    Return: (nkpt, 3) numpy array with k-points in reduced coords.
     """
     if line_density <= 0:
         raise ValueError(f"Invalid line_density: {line_density}")
