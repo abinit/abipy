@@ -10,7 +10,6 @@ the convergence of the electron mobility in the case of AlAs
 Only electrons are considered, but the script can easily be
 extended to holes (and combination of e/h as well). 
 """
-
 #%%
 
 import numpy as np
@@ -46,22 +45,12 @@ with abiopen(root + "w0/t1/outdata/out_GSR.nc") as abifile:
 pretty_formula = "".join([i for i in formula if i != str(1) and i != " "]) # Remove '1's and spaces
 fig.suptitle(pretty_formula)
 
-# Plot the bands
-ebands.plot_ax(axes[0,0], e0="fermie", color="black")
-
-# Decorate the axes with the correct ticks and labels
-ticks = [tick for tick, label in enumerate(ebands.kpoints.names) if label != None]
-labels = [label for tick, label in enumerate(ebands.kpoints.names) if label != None]
-axes[0, 0].set_xticks(ticks, [], size=fz)
-for tick in ticks:
-    axes[0, 0].axvline(tick, color='k', linewidth=1/2, alpha=0.6)
-    
-# Set limits of the axis
-axes[0, 0].set_xlim([ticks[0], ticks[-1]])
-axes[0, 0].set_ylim([-3, 6])
+# Plot the bands (keep only the grid on the x-axis)
+ebands.plot(ax=axes[0,0], show=False, linewidth=1.5, ylims=(-3, 6), ax_grid=False)
 
 # Set label
 axes[0, 0].set_ylabel('Energy (eV)', fontsize=fz)
+axes[0, 0].set_xlabel(None)
 
 ###
 ### Lower left : phonon dispersion
@@ -72,22 +61,12 @@ axes[0, 0].set_ylabel('Energy (eV)', fontsize=fz)
 with abiopen(root + "w1/outdata/out_DDB") as abifile:
     phbst, phdos = abifile.anaget_phbst_and_phdos_files(ndivsm=10)
 
-# Plot phonon dispersion
-phbst.phbands.plot_ax(axes[1,0], branch=None, units="mev", color="black")
-
-# Decorate the axes with the correct ticks and labels
-ticks = [tick for tick, label in enumerate(phbst.qpoints.names) if label != None]
-labels = [label for tick, label in enumerate(phbst.qpoints.names) if label != None]
-axes[1, 0].set_xticks(ticks, labels, size=fz-2)
-for tick in ticks:
-    axes[1, 0].axvline(tick, color='k', linewidth=1/2, alpha=0.6)
-
-# Set limits of the axis
-axes[1, 0].set_xlim([ticks[0], ticks[-1]])
-axes[1, 0].set_ylim([0, np.max(phbst.phbands.phfreqs)*1000+1])
+# Plot phonon dispersion (keep only the grid on the x-axis)
+phbst.phbands.plot(ax=axes[1,0], show=False, units="mev", linewidth=1.5, ax_grid=False)
 
 # Set label
 axes[1, 0].set_ylabel('Frequency (meV)', fontsize=fz)
+axes[1, 0].set_xlabel(None)
 
 ###
 ### Upper right : linewidths
@@ -99,21 +78,18 @@ with abiopen(root + 'w3/t2/outdata/out_SIGEPH.nc') as abifile:
     # First within SERTA
     qparray = abifile.get_qp_array(mode="ks+lifetimes", rta_type="serta")
     qparray = qparray[np.nonzero(qparray)]
-    eigs = qparray.real
+    eigs = qparray.real - np.min(qparray.real) # 0 to CBM
     lws = 2000*qparray.imag # Factor or 2x1000 to get from linewidths to 1/tau in meV
     
     # Then within MRTA
     qparray_mrta = abifile.get_qp_array(mode="ks+lifetimes", rta_type="mrta")
     qparray_mrta = qparray_mrta[np.nonzero(qparray_mrta)]
-    eigs_mrta = qparray_mrta.real
+    eigs_mrta = qparray_mrta.real - np.min(qparray_mrta.real) # 0 to CBM
     lws_mrta = 2000*qparray_mrta.imag
     
-# The zero of the energy axis is the CBM 
-zero = np.min(eigs) # CBM
-
 # Plot 1/tau
-axes[0, 1].plot(eigs-zero, lws, 'ob', markersize=mz, label='SERTA')
-axes[0, 1].plot(eigs_mrta-zero, lws_mrta, 'xr', markersize=mz, label='MRTA')
+axes[0, 1].plot(eigs, lws, 'ob', markersize=mz, label='SERTA')
+axes[0, 1].plot(eigs_mrta, lws_mrta, 'xr', markersize=mz, label='MRTA')
 
 axes[0, 1].set_xticks([0, 0.25], ['0', '0.25'])
 
@@ -132,7 +108,7 @@ abifiles = glob.glob(root+'w*/t*/outdata/*RTA.nc')
 
 # We create a robot with these files and plot the mobilities
 robot = RtaRobot.from_files(abifiles)
-robot.plot_mobility_kconv(eh=0, bte=["ibte", "mrta", "serta"], ax=axes[1, 1], show=False, ax_grid=False)
+robot.plot_mobility_kconv(ax=axes[1, 1], eh=0, bte=["ibte", "mrta", "serta"], show=False, ax_grid=False)
 
 # Tune the plot
 axes[1, 1].set_title(None)
@@ -140,6 +116,9 @@ axes[1, 1].legend(fontsize=fz, framealpha=0.5)
 axes[1, 1].set_xlabel('$N_k \\times$ $N_k \\times$ $N_k$ $\\mathbf{k}$-point grid', fontsize=fz)
 axes[1, 1].set_ylabel(r'$\mu_e$'+' (cm$^2$/(V$\\cdot$s))', fontsize=fz)
 
-   
+# Reactivate the grid on the x-axis for the band structures
+axes[0, 0].grid(True, axis='x')
+axes[1, 0].grid(True, axis='x')
+
 # We save the figure in pdf format
 fig.savefig(pretty_formula + ".pdf", bbox_inches='tight')
