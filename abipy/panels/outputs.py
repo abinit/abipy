@@ -64,7 +64,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
         d = {}
 
         d["Summary"] = self.get_summary_view_for_abiobj(self.outfile)
-        d["Output"] = self.get_outfile_view()
+        #d["Output"] = self.get_outfile_view()
 
         df = self.outfile.get_dims_spginfo_dataframe()
         df.index.name = "Dataset"

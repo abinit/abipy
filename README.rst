@@ -167,13 +167,8 @@ To solve the problem, use conda to update scipy to a version >= 1.0.1 with::
 
     conda install "scipy>=1.0.1"
 
-then issue again python setup.py develop. If this fails, supposing you were upgrading abipy inside an already existing conda environment, try to restart by creating from scratch a fresh conda environment, see above.
-
-Use::
-
-    conda info pymatgen
-
-to display information about the installed version of pymatgen.
+then issue again python setup.py develop. If this fails, supposing you were upgrading abipy inside 
+an already existing conda environment, try to restart by creating from scratch a fresh conda environment, see above.
 
 Also note that the BLAS/Lapack libraries provided by conda have multithreading support activated by default.
 Each process will try to use all of the cores on your machine, which quickly overloads things

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import io
+import sys
 import tempfile
 import functools
 import textwrap
@@ -71,6 +72,9 @@ def abipanel(panel_template="FastList"):
 
     set_abinit_template(panel_template)
 
+    #pn.extension(loading_spinner='dots', loading_color='#00aa41')
+    #pn.extension(notifications=True)
+
     extensions = [
         "plotly",
         #"mathjax",
@@ -82,20 +86,24 @@ def abipanel(panel_template="FastList"):
         #"ipywidgets",
     ]
 
+    css_files = [
+        #pn.io.resources.CSS_URLS['font-awesome'],
+    ]
+
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
     #print("loading extensions:", extensions)
 
     #import os
     #abipy_css = os.path.join(os.path.dirname(__file__), "assets", "css", "abipy.css")
 
-    pn.extension(*extensions) #, css_files=[abipy_css])
+    pn.extension(*extensions, css_files=css_files) #, css_files=[abipy_css])
     #pn.extension(template='fast', theme='dark')
 
     pn.config.js_files.update({
         # This for copy to clipboard.
         "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
         # This for the jsmol viewer.
-        "jsmol": "http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
+        "jsmol": "https://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
     })
 
     #pn.config.js_files.update({
@@ -300,6 +308,17 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
     a divider and (optionally) controls to customize the figure.
     """
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
+
+    #try:
+    #    import ipympl
+    #    has_ipympl = True
+    #except ImportError:
+    #    has_ipympl = False
+
+    #if "interactive" not in kwargs and has_ipympl: # "ipympl" in sys.modules:
+    #    print("mpl in interactive mode")
+    #    kwargs["interactive"] = True
+
     mpl_pane = pn.pane.Matplotlib(fig, **kwargs)
     ca(mpl_pane)
 
@@ -768,7 +787,6 @@ class AbipyParameterized(param.Parameterized):
 
     @staticmethod
     def get_fileinput_section(file_input) -> pn.Column:
-
         # All credits go to:
         # https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/styling/fileinput_area.py
         #
@@ -1217,6 +1235,10 @@ class PanelWithElectronBands(PanelWithStructure):
     ebands_kmesh = None
     ebands_kmesh_fileinput = param.FileSelector(path=".nc")
 
+    effmass_accuracy = param.Integer(default=4, bounds=(1, None), label="Finite difference accuracy")
+    effmass_degtol_ev = param.Number(default=1e-3, bounds=(0, None), label="Window in eV above/below the CBM/VBM")
+    effmass_spin = param.ObjectSelector(default=0, objects=[0, 1], label="Spin index")
+
     def __init__(self, ebands, **params):
 
         self.ebands = ebands
@@ -1241,6 +1263,10 @@ class PanelWithElectronBands(PanelWithStructure):
 
         #ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
         #ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
+
+        self.plot_effmass_btn = pnw.Button(name="Plot effective masses", button_type='primary')
+        if ebands.nsppol != 2:
+            self.param.effmass_spin.objects = [0]
 
     @staticmethod
     def _get_ebands_from_bstring(bstring):
@@ -1324,8 +1350,9 @@ class PanelWithElectronBands(PanelWithStructure):
         return pn.Row(ply(edos.plotly(show=False)), sizing_mode='scale_width')
 
     def get_skw_view(self):
-        """Column with widgets to use SKW."""
-
+        """
+        Column with widgets to use SKW.
+        """
         wdg = pn.Param(
             self.param['skw_ebands_kpath_fileinput'],
             widgets={'skw_ebands_kpath_fileinput': pn.widgets.FileInput}
@@ -1372,9 +1399,57 @@ class PanelWithElectronBands(PanelWithStructure):
 
         return col
 
+    def get_effmass_view(self):
+        """
+        Widgets to compute effective masses with finite diff.
+        """
+        return pn.Row(
+            self.pws_col(["### Effective masses options",
+                          "effmass_accuracy",
+                          "effmass_degtol_ev",
+                          "effmass_spin",
+                          "plot_effmass_btn",
+                         ]),
+            self.on_plot_effmass_btn
+        )
+
+    @depends_on_btn_click('plot_effmass_btn')
+    def on_plot_effmass_btn(self):
+        """
+        Compute and visualize effective masses with finite differences.
+
+        Note that the quality of the results strongly depend on the step i.e.
+        the separation between two consecutive points along the k-path.
+        The accuracy option allows one to change the number of points for the finite difference.
+        """
+        emana = self.ebands.get_effmass_analyzer()
+        acc = self.effmass_accuracy
+        degtol_ev = self.effmass_degtol_ev
+        spin = self.effmass_spin
+
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+
+        if emana.select_vbm():
+            ca(f"## Effective masses at the VBM with accuracy {acc}:")
+            for segment in emana.segments:
+                ca(mpl(segment.plot_emass(acc=acc, spin=spin, degtol_ev=degtol_ev, show=False)))
+                ca("### effmass wrt accuracy and step: %.3f Ang-1" % segment.dk)
+                df = segment.get_dataframe_with_accuracies()
+                ca(dfc(df, with_export_btn=False))
+
+        if emana.select_cbm():
+            ca(f"## Effective masses at the CBM with accuracy {acc}:")
+            for segment in emana.segments:
+                ca(mpl(segment.plot_emass(acc=acc, spin=spin, degtol_ev=degtol_ev, show=False)))
+                ca("### effmass wrt accuracy and step: %.3f Ang-1" % segment.dk)
+                df = segment.get_dataframe_with_accuracies()
+                ca(dfc(df, with_export_btn=False))
+
+        return col
+
     def get_ifermi_view(self):
         """
-        Widgets to visualize the Fermi surface with ifermi
+        Widgets to visualize the Fermi surface with ifermi package.
         """
         controls = self.pws_col([
                           "ifermi_offset_eV", "ifermi_eref", "ifermi_wigner_seitz", "ifermi_interpolation_factor",
@@ -1633,8 +1708,8 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false") ->
            antialiasDisplay: true,
            width: {width},
            height: {height},
-           j2sPath: "http://chemapps.stolaf.edu/jmol/jsmol/j2s",
-           serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+           j2sPath: "https://chemapps.stolaf.edu/jmol/jsmol/j2s",
+           serverURL: "https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
            script: script_str,
            use: 'html5',
            disableInitialConsole: true,

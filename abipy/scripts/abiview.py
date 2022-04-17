@@ -481,7 +481,8 @@ def abiview_phbands(options):
 
 def abiview_denpot(options):
     """
-    Visualize netcdf DEN/POT files with --appname (default: Vesta). App must be in $PATH.
+    Visualize netcdf DEN/POT files with --appname (default: Vesta).
+    NB: Appplication must be installed and in $PATH.
     """
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
@@ -502,7 +503,9 @@ def abiview_denpot(options):
 
 
 def abiview_lobster(options):
-    """Analyze lobster output files in directory."""
+    """
+    Analyze lobster output files in directory.
+    """
     from abipy.electrons.lobster import LobsterAnalyzer
     lobana = LobsterAnalyzer.from_dir(os.path.dirname(options.filepath), prefix=options.prefix)
     print(lobana.to_string(verbose=options.verbose))
@@ -553,7 +556,6 @@ Usage example:
                                                    on a k-mesh. Use -a xsf to change application e.g. Xcrysden.
     abiview.py skw out_GSR.nc                 ==> Interpolate IBZ energies with star-functions and plot
                                                   interpolated bands.
-
     abiview.py denpot out_DEN.nc              ==> Visualize DEN/POT file with Vesta. Use `-a xcrysden` to change app.
     abiview.py denpot out_DEN.nc --chgcar     ==> Convert DEN file to CHGCAR fileformat.
 

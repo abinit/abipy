@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import pymatgen.core.units as units
+import abipy.core.abinit_units as abu
 
 from typing import List, Union
 from monty.termcolor import cprint
@@ -31,8 +31,12 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         from abipy.electrons.effmass_analyzer import EffMassAnalyzer
         emana = EffMassAnalyzer.from_file("out_GSR.nc")
         print(emana)
+
         emana.select_vbm()
+
+        # Or use one of the following APIs.
         #emana.select_cbm()
+        #emana.select_band_edges()
         #emana.select_kpoint_band(kpoint=[0, 0, 0], band=3)
 
         #amana.summarize()
@@ -102,6 +106,8 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             spin: Spin index.
             degtol_ev: Include all bands at this k-point whose energy differ from the one at
                 (kpoint, band) less that ``degtol_ev`` in eV.
+
+        Return: Number of segments.
         """
         # Find all k-indices associated to the input kpoint.
         ik_indices = self.kpoints.get_all_kindices(kpoint)
@@ -111,26 +117,34 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         e0 = self.ebands.eigens[spin, ik, band]
         band_inds_k = [be[0] for be in enumerate(self.ebands.eigens[spin, ik]) if abs(be[1] - e0) <= degtol_ev]
         band_inds_k = len(ik_indices) * [band_inds_k]
-        self._build_segments(spin, ik_indices, band_inds_k)
+        return self._build_segments(spin, ik_indices, band_inds_k)
 
     def select_cbm(self, spin: int = 0, degtol_ev: float = 1e-3) -> None:
         """
-        Select conduction band minimum.
+        Select the conduction band minimum for the given spin.
+
+        Return: Number of segments.
         """
         ik_indices, band_inds_k = self._select(["cbm"], spin, degtol_ev)
-        self._build_segments(spin, ik_indices, band_inds_k)
+        return self._build_segments(spin, ik_indices, band_inds_k)
 
     def select_vbm(self, spin: int = 0, degtol_ev: float = 1e-3) -> None:
         """
-        Select valence band maximum.
+        Select the valence band maximum for the given spin
+
+        Return: Number of segments.
         """
         ik_indices, band_inds_k = self._select(["vbm"], spin, degtol_ev)
-        self._build_segments(spin, ik_indices, band_inds_k)
+        return self._build_segments(spin, ik_indices, band_inds_k)
 
     def select_band_edges(self, spin: int = 0, degtol_ev: float = 1e-3) -> None:
-        """Select conduction band minimum and valence band maximum."""
+        """
+        Select conduction band minimum and valence band maximum.
+
+        Return: Number of segments.
+        """
         ik_indices, band_inds_k = self._select(["cbm", "vbm"], spin, degtol_ev)
-        self._build_segments(spin, ik_indices, band_inds_k)
+        return self._build_segments(spin, ik_indices, band_inds_k)
 
     def _select(self, what_list, spin, degtol_ev):
         ik_indices, band_inds_k = [], []
@@ -171,6 +185,8 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             spin: Spin index.
             ik_indices: List of k-point indices [nk][kids]
             band_inds_k: [nk][kids]
+
+        Return: Number of segments
         """
         #print("in build_segments with:\n\tik_indices:", ik_indices, "\n\tband_inds_k:", band_inds_k)
         self.spin = spin
@@ -190,12 +206,14 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
             self.segments.append(Segment(ik, spin, line, bids, self.ebands))
 
+        return len(self.segments)
+
     def _consistency_check(self) -> None:
         if not self.segments:
             methods = ", ".join(["select_cbm", "select_vbm", "select_band_edges", "select_kpoint_band"])
             raise RuntimeError("You must call one among: `%s`\nto build segments before analyzing data." % methods)
 
-    def summarize(self, acc_list=(2, 4, 6, 8)) -> None:
+    def summarize(self, acc_list=None) -> None:
         """
         Compute effective masses with different accuracies and print results in tabular format.
         Useful to understand is results are sensitive to the number of points in the finite difference.
@@ -214,13 +232,14 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
     #    for segment in self.segments
 
     @add_fig_kwargs
-    def plot_emass(self, acc=4, sharey=True, fontsize=6, colormap="viridis", **kwargs):
+    def plot_emass(self, acc=4, units="eV", sharey=True, fontsize=6, colormap="viridis", verbose=0, **kwargs):
         """
         Plot electronic dispersion and quadratic approximant based on the
         effective masses computed along each segment.
 
         Args:
-            acc:
+            acc: Accuracy of finite diff.
+            units: Units for band energies. "eV" or "meV".
             sharey: True if y axis (energies) should be shared.
             fontsize: legend and title fontsize.
             colormap: matplotlib colormap
@@ -230,13 +249,12 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         # Build grid of plots for this spin.
         num_plots, ncols, nrows = len(self.segments), 1, 1
         if num_plots > 1:
-            ncols = 2
+            ncols = 1
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=False, sharey=sharey, squeeze=False)
         ax_list = ax_list.ravel()
-        verbose = 0
 
         for iseg, (segment, ax) in enumerate(zip(self.segments, ax_list)):
             if verbose:
@@ -244,7 +262,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
                 print(segment)
                 print(2 * "\n")
             irow, icol = divmod(iseg, ncols)
-            segment.plot_emass(ax=ax, acc=acc, fontsize=fontsize, colormap=colormap, show=False)
+            segment.plot_emass(ax=ax, acc=acc, units=units, fontsize=fontsize, colormap=colormap, show=False)
             if iseg != 0: set_visible(ax, False, "ylabel")
             if irow != nrows - 1: set_visible(ax, False, "xticklabels")
 
@@ -344,13 +362,16 @@ class Segment:
         # Note the use of self.kpos so that the stencil is centered on the kpos index
         # if we have points of both sides.
         d2 = finite_diff(enes_kline, self.dk, order=2, acc=acc, index=self.kpos)
-        emass = 1. / (d2.value * (units.eV_to_Ha / units.bohr_to_ang ** 2))
+        emass = 1. / (d2.value * (abu.eV_Ha / abu.Bohr_Ang ** 2))
         return emass, d2
 
-    def get_dataframe_with_accuracies(self, acc_list: Tuple[int] = (2, 4, 6, 8)) -> pd.DataFrame:
+    def get_dataframe_with_accuracies(self, acc_list=None) -> pd.DataFrame:
         """
-        Build and return a |pandas-Dataframe| with effective masses computed with different accuracies (npts)
+        Build and return a |pandas-Dataframe| with the effective masses computed with different accuracies (npts)
         """
+        if acc_list is None:
+            acc_list = (2, 4, 6, 8) if self.kpos_type == "central" else (1, 2, 3, 4, 5, 6)
+
         rows = []
         for acc in acc_list:
             emass_dict = {}
@@ -360,22 +381,25 @@ class Segment:
                     emass, d2 = self.get_fd_emass_d2(enes_kline, acc)
                     emass_dict["effm_b%d" % ib] = emass
                 except (ValueError, KeyError) as exc:
+                    pass
                     #cprint(exc, color="red")
-                    emass_dict["effm_b%d" % ib] = None
+                    #emass_dict["effm_b%d" % ib] = None
 
-            od = {"acc": acc, "npts": d2.npts}
-            od.update(emass_dict)
-            rows.append(od)
+            if emass_dict:
+                od = {"accuracy": acc, "npts": d2.npts}
+                od.update(emass_dict)
+                rows.append(od)
 
-        return pd.DataFrame(rows, columns=list(rows[0].keys()))
+        return pd.DataFrame(rows, columns=list(rows[0].keys())).set_index('accuracy')
 
     @add_fig_kwargs
-    def plot_emass(self, acc: int = 4, ax=None, fontsize: int = 8, colormap: str = "viridis", **kwargs):
+    def plot_emass(self, acc: int = 4, units="eV", ax=None, fontsize: int = 8, colormap: str = "viridis", **kwargs):
         """
         Plot band dispersion and quadratic approximation.
 
         Args:
             acc:
+            units: Units for band energies. "eV" or "meV".
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
             colormap: matplotlib colormap
@@ -386,10 +410,12 @@ class Segment:
         ax.grid(True)
         cmap = plt.get_cmap(colormap)
 
+        ufact = {"ev": 1, "mev": 1000}[units.lower()]
+
         for ib, enes_kline in enumerate(self.energies_bk):
             # Plot KS-DFT points.
             xs = range(len(enes_kline))
-            ax.scatter(xs, enes_kline, marker="o", color=cmap(float(ib) / self.nb))
+            ax.scatter(xs, enes_kline * ufact, marker="o", alpha=0.8, s=8, color=cmap(float(ib) / self.nb))
 
             # Compute effective masses
             try:
@@ -398,19 +424,18 @@ class Segment:
             except Exception as exc:
                 cprint("Exception for segment: %s" % str(self), "red")
                 continue
-                #raise exc
 
-            ys = ((self.kmk0_2 * units.bohr_to_ang ** 2) / (2 * emass)) * \
-                  units.Ha_to_eV + self.energies_bk[ib, self.kpos]
+            ys = ((self.kmk0_2 * abu.Bohr_Ang ** 2) / (2 * emass)) * \
+                  abu.Ha_eV + self.energies_bk[ib, self.kpos]
 
             label = r"$m^*$ = %.3f, %d-pts %s finite-diff" % (emass, d2.npts, d2.mode)
-            ax.plot(xs, ys, linestyle="--", color=cmap(float(ib) / self.nb), label=label)
+            ax.plot(xs, ys * ufact, linestyle="--", color=cmap(float(ib) / self.nb), label=label)
 
         ax.axvline(self.kpos, c="r", ls=":", lw=2)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
         title = r"${\bf k}_0$: %s, direction: %s, step: %.3f $\AA^{-1}$" % (
                 repr(self.k0), self.kdir.tos(m="fracart", scale=True), self.dk)
         ax.set_title(title, fontsize=fontsize)
-        ax.set_ylabel('Energy (eV)')
+        ax.set_ylabel(f'Energy ({units})')
 
         return fig

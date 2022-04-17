@@ -537,7 +537,6 @@ Post-process the data stored in one of the ABINIT output files (*GSR.nc*, *DDB*,
         super().__init__(**params)
 
         self.use_structure = use_structure
-        #self.with_input_gen = with_input_gen
         help_md = pn.pane.Markdown(f"""
 ## Description
 

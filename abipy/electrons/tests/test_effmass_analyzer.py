@@ -19,9 +19,9 @@ class EffMassAnalyzerTest(AbipyTest):
         emana.select_kpoint_band((0, 0, 0), band=3, spin=0, degtol_ev=0.1)
         emana.summarize()
 
-        emana.select_band_edges()
-        emana.select_cbm()
-        emana.select_vbm(degtol_ev=1e-3)
+        assert emana.select_band_edges() > 0
+        assert emana.select_cbm() > 0
+        assert emana.select_vbm(degtol_ev=1e-3) > 0
         emana.summarize()
 
         # extract segment.

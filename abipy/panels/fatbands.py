@@ -89,6 +89,8 @@ class FatBandsFilePanel(PanelWithElectronBands):
                 self.on_plot_fatbands_btn
             )
 
+            d["EffMass"] = self.get_effmass_view()
+
         else:
             raise ValueError("Neither a IBZ nor k-path!")
 

@@ -33,6 +33,9 @@ class GsrFilePanel(PanelWithElectronBands):
                 d["Ifermi"] = self.get_ifermi_view()
                 #d["fsviewer"] = self.get_fsviewer_view()
 
+        if kpoints.is_path:
+            d["EffMass"] = self.get_effmass_view()
+
         d["Structure"] = self.get_structure_view()
         d["NcFile"] = self.gsr.get_ncfile_view()
 

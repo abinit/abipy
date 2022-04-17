@@ -45,7 +45,7 @@ def make_scf_input(scf_ngkpt, paral_kgb=0):
         nstep=150,
         nbdbuf=4,
         prtpot=1,        # Print potential for Sternheimer
-        #iomode=3,        # Produce output files in netcdf format.
+        #iomode=3,       # Produce output files in netcdf format.
     )
 
     return gs_inp
@@ -100,8 +100,8 @@ def build_flow(options):
 
     # Create work for phonon calculation on the coarse ddb_ngqpt q-mesh.
     # Electric field and Born effective charges are computed.
-    #ph_work = flowtk.PhononWfkqWork.from_scf_task(scf_task, ngqpt=ddb_ngqpt, with_becs=True, with_quad=False)
-    ph_work = flowtk.PhononWork.from_scf_task(scf_task, qpoints=ddb_ngqpt, is_ngqpt=True, with_becs=True, with_quad=False)
+    ph_work = flowtk.PhononWork.from_scf_task(scf_task, qpoints=ddb_ngqpt,
+                                              is_ngqpt=True, with_becs=True, with_quad=False)
     flow.register_work(ph_work)
 
     # Build template for e-ph self-energy calculation (real + imag part)
