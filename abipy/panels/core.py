@@ -87,7 +87,7 @@ def abipanel(panel_template="FastList"):
     ]
 
     css_files = [
-        #pn.io.resources.CSS_URLS['font-awesome'],
+        pn.io.resources.CSS_URLS['font-awesome'],
     ]
 
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
