@@ -853,7 +853,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
         # Sort results by max_ecut and add buttons to trigger callbacks
         df = df.sort_values("max_ecut")
-        dfw = pn.widgets.Tabulator(df, buttons={'accept': '<i class="fa fa-print"></i>')
+        dfw = pn.widgets.Tabulator(df, buttons={'accept': '<i class="fa fa-print"></i>'})
 
         def update_input(event):
             #print(f'Clicked {event.column!r} on row {event.row}')

@@ -73,12 +73,15 @@ def abipanel(panel_template="FastList"):
     set_abinit_template(panel_template)
 
     #pn.extension(loading_spinner='dots', loading_color='#00aa41')
-    #pn.extension(notifications=True)
+
+    pn.extension(notifications=True)
+    #pn.config.notifications = True
+    #pn.state.notifications.position = 'top-right'
 
     extensions = [
         "plotly",
-        #"mathjax",
         #"katex",
+        "mathjax",
         "terminal",
         "tabulator",
         "ace",   # NB: This enters in conflict with Abipy Book
@@ -263,12 +266,12 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
 
     # This counter is shared by all the instances.
     # We use it so that the js script is included only once.
-    _init_counter = [0]
+    #_init_counter = [0]
 
     def __init__(self, object=None, btn_cls=None, **params):
         super().__init__(object=object, **params)
 
-        self._init_counter[0] += 1
+        #self._init_counter[0] += 1
         my_id = gen_id()
         btn_cls = "bk bk-btn bk-btn-default" if btn_cls is None else str(btn_cls)
 
@@ -278,28 +281,31 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
 <br>
 <button class="clip-btn {btn_cls}" type="button" data-clipboard-target="#{my_id}"> Copy to clipboard </button>
 <hr>
+
 """
-        if self._init_counter[0] == 1:
-            new_text += "<script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
+        if True: # self._init_counter[0] == 1:
+            #new_text += " <script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
+            # $(document).ready(function() {
+            new_text += """ <script>
+if (typeof abipy_clipboard === 'undefined') {
+    var abipy_clipboard = new ClipboardJS('.clip-btn');
+}
+
+if (typeof abipy_notyf === 'undefined') {
+    // Create an instance of Notyf
+    var abipy_notyf = new Notyf();
+
+    abipy_clipboard.on('success', function(e) {
+        abipy_notyf.success('Text copied to clipboard');
+    });
+
+    abipy_clipboard.on('error', function(e) {
+        abipy_notyf.error('Cannot copy text to clipboard');
+    });
+}
+</script> """
 
         self.object = new_text
-
-
-# https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/js_actions/js_actions.py
-#def copy_to_clipboard():
-#    """Copy"""
-#    source_textarea = pnw..TextAreaInput(
-#        value="Copy this text to the clipboard by clicking the button",
-#        height=100,
-#    )
-#    copy_source_button = pnw.Button(name="✂ Copy Source Value", button_type="primary")
-#    copy_source_code = "navigator.clipboard.writeText(source.value);"
-#    copy_source_button.js_on_click(args={"source": source_textarea}, code=copy_source_code)
-#    paste_text_area = pnw.TextAreaInput(placeholder="Paste your value here", height=100)
-#    return pn.Column(
-#        pn.Row(source_textarea, copy_source_button, paste_text_area),
-#        name="✂ Copy to Clipboard",
-#    )
 
 
 def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True, **kwargs):
@@ -396,8 +402,8 @@ If everything is properly configured, a new window is automatically created in y
 
 
 def dfc(df: pd.DataFrame,
-        wdg_type: str = "dataframe",
-        #wdg_type: str ="tabulator",  # More recent version. Still problematic
+        #wdg_type: str = "dataframe",
+        wdg_type: str ="tabulator",  # More recent version. Still problematic
         with_export_btn=True, with_controls=False, with_divider=True, transpose=False, **kwargs):
     """
     Helper function returning a panel Column with a DataFrame or Tabulator widget followed by
@@ -466,7 +472,9 @@ def dfc(df: pd.DataFrame,
 
         # For the time being we use a Row with buttons.
         #ca(pn.Row(*d.values(), sizing_mode="scale_width"))
-        ca(pn.Card(*d.values(), title="Export table", collapsed=True, sizing_mode='stretch_width'))
+        ca(pn.Card(*d.values(), title="Export table", collapsed=True,
+                   sizing_mode='stretch_width', header_color="blue",
+        ))
 
         #def download(event):
         #    file_download = d[event.new]

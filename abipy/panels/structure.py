@@ -17,6 +17,7 @@ from abipy.tools.decorators import Appender
 add_inp_docstring = Appender("""
 kprra (number of **k**-points per reciprocal atom) defines the **k**-mesh for electrons.
 AbiPy will automatically compute the ABINIT variables [[ngkpt]], [[nshiftk]] and [[shiftk]] from kprra.
+
 The pseudopotentials are taken from the PseudoDojo table (XXX) according to value of `XC type`
 and `Pseudos type` and recommended values for [[ecut]] and [[pawecutdg]] and [[nband]]
 are automatically added to the input.
@@ -295,6 +296,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         This Tab provides widgets to generate a minimalistic ABINIT input file
         for ground-state calculations or structural relaxations.
         In the case of relaxation runs, the following variables are automatically added:
+
         [[optcell]] = 2, [[ionmov]] = 2, [[ecutsm]] = 0.5 and [[dilatmx]] = 1.05.
         """
         gs_inp = self.get_gs_input()
