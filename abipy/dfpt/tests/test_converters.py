@@ -24,7 +24,7 @@ test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
 
 def find_anaddbnc_in_dir(dirpath):
-    for n in ("anaddb.nc", "run_anaddb.nc"):
+    for n in ("anaddb.nc", "run_anaddb.nc", "out_anaddb.nc"):
         p = os.path.join(dirpath, n)
         if os.path.isfile(p): return p
 
@@ -87,7 +87,7 @@ class ConverterTest(AbipyTest):
 
             orig_phbands = ddb.anaget_phmodes_at_qpoints(qpoints=qpoints, asr=0, dipdip=0, chneut=0,
                                                          lo_to_splitting=False, workdir=orig_run_ana)
-            ananc_orig = abilab.abiopen(find_anaddbnc_in_dir(orig_run_ana))
+            ananc_orig = abilab.abiopen(find_anaddbnc_in_dir(os.path.join(orig_run_ana, "outdata")))
 
         nac = phonon.nac_params
         # remove nac_params to be sure that this does not enter into play.
@@ -103,7 +103,7 @@ class ConverterTest(AbipyTest):
 
         conv_phbands = ddb_conv.anaget_phmodes_at_qpoints(qpoints=qpoints, asr=0, dipdip=0, chneut=0,
                                                           lo_to_splitting=False, workdir=conv_run_ana)
-        ananc_conv = abilab.abiopen(find_anaddbnc_in_dir(conv_run_ana))
+        ananc_conv = abilab.abiopen(find_anaddbnc_in_dir(os.path.join(conv_run_ana, "outdata")))
 
         self.assertArrayAlmostEqual(orig_phbands.phfreqs, conv_phbands.phfreqs, decimal=5)
         self.assertArrayAlmostEqual(orig_phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy, decimal=3)
@@ -144,7 +144,7 @@ class ConverterTest(AbipyTest):
         # create the Phonopy object here to take advantage of the information in phonopy_conv
         phonon_orig = Phonopy(unitcell=phonon_conv.unitcell, supercell_matrix=scm, primitive_matrix=np.eye(3),
                               nac_params=None)
-        phonon_orig.set_force_constants(orig_fc)
+        phonon_orig.force_constants = orig_fc
 
         phfreqs_phonopy_orig = np.array([phonon_orig.get_frequencies(q.frac_coords) for q in qpoints])
         phfreqs_phonopy_conv = np.array([phonon_conv.get_frequencies(q.frac_coords) for q in qpoints])
@@ -152,7 +152,7 @@ class ConverterTest(AbipyTest):
         run_ana = os.path.join(tmp_dir, "run_anaddb")
         phbands = ddb.anaget_phmodes_at_qpoints(qpoints=qpoints, asr=0, dipdip=0, chneut=0,
                                                 lo_to_splitting=False, workdir=run_ana)
-        ananc = abilab.abiopen(find_anaddbnc_in_dir(run_ana))
+        ananc = abilab.abiopen(find_anaddbnc_in_dir(os.path.join(run_ana, "outdata")))
 
         self.assertArrayAlmostEqual(phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy_orig, decimal=3)
         self.assertArrayAlmostEqual(phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy_conv, decimal=3)
@@ -162,6 +162,8 @@ class ConverterTest(AbipyTest):
         self.assertArrayAlmostEqual(ananc.epsinf, conv_nac["dielectric"], decimal=5)
 
     def test_tdep_lotosplitting(self):
+        self.skip_if_not_phonopy()
+
         tmp_dir = tempfile.mkdtemp()
         primitive = get_phonopy_structure(abilab.Structure.from_file(os.path.join(test_dir, "MgO_phonopy_POSCAR")))
         born_path = parse_BORN(primitive, filename=os.path.join(test_dir, "MgO_phonopy_BORN"))
@@ -170,6 +172,8 @@ class ConverterTest(AbipyTest):
         self.assertTrue(os.path.isfile(loto_path))
 
     def test_tdep_ddb(self):
+        self.skip_if_not_phonopy()
+
         tmp_dir = tempfile.mkdtemp()
         out_ddb_path = os.path.join(tmp_dir, "out_DDB")
 

@@ -7,6 +7,7 @@ from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
 from abipy.core.testing import AbipyTest
 from abipy.abio.abivars import AbinitInputFile, AbinitInputParser, expand_star_syntax, structure_from_abistruct_fmt
+from abipy.abio.abivars import format_string_abivars
 
 
 class TestAbinitInputParser(AbipyTest):
@@ -313,3 +314,9 @@ xred_symbols
         from abipy.core.structure import Structure
         same_mgb2 = Structure.from_abistring(string)
         assert same_mgb2 == mgb2
+
+    def test_format_string_abivars(self):
+        assert format_string_abivars("ecut", 30) == 30
+        assert format_string_abivars("pseudos", ["xxx", "yyy"]) == '\n    "xxx,\n    yyy"'
+        assert format_string_abivars("pseudos", 'xxx') == '"xxx"'
+        assert format_string_abivars("pseudos", '"xxx"') == '"xxx"'

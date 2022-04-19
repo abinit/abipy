@@ -2,6 +2,7 @@
 import os
 import warnings
 import numpy as np
+from typing import Union, List, Tuple
 
 from pprint import pformat #, pprint
 from monty.string import is_string, boxed
@@ -659,6 +660,50 @@ class AbinitInputParser(object):
         varname = tok[:len(tok)-i]
 
         return varname, dtidx
+
+
+def format_string_abivars(varname, value, code="abinit") -> str:
+    """
+    Given a variable and its value, check if it is of string type and wraps it
+    in double quotes if needed.
+
+    Args:
+        varname: the name of the variable.
+        value: the value to format.
+        code: the code the variable refers to (e.g. "abinit", "anaddb")
+
+    Returns:
+        The properly formatted value.
+    """
+
+    var = get_codevars()[code].get(varname)
+    if var and var.vartype == "string":
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+
+        str_values = [str(v).strip() for v in value]
+
+        # handle gruns_ddbs separately as it supports a different syntax
+        # incompatible with other variables
+        if varname == "gruns_ddbs":
+            join_str = "\n    "
+            for i, str_val in enumerate(str_values):
+                if str_val[0] != '"':
+                    str_values[i] = '"' + str_val
+                if str_val[-1] != '"':
+                    str_values[i] += '"'
+        else:
+            join_str = ",\n    "
+            if str_values[0][0] != '"':
+                str_values[0] = '"' + str_values[0]
+            if str_values[-1][-1] != '"':
+                str_values[-1] += '"'
+
+        if len(str_values) > 1:
+            str_values[0] = "\n    " + str_values[0]
+
+        return join_str.join(str_values)
+    return value
 
 
 def structure_from_abistruct_fmt(string):
