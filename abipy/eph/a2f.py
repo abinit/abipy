@@ -8,6 +8,7 @@ Warning:
 """
 from __future__ import annotations
 
+import itertools
 import numpy as np
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
@@ -332,7 +333,7 @@ class A2f(object):
         lambda_style = a2f_style.copy()
         lambda_style["color"] = "red"
 
-        import itertools
+
         for idir, iatom in itertools.product(range(3), range(self.natom)):
             nu = idir + 3 * iatom
             ax = ax_mat[iatom, idir]
@@ -620,6 +621,13 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Close the file."""
         self.reader.close()
 
+    def get_panel(self, **kwargs):
+        """
+        Build panel with widgets to interact with the A2fFile either in a notebook or in panel app.
+        """
+        from abipy.panels.a2f import A2fFilePanel
+        return A2fFilePanel(ncfile=self).get_panel(**kwargs)
+
     #def interpolate(self, ddb, lpratio=5, vertices_names=None, line_density=20, filter_params=None, verbose=0):
     #    """
     #    Interpolate the phonon linewidths on a k-path and, optionally, on a k-mesh.
@@ -740,7 +748,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @add_fig_kwargs
     def plot(self, what="gamma", units="eV", scale=None, alpha=0.6, ylims=None, ax=None, colormap="jet", **kwargs):
         """
-        Plot phonon bands with gamma(q, nu) or lambda(q, nu) depending on the vaue of `what`.
+        Plot phonon bands with gamma(q, nu) or lambda(q, nu) depending on the value of `what`.
 
         Args:
             what: ``lambda`` for eph coupling strength, ``gamma`` for phonon linewidths.
@@ -834,7 +842,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_with_a2f(self, what="gamma", units="eV", qsamp="qintp", phdos=None, ylims=None, **kwargs):
+    def plot_with_a2f(self, what="gamma", units="eV", qsamp="qcoarse", phdos=None, ylims=None, **kwargs):
         """
         Plot phonon bands with lambda(q, nu) + a2F(w) + phonon DOS.
 

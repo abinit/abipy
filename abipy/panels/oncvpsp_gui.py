@@ -15,9 +15,6 @@ from monty.string import list_strings
 from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ButtonContext, Loading
 from pseudo_dojo.ppcodes.ppgen import OncvGenerator
 from pseudo_dojo.ppcodes.oncvpsp import OncvOutputParser
-#from pseudo_dojo.core.dojoreport import DojoReport
-#from pseudo_dojo.refdata.nist import database as nist
-
 
 
 GE_ANNOTATED = """
@@ -507,7 +504,7 @@ class OncvGui(AbipyParameterized):
 
     max_nprocs =  param.Integer(max(os.cpu_count() // 2, 1), bounds=(1, None))
 
-    dpi = param.Integer(72, bounds=(24, None))
+    dpi = param.Integer(82, bounds=(24, None))
 
     #in_filepath = param.String("", doc="The path to the oncvps input file.")
 
@@ -575,9 +572,6 @@ class OncvGui(AbipyParameterized):
         self.execute_btn = pnw.Button(name="Execute", button_type='primary')
         self.execute_btn.on_click(self.on_execute_btn)
 
-        #self.runtests_btn = pnw.Button(name="Run tests", button_type='primary')
-        #self.runtests_btn.on_click(self.on_runtests_btn)
-
         # This is the directory used to run oncvpsp when the user clicks execute_btn
         #self._execute_stdout_path = None
 
@@ -637,11 +631,11 @@ class OncvGui(AbipyParameterized):
         main = pn.Column(
             pn.Row(
                 self.pws_col(["calc_type", "max_nprocs",
-                              "dpi", "ace_theme", "execute_btn"]), # , "runtests_btn"
+                              "dpi", "ace_theme", "execute_btn"]),
                 self.input_ace,
-                #sizing_mode="stretch_both",
             ),
-            pn.Card(self.annotated_example, title='Annotated example', collapsed=True, sizing_mode="stretch_width"),
+            pn.Card(self.annotated_example, title='Annotated example', collapsed=True,
+                    header_color="blue", sizing_mode="stretch_width"),
             sizing_mode="stretch_width",
         )
 
@@ -904,7 +898,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, [f"debl = {debl:.2f}" for debl in debl_values],
                                         func_names=["plot_atan_logders"])
             col.append(grid)
@@ -945,7 +939,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, [f"rc5 = {rc5:.2f}" for rc5 in rc5_values],
                                         func_names=["plot_atanlogder_econv", "plot_potentials"])
             col.append(grid)
@@ -986,7 +980,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, [f"dvloc = {dvloc:.2f}" for dvloc in dvloc_values],
                                         func_names=["plot_atanlogder_econv", "plot_potentials"])
             col.append(grid)
@@ -1030,7 +1024,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, [f"rc = {rc:.2f} for l: {l}" for rc in rc_values])
             col.append(grid)
 
@@ -1098,7 +1092,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, titles,
                                        func_names=["plot_densities", "plot_den_formfact"])
             col.append(grid)
@@ -1129,7 +1123,9 @@ The present values of rc_l are: {rc_l}
 
     #@depends_on_btn_click('rc_qcut_btn')
     def on_change_rc_qcut(self, event):
-        """Foo/bar"""
+        """
+        Generate pseudos using a grid of (rc, qcut) values for given l.
+        """
         with ButtonContext(event.obj), Loading(self.rc_qcut_out_area):
             # Get initial rc(l) from input.
             l = int(event.new)
@@ -1214,39 +1210,44 @@ The present values of rc_l are: {rc_l}
 
     def _update_out_area(self, psgen, oncv_input):
 
-        #self.psgen_to_save = psgen
+        with Loading(self.out_area):
+            #self.psgen_to_save = psgen
+            plotter = psgen.plotter
+            _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
 
-        plotter = psgen.plotter
-        _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
+            save_btn = pnw.Button(name="Save output", button_type='primary')
+            save_btn.on_click(self.on_save_btn)
 
-        save_btn = pnw.Button(name="Save output", button_type='primary')
-        save_btn.on_click(self.on_save_btn)
+            new_rows = [
+                pn.Row(save_btn, self.in_filepath),
+                pn.layout.Divider(),
+                "## Pseudized Wavefunctions",
+                pn.Row(_m(plotter.plot_radial_wfs(show=False)),
+                       self.get_rc_widgets(oncv_input)),
+                pn.Row(_m(plotter.plot_radial_wfs(what="scattering_states", show=False))),
+                pn.layout.Divider(),
+                "## Logder and convergence profile",
+                pn.Row(_m(plotter.plot_atanlogder_econv(show=False)),
+                       self.get_qcut_widgets(oncv_input),
+                       self.get_debl_widgets(oncv_input)),
+                pn.layout.Divider(),
+                "## Pseudized local part",
+                pn.Row(_m(plotter.plot_potentials(show=False)),
+                       self.get_rc5_widgets(oncv_input),
+                       self.get_dvloc0_widgets(oncv_input)),
+                pn.layout.Divider(),
+                "## Model core charge",
+                pn.Row(_m(plotter.plot_densities(show=False)),
+                       self.get_rhomodel_widgets(oncv_input)),
+                pn.Row(_m(plotter.plot_den_formfact(show=False))),
+                pn.layout.Divider(),
+                "## Projectors",
+                pn.Row(_m(plotter.plot_projectors(show=False))),
+                pn.layout.Divider(),
+            ]
 
-        new_rows = [
-            pn.Row(save_btn, self.in_filepath),
-            pn.layout.Divider(),
-            pn.Row(_m(plotter.plot_radial_wfs(show=False)),
-                   self.get_rc_widgets(oncv_input)),
-            pn.Row(_m(plotter.plot_radial_wfs(what="scattering_states", show=False))),
-            pn.layout.Divider(),
-            pn.Row(_m(plotter.plot_atanlogder_econv(show=False)),
-                   self.get_qcut_widgets(oncv_input),
-                   self.get_debl_widgets(oncv_input)),
-            pn.layout.Divider(),
-            pn.Row(_m(plotter.plot_potentials(show=False)),
-                   self.get_rc5_widgets(oncv_input),
-                   self.get_dvloc0_widgets(oncv_input)),
-            pn.layout.Divider(),
-            pn.Row(_m(plotter.plot_densities(show=False)),
-                   self.get_rhomodel_widgets(oncv_input)),
-            pn.Row(_m(plotter.plot_den_formfact(show=False))),
-            pn.layout.Divider(),
-            pn.Row(_m(plotter.plot_projectors(show=False))),
-            pn.layout.Divider(),
-        ]
-
-        self.out_area.objects = new_rows
-        #self.tabs[0].active = 1
+            self.out_area.objects = new_rows
+            #self.tabs[0].active = 1
 
     def on_save_btn(self, event):
         with ButtonContext(event.obj):
@@ -1260,28 +1261,3 @@ The present values of rc_l are: {rc_l}
 
             # TODO: Transfer final output file.
             #shutil.copy(psgen.stdout_path, out_path)
-
-    #def on_runtests_btn(self, event):
-    #    """
-    #    This callback reads the input file from the ACE editor and run basic
-    #    Abinit calculations with different values of ecut in order to monitor the PW convergence.
-    #    The results are then used to setup hints for low, normal, and high accuracy.
-    #    """
-    #    with ButtonContext(event.obj), Loading(self.out_runtests):
-    #        print("In on_runtests_btn")
-    #        # Trigger `on_execute_btn` first so that we can show the latest plots
-    #        # and take a reference to the oncvpsp output files that will be passed to Abinit.
-    #        self.execute_btn.clicks += 1
-
-    #        oncv_input = self.get_oncv_input()
-    #        self.out_runtests.objects = []
-
-    #        #pseudo = ...
-    #        #ecut0 =
-    #        #flow = PseudoHintsFlow.from_pseudo(pseudo, ecut0)
-    #        #flow.start_and_wait()
-    #        # Get results from json file and show them so that the user of the GUI
-    #        # can validate and then provide hints.
-
-    #        new_rows = []
-    #        self.out_runtests.objects = new_rows

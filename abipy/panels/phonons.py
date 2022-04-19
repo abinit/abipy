@@ -7,6 +7,8 @@ from abipy.panels.core import AbipyParameterized, mpl, ply, dfc, depends_on_btn_
 
 
 class PhononBandsPlotterPanel(AbipyParameterized):
+    """
+    """
 
     def __init__(self, plotter, **params):
 

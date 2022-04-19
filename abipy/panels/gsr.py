@@ -12,24 +12,24 @@ class GsrFilePanel(PanelWithElectronBands):
     """
     Panel with widgets to interact with a |GsrFile|.
     """
-    def __init__(self, gsr, **params):
-        PanelWithElectronBands.__init__(self, ebands=gsr.ebands, **params)
-        self.gsr = gsr
+    def __init__(self, ncfile, **params):
+        PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
+        self.ncfile = ncfile
 
     def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the GSR file."""
         d = {}
 
-        d["Summary"] = self.get_summary_view_for_abiobj(self.gsr)
+        d["Summary"] = self.get_summary_view_for_abiobj(self.ncfile)
         d["e-Bands"] = self.get_plot_ebands_view()
 
-        kpoints = self.gsr.ebands.kpoints
+        kpoints = self.ncfile.ebands.kpoints
         if kpoints.is_ibz:
             # Add DOS tab but only if k-sampling.
             d["e-DOS"] = self.get_plot_edos_view()
             d["SKW"] = self.get_skw_view()
 
-            if not self.gsr.ebands.isnot_ibz_sampling():
+            if not self.ncfile.ebands.isnot_ibz_sampling():
                 d["Ifermi"] = self.get_ifermi_view()
                 #d["fsviewer"] = self.get_fsviewer_view()
 
@@ -37,7 +37,7 @@ class GsrFilePanel(PanelWithElectronBands):
             d["EffMass"] = self.get_effmass_view()
 
         d["Structure"] = self.get_structure_view()
-        d["NcFile"] = self.gsr.get_ncfile_view()
+        d["NcFile"] = self.ncfile.get_ncfile_view()
 
         # TODO
         #d["Global"] = pn.Row(

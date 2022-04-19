@@ -22,18 +22,20 @@ class FatBandsFilePanel(PanelWithElectronBands):
 
     @depends_on_btn_click('plot_fatbands_btn')
     def on_plot_fatbands_btn(self):
-
+        """
+        Plot fatbands grouped by atomic type and angular momentum l
+        """
         sz_mode = "stretch_width"
         col = pn.Column(sizing_mode=sz_mode); ca = col.append
 
         # Plot the electronic fatbands grouped by atomic type.
-        ca("## Electronic fatbands grouped by atomic type:")
+        ca("## Electronic fatbands grouped by atomic type")
         fig = self.ncfile.plotly_fatbands_typeview(e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None,
                                                    blist=None, fontsize=12, band_and_dos=0, show=False)
         ca(ply(fig))
 
-        # Plot the electronic fatbands grouped by L.
-        ca("## Electronic fatbands grouped by L:")
+        # Plot the electronic fatbands grouped by l
+        ca("## Electronic fatbands grouped by angular momentum l")
         fig = self.ncfile.plotly_fatbands_lview(e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None,
                                                 blist=None, fontsize=12, band_and_dos=0, show=False)
         ca(ply(fig))
@@ -42,7 +44,9 @@ class FatBandsFilePanel(PanelWithElectronBands):
 
     @depends_on_btn_click('plot_fatdos_btn')
     def on_plot_fatdos_btn(self):
-
+        """
+        Plot PJDOS grouped by atomic type and angular momentum l
+        """
         sz_mode = "stretch_width"
         col = pn.Column(sizing_mode=sz_mode); ca = col.append
 

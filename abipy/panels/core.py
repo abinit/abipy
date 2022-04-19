@@ -21,7 +21,6 @@ from monty.termcolor import cprint
 from abipy.core import abinit_units as abu
 from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
-#from abipy.tools.context_managers import Timer
 from abipy.tools.decorators import Appender
 
 
@@ -46,7 +45,7 @@ def get_abinit_template_cls_kwds():
     return cls, kwds
 
 
-def open_html(html_string: str, browser=None):
+def open_html(html_string: str, browser: str = None):
     """
     Open a string with an HTML document in browser.
     """
@@ -57,7 +56,7 @@ def open_html(html_string: str, browser=None):
         webbrowser.get(browser).open_new_tab(f"file://{tmpfile.name}")
 
 
-def abipanel(panel_template="FastList"):
+def abipanel(panel_template: str = "FastList"):
     """
     Activate panel extensions used by AbiPy. Return panel module.
 
@@ -108,6 +107,8 @@ def abipanel(panel_template="FastList"):
         # This for the jsmol viewer.
         "jsmol": "https://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
     })
+
+    #pn.extension('ipywidgets')
 
     #pn.config.js_files.update({
     #    'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js',
@@ -227,19 +228,6 @@ def depends_on_btn_click(btn_name: str,
     return decorator
 
 
-# TODO: Finalize
-#def my_depends(*args, **kwargs):
-#    show_exc = kwargs.pop("show_exc", False)
-#    def decorator(func):
-#        @functools.wraps(func)
-#        def decorated(*args, **kwargs):
-#            f = pn.depends(func, *args, **kwargs)
-#            if show_exc: f = show_exception(f)
-#        return f
-#
-#    return decorator
-
-
 def show_exception(func):
     """
     This decorator returns a Markdown pane with the backtrace
@@ -308,7 +296,7 @@ if (typeof abipy_notyf === 'undefined') {
         self.object = new_text
 
 
-def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True, **kwargs):
+def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True, **kwargs) -> pn.Column:
     """
     Helper function returning a panel Column with a matplotly pane followed by
     a divider and (optionally) controls to customize the figure.
@@ -325,6 +313,8 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
     #    print("mpl in interactive mode")
     #    kwargs["interactive"] = True
 
+    if "tight" not in kwargs: kwargs["tight"] = True
+
     mpl_pane = pn.pane.Matplotlib(fig, **kwargs)
     ca(mpl_pane)
 
@@ -339,7 +329,7 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
 
 
 def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=False,
-        with_divider=True, with_controls=False):
+        with_divider=True, with_controls=False) -> pn.Column:
     """
     Helper function returning a panel Column with a plotly pane,  buttons to push the figure
     to plotly chart studio and, optionally, controls to customize the figure.
@@ -388,9 +378,6 @@ If everything is properly configured, a new window is automatically created in y
             ca(pn.Row(btn, acc))
         else:
             ca(pn.Row(btn))
-
-        #card = pn.Card(btn, acc, title="Push", collapsed=True)
-        #ca(card)
 
     if with_controls:
         ca(pn.Accordion(("plotly controls", plotly_pane.controls(jslink=True))))
@@ -567,7 +554,7 @@ class ButtonContext():
 
     def __enter__(self):
         # Disable the button.
-        self.btn.name = "Executing ..."
+        self.btn.name = "Running ..."
         self.btn.button_type = "warning"
         self.btn.loading = True
         self.btn.disabled = True
@@ -777,7 +764,7 @@ class AbipyParameterized(param.Parameterized):
         return pnw.Select(name=name, options=exts)
 
     @staticmethod
-    def html_with_clipboard_btn(html_str, **kwargs):
+    def html_with_clipboard_btn(html_str: str, **kwargs):
         if hasattr(html_str, "_repr_html_"):
             html_str = html_str._repr_html_()
 
@@ -898,12 +885,6 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
         else:
             # Assume main area acts like a GridSpec
             template.main[:,:] = tabs
-
-        # Get widgets associated to Ph-bands tab and insert them in the sidebar.
-        #row = tabs[0]
-        #controllers, out = row[0], row[1]
-        #template.sidebar.append(controllers)
-        #template.main.append(out)
 
         return template
 
@@ -1084,7 +1065,7 @@ class PanelWithStructure(AbipyParameterized):
 
     def get_structure_view(self) -> pn.Row:
         """
-        Return tab entry to visualize the structure.
+        Return Row with widgets to visualize the structure.
         """
         return pn.Row(
             self.pws_col(["## Visualize structure",
@@ -1156,7 +1137,7 @@ class NcFileViewer(AbipyParameterized):
         self.ncfile = ncfile
         self.netcdf_info_btn = pnw.Button(name="Show info", button_type='primary')
 
-    def get_ncfile_view(self):
+    def get_ncfile_view(self) -> pn.Column:
         return pn.Column(
                 self.netcdf_info_btn,
                 self.on_netcdf_info_btn,
@@ -1164,7 +1145,7 @@ class NcFileViewer(AbipyParameterized):
         )
 
     @depends_on_btn_click('netcdf_info_btn')
-    def on_netcdf_info_btn(self):
+    def on_netcdf_info_btn(self) -> pn.Column:
         """
         This Tab allows one to
         """
@@ -1302,7 +1283,7 @@ class PanelWithElectronBands(PanelWithStructure):
         """
         self.skw_ebands_kpath = self._get_ebands_from_bstring(self.skw_ebands_kpath_fileinput)
 
-    def get_plot_ebands_view(self):
+    def get_plot_ebands_view(self) -> pn.Row:
         return pn.Row(
             self.pws_col(["### e-Bands Plot Options",
                           "with_gaps", "set_fermie_to_vbm", "with_kpoints_plot", "plot_ebands_btn",
@@ -1311,7 +1292,7 @@ class PanelWithElectronBands(PanelWithStructure):
         )
 
     @depends_on_btn_click('plot_ebands_btn')
-    def on_plot_ebands_btn(self):
+    def on_plot_ebands_btn(self) -> pn.Column:
         """
         This Tab allows one to plot the KS energies stored in the netcdf file
         as well as the associated list of **k**-points in the Brillouin.
@@ -1341,7 +1322,7 @@ class PanelWithElectronBands(PanelWithStructure):
 
         return col
 
-    def get_plot_edos_view(self):
+    def get_plot_edos_view(self) -> pn.Row:
         return pn.Row(
                 self.pws_col(["## E-DOS Options", "edos_method", "edos_step_ev",
                               "edos_width_ev", "plot_edos_btn"]),
@@ -1349,7 +1330,7 @@ class PanelWithElectronBands(PanelWithStructure):
                 )
 
     @depends_on_btn_click('plot_edos_btn')
-    def on_plot_edos_btn(self):
+    def on_plot_edos_btn(self) -> pn.Row:
         """
         Button triggering edos plot.
         """
@@ -1357,7 +1338,7 @@ class PanelWithElectronBands(PanelWithStructure):
 
         return pn.Row(ply(edos.plotly(show=False)), sizing_mode='scale_width')
 
-    def get_skw_view(self):
+    def get_skw_view(self) -> pn.Row:
         """
         Column with widgets to use SKW.
         """
@@ -1375,7 +1356,7 @@ class PanelWithElectronBands(PanelWithStructure):
             self.on_plot_skw_btn)
 
     @depends_on_btn_click('plot_skw_btn')
-    def on_plot_skw_btn(self):
+    def on_plot_skw_btn(self) -> pn.Column:
         """
         Button triggering SKW plot.
         """
@@ -1407,9 +1388,9 @@ class PanelWithElectronBands(PanelWithStructure):
 
         return col
 
-    def get_effmass_view(self):
+    def get_effmass_view(self) -> pn.Row:
         """
-        Widgets to compute effective masses with finite diff.
+        Return Row with widgets to compute effective masses with finite diff.
         """
         return pn.Row(
             self.pws_col(["### Effective masses options",
@@ -1422,7 +1403,7 @@ class PanelWithElectronBands(PanelWithStructure):
         )
 
     @depends_on_btn_click('plot_effmass_btn')
-    def on_plot_effmass_btn(self):
+    def on_plot_effmass_btn(self) -> pn.Column:
         """
         Compute and visualize effective masses with finite differences.
 
@@ -1680,7 +1661,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
         return pn.Row(pn.Column(mpl(fig)), sizing_mode='scale_width')
 
 
-def jsmol_html(structure, width=700, height=700, color="black", spin="false") -> pn.Column:
+def jsmol_html(structure, supercell=(1, 1, 1), width=700, height=700, color="black", spin="false")  -> pn.Column:
 
     cif_str = structure.write_cif_with_spglib_symms(None, ret_string=True) #, symprec=symprec
 
@@ -1694,11 +1675,8 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false") ->
 
     jsmol_div_id = gen_id()
     jsmol_app_name = "js1"
-    supercell = "{2, 2, 2}"
-    supercell = "{1, 1, 1}"
-
-    #script_str = 'load inline "%s" {1 1 1};' % cif_str
-    #script_str = "load $caffeine"
+    supercell = "{" + ",".join(str(s) for s in supercell) + "}"
+    #supercell = "{2, 2, 2}"
 
     # http://wiki.jmol.org/index.php/Jmol_JavaScript_Object/Functions#getAppletHtml
 

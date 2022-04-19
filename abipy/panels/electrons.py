@@ -10,6 +10,7 @@ from .core import AbipyParameterized, ActiveBar, ply, mpl, depends_on_btn_click
 class CompareEbandsWithMP(AbipyParameterized):
 
     with_gaps = param.Boolean(True)
+
     ylims_ev = param.Range(default=(-10, +10), doc="Energy window around the Fermi energy.")
 
     info_str = """
