@@ -13,7 +13,10 @@ from abipy.flowtk.psrepos import (OncvpspRepo, get_repo_from_name, encode_pseudo
 class TestPsRepos(AbipyTest):
 
     def test_encode_decode_filepath(self):
-        filepath = "/Users/gmatteo/.abinit/pseudos/ONCVPSP-PBEsol-SR-PDv0.4/Ni/Ni-sp.psp8"
+        repo = get_repo_from_name("ONCVPSP-PBEsol-SR-PDv0.4")
+        if not repo.is_installed():
+            raise self.SkipTest("ONCVPSP-PBEsol-SR-PDv0.4 should be installed")
+        filepath = os.path.join(repo.dirpath, "Ni/Ni-sp.psp8")
         encoded = encode_pseudopath(filepath)
         assert encoded == "@ONCVPSP-PBEsol-SR-PDv0.4/Ni/Ni-sp.psp8"
         assert decode_pseudopath(encoded) == filepath

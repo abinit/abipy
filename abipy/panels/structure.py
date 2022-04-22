@@ -2,7 +2,7 @@
 
 import os
 import io
-#import param
+import param
 import panel as pn
 import numpy as np
 import panel.widgets as pnw
@@ -10,13 +10,14 @@ import bokeh.models.widgets as bkw
 
 from abipy.core.structure import Structure
 from abipy.panels.core import (AbipyParameterized, PanelWithStructure, dfc, mpl, ply,
-    depends_on_btn_click, Loading,  add_mp_rest_docstring)
+    depends_on_btn_click, Loading, add_mp_rest_docstring)
 from abipy.tools.decorators import Appender
 
 
 add_inp_docstring = Appender("""
 kprra (number of **k**-points per reciprocal atom) defines the **k**-mesh for electrons.
 AbiPy will automatically compute the ABINIT variables [[ngkpt]], [[nshiftk]] and [[shiftk]] from kprra.
+
 The pseudopotentials are taken from the PseudoDojo table (XXX) according to value of `XC type`
 and `Pseudos type` and recommended values for [[ecut]] and [[pawecutdg]] and [[nband]]
 are automatically added to the input.
@@ -43,10 +44,10 @@ def _make_targz_bytes(inp_or_multi, remove_dir=True):
 
 class StructurePanel(PanelWithStructure):
     """
-    Panel with widgets to interact with an AbiPy Structure
+    Panel with widgets to interact with an AbiPy Structure.
     """
 
-    def __init__(self, structure: Structure, with_inputs=True, **params):
+    def __init__(self, structure: Structure, with_inputs: bool = True, **params):
         """
         Args:
             structure: |Structure| object.
@@ -85,8 +86,14 @@ class StructurePanel(PanelWithStructure):
                                         options=[None, "gaussian", "fermi_dirac"])
         self.tsmear = pnw.Spinner(name="tsmear (Ha)", value=0.01, step=0.002, start=0.0, end=None)
 
-        self.xc_type = pnw.Select(name="XC type", value="LDA", options=["LDA", "PBEsol", "PBE"])
-        self.pseudos_type = pnw.Select(name="Pseudos type", value="NC", options=["NC", "PAW"])
+        # TODO: nspinor 2 should trigger a check on the table.
+        from abipy.flowtk.psrepos import get_installed_repos_and_root
+        installed_repos, repos_root = get_installed_repos_and_root()
+        options = [repo.name for repo in installed_repos]
+        default_repo = "ONCVPSP-PBE-SR-PDv0.4"
+        default_repo = None if default_repo not in options else default_repo
+        self.repos_name = pnw.Select(name="PP repos", value=default_repo, options=options)
+        self.table_name = pnw.Select(name="Table name", value="standard", options=["standard", "stringent"])
 
         # widgets for GS input generator
         self.gs_type = pnw.Select(name="GS type", value="scf", options=["scf", "relax"])
@@ -98,7 +105,8 @@ class StructurePanel(PanelWithStructure):
 
         # widgets for DFPT phonons input generator.
         self.ph_input_btn = pnw.Button(name="Generate input", button_type='primary')
-        self.with_becs = pnw.Checkbox(name='BECS + dielt (semiconductors)', value=False)
+        self.with_becs = pnw.Checkbox(name='BECS and epsilon_inf (semiconductors)', value=False)
+        #self.dfpt_ngqpt = pnw.LiteralInput(name='ngqpt (python list)', value=[None, None, None], type=list)
         #self.dfpt_ngqpt = pnw.LiteralInput(name='ngqpt (python list)', value=[None, None, None], type=list)
 
         self.label2mode = {
@@ -171,7 +179,9 @@ class StructurePanel(PanelWithStructure):
 
     @pn.depends("kpath_format.value", "line_density.value")
     def get_kpath(self):
-        """Generate high-symmetry k-path from input structure in the ABINIT format."""
+        """
+        Generate high-symmetry k-path from input structure in the ABINIT format.
+        """
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
         s = self.structure.get_kpath_input_string(fmt=self.kpath_format.value,
@@ -189,15 +199,11 @@ class StructurePanel(PanelWithStructure):
         return col
 
     def _get_pseudos(self):
-        #self.xc_type.value
-        #self.pseudos_type.value
-
-        from abipy.data.hgh_pseudos import HGH_TABLE
-        return HGH_TABLE
-
-        #if self.pseudo_type.value == "NC":
-        #elif self.pseudo_type.value == "PAW":
-        #    raise ValueError("PAW pseudos are not available!")
+        #from abipy.data.hgh_pseudos import HGH_TABLE
+        #return HGH_TABLE
+        from abipy.flowtk.psrepos import get_repo_from_name
+        repo = get_repo_from_name(self.repos_name.value)
+        return repo.get_pseudos(self.table_name.value)
 
     def _get_smearing(self):
         smearing = None
@@ -233,6 +239,11 @@ class StructurePanel(PanelWithStructure):
         inp_or_multi.set_vars(pseudos='"%s"' % ", ".join(p.basename for p in inp_or_multi.pseudos))
 
         html = self.html_with_clipboard_btn(inp_or_multi._repr_html_())
+
+        pseudos = inp_or_multi.pseudos
+        nspinor = inp_or_multi.get("nspinor", 1)
+        if nspinor == 2 and any(not p.supports_soc for p in pseudos):
+            raise RuntimeError("The pseudopotential table selected does not support calculations with SOC!")
 
         def download_input():
             return _make_targz_bytes(inp_or_multi)
@@ -285,6 +296,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         This Tab provides widgets to generate a minimalistic ABINIT input file
         for ground-state calculations or structural relaxations.
         In the case of relaxation runs, the following variables are automatically added:
+
         [[optcell]] = 2, [[ionmov]] = 2, [[ecutsm]] = 0.5 and [[dilatmx]] = 1.05.
         """
         gs_inp = self.get_gs_input()
@@ -489,7 +501,8 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
             # Add tabs to generate inputs from structure.
             d["GS-input"] = pn.Row(
                 self.pws_col(['## Generate GS input',
-                              "gs_type", "spin_mode", "kppra", "smearing_type", "tsmear", "xc_type", "pseudos_type",
+                              "gs_type", "spin_mode", "kppra", "smearing_type", "tsmear",
+                              "repos_name", "table_name",
                               "gs_input_btn",
                              ]),
                 self.on_gs_input_btn
@@ -498,7 +511,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
             d["Ebands-input"] = pn.Row(
                 self.pws_col(['## Generate Ebands input',
                               "spin_mode", "kppra", "edos_kppra", "smearing_type", "tsmear",
-                              "xc_type", "pseudos_type",
+                              "repos_name", "table_name",
                               "ebands_input_btn",
                             ]),
                 self.on_ebands_input_btn
@@ -506,7 +519,8 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
             d["PH-input"] = pn.Row(
                 self.pws_col(['## Generate phonon input',
                               "spin_mode", "kppra", "smearing_type", "tsmear",
-                              "with_becs", "xc_type", "pseudos_type",
+                              "with_becs",
+                              "repos_name", "table_name",
                               "ph_input_btn",
                             ]),
                 self.on_ph_input_btn
@@ -524,8 +538,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
 class InputFileGenerator(AbipyParameterized):
 
-    #symprec
-    #angle_tolerance
+    abi_sanitize = param.Boolean(True, doc="Sanitize structure")
 
     info_str = """
 Generate ABINIT input files for performing basic
@@ -563,6 +576,12 @@ or through the Materials Project identifier (*mp-id*).
         self.mpid_input.param.watch(self.on_mpid_input, "value")
         self.mpid_err_wdg = pn.pane.Markdown("")
 
+    def _set_structure(self, structure):
+        if self.abi_sanitize:
+            structure = structure.abi_sanitize(symprec=1e-3, angle_tolerance=5,
+                                               primitive=True, primitive_standard=False)
+        self.input_structure = structure
+
     def on_file_input(self, event):
         self.mpid_err_wdg.object = ""
         #print("filename", self.file_input.filename)
@@ -575,20 +594,18 @@ or through the Materials Project identifier (*mp-id*).
         with open(tmp_path, "wb") as fh:
             fh.write(self.file_input.value)
 
-        self.input_structure = Structure.from_file(tmp_path)
+        self._set_structure(Structure.from_file(tmp_path))
+
         os.remove(tmp_path)
         self.update_main_area()
 
     def on_mpid_input(self, event):
         with Loading(self.mpid_input, err_wdg=self.mpid_err_wdg):
-            self.input_structure = Structure.from_mpid(self.mpid_input.value)
+            self._set_structure(Structure.from_mpid(self.mpid_input.value))
 
         self.update_main_area()
 
     def update_main_area(self):
-        #self.structure = self.input_structure.abi_sanitize(symprec=1e-3, angle_tolerance=5,
-        #                                                   primitive=True, primitive_standard=False)
-
         with Loading(self.main_area):
             d = self.input_structure.get_panel(as_dict=True)
             d = {k: d[k] for k in ("GS-input", "Ebands-input", "PH-input", "Summary")}
@@ -596,12 +613,14 @@ or through the Materials Project identifier (*mp-id*).
             self.main_area.objects = [tabs]
 
     def get_panel(self):
-
         col = pn.Column(
             "## Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, *POSCAR*):",
             self.get_fileinput_section(self.file_input),
             "## or get the structure from the [Materials Project](https://materialsproject.org/) database:",
-            pn.Row(self.mpid_input, pn.Column(self.mpid_err_wdg)), sizing_mode="stretch_width")
+            pn.Row(self.mpid_input, pn.Column(self.mpid_err_wdg)),
+            "## Invoke abi_sanitize to refine structure",
+            self.param.abi_sanitize,
+        sizing_mode="stretch_width")
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
         cls, kwds = self.get_abinit_template_cls_kwds()

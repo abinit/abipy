@@ -15,9 +15,6 @@ from monty.string import list_strings
 from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ButtonContext, Loading
 from pseudo_dojo.ppcodes.ppgen import OncvGenerator
 from pseudo_dojo.ppcodes.oncvpsp import OncvOutputParser
-#from pseudo_dojo.core.dojoreport import DojoReport
-#from pseudo_dojo.refdata.nist import database as nist
-
 
 
 GE_ANNOTATED = """
@@ -396,18 +393,18 @@ class OncvInput(AbipyParameterized):
         app(f"{self.lmax}")
         app("# l rc ep ncon nbas qcut (lmax+1 lines, l's must be in order)")
         for p in self.lparams:
-            app(f"{p.l} {p.rc} {p.ep} {p.ncon} {p.nbas} {p.qcut}")
+            app(f"{p.l} {p.rc:.2f} {p.ep:.2f} {p.ncon} {p.nbas} {p.qcut:.2f}")
         app("# LOCAL POTENTIAL")
         app("# lloc lpopt rc5 dvloc0")
-        app(f"{self.lloc} {self.lpopt} {self.rc5} {self.dvloc0}")
+        app(f"{self.lloc} {self.lpopt} {self.rc5:.2f} {self.dvloc0}")
         app("# VANDERBILT-KLEINMAN-BYLANDER PROJECTORs")
         app("# l nproj debl (lmax+1 lines, l's in order")
         for p in self.lparams:
-            app(f"{p.l} {p.nproj} {p.debl}")
+            app(f"{p.l} {p.nproj} {p.debl:.2f}")
 
         app("# MODEL CORE CHARGE")
         app("# icmod fcfact rcfact")
-        app(f"{self.icmod} {self.fcfact} {self.rcfact}")
+        app(f"{self.icmod} {self.fcfact:.2f} {self.rcfact:.2f}")
         app("# LOG DERIVATIVE ANALYSIS")
         app("# epsh1 epsh2 depsh")
         app(f"{self.epsh1} {self.epsh2} {self.depsh}")
@@ -460,7 +457,7 @@ def run_psgen(psgen: OncvGenerator, data: dict) -> dict:
             max_atan_logder_l1err = psgen.results.max_atan_logder_l1err
             max_psexc_abserr = psgen.results.max_psexc_abserr
             herm_err = psgen.results.herm_err
-            status=str(psgen.status),
+            status = str(psgen.status),
             nwarns = len(psgen.warnings)
 
     except Exception as exc:
@@ -503,9 +500,11 @@ class OncvGui(AbipyParameterized):
 
     calc_type = param.ObjectSelector(default="scalar-relativistic",
                                      objects=["scalar-relativistic", "fully-relativistic", "non-relativistic"],
-                                     doc="Relativistic effects")
+                                     label="Relativistic effects")
 
     max_nprocs =  param.Integer(max(os.cpu_count() // 2, 1), bounds=(1, None))
+
+    dpi = param.Integer(82, bounds=(24, None))
 
     #in_filepath = param.String("", doc="The path to the oncvps input file.")
 
@@ -537,6 +536,12 @@ class OncvGui(AbipyParameterized):
     rcfact_step = param.Number(0.2, bounds=(0, None))
     rcfact_dir = param.Selector(["centered", ">", "<"])
 
+    ace_theme = param.ObjectSelector(default="chrome",
+                                     objects=pnw.Ace.param.theme.objects,
+                                     doc="Theme of the editor")
+
+    history_idx = param.Integer(default=-1, label="History index")
+
     @classmethod
     def from_file(cls, path: str) -> OncvGui:
         """
@@ -547,26 +552,40 @@ class OncvGui(AbipyParameterized):
     def __init__(self, oncv_input, in_filepath="", **params):
         super().__init__(**params)
 
-        ace_kwargs = dict(sizing_mode='stretch_both') #print_margin=False, language='shell', max_length=150) # height=300,
+        self.ace_kwargs = dict(sizing_mode='stretch_both', print_margin=False, language='text', height=600,
+                          theme="chrome",
+                          #theme="dracula",
+                          #max_length=150,
+                          )
 
-        self.input_ace = pn.widgets.Ace(value=str(oncv_input), **ace_kwargs)
+        self.input_ace = pnw.Ace(value=str(oncv_input), **self.ace_kwargs)
+
         # Add annotated example for documentation purposes.
         self.annotated_example = pn.pane.HTML(f"<pre><code> {GE_ANNOTATED} </code></pre>")
 
         self.in_filepath = pnw.TextInput(value=in_filepath, placeholder='Enter the filepath...')
 
         self.out_area = pn.Column("## Oncvpsp output:",  sizing_mode="stretch_width")
-        self.out_runtests = pn.Column("## Basic tests:", sizing_mode="stretch_width")
+        #self.out_runtests = pn.Column("## Basic tests:", sizing_mode="stretch_width")
 
         # Define buttons
         self.execute_btn = pnw.Button(name="Execute", button_type='primary')
         self.execute_btn.on_click(self.on_execute_btn)
 
-        #self.runtests_btn = pnw.Button(name="Run tests", button_type='primary')
-        #self.runtests_btn.on_click(self.on_runtests_btn)
-
         # This is the directory used to run oncvpsp when the user clicks execute_btn
-        self._execute_stdout_path = None
+        #self._execute_stdout_path = None
+
+        # List storing all the inputs.
+        self.input_history = []
+        self.history_btn = pnw.Button(name="Compare", button_type='primary')
+        #self.history_btn.on_click(self.on_history_btn)
+
+        self.rc_qcut_btn = pnw.Button(name="Execute", button_type='primary')
+
+    @param.depends("ace_theme")
+    def change_ace_theme(self):
+        print("Changing theme")
+        self.input_ace.theme = self.ace_theme
 
     def get_oncv_input(self) -> OncvInput:
         """
@@ -574,6 +593,17 @@ class OncvGui(AbipyParameterized):
         with the last changes done by the user
         """
         return OncvInput.from_string(self.input_ace.value)
+
+    def set_oncv_input_string(self, new_string: str) -> OncvInput:
+        """
+        Update the string in the ACE editor, store previous string in history.
+        Return: OncvInput instance.
+        """
+        #print("Updating input with new_string:\n", new_string)
+        self.input_history.append(self.input_ace.value)
+        self.input_ace.value = new_string
+
+        return self.get_oncv_input()
 
     def starmap(self, func, list_of_args):
         import time
@@ -594,31 +624,77 @@ class OncvGui(AbipyParameterized):
         print(f"Done {len(list_of_args)} tasks in {time.time() - time_start} [s] with {max_nprocs_} processe(s)")
         return values
 
-    def __panel__(self):
-        head = pn.Column(
+    def get_panel(self, as_dict=False, **kwargs):
+        """Return tabs with widgets"""
+        d = {}
+
+        main = pn.Column(
             pn.Row(
-                self.pws_col(["calc_type", "max_nprocs", "execute_btn"]), # , "runtests_btn"
+                self.pws_col(["calc_type", "max_nprocs",
+                              "dpi", "ace_theme", "execute_btn"]),
                 self.input_ace,
-                #sizing_mode="stretch_both",
             ),
-            pn.Card(self.annotated_example, title='Annotated example', collapsed=True, sizing_mode="stretch_width"),
+            pn.Card(self.annotated_example, title='Annotated example', collapsed=True,
+                    header_color="blue", sizing_mode="stretch_width"),
             sizing_mode="stretch_width",
         )
 
-        return pn.Column(head,
-                         #pn.layout.Divider(),
-                         self.out_area,
-                         self.out_runtests,
-                         sizing_mode="stretch_width",
-                         )
+        d["Main"] =  pn.Column(main,
+                               #pn.layout.Divider(),
+                               self.out_area,
+                               #self.out_runtests,
+                               sizing_mode="stretch_width",
+                               )
+
+        d["Rc_qcut_opt"] = self.get_rc_qcut_opt_view()
+        d["History"] = self.get_history_view()
+
+        if as_dict: return d
+        template = self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        #self.tabs = template
+        #print(self.tabs)
+        return template
+
+    def get_history_view(self):
+        return pn.Row(
+            self.pws_col(["## History",
+                          "history_idx",
+                          "history_btn",
+                         ]),
+            self.on_history_btn
+        )
+
+    @depends_on_btn_click('history_btn')
+    def on_history_btn(self):
+        print("hello")
+        hist_len = len(self.input_history)
+        idx = self.history_idx
+        if hist_len == 0 or idx >= hist_len:
+            return pn.Column(f"hist_len == {hist_len}")
+
+        ace_hist = pnw.Ace(value=self.input_history[idx], **self.ace_kwargs)
+
+        fromlines = self.input_history[idx].splitlines()
+        tolines = self.input_ace.value.splitlines()
+        from difflib import HtmlDiff
+        html_table = HtmlDiff().make_table(fromlines, tolines) #, fromdesc='', todesc='', context=False, numlines=5)
+
+        return pn.Column(
+                f"## Input at history index: {idx}",
+                ace_hist,
+                pn.pane.HTML(html_table),
+        )
 
     def get_rc_widgets(self, oncv_input):
         """Return widgets to change the value of rc(l)"""
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
         menu_button = pnw.MenuButton(name='Change rc(l)', items=menu_items, button_type='primary')
         menu_button.on_click(self.on_change_rc)
+        rc_l = {p.l: p.rc for p in oncv_input.lparams}
         help_str = f"""
 Here one can change the value of rc(l).
+
+The present values of rc_l are: {rc_l}
 """
         return pn.WidgetBox(menu_button,
                             *[self.param[k] for k in ("rc_num", "rc_step", "rc_dir")],
@@ -697,16 +773,15 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
         Return a GridBox with the figures obtained by calling `plotter.func_name`
         for all the PseudoGenerators in psgens.
         """
-        # Generate plots with tiles by calling `func_name`.
-        _m = functools.partial(mpl, with_divider=False)
+        # Generate plots with titles by calling `func_name`.
+        _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
         func_names = list_strings(func_names)
         figs = []
         for psgen, title in zip(psgens, titles):
-            plotter = psgen.plotter
-            if plotter is not None:
+            if psgen.plotter is not None:
                 for func_name in func_names:
                     plot_func = getattr(psgen.plotter, func_name)
-                    figs.append(_m(plot_func(show=False, title=title)))
+                    figs.append(_m(plot_func(show=False, title=title, fig_close=True)))
 
         # Insert the figures in a GridBox.
         nfigs = len(figs)
@@ -745,12 +820,11 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             tasks = [(psgen, {"qcut": qcut}) for psgen, qcut in zip(psgens, qcut_values)]
             d_list = self.starmap(run_psgen, tasks)
 
-            df = pd.DataFrame(d_list, columns=list(d_list[0].keys()))
-            df.reset_index(drop=True, inplace=True)
+            dfw = self._build_table(tasks, d_list)
 
             head = pn.Row(pn.Column(
-                            f"## Qcut optimization for l: {l}",
-                            dfc(df, with_export_btn=False, with_divider=False),
+                            f"## Qcut optimization for l: {l}. Click the icon to update the input",
+                            dfw
                             ),
                          self.get_qcut_widgets(oncv_input))
 
@@ -762,6 +836,32 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             self.out_area.objects = col.objects
 
+    def _build_table(self, tasks, d_list):
+        """
+        Build and return a Tabulator widget with the results.
+        Also, register callbacks so that it is possible to
+        update the input file by clicking on the icon in the last column.
+        """
+
+        df = pd.DataFrame(d_list, columns=list(d_list[0].keys()))
+
+        # Sort results by max_ecut and add buttons to trigger callbacks
+        df = df.sort_values("max_ecut")
+        dfw = pn.widgets.Tabulator(df, buttons={'accept': '<i class="fa fa-print"></i>'})
+
+        def update_input(event):
+            #print(f'Clicked {event.column!r} on row {event.row}')
+            # Use the index to get the psgen as we have sorted along max_ecut
+            idx = dfw.value.index[event.row]
+            #print("select idx:", idx)
+            psgen = tasks[idx][0]
+            if event.column == "accept" and psgen.status == psgen.S_OK:
+                oncv_input = self.set_oncv_input_string(psgen.input_str)
+                self._update_out_area(psgen, oncv_input)
+
+        dfw.on_click(update_input)
+        return dfw
+
     def on_change_debl(self, event):
         """
         Change the value of debl(l), run oncvpsp and show the results.
@@ -770,9 +870,9 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             # Get initial qc(l) from input.
             l = int(event.new)
             oncv_input = self.get_oncv_input()
-            i0, debl0 = oncv_input.find_lparam(l, "debl")
 
             # Define list of qc to be tested and build list of OncvGenerator.
+            i0, debl0 = oncv_input.find_lparam(l, "debl")
             debl_values = build_mesh(debl0, self.debl_num, self.debl_step, self.debl_dir)
             psgens = []
 
@@ -788,18 +888,17 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             tasks = [(psgen, {"debl": debl}) for psgen, debl in zip(psgens, debl_values)]
             d_list = self.starmap(run_psgen, tasks)
 
-            df = pd.DataFrame(d_list, columns=list(d_list[0].keys()))
-            df.reset_index(drop=True, inplace=True)
+            dfw = self._build_table(tasks, d_list)
 
             head = pn.Row(pn.Column(
-                            f"## Debl optimization for l: {l}",
-                            dfc(df, with_export_btn=False, with_divider=False),
+                            f"## Debl optimization for l: {l}. Click the icon to update the input",
+                            dfw,
                             ),
                          self.get_debl_widgets(oncv_input))
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, [f"debl = {debl:.2f}" for debl in debl_values],
                                         func_names=["plot_atan_logders"])
             col.append(grid)
@@ -812,9 +911,9 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
         """
         with ButtonContext(event.obj), Loading(self.out_area):
             oncv_input = self.get_oncv_input()
-            rc5 = oncv_input.rc5
 
             # Define list of qc to be tested and build list of OncvGenerator.
+            rc5 = oncv_input.rc5
             rc5_values = build_mesh(rc5, self.rc5_num, self.rc5_step, self.rc5_dir)
             psgens = []
 
@@ -830,18 +929,17 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             tasks = [(psgen, {"rc5": rc5}) for psgen, rc5 in zip(psgens, rc5_values)]
             d_list = self.starmap(run_psgen, tasks)
 
-            df = pd.DataFrame(d_list, columns=list(d_list[0].keys()))
-            df.reset_index(drop=True, inplace=True)
+            dfw = self._build_table(tasks, d_list)
 
             head = pn.Row(pn.Column(
-                            f"## Rc5 optimization",
-                            dfc(df, with_export_btn=False, with_divider=False),
+                            f"## Rc5 optimization. Click the icon to update the input",
+                            dfw,
                             ),
                          self.get_rc5_widgets(oncv_input))
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, [f"rc5 = {rc5:.2f}" for rc5 in rc5_values],
                                         func_names=["plot_atanlogder_econv", "plot_potentials"])
             col.append(grid)
@@ -854,9 +952,9 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
         """
         with ButtonContext(event.obj), Loading(self.out_area):
             oncv_input = self.get_oncv_input()
-            dvloc0 = oncv_input.dvloc0
 
             # Define list of qc to be tested and build list of OncvGenerator.
+            dvloc0 = oncv_input.dvloc0
             dvloc_values = build_mesh(dvloc0, self.dvloc0_num, self.dvloc0_step, self.dvloc0_dir)
             psgens = []
 
@@ -872,18 +970,17 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             tasks = [(psgen, {"dvloc0": dvloc}) for psgen, dvloc in zip(psgens, dvloc_values)]
             d_list = self.starmap(run_psgen, tasks)
 
-            df = pd.DataFrame(d_list, columns=list(d_list[0].keys()))
-            df.reset_index(drop=True, inplace=True)
+            dfw = self._build_table(tasks, d_list)
 
             head = pn.Row(pn.Column(
-                            f"## dvloc0 optimization",
-                            dfc(df, with_export_btn=False, with_divider=False),
+                            f"## dvloc0 optimization. Click the icon to update the input",
+                            dfw,
                             ),
                          self.get_dvloc0_widgets(oncv_input))
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, [f"dvloc = {dvloc:.2f}" for dvloc in dvloc_values],
                                         func_names=["plot_atanlogder_econv", "plot_potentials"])
             col.append(grid)
@@ -898,9 +995,9 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             # Get initial rc(l) from input.
             l = int(event.new)
             oncv_input = self.get_oncv_input()
-            i0, rc0 = oncv_input.find_lparam(l, "rc")
 
             # Define list of qc to be tested and build list of OncvGenerator.
+            i0, rc0 = oncv_input.find_lparam(l, "rc")
             rc_values = build_mesh(rc0, self.rc_num, self.rc_step, self.rc_dir)
             psgens = []
 
@@ -916,19 +1013,18 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             tasks = [(psgen, {"rc": rc}) for psgen, rc in zip(psgens, rc_values)]
             d_list = self.starmap(run_psgen, tasks)
 
-            df = pd.DataFrame(d_list, columns=list(d_list[0].keys()))
-            df.reset_index(drop=True, inplace=True)
+            dfw = self._build_table(tasks, d_list)
 
             head = pn.Row(pn.Column(
-                            f"## Rc optimization for l: {l}",
-                            dfc(df, with_export_btn=False, with_divider=False),
+                            f"## Rc optimization for l: {l}. Click the icon to update the input",
+                            dfw,
                             ),
                          self.get_rc_widgets(oncv_input),
                          )
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, [f"rc = {rc:.2f} for l: {l}" for rc in rc_values])
             col.append(grid)
 
@@ -985,33 +1081,106 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             # Run each generator, get results, build pandas Dataframe and show it in out_area.
             d_list = self.starmap(run_psgen, tasks)
 
-            df = pd.DataFrame(d_list, columns=list(d_list[0].keys()))
-            df.reset_index(drop=True, inplace=True)
+            dfw = self._build_table(tasks, d_list)
 
             head = pn.Row(pn.Column(
-                            f"## Rho model optimization for icmod: {icmod}",
-                            dfc(df, with_export_btn=False, with_divider=False),
+                            f"## Rho model optimization for icmod: {icmod}. Click the icon to update the input",
+                            dfw,
                             ),
                          self.get_rhomodel_widgets(oncv_input),
                          )
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
-            # Add plots:
+            # Add plots
             grid = self.gridplot_psgens(psgens, titles,
                                        func_names=["plot_densities", "plot_den_formfact"])
             col.append(grid)
 
             self.out_area.objects = col.objects
 
+    def get_rc_qcut_opt_view(self):
+        oncv_input = self.get_oncv_input()
+
+        menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
+        menu_button = pnw.MenuButton(name='Change qcut(l)', items=menu_items, button_type='primary')
+        menu_button.on_click(self.on_change_rc_qcut)
+        qc_l = {p.l: p.qcut for p in oncv_input.lparams}
+        rc_l = {p.l: p.rc for p in oncv_input.lparams}
+        help_str = f"""
+Here one can change the value of rc(l) and qcut(l).
+
+The present values of qc_l are: {qc_l}
+The present values of rc_l are: {rc_l}
+"""
+        self.rc_qcut_out_area = pn.Column(sizing_mode="stretch_width")
+        wbox = pn.WidgetBox(menu_button,
+                            *[self.param[k] for k in ("qcut_num", "qcut_step", "qcut_dir")],
+                            *[self.param[k] for k in ("rc_num", "rc_step", "rc_dir")],
+                             help_str)
+
+        return pn.Row(wbox, self.rc_qcut_out_area, sizing_mode="stretch_width")
+
+    #@depends_on_btn_click('rc_qcut_btn')
+    def on_change_rc_qcut(self, event):
+        """
+        Generate pseudos using a grid of (rc, qcut) values for given l.
+        """
+        with ButtonContext(event.obj), Loading(self.rc_qcut_out_area):
+            # Get initial rc(l) from input.
+            l = int(event.new)
+            oncv_input = self.get_oncv_input()
+
+            # Define list of qc to be tested and build list of OncvGenerator.
+            i0, rc0 = oncv_input.find_lparam(l, "rc")
+            rc_values = build_mesh(rc0, self.rc_num, self.rc_step, self.rc_dir)
+
+            # Define list of qc to be tested and build list of OncvGenerator.
+            i0, qcut0 = oncv_input.find_lparam(l, "qcut")
+            qcut_values = build_mesh(qcut0, self.qcut_num, self.qcut_step, self.qcut_dir)
+
+            def rq_prod():
+                return itertools.product(rc_values, qcut_values)
+
+            psgens = []
+            try:
+                for rc, qcut in rq_prod():
+                    oncv_input.lparams[i0].rc = rc
+                    oncv_input.lparams[i0].qcut = qcut
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+            finally:
+                # Restore the initial value.
+                oncv_input.lparams[i0].rc = rc0
+                oncv_input.lparams[i0].qcut = qcut0
+
+            # Run each generator, get results, build pandas Dataframe and show it in out_area.
+            tasks = [(psgen, {"rc": rc, "qcut": qcut}) for psgen, (rc, qcut) in zip(psgens, rq_prod())]
+            d_list = self.starmap(run_psgen, tasks)
+
+            dfw = self._build_table(tasks, d_list)
+
+            head = pn.Row(pn.Column(
+                            f"## Rc/qcut optimization for l: {l}. Click the icon to update the input",
+                            dfw,
+                            ),
+                         )
+
+            col = pn.Column(head, sizing_mode="stretch_width")
+
+            # Add plots:
+            grid = self.gridplot_psgens(psgens, [f"rc = {rc:.2f}, qc = {qc:.2f} for l: {l}"
+                                        for rc, qc in rq_prod()])
+            col.append(grid)
+
+            self.rc_qcut_out_area.objects = col.objects
+
     #@depends_on_btn_click('execute_btn')
     def on_execute_btn(self, event):
         """
-        Build a new generator from the input file, and add it to the queue.
+        Build a new generator from the input file, run it and update out_area.
         """
         with ButtonContext(event.obj), Loading(self.out_area):
             oncv_input = self.get_oncv_input()
-            self.out_area.objects = []
             psgen = OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type)
             print("Running in workdir:", psgen.workdir)
             psgen.start()
@@ -1022,7 +1191,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             #    cprint("oncvpsp returned %s. Exiting" % retcode, "red")
             #    return 1
 
-            out_path = self._execute_stdout_path = psgen.stdout_path
+            #out_path = self._execute_stdout_path = psgen.stdout_path
 
             # Parse the output file
             #onc_parser = OncvOutputParser(out_path)
@@ -1037,8 +1206,14 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             # TODO:
             # Tranfer final output file.
 
+            self._update_out_area(psgen, oncv_input)
+
+    def _update_out_area(self, psgen, oncv_input):
+
+        with Loading(self.out_area):
+            #self.psgen_to_save = psgen
             plotter = psgen.plotter
-            _m = functools.partial(mpl, with_divider=False)
+            _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
 
             save_btn = pnw.Button(name="Save output", button_type='primary')
             save_btn.on_click(self.on_save_btn)
@@ -1046,60 +1221,43 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             new_rows = [
                 pn.Row(save_btn, self.in_filepath),
                 pn.layout.Divider(),
+                "## Pseudized Wavefunctions",
                 pn.Row(_m(plotter.plot_radial_wfs(show=False)),
                        self.get_rc_widgets(oncv_input)),
                 pn.Row(_m(plotter.plot_radial_wfs(what="scattering_states", show=False))),
                 pn.layout.Divider(),
+                "## Logder and convergence profile",
                 pn.Row(_m(plotter.plot_atanlogder_econv(show=False)),
                        self.get_qcut_widgets(oncv_input),
                        self.get_debl_widgets(oncv_input)),
                 pn.layout.Divider(),
+                "## Pseudized local part",
                 pn.Row(_m(plotter.plot_potentials(show=False)),
                        self.get_rc5_widgets(oncv_input),
                        self.get_dvloc0_widgets(oncv_input)),
                 pn.layout.Divider(),
+                "## Model core charge",
                 pn.Row(_m(plotter.plot_densities(show=False)),
                        self.get_rhomodel_widgets(oncv_input)),
                 pn.Row(_m(plotter.plot_den_formfact(show=False))),
                 pn.layout.Divider(),
+                "## Projectors",
                 pn.Row(_m(plotter.plot_projectors(show=False))),
                 pn.layout.Divider(),
             ]
 
             self.out_area.objects = new_rows
+            #self.tabs[0].active = 1
 
     def on_save_btn(self, event):
         with ButtonContext(event.obj):
             print("on_save_button")
-            self._execute_stdout_path
+            #self._execute_stdout_path
             out_path = self.in_filepath.value
             if not out_path:
                 raise ValueError("out_path cannot be empty.")
 
-            # Tranfer final output file.
+            #self.psgen_to_save = psgen
+
+            # TODO: Transfer final output file.
             #shutil.copy(psgen.stdout_path, out_path)
-
-    def on_runtests_btn(self, event):
-        """
-        This callback reads the input file from the ACE editor and run basic
-        Abinit calculations with different values of ecut in order to monitor the PW convergence.
-        The results are then used to setup hints for low, normal, and high accuracy.
-        """
-        with ButtonContext(event.obj), Loading(self.out_runtests):
-            print("In on_runtests_btn")
-            # Trigger `on_execute_btn` first so that we can show the latest plots
-            # and take a reference to the oncvpsp output files that will be passed to Abinit.
-            self.execute_btn.clicks += 1
-
-            oncv_input = self.get_oncv_input()
-            self.out_runtests.objects = []
-
-            #pseudo = ...
-            #ecut0 =
-            #flow = PseudoHintsFlow.from_pseudo(pseudo, ecut0)
-            #flow.start_and_wait()
-            # Get results from json file and show them so that the user of the GUI
-            # can validate and then provide hints.
-
-            new_rows = []
-            self.out_runtests.objects = new_rows

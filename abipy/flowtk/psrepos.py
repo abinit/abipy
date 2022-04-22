@@ -131,6 +131,9 @@ def get_repo_from_name(repo_name: str) -> PseudosRepo:
 
 
 def get_installed_repos_and_root(dirpath: Optional[str] = None) -> Tuple[List[PseudosRepo], str]:
+    """
+    Return (all_repos, dirpath)
+    """
     dirpath = REPOS_ROOT if not dirpath else dirpath
     dir_basenames = [name for name in os.listdir(dirpath) if os.path.isdir(os.path.join(dirpath, name))]
     dirname2repo = {repo.name: repo for repo in _ALL_REPOS}
@@ -220,6 +223,9 @@ class PseudosRepo(abc.ABC):
     def ispaw(self) -> bool:
         """True if PAW repo."""
         return self.ps_type == "PAW"
+
+    #@property
+    #def all_table_names(self) -> List[str]:
 
     @property
     def dirpath(self) -> str:

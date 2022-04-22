@@ -65,7 +65,7 @@ class QhaTest(AbipyTest):
 
         qha = QHA.from_files(self.gsr_paths, self.dos_paths)
 
-        from phonopy.qha import QHA as QHA_phonopy
+        from phonopy.qha.core import QHA as QHA_phonopy
         qha_ph = qha.get_phonopy_qha(tstop=500, num=11)
         self.assertIsInstance(qha_ph, QHA_phonopy)
         qha_ph.run()
@@ -136,7 +136,7 @@ class Qha3pfTest(AbipyTest):
 
         qha = QHA3PF.from_files(self.gsr_paths, self.dos_paths[1:4], ind_doses=[1, 2, 3])
 
-        from phonopy.qha import QHA as QHA_phonopy
+        from phonopy.qha.core import QHA as QHA_phonopy
         qha_ph = qha.get_phonopy_qha(tstop=500, num=11)
         self.assertIsInstance(qha_ph, QHA_phonopy)
         qha_ph.run()
@@ -190,7 +190,7 @@ class Qha3pTest(AbipyTest):
 
         qha = QHA3P.from_files(self.gsr_paths, self.gruns_path, ind_doses=[1, 2, 3])
 
-        from phonopy.qha import QHA as QHA_phonopy
+        from phonopy.qha.core import QHA as QHA_phonopy
         qha_ph = qha.get_phonopy_qha(tstop=500, num=11)
         self.assertIsInstance(qha_ph, QHA_phonopy)
         qha_ph.run()

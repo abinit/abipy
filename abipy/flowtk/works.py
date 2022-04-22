@@ -1027,25 +1027,27 @@ class BandStructureWork(Work):
         Args:
             scf_input: Input for the GS-SCF run.
             dos_ngkpt: K-mesh for e-DOS. Set it to None to skip this task.
-            nb_extra: Extra bands to to be added to input nband if nscf_nband is None.
+            nb_extra: Extra bands to be added to the input nband.
             ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
                 if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
                 in the segment is proportional to its length. Typical value: -20.
                 This option is the recommended one if the k-path contains two consecutive high symmetry k-points
                 that are very close as ndivsm > 0 may produce a very large number of wavevectors.
             prtdos: By default, we compute L-projections with tetrahedron method.
-                Set ptrdos to zero to deactivate the L-projection.
+                Set prtdos to zero to deactivate L-projections.
         """
         # Build input for NSCF along k-path.
         nscf_input = scf_input.make_ebands_input(ndivsm=ndivsm, tolwfr=1e-20, nscf_nband=None, nb_extra=nb_extra,
                                                  nstep=100)
         nscf_input["prtdos"] = prtdos
+        #if prtdos != 0: nscf_input.set_ratpsh(ratsph_mode)
 
         dos_input = None
         if dos_ngkpt is not None:
             # Build input for NSCF with k-mesh.
             dos_input = scf_input.make_edos_input(dos_ngkpt, shiftk=dos_shiftk, tolwfr=1e-20, nb_extra=nb_extra, nstep=100)
             dos_input["prtdos"] = prtdos
+            #if prtdos != 0: dos_input.set_ratpsh(ratsph_mode)
 
         return cls(scf_input, nscf_input, [dos_input])
 

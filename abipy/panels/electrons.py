@@ -10,6 +10,7 @@ from .core import AbipyParameterized, ActiveBar, ply, mpl, depends_on_btn_click
 class CompareEbandsWithMP(AbipyParameterized):
 
     with_gaps = param.Boolean(True)
+
     ylims_ev = param.Range(default=(-10, +10), doc="Energy window around the Fermi energy.")
 
     info_str = """
@@ -94,7 +95,7 @@ class SkwPanelWithFileInput(AbipyParameterized):
 
     info_str = """
 This app allows users to upload two files with KS energies.
-The first file gives the energies in the IBZ used to perform the SKW interpolation
+The first file gives the energies in the IBZ used to perform the SKW interpolation (NB: this file is mandatory).
 The second file contains the enegies along a k-path.
 The interpolated energies are then compared with the ab-initio ones on the k-path.
 The user can change the SKW intepolation parameters to gauge the quality of the SKW fit.

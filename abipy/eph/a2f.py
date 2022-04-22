@@ -6,12 +6,16 @@ and Eliashberg function).
 Warning:
     Work in progress, DO NOT USE THIS CODE.
 """
+from __future__ import annotations
+
+import itertools
 import numpy as np
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from scipy.integrate import cumtrapz, simps
+#from typing import List, Any
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -79,7 +83,7 @@ class A2f(object):
         #self.lambdaw ?
 
     @lazy_property
-    def iw0(self):
+    def iw0(self) -> int:
         """
         Index of the first point in the mesh whose value is >= 0
         Integrals are performed with wmesh[iw0 + 1, :] i.e. unstable modes are neglected.
@@ -89,10 +93,10 @@ class A2f(object):
         else:
             raise ValueError("Cannot find zero in energy mesh")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, title=None, verbose=0):
+    def to_string(self, title: str = None, verbose: int = 0) -> str:
         """
         String representation with verbosity level ``verbose`` and an optional ``title``.
         """
@@ -100,7 +104,6 @@ class A2f(object):
 
         app("Eliashberg Function" if not title else str(title))
         # TODO: Add ElectronDos
-        #app("Isotropic lambda: %.3f" % (self.lambda_iso))
         app("Isotropic lambda: %.2f, omega_log: %.3f (eV), %.3f (K)" % (
             self.lambda_iso, self.omega_log, self.omega_log * abu.eV_to_K))
         app("Q-mesh: %s" % str(self.ngqpt))
@@ -121,12 +124,12 @@ class A2f(object):
         return "\n".join(lines)
 
     @lazy_property
-    def lambda_iso(self):
+    def lambda_iso(self) -> float:
         """Isotropic lambda."""
         return self.get_moment(n=0)
 
     @lazy_property
-    def omega_log(self):
+    def omega_log(self) -> float:
         r"""
         Logarithmic moment of alpha^2F: exp((2/\lambda) \int dw a2F(w) ln(w)/w)
         """
@@ -138,7 +141,7 @@ class A2f(object):
 
         return np.exp(1.0 / self.lambda_iso * integral)
 
-    def get_moment(self, n, spin=None, cumulative=False):
+    def get_moment(self, n: int, spin=None, cumulative: bool = False) -> float:
         r"""
         Computes the moment of a2F(w) i.e. $\int dw [a2F(w)/w] w^n$
         From Allen PRL 59 1460 (See also Grimvall, Eq 6.72 page 175)
@@ -156,7 +159,7 @@ class A2f(object):
 
         return vals if cumulative else vals[-1].copy()
 
-    def get_moment_nu(self, n, nu, spin=None, cumulative=False):
+    def get_moment_nu(self, n: int, nu: int, spin=None, cumulative: bool = False) -> float:
         r"""
         Computes the moment of a2F(w) i.e. $\int dw [a2F(w)/w] w^n$
         From Allen PRL 59 1460 (See also Grimvall, Eq 6.72 page 175)
@@ -174,23 +177,20 @@ class A2f(object):
 
         return vals if cumulative else vals[-1].copy()
 
-    def get_mcmillan_tc(self, mustar):
+    def get_mcmillan_tc(self, mustar: float) -> float:
         """
-        Computes the critical temperature with the McMillan equation and the input mustar.
-
-        Return: Tc in Kelvin.
+        Computes the critical temperature Tc in K computed with the McMillan equation
+        and the input mustar.
         """
         tc = (self.omega_log / 1.2) * \
             np.exp(-1.04 * (1.0 + self.lambda_iso) / (self.lambda_iso - mustar * (1.0 + 0.62 * self.lambda_iso)))
 
         return tc * abu.eV_to_K
 
-    def get_mustar_from_tc(self, tc):
+    def get_mustar_from_tc(self, tc: float) -> float:
         """
-        Return the value of mustar that gives the critical temperature ``tc`` in the McMillan equation.
-
-        Args:
-            tc: Critical temperature in Kelvin.
+        Return the value of mustar that gives the critical temperature ``tc`` in Kelving
+        in the McMillan equation.
         """
         l = self.lambda_iso
         num = l + (1.04 * (1 + l) / np.log(1.2 * abu.kb_eVK * tc / self.omega_log))
@@ -333,7 +333,7 @@ class A2f(object):
         lambda_style = a2f_style.copy()
         lambda_style["color"] = "red"
 
-        import itertools
+
         for idir, iatom in itertools.product(range(3), range(self.natom)):
             nu = idir + 3 * iatom
             ax = ax_mat[iatom, idir]
@@ -515,16 +515,23 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         if verbose:
             app("Has transport a2Ftr(w): %s" % self.has_a2ftr)
         app("")
+
+        def print_a2f(a2f, title):
+            app(title)
+            app("Isotropic lambda: %.2f, omega_log: %.3f (eV), %.3f (K)" % (
+                a2f.lambda_iso, a2f.omega_log, a2f.omega_log * abu.eV_to_K))
+            for mu in (0.1, 0.16):
+                tc = a2f.get_mcmillan_tc(mu)
+                app(f"Tc[mu={mu}]: {tc} (K)")
+
         a2f = self.a2f_qcoarse
-        app("a2f(w) on the %s q-mesh (ddb_ngqpt|eph_ngqpt)" % str(a2f.ngqpt))
-        app("Isotropic lambda: %.2f, omega_log: %.3f (eV), %.3f (K)" % (
-            a2f.lambda_iso, a2f.omega_log, a2f.omega_log * abu.eV_to_K))
+        print_a2f(a2f, "a2f(w) on the %s q-mesh (ddb_ngqpt|eph_ngqpt)" % str(a2f.ngqpt))
         #app(self.a2f_qcoarse.to_string(title=title, verbose=verbose))
         app("")
         a2f = self.a2f_qintp
-        app("a2f(w) Fourier interpolated on the %s q-mesh (ph_ngqpt)" % str(a2f.ngqpt))
-        app("Isotropic lambda: %.2f, omega_log: %.3f (eV), %.3f (K)" % (
-            a2f.lambda_iso, a2f.omega_log, a2f.omega_log * abu.eV_to_K))
+        print_a2f(a2f, "a2f(w) Fourier interpolated on the %s q-mesh (ph_ngqpt)" % str(a2f.ngqpt))
+        #app("Isotropic lambda: %.2f, omega_log: %.3f (eV), %.3f (K)" % (
+        #    a2f.lambda_iso, a2f.omega_log, a2f.omega_log * abu.eV_to_K))
         #app(self.a2f_qintp.to_string(title=title, verbose=verbose))
 
         return "\n".join(lines)
@@ -613,6 +620,13 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def close(self):
         """Close the file."""
         self.reader.close()
+
+    def get_panel(self, **kwargs):
+        """
+        Build panel with widgets to interact with the A2fFile either in a notebook or in panel app.
+        """
+        from abipy.panels.a2f import A2fFilePanel
+        return A2fFilePanel(ncfile=self).get_panel(**kwargs)
 
     #def interpolate(self, ddb, lpratio=5, vertices_names=None, line_density=20, filter_params=None, verbose=0):
     #    """
@@ -734,7 +748,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @add_fig_kwargs
     def plot(self, what="gamma", units="eV", scale=None, alpha=0.6, ylims=None, ax=None, colormap="jet", **kwargs):
         """
-        Plot phonon bands with gamma(q, nu) or lambda(q, nu) depending on the vaue of `what`.
+        Plot phonon bands with gamma(q, nu) or lambda(q, nu) depending on the value of `what`.
 
         Args:
             what: ``lambda`` for eph coupling strength, ``gamma`` for phonon linewidths.
@@ -828,7 +842,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_with_a2f(self, what="gamma", units="eV", qsamp="qintp", phdos=None, ylims=None, **kwargs):
+    def plot_with_a2f(self, what="gamma", units="eV", qsamp="qcoarse", phdos=None, ylims=None, **kwargs):
         """
         Plot phonon bands with lambda(q, nu) + a2F(w) + phonon DOS.
 
