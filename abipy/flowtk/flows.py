@@ -396,8 +396,6 @@ class Flow(Node, NodeContainer, MSONable):
 
             flow.set_pyfile(__file__)
         """
-        # TODO: Could use a frame hack to get the caller outside abinit
-        # so that pyfile is automatically set when we __init__ it!
         self._pyfile = os.path.abspath(pyfile)
 
     @property
@@ -1590,13 +1588,12 @@ class Flow(Node, NodeContainer, MSONable):
         results = self.Results.from_node(self)
         return results
 
-    def look_before_you_leap(self):
+    def look_before_you_leap(self) -> str:
         """
         This method should be called before running the calculation to make
         sure that the most important requirements are satisfied.
 
-        Return:
-            List of strings with inconsistencies/errors.
+        Return: string with inconsistencies/errors.
         """
         errors = []
 
@@ -1732,6 +1729,11 @@ class Flow(Node, NodeContainer, MSONable):
 
         return stream.writelines(lines)
 
+    #def change_inputs(self, status=None, nids=None): #, stream=sys.stdout):
+    #    tasks = list(self.iflat_tasks(status=status, nids=nids))
+    #    for task in tasks.
+    #        d = task.read_json_input()
+
     def debug(self, status=None, nids=None, stream=sys.stdout):
         """
         This method is usually used when the flow didn't completed succesfully
@@ -1773,7 +1775,7 @@ class Flow(Node, NodeContainer, MSONable):
             print(make_banner(str(task), width=ncols, mark="="), file=stream)
             ntasks += 1
 
-            #  Start with error files.
+            # Start with error files.
             for efname in ["qerr_file", "stderr_file",]:
                 err_file = getattr(task, efname)
                 if err_file.exists:
@@ -1827,7 +1829,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         print("Number of tasks analyzed: %d" % ntasks, file=stream)
 
-    def cancel(self, nids=None):
+    def cancel(self, nids=None) -> int:
         """
         Cancel all the tasks that are in the queue.
         nids is an optional list of node identifiers used to filter the tasks.
@@ -1861,9 +1863,9 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         return num_cancelled
 
-    def get_njobs_in_queue(self, username=None):
+    def get_njobs_in_queue(self, username=None) -> int:
         """
-        returns the number of jobs in the queue, None when the number of jobs cannot be determined.
+        Returns the number of jobs in the queue, None when the number of jobs cannot be determined.
 
         Args:
             username: (str) the username of the jobs to count (default is to autodetect)
@@ -1979,7 +1981,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                         protocol=self.pickle_protocol if protocol is None else protocol)
         return strio.getvalue()
 
-    def register_task(self, input, deps=None, manager=None, task_class=None, append=False):
+    def register_task(self, input, deps=None, manager=None, task_class=None, append=False) -> Work:
         """
         Utility function that generates a `Work` made of a single task
 
@@ -2079,6 +2081,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         Returns:
             The |Work| that will be finalized by the callback.
         """
+        # TODO: Can be removed!
         # TODO: pass a Work factory instead of a class
         # Directory of the Work.
         work_workdir = os.path.join(self.workdir, "w" + str(len(self)))
@@ -2278,7 +2281,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         return 0
 
-    def set_garbage_collector(self, exts=None, policy="task"):
+    def set_garbage_collector(self, exts=None, policy="task") -> None:
         """
         Enable the garbage collector that will remove the big output files that are not needed.
 
@@ -2302,7 +2305,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             for task in work:
                 task.set_gc(gc)
 
-    def connect_signals(self):
+    def connect_signals(self) -> None:
         """
         Connect the signals within the `Flow`.
         The `Flow` is responsible for catching the important signals raised from its works.
@@ -2339,7 +2342,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         # Register the callbacks for the Tasks.
         #self.show_receivers()
 
-    def disconnect_signals(self):
+    def disconnect_signals(self) -> None:
         """Disable the signals within the `Flow`."""
         for work in self:
             work.disconnect_signals()
@@ -2348,7 +2351,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         for cbk in self._callbacks:
             cbk.disable()
 
-    def show_receivers(self, sender=None, signal=None):
+    def show_receivers(self, sender=None, signal=None) -> None:
         sender = sender if sender is not None else dispatcher.Any
         signal = signal if signal is not None else dispatcher.Any
         print("*** live receivers ***")
@@ -2356,7 +2359,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             print("receiver -->", rec)
         print("*** end live receivers ***")
 
-    def set_spectator_mode(self, mode=True):
+    def set_spectator_mode(self, mode=True) -> None:
         """
         When the flow is in spectator_mode, we have to disable signals, pickle dump and possible callbacks
         A spectator can still operate on the flow but the new status of the flow won't be saved in

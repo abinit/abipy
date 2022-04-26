@@ -174,6 +174,14 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
                 for pseudo in self.pseudos:
                     tar.add(pseudo.filepath, arcname=pseudo.basename)
 
+            for dirname in ("indata", "tmpdata", "outdata"):
+                #print("Adding dir:", dirname)
+                os.mkdir(dirname)
+                p = os.path.join(dirname, "__empty__")
+                with open(p, "wt") as fh:
+                    fh.write("Empty placeholder")
+                tar.add(p)
+
         os.chdir(back)
         return name
 
@@ -3327,6 +3335,14 @@ class MultiDataset(object):
             filepath = "run.abi"
             self.write(filepath=filepath, split=False)
             tar.add(filepath)
+
+            for dirname in ("indata", "tmpdata", "outdata"):
+                #print("Adding dir:", dirname)
+                os.mkdir(dirname)
+                p = os.path.join(dirname, "__empty__")
+                with open(p, "wt") as fh:
+                    fh.write("Empty placeholder")
+                tar.add(p)
 
             for pseudo in self.pseudos:
                 tar.add(pseudo.filepath, arcname=pseudo.basename)

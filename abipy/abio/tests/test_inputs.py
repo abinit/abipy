@@ -254,7 +254,7 @@ class TestAbinitInput(AbipyTest):
         inp["kptopt"] = 4
         assert not inp.uses_ktimereversal
 
-        assert inp.pseudos_abivars["pseudos"] == f'"{pseudo.filepath}"'
+        assert inp.pseudos_abivars["pseudos"] == f"{pseudo.filepath}"
 
     def test_new_with_structure(self):
         """Testing new_with_structure."""

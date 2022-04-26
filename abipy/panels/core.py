@@ -654,7 +654,6 @@ class AbipyParameterized(param.Parameterized):
     # For instance, structure_viewer == "Vesta" does not make sense in we are not serving from a local server.
     #
     has_remote_server = param.Boolean(False)
-    #has_remote_server = param.Boolean(True)
 
     warning = pn.pane.Markdown(SHARED_WIDGETS_WARNING, name="warning")
 

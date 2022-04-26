@@ -864,7 +864,7 @@ class Work(BaseWork, NodeContainer):
             if task.status in (task.S_OK, task.S_LOCKED): continue
             task.check_status()
 
-        # Take into account possible dependencies. Use a list instead of generators
+        # Take into account possible dependencies.
         for task in self:
             if task.status == task.S_LOCKED: continue
             if task.status < task.S_SUB and all(status == task.S_OK for status in task.deps_status):

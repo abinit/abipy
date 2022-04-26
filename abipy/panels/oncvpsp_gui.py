@@ -13,8 +13,8 @@ import panel.widgets as pnw
 from monty.termcolor import cprint
 from monty.string import list_strings
 from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ButtonContext, Loading
-from pseudo_dojo.ppcodes.ppgen import OncvGenerator
-from pseudo_dojo.ppcodes.oncvpsp import OncvOutputParser
+from abipy.ppcodes.ppgen import OncvGenerator
+from abipy.ppcodes.oncvpsp import OncvOutputParser
 
 
 GE_ANNOTATED = """

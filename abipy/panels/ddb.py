@@ -42,14 +42,22 @@ class PanelWithAnaddbParams(param.Parameterized):
 
     nqsmall = param.Integer(10, bounds=(1, None), label="nqsmall (q-mesh for BZ integration)",
                            doc="Number of divisions for smallest vector to generate the q-mesh")
+
     ndivsm = param.Integer(5, bounds=(None, None), label="ndivsm (density of q-path)",
                           doc="Number of divisions for smallest vector to generate the q-path")
+
     lo_to_splitting = param.ObjectSelector(default="automatic", objects=["automatic", True, False])
+
     chneut = param.ObjectSelector(default=1, objects=[0, 1, 2], doc="Abinit variable")
+
     dipdip = param.ObjectSelector(default=1, objects=[0, 1, -1], doc="Abinit variable")
+
     dipquad = param.ObjectSelector(default=1, objects=[0, 1], doc="Abinit variable")
+
     quadquad = param.ObjectSelector(default=1, objects=[0, 1], doc="Abinit variable")
+
     asr = param.ObjectSelector(default=2, objects=[0, 1, 2], doc="Abinit variable")
+
     units = param.ObjectSelector(default="eV", objects=["eV", "meV", "Ha", "cm-1", "Thz"], doc="Energy units")
 
     dos_method = param.ObjectSelector(default="tetra", objects=["tetra", "gaussian"], label="Integration method for PDOS")
@@ -65,7 +73,7 @@ class PanelWithAnaddbParams(param.Parameterized):
     def __init__(self, **params):
         super().__init__(**params)
         # FIXME
-        self.nqsmall_list = pnw.LiteralInput(name='nsmalls (python list)', value=[10, 20, 30], type=list)
+        self.nqsmall_list = pnw.LiteralInput(name='nqmall_list (python syntax)', value=[10, 20, 30], type=list)
         #nqqpt = pnw.LiteralInput(name='nsmalls (list)', value=[10, 20, 30], type=list)
 
         self.eps0_wrange = pnw.EditableRangeSlider(name="Frequency range (eV)", value=(0.0, 0.1),
@@ -81,7 +89,6 @@ class PanelWithAnaddbParams(param.Parameterized):
         #if self.has_remote_serve:
         #    self.param.nqsmall.bounds = (1, 50)
         #    self.param.ndivsm.bounds = (-30, 30)
-
 
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs):
         """
@@ -106,6 +113,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
     """
 
     vsound_num_points = param.Integer(20, bounds=(1, None), label="Number of q-points")
+
     vsound_qpt_norm = param.Number(0.1, bounds=(0, None), label="Norm of the largest q-point")
 
     def __init__(self, ddb, **params):
@@ -625,9 +633,9 @@ This app allows user to upload a file with structure info and operate on it.
 class DdbPanelWithFileInput(AbipyParameterized):
 
     info_str = """
-This app allows users to post-process the data stored in one of the Abinit output files.
-The main difference with respect to [Abinit Output File Analyzer](/outfile) is that
-here it is also possible to fetch the DDB file from the Materials Project Database.
+This app allows users to upload a DDB file with the dynamical matrix, compute
+phonon-related properties such as band structures, DOS, infrared absorption and visualize
+the results.
 """
 
     def __init__(self, **params):

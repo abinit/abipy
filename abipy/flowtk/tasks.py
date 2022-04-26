@@ -2354,6 +2354,11 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         self.input_file.write(self.make_input())
 
+        # Write input in JSON format so that we can read it if we need to change it
+        #with open(self.path_in_workdir("run.abi.json"), "wt") as fh:
+        #    d = self.input.as_dict()
+        #    json.write(d, fh, indent=4)
+
         self.manager.write_jobfile(self)
 
         # Add README.md file if set

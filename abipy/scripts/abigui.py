@@ -46,7 +46,6 @@ def gui_app(port, address, show, num_procs, panel_template, has_remote_server, w
     if has_remote_server:
         print("has_remote_server:", has_remote_server)
         print("Enforcing limitations on what the user can do on the abinit server")
-        # TODO finalize, remove files created by user
         AbipyParameterized.has_remote_server = has_remote_server
 
     # Import the apps and define routes for each page.
@@ -63,7 +62,9 @@ def gui_app(port, address, show, num_procs, panel_template, has_remote_server, w
 
 This web application exposes some of the capabilities of the [AbiPy package](https://github.com/abinit/abipy).
 It consists of **multiple pages** each of which provides **specialized tools** to operate on a particular ABINIT file.
+
 To access one of these tools, click one of the links in the sidebar or, alternatively, use the links below.
+
 To **open/close** the sidebar, click on the Hamburger Menu Icon ☰ in the header.
 
 Note that the **file extension** matters as the GUI won't work properly if you upload files
@@ -79,18 +80,22 @@ with extensions that are not recognized by AbiPy.
     app_routes_titles = {
         "/": (tmpl_cls, "AbiPy GUI Home"),
         "/input_generator": (InputFileGenerator, "Abinit Input Generator"),
-        #"/structure_analyzer": (PanelWithFileInput(use_structure=True).get_panel(), "Structure Analyzer"),
         "/structure_analyzer": (PanelWithStructureInput, "Structure Analyzer"),
         "/outfile": (PanelWithFileInput, "Output File Analyzer"),
         "/ddb": (DdbPanelWithFileInput, "DDB File Analyzer"),
         "/abo": (abo_cls, "Abo File Analyzer"),
         "/ebands_vs_mp": (CompareEbandsWithMP, "Compare Ebands with MP"),
         "/ddb_vs_mp": (CompareDdbWithMP, "Compare DDB with MP"),
-        "/skw": (SkwPanelWithFileInput, "SKW Analyzer"),
-        "/robot": (RobotWithFileInput, "Robot Analyzer"),
         #"/abilog": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
         #"/state": (pn.state, "State"),
     }
+
+    if not has_remote_server:
+        # Add additional apps.
+        app_routes_titles.update({
+            "/skw": (SkwPanelWithFileInput, "SKW Analyzer"),
+            "/robot": (RobotWithFileInput, "Robot Analyzer"),
+        })
 
     app_routes = {k: v[0] for (k, v) in app_routes_titles.items()}
     app_title = {k: v[1] for (k, v) in app_routes_titles.items()}
@@ -111,7 +116,7 @@ with extensions that are not recognized by AbiPy.
     links = "\n".join(f"- [{title}]({url})" for (url, title) in app_title.items())
     links = pn.Column(pn.pane.Markdown(links))
 
-    class AppBuilder():
+    class AppBuilder:
 
         def __init__(self, app_cls, sidebar_links, app_kwargs=None):
             self.app_cls = app_cls
@@ -160,8 +165,8 @@ with extensions that are not recognized by AbiPy.
         http_server_kwargs={'max_buffer_size': max_size_mb * 1024**2},
     )
 
-    #if verbose:
-    print("Calling pn.serve with serve_kwargs:\n", pformat(serve_kwargs), "\n")
+    if verbose:
+        print("Calling pn.serve with serve_kwargs:\n", pformat(serve_kwargs), "\n")
 
     pn.serve(app_routes, **serve_kwargs)
 
