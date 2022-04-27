@@ -20,11 +20,12 @@ logger = logging.getLogger(__name__)
 
 
 # Possible status of the PseudoGenerator.
+
 _STATUS2STR = collections.OrderedDict([
     (1, "Initialized"),    # PseudoGenerator has been initialized
     (2, "Running"),        # PseudoGenerator is running.
-    (3, "Done"),           # Calculation done, This does not imply that results are ok
-    (4, "Error"),          # Generator error.
+    (3, "Done"),           # Calculation done, This does not imply that results are OK
+    (4, "Error"),          # PP generator error.
     (5, "Completed"),      # Execution completed successfully.
 ])
 
@@ -50,26 +51,29 @@ class Status(int):
             return cls.from_string(obj)
 
     @classmethod
-    def from_string(cls, s):
-        """Return a :class:`Status` instance from its string representation."""
+    def from_string(cls, s: str) -> Status:
+        """Return an instance from its string representation."""
         for num, text in _STATUS2STR.items():
             if text == s:
                 return cls(num)
         else:
-            raise ValueError("Wrong string %s" % s)
+            raise ValueError(f"Wrong string: `{s}`")
 
 
-class PseudoGenerator:
+class _PseudoGenerator:
     """
     This object receives a string with the input file and generates a pseudopotential.
     It calls the pp generator in a subprocess to produce the results in a temporary directory.
     It also provides an interface to validate/analyze/plot the results
-    produced by the pseudopotential code. Concrete classes must:
+    produced by the pseudopotential code.
+
+    Concrete classes must:
 
         1) call super().__init__() in their constructor.
         2) the object should have the input file stored in self.input_str
 
     Attributes:
+
         workdir: Working directory (output results are produced in workdir)
         status: Flag defining the status of the ps generator.
         retcode: Return code of the code
@@ -78,7 +82,7 @@ class PseudoGenerator:
         parser: Output parser. None if results are not available because
             the calculations is still running or errors
         results: Dictionary with the most important results. None if results are not available because
-            the calculations is still running or errors
+            the calculations is still running or errors.
         pseudo:
             :class:`Pseudo` object. None if not available
     """
@@ -111,7 +115,7 @@ class PseudoGenerator:
         if workdir is not None:
             workdir = os.path.abspath(workdir)
             if os.path.exists(workdir):
-                raise RuntimeError("workdir %s already exists" % workdir)
+                raise RuntimeError(f"workdir `{workdir}` already exists")
             self.workdir = workdir
         else:
             # Build a temporary directory
@@ -140,8 +144,7 @@ class PseudoGenerator:
     @property
     def retcode(self) -> Union[int, None]:
         """
-        Return code of the subprocess. None if not available because e.g. the job
-        has not been started yet.
+        Return code of the subprocess. None if not available because e.g. the job has not been started yet.
         """
         try:
             return self._retcode
@@ -149,8 +152,8 @@ class PseudoGenerator:
             return None
 
     @property
-    def pseudo(self):
-        """:class:`Pseudo` object."""
+    def pseudo(self) -> Union[Pseudo, None]:
+        """Pseudo object or None if not available"""
         try:
             return self._pseudo
         except AttributeError:
@@ -175,14 +178,14 @@ class PseudoGenerator:
 
     def start(self) -> int:
         """"
-        Run the calculation in a sub-process (non-blocking interface)
+        Run the calculation in a subprocess (non-blocking interface)
         Return 1 if calculation started, 0 otherwise.
         """
-        print(self.executable)
+        #print("Using oncvpsp exec:\n\t", self.executable)
         if self.status >= self.S_RUN:
             return 0
 
-        logger.info("Running in %s:" % self.workdir)
+        #logger.info("Running in %s:" % self.workdir)
         with open(self.stdin_path, "w") as fh:
             fh.write(self.input_str)
 
@@ -196,8 +199,10 @@ class PseudoGenerator:
 
         return 1
 
-    def poll(self):
-        """Check if child process has terminated. Set and return returncode attribute."""
+    def poll(self) -> int:
+        """
+        Check if child process has terminated. Set and return returncode attribute.
+        """
         self._retcode = self.process.poll()
 
         if self._retcode is not None:
@@ -205,14 +210,16 @@ class PseudoGenerator:
 
         return self._retcode
 
-    def wait(self):
-        """Wait for child process to terminate. Set and return returncode attribute."""
+    def wait(self) -> int:
+        """
+        Wait for child process to terminate. Set and return returncode attribute.
+        """
         self._retcode = self.process.wait()
         self.set_status(self.S_DONE)
 
         return self._retcode
 
-    def kill(self):
+    def kill(self) -> None:
         """Kill the child."""
         self.process.kill()
         self.set_status(self.S_ERROR)
@@ -250,7 +257,7 @@ class PseudoGenerator:
         error files produced by the application
         """
 
-    def get_stdin(self):
+    def get_stdin(self) -> str:
         return self.input_str
 
     def get_stdout(self) -> str:
@@ -270,28 +277,24 @@ class PseudoGenerator:
             return err.read()
 
     def rmtree(self) -> int:
-        """Remove the temporary directory. Return exit status"""
+        """
+        Remove the temporary directory. Return exit status
+        """
         try:
             shutil.rmtree(self.workdir)
             return 0
         except Exception:
             return 1
 
-    #def on_ok(self):
+    #@abc.abstractmethod
+    #def plot_results(self, **kwargs):
     #    """
-    #    Method called when calculation reaches S_OK
-    #    Perform operations to finalize the run. Subclasses should provide their own implementation.
+    #    Plot the results with matplotlib.
     #    """
-
-    @abc.abstractmethod
-    def plot_results(self, **kwargs):
-        """
-        Plot the results with matplotlib.
-        """
 
     def parse_output(self):
         """
-        Uses OutputParser to parse the output file.the output file.the output file.the output file.
+        Uses OutputParser to parse the output file.
         """
         parser = self.OutputParser(self.stdout_path)
         try:
@@ -316,7 +319,7 @@ class PseudoGenerator:
         return getattr(self, "_plotter", None)
 
 
-class OncvGenerator(PseudoGenerator):
+class OncvGenerator(_PseudoGenerator):
     """
     This object receives an input file for oncvpsp, a string
     that defines the type of calculation (scalar-relativistic, ...)
@@ -332,7 +335,7 @@ class OncvGenerator(PseudoGenerator):
     @classmethod
     def from_file(cls, path: str, calc_type: str, workdir: Optional[str] = None) -> OncvGenerator:
         """
-        Build the object from a file containing input parameters.
+        Build the object from a file containing the input parameters.
         """
         with open(path, "rt") as fh:
             input_str = fh.read()
@@ -350,7 +353,7 @@ class OncvGenerator(PseudoGenerator):
 
         self._executable = calctype2exec[calc_type]
         if self.executable is None:
-            msg = "Cannot find executable for oncvpsp is PATH. Use `export PATH=dir_with_executable:$PATH`"
+            msg = "Cannot find executable for oncvpsp in $PATH. Use `export PATH=dir_with_executable:$PATH`"
             raise RuntimeError(msg)
 
         self.format = 'psp8'
@@ -430,124 +433,124 @@ class OncvGenerator(PseudoGenerator):
 
         return self._status
 
-    def plot_results(self, **kwargs):
-        """Plot the results with matplotlib."""
-        #if not self.status == self.S_OK:
-        #    logger.warning("Cannot plot results. ppgen status is %s" % self.status)
-        #    return
+    #def plot_results(self, **kwargs):
+    #    """Plot the results with matplotlib."""
+    #    #if not self.status == self.S_OK:
+    #    #    logger.warning("Cannot plot results. ppgen status is %s" % self.status)
+    #    #    return
 
-        # Call the output parser to get the results.
-        parser = self.OutputParser(self.stdout_path)
-        parser.scan()
+    #    # Call the output parser to get the results.
+    #    parser = self.OutputParser(self.stdout_path)
+    #    parser.scan()
 
         # Build the plotter and plot data according to **kwargs
         plotter = parser.make_plotter()
         plotter.plot_atanlogder_econv()
 
 
-class OncvMultiGenerator:
-    """
-    This object receives a template input file and generates multi
-    pseudos by changing particular parameters.
-    """
-    def __init__(self, filepath: str, calc_type: str = "scalar-relativistic") -> None:
-        """
-        Args:
-            filepath: File with the input file
-        """
-        self.filepath = os.path.abspath(filepath)
-        self.calc_type = calc_type
-
-        with open(filepath, "r") as fh:
-            self.template_lines = fh.readlines()
-
-    def change_icmod3(self, fcfact_list=(3, 4, 5), rcfact_list=(1.3, 1.35, 1.4, 1.45, 1.5, 1.55)):
-        """
-        Change the value of fcfact and rcfact in the template. Generate the new pseudos
-        and create new directories with the pseudopotentials in the current working directory.
-
-        Return: List of `Pseudo` objects
-
-        Old version with icmod == 1.
-
-        # icmod fcfact
-        1 0.085
-
-        New version with icmod == 3.
-        # icmod, fcfact (rcfact)
-            3    5.0  1.3
-        """
-        magic = "# icmod fcfact"
-        for i, line in enumerate(self.template_lines):
-            if line.strip() == magic: break
-        else:
-            raise ValueError("Cannot find magic line `%s` in template:\n%s" % (magic, "\n".join(self.template_lines)))
-
-        # Extract the parameters from the line.
-        pos = i + 1
-        line = self.template_lines[pos]
-
-        tokens = line.split()
-        icmod = int(tokens[0])
-
-        #if len(tokens) != 3:
-        #    raise ValueError("Expecting line with 3 numbers but got:\n%s" % line)
-        #icmod, old_fcfact, old_rcfact = int(tokens[0]), float(tokens[1]), float(tokens[2])
-        #if icmod != 3:
-        #    raise ValueError("Expecting icmod == 3 but got %s" % icmod)
-
-        base_name = os.path.basename(self.filepath).replace(".in", "")
-        ppgens = []
-        for fcfact, rcfact in product(fcfact_list, rcfact_list):
-            new_input = self.template_lines[:]
-            new_input[pos] = "%i %s %s\n" % (3, fcfact, rcfact)
-            input_str = "".join(new_input)
-            #print(input_str)
-            ppgen = OncvGenerator(input_str, calc_type=self.calc_type)
-
-            name = base_name + "_fcfact%3.2f_rcfact%3.2f" % (fcfact, rcfact)
-            ppgen.name = name
-            ppgen.stdin_basename = name + ".in"
-            ppgen.stdout_basename = name + ".out"
-
-            # Attach fcfact and rcfact to ppgen
-            ppgen.fcfact, ppgen.rcfact = fcfact, rcfact
-
-            if not ppgen.start() == 1:
-                raise RuntimeError("ppgen.start() failed!")
-            ppgens.append(ppgen)
-
-        for ppgen in ppgens:
-            retcode = ppgen.wait()
-            ppgen.check_status()
-
-        # Ignore errored calculations.
-        ok_ppgens = [gen for gen in ppgens if gen.status == gen.S_OK]
-        print("%i/%i generations completed with S_OK" % (len(ok_ppgens), len(ppgens)))
-
-        ok_pseudos = []
-        for ppgen in ok_ppgens:
-            # Copy files to dest
-            pseudo = ppgen.pseudo
-            #dest = os.path.basename(self.filepath) + "_fcfact%3.2f_rcfact%3.2f" % (ppgen.fcfact, ppgen.rcfact)
-            dest = os.path.split(self.filepath)[0]
-            shutil.copy(os.path.join(ppgen.workdir,ppgen.stdin_basename), dest)
-            shutil.copy(os.path.join(ppgen.workdir,ppgen.stdout_basename), dest)
-
-            # Reduce the number of ecuts in the DOJO_REPORT
-            # Re-parse the output and use devel=True to overwrite initial psp8 file
-            psp8_path = os.path.join(dest, ppgen.name + ".psp8")
-            out_path = os.path.join(dest, ppgen.name + ".out")
-
-            parser = OncvOutputParser(out_path)
-            parser.scan()
-
-            # Rewrite pseudo file in devel mode.
-            with open(psp8_path, "w") as fh:
-                fh.write(parser.get_pseudo_str(devel=True))
-
-            # Build new pseudo.
-            p = Pseudo.from_file(psp8_path)
-            ok_pseudos.append(p)
-
-        return ok_pseudos
+#class OncvMultiGenerator:
+#    """
+#    This object receives a template input file and generates multi
+#    pseudos by changing particular parameters.
+#    """
+#    def __init__(self, filepath: str, calc_type: str = "scalar-relativistic") -> None:
+#        """
+#        Args:
+#            filepath: File with the input file
+#        """
+#        self.filepath = os.path.abspath(filepath)
+#        self.calc_type = calc_type
+#
+#        with open(filepath, "r") as fh:
+#            self.template_lines = fh.readlines()
+#
+#    def change_icmod3(self, fcfact_list=(3, 4, 5), rcfact_list=(1.3, 1.35, 1.4, 1.45, 1.5, 1.55)):
+#        """
+#        Change the value of fcfact and rcfact in the template. Generate the new pseudos
+#        and create new directories with the pseudopotentials in the current working directory.
+#
+#        Return: List of `Pseudo` objects
+#
+#        Old version with icmod == 1.
+#
+#        # icmod fcfact
+#        1 0.085
+#
+#        New version with icmod == 3.
+#        # icmod, fcfact (rcfact)
+#            3    5.0  1.3
+#        """
+#        magic = "# icmod fcfact"
+#        for i, line in enumerate(self.template_lines):
+#            if line.strip() == magic: break
+#        else:
+#            raise ValueError("Cannot find magic line `%s` in template:\n%s" % (magic, "\n".join(self.template_lines)))
+#
+#        # Extract the parameters from the line.
+#        pos = i + 1
+#        line = self.template_lines[pos]
+#
+#        tokens = line.split()
+#        icmod = int(tokens[0])
+#
+#        #if len(tokens) != 3:
+#        #    raise ValueError("Expecting line with 3 numbers but got:\n%s" % line)
+#        #icmod, old_fcfact, old_rcfact = int(tokens[0]), float(tokens[1]), float(tokens[2])
+#        #if icmod != 3:
+#        #    raise ValueError("Expecting icmod == 3 but got %s" % icmod)
+#
+#        base_name = os.path.basename(self.filepath).replace(".in", "")
+#        ppgens = []
+#        for fcfact, rcfact in product(fcfact_list, rcfact_list):
+#            new_input = self.template_lines[:]
+#            new_input[pos] = "%i %s %s\n" % (3, fcfact, rcfact)
+#            input_str = "".join(new_input)
+#            #print(input_str)
+#            ppgen = OncvGenerator(input_str, calc_type=self.calc_type)
+#
+#            name = base_name + "_fcfact%3.2f_rcfact%3.2f" % (fcfact, rcfact)
+#            ppgen.name = name
+#            ppgen.stdin_basename = name + ".in"
+#            ppgen.stdout_basename = name + ".out"
+#
+#            # Attach fcfact and rcfact to ppgen
+#            ppgen.fcfact, ppgen.rcfact = fcfact, rcfact
+#
+#            if not ppgen.start() == 1:
+#                raise RuntimeError("ppgen.start() failed!")
+#            ppgens.append(ppgen)
+#
+#        for ppgen in ppgens:
+#            retcode = ppgen.wait()
+#            ppgen.check_status()
+#
+#        # Ignore errored calculations.
+#        ok_ppgens = [gen for gen in ppgens if gen.status == gen.S_OK]
+#        print("%i/%i generations completed with S_OK" % (len(ok_ppgens), len(ppgens)))
+#
+#        ok_pseudos = []
+#        for ppgen in ok_ppgens:
+#            # Copy files to dest
+#            pseudo = ppgen.pseudo
+#            #dest = os.path.basename(self.filepath) + "_fcfact%3.2f_rcfact%3.2f" % (ppgen.fcfact, ppgen.rcfact)
+#            dest = os.path.split(self.filepath)[0]
+#            shutil.copy(os.path.join(ppgen.workdir,ppgen.stdin_basename), dest)
+#            shutil.copy(os.path.join(ppgen.workdir,ppgen.stdout_basename), dest)
+#
+#            # Reduce the number of ecuts in the DOJO_REPORT
+#            # Re-parse the output and use devel=True to overwrite initial psp8 file
+#            psp8_path = os.path.join(dest, ppgen.name + ".psp8")
+#            out_path = os.path.join(dest, ppgen.name + ".out")
+#
+#            parser = OncvOutputParser(out_path)
+#            parser.scan()
+#
+#            # Rewrite pseudo file in devel mode.
+#            with open(psp8_path, "w") as fh:
+#                fh.write(parser.get_pseudo_str(devel=True))
+#
+#            # Build new pseudo.
+#            p = Pseudo.from_file(psp8_path)
+#            ok_pseudos.append(p)
+#
+#        return ok_pseudos

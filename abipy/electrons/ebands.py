@@ -3746,7 +3746,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
             for i, (ebands, ax) in enumerate(zip(ebands_list, ax_list)):
                 irow, icol = divmod(i, ncols)
-                ebands.plot(ax=ax, e0=e0, with_gaps=with_gaps, max_phfreq=max_phfreq, fontsize=fontsize,  show=False)
+                ebands.plot(ax=ax, e0=e0, with_gaps=with_gaps, max_phfreq=max_phfreq, fontsize=fontsize, show=False)
                 set_axlims(ax, ylims, "y")
                 # This to handle with_gaps = True
                 title = ax.get_title()

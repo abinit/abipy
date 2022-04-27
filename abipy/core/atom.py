@@ -35,6 +35,18 @@ _char2l = {
     "i": 6,
 }
 
+l2char = {
+    0: "s",
+    1: "p",
+    2: "d",
+    3: "f",
+    4: "g",
+    5: "h",
+    6: "i",
+}
+
+# Accept strings as keys as well.
+l2char.update({str(l): l2char[l] for l in l2char})
 
 def _asl(obj: Any) -> int:
     try:

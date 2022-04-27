@@ -7,16 +7,16 @@ import argparse
 import json
 import shutil
 
-from pprint import pformat
+from pprint import pformat, pprint
 from monty.termcolor import cprint
 
 from abipy.flowtk.pseudos import Pseudo
-from abipy.tools.plotting import MplExpose #, PanelExpose
+from abipy.tools.plotting import MplExpose , PanelExpose
 from abipy.ppcodes.ppgen import OncvGenerator
-from abipy.ppcodes.oncvpsp import OncvOutputParser, PseudoGenDataPlotter, oncv_make_open_notebook
+from abipy.ppcodes.oncvpsp import OncvOutputParser, PseudoGenDataPlotter, oncv_make_open_notebook, MultiPseudoPlotter
 
 
-def find_oncv_output(path):
+def _find_oncv_output(path):
     """
     Fix possible error in the specification of filepath when we want a `.out` file.
     Return output path.
@@ -34,7 +34,7 @@ def oncv_nbplot(options):
     """
     Generate jupyter notebook to plot data. Requires oncvpsp output file.
     """
-    out_path = find_oncv_output(options.filepath)
+    out_path = _find_oncv_output(options.filepath)
     return oncv_make_open_notebook(out_path, foreground=options.foreground, classic_notebook=options.classic_notebook,
                                    no_browser=options.no_browser)
 
@@ -43,24 +43,44 @@ def oncv_gnuplot(options):
     """
     Plot data with gnuplot.
     """
-    out_path = find_oncv_output(options.filepath)
+    out_path = _find_oncv_output(options.filepath)
 
     # Parse output file.
     onc_parser = OncvOutputParser(out_path)
     onc_parser.scan()
     if not onc_parser.run_completed:
-        cprint("oncvpsp output is not complete. Exiting", "red")
+        cprint("oncvpsp output is not completed. Exiting", "red")
         return 1
 
     onc_parser.gnuplot()
     return 0
 
 
+def oncv_print(options):
+    """
+    Print result to terminal.
+    """
+    p = OncvOutputParser(options.filepath)
+    p.scan()
+    print(p)
+    if not p.run_completed:
+        raise RuntimeError("ocnvpsp output file is not completed")
+
+    results = p.get_results()
+    pprint(results)
+
+    for l in range(p.lmax + 1):
+        # Get AE/PS logder(l) as a function of energy in Ha.
+        f1, f2 = p.atan_logders.ae[l], p.atan_logders.ps[l]
+        print(f1)
+        print("f1", f1.energies.shape, f1.values.shape)
+
+
 def oncv_plot(options):
     """
     Plot data with matplotlib. Requires oncvpsp output file.
     """
-    out_path = find_oncv_output(options.filepath)
+    out_path = _find_oncv_output(options.filepath)
 
     # Parse output file.
     onc_parser = OncvOutputParser(out_path)
@@ -92,12 +112,35 @@ def oncv_plot(options):
     return 0
 
 
+def oncv_compare(options):
+    """
+    """
+    #root = "/Users/gmatteo/git_repos/oncvpsp/PSEUDOS_FOR_JASON"
+    #files = [os.path.join(root, p) for p in (
+    #    "Li-s.out",
+    #    "Li-s-gaopt.out",
+    #    #"Li-s-gaopt_best.out",
+    #)]
+    p = MultiPseudoPlotter.from_files(options.filepaths)
+
+    p.plot_radial_wfs()
+    #p.plot_radial_wfs(what="scattering_states")
+
+    # Plot data
+    #e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+    ##e = PanelExpose(title="")
+    #with e:
+    #    e(plotter.yield_figs())
+
+    return 0
+
+
 def oncv_json(options):
     """
     Produce a string with the results in a JSON dictionary and exit
     Requires oncvpsp output file.
     """
-    out_path = find_oncv_output(options.filepath)
+    out_path = _find_oncv_output(options.filepath)
     onc_parser = OncvOutputParser(out_path)
     onc_parser.scan()
     if not onc_parser.run_completed:
@@ -143,8 +186,10 @@ def oncv_run(options):
 
     # Build Generator and start generation.
     psgen = OncvGenerator.from_file(in_path, calc_type, workdir=None)
-    print(psgen)
+    #print(psgen)
     print(psgen.input_str)
+    print("Using oncvpsp exec:\n\t", psgen.executable)
+    print(f"Output files produced in directory:\n\t{psgen.workdir}")
 
     psgen.start()
     retcode = psgen.wait()
@@ -180,6 +225,8 @@ def oncv_run(options):
         return 1
 
     # Initialize and write djson file.
+    # FIXME: This part can be removed when we migrate to the new lightweight testing
+    # infrastructure with small json files.
     from pseudo_dojo.core.dojoreport import DojoReport
     report = DojoReport.empty_from_pseudo(pseudo, onc_parser.hints, devel=False)
     report.json_write()
@@ -205,7 +252,7 @@ def oncv_run(options):
 
 def oncv_gui(options):
     """
-    Foo bar
+    Start a panel web app to generate pseudopotentials.
     """
 
     import panel as pn
@@ -224,7 +271,6 @@ def oncv_gui(options):
 
     if options.has_remote_server:
         print("Enforcing limitations on what the user can do on the abinit server")
-        # TODO finalize, remove files created by user
         AbipyParameterized.has_remote_server = options.has_remote_server
 
     tmpl_cls, tmpl_kwds = get_abinit_template_cls_kwds()
@@ -260,9 +306,6 @@ def oncv_gui(options):
     sns.set(context=context, style='darkgrid', palette='deep',
             font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
-    #pn.extension('ace')
-    #pn.extension('ipywidgets')
-
     def build():
         gui = OncvGui.from_file(os.path.abspath(options.filepath))
         template = tmpl_cls(main=gui.get_panel(), title="Oncvpsp GUI", **tmpl_kwds)
@@ -279,11 +322,14 @@ def main():
     def str_examples():
         return """\
 Usage example:
-    dojoncv.py run H.in         ==> Run oncvpsp input file (scalar relativistic mode).
-    dojoncv.py plot H.out       ==> Use matplotlib to plot oncvpsp results for pseudo H.psp8.
-    dojoncv.py gnuplot H.out    ==> Use gnuplot to plot oncvpsp results for pseudo H.psp8.
-    dojoncv.py nbplot H.out     ==> Generate jupyter notebook to plot oncvpsp results.
-    dojoncv.py json H.out       ==> Generate JSON file.
+
+    oncv.py run H.in         ==> Run oncvpsp input file (scalar relativistic mode).
+    oncv.py plot H.out       ==> Use matplotlib to plot oncvpsp results for pseudo H.psp8.
+    oncv.py print H.out      ==> Use matplotlib to plot oncvpsp results for pseudo H.psp8.
+    oncv.py gui H.out        ==> Run oncvpsp input file (scalar relativistic mode).
+    oncv.py gnuplot H.out    ==> Use gnuplot to plot oncvpsp results for pseudo H.psp8.
+    oncv.py nbplot H.out     ==> Generate jupyter notebook to plot oncvpsp results.
+    oncv.py json H.out       ==> Generate JSON file.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -292,15 +338,24 @@ Usage example:
         if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
-    # Parent parser implementing common options.
-    copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                        help='Verbose, can be supplied multiple times to increase verbosity')
+    def get_copts_parser(multi=False):
 
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+        # Parent parser implementing common options.
+        p = argparse.ArgumentParser(add_help=False)
+        p.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                       help='Verbose, can be supplied multiple times to increase verbosity')
 
-    copts_parser.add_argument('filepath', default="", help="Path to the input/output file")
+        p.add_argument('--loglevel', default="ERROR", type=str,
+                            help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
+        if multi:
+            p.add_argument('filepaths', nargs="+", help="List of files to compare.")
+        else:
+            p.add_argument('filepath', default="", help="Path to the input/output file")
+
+        return p
+
+    copts_parser = get_copts_parser(multi=False)
 
     # Parent parser implementing cli options for panel.serve
     serve_parser = argparse.ArgumentParser(add_help=False)
@@ -326,7 +381,7 @@ Usage example:
                 help="Maximum message size in Mb allowed by Bokeh and Tornado. Default: 150")
 
     # Parent parser for commands supporting MplExpose.
-    plot_parser = argparse.ArgumentParser(add_help=False)
+    #plot_parser = argparse.ArgumentParser(add_help=False)
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -341,8 +396,7 @@ Usage example:
     p_run.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
         help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
 
-    #p_run.add_argument("-d", "--devel", action="store_true", default=False,
-    #                    help="put only two energies in the ecuts list for testing for developing the pseudo")
+    p_print = subparsers.add_parser('print', parents=[copts_parser], help=oncv_print.__doc__)
 
     # Create the parsers for the sub-commands
     p_plot = subparsers.add_parser('plot', parents=[copts_parser], help=oncv_plot.__doc__)
@@ -356,6 +410,9 @@ Usage example:
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
+
+    copts_parser_multi = get_copts_parser(multi=True)
+    p_compare = subparsers.add_parser('compare', parents=[copts_parser_multi], help=oncv_compare.__doc__)
 
     p_nbplot = subparsers.add_parser('nbplot', parents=[copts_parser], help=oncv_nbplot.__doc__)
     # notebook options.

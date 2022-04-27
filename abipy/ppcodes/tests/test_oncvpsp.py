@@ -1,5 +1,4 @@
 """Unit tests for oncvpsp"""
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os
@@ -48,9 +47,6 @@ class OncvOutputParserTest(AbipyTest):
         assert rhov.rmesh[-1] == 3.9647436
         assert rhoc.values[0] == 53.3293576
         assert all(rhom.values == 0.0)
-
-        # Conversion to JSON format.
-        assert p.to_dict
 
         # Build the plotter
         plotter = p.make_plotter()
@@ -264,6 +260,8 @@ class OncvOutputParserTest(AbipyTest):
             assert plotter.plot_dens_and_pots(show=False)
             assert plotter.plot_waves_and_projs(show=False)
             assert plotter.plot_den_formfact(ecut=40, show=False)
+
+        #if self.has_plotly():
 
     def test_psp8_get_densities(self):
         """

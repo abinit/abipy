@@ -11,26 +11,15 @@ import re
 import tempfile
 import numpy as np
 
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 from typing import Any, Union, List, Optional
 from monty.functools import lazy_property
 from monty.collections import AttrDict, dict2namedtuple
 from monty.os.path import which
 from monty.termcolor import cprint
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction, l2char
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.derivatives import finite_diff
-from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction
-
-
-_l2char = {
-    "0": "s",
-    "1": "p",
-    "2": "d",
-    "3": "f",
-    "4": "g",
-    "5": "h",
-    "6": "i",
-}
 
 
 def is_integer(s: Any) -> bool:
@@ -91,8 +80,6 @@ class PseudoGenDataPlotter:
 
     def __init__(self, **kwargs):
         """Store kwargs in self if k is in self.all_keys."""
-        import matplotlib.pyplot as _mplt
-        self._mplt = _mplt
 
         for k in self.all_keys:
             setattr(self, k, kwargs.pop(k, {}))
@@ -100,31 +87,17 @@ class PseudoGenDataPlotter:
         if kwargs:
             raise ValueError("Unknown keys: %s" % list(kwargs.keys()))
 
-    def keys(self):
-        """Iterator with the keys stored in self."""
-        return (k for k in self.all_keys if getattr(self, k))
-
-    def plot_key(self, key, ax=None, show=True, **kwargs):
+    def _wf_pltopts(self, l, aeps) -> dict:
         """
-        Plot quantity specified by key.
-
-        Args:
-            ax: |matplotlib-Axes| or None if a new figure should be created.
+        Dict with ax.plot options for wavefunctions.
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
-
-        # key --> self.plot_key()
-        getattr(self, "plot_" + key)(ax=ax, **kwargs)
-        if show:
-            self._mplt.show()
-
-    def _wf_pltopts(self, l, aeps):
-        """Plot options for wavefunctions."""
         return dict(
             color=self.color_l[l],
             linestyle=self.linestyle_aeps[aeps],
-            # marker=self.markers_aeps[aeps],
-            linewidth=self.linewidth, markersize=self.markersize)
+            #marker=self.markers_aeps[aeps],
+            linewidth=self.linewidth,
+            markersize=self.markersize
+        )
 
     #@property
     #def has_scattering_states(self):
@@ -137,7 +110,7 @@ class PseudoGenDataPlotter:
             ax.axvline(rc, lw=1, color=self.color_l[l], ls="--") # ls=(0, (1, 10)))
 
     @add_fig_kwargs
-    def plot_atan_logders(self, ax=None, with_xlabel=True, **kwargs):
+    def plot_atan_logders(self, ax=None, with_xlabel=True, fontsize: int = 8, **kwargs):
         """
         Plot arctan of logder on axis ax.
 
@@ -158,17 +131,18 @@ class PseudoGenDataPlotter:
             ps_line, = ax.plot(ps_alog.energies, ps_alog.values + pad, **self._wf_pltopts(l, "ps"))
 
             lines.extend([ae_line, ps_line])
-            legends.extend(["AE l=%s" % str(l), "PS l=%s" % str(l)])
+            legends.extend(["AE l=%s" % l2char[l], "PS l=%s" % l2char[l]])
 
         xlabel = "Energy (Ha)" if with_xlabel else ""
         decorate_ax(ax, xlabel=xlabel, ylabel="ATAN(LogDer)", title="",
                     #title="ATAN(Log Derivative)",
+                    fontsize=fontsize,
                     lines=lines, legends=legends)
 
         return fig
 
     @add_fig_kwargs
-    def plot_radial_wfs(self, ax=None, what="bound_states", **kwargs):
+    def plot_radial_wfs(self, ax=None, what="bound_states", fontsize: int = 8, **kwargs):
         """
         Plot AE and PS radial wavefunctions on axis ax.
 
@@ -198,13 +172,15 @@ class PseudoGenDataPlotter:
             ps_line, = ax.plot(ps_wf.rmesh, ps_wf.values, **self._wf_pltopts(l, "ps"))
 
             lines.extend([ae_line, ps_line])
+            l_char = l2char[l]
             if k is None:
-                legends.extend(["AE l=%s" % l, "PS l=%s" % l])
+                legends.extend(["AE l=%s" % l_char, "PS l=%s" % l_char])
             else:
-                legends.extend(["AE l=%s, k=%s" % (l, k), "PS l=%s, k=%s" % (l, k)])
+                legends.extend(["AE l=%s, k=%s" % (l_char, k), "PS l=%s, k=%s" % (l_char, k)])
 
         decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$\phi(r)$",
                     title="Wave Functions" if what == "bound_states" else "Scattering States",
+                    fontsize=fontsize,
                     lines=lines, legends=legends)
 
         self._add_rc_vlines(ax)
@@ -212,9 +188,9 @@ class PseudoGenDataPlotter:
         return fig
 
     @add_fig_kwargs
-    def plot_projectors(self, ax=None, **kwargs):
+    def plot_projectors(self, ax=None, fontsize: int = 8, **kwargs):
         """
-        Plot oncvpsp projectors on axis ax.
+        Plot projectors on axis ax.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -235,6 +211,7 @@ class PseudoGenDataPlotter:
             lines.append(line); legends.append("Proj %s" % str(nlk))
 
         decorate_ax(ax, xlabel="r (Bohr)", ylabel="$p(r)$", title="Projectors",
+                    fontsize=fontsize,
                     lines=lines, legends=legends)
 
         self._add_rc_vlines(ax)
@@ -242,7 +219,7 @@ class PseudoGenDataPlotter:
         return fig
 
     @add_fig_kwargs
-    def plot_densities(self, ax=None, timesr2=False, **kwargs):
+    def plot_densities(self, ax=None, timesr2=False, fontsize: int = 8, **kwargs):
         """
         Plot AE, PS and model densities on axis ax.
 
@@ -259,14 +236,15 @@ class PseudoGenDataPlotter:
 
         ylabel = "$n(r)$" if not timesr2 else "$r^2 n(r)$"
         decorate_ax(ax, xlabel="r (Bohr)", ylabel=ylabel, title="Charge densities",
+                    fontsize=fontsize,
                     lines=lines, legends=legends)
 
         return fig
 
     @add_fig_kwargs
-    def plot_der_densities(self, ax=None, order=1, **kwargs):
+    def plot_der_densities(self, ax=None, order=1, fontsize=8, **kwargs):
         """
-        Plot the derivatives of the densitiers on axis ax.
+        Plot the derivatives of the densities on axis ax.
         Used to analyze possible derivative discontinuities
 
         Args:
@@ -290,13 +268,14 @@ class PseudoGenDataPlotter:
             legends.append("%s-order derivative of %s" % (order, name))
 
         decorate_ax(ax, xlabel="r (Bohr)", ylabel="$D^%s \n(r)$" % order, title="Derivative of the charge densities",
+                    fontsize=fontsize,
                     lines=lines, legends=legends)
         return fig
 
     @add_fig_kwargs
-    def plot_potentials(self, ax=None, **kwargs):
+    def plot_potentials(self, ax=None, fontsize: int = 8, **kwargs):
         """
-        Plot v_l and v_loc potentials on axis ax
+        Plot v_l and v_loc potentials on axis ax.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -311,9 +290,10 @@ class PseudoGenDataPlotter:
             if l == -1:
                 legends.append("Vloc")
             else:
-                legends.append("PS l=%s" % str(l))
+                legends.append("PS l=%s" % l2char[l])
 
         decorate_ax(ax, xlabel="r (Bohr)", ylabel="$v_l(r)$", title="Ion Pseudopotentials",
+                    fontsize=fontsize,
                     lines=lines, legends=legends)
 
         color = "k"
@@ -325,7 +305,7 @@ class PseudoGenDataPlotter:
         return fig
 
     @add_fig_kwargs
-    def plot_der_potentials(self, ax=None, order=1, **kwargs):
+    def plot_der_potentials(self, ax=None, order=1, fontsize: int = 8, **kwargs):
         """
         Plot the derivatives of vl and vloc potentials on axis ax.
         Used to analyze the derivative discontinuity introduced by the RRKJ method at rc.
@@ -354,11 +334,12 @@ class PseudoGenDataPlotter:
 
         decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$D^%s \phi(r)$" % order,
                     title="Derivative of the ion Pseudopotentials",
+                    fontsize=fontsize,
                     lines=lines, legends=legends)
         return fig
 
     @add_fig_kwargs
-    def plot_ene_vs_ecut(self, ax=None, **kwargs):
+    def plot_ene_vs_ecut(self, ax=None, fontsize: int = 8, **kwargs):
         """
         Plot the converge of ene wrt ecut on axis ax.
 
@@ -370,58 +351,71 @@ class PseudoGenDataPlotter:
         for l, data in self.ene_vs_ecut.items():
             line, = ax.plot(data.energies, data.values, **self._wf_pltopts(l, "ae"))
             lines.append(line)
-            legends.append("Conv l=%s" % str(l))
+            legends.append("Conv l=%s" % l2char[l])
 
         for nlk, data in self.kinerr_nlk.items():
             line, = ax.plot(data.ecuts, data.values_ha, **self._wf_pltopts(nlk.l, "ps"))
 
         decorate_ax(ax, xlabel="Ecut (Ha)", ylabel=r"$\Delta E_{kin}$ (Ha)", title="",
                     #, title="Energy error per electron (Ha)",
+                    fontsize=fontsize,
                     lines=lines, legends=legends)
 
         ax.set_yscale("log")
         return fig
 
     @add_fig_kwargs
-    def plot_atanlogder_econv(self, **kwargs):
+    def plot_atanlogder_econv(self, ax_list=None, fontsize: int = 8, **kwargs):
         """
         Plot atan(logder) and ecut converge on the same figure.
         Returns matplotlib Figure
         """
-        fig, ax_list = self._mplt.subplots(nrows=2, ncols=1, sharex=False, squeeze=False)
+        # Build grid of plots.
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=2, ncols=1,
+                                                sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
-        self.plot_atan_logders(ax=ax_list[0], show=False)
-        self.plot_ene_vs_ecut(ax=ax_list[1], show=False)
+        self.plot_atan_logders(ax=ax_list[0], fontsize=fontsize, show=False)
+        self.plot_ene_vs_ecut(ax=ax_list[1], fontsize=fontsize, show=False)
 
         return fig
 
     @add_fig_kwargs
-    def plot_dens_and_pots(self, **kwargs):
-        """Plot densities and potentials on the same figure. Returns matplotlib Figure"""
-        fig, ax_list = self._mplt.subplots(nrows=2, ncols=1, sharex=False, squeeze=False)
+    def plot_dens_and_pots(self, ax_list=None, fontsize: int = 8, **kwargs):
+        """
+        Plot densities and potentials on the same figure. Returns matplotlib Figure
+        """
+        # Build grid of plots.
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=2, ncols=1,
+                                                sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
-        self.plot_densities(ax=ax_list[0], show=False)
-        self.plot_potentials(ax=ax_list[1], show=False)
+        self.plot_densities(ax=ax_list[0], fontsize=fontsize, show=False)
+        self.plot_potentials(ax=ax_list[1], fontsize=fontsize, show=False)
 
         return fig
 
     @add_fig_kwargs
-    def plot_waves_and_projs(self, **kwargs):
-        """Plot ae-ps wavefunctions and projectors on the same figure. Returns matplotlib Figure"""
+    def plot_waves_and_projs(self, ax_list=None, fontsize: int = 8, **kwargs):
+        """
+        Plot ae-ps wavefunctions and projectors on the same figure. Returns matplotlib Figure
+        """
         lmax = max(nlk.l for nlk in self.radial_wfs.ae.keys())
-        fig, ax_list = self._mplt.subplots(nrows=lmax + 1, ncols=2, sharex=True, squeeze=False)
+
+        # Build grid of plots.
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=lmax + 1, ncols=2,
+                                                sharex=True, sharey=False, squeeze=False)
+        #ax_list = ax_list.ravel()
 
         for l in range(lmax + 1):
             ax_idx = lmax - l
-            self.plot_radial_wfs(ax=ax_list[ax_idx][0], lselect=[l], show=False)
-            self.plot_projectors(ax=ax_list[ax_idx][1], lselect=[l], show=False)
+            self.plot_radial_wfs(ax=ax_list[ax_idx][0], lselect=[l], fontsize=fontsize, show=False)
+            self.plot_projectors(ax=ax_list[ax_idx][1], lselect=[l], fontsize=fontsize, show=False)
 
         return fig
 
     @add_fig_kwargs
-    def plot_den_formfact(self, ecut=120, ax=None, **kwargs):
+    def plot_den_formfact(self, ecut=120, ax=None, fontsize: int = 8, **kwargs):
         """
         Plot the density form factor as a function of ecut in Ha.
 
@@ -451,7 +445,10 @@ class PseudoGenDataPlotter:
         #    line, = ax.plot(form.mesh, form.values, linewidth=self.linewidth, markersize=self.markersize)
         #    lines.append(line); legends.append("Vloc(q)")
 
-        decorate_ax(ax, xlabel="Ecut (Ha)", ylabel="$n(q)$", title="Form factor, l=0 ", lines=lines, legends=legends)
+        decorate_ax(ax, xlabel="Ecut (Ha)", ylabel="$n(q)$",
+                    fontsize=fontsize,
+                    title="Form factor, l=0 ",
+                    lines=lines, legends=legends)
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -473,111 +470,6 @@ class PseudoGenDataPlotter:
         yield self.plot_den_formfact(show=False)
 
 
-class MultiPseudoGenDataPlotter:
-    """
-    Class for plotting data produced by multiple pp generators on separated plots.
-
-    Usage example:
-
-    .. code-block:: python
-
-        plotter = MultiPseudoGenPlotter()
-        plotter.add_psgen("bar.nc", label="bar bands")
-        plotter.add_plotter("foo.nc", label="foo bands")
-        plotter.plot()
-    """
-    _LINE_COLORS = ["b", "r"]
-    _LINE_STYLES = ["-", ":", "--", "-."]
-    _LINE_WIDTHS = [2]
-
-    def __init__(self):
-        self._plotters_odict = OrderedDict()
-
-    def __len__(self) -> int:
-        return len(self._plotters_odict)
-
-    @property
-    def plotters(self):
-        """"List of registered `Plotters`."""
-        return list(self._plotters_odict.values())
-
-    @property
-    def labels(self) -> list:
-        """List of labels."""
-        return list(self._plotters_odict.keys())
-
-    def keys(self) -> list:
-        """List of strings with the quantities that can be plotted."""
-        keys_set = set()
-        for plotter in self.plotters:
-            keys_set.update(plotter.keys())
-        keys_set = list(keys_set)
-
-        return list(sorted(keys_set))
-
-    def iter_lineopt(self):
-        """Generates style options for lines."""
-        import itertools
-        for o in itertools.product(self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
-            yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
-
-    def add_psgen(self, label: str, psgen) -> None:
-        """Add a plotter of class plotter_class from a `PseudoGenerator` instance."""
-        oparser = psgen.parse_output()
-        self.add_plotter(label, oparser.make_plotter())
-
-    def add_plotter(self, label: str, plotter) -> None:
-        """
-        Adds a plotter.
-
-        Args:
-            label: label for the plotter. Must be unique.
-            plotter: :class:`PseudoGenDataPlotter` object.
-        """
-        if label in self.labels:
-            raise ValueError("label %s is already in %s" % (label, self.labels))
-
-        self._plotters_odict[label] = plotter
-
-    @add_fig_kwargs
-    def plot_key(self, key, **kwargs):
-        r"""
-        Plot the band structure and the DOS.
-
-        Args:
-            klabels: dictionary whose keys are tuple with the reduced
-                coordinates of the k-points. The values are the labels.
-                e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        sharex          True if subplots should share the x axis
-        ==============  ==============================================================
-
-        Returns:
-            matplotlib figure.
-        """
-        import matplotlib.pyplot as plt
-
-        # Build grid of plots.
-        fig, ax_list = plt.subplots(nrows=len(self), ncols=1, sharex=kwargs.pop("sharex", True), squeeze=False)
-        ax_list = ax_list.ravel()
-
-        for ax in ax_list:
-            ax.grid(True)
-
-        # Plot key on the each axis in ax_list.
-        lines, legends = [], []
-        #my_kwargs, opts_label = kwargs.copy(), {}
-        i = -1
-        for (label, plotter), lineopt in zip(self._plotters_odict.items(), self.iter_lineopt()):
-            i += 1
-            plotter.plot_key(key, ax=ax_list[i], show=False)
-
-        return fig
-
-
 class PseudoGenResults(AttrDict):
 
     _KEYS = [
@@ -593,17 +485,11 @@ class PseudoGenResults(AttrDict):
 
 
 class AtanLogDer(namedtuple("AtanLogDer", "l, energies, values")):
-
-    @property
-    def to_dict(self) -> dict:
-        return dict(
-            l=self.l,
-            energies=list(self.energies),
-            values=list(self.values))
+    """Arctan"""
 
 
 class PseudoGenOutputParserError(Exception):
-    """Exceptions raised by OuptputParser."""
+    """Exceptions raised by OutputParser."""
 
 
 class PseudoGenOutputParser:
@@ -640,7 +526,7 @@ class PseudoGenOutputParser:
         return self._warnings
 
     @property
-    def results(self):
+    def results(self) -> dict:
         return self._results
 
     @abc.abstractmethod
@@ -654,9 +540,20 @@ class PseudoGenOutputParser:
     def get_input_str(self) -> str:
         """Returns a string with the input file."""
 
-    @abc.abstractmethod
-    def get_pseudo_str(self) -> str:
-        """Returns a string with the pseudopotential file."""
+    #@abc.abstractmethod
+    #def get_pseudo_str(self) -> str:
+    #    """Returns a string with the pseudopotential file."""
+
+
+# Object returned by self._grep
+GrepResults = namedtuple("GrepResults", "data, start, stop")
+
+
+# Used to store ae and pp quantities (e.g wavefunctions) in a single object.
+AePsNamedTuple = namedtuple("AePsNamedTuple", "ae, ps")
+
+
+ConvData = namedtuple("ConvData", "l energies values")
 
 
 class OncvOutputParser(PseudoGenOutputParser):
@@ -686,12 +583,6 @@ class OncvOutputParser(PseudoGenOutputParser):
     """
     # TODO Add fully-relativistic case.
 
-    # Used to store ae and pp quantities (e.g wavefunctions) in a single object.
-    AePsNamedTuple = namedtuple("AePsNamedTuple", "ae, ps")
-
-    # Object returned by self._grep
-    GrepResults = namedtuple("GrepResults", "data, start, stop")
-
     # Object storing the final results.
     Results = PseudoGenResults
 
@@ -707,9 +598,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         try:
             return self._scan(verbose=verbose)
         except Exception as exc:
-            print(f"Exception while parsing output file: {self.filepath}")
-            #print(self.lines)
-            raise exc
+            raise self.Error(f"Exception while parsing output file: {self.filepath}") from exc
 
     def _scan(self, verbose: int = 0) -> None:
         if not os.path.exists(self.filepath):
@@ -821,7 +710,7 @@ class OncvOutputParser(PseudoGenOutputParser):
                         f = str(int(float(f)))
                     else:
                         f = "%.1f" % f
-                    core.append(n + _l2char[l] + "^%s" % f)
+                    core.append(n + l2char[l] + "^%s" % f)
                 self.core = "$" + " ".join(core) + "$"
 
                 beg, valence = i + nc + 1, []
@@ -834,7 +723,7 @@ class OncvOutputParser(PseudoGenOutputParser):
                         #print(f)
                         f = "%.1f" % float(f)
 
-                    valence.append(n + _l2char[l] + "^{%s}" % f)
+                    valence.append(n + l2char[l] + "^{%s}" % f)
 
                 self.valence = "$" + " ".join(valence) + "$"
                 #print("core", self.core, "valence",self.valence)
@@ -870,7 +759,6 @@ class OncvOutputParser(PseudoGenOutputParser):
         #print("rc_l", self.rc_l)
         if not self.rc_l:
             raise self.Error(f"Cannot find magic line starting with `{header}` in: {self.filepath}")
-
 
         # Get pseudization radius for the local part
         header = "# lloc, lpopt,  rc(5),   dvloc0"
@@ -941,8 +829,7 @@ class OncvOutputParser(PseudoGenOutputParser):
                 self.kinerr_nlk[nlk] = dict2namedtuple(ecuts=ecuts, values_ha=values_ha)
 
         if not self.kinerr_nlk:
-            raise self.Error(f"Cannot parse convergence profile from: {self.filepath}")
-
+            raise self.Error(f"Cannot parse convergence profile in: {self.filepath}")
 
     def __str__(self) -> str:
         """String representation."""
@@ -965,7 +852,9 @@ class OncvOutputParser(PseudoGenOutputParser):
 
     @lazy_property
     def potentials(self) -> dict:
-        """Radial functions with the non-local and local potentials."""
+        """
+        Radial functions with the non-local and local potentials.
+        """
         #radii, charge, pseudopotentials (ll=0, 1, lmax)
         #!p   0.0099448   4.7237412  -7.4449470 -14.6551019
         vl_data = self._grep("!p").data
@@ -999,20 +888,20 @@ class OncvOutputParser(PseudoGenOutputParser):
             rhoM=RadialFunction("Model charge", rho_data[:, 0], rho_data[:, 3]))
 
     @lazy_property
-    def radial_wfs(self):
+    def radial_wfs(self) -> AePsNamedTuple:
         """
         Read and set the radial wavefunctions.
         """
         return self._get_radial_wavefunctions(what="bound_states")
 
     @lazy_property
-    def scattering_wfs(self):
+    def scattering_wfs(self) -> AePsNamedTuple:
         """
         Read and set the scattering wavefunctions.
         """
         return self._get_radial_wavefunctions(what="scattering_states")
 
-    def _get_radial_wavefunctions(self, what: str):
+    def _get_radial_wavefunctions(self, what: str) -> AePsNamedTuple:
         # scalar-relativistic
         #n= 1,  l= 0, all-electron wave function, pseudo w-f
         #
@@ -1026,7 +915,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         # scalar-relativistic
         #scattering, iprj= 2,  l= 1, all-electron wave function, pseudo w-f
 
-        ae_waves, ps_waves = OrderedDict(), OrderedDict()
+        ae_waves, ps_waves = {}, {}
 
         beg = 0
         while True:
@@ -1040,13 +929,13 @@ class OncvOutputParser(PseudoGenOutputParser):
             if what == "bound_states":
                 if header.startswith("scattering,"):
                     continue
-                    print(f"ignoring header {header}")
+                    #print(f"ignoring header {header}")
 
             elif what == "scattering_states":
                 if not header.startswith("scattering,"):
                     continue
                 header = header.replace("scattering,", "")
-                print(header)
+                #print(header)
             else:
                 raise ValueError(f"Invalid value of what: `{what}`")
 
@@ -1075,15 +964,17 @@ class OncvOutputParser(PseudoGenOutputParser):
             ae_waves[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, ae_wf)
             ps_waves[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, ps_wf)
 
-        return self.AePsNamedTuple(ae=ae_waves, ps=ps_waves)
+        return AePsNamedTuple(ae=ae_waves, ps=ps_waves)
 
     @lazy_property
-    def projectors(self):
-        """Read the projector wave functions."""
+    def projectors(self) -> dict:
+        """
+        Read and set the projector wave functions.
+        """
         #n= 1 2  l= 0, projecctor pseudo wave functions, well or 2nd valence
         #
         #@     0    0.009945    0.015274   -0.009284
-        projectors_nlk = OrderedDict()
+        projectors_nlk = {}
         beg = 0
         magic = "@"
         if self.major_version > 3: magic = "!J"
@@ -1112,14 +1003,16 @@ class OncvOutputParser(PseudoGenOutputParser):
         return projectors_nlk
 
     @lazy_property
-    def atan_logders(self):
-        """Atan of the log derivatives for different l-values."""
+    def atan_logders(self) -> AePsNamedTuple:
+        """
+        Atan of the log derivatives for different l-values.
+        """
         #log derivativve data for plotting, l= 0
         #atan(r * ((d psi(r)/dr)/psi(r))), r=  1.60
         #l, energy, all-electron, pseudopotential
         #
         #!      0    2.000000    0.706765    0.703758
-        ae_atan_logder_l, ps_atan_logder_l = OrderedDict(), OrderedDict()
+        ae_atan_logder_l, ps_atan_logder_l = {}, {}
 
         lstop = self.lmax + 1
         if self.major_version > 3:
@@ -1131,24 +1024,18 @@ class OncvOutputParser(PseudoGenOutputParser):
             ae_atan_logder_l[l] = AtanLogDer(l=l, energies=data[:, 1], values=data[:, 2])
             ps_atan_logder_l[l] = AtanLogDer(l=l, energies=data[:, 1], values=data[:, 3])
 
-        return self.AePsNamedTuple(ae=ae_atan_logder_l, ps=ps_atan_logder_l)
+        return AePsNamedTuple(ae=ae_atan_logder_l, ps=ps_atan_logder_l)
 
     @lazy_property
     def ene_vs_ecut(self) -> dict:
-        """Convergence of energy versus ecut for different l-values."""
+        """
+        Convergence of the kinetic energy versus ecut for different l-values.
+        """
         #convergence profiles, (ll=0,lmax)
         #!C     0    5.019345    0.010000
         #...
         #!C     1   19.469226    0.010000
-        class ConvData(namedtuple("ConvData", "l energies values")):
-            @property
-            def to_dict(self):
-                return dict(
-                    l=self.l,
-                    energies=list(self.energies),
-                    values=list(self.values))
-
-        conv_l = OrderedDict()
+        conv_l = {}
 
         for l in range(self.lmax + 1):
             data = self._grep(tag="!C     %d" % l).data
@@ -1157,8 +1044,10 @@ class OncvOutputParser(PseudoGenOutputParser):
         return conv_l
 
     @lazy_property
-    def hints(self):
-        """Hints for the cutoff energy."""
+    def hints(self) -> dict:
+        """
+        Hints for the cutoff energy as provided by oncvpsp.
+        """
         # Extract the hints
         hints = 3 * [-np.inf]
         ene_vs_ecut = self.ene_vs_ecut
@@ -1167,29 +1056,27 @@ class OncvOutputParser(PseudoGenOutputParser):
                 hints[i] = max(hints[i], ene_vs_ecut[l].energies[-i-1])
         hints.reverse()
 
-        # print("hints:", hints)
         # Truncate to the nearest int
         hints = [np.rint(h) for h in hints]
+        # print("hints:", hints)
 
-        hints = dict(
+        return dict(
             low={"ecut": hints[0], "pawecutdg": hints[0]},
             normal={"ecut": hints[1], "pawecutdg": hints[1]},
-            high={"ecut": hints[2], "pawecutdg": hints[2]})
-
-        return hints
+            high={"ecut": hints[2], "pawecutdg": hints[2]}
+        )
 
     def get_results(self):
         """"
         Return the most important results reported by the pp generator.
         Set the value of self.results
         """
-        #if not self.run_completed:
-        #    self.Results(info="Run is not completed")
-
         # Get the ecut needed to converge within ... TODO
         max_ecut = 0.0
         for l in range(self.lmax + 1):
             max_ecut = max(max_ecut, self.ene_vs_ecut[l].energies[-1])
+
+        #max_ecut = max(self.ene_vs_ecut[l].energies[-1] for l in range(self.lmax + 1))
 
         # Compute the l1 error in atag(logder)
         from scipy.integrate import cumtrapz
@@ -1217,21 +1104,24 @@ class OncvOutputParser(PseudoGenOutputParser):
                 max_psexc_abserr = max(max_psexc_abserr, abs(float(line.split()[-1].replace("D", "E"))))
 
         self._results = self.Results(
-            max_ecut=max_ecut, max_atan_logder_l1err=max_l1err,
-            herm_err=herm_err, max_psexc_abserr=max_psexc_abserr)
+            max_ecut=max_ecut,
+            max_atan_logder_l1err=max_l1err,
+            herm_err=herm_err,
+            max_psexc_abserr=max_psexc_abserr
+        )
 
         return self._results
 
     def find_string(self, s: str) -> int:
         """
         Returns the index of the first line containing string s.
-        Raise self.Error if s cannot be found.
+        Raises self.Error if s cannot be found.
         """
         for i, line in enumerate(self.lines):
             if s in line:
                 return i
         else:
-            raise self.Error("Cannot find %s in lines" % s)
+            raise self.Error(f"Cannot find `{s}` in lines")
 
     def get_input_str(self) -> str:
         """String with the input file."""
@@ -1241,14 +1131,14 @@ class OncvOutputParser(PseudoGenOutputParser):
             j = self.find_string("</INPUT>")
             return "\n".join(self.lines[i+1:j]) + "\n"
         except self.Error:
-            #raise
+            # oncvpsp => 4
             i = self.find_string("Reference configufation results")
             return "\n".join(self.lines[:i])
 
     def get_psp8_str(self) -> Union[str, None]:
         """
         Return string with the pseudopotential data in psp8 format.
-        None if field is not present.
+        Return None if field is not present.
         """
         start, stop = None, None
         for i, line in enumerate(self.lines):
@@ -1256,6 +1146,7 @@ class OncvOutputParser(PseudoGenOutputParser):
             if start is not None and 'END_PSP' in line:
                 stop = i
                 break
+
         if start is None and stop is None: return None
         ps_data = "\n".join(self.lines[start+1:stop])
 
@@ -1269,7 +1160,7 @@ class OncvOutputParser(PseudoGenOutputParser):
     def get_upf_str(self) -> Union[str, None]:
         """
         Return string with the pseudopotential data in upf format.
-        None if field is not present.
+        Return None if field is not present.
         """
         start, stop = None, None
         for i, line in enumerate(self.lines):
@@ -1280,73 +1171,20 @@ class OncvOutputParser(PseudoGenOutputParser):
         if start is None and stop is None: return None
         return "\n".join(self.lines[start+1:stop])
 
-    def get_pseudo_str(self):
-        """Return string with the pseudopotential data."""
-
-        psdata = self.get_psp8_str()
-        if psdata is not None:
-            return psdata
-        psdata = self.get_upf_str()
-        if psdata is not None:
-            return psdata
-
-        raise ValueError("Cannot find neither PSPCODE8 not PSP_UPF tag in output file")
-
     def make_plotter(self):
         """Builds an instance of :class:`PseudoGenDataPlotter`."""
         kwargs = {k: getattr(self, k) for k in self.Plotter.all_keys}
         return self.Plotter(**kwargs)
 
-    @property
-    def to_dict(self) -> dict:
-        """
-        Returns a dictionary with the radial functions and the other
-        important results produced by ONCVPSP in JSON format.
-        """
-        # Dimensions and basic info.
-        jdict = dict(
-            lmax=self.lmax,
-            ncore=self.nc,
-            nvalence=self.nv,
-            calc_type=self.calc_type
-        )
-
-        # List of radial wavefunctions (AE and PS)
-        jdict["radial_wfs"] = d = {}
-        d["ae"] = [wave.to_dict for wave in self.radial_wfs.ae.values()]
-        d["ps"] = [wave.to_dict for wave in self.radial_wfs.ps.values()]
-
-        # List of projectors
-        jdict["projectors"] = [proj.to_dict for proj in self.projectors.values()]
-
-        # Charge densities
-        jdict["densities"] = dict(
-            rhoV=self.densities["rhoV"].to_dict,
-            rhoC=self.densities["rhoC"].to_dict,
-            rhoM=self.densities["rhoM"].to_dict)
-
-        # Logders (AE and PS)
-        jdict["atan_logders"] = d = {}
-        d["ae"] = [f.to_dict for f in self.atan_logders.ae.values()]
-        d["ps"] = [f.to_dict for f in self.atan_logders.ps.values()]
-
-        # Convergence of the different l-channels as function of ecut.
-        jdict["ene_vs_ecut"] = [f.to_dict for f in self.ene_vs_ecut.values()]
-
-        return jdict
-
-    def _grep(self, tag: str, beg: int = 0):
+    def _grep(self, tag: str, beg: int = 0) -> GrepResults:
         """
         Finds the first field in the file with the specified tag.
-        beg gives the initial position in the file.
-
-        Returns:
-            :class:`GrepResult` object
+        `beg` gives the initial position in the file.
         """
         data, stop, intag = [], None, -1
 
         if beg >= len(self.lines):
-            raise ValueError("beg > len(lines)")
+            raise ValueError(f"beg {beg} > len(lines) ({len(self.lines)})")
 
         for i, l in enumerate(self.lines[beg:]):
             l = l.lstrip()
@@ -1359,10 +1197,11 @@ class OncvOutputParser(PseudoGenOutputParser):
                 if intag != -1:
                     stop = beg + i
                     break
+
         if not data:
-            return self.GrepResults(data=None, start=intag, stop=stop)
+            return GrepResults(data=None, start=intag, stop=stop)
         else:
-            return self.GrepResults(data=np.array(data), start=intag, stop=stop)
+            return GrepResults(data=np.array(data), start=intag, stop=stop)
 
     def gnuplot(self) -> None:
         """
@@ -1378,7 +1217,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         from monty.os import cd
         from subprocess import check_call
         workdir = tempfile.mkdtemp()
-        print("Working in %s" % workdir)
+        print(f"Working in: {workdir}")
 
         with cd(workdir):
             check_call("awk 'BEGIN{out=0};/GNUSCRIPT/{out=0}; {if(out == 1) {print}}; \
@@ -1534,7 +1373,7 @@ def oncv_write_notebook(outpath: str, nbpath: Optional[str] = None) -> str:
 
         nbf.new_code_cell("""\
 # Parse output file
-from pseudo_dojo.ppcodes.oncvpsp import OncvOutputParser
+from abipy.ppcodes.oncvpsp import OncvOutputParser
 onc_parser = OncvOutputParser('%s')""" % outpath),
 
         nbf.new_code_cell("""\
@@ -1590,10 +1429,95 @@ plotter = onc_parser.make_plotter()"""),
     return nbpath
 
 
+class MultiPseudoPlotter:
+    """
+    Class for comparing multiple pseudos.
+
+    Usage example:
+
+    .. code-block:: python
+
+        plotter = MultiPseudoPlotter()
+        plotter.add_out("bar.nc", label="bar bands")
+        #plotter.add_plotter("foo.nc", label="foo bands")
+        #plotter.plot()
+    """
+
+    @classmethod
+    def from_files(cls, files: List[str]) -> MultiPseudoPlotter:
+        """
+        """
+        new = cls()
+        for file in files:
+            new.add_file(file, file)
+
+        return new
+
+    def __init__(self):
+        self._plotters_dict = {}
+
+    def add_file(self, label, filepath) -> None:
+        if label in self._plotters_dict:
+            raise RuntimeError(f"Cannot overwrite label: {label}")
+        parser = OncvOutputParser(filepath)
+        parser.scan()
+        plotter = parser.make_plotter()
+        self._plotters_dict[label] = plotter
+
+    #def add_plotter(self, label, plotter) -> None:
+    #    if label in self._plotters_dict:
+    #        raise RuntimeError(f"Cannot overwrite label: {label}")
+    #    self._plotters_dict[label] = plotter
+
+    def __len__(self) -> int:
+        return len(self._plotters_dict)
+
+    @property
+    def plotters(self):
+        """"List of registered `Plotters`."""
+        return list(self._plotters_dict.values())
+
+    @property
+    def labels(self) -> list:
+        """List of labels."""
+        return list(self._plotters_dict.keys())
+
+    def _get_ax_list(self, ax_list, ravel=True):
+
+        num_plots, ncols, nrows = len(self), 1, len(self)
+
+        # Build grid of plots.
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+        if ravel:
+            ax_list = ax_list.ravel()
+
+        return ax_list, fig, plt
+
+    @add_fig_kwargs
+    def plot_radial_wfs(self, ax_list=None, what="bound_states", fontsize: int = 8, **kwargs):
+        """
+        Plot AE and PS radial wavefunctions on axis ax.
+
+        Args:
+            ax_list: |matplotlib-Axes| or None if a new figure should be created.
+            what: "bound_states" or "scattering_states".
+            lselect: List to select l channels.
+        """
+        ax_list, fig, plt = self._get_ax_list(ax_list)
+
+        for i, (label, plotter) in enumerate(zip(self.labels, self.plotters)):
+            ax = ax_list[i]
+            plotter.plot_radial_wfs(ax=ax, what=what, show=False)
+            ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+
 def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
     """
-    Extract AE-core, AE-valence and PS-valence from from a psp8 file.
-    Optionally write `.fc` and `.AE` file in format suitable for AIM and cut3d Hirshfeld code
+    Extract AE-core, AE-valence and PS-valence from a psp8 file.
+    Optionally write `.fc` and `.AE` file in format suitable for AIM and cut3d Hirshfeld code.
 
     Args:
         path: path of the psp8 file
@@ -1642,7 +1566,7 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
     # xccc'(irac), xccc''(irad), xccc'''(irad), xccc''''(irad)
     #
     # Model core charge for nonlinear core xc correction, and 4 derivatives
-    from pseudo_dojo.core.pseudos import Pseudo
+    from abipy.flowtk.pseudos import Pseudo
     pseudo = Pseudo.from_file(path)
 
     from pymatgen.io.abinit.pseudos import _dict_from_lines
@@ -1697,7 +1621,7 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
             line = fh.readline() # l, ekb[:npl]
             l_file = int(line.split()[0])
             if l != l_file:
-                print("For l=%s, npl=%s" % (l, npl), "wrong line", line)
+                #print("For l=%s, npl=%s" % (l, npl), "wrong line", line)
                 raise RuntimeError("l != l_file (%s != %s)" % (l, l_file))
 
             for ir in range(mmax):

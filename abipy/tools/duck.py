@@ -134,7 +134,7 @@ def as_slice(obj: Any) -> slice:
     raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
 
 
-class NoDefaultProvided(object):
+class NoDefaultProvided:
     pass
 
 
