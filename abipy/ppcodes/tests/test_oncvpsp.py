@@ -6,11 +6,12 @@ import numpy as np
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
+from abipy.core.atom import NlkState
 from abipy.ppcodes.oncvpsp import OncvOutputParser, psp8_get_densities
 
 
 def filepath(basename):
-    return os.path.join(os.path.dirname(__file__), basename)
+    return os.path.join(abidata.dirpath, "oncv_data", basename)
 
 
 class OncvOutputParserTest(AbipyTest):
@@ -75,6 +76,12 @@ class OncvOutputParserTest(AbipyTest):
         assert p.nc == 1
         assert p.nv == 2
         assert p.lmax == 1
+
+        #assert p.hints["low"]["ecut"] ==
+        #assert p.hints["normal"]["ecut"] ==
+        #assert p.hints["high"]["ecut"] ==
+
+        #results = p.get_results()
 
         # Test potentials
         vloc = p.potentials[-1]
@@ -184,6 +191,24 @@ class OncvOutputParserTest(AbipyTest):
         assert p.nc == 1
         assert p.nv == 2
         assert p.lmax == 2
+        assert p.rc5 == 1.2
+        assert p.rc_l[0] == 1.35000
+        assert p.rc_l[1] == 1.45000
+        assert p.rc_l[2] == 1.25000
+
+        # Calculating optimized projector #   1
+        # for l=   0
+        nlk = NlkState(n=1, l=0, k=None)
+        ke = p.kinerr_nlk[nlk]
+        self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
+        self.assert_almost_equal(ke.ecuts, [12.17, 21.67, 27.75, 32.41])
+
+        #Calculating optimized projector #   2
+        # for l=   1
+        nlk = NlkState(n=2, l=1, k=None)
+        ke = p.kinerr_nlk[nlk]
+        self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
+        self.assert_almost_equal(ke.ecuts, [22.49, 30.35, 36.39, 41.55])
 
         # Test potentials
         vloc = p.potentials[-1]
@@ -257,8 +282,6 @@ class OncvOutputParserTest(AbipyTest):
             assert plotter.plot_der_potentials(order=1, show=False)
             assert plotter.plot_ene_vs_ecut(show=False)
             assert plotter.plot_atanlogder_econv(show=False)
-            assert plotter.plot_dens_and_pots(show=False)
-            assert plotter.plot_waves_and_projs(show=False)
             assert plotter.plot_den_formfact(ecut=40, show=False)
 
         #if self.has_plotly():

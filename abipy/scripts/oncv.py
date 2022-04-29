@@ -1,15 +1,17 @@
 #!/usr/bin/env python
-"""Script to generate/analyze/plot ONCVPSP pseudopotentials."""
+"""
+Script to generate/analyze/plot ONCVPSP pseudopotentials.
+"""
 import sys
 import os
 import collections
 import argparse
 import json
 import shutil
+import abipy.tools.cli_parsers as cli
 
 from pprint import pformat, pprint
 from monty.termcolor import cprint
-
 from abipy.flowtk.pseudos import Pseudo
 from abipy.tools.plotting import MplExpose , PanelExpose
 from abipy.ppcodes.ppgen import OncvGenerator
@@ -86,22 +88,13 @@ def oncv_plot(options):
     onc_parser = OncvOutputParser(out_path)
     onc_parser.scan()
     if not onc_parser.run_completed:
-        cprint("oncvpsp output is not complete. Exiting", "red")
+        cprint("oncvpsp output is not completed. Exiting", "red")
         return 1
 
     # Build the plotter
     plotter = onc_parser.make_plotter()
 
-    if options.mpl_backend is not None:
-        # Set matplotlib backend
-        import matplotlib
-        matplotlib.use(options.mpl_backend)
-
-    if options.seaborn:
-        # Use seaborn settings.
-        import seaborn as sns
-        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+    cli.customize_mpl(options)
 
     # Plot data
     e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
@@ -114,23 +107,20 @@ def oncv_plot(options):
 
 def oncv_compare(options):
     """
+    Compare multiple oncvpsp output fies.
     """
-    #root = "/Users/gmatteo/git_repos/oncvpsp/PSEUDOS_FOR_JASON"
-    #files = [os.path.join(root, p) for p in (
-    #    "Li-s.out",
-    #    "Li-s-gaopt.out",
-    #    #"Li-s-gaopt_best.out",
-    #)]
-    p = MultiPseudoPlotter.from_files(options.filepaths)
+    cli.customize_mpl(options)
 
-    p.plot_radial_wfs()
-    #p.plot_radial_wfs(what="scattering_states")
+    plotter = MultiPseudoPlotter.from_files(options.filepaths)
+
+    #plotter.plot_radial_wfs()
+    #plotter.plot_radial_wfs(what="scattering_states")
 
     # Plot data
-    #e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+    e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
     ##e = PanelExpose(title="")
-    #with e:
-    #    e(plotter.yield_figs())
+    with e:
+        e(plotter.yield_figs())
 
     return 0
 
@@ -188,7 +178,7 @@ def oncv_run(options):
     psgen = OncvGenerator.from_file(in_path, calc_type, workdir=None)
     #print(psgen)
     print(psgen.input_str)
-    print("Using oncvpsp exec:\n\t", psgen.executable)
+    print("Using oncvpsp executable:\n\t", psgen.executable)
     print(f"Output files produced in directory:\n\t{psgen.workdir}")
 
     psgen.start()
@@ -231,11 +221,7 @@ def oncv_run(options):
     report = DojoReport.empty_from_pseudo(pseudo, onc_parser.hints, devel=False)
     report.json_write()
 
-    if options.seaborn:
-        # Use seaborn settings.
-        import seaborn as sns
-        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+    cli.customize_mpl(options)
 
     # Build the plotter
     plotter = onc_parser.make_plotter()
@@ -254,12 +240,9 @@ def oncv_gui(options):
     """
     Start a panel web app to generate pseudopotentials.
     """
-
     import panel as pn
     from abipy.panels.oncvpsp_gui import OncvGui
     from abipy.panels.core import abipanel, get_abinit_template_cls_kwds, AbipyParameterized
-    import abipy.panels as mod
-    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
 
     # Load abipy/panel extensions and set the default template
     #tmpl_kwds.update(dict(
@@ -278,25 +261,8 @@ def oncv_gui(options):
     if options.verbose:
         print("Using default template:", tmpl_cls, "with kwds:\n", pformat(tmpl_kwds), "\n")
 
-    # Call pn.serve to serve the multipage app.
-    serve_kwargs = dict(
-        address=options.address,
-        port=options.port,
-        #dev=True,
-        #start=True,
-        show=options.show,
-        debug=options.verbose > 0,
-        #title=app_title,
-        num_procs=options.num_procs,
-        static_dirs={"/assets": assets_path},
-        websocket_origin=options.websocket_origin,
-        #
-        # Increase the maximum websocket message size allowed by Bokeh
-        # https://panel.holoviz.org/reference/widgets/FileInput.html
-        websocket_max_message_size=options.max_size_mb * 1024**2,
-        # Increase the maximum buffer size allowed by Tornado
-        http_server_kwargs={'max_buffer_size': options.max_size_mb * 1024**2},
-    )
+
+
 
     #if options.seaborn:
     # Use seaborn settings.
@@ -311,8 +277,8 @@ def oncv_gui(options):
         template = tmpl_cls(main=gui.get_panel(), title="Oncvpsp GUI", **tmpl_kwds)
         return template
 
-    if options.verbose:
-        print("Calling pn.serve with serve_kwargs:\n", pformat(serve_kwargs), "\n")
+    # Call pn.serve to serve the multipage app.
+    serve_kwargs = cli.get_pn_serve_kwargs(options)
 
     return pn.serve(build, **serve_kwargs)
 
@@ -330,6 +296,7 @@ Usage example:
     oncv.py gnuplot H.out    ==> Use gnuplot to plot oncvpsp results for pseudo H.psp8.
     oncv.py nbplot H.out     ==> Generate jupyter notebook to plot oncvpsp results.
     oncv.py json H.out       ==> Generate JSON file.
+    oncv.py compare H.out other_H.out  ==> Compare multiple output files.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -357,31 +324,19 @@ Usage example:
 
     copts_parser = get_copts_parser(multi=False)
 
-    # Parent parser implementing cli options for panel.serve
-    serve_parser = argparse.ArgumentParser(add_help=False)
-
-    serve_parser.add_argument("--port", default=0, type=int, help="Port to listen on.")
-    serve_parser.add_argument("--address", default=None,
-                              help="The address the server should listen on for HTTP requests.")
-    serve_parser.add_argument("--show", default=True, action="store_true", help="Open app in web browser")
-    serve_parser.add_argument("--num_procs", default=1, type=int,
-                              help="Number of worker processes for the app. Defaults to 1")
-    serve_parser.add_argument('--panel-template', "-pnt", default="FastList",
-                  help="Specify template for panel dasboard." +
-                       "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
-                       "Default: FastList")
-    serve_parser.add_argument('--has-remote-server', default=False, action="store_true",
-                  help="True if we are running on the ABINIT server. " +
-                       "This flag activates limitations on what the user can do." +
-                       "Default: False")
-    serve_parser.add_argument("--websocket-origin", default=None, type=str,
-            help="Public hostnames which may connect to the Bokeh websocket.\n Syntax: " +
-                  "HOST[:PORT] or *. Default: None")
-    serve_parser.add_argument('--max_size_mb', default=150, type=int,
-                help="Maximum message size in Mb allowed by Bokeh and Tornado. Default: 150")
-
     # Parent parser for commands supporting MplExpose.
-    #plot_parser = argparse.ArgumentParser(add_help=False)
+    plot_parser = argparse.ArgumentParser(add_help=False)
+
+    plot_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
+            help="Iterate over figures. Expose all figures at once if not given on the CLI.")
+    plot_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
+            help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
+    plot_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
+        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
+    plot_parser.add_argument('-mpl', "--mpl-backend", default=None,
+        help=("Set matplotlib interactive backend. "
+              "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
+              "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -390,29 +345,19 @@ Usage example:
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Create the parsers for the sub-commands
-    p_run = subparsers.add_parser('run', parents=[copts_parser], help=oncv_run.__doc__)
+    p_run = subparsers.add_parser('run', parents=[copts_parser, plot_parser], help=oncv_run.__doc__)
     p_run.add_argument("--rel", default="sr", help=("Relativistic treatment: `nor` for non-relativistic, "
                        "`sr` for scalar-relativistic, `fr` for fully-relativistic."))
-    p_run.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
-        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
 
     p_print = subparsers.add_parser('print', parents=[copts_parser], help=oncv_print.__doc__)
 
     # Create the parsers for the sub-commands
-    p_plot = subparsers.add_parser('plot', parents=[copts_parser], help=oncv_plot.__doc__)
-    p_plot.add_argument("-s", "--slide-mode", default=False, action="store_true",
-            help="Iterate over figures. Expose all figures at once if not given on the CLI.")
-    p_plot.add_argument("-t", "--slide-timeout", type=int, default=None,
-            help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
-    p_plot.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
-        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
-    p_plot.add_argument('-mpl', "--mpl-backend", default=None,
-        help=("Set matplotlib interactive backend. "
-              "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
-              "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
+    p_plot = subparsers.add_parser('plot', parents=[copts_parser, plot_parser],
+                                   help=oncv_plot.__doc__)
 
     copts_parser_multi = get_copts_parser(multi=True)
-    p_compare = subparsers.add_parser('compare', parents=[copts_parser_multi], help=oncv_compare.__doc__)
+    p_compare = subparsers.add_parser('compare', parents=[copts_parser_multi, plot_parser],
+                                      help=oncv_compare.__doc__)
 
     p_nbplot = subparsers.add_parser('nbplot', parents=[copts_parser], help=oncv_nbplot.__doc__)
     # notebook options.
@@ -426,8 +371,8 @@ Usage example:
     p_nbplot.add_argument('--foreground', action='store_true', default=False,
                         help="Run jupyter notebook in the foreground.")
 
-
-    p_gui = subparsers.add_parser('gui', parents=[copts_parser, serve_parser], help=oncv_gui.__doc__)
+    parents = [copts_parser, cli.pn_serve_parser(), plot_parser]
+    p_gui = subparsers.add_parser('gui', parents=parents, help=oncv_gui.__doc__)
 
     p_gnuplot = subparsers.add_parser('gnuplot', parents=[copts_parser], help=oncv_gnuplot.__doc__)
 

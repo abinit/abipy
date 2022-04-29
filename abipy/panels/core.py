@@ -983,7 +983,7 @@ class PanelWithStructure(AbipyParameterized):
         self.structure = structure
 
         if self.has_remote_server:
-            # Change the list of allowed visulizers if remote server.
+            # Change the list of allowed visualizers.
             self.param.structure_viewer.objects = ["jsmol", "crystalk", "ngl", "matplotlib", "plotly", "ase_atoms"]
 
         self.view_structure_btn = pnw.Button(name="View structure", button_type='primary')

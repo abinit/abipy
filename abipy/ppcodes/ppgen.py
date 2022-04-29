@@ -269,7 +269,9 @@ class _PseudoGenerator:
             return out.read()
 
     def get_stderr(self) -> str:
-        """Returns a string with the stderr of the calculation."""
+        """
+        Return string with the stderr of the calculation.
+        """
         if not os.path.exists(self.stdout_path):
             return "Stderr file does not exist"
 
@@ -349,7 +351,8 @@ class OncvGenerator(_PseudoGenerator):
         calctype2exec = {
             "non-relativistic": which("oncvpspnr.x"),
             "scalar-relativistic": which("oncvpsp.x"),
-            "fully-relativistic": which("oncvpspr.x")}
+            "fully-relativistic": which("oncvpspr.x"),
+        }
 
         self._executable = calctype2exec[calc_type]
         if self.executable is None:
@@ -443,9 +446,9 @@ class OncvGenerator(_PseudoGenerator):
     #    parser = self.OutputParser(self.stdout_path)
     #    parser.scan()
 
-        # Build the plotter and plot data according to **kwargs
-        plotter = parser.make_plotter()
-        plotter.plot_atanlogder_econv()
+    #    # Build the plotter and plot data according to **kwargs
+    #    plotter = parser.make_plotter()
+    #    plotter.plot_atanlogder_econv()
 
 
 #class OncvMultiGenerator:

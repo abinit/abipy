@@ -164,7 +164,6 @@ def get_parser(with_epilog=False):
 
 def serve_kwargs_from_options(options):
 
-    #address = "localhost"
     if options.no_browser:
         print("""
 Use:

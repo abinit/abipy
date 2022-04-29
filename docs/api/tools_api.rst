@@ -13,6 +13,7 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
+
 :mod:`bessel` Module
 --------------------
 
@@ -20,6 +21,16 @@ tools Package
    :members:
    :undoc-members:
    :show-inheritance:
+
+
+:mod:`cli_parsers` Module
+-------------------------
+
+.. automodule:: abipy.tools.cli_parsers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 :mod:`context_managers` Module
 ------------------------------

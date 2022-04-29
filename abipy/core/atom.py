@@ -25,7 +25,7 @@ __all__ = [
     "plot_logders",
 ]
 
-_char2l = {
+char2l = {
     "s": 0,
     "p": 1,
     "d": 2,
@@ -50,7 +50,7 @@ l2char.update({str(l): l2char[l] for l in l2char})
 
 def _asl(obj: Any) -> int:
     try:
-        return _char2l[obj]
+        return char2l[obj]
     except KeyError:
         return int(obj)
 
@@ -81,13 +81,19 @@ def parse_orbtoken(orbtoken: str) -> QState:
 
 class NlkState(collections.namedtuple("NlkState", "n, l, k")):
     """
-    Named tuple storing (n,l) or (n,l,k) if relativistic pseudos.
+    Named tuple storing (n, l) or (n, l, k) if relativistic pseudos.
+    k is set to None if we are in non-relativistic mode.
     """
     def __str__(self) -> str:
-        if self.k is None:
-            return "n=%i, l=%i" % (self.n, self.l)
+        if self.l == -1:
+            lc = "loc"
         else:
-            return "n=%i, l=%i, k=%i" % self
+            lc = l2char[self.l]
+
+        if self.k is None:
+            return f"n={self.n}, l={lc}"
+        else:
+            return f"n={self.n}, l={lc}, k={self.k}"
 
     @property
     def to_dict(self) -> dict:

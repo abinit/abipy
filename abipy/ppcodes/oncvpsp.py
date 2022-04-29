@@ -149,7 +149,6 @@ class PseudoGenDataPlotter:
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             what: "bound_states" or "scattering_states".
-            lselect: List to select l channels.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -160,12 +159,9 @@ class PseudoGenDataPlotter:
         else:
             raise ValueError(f"Invalid value for what: {what}")
 
-        lselect = kwargs.get("lselect", [])
-
         lines, legends = [], []
         for nlk, ae_wf in ae_wfs.items():
             ps_wf, l, k = ps_wfs[nlk], nlk.l, nlk.k
-            if l in lselect: continue
             #print(nlk)
 
             ae_line, = ax.plot(ae_wf.rmesh, ae_wf.values, **self._wf_pltopts(l, "ae"))
@@ -194,20 +190,19 @@ class PseudoGenDataPlotter:
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            lselect: List to select l channels
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        lselect = kwargs.get("lselect", [])
-
-        linestyle = {1: "solid", 2: "dashed", 3: "dotted", 4: "dashdot"}
+        linestyle_n = {1: "solid", 2: "dashed", 3: "dotted", 4: "dashdot"}
         lines, legends = [], []
         for nlk, proj in self.projectors.items():
             #print(nlk)
-            if nlk.l in lselect: continue
             line, = ax.plot(proj.rmesh, proj.values,
-                            color=self.color_l.get(nlk.l, 'black'), linestyle=linestyle[nlk.n],
-                            linewidth=self.linewidth, markersize=self.markersize)
+                            color=self.color_l.get(nlk.l, 'black'),
+                            linestyle=linestyle_n[nlk.n],
+                            linewidth=self.linewidth,
+                            markersize=self.markersize)
+
             lines.append(line); legends.append("Proj %s" % str(nlk))
 
         decorate_ax(ax, xlabel="r (Bohr)", ylabel="$p(r)$", title="Projectors",
@@ -244,8 +239,8 @@ class PseudoGenDataPlotter:
     @add_fig_kwargs
     def plot_der_densities(self, ax=None, order=1, fontsize=8, **kwargs):
         """
-        Plot the derivatives of the densities on axis ax.
-        Used to analyze possible derivative discontinuities
+        Plot the radial derivatives of the densities on axis ax.
+        Used to analyze possible discontinuities or strong oscillations in r-space.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -256,7 +251,9 @@ class PseudoGenDataPlotter:
 
         lines, legends = [], []
         for name, rho in self.densities.items():
+            # Only model core charge is shown.
             if name != "rhoM": continue
+
             # Need linear mesh for finite_difference --> Spline input densities on lin_rmesh
             lin_rmesh, h = np.linspace(rho.rmesh[0], rho.rmesh[-1], num=len(rho.rmesh) * 4, retstep=True)
             spline = UnivariateSpline(rho.rmesh, rho.values, s=0)
@@ -267,7 +264,8 @@ class PseudoGenDataPlotter:
 
             legends.append("%s-order derivative of %s" % (order, name))
 
-        decorate_ax(ax, xlabel="r (Bohr)", ylabel="$D^%s \n(r)$" % order, title="Derivative of the charge densities",
+        decorate_ax(ax, xlabel="r (Bohr)", ylabel="$D^%s \n(r)$" % order,
+                    title="Derivative of the charge densities",
                     fontsize=fontsize,
                     lines=lines, legends=legends)
         return fig
@@ -341,12 +339,13 @@ class PseudoGenDataPlotter:
     @add_fig_kwargs
     def plot_ene_vs_ecut(self, ax=None, fontsize: int = 8, **kwargs):
         """
-        Plot the converge of ene wrt ecut on axis ax.
+        Plot the convergence of the kinetic energy wrt ecut on axis ax.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
+
         lines, legends = [], []
         for l, data in self.ene_vs_ecut.items():
             line, = ax.plot(data.energies, data.values, **self._wf_pltopts(l, "ae"))
@@ -356,18 +355,20 @@ class PseudoGenDataPlotter:
         for nlk, data in self.kinerr_nlk.items():
             line, = ax.plot(data.ecuts, data.values_ha, **self._wf_pltopts(nlk.l, "ps"))
 
-        decorate_ax(ax, xlabel="Ecut (Ha)", ylabel=r"$\Delta E_{kin}$ (Ha)", title="",
-                    #, title="Energy error per electron (Ha)",
+        decorate_ax(ax, xlabel="Ecut (Ha)", ylabel=r"$\Delta E_{kin}$ (Ha)",
+                    title="",
+                    #title="Energy error per electron (Ha)",
                     fontsize=fontsize,
                     lines=lines, legends=legends)
 
         ax.set_yscale("log")
+
         return fig
 
     @add_fig_kwargs
     def plot_atanlogder_econv(self, ax_list=None, fontsize: int = 8, **kwargs):
         """
-        Plot atan(logder) and ecut converge on the same figure.
+        Plot atan(logder) and converge of kinetic energy on the same figure.
         Returns matplotlib Figure
         """
         # Build grid of plots.
@@ -376,41 +377,9 @@ class PseudoGenDataPlotter:
         ax_list = ax_list.ravel()
 
         self.plot_atan_logders(ax=ax_list[0], fontsize=fontsize, show=False)
+        ax_list[0].xaxis.set_label_position('top')
+
         self.plot_ene_vs_ecut(ax=ax_list[1], fontsize=fontsize, show=False)
-
-        return fig
-
-    @add_fig_kwargs
-    def plot_dens_and_pots(self, ax_list=None, fontsize: int = 8, **kwargs):
-        """
-        Plot densities and potentials on the same figure. Returns matplotlib Figure
-        """
-        # Build grid of plots.
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=2, ncols=1,
-                                                sharex=False, sharey=False, squeeze=False)
-        ax_list = ax_list.ravel()
-
-        self.plot_densities(ax=ax_list[0], fontsize=fontsize, show=False)
-        self.plot_potentials(ax=ax_list[1], fontsize=fontsize, show=False)
-
-        return fig
-
-    @add_fig_kwargs
-    def plot_waves_and_projs(self, ax_list=None, fontsize: int = 8, **kwargs):
-        """
-        Plot ae-ps wavefunctions and projectors on the same figure. Returns matplotlib Figure
-        """
-        lmax = max(nlk.l for nlk in self.radial_wfs.ae.keys())
-
-        # Build grid of plots.
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=lmax + 1, ncols=2,
-                                                sharex=True, sharey=False, squeeze=False)
-        #ax_list = ax_list.ravel()
-
-        for l in range(lmax + 1):
-            ax_idx = lmax - l
-            self.plot_radial_wfs(ax=ax_list[ax_idx][0], lselect=[l], fontsize=fontsize, show=False)
-            self.plot_projectors(ax=ax_list[ax_idx][1], lselect=[l], fontsize=fontsize, show=False)
 
         return fig
 
@@ -453,7 +422,7 @@ class PseudoGenDataPlotter:
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
-        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Generate a predefined list of matplotlib figures with minimal input from the user.
         """
         verbose = kwargs.get("verbose", 0)
 
@@ -462,12 +431,13 @@ class PseudoGenDataPlotter:
         yield self.plot_atanlogder_econv(show=False)
         yield self.plot_projectors(show=False)
         yield self.plot_potentials(show=False)
-        yield #self.plot_der_potentials(show=False)
-        yield #for order in [1,2,3,4]:
-        yield #    e(self.plot_der_densities(order=order, show=False))
         yield self.plot_densities(show=False)
-        yield #self.plot_densities(timesr2=True, show=False)
+        #yield self.plot_densities(timesr2=True, show=False)
         yield self.plot_den_formfact(show=False)
+        if verbose:
+            yield self.plot_der_potentials(show=False)
+            for order in [1, 2, 3, 4]:
+                yield self.plot_der_densities(order=order, show=False)
 
 
 class PseudoGenResults(AttrDict):
@@ -517,12 +487,16 @@ class PseudoGenOutputParser:
 
     @property
     def errors(self) -> List[str]:
-        """List of strings with possible errors reported by the generator at run-time."""
+        """
+        List of strings with possible errors reported by the generator at run-time.
+        """
         return self._errors
 
     @property
     def warnings(self) -> List[str]:
-        """List of strings with possible errors reported by the generator at run-time."""
+        """
+        List of strings with possible errors reported by the generator at run-time.
+        """
         return self._warnings
 
     @property
@@ -574,7 +548,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         parser.scan()
 
         # To access data:
-        p.radial_wavefunctions
+        parser.radial_wavefunctions
 
         # To plot data with matplotlib.
         p = parser.make_plotter()
@@ -666,7 +640,7 @@ class OncvOutputParser(PseudoGenOutputParser):
                 values = self.lines[i+1].split()
                 keys = header[1:].split()
                 # assert len(keys) == len(values)
-                # Store them in self.
+                # Store values in self.
                 for k, v in zip(keys, values):
                     setattr(self, k, v)
                 break
@@ -740,8 +714,31 @@ class OncvOutputParser(PseudoGenOutputParser):
         else:
             raise self.Error(f"Cannot find line with `#lmax` in: {self.filepath}")
 
-        # Get core radii as a function of l from the output file
-        self.rc_l = {}
+    def __str__(self) -> str:
+        """String representation."""
+        lines = []
+        app = lines.append
+
+        if hasattr(self, "calc_type"):
+            app("%s, oncvpsp version: %s, date: %s" % (self.calc_type, self.version, self.gendate))
+            app("oncvpsp calculation: %s: " % self.calc_type)
+            app("completed: %s" % self.run_completed)
+        else:
+            app("Object is empty. Call scan method to analyze output file")
+
+        return "\n".join(lines)
+
+    @property
+    def fully_relativistic(self) -> bool:
+        """True if fully-relativistic calculation."""
+        return self.calc_type == "fully-relativistic"
+
+    @lazy_property
+    def rc_l(self) -> dict[int, float]:
+        """
+        Core radii as a function of l extracted from the output file.
+        """
+        rc_l = {}
         header = "#   l,   rc,"
         for i, line in enumerate(self.lines):
             if line.startswith(header):
@@ -753,29 +750,42 @@ class OncvOutputParser(PseudoGenOutputParser):
                     tokens = ln.split()
                     #print("line:", ln, "\ntokens", tokens)
                     l, rc = int(tokens[0]), float(tokens[1])
-                    self.rc_l[l] = rc
+                    rc_l[l] = rc
                     nxt += 1
 
-        #print("rc_l", self.rc_l)
-        if not self.rc_l:
+        #print("rc_l", rc_l)
+        if not rc_l:
             raise self.Error(f"Cannot find magic line starting with `{header}` in: {self.filepath}")
 
-        # Get pseudization radius for the local part
+        return rc_l
+
+    @lazy_property
+    def rc5(self) -> float:
+        """
+        Pseudization radius for the local part.
+        """
         header = "# lloc, lpopt,  rc(5),   dvloc0"
-        self.rc5 = None
+        rc5 = None
         for i, line in enumerate(self.lines):
             if line.startswith(header):
                 ln = self.lines[i + 1]
                 #print("line: ", line, "\nrc line: ", ln)
                 tokens = ln.split()
                 self.lloc = int(tokens[0])
-                self.rc5 = float(tokens[2])
+                rc5 = float(tokens[2])
                 break
 
-        if self.rc5 is None:
+        if rc5 is None:
             raise self.Error(f"Cannot find magic line starting with `{header}` in: {self.filepath}")
 
-        self.kinerr_nlk = {}
+        return rc5
+
+    @lazy_property
+    def kinerr_nlk(self) -> dict[NlkState, namedtuple]:
+        """
+        Dictionary with the error on the kinetic energy indexed by nlk.
+        """
+        kinerr_nlk = {}
         if self.major_version > 3:
             # Calculating optimized projector #   1
             #
@@ -790,6 +800,7 @@ class OncvOutputParser(PseudoGenOutputParser):
             # Calculating first optimized projector for l=   0
             re_start = re.compile(r"^Calculating (?P<iproj>(first|second)) optimized projector for l=\s+(?P<l>\d+)")
 
+        nlk = None
         for i, line in enumerate(self.lines):
             m = re_start.match(line)
             #if line.startswith(header):
@@ -826,34 +837,21 @@ class OncvOutputParser(PseudoGenOutputParser):
                     values_ha.append(err_ha)
                     ecuts.append(ecut)
 
-                self.kinerr_nlk[nlk] = dict2namedtuple(ecuts=ecuts, values_ha=values_ha)
+                if nlk is None:
+                    raise RuntimeError("Cannot find nlk quantum numbers")
 
-        if not self.kinerr_nlk:
+                kinerr_nlk[nlk] = dict2namedtuple(ecuts=ecuts, values_ha=values_ha)
+
+        if not kinerr_nlk:
             raise self.Error(f"Cannot parse convergence profile in: {self.filepath}")
 
-    def __str__(self) -> str:
-        """String representation."""
-        lines = []
-        app = lines.append
-
-        if hasattr(self, "calc_type"):
-            app("%s, oncvpsp version: %s, date: %s" % (self.calc_type, self.version, self.gendate))
-            app("oncvpsp calculation: %s: " % self.calc_type)
-            app("completed: %s" % self.run_completed)
-        else:
-            app("Object is empty. Call scan method to analyze output file")
-
-        return "\n".join(lines)
-
-    @property
-    def fully_relativistic(self) -> bool:
-        """True if fully-relativistic calculation."""
-        return self.calc_type == "fully-relativistic"
+        return kinerr_nlk
 
     @lazy_property
-    def potentials(self) -> dict:
+    def potentials(self) -> dict[int, RadialFunction]:
         """
-        Radial functions with the non-local and local potentials.
+        Dict with radial functions with the non-local and local potentials indexed by l.
+        l = -1 corresponds to the local part (if present).
         """
         #radii, charge, pseudopotentials (ll=0, 1, lmax)
         #!p   0.0099448   4.7237412  -7.4449470 -14.6551019
@@ -866,7 +864,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         for l in range(lmax + 1):
             ionpots_l[l] = RadialFunction("Ion Pseudopotential, l=%d" % l, vl_data[:, 0], vl_data[:, 2+l])
 
-        # Local part is stored with l == -1 if lloc=4, not present if lloc=l
+        # Local part is stored with l == -1 if lloc=4, not present if lloc = l
         vloc = self._grep("!L").data
         if vloc is not None:
             ionpots_l[-1] = RadialFunction("Local part, l=%d" % -1, vloc[:, 0], vloc[:, 1])
@@ -874,7 +872,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         return ionpots_l
 
     @lazy_property
-    def densities(self) -> dict:
+    def densities(self) -> dict[str, RadialFunction]:
         """
         Dictionary with charge densities on the radial mesh.
         """
@@ -885,12 +883,20 @@ class OncvOutputParser(PseudoGenOutputParser):
         return dict(
             rhoV=RadialFunction("Valence charge", rho_data[:, 0], rho_data[:, 1]),
             rhoC=RadialFunction("Core charge", rho_data[:, 0], rho_data[:, 2]),
-            rhoM=RadialFunction("Model charge", rho_data[:, 0], rho_data[:, 3]))
+            rhoM=RadialFunction("Model charge", rho_data[:, 0], rho_data[:, 3])
+        )
 
     @lazy_property
     def radial_wfs(self) -> AePsNamedTuple:
         """
-        Read and set the radial wavefunctions.
+        Read and set the radial wavefunctions for the bound states.
+
+        Usage:
+
+            ae_wfs, ps_wfs = self.radial_wfs.ae, self.radial_wfs.ps
+
+            for nlk, ae_wf in ae_wfs.items():
+                ps_wf, l, k = ps_wfs[nlk], nlk.l, nlk.k
         """
         return self._get_radial_wavefunctions(what="bound_states")
 
@@ -923,7 +929,7 @@ class OncvOutputParser(PseudoGenOutputParser):
             if g.data is None: break
             beg = g.stop + 1
 
-            header = self.lines[g.start-2]
+            header = self.lines[g.start - 2]
             #print(header)
 
             if what == "bound_states":
@@ -936,6 +942,7 @@ class OncvOutputParser(PseudoGenOutputParser):
                     continue
                 header = header.replace("scattering,", "")
                 #print(header)
+
             else:
                 raise ValueError(f"Invalid value of what: `{what}`")
 
@@ -954,30 +961,33 @@ class OncvOutputParser(PseudoGenOutputParser):
                 k = int(toks[-1])
 
             nlk = NlkState(n=n, l=l, k=k)
-            #print("Got state: %s" % str(nlk))
+            #print("Got nlk state:", nlk))
 
             rmesh = g.data[:, 1]
             ae_wf = g.data[:, 2]
             ps_wf = g.data[:, 3]
 
-            #assert nlk not in ae_waves
+            if nlk in ae_waves:
+                raise RuntimeError("nlk state `{nlk}` is already in ae_waves!")
+
             ae_waves[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, ae_wf)
             ps_waves[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, ps_wf)
 
         return AePsNamedTuple(ae=ae_waves, ps=ps_waves)
 
     @lazy_property
-    def projectors(self) -> dict:
+    def projectors(self) -> dict[NlkState, RadialFunction]:
         """
-        Read and set the projector wave functions.
+        Dict with projector wave functions indexed by nlk.
         """
         #n= 1 2  l= 0, projecctor pseudo wave functions, well or 2nd valence
         #
         #@     0    0.009945    0.015274   -0.009284
-        projectors_nlk = {}
         beg = 0
         magic = "@"
         if self.major_version > 3: magic = "!J"
+
+        projectors_nlk = {}
         while True:
             g = self._grep(magic, beg=beg)
             if g.data is None: break
@@ -997,7 +1007,9 @@ class OncvOutputParser(PseudoGenOutputParser):
             for n in range(len(g.data[0]) - 2):
                 nlk = NlkState(n=n+1, l=l, k=None)
                 #print("Got projector with: %s" % str(nlk))
-                assert nlk not in projectors_nlk
+                if nlk in projectors_nlk:
+                    raise RuntimeError("nlk state `{nlk}` is already in projectors_nlk")
+
                 projectors_nlk[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, g.data[:, n+2])
 
         return projectors_nlk
@@ -1027,9 +1039,9 @@ class OncvOutputParser(PseudoGenOutputParser):
         return AePsNamedTuple(ae=ae_atan_logder_l, ps=ps_atan_logder_l)
 
     @lazy_property
-    def ene_vs_ecut(self) -> dict:
+    def ene_vs_ecut(self) -> dict[int, ConvData]:
         """
-        Convergence of the kinetic energy versus ecut for different l-values.
+        Dict with the convergence of the kinetic energy versus ecut for different l-values.
         """
         #convergence profiles, (ll=0,lmax)
         #!C     0    5.019345    0.010000
@@ -1067,16 +1079,16 @@ class OncvOutputParser(PseudoGenOutputParser):
         )
 
     def get_results(self):
-        """"
+        """
         Return the most important results reported by the pp generator.
         Set the value of self.results
         """
         # Get the ecut needed to converge within ... TODO
-        max_ecut = 0.0
-        for l in range(self.lmax + 1):
-            max_ecut = max(max_ecut, self.ene_vs_ecut[l].energies[-1])
+        #max_ecut = 0.0
+        #for l in range(self.lmax + 1):
+        #    max_ecut = max(max_ecut, self.ene_vs_ecut[l].energies[-1])
 
-        #max_ecut = max(self.ene_vs_ecut[l].energies[-1] for l in range(self.lmax + 1))
+        max_ecut = max(self.ene_vs_ecut[l].energies[-1] for l in range(self.lmax + 1))
 
         # Compute the l1 error in atag(logder)
         from scipy.integrate import cumtrapz
@@ -1124,7 +1136,7 @@ class OncvOutputParser(PseudoGenOutputParser):
             raise self.Error(f"Cannot find `{s}` in lines")
 
     def get_input_str(self) -> str:
-        """String with the input file."""
+        """String with the ONCVPSP input file."""
         try:
             # oncvpsp 3.2.3
             i = self.find_string("<INPUT>")
@@ -1437,15 +1449,14 @@ class MultiPseudoPlotter:
 
     .. code-block:: python
 
-        plotter = MultiPseudoPlotter()
-        plotter.add_out("bar.nc", label="bar bands")
-        #plotter.add_plotter("foo.nc", label="foo bands")
+        plotter = MultiPseudoPlotter.from_files(filepaths)
         #plotter.plot()
     """
 
     @classmethod
     def from_files(cls, files: List[str]) -> MultiPseudoPlotter:
         """
+        Create an instance from a list of oncvpsp output files.
         """
         new = cls()
         for file in files:
@@ -1456,18 +1467,16 @@ class MultiPseudoPlotter:
     def __init__(self):
         self._plotters_dict = {}
 
-    def add_file(self, label, filepath) -> None:
+    def add_file(self, label: str, filepath: str) -> None:
+        """
+        Add a oncvps output file to the plotter with label
+        """
         if label in self._plotters_dict:
             raise RuntimeError(f"Cannot overwrite label: {label}")
         parser = OncvOutputParser(filepath)
         parser.scan()
         plotter = parser.make_plotter()
         self._plotters_dict[label] = plotter
-
-    #def add_plotter(self, label, plotter) -> None:
-    #    if label in self._plotters_dict:
-    #        raise RuntimeError(f"Cannot overwrite label: {label}")
-    #    self._plotters_dict[label] = plotter
 
     def __len__(self) -> int:
         return len(self._plotters_dict)
@@ -1482,6 +1491,9 @@ class MultiPseudoPlotter:
         """List of labels."""
         return list(self._plotters_dict.keys())
 
+    def items(self):
+        return self._plotters_dict.items()
+
     def _get_ax_list(self, ax_list, ravel=True):
 
         num_plots, ncols, nrows = len(self), 1, len(self)
@@ -1495,23 +1507,174 @@ class MultiPseudoPlotter:
         return ax_list, fig, plt
 
     @add_fig_kwargs
-    def plot_radial_wfs(self, ax_list=None, what="bound_states", fontsize: int = 8, **kwargs):
+    def plot_atan_logders(self, ax_list=None, with_xlabel=True, fontsize: int = 8, **kwargs):
         """
-        Plot AE and PS radial wavefunctions on axis ax.
+        Plot arctan of logder on axis ax.
 
         Args:
-            ax_list: |matplotlib-Axes| or None if a new figure should be created.
-            what: "bound_states" or "scattering_states".
-            lselect: List to select l channels.
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list)
 
-        for i, (label, plotter) in enumerate(zip(self.labels, self.plotters)):
-            ax = ax_list[i]
-            plotter.plot_radial_wfs(ax=ax, what=what, show=False)
+        for ax, (label, plotter) in zip(ax_list, self.items()):
+            plotter.atan_logders(ax=ax, with_xlabel=with_xlabel, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
 
         return fig
+
+    @add_fig_kwargs
+    def plot_radial_wfs(self, ax_list=None, what="bound_states", fontsize: int = 8, **kwargs):
+        """
+        Plot AE and PS radial wavefunctions of ax_list.
+
+        Args:
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            what: "bound_states" or "scattering_states".
+        """
+        ax_list, fig, plt = self._get_ax_list(ax_list)
+
+        for ax, (label, plotter) in zip(ax_list, self.items()):
+            plotter.plot_radial_wfs(ax=ax, what=what, fontsize=fontsize, show=False)
+            ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_projectors(self, ax_list=None, fontsize: int = 8, **kwargs):
+        """
+        Plot projectors on ax_list.
+
+        Args:
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+        """
+        ax_list, fig, plt = self._get_ax_list(ax_list)
+
+        for ax, (label, plotter) in zip(ax_list, self.items()):
+            plotter.plot_projectors(ax=ax, fontsize=fontsize, show=False)
+            ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_densities(self, ax_list=None, timesr2=False, fontsize: int = 8, **kwargs):
+        """
+        Plot AE, PS and model densities on ax_list
+
+        Args:
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+        """
+        ax_list, fig, plt = self._get_ax_list(ax_list)
+
+        for ax, (label, plotter) in zip(ax_list, self.items()):
+            plotter.plot_densities(ax=ax, timesr2=timesr2, fontsize=fontsize, show=False)
+            ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_der_densities(self, ax_list=None, order=1, fontsize=8, **kwargs):
+        """
+        Plot the radial derivatives of the densities on ax_list
+        Used to analyze possible discontinuities or strong oscillations in r-space.
+
+        Args:
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+        """
+        ax_list, fig, plt = self._get_ax_list(ax_list)
+
+        for ax, (label, plotter) in zip(ax_list, self.items()):
+            plotter.plot_der_densities(ax=ax, order=order, fontsize=fontsize, show=False)
+            ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_potentials(self, ax_list=None, fontsize: int = 8, **kwargs):
+        """
+        Plot v_l and v_loc potentials on ax_list
+
+        Args:
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+        """
+        ax_list, fig, plt = self._get_ax_list(ax_list)
+
+        for ax, (label, plotter) in zip(ax_list, self.items()):
+            plotter.plot_potentials(ax=ax, fontsize=fontsize, show=False)
+            ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_der_potentials(self, ax_list=None, order=1, fontsize: int = 8, **kwargs):
+        """
+        Plot the derivatives of vl and vloc potentials on ax_list.
+        Used to analyze the derivative discontinuity introduced by the RRKJ method at rc.
+
+        Args:
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+        """
+        ax_list, fig, plt = self._get_ax_list(ax_list)
+
+        for ax, (label, plotter) in zip(ax_list, self.items()):
+            plotter.plot_der_potentials(ax=ax, order=order, fontsize=fontsize, show=False)
+            ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_ene_vs_ecut(self, ax_list=None, fontsize: int = 8, **kwargs):
+        """
+        Plot the convergence of the kinetic energy wrt ecut on ax_list
+
+        Args:
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+        """
+        ax_list, fig, plt = self._get_ax_list(ax_list)
+
+        for ax, (label, plotter) in zip(ax_list, self.items()):
+            plotter.ene_vs_ecut(ax=ax, fontsize=fontsize, show=False)
+            ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_den_formfact(self, ecut=120, ax_list=None, fontsize: int = 8, **kwargs):
+        """
+        Plot the density form factor as a function of ecut in Ha on ax_list
+
+        Args:
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+
+        Return: matplotlib Figure.
+        """
+        ax_list, fig, plt = self._get_ax_list(ax_list)
+
+        for ax, (label, plotter) in zip(ax_list, self.items()):
+            plotter.plot_den_formfact(ax=ax, ecut=ecut, fontsize=fontsize, show=False)
+            ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        Generate a predefined list of matplotlib figures with minimal input from the user.
+        """
+        verbose = kwargs.get("verbose", 0)
+
+        yield self.plot_radial_wfs(show=False)
+        yield self.plot_radial_wfs(what="scattering_states", show=False)
+        #yield self.plot_atanlogder_econv(show=False)
+        yield self.plot_projectors(show=False)
+        yield self.plot_potentials(show=False)
+        yield self.plot_densities(show=False)
+        ##yield self.plot_densities(timesr2=True, show=False)
+        yield self.plot_den_formfact(show=False)
+        #if verbose:
+        #    yield self.plot_der_potentials(show=False)
+        #    for order in [1, 2, 3, 4]:
+        #        yield self.plot_der_densities(order=order, show=False)
 
 
 def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):

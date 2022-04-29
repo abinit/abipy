@@ -961,6 +961,102 @@ class Flow(Node, NodeContainer, MSONable):
 
         return df
 
+    def write_fix_flow_script(self) -> None:
+        """
+        Write python script in the flow workdir that can be used by expert
+        users to change the input variables of the task according to their status.
+        """
+
+        script = """\
+#!/usr/bin/env python
+'''
+ WARNING WARNING WARNING
+
+This script changes the input variables of particular tasks and resets certain tasks
+so that it's possible to fix errors before starting a new scheduler.
+
+This is an advanced script and you are supposed to be familiar with the Abipy API.
+Very bad things will happen if you don't use this script properly.
+
+DO NOT RUN THIS SCRIPT IF THE SCHEDULER IS STILL RUNNING YOUR FLOW.
+YOU HAVE BEEN WARNED!
+'''
+
+import sys
+import argparse
+
+import abipy.flowtk as flowtk
+
+def main():
+
+    # Build the main parser.
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('flowdir', help="File or directory containing the ABINIT flow")
+    parser.add_argument('--remove-lock', default=False, action="store_true",
+        help="Remove the lock on the pickle file used to save the status of the flow.")
+    parser.add_argument('--apply', default=False, action="store_true", help="Apply changes to the flow.")
+
+    options = parser.parse_args()
+
+    # Read the flow from the pickle file
+    flow = flowtk.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
+
+    # List with the id of the tasks that will be changed.
+    nids = []
+
+    for task in flow.iflat_tasks():
+
+        # Select tasks according to class and status
+        # Clearly, you will need to customize this part.
+        if task.__class__.__name__ == "PhononTask" and task.status in (task.S_UNCONVERGED, task.S_ERROR):
+
+            nids.append(task.node_id)
+
+            # Here we operate on the AbinitInput of the task.
+            # In this particular case, we want to use toldfe instead of tolvrs.
+            # Again, you will need to customize this part.
+
+            # Remove all the tolerance variables present in the input.
+            task.input.pop_tolerances()
+
+            # Set new stopping criterion
+            task.input["toldfe"] = 1e-8
+            task.input["nstep"] = 1000
+            task.input["prtwf"] = 0
+
+    if options.apply:
+        print(f"Resetting {len(nids)} tasks modified by the user.")
+
+        if nids:
+            for task in flow.iflat_tasks(nids=nids):
+                task.reset()
+
+        print("Writing new pickle file.")
+
+        flow.build_and_pickle_dump()
+    else:
+        print(f"Dry run mode. {len(nids)} tasks have been modified in memory.")
+
+        if nids:
+            for task in flow.iflat_tasks(nids=nids):
+                print(task)
+
+        print("Use --apply to reset these tasks and update the pickle file.")
+        print("Then restart the scheduler with `nohup abirun.py FLOWDIR scheduler ...`")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+"""
+        path_py = os.path.join(self.workdir, "_fix_flow.py")
+        with open(path_py, "wt") as fh:
+            fh.write(script)
+            import stat
+            st = os.stat(path_py)
+            os.chmod(path_py, st.st_mode | stat.S_IEXEC)
+
     def compare_structures(self, nids=None, with_spglib=False, what="io", verbose=0,
                            precision=3, printout=False, with_colors=False):
         """
@@ -1924,6 +2020,9 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         data = getattr(self, "abipy_meta_json", None)
         if data is not None:
             self.write_json_in_workdir("abipy_meta.json", data)
+
+        # Write fix_flow.py script for advanced users.
+        self.write_fix_flow_script()
 
         for work in self:
             work.build(*args, **kwargs)
@@ -2913,6 +3012,7 @@ class G0W0WithQptdmFlow(Flow):
         return work
 
 
+# TODO: Remove
 class FlowCallbackError(Exception):
     """Exceptions raised by FlowCallback."""
 
@@ -2965,7 +3065,7 @@ class FlowCallback(object):
             try:
                 func = getattr(self.flow, self.func_name)
             except AttributeError as exc:
-                raise self.Error(str(exc))
+                raise self.Error(str(exc)) from exc
 
             return func(self)
 
