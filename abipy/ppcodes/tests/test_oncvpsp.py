@@ -141,6 +141,7 @@ class OncvOutputParserTest(AbipyTest):
         # Build the plotter
         plotter = p.make_plotter()
         repr(plotter); str(plotter)
+        assert plotter is not None
         self._call_plotter_methods(plotter)
 
     def test_fully_relativistic_oxygen_v2(self):

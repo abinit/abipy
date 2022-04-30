@@ -69,14 +69,14 @@ class PseudoGenDataPlotter:
 
     markers_aeps = dict(ae=".", ps="o")
 
-    color_l = { 0: "black",
-                1: "red",
+    color_l = {0: "black",
+               1: "red",
                -1: "magenta",
-                2: "blue",
+               2: "blue",
                -2: "cyan",
-                3: "orange",
+               3: "orange",
                -3: "yellow",
-              }
+    }
 
     def __init__(self, **kwargs):
         """Store kwargs in self if k is in self.all_keys."""
@@ -572,7 +572,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         try:
             return self._scan(verbose=verbose)
         except Exception as exc:
-            raise self.Error(f"Exception while parsing output file: {self.filepath}") from exc
+            raise self.Error(f"Exception while parsing: {self.filepath}") from exc
 
     def _scan(self, verbose: int = 0) -> None:
         if not os.path.exists(self.filepath):
@@ -629,7 +629,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         #print("version", self.version)
         self.major_version, self.minor_version, self.patch_level = tuple(map(int, self.version.split(".")))[:3]
 
-        fullr = self.calc_type not in ["scalar-relativistic", "non-relativistic"]
+        fullr = self.fully_relativistic
         if fullr:
             print("Parsing of wavefunctions and projectors is not yet coded for fully-relativisic pseudos")
 
@@ -728,7 +728,7 @@ class OncvOutputParser(PseudoGenOutputParser):
 
         return "\n".join(lines)
 
-    @property
+    @lazy_property
     def fully_relativistic(self) -> bool:
         """True if fully-relativistic calculation."""
         return self.calc_type == "fully-relativistic"
@@ -838,7 +838,10 @@ class OncvOutputParser(PseudoGenOutputParser):
                     ecuts.append(ecut)
 
                 if nlk is None:
-                    raise RuntimeError("Cannot find nlk quantum numbers")
+                    raise self.Error("Cannot find nlk quantum numbers")
+
+                if nlk in kinerr_nlk:
+                    raise RuntimeError("nlk state `{nlk}` is already in kinerr_nlk!")
 
                 kinerr_nlk[nlk] = dict2namedtuple(ecuts=ecuts, values_ha=values_ha)
 
@@ -968,7 +971,7 @@ class OncvOutputParser(PseudoGenOutputParser):
             ps_wf = g.data[:, 3]
 
             if nlk in ae_waves:
-                raise RuntimeError("nlk state `{nlk}` is already in ae_waves!")
+                raise self.Error("nlk state `{nlk}` is already in ae_waves!")
 
             ae_waves[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, ae_wf)
             ps_waves[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, ps_wf)
@@ -1007,8 +1010,9 @@ class OncvOutputParser(PseudoGenOutputParser):
             for n in range(len(g.data[0]) - 2):
                 nlk = NlkState(n=n+1, l=l, k=None)
                 #print("Got projector with: %s" % str(nlk))
+
                 if nlk in projectors_nlk:
-                    raise RuntimeError("nlk state `{nlk}` is already in projectors_nlk")
+                    raise self.Error("nlk state `{nlk}` is already in projectors_nlk")
 
                 projectors_nlk[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, g.data[:, n+2])
 
@@ -1083,6 +1087,15 @@ class OncvOutputParser(PseudoGenOutputParser):
         Return the most important results reported by the pp generator.
         Set the value of self.results
         """
+        # Init return values
+        #max_ecut = None
+        #max_atan_logder_l1err = None
+        #max_psexc_abserr = None
+        #herm_err = None
+        #status = None
+        #nwarns = None
+        #nerrs = None
+
         # Get the ecut needed to converge within ... TODO
         #max_ecut = 0.0
         #for l in range(self.lmax + 1):
@@ -1183,10 +1196,16 @@ class OncvOutputParser(PseudoGenOutputParser):
         if start is None and stop is None: return None
         return "\n".join(self.lines[start+1:stop])
 
-    def make_plotter(self):
-        """Builds an instance of :class:`PseudoGenDataPlotter`."""
-        kwargs = {k: getattr(self, k) for k in self.Plotter.all_keys}
-        return self.Plotter(**kwargs)
+    def make_plotter(self) -> Union[PseudoGenDataPlotter, None]:
+        """
+        Return an instance of PseudoGenDataPlotter or None
+        """
+        try:
+            kwargs = {k: getattr(self, k) for k in self.Plotter.all_keys}
+            return self.Plotter(**kwargs)
+        except Exception as exc:
+            print(exc)
+            return None
 
     def _grep(self, tag: str, beg: int = 0) -> GrepResults:
         """
@@ -1450,7 +1469,6 @@ class MultiPseudoPlotter:
     .. code-block:: python
 
         plotter = MultiPseudoPlotter.from_files(filepaths)
-        #plotter.plot()
     """
 
     @classmethod
@@ -1472,11 +1490,13 @@ class MultiPseudoPlotter:
         Add a oncvps output file to the plotter with label
         """
         if label in self._plotters_dict:
-            raise RuntimeError(f"Cannot overwrite label: {label}")
+            raise ValueError(f"Cannot overwrite label: {label}")
+
         parser = OncvOutputParser(filepath)
         parser.scan()
         plotter = parser.make_plotter()
-        self._plotters_dict[label] = plotter
+        if plotter is not None:
+            self._plotters_dict[label] = plotter
 
     def __len__(self) -> int:
         return len(self._plotters_dict)
@@ -1487,7 +1507,7 @@ class MultiPseudoPlotter:
         return list(self._plotters_dict.values())
 
     @property
-    def labels(self) -> list:
+    def labels(self) -> List[str]:
         """List of labels."""
         return list(self._plotters_dict.keys())
 

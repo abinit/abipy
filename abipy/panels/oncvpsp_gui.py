@@ -192,7 +192,9 @@ GE_ANNOTATED = """
 """
 
 class Lparams(AbipyParameterized):
-    """Stores all the oncvpsp pseudization parameters for a given l."""
+    """
+    Stores all the oncvpsp pseudization parameters for a given l.
+    """
 
     l = param.Integer(None, bounds=(0, None))
     rc = param.Number(None, bounds=(0, None))
@@ -218,7 +220,7 @@ class Nlf(AbipyParameterized):
 class OncvInput(AbipyParameterized):
     """
     A parametrized class with all the Oncvpsp input variables,
-    typicall constructed from an external file.
+    usually constructed from an external file.
     """
 
     atsym = param.String()
@@ -272,6 +274,7 @@ class OncvInput(AbipyParameterized):
                 if i != -1:
                     line = line[:i]
                 tokens = line.split()
+
                 if len(tokens) != len(types):
                     raise ValueError(f"Expecting {len(types)} tokens but got {len(tokens)} tokens: `{tokens}`")
 
@@ -444,21 +447,25 @@ def run_psgen(psgen: OncvGenerator, data: dict) -> dict:
     herm_err = None
     status = None
     nwarns = None
+    nerrs = None
 
     try:
         psgen.start()
         retcode = psgen.wait()
 
-        if psgen.results is None and psgen.status == psgen.S_OK:
-            psgen.check_status()
+        results = psgen.parser.get_results()
 
-        if psgen.results is not None:
-            max_ecut = psgen.results.max_ecut
-            max_atan_logder_l1err = psgen.results.max_atan_logder_l1err
-            max_psexc_abserr = psgen.results.max_psexc_abserr
-            herm_err = psgen.results.herm_err
-            status = str(psgen.status),
-            nwarns = len(psgen.warnings)
+        #if results is None and psgen.status == psgen.S_OK:
+        #    psgen.check_status()
+
+        if results is not None:
+            max_ecut = results.max_ecut
+            max_atan_logder_l1err = results.max_atan_logder_l1err
+            max_psexc_abserr = results.max_psexc_abserr
+            herm_err = results.herm_err
+            status = str(psgen.status)
+            nwarns = len(psgen.parser.warnings)
+            nerrs = len(psgen.parser.errors)
 
     except Exception as exc:
         print("Exception in run_psgen", exc)
@@ -470,6 +477,7 @@ def run_psgen(psgen: OncvGenerator, data: dict) -> dict:
         max_psexc_abserr=max_psexc_abserr,
         herm_err=herm_err,
         nwarns=nwarns,
+        nerrs=nerrs,
     )
 
     data = data.copy()
@@ -608,9 +616,11 @@ class OncvGui(AbipyParameterized):
     def starmap(self, func, list_of_args):
         import time
         time_start = time.time()
+
         # Don't use more procs than tasks.
         max_nprocs_ = self.max_nprocs
         max_nprocs_ = min(max_nprocs_, len(list_of_args))
+
         if max_nprocs_ == 1:
             values = [func(*args) for args in list_of_args]
         else:
@@ -621,7 +631,7 @@ class OncvGui(AbipyParameterized):
             with Pool(processes=self.max_nprocs) as pool:
                 values = pool.starmap(func, list_of_args)
 
-        print(f"Done {len(list_of_args)} tasks in {time.time() - time_start} [s] with {max_nprocs_} processe(s)")
+        print(f"Done {len(list_of_args)} tasks in {time.time() - time_start:.2f} [s] with {max_nprocs_} processe(s)")
         return values
 
     def get_panel(self, as_dict=False, **kwargs):
@@ -778,9 +788,10 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
         func_names = list_strings(func_names)
         figs = []
         for psgen, title in zip(psgens, titles):
-            if psgen.plotter is not None:
+            plotter = psgen.parser.make_plotter()
+            if plotter is not None:
                 for func_name in func_names:
-                    plot_func = getattr(psgen.plotter, func_name)
+                    plot_func = getattr(plotter, func_name)
                     figs.append(_m(plot_func(show=False, title=title, fig_close=True)))
 
         # Insert the figures in a GridBox.
@@ -1212,7 +1223,12 @@ The present values of rc_l are: {rc_l}
 
         with Loading(self.out_area):
             #self.psgen_to_save = psgen
-            plotter = psgen.plotter
+            plotter = psgen.parser.make_plotter()
+
+            if plotter is None:
+                self.out_area.objects = pn.Column("## Plotter is None")
+                return
+
             _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
 
             save_btn = pnw.Button(name="Save output", button_type='primary')
