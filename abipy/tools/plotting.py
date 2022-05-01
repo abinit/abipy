@@ -23,6 +23,7 @@ __all__ = [
     "set_axlims",
     "add_fig_kwargs",
     "get_ax_fig_plt",
+    "get_axarray_fig_plt",
     "get_ax3d_fig_plt",
     "plot_array",
     "ArrayPlotter",
@@ -459,7 +460,7 @@ class Marker(namedtuple("Marker", "x y s")):
         return self.__class__(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
 
 
-class MplExpose: # pragma: no cover
+class MplExpose:  # pragma: no cover
     """
     Context manager used to produce several matplotlib figures and then show
     all them at the end so that the user does not need to close the window to

@@ -5,7 +5,7 @@ import os
 from abipy.core.testing import AbipyTest
 
 from abipy.core.atom import (
-    #NlkState,
+    NlkState,
     #QState,
     AtomicConfiguration,
     RadialFunction,
@@ -13,6 +13,20 @@ from abipy.core.atom import (
 )
 
 from abipy.data import nist_database
+
+
+class NlkTest(AbipyTest):
+
+    def test_nlk_api(self):
+        """Testing NlkState API."""
+        nlk = NlkState(n=1, l=0, k=None)
+        str(nlk), repr(nlk)
+        assert nlk.j == nlk.l
+        d = {nlk: "foo"}
+        assert d[nlk] == "foo"
+
+        same_nlk = NlkState.from_nl_ik(n=1, l=0, ik=None)
+        assert nlk == same_nlk and d[same_nlk] == "foo"
 
 
 class AtomicConfigurationTest(AbipyTest):
@@ -56,10 +70,10 @@ class AtomicConfigurationTest(AbipyTest):
             with self.assertRaises(ValueError):
                 newc.remove_state(n=15, l="s", occ=1.0)
 
-    def test_initfromstring(self):
+    def test_init_from_string(self):
         """Initialization of atomic configurations from string"""
         for symbol, confstr in nist_database._neutral.items():
-            print("symbol",symbol, confstr)
+            #print("symbol", symbol, confstr)
             Z = nist_database.Z_from_symbol(symbol)
             aconf = AtomicConfiguration.from_string(Z, confstr)
 

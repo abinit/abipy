@@ -11,6 +11,8 @@ from abipy.data import nist_database
 from scipy.interpolate import UnivariateSpline
 from scipy.integrate import cumtrapz
 
+from monty.functools import lazy_property
+
 __version__ = "0.1"
 __author__ = "Matteo Giantomassi"
 __maintainer__ = "Matteo Giantomassi"
@@ -21,8 +23,6 @@ __all__ = [
     "AtomicConfiguration",
     "RadialFunction",
     "RadialWaveFunction",
-    "plot_aepp",
-    "plot_logders",
 ]
 
 char2l = {
@@ -47,6 +47,7 @@ l2char = {
 
 # Accept strings as keys as well.
 l2char.update({str(l): l2char[l] for l in l2char})
+
 
 def _asl(obj: Any) -> int:
     try:
@@ -84,20 +85,46 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
     Named tuple storing (n, l) or (n, l, k) if relativistic pseudos.
     k is set to None if we are in non-relativistic mode.
     """
+
+    # The relativistic code utilizes a new main program, oncvpsp_r, rather than
+    # complicate oncvpsp with lots of branching.  Many arrays have acquired an
+    # additional final index, and most loops over angular momenta include inner
+    # loops over this "ikap=1,2" index referring to the additional quantum number of
+    # the radial Dirac equations kappa (kap) =l, -(l+1) for j=l -/+ 1/2.
+
+    def __new__(cls, n: int, l: int, k: Optional[int] = None):
+        """Extends super.__new__ adding type conversion and default values."""
+        #if k is not None and k not in (l - 1/2, l + 1/2):
+        #    raise ValueError(f"Invalid k: {k} for l: {l}")
+
+        return super().__new__(cls, n, l, k)
+
+    @classmethod
+    def from_nl_ik(cls, n: int, l: int, ik: Union[int, None]) -> NlkState:
+        k = None
+        if ik is not None:
+            k = {0: l, 1: -(l+1)}[ik]
+
+        return cls(n=n, l=l, k=k)
+
     def __str__(self) -> str:
         if self.l == -1:
             lc = "loc"
         else:
             lc = l2char[self.l]
 
-        if self.k is None:
-            return f"n={self.n}, l={lc}"
-        else:
-            return f"n={self.n}, l={lc}, k={self.k}"
+        return f"n={self.n}, l={lc}" if self.k is None else f"n={self.n}, l={lc}, k={self.k}"
 
-    @property
-    def to_dict(self) -> dict:
-        return {"n": self.n, "l": self.l, "k": self.k}
+    @lazy_property
+    def j(self) -> int:
+        """Total angular momentum"""
+        l = self.l
+        if self.k is None: return l
+        return l - 1/2 if self.k == l else l + 1/2
+
+    #@property
+    #def to_dict(self) -> dict:
+    #    return {"n": self.n, "l": self.l, "k": self.k}
 
 
 class QState(collections.namedtuple("QState", "n, l, occ, eig, j, s")):
@@ -121,7 +148,9 @@ class QState(collections.namedtuple("QState", "n, l, occ, eig, j, s")):
                 eig: Optional[float] = None,
                 j: Optional[int] = None,
                 s: Optional[int] = None):
-        """Intercepts super.__new__ adding type conversion and default values."""
+        """
+        Extends super.__new__ adding type conversion and default values.
+        """
         eig = float(eig) if eig is not None else eig
         j = int(j) if j is not None else j
         s = int(s) if s is not None else s
@@ -160,6 +189,16 @@ class AtomicConfiguration:
 
         return cls(Z, states)
 
+    @classmethod
+    def neutral_from_symbol(cls, symbol: Union[str, int]) -> AtomicConfiguration:
+        """
+        symbol: str or int
+            Can be a chemical symbol (str) or an atomic number (int).
+        """
+        entry = nist_database.get_neutral_entry(symbol)
+        states = [QState(n=s[0], l=s[1], occ=s[2]) for s in entry.states]
+        return cls(entry.Z, states)
+
     def __str__(self) -> str:
         lines = ["%s: " % self.Z]
         lines += [str(state) for state in self]
@@ -180,16 +219,6 @@ class AtomicConfiguration:
 
     def __ne__(self, other: AtomicConfiguration) -> bool:
         return not self == other
-
-    @classmethod
-    def neutral_from_symbol(cls, symbol: Union[str, int]) -> AtomicConfiguration:
-        """
-        symbol: str or int
-            Can be a chemical symbol (str) or an atomic number (int).
-        """
-        entry = nist_database.get_neutral_entry(symbol)
-        states = [QState(n=s[0], l=s[1], occ=s[2]) for s in entry.states]
-        return cls(entry.Z, states)
 
     def copy(self) -> AtomicConfiguration:
         """Shallow copy of self."""
@@ -374,7 +403,6 @@ class RadialFunction:
         Returns:
             `Function1d` with :math:`\int y(x) dx`
         """
-        from scipy.integrate import cumtrapz
         integ = cumtrapz(self.values, x=self.rmesh)
         pad_intg = np.zeros(len(self.values))
         pad_intg[1:] = integ
@@ -476,7 +504,7 @@ class RadialWaveFunction(RadialFunction):
         super(RadialWaveFunction, self).__init__(name, rmesh, values)
         self.state = state
 
-    @property
+    @lazy_property
     def isbound(self) -> bool:
         """True if self is a bound state."""
         back = min(10, len(self))
@@ -488,171 +516,3 @@ class RadialWaveFunction(RadialFunction):
         d.update(self.state.to_dict)
         return d
 
-
-def plot_aepp(ae_funcs, pp_funcs=None, **kwargs):
-    """
-    Uses Matplotlib to plot the radial wavefunction (AE only or AE vs PP)
-
-    Args:
-        ae_funcs: All-electron radial functions.
-        pp_funcs: Pseudo radial functions.
-
-    ==============  ==============================================================
-    kwargs          Meaning
-    ==============  ==============================================================
-    title           Title of the plot (Default: None).
-    show            True to show the figure (Default: True).
-    savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-    ==============  ==============================================================
-
-    Returns:
-        `matplotlib` figure.
-
-    """
-    title = kwargs.pop("title", None)
-    show = kwargs.pop("show", True)
-    savefig = kwargs.pop("savefig", None)
-    multi_plot = kwargs.pop("multi_plot", False)
-
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-
-    if multi_plot:
-        num_funcs = len(ae_funcs) if pp_funcs is None else len(pp_funcs)
-
-        spl_idx = 0
-        for (state, ae_phi) in ae_funcs.items():
-            if pp_funcs is not None and state not in pp_funcs:
-                continue
-
-            spl_idx += 1
-            ax = fig.add_subplot(num_funcs, 1, spl_idx)
-
-            if spl_idx == 1 and title:
-                ax.set_title(title)
-
-            lines, legends = [], []
-            line, = ax.plot(ae_phi.rmesh, ae_phi.values, "-b", linewidth=2.0, markersize=1)
-
-            lines.append(line)
-            legends.append("AE: %s" % state)
-
-            if pp_funcs is not None:
-                pp_phi = pp_funcs[state]
-                line, = ax.plot(pp_phi.rmesh, pp_phi.values, "^r", linewidth=2.0, markersize=4)
-                lines.append(line)
-                legends.append("PP: %s" % state)
-
-            ax.legend(lines, legends, loc="best", shadow=True)
-
-            # Set yticks and labels.
-            ylabel = kwargs.get("ylabel", None)
-            if ylabel is not None:
-                ax.set_ylabel(ylabel)
-
-            if spl_idx == num_funcs:
-                ax.set_xlabel("r [Bohr]")
-
-            ax.grid(True)
-
-    else:
-        ax = fig.add_subplot(1, 1, 1)
-        ax.set_title(title)
-
-        lines, legends = [], []
-        for state, ae_phi in ae_funcs.items():
-            if pp_funcs is not None and state not in pp_funcs:
-                continue
-
-            line, = ax.plot(ae_phi.rmesh, ae_phi.values, "-b", linewidth=2.0, markersize=1)
-
-            lines.append(line)
-            legends.append("AE: %s" % state)
-
-            if pp_funcs is not None:
-                pp_phi = pp_funcs[state]
-                line, = ax.plot(pp_phi.rmesh, pp_phi.values, "^r", linewidth=2.0, markersize=4)
-                lines.append(line)
-                legends.append("PP: %s" % state)
-
-        ax.legend(lines, legends, loc="best", shadow=True)
-
-        # Set yticks and labels.
-        ylabel = kwargs.get("ylabel", None)
-        if ylabel is not None:
-            ax.set_ylabel(ylabel)
-
-        ax.set_xlabel("r [Bohr]")
-        ax.grid(True)
-
-    if show:
-        plt.show()
-
-    if savefig is not None:
-        fig.savefig(savefig)
-
-    return fig
-
-
-def plot_logders(ae_logders, pp_logders, **kwargs):
-    """
-    Uses matplotlib to plot the logarithmic derivatives.
-
-    Args:
-        ae_logders: AE logarithmic derivatives.
-        pp_logders: PP logarithmic derivatives.
-
-    ==============  ==============================================================
-    kwargs          Meaning
-    ==============  ==============================================================
-    title           Title of the plot (Default: None).
-    show            True to show the figure (Default: True).
-    savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-    ==============  ==============================================================
-
-    Returns:
-        `matplotlib` figure.
-    """
-    assert len(ae_logders) == len(pp_logders)
-    title = kwargs.pop("title", None)
-    show = kwargs.pop("show", True)
-    savefig = kwargs.pop("savefig", None)
-
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-
-    num_logds, spl_idx = len(ae_logders), 0
-
-    for state, pp_logd in pp_logders.items():
-        spl_idx += 1
-        ax = fig.add_subplot(num_logds, 1, spl_idx)
-
-        if spl_idx == 1 and title:
-            ax.set_title(title)
-
-        lines, legends = [], []
-
-        ae_logd = ae_logders[state]
-
-        line, = ax.plot(ae_logd.rmesh, ae_logd.values, "-b", linewidth=2.0, markersize=1)
-        lines.append(line)
-        legends.append("AE logder %s" % state)
-
-        line, = ax.plot(pp_logd.rmesh, pp_logd.values, "^r", linewidth=2.0, markersize=4)
-        lines.append(line)
-        legends.append("PP logder %s" % state)
-
-        ax.legend(lines, legends, loc="best", shadow=True)
-
-        if spl_idx == num_logds:
-            ax.set_xlabel("Energy [Ha]")
-
-        ax.grid(True)
-
-    if show:
-        plt.show()
-
-    if savefig is not None:
-        fig.savefig(savefig)
-
-    return fig

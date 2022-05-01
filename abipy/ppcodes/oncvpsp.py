@@ -87,9 +87,9 @@ class PseudoGenDataPlotter:
         if kwargs:
             raise ValueError("Unknown keys: %s" % list(kwargs.keys()))
 
-    def _wf_pltopts(self, l, aeps) -> dict:
+    def _mpl_opts_laeps(self, l: int, aeps: str) -> dict:
         """
-        Dict with ax.plot options for wavefunctions.
+        Return dict with matplotlib ax.plot options to plot AE/PS quantities depending on l.
         """
         return dict(
             color=self.color_l[l],
@@ -99,6 +99,8 @@ class PseudoGenDataPlotter:
             markersize=self.markersize
         )
 
+    #def _mpl_opts_nlk(self, nlk) -> dict:
+
     #@property
     #def has_scattering_states(self):
 
@@ -107,7 +109,7 @@ class PseudoGenDataPlotter:
         Add vertical lines to axis `ax` showing the core radii.
         """
         for l, rc in self.rc_l.items():
-            ax.axvline(rc, lw=1, color=self.color_l[l], ls="--") # ls=(0, (1, 10)))
+            ax.axvline(rc, lw=1, color=self.color_l[l], ls="--")
 
     @add_fig_kwargs
     def plot_atan_logders(self, ax=None, with_xlabel=True, fontsize: int = 8, **kwargs):
@@ -127,8 +129,8 @@ class PseudoGenDataPlotter:
             # Add pad  to avoid overlapping curves.
             pad = (l + 1) * 1.0
 
-            ae_line, = ax.plot(ae_alog.energies, ae_alog.values + pad, **self._wf_pltopts(l, "ae"))
-            ps_line, = ax.plot(ps_alog.energies, ps_alog.values + pad, **self._wf_pltopts(l, "ps"))
+            ae_line, = ax.plot(ae_alog.energies, ae_alog.values + pad, **self._mpl_opts_laeps(l, "ae"))
+            ps_line, = ax.plot(ps_alog.energies, ps_alog.values + pad, **self._mpl_opts_laeps(l, "ps"))
 
             lines.extend([ae_line, ps_line])
             legends.extend(["AE l=%s" % l2char[l], "PS l=%s" % l2char[l]])
@@ -164,8 +166,8 @@ class PseudoGenDataPlotter:
             ps_wf, l, k = ps_wfs[nlk], nlk.l, nlk.k
             #print(nlk)
 
-            ae_line, = ax.plot(ae_wf.rmesh, ae_wf.values, **self._wf_pltopts(l, "ae"))
-            ps_line, = ax.plot(ps_wf.rmesh, ps_wf.values, **self._wf_pltopts(l, "ps"))
+            ae_line, = ax.plot(ae_wf.rmesh, ae_wf.values, **self._mpl_opts_laeps(l, "ae"))
+            ps_line, = ax.plot(ps_wf.rmesh, ps_wf.values, **self._mpl_opts_laeps(l, "ps"))
 
             lines.extend([ae_line, ps_line])
             l_char = l2char[l]
@@ -195,8 +197,8 @@ class PseudoGenDataPlotter:
 
         linestyle_n = {1: "solid", 2: "dashed", 3: "dotted", 4: "dashdot"}
         lines, legends = [], []
+
         for nlk, proj in self.projectors.items():
-            #print(nlk)
             line, = ax.plot(proj.rmesh, proj.values,
                             color=self.color_l.get(nlk.l, 'black'),
                             linestyle=linestyle_n[nlk.n],
@@ -259,7 +261,7 @@ class PseudoGenDataPlotter:
             spline = UnivariateSpline(rho.rmesh, rho.values, s=0)
             lin_values = spline(lin_rmesh)
             vder = finite_diff(lin_values, h, order=order, acc=4)
-            line, = ax.plot(lin_rmesh, vder) #, **self._wf_pltopts(l, "ae"))
+            line, = ax.plot(lin_rmesh, vder)
             lines.append(line)
 
             legends.append("%s-order derivative of %s" % (order, name))
@@ -282,7 +284,7 @@ class PseudoGenDataPlotter:
 
         lines, legends = [], []
         for l, pot in self.potentials.items():
-            line, = ax.plot(pot.rmesh, pot.values, **self._wf_pltopts(l, "ae"))
+            line, = ax.plot(pot.rmesh, pot.values, **self._mpl_opts_laeps(l, "ae"))
             lines.append(line)
 
             if l == -1:
@@ -317,12 +319,12 @@ class PseudoGenDataPlotter:
         lines, legends = [], []
 
         for l, pot in self.potentials.items():
-            # Need linear mesh for finite_difference --> Spline input potentials on lin_rmesh
+            # Need linear mesh for finite_difference hence spline input potentials on lin_rmesh.
             lin_rmesh, h = np.linspace(pot.rmesh[0], pot.rmesh[-1], num=len(pot.rmesh) * 4, retstep=True)
             spline = UnivariateSpline(pot.rmesh, pot.values, s=0)
             lin_values = spline(lin_rmesh)
             vder = finite_diff(lin_values, h, order=order, acc=4)
-            line, = ax.plot(lin_rmesh, vder, **self._wf_pltopts(l, "ae"))
+            line, = ax.plot(lin_rmesh, vder, **self._mpl_opts_laeps(l, "ae"))
             lines.append(line)
 
             if l == -1:
@@ -348,12 +350,12 @@ class PseudoGenDataPlotter:
 
         lines, legends = [], []
         for l, data in self.ene_vs_ecut.items():
-            line, = ax.plot(data.energies, data.values, **self._wf_pltopts(l, "ae"))
+            line, = ax.plot(data.energies, data.values, **self._mpl_opts_laeps(l, "ae"))
             lines.append(line)
             legends.append("Conv l=%s" % l2char[l])
 
         for nlk, data in self.kinerr_nlk.items():
-            line, = ax.plot(data.ecuts, data.values_ha, **self._wf_pltopts(nlk.l, "ps"))
+            line, = ax.plot(data.ecuts, data.values_ha, **self._mpl_opts_laeps(nlk.l, "ps"))
 
         decorate_ax(ax, xlabel="Ecut (Ha)", ylabel=r"$\Delta E_{kin}$ (Ha)",
                     title="",
@@ -369,7 +371,7 @@ class PseudoGenDataPlotter:
     def plot_atanlogder_econv(self, ax_list=None, fontsize: int = 8, **kwargs):
         """
         Plot atan(logder) and converge of kinetic energy on the same figure.
-        Returns matplotlib Figure
+        Return: matplotlib Figure
         """
         # Build grid of plots.
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=2, ncols=1,
@@ -631,7 +633,7 @@ class OncvOutputParser(PseudoGenOutputParser):
 
         fullr = self.fully_relativistic
         if fullr:
-            print("Parsing of wavefunctions and projectors is not yet coded for fully-relativisic pseudos")
+            print("Parsing of wavefunctions and projectors is not yet coded for relativisic pseudos")
 
         # Read configuration (not very robust because we assume the user didn't change the template but oh well)
         header = "# atsym  z    nc    nv    iexc   psfile"
@@ -642,7 +644,11 @@ class OncvOutputParser(PseudoGenOutputParser):
                 # assert len(keys) == len(values)
                 # Store values in self.
                 for k, v in zip(keys, values):
+                    if k in ("nc", "nv", "iexc"): v = int(v)
+                    if k in ("z", ): v = float(v)
                     setattr(self, k, v)
+
+
                 break
 
         # Parse ATOM and Reference configuration
@@ -672,7 +678,7 @@ class OncvOutputParser(PseudoGenOutputParser):
             header = "#   n    l    f        energy (Ha)"
 
         # Convert nc and nv to int.
-        self.nc, self.nv = int(self.nc), int(self.nv)
+        #self.nc, self.nv = int(self.nc), int(self.nv)
         nc, nv = self.nc, self.nv
 
         for i, line in enumerate(self.lines):
@@ -728,10 +734,10 @@ class OncvOutputParser(PseudoGenOutputParser):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @property
     def fully_relativistic(self) -> bool:
         """True if fully-relativistic calculation."""
-        return self.calc_type == "fully-relativistic"
+        return self.calc_type in ("fully-relativistic", "relativistic")
 
     @lazy_property
     def rc_l(self) -> dict[int, float]:
@@ -785,40 +791,69 @@ class OncvOutputParser(PseudoGenOutputParser):
         """
         Dictionary with the error on the kinetic energy indexed by nlk.
         """
+
+        # In relativist mode we write stuff inside a loop of the form:
+
+        #do l1=1,lmax+1
+        #   ll=l1-1
+        #   if(ll==0) then
+        #    mkap=1
+        #   else
+        #    mkap=2
+        #   end if
+        #   do ikap=1,mkap
+        #       if(ikap==1) then
+        #         kap=-(ll+1)
+        #       else
+        #         kap=  ll
+        #       end if
+
         kinerr_nlk = {}
+
         if self.major_version > 3:
             # Calculating optimized projector #   1
             #
             #  for l=   0
 
             re_start = re.compile(r"^Calculating optimized projector #\s+(?P<iproj>\d+)")
-            #header = "Calculating optimized projector #"
-            # FIXME: In FR mode, we have
-            #Calculating first optimized projector for l=   0
-            #Calculating second optimized projector for l=   0
+
         else:
             # Calculating first optimized projector for l=   0
             re_start = re.compile(r"^Calculating (?P<iproj>(first|second)) optimized projector for l=\s+(?P<l>\d+)")
+            # TODO: In FR mode, we have
+            #Calculating first optimized projector for l=   0
+            #Calculating second optimized projector for l=   0
 
         nlk = None
+        iproj_l_seen = set()
+
         for i, line in enumerate(self.lines):
+
             m = re_start.match(line)
-            #if line.startswith(header):
-            #iproj = int(line.replace(header, "").strip())
+
             if m:
+                # Extract iproj and l.
                 if self.major_version > 3:
                     # for l=   0
                     iproj = int(m.group("iproj"))
                     l = int(self.lines[i+2].split("=")[-1].strip())
-                    k = None
                 else:
                     iproj = m.group("iproj")
                     iproj = {"first": 0, "second": 1}[iproj]
                     l = int(m.group("l"))
-                    k = None
 
-                nlk = NlkState(n=iproj, l=l, k=k)
+                ikap = None
+                if self.fully_relativistic:
+                    ikap = 0
+                    if (iproj, l) in iproj_l_seen: ikap = 1
+                    iproj_l_seen.add((iproj, l))
+
+                # Use n index to store iprj index.
+                nlk = NlkState.from_nl_ik(n=iproj, l=l, ik=ikap)
+                #print("nlk:", nlk)
                 continue
+
+            # Now parse the following section associated to nlk
 
             #Energy error per electron        Cutoff
             #     Ha          eV             Ha
@@ -826,22 +861,21 @@ class OncvOutputParser(PseudoGenOutputParser):
             #     0.00100     0.02721       52.82
             #     0.00010     0.00272       66.22
             #     0.00001     0.00027       75.37
+
             if line.startswith("Energy error per electron        Cutoff"):
                 values_ha, ecuts = [], []
                 for j in range(4):
                     tokens = self.lines[i+2+j].split()
-                    if not tokens: break
                     #print("tokens:", tokens)
+                    if not tokens: break
                     err_ha, err_ev, ecut = map(float, tokens)
-                    #print(err_ha, ecut)
                     values_ha.append(err_ha)
                     ecuts.append(ecut)
 
                 if nlk is None:
                     raise self.Error("Cannot find nlk quantum numbers")
 
-                if nlk in kinerr_nlk:
-                    raise RuntimeError("nlk state `{nlk}` is already in kinerr_nlk!")
+                self._check_nlk_key(nlk, kinerr_nlk, "kinerr_nlk")
 
                 kinerr_nlk[nlk] = dict2namedtuple(ecuts=ecuts, values_ha=values_ha)
 
@@ -849,6 +883,13 @@ class OncvOutputParser(PseudoGenOutputParser):
             raise self.Error(f"Cannot parse convergence profile in: {self.filepath}")
 
         return kinerr_nlk
+
+    @staticmethod
+    def _check_nlk_key(nlk, d, dict_name):
+
+        if nlk in d:
+            ks = "\n\t".join(str(k) for k in d)
+            raise RuntimeError(f"nlk state `{nlk}` is already in {dict_name}:\nKeys:\n\t{ks}")
 
     @lazy_property
     def potentials(self) -> dict[int, RadialFunction]:
@@ -911,18 +952,23 @@ class OncvOutputParser(PseudoGenOutputParser):
         return self._get_radial_wavefunctions(what="scattering_states")
 
     def _get_radial_wavefunctions(self, what: str) -> AePsNamedTuple:
-        # scalar-relativistic
-        #n= 1,  l= 0, all-electron wave function, pseudo w-f
+        # For scalar-relativistic bound states, we have
         #
-        #&     0    0.009945   -0.092997    0.015273
-
-        # Fully-relativistic
-        #n= 1,  l= 0  kap=-1, all-electron wave function, pseudo w-f
+        #    n= 1,  l= 0, all-electron wave function, pseudo w-f
         #
-        #&     0    0.009955    0.066338    0.000979
+        #    &     0    0.009945   -0.092997    0.015273
 
-        # scalar-relativistic
-        #scattering, iprj= 2,  l= 1, all-electron wave function, pseudo w-f
+        # bound states, fully-relativistic case:
+        #
+        #    n= 1,  l= 0  kap=-1, all-electron wave function, pseudo w-f
+        #
+        #    &     0    0.009955    0.066338    0.000979
+
+        # For the scattering states (scalar and relativistic case)
+        #
+        # scattering, iprj= 2,  l= 1, all-electron wave function, pseudo w-f
+        #
+        # scattering, iprj= 2,  l= 1, kap= 1, all-electron wave function, pseudo w-f
 
         ae_waves, ps_waves = {}, {}
 
@@ -932,46 +978,43 @@ class OncvOutputParser(PseudoGenOutputParser):
             if g.data is None: break
             beg = g.stop + 1
 
+            # Get header two lines above.
             header = self.lines[g.start - 2]
-            #print(header)
 
             if what == "bound_states":
                 if header.startswith("scattering,"):
                     continue
-                    #print(f"ignoring header {header}")
-
             elif what == "scattering_states":
                 if not header.startswith("scattering,"):
                     continue
                 header = header.replace("scattering,", "")
-                #print(header)
-
             else:
                 raise ValueError(f"Invalid value of what: `{what}`")
+
+            #print(header)
 
             if not self.fully_relativistic:
                 # n= 1,  l= 0, all-electron wave function, pseudo w-f
                 n, l = header.split(",")[0:2]
                 n = int(n.split("=")[1])
                 l = int(l.split("=")[1])
-                k = None
+                kap = None
             else:
-                # n= 1,  l= 0  kap=-1, all-electron wave function, pseudo w-f
-                n, lk = header.split(",")[0:2]
+                # n= 1,  l= 0,  kap=-1, all-electron wave function, pseudo w-f
+                if self.major_version <= 2: header = header.replace("kap=", ", kap=")
+                n, l, kap = header.split(",")[0:3]
                 n = int(n.split("=")[1])
-                toks = lk.split("=")
-                l = int(toks[1].split()[0])
-                k = int(toks[-1])
+                l = int(l.split("=")[1])
+                kap = int(kap.split("=")[1])
 
-            nlk = NlkState(n=n, l=l, k=k)
-            #print("Got nlk state:", nlk))
+            nlk = NlkState(n=n, l=l, k=kap)
+            #print("Got nlk state:", nlk)
 
             rmesh = g.data[:, 1]
             ae_wf = g.data[:, 2]
             ps_wf = g.data[:, 3]
 
-            if nlk in ae_waves:
-                raise self.Error("nlk state `{nlk}` is already in ae_waves!")
+            self._check_nlk_key(nlk, ae_waves, "ae_waves")
 
             ae_waves[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, ae_wf)
             ps_waves[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, ps_wf)
@@ -983,7 +1026,6 @@ class OncvOutputParser(PseudoGenOutputParser):
         """
         Dict with projector wave functions indexed by nlk.
         """
-        #n= 1 2  l= 0, projecctor pseudo wave functions, well or 2nd valence
         #
         #@     0    0.009945    0.015274   -0.009284
         beg = 0
@@ -998,17 +1040,22 @@ class OncvOutputParser(PseudoGenOutputParser):
             # TODO: Get n, l, k from header.
             header = self.lines[g.start-2]
 
-            #n= 1 2  l= 0, projecctor pseudo wave functions, well or 2nd valence
-            # n= 1 2  l= 0  kap=-1, projecctor pseudo wave functions, well or 2nd valence
-
             rmesh = g.data[:, 1]
             l = int(g.data[0, 0])
+            #kap = None
+            ik = None
+            if self.fully_relativistic:
+                ik = 2
+                if l <= 0: ik = 1
+                ik -= 1
+
             #print("header", header)
             #print("g.data", g.data[0, 0])
             #print("l",l)
 
             for n in range(len(g.data[0]) - 2):
-                nlk = NlkState(n=n+1, l=l, k=None)
+                nlk = NlkState.from_nl_ik(n=n+1, l=l, ik=ik)
+                #nlk = NlkState(n=n+1, l=l, k=kap)
                 #print("Got projector with: %s" % str(nlk))
 
                 if nlk in projectors_nlk:
@@ -1204,6 +1251,7 @@ class OncvOutputParser(PseudoGenOutputParser):
             kwargs = {k: getattr(self, k) for k in self.Plotter.all_keys}
             return self.Plotter(**kwargs)
         except Exception as exc:
+            raise
             print(exc)
             return None
 
