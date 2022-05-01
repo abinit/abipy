@@ -356,48 +356,88 @@ class OncvOutputParserTest(AbipyTest):
         # Test wavefunctions
         ae_wfs, ps_wfs = p.radial_wfs.ae, p.radial_wfs.ps
 
-        #nlk = (2, 0, None)
-        #ae20, ps20 = ae_wfs[nlk], ps_wfs[nlk]
-        #assert ae20[0] == (0.009958, -0.093703)
-        #assert ps20[0] == (0.009958,  0.013614)
-        #assert ae20[-1] == (5.998219, 0.002734)
-        #assert ps20[-1] == (5.998219, 0.002734)
+        # n= 2,  l= 0, kap=-1, all-electron wave function, pseudo w-f
+        nlk = NlkState(n=2, l=0, k=-1)
+        ae20, ps20 = ae_wfs[nlk], ps_wfs[nlk]
+        assert ae20[0] == (0.020088, -0.172694)
+        assert ps20[0] == (0.020088, 0.030838)
+        assert ae20[-1] == (3.976916, 0.037123)
+        assert ps20[-1] == (3.976916, 0.037120)
 
-        #nlk = (2, 1, None)
-        #ae21, ps21 = ae_wfs[nlk], ps_wfs[nlk]
-        #assert ae21[0] == (0.009958, 0.001474)
-        #assert ps21[0] == (0.009958, 0.000456)
+        # scattering, iprj= 2,  l= 0, kap=-1, all-electron wave function, pseudo w-f
+        ae_swfs, ps_swfs = p.scattering_wfs.ae, p.scattering_wfs.ps
+        nlk = NlkState(n=2, l=0, k=-1)
+        ae20, ps20 = ae_swfs[nlk], ps_swfs[nlk]
+        assert ae20[0] == (0.020088, -0.115970)
+        assert ps20[0] == (0.020088, 0.021593)
+        assert ae20[-1] == (3.976916, 0.315387)
+        assert ps20[-1] == (3.976916, 0.315347)
 
-        ## Test projectors
+        #n= 2,  l= 1, kap=-2, all-electron wave function, pseudo w-f
+        nlk = NlkState(n=2, l=1, k=-2)
+        ae21, ps21 = ae_wfs[nlk], ps_wfs[nlk]
+        assert ae21[0] == (0.020088, 0.005663)
+        assert ps21[0] == (0.020088, 0.001610)
+        assert ae21[-1] == (3.976916, 0.099985)
+        assert ps21[-1] == (3.976916, 0.099981)
+
+        # Test projectors
+        #       l    rmesh        p1           p2
+        #!J     0    0.009976     0.069866     0.060936
+
         prjs = p.projectors
-        #assert prjs[(1, 0, None)][0] == (0.009958, 0.090486)
-        #assert prjs[(2, 0, None)][0] == (0.009958, -0.025921)
-        #assert prjs[(1, 0, None)][-1] == (1.580056, -0.000000)
-        #assert prjs[(2, 0, None)][-1] == (1.580056, -0.000000)
 
-        #assert prjs[(1, 1, None)][0] == (0.009958, 0.002057)
-        #assert prjs[(2, 1, None)][0] == (0.009958, -0.000854)
+        nlk_1 = NlkState.from_nl_ik(n=1, l=0, ik=0)
+        assert prjs[nlk_1][0] == (0.009976, 0.069866)
+        assert prjs[nlk_1][-1] == (1.741907, -0.000000)
 
-        ## Test convergence data
+        nlk_2 = NlkState.from_nl_ik(n=2, l=0, ik=0)
+        assert prjs[nlk_2][0] == (0.009976, 0.060936)
+        assert prjs[nlk_2][-1] == (1.741907,  0.000000)
+
+        #!J    -1    0.009976     0.001728    -0.000948
+        nlk_1 = NlkState.from_nl_ik(n=1, l=1, ik=0)
+        nlk_2 = NlkState.from_nl_ik(n=2, l=1, ik=0)
+        print(prjs.keys())
+        assert prjs[nlk_1][0] == (0.009976, 0.001728)
+        assert prjs[nlk_2][0] == (0.009976, -0.000948)
+
+        #!J     1    0.009976     0.001729    -0.000948
+        nlk_1 = NlkState.from_nl_ik(n=1, l=1, ik=1)
+        nlk_2 = NlkState.from_nl_ik(n=2, l=1, ik=1)
+        assert prjs[nlk_1][0] == (0.009976, 0.001729)
+        assert prjs[nlk_2][0] == (0.009976, -0.000948)
+
+        # Test convergence data
+        # convergence profiles, (ll=0,lmax), kappa average
         c = p.kene_vs_ecut
-        #assert c[0].energies[0] == 12.172858
-        #assert c[0].values[0] == 0.010000
-        #assert c[0].energies[-1] == 32.408732
-        #assert c[0].values[-1] == 0.000010
-        #assert c[1].energies[0] == 23.772439
-        #assert c[1].values[0] == 0.010000
+        assert c[0].energies[0] == 5.013968
+        assert c[0].values[0] == 0.010000
+        assert c[0].energies[-1] == 25.333857
+        assert c[0].values[-1] == 0.000010
+        assert c[1].energies[0] == 19.486256
+        assert c[1].values[0] == 0.010000
 
-        ## Test log derivatives
+        # Test log derivatives
+        #    log derivativve data for plotting, l= 0
+        #    atan(r * ((d psi(r)/dr)/psi(r))), r=  1.62
+        #    l, energy, all-electron, pseudopotential
+
         ae0, ps0 = p.atan_logders.ae[0], p.atan_logders.ps[0]
-        #assert (ae0.energies[0], ae0.values[0]) == (12.000000, -1.601062)
-        #assert (ps0.energies[0], ps0.values[0]) == (12.000000, -1.611618)
+        assert (ae0.energies[0], ae0.values[0]) == (2.000000, 0.588898)
+        assert (ps0.energies[0], ps0.values[0]) == (2.000000, 0.585331)
+        assert (ae0.energies[-1], ae0.values[-1]) == (-1.980000, 3.922676)
+        assert (ps0.energies[-1], ps0.values[-1]) == (-1.980000, 3.922364)
 
-        #assert (ae0.energies[-1], ae0.values[-1]) == (-11.980000, 4.528242)
-        #assert (ps0.energies[-1], ps0.values[-1]) == (-11.980000, 4.528290)
+        # l = -1
+        ae1, ps1 = p.atan_logders.ae[-1], p.atan_logders.ps[-1]
+        assert (ae1.energies[0], ae1.values[0]) == (2.000000, -2.633391)
+        assert (ps1.energies[0], ps1.values[0]) == (2.000000, -2.630644)
 
-        ae1, ps1 = p.atan_logders.ae[1], p.atan_logders.ps[1]
-        #assert (ae1.energies[0], ae1.values[0]) == (12.000000, 1.066272)
-        #assert ps1.values[0] == 1.286771
+        # l = -2
+        ae2, ps2 = p.atan_logders.ae[-2], p.atan_logders.ps[-2]
+        assert (ae2.energies[0], ae2.values[0]) == (2.000000, -0.713245)
+        assert (ps2.energies[0], ps2.values[0]) == (2.000000, -0.537181)
 
         ## Build the plotter
         plotter = p.get_plotter()
@@ -415,7 +455,7 @@ class OncvOutputParserTest(AbipyTest):
             assert plotter.plot_der_potentials(order=1, show=False)
             assert plotter.plot_kene_vs_ecut(show=False)
             assert plotter.plot_atanlogder_econv(show=False)
-            assert plotter.plot_den_formfact(ecut=40, show=False)
+            assert plotter.plot_den_formfact(ecut=20, show=False)
 
         #if self.has_plotly():
 
@@ -427,6 +467,7 @@ class OncvOutputParserTest(AbipyTest):
                                fc_file=sys.stdout,
                                ae_file=sys.stdout, plot=False)
         assert len(n.rmesh) == 600
+
         self.assert_almost_equal([n.rmesh[0], n.psval[0], n.aeval[0], n.aecore[0]],
             np.fromstring("0.0000000000000E+00  5.9161585718320E-02  3.9966212837901E+03  3.9211427139394E+06", sep=" "))
         self.assert_almost_equal([n.rmesh[-1], n.psval[-1], n.aeval[-1], n.aecore[-1]],

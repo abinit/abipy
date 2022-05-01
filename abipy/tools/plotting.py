@@ -555,7 +555,7 @@ class PanelExpose:  # pragma: no cover
             e(obj.plot1(show=False))
             e(obj.plot2(show=False))
     """
-    def __init__(self, title=None, verbose=1):
+    def __init__(self, title=None, dpi=82, verbose=1):
         """
         Args:
             title: String to be show in the header.
@@ -564,6 +564,7 @@ class PanelExpose:  # pragma: no cover
         self.title = title
         self.figures = []
         self.verbose = verbose
+        self.dpi = int(dpi)
 
         if self.verbose:
             print("\nLoading all figures before showing them. It may take some time...")
@@ -614,7 +615,7 @@ class PanelExpose:  # pragma: no cover
             if is_plotly_figure(fig):
                 p = ply(fig, with_divider=False)
             elif is_mpl_figure(fig):
-                p = mpl(fig, with_divider=False)
+                p = mpl(fig, with_divider=False, dpi=self.dpi)
             else:
                 raise TypeError(f"Don't know how to handle type: `{type(fig)}`")
 

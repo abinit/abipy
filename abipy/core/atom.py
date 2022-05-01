@@ -103,7 +103,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
     def from_nl_ik(cls, n: int, l: int, ik: Union[int, None]) -> NlkState:
         k = None
         if ik is not None:
-            k = {0: l, 1: -(l+1)}[ik]
+            k = {0: l, 1: -(l + 1)}[ik]
 
         return cls(n=n, l=l, k=k)
 

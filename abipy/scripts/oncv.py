@@ -15,7 +15,7 @@ from monty.termcolor import cprint
 from abipy.flowtk.pseudos import Pseudo
 from abipy.tools.plotting import MplExpose , PanelExpose
 from abipy.ppcodes.ppgen import OncvGenerator
-from abipy.ppcodes.oncvpsp import OncvOutputParser, oncv_make_open_notebook, MultiPseudoPlotter
+from abipy.ppcodes.oncvpsp import OncvOutputParser, OncvPlotter, oncv_make_open_notebook, MultiOncvPlotter
 
 
 def _find_oncv_output(path):
@@ -82,23 +82,15 @@ def oncv_plot(options):
     """
     Plot data with matplotlib. Requires oncvpsp output file.
     """
-    out_path = _find_oncv_output(options.filepath)
-
-    # Parse output file.
-    onc_parser = OncvOutputParser(out_path)
-    onc_parser.scan()
-    if not onc_parser.run_completed:
-        cprint("oncvpsp output is not completed. Exiting", "red")
-        return 1
-
-    # Build the plotter
-    plotter = onc_parser.get_plotter()
-
     cli.customize_mpl(options)
 
+    out_path = _find_oncv_output(options.filepath)
+
+    plotter = OncvPlotter.from_file(out_path)
+
     # Plot data
-    e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
-    #e = PanelExpose(title="")
+    #e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+    e = PanelExpose(title="")
     with e:
         e(plotter.yield_figs())
 
@@ -111,7 +103,7 @@ def oncv_compare(options):
     """
     cli.customize_mpl(options)
 
-    plotter = MultiPseudoPlotter.from_files(options.filepaths)
+    plotter = MultiOncvPlotter.from_files(options.filepaths)
 
     #plotter.plot_radial_wfs()
     #plotter.plot_radial_wfs(what="scattering_states")
@@ -227,7 +219,6 @@ def oncv_run(options):
     plotter = onc_parser.get_plotter()
 
     # Plot data
-    #from abipy.tools.plotting import MplExpose, PanelExpose
     e = MplExpose() #slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
     #e = PanelExpose(title="")
     with e:

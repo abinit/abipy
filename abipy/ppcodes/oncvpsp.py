@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Classes and functions for post-processing the results produced by ONCVPSP.
+Classes and functions for parsing the ONCVPSP output file and plotting the results.
 """
 from __future__ import annotations
 
@@ -31,36 +31,11 @@ def is_integer(s: Any) -> bool:
         return False
 
 
-def decorate_ax(ax, xlabel, ylabel, title, lines, legends, fontsize=8):
-    """
-    Decorate a `matplotlib` Axis adding xlabel, ylabel, title, grid and legend
-    """
-    if title: ax.set_title(title, fontsize=fontsize)
-    if xlabel: ax.set_xlabel(xlabel)
-    if ylabel: ax.set_ylabel(ylabel)
-    ax.grid(True)
-    ax.legend(lines, legends, loc="best", fontsize=fontsize, shadow=True)
-
-
-class PseudoPlotter:
+class OncvPlotter:
     """
     Plots the results produced by a pseudopotential generator.
     """
     # TODO: Improve support for fully-relativistic case.
-    # List of results supported by the plotter (initialized via __init__)
-    all_keys = [
-        "radial_wfs",
-        "scattering_wfs",
-        "projectors",
-        "densities",
-        "potentials",
-        "atan_logders",
-        "kene_vs_ecut",
-        "kinerr_nlk",
-        "rc_l",
-        "rc5",
-        "lloc",
-    ]
 
     # matplotlib options.
     linewidth, markersize = 2, 2
@@ -78,17 +53,29 @@ class PseudoPlotter:
                -3: "yellow",
     }
 
-    #@classmethod
-    #def from_file(cls, filepath: str) -> PseudoPlotter:
+    @classmethod
+    def from_file(cls, filepath: str) -> OncvPlotter:
+        """Build the plotter from an output file."""
+        parser = OncvOutputParser(filepath)
+        parser.scan()
+        if not parser.run_completed:
+            raise RuntimeError("oncvpsp output is not completed")
 
-    def __init__(self, **kwargs):
-        """Store kwargs in self if k is in self.all_keys."""
+        return cls(parser)
 
-        for k in self.all_keys:
-            setattr(self, k, kwargs.pop(k, {}))
+    def __init__(self, parser):
+        self.parser = parser
 
-        if kwargs:
-            raise ValueError("Unknown keys: %s" % list(kwargs.keys()))
+    @staticmethod
+    def decorate_ax(ax, xlabel, ylabel, title, lines, legends, fontsize=8):
+        """
+        Decorate a `matplotlib` Axis adding xlabel, ylabel, title, grid and legend
+        """
+        if title: ax.set_title(title, fontsize=fontsize)
+        if xlabel: ax.set_xlabel(xlabel)
+        if ylabel: ax.set_ylabel(ylabel)
+        ax.grid(True)
+        ax.legend(lines, legends, loc="best", fontsize=fontsize, shadow=True)
 
     def _mpl_opts_laeps(self, l: int, aeps: str) -> dict:
         """
@@ -111,7 +98,7 @@ class PseudoPlotter:
         """
         Add vertical lines to axis `ax` showing the core radii.
         """
-        for l, rc in self.rc_l.items():
+        for l, rc in self.parser.rc_l.items():
             ax.axvline(rc, lw=1, color=self.color_l[l], ls="--")
 
     @add_fig_kwargs
@@ -122,8 +109,10 @@ class PseudoPlotter:
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
         """
-        ae, ps = self.atan_logders.ae, self.atan_logders.ps
+        ae, ps = self.parser.atan_logders.ae, self.parser.atan_logders.ps
         ax, fig, plt = get_ax_fig_plt(ax)
+
+        # Note that l can be negative if FR pseudo. This corresponds to ikap 2 in Fortran.
 
         lines, legends = [], []
         for l, ae_alog in ae.items():
@@ -136,13 +125,20 @@ class PseudoPlotter:
             ps_line, = ax.plot(ps_alog.energies, ps_alog.values + pad, **self._mpl_opts_laeps(l, "ps"))
 
             lines.extend([ae_line, ps_line])
-            legends.extend(["AE l=%s" % l2char[l], "PS l=%s" % l2char[l]])
+
+            if not self.parser.relativistic:
+                lch = l2char[l]
+                legends.extend([f"AE l={lch}", f"PS l={lch}"])
+            else:
+                lch = l2char[abs(l)]
+                if l >= 0: lch += "+"
+                if l < 0: lch += "-"
+                legends.extend([f"AE l={lch}", f"PS l={lch}"])
 
         xlabel = "Energy (Ha)" if with_xlabel else ""
-        decorate_ax(ax, xlabel=xlabel, ylabel="ATAN(LogDer)", title="",
-                    #title="ATAN(Log Derivative)",
-                    fontsize=fontsize,
-                    lines=lines, legends=legends)
+        self.decorate_ax(ax, xlabel=xlabel, ylabel="ATAN(LogDer)", title="",
+                         fontsize=fontsize,
+                         lines=lines, legends=legends)
 
         return fig
 
@@ -158,9 +154,9 @@ class PseudoPlotter:
         ax, fig, plt = get_ax_fig_plt(ax)
 
         if what == "bound_states":
-            ae_wfs, ps_wfs = self.radial_wfs.ae, self.radial_wfs.ps
+            ae_wfs, ps_wfs = self.parser.radial_wfs.ae, self.parser.radial_wfs.ps
         elif what == "scattering_states":
-            ae_wfs, ps_wfs = self.scattering_wfs.ae, self.scattering_wfs.ps
+            ae_wfs, ps_wfs = self.parser.scattering_wfs.ae, self.parser.scattering_wfs.ps
         else:
             raise ValueError(f"Invalid value for what: {what}")
 
@@ -179,10 +175,11 @@ class PseudoPlotter:
             else:
                 legends.extend(["AE l=%s, k=%s" % (l_char, k), "PS l=%s, k=%s" % (l_char, k)])
 
-        decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$\phi(r)$",
-                    title="Wave Functions" if what == "bound_states" else "Scattering States",
-                    fontsize=fontsize,
-                    lines=lines, legends=legends)
+        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$\phi(r)$",
+                         title="Wave Functions" if what == "bound_states" else "Scattering States",
+                         fontsize=fontsize,
+                         lines=lines, legends=legends
+                         )
 
         self._add_rc_vlines(ax)
 
@@ -201,7 +198,7 @@ class PseudoPlotter:
         linestyle_n = {1: "solid", 2: "dashed", 3: "dotted", 4: "dashdot"}
         lines, legends = [], []
 
-        for nlk, proj in self.projectors.items():
+        for nlk, proj in self.parser.projectors.items():
             line, = ax.plot(proj.rmesh, proj.values,
                             color=self.color_l.get(nlk.l, 'black'),
                             linestyle=linestyle_n[nlk.n],
@@ -210,9 +207,10 @@ class PseudoPlotter:
 
             lines.append(line); legends.append("Proj %s" % str(nlk))
 
-        decorate_ax(ax, xlabel="r (Bohr)", ylabel="$p(r)$", title="Projectors",
-                    fontsize=fontsize,
-                    lines=lines, legends=legends)
+        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="$p(r)$", title="Projectors",
+                         fontsize=fontsize,
+                         lines=lines, legends=legends
+                         )
 
         self._add_rc_vlines(ax)
 
@@ -229,15 +227,16 @@ class PseudoPlotter:
         ax, fig, plt = get_ax_fig_plt(ax)
 
         lines, legends = [], []
-        for name, rho in self.densities.items():
+        for name, rho in self.parser.densities.items():
             d = rho.values if not timesr2 else rho.values * rho.rmesh ** 2
             line, = ax.plot(rho.rmesh, d, linewidth=self.linewidth, markersize=self.markersize)
             lines.append(line); legends.append(name)
 
         ylabel = "$n(r)$" if not timesr2 else "$r^2 n(r)$"
-        decorate_ax(ax, xlabel="r (Bohr)", ylabel=ylabel, title="Charge densities",
-                    fontsize=fontsize,
-                    lines=lines, legends=legends)
+        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=ylabel,
+                         title="Charge densities",
+                         fontsize=fontsize,
+                         lines=lines, legends=legends)
 
         return fig
 
@@ -255,7 +254,7 @@ class PseudoPlotter:
         from scipy.interpolate import UnivariateSpline
 
         lines, legends = [], []
-        for name, rho in self.densities.items():
+        for name, rho in self.parser.densities.items():
             # Only model core charge is shown.
             if name != "rhoM": continue
 
@@ -269,10 +268,10 @@ class PseudoPlotter:
 
             legends.append("%s-order derivative of %s" % (order, name))
 
-        decorate_ax(ax, xlabel="r (Bohr)", ylabel="$D^%s \n(r)$" % order,
-                    title="Derivative of the charge densities",
-                    fontsize=fontsize,
-                    lines=lines, legends=legends)
+        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="$D^%s \n(r)$" % order,
+                         title="Derivative of the charge densities",
+                         fontsize=fontsize,
+                         lines=lines, legends=legends)
         return fig
 
     @add_fig_kwargs
@@ -286,7 +285,7 @@ class PseudoPlotter:
         ax, fig, plt = get_ax_fig_plt(ax)
 
         lines, legends = [], []
-        for l, pot in self.potentials.items():
+        for l, pot in self.parser.potentials.items():
             line, = ax.plot(pot.rmesh, pot.values, **self._mpl_opts_laeps(l, "ae"))
             lines.append(line)
 
@@ -295,13 +294,13 @@ class PseudoPlotter:
             else:
                 legends.append("PS l=%s" % l2char[l])
 
-        decorate_ax(ax, xlabel="r (Bohr)", ylabel="$v_l(r)$", title="Ion Pseudopotentials",
-                    fontsize=fontsize,
-                    lines=lines, legends=legends)
+        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="$v_l(r)$", title="Ion Pseudopotentials",
+                         fontsize=fontsize,
+                         lines=lines, legends=legends)
 
         color = "k"
-        if self.lloc == 4: color = "magenta"
-        ax.axvline(self.rc5, lw=1, color=color, ls="--")
+        if self.parser.lloc == 4: color = "magenta"
+        ax.axvline(self.parser.rc5, lw=1, color=color, ls="--")
 
         self._add_rc_vlines(ax)
 
@@ -321,7 +320,7 @@ class PseudoPlotter:
         from scipy.interpolate import UnivariateSpline
         lines, legends = [], []
 
-        for l, pot in self.potentials.items():
+        for l, pot in self.parser.potentials.items():
             # Need linear mesh for finite_difference hence spline input potentials on lin_rmesh.
             lin_rmesh, h = np.linspace(pot.rmesh[0], pot.rmesh[-1], num=len(pot.rmesh) * 4, retstep=True)
             spline = UnivariateSpline(pot.rmesh, pot.values, s=0)
@@ -335,10 +334,10 @@ class PseudoPlotter:
             else:
                 legends.append("$s-order derivative PS l=%s" % str(l))
 
-        decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$D^%s \phi(r)$" % order,
-                    title="Derivative of the ion Pseudopotentials",
-                    fontsize=fontsize,
-                    lines=lines, legends=legends)
+        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$D^%s \phi(r)$" % order,
+                         title="Derivative of the ion Pseudopotentials",
+                         fontsize=fontsize,
+                         lines=lines, legends=legends)
         return fig
 
     @add_fig_kwargs
@@ -352,19 +351,18 @@ class PseudoPlotter:
         ax, fig, plt = get_ax_fig_plt(ax)
 
         lines, legends = [], []
-        for l, data in self.kene_vs_ecut.items():
+        for l, data in self.parser.kene_vs_ecut.items():
             line, = ax.plot(data.energies, data.values, **self._mpl_opts_laeps(l, "ae"))
             lines.append(line)
             legends.append("Conv l=%s" % l2char[l])
 
-        for nlk, data in self.kinerr_nlk.items():
+        for nlk, data in self.parser.kinerr_nlk.items():
             line, = ax.plot(data.ecuts, data.values_ha, **self._mpl_opts_laeps(nlk.l, "ps"))
 
-        decorate_ax(ax, xlabel="Ecut (Ha)", ylabel=r"$\Delta E_{kin}$ (Ha)",
-                    title="",
-                    #title="Energy error per electron (Ha)",
-                    fontsize=fontsize,
-                    lines=lines, legends=legends)
+        self.decorate_ax(ax, xlabel="Ecut (Ha)", ylabel=r"$\Delta E_{kin}$ (Ha)",
+                         title="",
+                         fontsize=fontsize,
+                         lines=lines, legends=legends)
 
         ax.set_yscale("log")
 
@@ -401,7 +399,7 @@ class PseudoPlotter:
         ax, fig, plt = get_ax_fig_plt(ax)
 
         lines, legends = [], []
-        for name, rho in self.densities.items():
+        for name, rho in self.parser.densities.items():
             if name == "rhoC": continue
             form = rho.get_intr2j0(ecut=ecut) / (4 * np.pi)
             line, = ax.plot(form.mesh, form.values, linewidth=self.linewidth, markersize=self.markersize)
@@ -419,10 +417,10 @@ class PseudoPlotter:
         #    line, = ax.plot(form.mesh, form.values, linewidth=self.linewidth, markersize=self.markersize)
         #    lines.append(line); legends.append("Vloc(q)")
 
-        decorate_ax(ax, xlabel="Ecut (Ha)", ylabel="$n(q)$",
-                    fontsize=fontsize,
-                    title="Form factor, l=0 ",
-                    lines=lines, legends=legends)
+        self.decorate_ax(ax, xlabel="Ecut (Ha)", ylabel="$n(q)$",
+                         fontsize=fontsize,
+                         title="Form factor, l=0 ",
+                         lines=lines, legends=legends)
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -593,10 +591,6 @@ class OncvOutputParser(PseudoGenOutputParser):
 
         self.major_version, self.minor_version, self.patch_level = tuple(map(int, self.version.split(".")))[:3]
 
-        fullr = self.relativistic
-        if fullr:
-            print("Parsing of wavefunctions and projectors is not yet coded for relativisic pseudos")
-
         # Read configuration (not very robust because we assume the user didn't change the template but oh well)
         header = "# atsym  z    nc    nv    iexc   psfile"
         for i, line in enumerate(self.lines):
@@ -606,12 +600,27 @@ class OncvOutputParser(PseudoGenOutputParser):
                 # assert len(keys) == len(values)
                 # Store values in self.
                 for k, v in zip(keys, values):
+                    # Convert nc and nv to int.
                     if k in ("nc", "nv", "iexc"): v = int(v)
                     if k in ("z", ): v = float(v)
                     setattr(self, k, v)
-
-
                 break
+
+        # Parse pseudization options for the local part.
+        header = "# lloc, lpopt,  rc(5),   dvloc0"
+        self.rc5 = None
+        for i, line in enumerate(self.lines):
+            if line.startswith(header):
+                tokens = self.lines[i + 1].split()
+                #print("tokens", tokens)
+                self.lloc = int(tokens[0])
+                self.lptopt = int(tokens[1])
+                self.rc5 = float(tokens[2])
+                self.dvloc0 = float(tokens[3])
+                break
+
+        if self.rc5 is None:
+            raise self.Error(f"Cannot find magic line starting with `{header}` in: {self.filepath}")
 
         # Parse ATOM and Reference configuration
         # Example:
@@ -634,13 +643,11 @@ class OncvOutputParser(PseudoGenOutputParser):
             2    0    2.00    -4.2419865D+02
 
         """
-        if fullr and self.major_version <= 3:
+        if self.relativistic and self.major_version <= 3:
             header = "#   n    l    f        l+1/2             l-1/2"
         else:
             header = "#   n    l    f        energy (Ha)"
 
-        # Convert nc and nv to int.
-        #self.nc, self.nv = int(self.nc), int(self.nv)
         nc, nv = self.nc, self.nv
 
         for i, line in enumerate(self.lines):
@@ -653,7 +660,7 @@ class OncvOutputParser(PseudoGenOutputParser):
                     else:
                         f = "%.1f" % f
                     core.append(n + l2char[l] + "^%s" % f)
-                self.core = "$" + " ".join(core) + "$"
+                #self.core = "$" + " ".join(core) + "$"
 
                 beg, valence = i + nc + 1, []
                 for v in range(nv):
@@ -667,17 +674,19 @@ class OncvOutputParser(PseudoGenOutputParser):
 
                     valence.append(n + l2char[l] + "^{%s}" % f)
 
-                self.valence = "$" + " ".join(valence) + "$"
+                #self.valence = "$" + " ".join(valence) + "$"
                 #print("core", self.core, "valence",self.valence)
                 break
         else:
             raise self.Error(f"Cannot find header:\n`{header}`\nin output file {self.filepath}")
 
+    @lazy_property
+    def lmax(self) -> int:
         # Read lmax (not very robust because we assume the user didn't change the template but oh well)
         header = "# lmax"
         for i, line in enumerate(self.lines):
             if line.startswith(header):
-                self.lmax = int(self.lines[i+1])
+                return int(self.lines[i+1])
                 break
         else:
             raise self.Error(f"Cannot find line with `#lmax` in: {self.filepath}")
@@ -738,32 +747,10 @@ class OncvOutputParser(PseudoGenOutputParser):
                     rc_l[l] = rc
                     nxt += 1
 
-        #print("rc_l", rc_l)
         if not rc_l:
             raise self.Error(f"Cannot find magic line starting with `{header}` in: {self.filepath}")
 
         return rc_l
-
-    @lazy_property
-    def rc5(self) -> float:
-        """
-        Pseudization radius for the local part.
-        """
-        header = "# lloc, lpopt,  rc(5),   dvloc0"
-        rc5 = None
-        for i, line in enumerate(self.lines):
-            if line.startswith(header):
-                ln = self.lines[i + 1]
-                #print("line: ", line, "\nrc line: ", ln)
-                tokens = ln.split()
-                self.lloc = int(tokens[0])
-                rc5 = float(tokens[2])
-                break
-
-        if rc5 is None:
-            raise self.Error(f"Cannot find magic line starting with `{header}` in: {self.filepath}")
-
-        return rc5
 
     @lazy_property
     def kinerr_nlk(self) -> dict[NlkState, namedtuple]:
@@ -1011,36 +998,35 @@ class OncvOutputParser(PseudoGenOutputParser):
         magic = "@"
         if self.major_version > 3: magic = "!J"
 
+        # if(ikap==1) then
+        #   write(6,'(a,i6,6(f12.6,1x))') '!J',-ll,rr(ii), &
+        #        (vkb(ii,jj,l1,ikap),jj=1,nproj(l1))
+        # else
+        #   write(6,'(a,i6,6(f12.6,1x))') '!J',ll,rr(ii), &
+        #        (vkb(ii,jj,l1,ikap),jj=1,nproj(l1))
+
         projectors_nlk = {}
         while True:
             g = self._grep(magic, beg=beg)
             if g.data is None: break
             beg = g.stop + 1
-            # TODO: Get n, l, k from header.
-            header = self.lines[g.start-2]
 
             rmesh = g.data[:, 1]
             l = int(g.data[0, 0])
+
             ik = None
-
             if self.relativistic:
-                ik = 2
-                if l <= 0: ik = 1
-                ik -= 1
-
-            #print("header", header)
-            #print("g.data", g.data[0, 0])
-            #print("l",l)
+                ik = 1
+                if l <= 0: ik = 0
 
             for n in range(len(g.data[0]) - 2):
-                nlk = NlkState.from_nl_ik(n=n+1, l=l, ik=ik)
-                #nlk = NlkState(n=n+1, l=l, k=kap)
+                nlk = NlkState.from_nl_ik(n=n + 1, l=abs(l), ik=ik)
                 #print("Got projector with: %s" % str(nlk))
 
                 if nlk in projectors_nlk:
                     raise self.Error("nlk state `{nlk}` is already in projectors_nlk")
 
-                projectors_nlk[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, g.data[:, n+2])
+                projectors_nlk[nlk] = RadialWaveFunction(nlk, str(nlk), rmesh, g.data[:, n + 2])
 
         return projectors_nlk
 
@@ -1060,9 +1046,24 @@ class OncvOutputParser(PseudoGenOutputParser):
         if self.major_version > 3:
             lstop = min(self.lmax + 2, 4)
 
-        for l in range(lstop):
-            data = self._grep(tag="!      %d" % l).data
+        if not self.relativistic:
+            l_list = list(range(lstop))
+        else:
+            # Order with (l, -l) for plotting purposes.
+            l_list = []
+            for l in range(lstop):
+                if l != 0:
+                    l_list.extend((l, -l))
+                else:
+                    l_list.append(0)
+
+        for l in l_list:
+            tag = "!      %d" % l if l >= 0 else "!     %d" % l
+            data = self._grep(tag=tag).data
+            if data is None:
+                raise self.Error(f"Cannot find logder for l: {l}")
             assert l == int(data[0, 0])
+
             ae_atan_logder_l[l] = AtanLogDer(l=l, energies=data[:, 1], values=data[:, 2])
             ps_atan_logder_l[l] = AtanLogDer(l=l, energies=data[:, 1], values=data[:, 3])
 
@@ -1219,16 +1220,14 @@ class OncvOutputParser(PseudoGenOutputParser):
         if start is None and stop is None: return None
         return "\n".join(self.lines[start+1:stop])
 
-    def get_plotter(self) -> Union[PseudoPlotter, None]:
+    def get_plotter(self) -> Union[OncvPlotter, None]:
         """
-        Return an instance of PseudoPlotter or None
+        Return an instance of OncvPlotter or None
         """
         try:
-            kwargs = {k: getattr(self, k) for k in PseudoPlotter.all_keys}
-            return PseudoPlotter(**kwargs)
+            return OncvPlotter(self)
         except Exception as exc:
-            raise
-            print(exc)
+            #raise
             return None
 
     def _grep(self, tag: str, beg: int = 0) -> GrepResults:
@@ -1484,7 +1483,7 @@ plotter = onc_parser.get_plotter()"""),
     return nbpath
 
 
-class MultiPseudoPlotter:
+class MultiOncvPlotter:
     """
     Class for comparing multiple pseudos.
 
@@ -1492,11 +1491,11 @@ class MultiPseudoPlotter:
 
     .. code-block:: python
 
-        plotter = MultiPseudoPlotter.from_files(filepaths)
+        plotter = MultiOncvPlotter.from_files(filepaths)
     """
 
     @classmethod
-    def from_files(cls, files: List[str]) -> MultiPseudoPlotter:
+    def from_files(cls, files: List[str]) -> MultiOncvPlotter:
         """
         Create an instance from a list of oncvpsp output files.
         """
