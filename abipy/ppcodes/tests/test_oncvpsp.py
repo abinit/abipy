@@ -29,7 +29,7 @@ class OncvOutputParserTest(AbipyTest):
         assert p.run_completed
 
         assert p.calc_type == "non-relativistic"
-        assert not p.fully_relativistic
+        assert not p.relativistic
         assert p.version == "2.1.1"
         assert p.major_version == 2
         assert p.minor_version == 1
@@ -50,7 +50,7 @@ class OncvOutputParserTest(AbipyTest):
         assert all(rhom.values == 0.0)
 
         # Build the plotter
-        plotter = p.make_plotter()
+        plotter = p.get_plotter()
         repr(plotter); str(plotter)
         self._call_plotter_methods(plotter)
 
@@ -66,7 +66,7 @@ class OncvOutputParserTest(AbipyTest):
         repr(p); str(p)
         assert p.run_completed
 
-        assert not p.fully_relativistic
+        assert not p.relativistic
         assert p.calc_type == "scalar-relativistic"
         assert p.version == "2.1.1"
 
@@ -119,7 +119,7 @@ class OncvOutputParserTest(AbipyTest):
         assert prjs[(2, 1, None)][0] == (0.009945, -0.000282)
 
         # Test convergence data
-        c = p.ene_vs_ecut
+        c = p.kene_vs_ecut
         assert c[0].energies[0] == 5.019345
         assert c[0].values[0] == 0.010000
         assert c[0].energies[-1] == 25.317286
@@ -139,12 +139,12 @@ class OncvOutputParserTest(AbipyTest):
         assert ps1.values[0] == -2.521334
 
         # Build the plotter
-        plotter = p.make_plotter()
+        plotter = p.get_plotter()
         repr(plotter); str(plotter)
         assert plotter is not None
         self._call_plotter_methods(plotter)
 
-    def test_fully_relativistic_oxygen_v2(self):
+    def test_relativistic_oxygen_v2(self):
         """
         Parsing the fully-relativistic output file produced by ONCVPSPS v2
         """
@@ -154,7 +154,7 @@ class OncvOutputParserTest(AbipyTest):
         repr(p); str(p)
         assert p.run_completed
 
-        assert p.fully_relativistic
+        assert p.relativistic
         assert p.calc_type == "fully-relativistic"
         assert p.version == "2.1.1"
 
@@ -171,7 +171,7 @@ class OncvOutputParserTest(AbipyTest):
         # TODO: Wavefunctions
 
         # Build the plotter
-        plotter = p.make_plotter()
+        plotter = p.get_plotter()
         repr(plotter); str(plotter)
         self._call_plotter_methods(plotter)
 
@@ -185,7 +185,7 @@ class OncvOutputParserTest(AbipyTest):
         repr(p); str(p)
         assert p.run_completed
 
-        assert not p.fully_relativistic
+        assert not p.relativistic
         assert p.calc_type == "scalar-relativistic"
         assert p.version == "4.0.1"
 
@@ -250,7 +250,7 @@ class OncvOutputParserTest(AbipyTest):
         assert prjs[(2, 1, None)][0] == (0.009958, -0.000854)
 
         # Test convergence data
-        c = p.ene_vs_ecut
+        c = p.kene_vs_ecut
         assert c[0].energies[0] == 12.172858
         assert c[0].values[0] == 0.010000
         assert c[0].energies[-1] == 32.408732
@@ -271,7 +271,7 @@ class OncvOutputParserTest(AbipyTest):
         assert ps1.values[0] == 1.286771
 
         # Build the plotter
-        plotter = p.make_plotter()
+        plotter = p.get_plotter()
         repr(plotter); str(plotter)
         self._call_plotter_methods(plotter)
 
@@ -285,7 +285,7 @@ class OncvOutputParserTest(AbipyTest):
         repr(p); str(p)
         assert p.run_completed
 
-        assert p.fully_relativistic
+        assert p.relativistic
         assert p.calc_type == "relativistic"
         assert p.version == "4.0.1"
 
@@ -379,7 +379,7 @@ class OncvOutputParserTest(AbipyTest):
         #assert prjs[(2, 1, None)][0] == (0.009958, -0.000854)
 
         ## Test convergence data
-        c = p.ene_vs_ecut
+        c = p.kene_vs_ecut
         #assert c[0].energies[0] == 12.172858
         #assert c[0].values[0] == 0.010000
         #assert c[0].energies[-1] == 32.408732
@@ -400,7 +400,7 @@ class OncvOutputParserTest(AbipyTest):
         #assert ps1.values[0] == 1.286771
 
         ## Build the plotter
-        plotter = p.make_plotter()
+        plotter = p.get_plotter()
         repr(plotter); str(plotter)
         self._call_plotter_methods(plotter)
 
@@ -413,7 +413,7 @@ class OncvOutputParserTest(AbipyTest):
             assert plotter.plot_der_densities(order=1, show=False)
             assert plotter.plot_potentials(show=False)
             assert plotter.plot_der_potentials(order=1, show=False)
-            assert plotter.plot_ene_vs_ecut(show=False)
+            assert plotter.plot_kene_vs_ecut(show=False)
             assert plotter.plot_atanlogder_econv(show=False)
             assert plotter.plot_den_formfact(ecut=40, show=False)
 

@@ -42,7 +42,7 @@ def decorate_ax(ax, xlabel, ylabel, title, lines, legends, fontsize=8):
     ax.legend(lines, legends, loc="best", fontsize=fontsize, shadow=True)
 
 
-class PseudoGenDataPlotter:
+class PseudoPlotter:
     """
     Plots the results produced by a pseudopotential generator.
     """
@@ -55,7 +55,7 @@ class PseudoGenDataPlotter:
         "densities",
         "potentials",
         "atan_logders",
-        "ene_vs_ecut",
+        "kene_vs_ecut",
         "kinerr_nlk",
         "rc_l",
         "rc5",
@@ -77,6 +77,9 @@ class PseudoGenDataPlotter:
                3: "orange",
                -3: "yellow",
     }
+
+    #@classmethod
+    #def from_file(cls, filepath: str) -> PseudoPlotter:
 
     def __init__(self, **kwargs):
         """Store kwargs in self if k is in self.all_keys."""
@@ -126,7 +129,7 @@ class PseudoGenDataPlotter:
         for l, ae_alog in ae.items():
             ps_alog = ps[l]
 
-            # Add pad  to avoid overlapping curves.
+            # Add pad to avoid overlapping curves.
             pad = (l + 1) * 1.0
 
             ae_line, = ax.plot(ae_alog.energies, ae_alog.values + pad, **self._mpl_opts_laeps(l, "ae"))
@@ -339,7 +342,7 @@ class PseudoGenDataPlotter:
         return fig
 
     @add_fig_kwargs
-    def plot_ene_vs_ecut(self, ax=None, fontsize: int = 8, **kwargs):
+    def plot_kene_vs_ecut(self, ax=None, fontsize: int = 8, **kwargs):
         """
         Plot the convergence of the kinetic energy wrt ecut on axis ax.
 
@@ -349,7 +352,7 @@ class PseudoGenDataPlotter:
         ax, fig, plt = get_ax_fig_plt(ax)
 
         lines, legends = [], []
-        for l, data in self.ene_vs_ecut.items():
+        for l, data in self.kene_vs_ecut.items():
             line, = ax.plot(data.energies, data.values, **self._mpl_opts_laeps(l, "ae"))
             lines.append(line)
             legends.append("Conv l=%s" % l2char[l])
@@ -381,7 +384,7 @@ class PseudoGenDataPlotter:
         self.plot_atan_logders(ax=ax_list[0], fontsize=fontsize, show=False)
         ax_list[0].xaxis.set_label_position('top')
 
-        self.plot_ene_vs_ecut(ax=ax_list[1], fontsize=fontsize, show=False)
+        self.plot_kene_vs_ecut(ax=ax_list[1], fontsize=fontsize, show=False)
 
         return fig
 
@@ -442,29 +445,11 @@ class PseudoGenDataPlotter:
                 yield self.plot_der_densities(order=order, show=False)
 
 
-class PseudoGenResults(AttrDict):
-
-    _KEYS = [
-        "max_ecut",
-        "max_atan_logder_l1err",
-    ]
-
-    def __init__(self, *args, **kwargs):
-        super(PseudoGenResults, self).__init__(*args, **kwargs)
-        for k in self._KEYS:
-            if k not in self:
-                self[k] = None
-
-
-class AtanLogDer(namedtuple("AtanLogDer", "l, energies, values")):
-    """Arctan"""
-
-
 class PseudoGenOutputParserError(Exception):
     """Exceptions raised by OutputParser."""
 
 
-class PseudoGenOutputParser:
+class PseudoGenOutputParser(metaclass=abc.ABCMeta):
     """
     Abstract class defining the interface that must be provided
     by the parsers used to extract results from the output file of
@@ -474,9 +459,7 @@ class PseudoGenOutputParser:
 
         errors: List of strings with errors reported by the pp generator
         warnings: List of strings with the warnings reported by the pp generator.
-        results:
     """
-    __metaclass__ = abc.ABCMeta
 
     Error = PseudoGenOutputParserError
 
@@ -485,7 +468,6 @@ class PseudoGenOutputParser:
         self.run_completed = False
         self._errors = []
         self._warnings = []
-        self._results = None
 
     @property
     def errors(self) -> List[str]:
@@ -501,35 +483,26 @@ class PseudoGenOutputParser:
         """
         return self._warnings
 
-    @property
-    def results(self) -> dict:
-        return self._results
-
     @abc.abstractmethod
     def get_results(self):
         """
-        Return the most important results of the run in a dictionary.
-        Set self.results attribute
+        Return the most important results in a dictionary.
         """
 
     @abc.abstractmethod
     def get_input_str(self) -> str:
         """Returns a string with the input file."""
 
-    #@abc.abstractmethod
-    #def get_pseudo_str(self) -> str:
-    #    """Returns a string with the pseudopotential file."""
-
 
 # Object returned by self._grep
 GrepResults = namedtuple("GrepResults", "data, start, stop")
 
-
 # Used to store ae and pp quantities (e.g wavefunctions) in a single object.
 AePsNamedTuple = namedtuple("AePsNamedTuple", "ae, ps")
 
-
 ConvData = namedtuple("ConvData", "l energies values")
+
+AtanLogDer = namedtuple("AtanLogDer", "l, energies, values")
 
 
 class OncvOutputParser(PseudoGenOutputParser):
@@ -553,17 +526,11 @@ class OncvOutputParser(PseudoGenOutputParser):
         parser.radial_wavefunctions
 
         # To plot data with matplotlib.
-        p = parser.make_plotter()
+        p = parser.get_plotter()
         p.plot_atanlogder_econv()
 
     """
-    # TODO Add fully-relativistic case.
-
-    # Object storing the final results.
-    Results = PseudoGenResults
-
-    # Class used to instantiate the plotter.
-    Plotter = PseudoGenDataPlotter
+    # TODO Improve fully-relativistic case.
 
     def scan(self, verbose: int = 0) -> None:
         """
@@ -578,7 +545,7 @@ class OncvOutputParser(PseudoGenOutputParser):
 
     def _scan(self, verbose: int = 0) -> None:
         if not os.path.exists(self.filepath):
-            raise self.Error("File %s does not exist" % self.filepath)
+            raise self.Error(f"File {self.filepath} does not exist")
 
         # Read data and store it in lines
         self.lines = []
@@ -617,21 +584,16 @@ class OncvOutputParser(PseudoGenOutputParser):
                 if "GHOST(-)" in line:
                     self._errors.append(line)
 
-        #if self.errors:
-        #    return 1
-
+        # Get gendate, calc_type and version
         # scalar-relativistic version 2.1.1, 03/26/2014
         # scalar-relativistic version 3.0.0 10/10/2014
-        # toks, self.gendate = self.lines[1].split(",")
-        # toks = toks.split()
         toks = self.lines[1].replace(",", " ").split()
         self.gendate = toks.pop(-1)
         self.calc_type, self.version = toks[0], toks[2]
 
-        #print("version", self.version)
         self.major_version, self.minor_version, self.patch_level = tuple(map(int, self.version.split(".")))[:3]
 
-        fullr = self.fully_relativistic
+        fullr = self.relativistic
         if fullr:
             print("Parsing of wavefunctions and projectors is not yet coded for relativisic pseudos")
 
@@ -720,22 +682,39 @@ class OncvOutputParser(PseudoGenOutputParser):
         else:
             raise self.Error(f"Cannot find line with `#lmax` in: {self.filepath}")
 
-    def __str__(self) -> str:
-        """String representation."""
+    def to_string(self, verbose: int = 0 ) -> str:
+        """
+        String representation.
+        """
         lines = []
         app = lines.append
 
-        if hasattr(self, "calc_type"):
-            app("%s, oncvpsp version: %s, date: %s" % (self.calc_type, self.version, self.gendate))
-            app("oncvpsp calculation: %s: " % self.calc_type)
-            app("completed: %s" % self.run_completed)
-        else:
+        if not hasattr(self, "calc_type"):
             app("Object is empty. Call scan method to analyze output file")
+            return "\n".join(lines)
+
+        if not self.run_completed:
+            app("completed: %s" % self.run_completed)
+            return "\n".join(lines)
+
+        app("%s, oncvpsp version: %s, date: %s" % (self.calc_type, self.version, self.gendate))
+
+        from pprint import pformat
+        app(pformat(self.get_results()))
+
+        if self.warnings:
+            lines.extend(self.warnings)
+
+        if self.errors:
+            lines.extend(self.errors)
 
         return "\n".join(lines)
 
+    def __str__(self) -> str:
+        return self.to_string()
+
     @property
-    def fully_relativistic(self) -> bool:
+    def relativistic(self) -> bool:
         """True if fully-relativistic calculation."""
         return self.calc_type in ("fully-relativistic", "relativistic")
 
@@ -792,7 +771,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         Dictionary with the error on the kinetic energy indexed by nlk.
         """
 
-        # In relativist mode we write stuff inside a loop of the form:
+        # In relativist mode we write data inside the following loops:
 
         #do l1=1,lmax+1
         #   ll=l1-1
@@ -843,7 +822,7 @@ class OncvOutputParser(PseudoGenOutputParser):
                     l = int(m.group("l"))
 
                 ikap = None
-                if self.fully_relativistic:
+                if self.relativistic:
                     ikap = 0
                     if (iproj, l) in iproj_l_seen: ikap = 1
                     iproj_l_seen.add((iproj, l))
@@ -993,7 +972,7 @@ class OncvOutputParser(PseudoGenOutputParser):
 
             #print(header)
 
-            if not self.fully_relativistic:
+            if not self.relativistic:
                 # n= 1,  l= 0, all-electron wave function, pseudo w-f
                 n, l = header.split(",")[0:2]
                 n = int(n.split("=")[1])
@@ -1042,9 +1021,9 @@ class OncvOutputParser(PseudoGenOutputParser):
 
             rmesh = g.data[:, 1]
             l = int(g.data[0, 0])
-            #kap = None
             ik = None
-            if self.fully_relativistic:
+
+            if self.relativistic:
                 ik = 2
                 if l <= 0: ik = 1
                 ik -= 1
@@ -1090,7 +1069,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         return AePsNamedTuple(ae=ae_atan_logder_l, ps=ps_atan_logder_l)
 
     @lazy_property
-    def ene_vs_ecut(self) -> dict[int, ConvData]:
+    def kene_vs_ecut(self) -> dict[int, ConvData]:
         """
         Dict with the convergence of the kinetic energy versus ecut for different l-values.
         """
@@ -1098,6 +1077,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         #!C     0    5.019345    0.010000
         #...
         #!C     1   19.469226    0.010000
+        # TODO: This does not take into account scattering states or n > 1
         conv_l = {}
 
         for l in range(self.lmax + 1):
@@ -1113,10 +1093,9 @@ class OncvOutputParser(PseudoGenOutputParser):
         """
         # Extract the hints
         hints = 3 * [-np.inf]
-        ene_vs_ecut = self.ene_vs_ecut
         for i in range(3):
             for l in range(self.lmax + 1):
-                hints[i] = max(hints[i], ene_vs_ecut[l].energies[-i-1])
+                hints[i] = max(hints[i], self.kene_vs_ecut[l].energies[-i-1])
         hints.reverse()
 
         # Truncate to the nearest int
@@ -1129,26 +1108,25 @@ class OncvOutputParser(PseudoGenOutputParser):
             high={"ecut": hints[2], "pawecutdg": hints[2]}
         )
 
-    def get_results(self):
+    def get_results(self) -> dict:
         """
         Return the most important results reported by the pp generator.
         Set the value of self.results
         """
         # Init return values
-        #max_ecut = None
-        #max_atan_logder_l1err = None
-        #max_psexc_abserr = None
-        #herm_err = None
-        #status = None
-        #nwarns = None
-        #nerrs = None
+        #d = dict(
+        #    max_ecut=None,
+        #    max_atan_logder_l1err=None,
+        #    max_psexc_abserr=None,
+        #    herm_err=None,
+        #    status=None,
+        #    nwarns=None,
+        #    nerrs=None,
+        #)
 
-        # Get the ecut needed to converge within ... TODO
-        #max_ecut = 0.0
-        #for l in range(self.lmax + 1):
-        #    max_ecut = max(max_ecut, self.ene_vs_ecut[l].energies[-1])
-
-        max_ecut = max(self.ene_vs_ecut[l].energies[-1] for l in range(self.lmax + 1))
+        # Get the max ecut estimated by oncvpsp.
+        # TODO: Should take into account scattering states.
+        max_ecut = max(self.kene_vs_ecut[l].energies[-1] for l in range(self.lmax + 1))
 
         # Compute the l1 error in atag(logder)
         from scipy.integrate import cumtrapz
@@ -1175,14 +1153,12 @@ class OncvOutputParser(PseudoGenOutputParser):
             if i != -1:
                 max_psexc_abserr = max(max_psexc_abserr, abs(float(line.split()[-1].replace("D", "E"))))
 
-        self._results = self.Results(
+        return dict(
             max_ecut=max_ecut,
             max_atan_logder_l1err=max_l1err,
             herm_err=herm_err,
             max_psexc_abserr=max_psexc_abserr
         )
-
-        return self._results
 
     def find_string(self, s: str) -> int:
         """
@@ -1243,13 +1219,13 @@ class OncvOutputParser(PseudoGenOutputParser):
         if start is None and stop is None: return None
         return "\n".join(self.lines[start+1:stop])
 
-    def make_plotter(self) -> Union[PseudoGenDataPlotter, None]:
+    def get_plotter(self) -> Union[PseudoPlotter, None]:
         """
-        Return an instance of PseudoGenDataPlotter or None
+        Return an instance of PseudoPlotter or None
         """
         try:
-            kwargs = {k: getattr(self, k) for k in self.Plotter.all_keys}
-            return self.Plotter(**kwargs)
+            kwargs = {k: getattr(self, k) for k in PseudoPlotter.all_keys}
+            return PseudoPlotter(**kwargs)
         except Exception as exc:
             raise
             print(exc)
@@ -1461,7 +1437,7 @@ onc_parser.scan()
 if not onc_parser.run_completed:
     raise RuntimeError("Cannot parse output file")
 
-plotter = onc_parser.make_plotter()"""),
+plotter = onc_parser.get_plotter()"""),
 
         nbf.new_markdown_cell(r"# AE and PS radial wavefunctions $\phi(r)$:"),
         nbf.new_code_cell("fig = plotter.plot_radial_wfs(show=False)"),
@@ -1470,7 +1446,7 @@ plotter = onc_parser.make_plotter()"""),
         nbf.new_code_cell("fig = plotter.plot_atan_logders(show=False)"),
 
         nbf.new_markdown_cell("# Convergence in $G$-space estimated by ONCVPSP:"),
-        nbf.new_code_cell("fig = plotter.plot_ene_vs_ecut(show=False)"),
+        nbf.new_code_cell("fig = plotter.plot_kene_vs_ecut(show=False)"),
 
         nbf.new_markdown_cell("# Projectors:"),
         nbf.new_code_cell("fig = plotter.plot_projectors(show=False)"),
@@ -1542,7 +1518,7 @@ class MultiPseudoPlotter:
 
         parser = OncvOutputParser(filepath)
         parser.scan()
-        plotter = parser.make_plotter()
+        plotter = parser.get_plotter()
         if plotter is not None:
             self._plotters_dict[label] = plotter
 
@@ -1692,7 +1668,7 @@ class MultiPseudoPlotter:
         return fig
 
     @add_fig_kwargs
-    def plot_ene_vs_ecut(self, ax_list=None, fontsize: int = 8, **kwargs):
+    def plot_kene_vs_ecut(self, ax_list=None, fontsize: int = 8, **kwargs):
         """
         Plot the convergence of the kinetic energy wrt ecut on ax_list
 
@@ -1702,7 +1678,7 @@ class MultiPseudoPlotter:
         ax_list, fig, plt = self._get_ax_list(ax_list)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
-            plotter.ene_vs_ecut(ax=ax, fontsize=fontsize, show=False)
+            plotter.kene_vs_ecut(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
 
         return fig

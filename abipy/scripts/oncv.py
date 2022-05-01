@@ -10,12 +10,12 @@ import json
 import shutil
 import abipy.tools.cli_parsers as cli
 
-from pprint import pformat, pprint
+from pprint import pformat
 from monty.termcolor import cprint
 from abipy.flowtk.pseudos import Pseudo
 from abipy.tools.plotting import MplExpose , PanelExpose
 from abipy.ppcodes.ppgen import OncvGenerator
-from abipy.ppcodes.oncvpsp import OncvOutputParser, PseudoGenDataPlotter, oncv_make_open_notebook, MultiPseudoPlotter
+from abipy.ppcodes.oncvpsp import OncvOutputParser, oncv_make_open_notebook, MultiPseudoPlotter
 
 
 def _find_oncv_output(path):
@@ -64,18 +64,18 @@ def oncv_print(options):
     """
     p = OncvOutputParser(options.filepath)
     p.scan()
-    print(p)
     if not p.run_completed:
         raise RuntimeError("ocnvpsp output file is not completed")
 
-    results = p.get_results()
-    pprint(results)
+    print(p)
 
-    for l in range(p.lmax + 1):
-        # Get AE/PS logder(l) as a function of energy in Ha.
-        f1, f2 = p.atan_logders.ae[l], p.atan_logders.ps[l]
-        print(f1)
-        print("f1", f1.energies.shape, f1.values.shape)
+    #results = p.get_results()
+    #pprint(results)
+    #for l in range(p.lmax + 1):
+    #    # Get AE/PS logder(l) as a function of energy in Ha.
+    #    f1, f2 = p.atan_logders.ae[l], p.atan_logders.ps[l]
+    #    print(f1)
+    #    print("f1", f1.energies.shape, f1.values.shape)
 
 
 def oncv_plot(options):
@@ -92,7 +92,7 @@ def oncv_plot(options):
         return 1
 
     # Build the plotter
-    plotter = onc_parser.make_plotter()
+    plotter = onc_parser.get_plotter()
 
     cli.customize_mpl(options)
 
@@ -224,7 +224,7 @@ def oncv_run(options):
     cli.customize_mpl(options)
 
     # Build the plotter
-    plotter = onc_parser.make_plotter()
+    plotter = onc_parser.get_plotter()
 
     # Plot data
     #from abipy.tools.plotting import MplExpose, PanelExpose
@@ -260,9 +260,6 @@ def oncv_gui(options):
 
     if options.verbose:
         print("Using default template:", tmpl_cls, "with kwds:\n", pformat(tmpl_kwds), "\n")
-
-
-
 
     #if options.seaborn:
     # Use seaborn settings.

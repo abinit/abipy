@@ -788,7 +788,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
         func_names = list_strings(func_names)
         figs = []
         for psgen, title in zip(psgens, titles):
-            plotter = psgen.parser.make_plotter()
+            plotter = psgen.parser.get_plotter()
             if plotter is not None:
                 for func_name in func_names:
                     plot_func = getattr(plotter, func_name)
@@ -1212,7 +1212,7 @@ The present values of rc_l are: {rc_l}
             #    return 1
 
             ## Build the plotter and add figures to out_area.
-            #plotter = onc_parser.make_plotter()
+            #plotter = onc_parser.get_plotter()
 
             # TODO:
             # Tranfer final output file.
@@ -1223,7 +1223,7 @@ The present values of rc_l are: {rc_l}
 
         with Loading(self.out_area):
             #self.psgen_to_save = psgen
-            plotter = psgen.parser.make_plotter()
+            plotter = psgen.parser.get_plotter()
 
             if plotter is None:
                 self.out_area.objects = pn.Column("## Plotter is None")
