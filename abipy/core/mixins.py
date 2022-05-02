@@ -896,7 +896,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
             from abipy.panels.core import mpl
             for i, fig in enumerate(self.yield_figs()):
                 row, col = divmod(i, 2)
-                p = mpl(fig, with_divider=False)
+                p = mpl(fig, with_divider=False, dpi=82)
                 if hasattr(template.main, "append"):
                     template.main.append(p)
                 else:

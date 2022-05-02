@@ -18,6 +18,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.os.path import which
 from monty.termcolor import cprint
 from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction, l2char
+from abipy.core.mixins import NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.derivatives import finite_diff
 
@@ -31,7 +32,7 @@ def is_integer(s: Any) -> bool:
         return False
 
 
-class OncvPlotter:
+class OncvPlotter(NotebookWriter):
     """
     Plots the results produced by a pseudopotential generator.
     """
@@ -426,6 +427,11 @@ class OncvPlotter:
             yield self.plot_der_potentials(show=False)
             for order in [1, 2, 3, 4]:
                 yield self.plot_der_densities(order=order, show=False)
+
+    def write_notebook(self, nbpath=None):
+        raise NotImplementedError("write_notebooks should be tested")
+        return oncv_make_open_notebook(self.parser.filepath)
+
 
 
 class PseudoGenOutputParserError(Exception):
@@ -1213,6 +1219,7 @@ class OncvOutputParser(PseudoGenOutputParser):
         try:
             return OncvPlotter(self)
         except Exception as exc:
+            print(exc)
             #raise
             return None
 
@@ -1469,7 +1476,7 @@ plotter = onc_parser.get_plotter()"""),
     return nbpath
 
 
-class MultiOncvPlotter:
+class MultiOncvPlotter(NotebookWriter):
     """
     Class for comparing multiple pseudos.
 
@@ -1523,13 +1530,13 @@ class MultiOncvPlotter:
     def items(self):
         return self._plotters_dict.items()
 
-    def _get_ax_list(self, ax_list, ravel=True):
+    def _get_ax_list(self, ax_list, sharex=True, ravel=True):
 
         num_plots, ncols, nrows = len(self), 1, len(self)
 
         # Build grid of plots.
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
+                                                sharex=sharex, sharey=False, squeeze=False)
         if ravel:
             ax_list = ax_list.ravel()
 
@@ -1678,7 +1685,7 @@ class MultiOncvPlotter:
 
         # Build grid of plots.
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
-                                               sharex=False, sharey=False, squeeze=False)
+                                               sharex=True, sharey=False, squeeze=False)
 
         for i, (label, plotter) in enumerate(self.items()):
             ax_list = ax_mat[i]
@@ -1714,7 +1721,7 @@ class MultiOncvPlotter:
 
         #yield self.plot_atanlogder_econv(show=False)
         yield self.plot_atan_logders(show=False)
-        yield self.plot_kene_vs_ecut()
+        yield self.plot_kene_vs_ecut(show=False)
         yield self.plot_radial_wfs(show=False)
         yield self.plot_radial_wfs(what="scattering_states", show=False)
         yield self.plot_projectors(show=False)
@@ -1726,6 +1733,10 @@ class MultiOncvPlotter:
         #    yield self.plot_der_potentials(show=False)
         #    for order in [1, 2, 3, 4]:
         #        yield self.plot_der_densities(order=order, show=False)
+
+    def write_notebook(self, nbpath=None):
+        raise NotImplementedError("write_notebooks should be tested")
+        #return oncv_make_open_notebook(self.parser.filepath)
 
 
 def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):

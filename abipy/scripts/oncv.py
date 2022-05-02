@@ -13,7 +13,7 @@ import abipy.tools.cli_parsers as cli
 from pprint import pformat
 from monty.termcolor import cprint
 from abipy.flowtk.pseudos import Pseudo
-from abipy.tools.plotting import MplExpose , PanelExpose
+#from abipy.tools.plotting import MplExpose , PanelExpose
 from abipy.ppcodes.ppgen import OncvGenerator
 from abipy.ppcodes.oncvpsp import OncvOutputParser, OncvPlotter, oncv_make_open_notebook, MultiOncvPlotter
 
@@ -87,12 +87,7 @@ def oncv_plot(options):
     out_path = _find_oncv_output(options.filepath)
 
     plotter = OncvPlotter.from_file(out_path)
-
-    # Plot data
-    #e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
-    e = PanelExpose(title="")
-    with e:
-        e(plotter.yield_figs())
+    plotter.expose(use_web=True)
 
     return 0
 
@@ -105,14 +100,8 @@ def oncv_compare(options):
 
     plotter = MultiOncvPlotter.from_files(options.filepaths)
 
-    #plotter.plot_radial_wfs()
-    #plotter.plot_radial_wfs(what="scattering_states")
-
     # Plot data
-    e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
-    ##e = PanelExpose(title="")
-    with e:
-        e(plotter.yield_figs())
+    plotter.expose(use_web=True)
 
     return 0
 
@@ -218,11 +207,7 @@ def oncv_run(options):
     # Build the plotter
     plotter = onc_parser.get_plotter()
 
-    # Plot data
-    e = MplExpose() #slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
-    #e = PanelExpose(title="")
-    with e:
-        e(plotter.yield_figs())
+    plotter.expose(use_web=True)
 
     return 0
 
@@ -283,7 +268,6 @@ Usage example:
     oncv.py gui H.out        ==> Run oncvpsp input file (scalar relativistic mode).
     oncv.py gnuplot H.out    ==> Use gnuplot to plot oncvpsp results for pseudo H.psp8.
     oncv.py nbplot H.out     ==> Generate jupyter notebook to plot oncvpsp results.
-    oncv.py json H.out       ==> Generate JSON file.
     oncv.py compare H.out other_H.out  ==> Compare multiple output files.
 """
 

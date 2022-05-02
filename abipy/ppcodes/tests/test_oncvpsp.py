@@ -305,7 +305,7 @@ class OncvOutputParserTest(AbipyTest):
 
         assert p.get_input_str()
         assert p.get_psp8_str()
-        #assert p.get_upf_str() is not None
+        assert p.get_upf_str()
 
         # Calculating optimized projector #   1
         # for l=   0
