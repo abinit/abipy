@@ -9,12 +9,11 @@ import collections
 import shutil
 import time
 
-from typing import Any, Union, Optional
-from itertools import product
+from typing import Union, Optional # Any,
 from monty.os.path import which
 from monty.termcolor import cprint
 from abipy.flowtk.pseudos import Pseudo
-from abipy.ppcodes.oncvpsp import OncvOutputParser
+from abipy.ppcodes.oncv_parser import OncvParser
 
 import logging
 logger = logging.getLogger(__name__)
@@ -329,7 +328,7 @@ class OncvGenerator(_PseudoGenerator):
         if self._status == self.S_OK:
             return self._status
 
-        parser = self._parser = OncvOutputParser(self.stdout_path)
+        parser = self._parser = OncvParser(self.stdout_path)
 
         try:
             parser.scan()

@@ -4,7 +4,6 @@ Script to generate/analyze/plot ONCVPSP pseudopotentials.
 """
 import sys
 import os
-import collections
 import argparse
 import json
 import shutil
@@ -13,9 +12,9 @@ import abipy.tools.cli_parsers as cli
 from pprint import pformat
 from monty.termcolor import cprint
 from abipy.flowtk.pseudos import Pseudo
-#from abipy.tools.plotting import MplExpose , PanelExpose
 from abipy.ppcodes.ppgen import OncvGenerator
-from abipy.ppcodes.oncvpsp import OncvOutputParser, OncvPlotter, oncv_make_open_notebook, MultiOncvPlotter
+from abipy.ppcodes.oncv_parser import OncvParser
+from abipy.ppcodes.oncv_plotter import OncvPlotter, oncv_make_open_notebook, MultiOncvPlotter
 
 
 def _find_oncv_output(path):
@@ -48,7 +47,7 @@ def oncv_gnuplot(options):
     out_path = _find_oncv_output(options.filepath)
 
     # Parse output file.
-    onc_parser = OncvOutputParser(out_path)
+    onc_parser = OncvParser(out_path)
     onc_parser.scan()
     if not onc_parser.run_completed:
         cprint("oncvpsp output is not completed. Exiting", "red")
@@ -62,7 +61,7 @@ def oncv_print(options):
     """
     Print result to terminal.
     """
-    p = OncvOutputParser(options.filepath)
+    p = OncvParser(options.filepath)
     p.scan()
     if not p.run_completed:
         raise RuntimeError("ocnvpsp output file is not completed")
@@ -112,7 +111,7 @@ def oncv_json(options):
     Requires oncvpsp output file.
     """
     out_path = _find_oncv_output(options.filepath)
-    onc_parser = OncvOutputParser(out_path)
+    onc_parser = OncvParser(out_path)
     onc_parser.scan()
     if not onc_parser.run_completed:
         cprint("oncvpsp output is not complete. Exiting", "red")
@@ -173,7 +172,7 @@ def oncv_run(options):
     shutil.copy(psgen.stdout_path, out_path)
 
     # Parse the output file
-    onc_parser = OncvOutputParser(out_path)
+    onc_parser = OncvParser(out_path)
     onc_parser.scan()
     if not onc_parser.run_completed:
         cprint("oncvpsp output is not complete. Exiting", "red")

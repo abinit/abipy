@@ -7,7 +7,8 @@ import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
 from abipy.core.atom import NlkState
-from abipy.ppcodes.oncvpsp import OncvOutputParser, MultiOncvPlotter, psp8_get_densities
+from abipy.ppcodes.oncv_parser import OncvParser
+from abipy.ppcodes.oncv_plotter import MultiOncvPlotter, psp8_get_densities
 
 
 def filepath(basename):
@@ -21,7 +22,7 @@ class OncvOutputParserTest(AbipyTest):
         Parsing the non-relativistic output file produced by ONCVPSPS v2
         """
         # Non-relativistic results
-        p = OncvOutputParser(filepath("08_O_nr.out"))
+        p = OncvParser(filepath("08_O_nr.out"))
         repr(p); str(p)
 
         p.scan(verbose=1)
@@ -61,7 +62,7 @@ class OncvOutputParserTest(AbipyTest):
         Parsing the scalar-relativistic output file produced by ONCVPSPS v2
         """
         # Scalar relativistic output
-        p = OncvOutputParser(filepath("08_O_sr.out"))
+        p = OncvParser(filepath("08_O_sr.out"))
         p.scan(verbose=1)
         repr(p); str(p)
         assert p.run_completed
@@ -148,7 +149,7 @@ class OncvOutputParserTest(AbipyTest):
         """
         Parsing the fully-relativistic output file produced by ONCVPSPS v2
         """
-        p = OncvOutputParser(filepath("08_O_r.out"))
+        p = OncvParser(filepath("08_O_r.out"))
 
         p.scan(verbose=1)
         repr(p); str(p)
@@ -180,7 +181,7 @@ class OncvOutputParserTest(AbipyTest):
         Parsing the scalar-relativistic output file produced by ONCVPSPS v4
         """
         # Scalar relativistic output
-        p = OncvOutputParser(filepath("O_sr_v4.out"))
+        p = OncvParser(filepath("O_sr_v4.out"))
         p.scan(verbose=1)
         repr(p); str(p)
         assert p.run_completed
@@ -284,7 +285,7 @@ class OncvOutputParserTest(AbipyTest):
         Parsing the relativistic output file produced by ONCVPSPS v4
         """
         # Fully relativistic output
-        p = OncvOutputParser(filepath("O_fr_v4.out"))
+        p = OncvParser(filepath("O_fr_v4.out"))
         p.scan(verbose=1)
         repr(p); str(p)
         assert p.run_completed

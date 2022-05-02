@@ -12,10 +12,26 @@ ppcodes Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`oncvpsp` Module
----------------------
+:mod:`base_parser` Module
+-------------------------
 
-.. automodule:: abipy.ppcodes.oncvpsp.py
+.. automodule:: abipy.ppcodes.base_parser.py
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`oncv_parser` Module
+-------------------------
+
+.. automodule:: abipy.ppcodes.oncv_parser.py
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`oncv_plotter` Module
+--------------------------
+
+.. automodule:: abipy.ppcodes.oncv_plotter.py
    :members:
    :undoc-members:
    :show-inheritance:
