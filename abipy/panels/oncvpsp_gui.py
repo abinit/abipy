@@ -455,9 +455,6 @@ def run_psgen(psgen: OncvGenerator, data: dict) -> dict:
 
         results = psgen.parser.get_results()
 
-        #if results is None and psgen.status == psgen.S_OK:
-        #    psgen.check_status()
-
         if results is not None:
             max_ecut = results.max_ecut
             max_atan_logder_l1err = results.max_atan_logder_l1err
@@ -618,20 +615,20 @@ class OncvGui(AbipyParameterized):
         time_start = time.time()
 
         # Don't use more procs than tasks.
-        max_nprocs_ = self.max_nprocs
-        max_nprocs_ = min(max_nprocs_, len(list_of_args))
+        _max_nprocs_ = self.max_nprocs
+        _max_nprocs_ = min(_max_nprocs_, len(list_of_args))
 
-        if max_nprocs_ == 1:
+        if _max_nprocs_ == 1:
             values = [func(*args) for args in list_of_args]
         else:
             # TODO: Optimize, use better algo
             # This Pool uses threads instead of multiprocessing
-            # Cannot use multiprocessing because we have side effects in psgen"
+            # Cannot use multiprocessing because we have side effects in psgen
             from multiprocessing.dummy import Pool
             with Pool(processes=self.max_nprocs) as pool:
                 values = pool.starmap(func, list_of_args)
 
-        print(f"Done {len(list_of_args)} tasks in {time.time() - time_start:.2f} [s] with {max_nprocs_} processe(s)")
+        print(f"Done {len(list_of_args)} tasks in {time.time() - time_start:.2f} [s] with {_max_nprocs_} processe(s)")
         return values
 
     def get_panel(self, as_dict=False, **kwargs):

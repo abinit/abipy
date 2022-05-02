@@ -555,7 +555,7 @@ class PanelExpose:  # pragma: no cover
             e(obj.plot1(show=False))
             e(obj.plot2(show=False))
     """
-    def __init__(self, title=None, dpi=82, verbose=1):
+    def __init__(self, title=None, dpi=92, verbose=1):
         """
         Args:
             title: String to be show in the header.

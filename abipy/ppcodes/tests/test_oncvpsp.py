@@ -7,7 +7,7 @@ import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
 from abipy.core.atom import NlkState
-from abipy.ppcodes.oncvpsp import OncvOutputParser, psp8_get_densities
+from abipy.ppcodes.oncvpsp import OncvOutputParser, MultiOncvPlotter, psp8_get_densities
 
 
 def filepath(basename):
@@ -200,6 +200,10 @@ class OncvOutputParserTest(AbipyTest):
         assert p.rc_l[1] == 1.45000
         assert p.rc_l[2] == 1.25000
 
+        assert p.get_input_str()
+        assert p.get_psp8_str()
+        assert p.get_upf_str()
+
         # Calculating optimized projector #   1
         # for l=   0
         nlk = NlkState(n=1, l=0, k=None)
@@ -299,30 +303,34 @@ class OncvOutputParserTest(AbipyTest):
         assert p.rc_l[0] == 1.6
         assert p.rc_l[1] == 1.6
 
+        assert p.get_input_str()
+        assert p.get_psp8_str()
+        #assert p.get_upf_str() is not None
+
         # Calculating optimized projector #   1
         # for l=   0
-        nlk = NlkState.from_nl_ik(n=1, l=0, ik=0)
+        nlk = NlkState(n=1, l=0, k=1)
         ke = p.kinerr_nlk[nlk]
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [5.01, 14.64, 21.05, 25.33])
 
         # Calculating optimized projector #   2
         # for l=   0
-        nlk = NlkState.from_nl_ik(n=2, l=0, ik=0)
+        nlk = NlkState(n=2, l=0, k=1)
         ke = p.kinerr_nlk[nlk]
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [4.55, 15.25, 22.10, 26.79])
 
         #Calculating optimized projector #   1
         # for l=   1
-        nlk = NlkState.from_nl_ik(n=1, l=1, ik=0)
+        nlk = NlkState(n=1, l=1, k=1)
         ke = p.kinerr_nlk[nlk]
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [19.49, 24.68, 28.68, 35.11])
 
         #Calculating optimized projector #   2
         # for l=   1
-        nlk = NlkState.from_nl_ik(n=2, l=1, ik=0)
+        nlk = NlkState(n=2, l=1, k=1)
         ke = p.kinerr_nlk[nlk]
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [19.17, 25.12, 29.75, 41.34])
@@ -331,14 +339,14 @@ class OncvOutputParserTest(AbipyTest):
 
         #Calculating optimized projector #   1
         # for l=   1
-        nlk = NlkState.from_nl_ik(n=1, l=1, ik=1)
+        nlk = NlkState(n=1, l=1, k=2)
         ke = p.kinerr_nlk[nlk]
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [19.50, 24.69, 28.69, 35.19])
 
         #Calculating optimized projector #   2
         #for l=   1
-        nlk = NlkState.from_nl_ik(n=2, l=1, ik=1)
+        nlk = NlkState(n=2, l=1, k=2)
         ke = p.kinerr_nlk[nlk]
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [19.19, 25.13, 29.76, 41.40])
@@ -357,7 +365,7 @@ class OncvOutputParserTest(AbipyTest):
         ae_wfs, ps_wfs = p.radial_wfs.ae, p.radial_wfs.ps
 
         # n= 2,  l= 0, kap=-1, all-electron wave function, pseudo w-f
-        nlk = NlkState(n=2, l=0, k=-1)
+        nlk = NlkState.from_nlkap(n=2, l=0, kap=-1)
         ae20, ps20 = ae_wfs[nlk], ps_wfs[nlk]
         assert ae20[0] == (0.020088, -0.172694)
         assert ps20[0] == (0.020088, 0.030838)
@@ -366,7 +374,7 @@ class OncvOutputParserTest(AbipyTest):
 
         # scattering, iprj= 2,  l= 0, kap=-1, all-electron wave function, pseudo w-f
         ae_swfs, ps_swfs = p.scattering_wfs.ae, p.scattering_wfs.ps
-        nlk = NlkState(n=2, l=0, k=-1)
+        nlk = NlkState.from_nlkap(n=2, l=0, kap=-1)
         ae20, ps20 = ae_swfs[nlk], ps_swfs[nlk]
         assert ae20[0] == (0.020088, -0.115970)
         assert ps20[0] == (0.020088, 0.021593)
@@ -374,7 +382,7 @@ class OncvOutputParserTest(AbipyTest):
         assert ps20[-1] == (3.976916, 0.315347)
 
         #n= 2,  l= 1, kap=-2, all-electron wave function, pseudo w-f
-        nlk = NlkState(n=2, l=1, k=-2)
+        nlk = NlkState.from_nlkap(n=2, l=1, kap=-2)
         ae21, ps21 = ae_wfs[nlk], ps_wfs[nlk]
         assert ae21[0] == (0.020088, 0.005663)
         assert ps21[0] == (0.020088, 0.001610)
@@ -387,24 +395,24 @@ class OncvOutputParserTest(AbipyTest):
 
         prjs = p.projectors
 
-        nlk_1 = NlkState.from_nl_ik(n=1, l=0, ik=0)
+        nlk_1 = NlkState(n=1, l=0, k=1)
         assert prjs[nlk_1][0] == (0.009976, 0.069866)
         assert prjs[nlk_1][-1] == (1.741907, -0.000000)
 
-        nlk_2 = NlkState.from_nl_ik(n=2, l=0, ik=0)
+        nlk_2 = NlkState(n=2, l=0, k=1)
         assert prjs[nlk_2][0] == (0.009976, 0.060936)
         assert prjs[nlk_2][-1] == (1.741907,  0.000000)
 
         #!J    -1    0.009976     0.001728    -0.000948
-        nlk_1 = NlkState.from_nl_ik(n=1, l=1, ik=0)
-        nlk_2 = NlkState.from_nl_ik(n=2, l=1, ik=0)
-        print(prjs.keys())
+        nlk_1 = NlkState(n=1, l=1, k=1)
+        nlk_2 = NlkState(n=2, l=1, k=1)
+        #print(prjs.keys())
         assert prjs[nlk_1][0] == (0.009976, 0.001728)
         assert prjs[nlk_2][0] == (0.009976, -0.000948)
 
         #!J     1    0.009976     0.001729    -0.000948
-        nlk_1 = NlkState.from_nl_ik(n=1, l=1, ik=1)
-        nlk_2 = NlkState.from_nl_ik(n=2, l=1, ik=1)
+        nlk_1 = NlkState(n=1, l=1, k=2)
+        nlk_2 = NlkState(n=2, l=1, k=2)
         assert prjs[nlk_1][0] == (0.009976, 0.001729)
         assert prjs[nlk_2][0] == (0.009976, -0.000948)
 
@@ -442,6 +450,13 @@ class OncvOutputParserTest(AbipyTest):
         ## Build the plotter
         plotter = p.get_plotter()
         repr(plotter); str(plotter)
+        self._call_plotter_methods(plotter)
+
+    def test_multi_oncv_plotter(self):
+        """Testing MultiOncvPlotter."""
+        paths = [filepath("O_fr_v4.out"), filepath("O_sr_v4.out")]
+        plotter = MultiOncvPlotter.from_files(paths)
+        assert len(plotter) == 2
         self._call_plotter_methods(plotter)
 
     def _call_plotter_methods(self, plotter):

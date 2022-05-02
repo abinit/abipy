@@ -21,11 +21,12 @@ class NlkTest(AbipyTest):
         """Testing NlkState API."""
         nlk = NlkState(n=1, l=0, k=None)
         str(nlk), repr(nlk)
+        assert nlk.latex
         assert nlk.j == nlk.l
         d = {nlk: "foo"}
         assert d[nlk] == "foo"
 
-        same_nlk = NlkState.from_nl_ik(n=1, l=0, ik=None)
+        same_nlk = NlkState(n=1, l=0)
         assert nlk == same_nlk and d[same_nlk] == "foo"
 
 

@@ -67,7 +67,7 @@ class OncvPlotter:
         self.parser = parser
 
     @staticmethod
-    def decorate_ax(ax, xlabel, ylabel, title, lines, legends, fontsize=8):
+    def decorate_ax(ax, xlabel=None, ylabel=None, title=None, fontsize=8):
         """
         Decorate a `matplotlib` Axis adding xlabel, ylabel, title, grid and legend
         """
@@ -75,7 +75,7 @@ class OncvPlotter:
         if xlabel: ax.set_xlabel(xlabel)
         if ylabel: ax.set_ylabel(ylabel)
         ax.grid(True)
-        ax.legend(lines, legends, loc="best", fontsize=fontsize, shadow=True)
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     def _mpl_opts_laeps(self, l: int, aeps: str) -> dict:
         """
@@ -112,33 +112,35 @@ class OncvPlotter:
         ae, ps = self.parser.atan_logders.ae, self.parser.atan_logders.ps
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        # Note that l can be negative if FR pseudo. This corresponds to ikap 2 in Fortran.
+        # Note that l can be negative if FR pseudo.
+        # This corresponds to ikap 2 in Fortran.
 
-        lines, legends = [], []
         for l, ae_alog in ae.items():
             ps_alog = ps[l]
 
-            # Add pad to avoid overlapping curves.
-            pad = (l + 1) * 1.0
-
-            ae_line, = ax.plot(ae_alog.energies, ae_alog.values + pad, **self._mpl_opts_laeps(l, "ae"))
-            ps_line, = ax.plot(ps_alog.energies, ps_alog.values + pad, **self._mpl_opts_laeps(l, "ps"))
-
-            lines.extend([ae_line, ps_line])
-
             if not self.parser.relativistic:
-                lch = l2char[l]
-                legends.extend([f"AE l={lch}", f"PS l={lch}"])
+                lch = f"${l2char[abs(l)]}$"
             else:
                 lch = l2char[abs(l)]
-                if l >= 0: lch += "+"
-                if l < 0: lch += "-"
-                legends.extend([f"AE l={lch}", f"PS l={lch}"])
+                if l >= 0: lch = f"${l2char[abs(l)]}^+$"
+                if l < 0: lch  = f"${l2char[abs(l)]}^-$"
+
+            # Add pad to avoid overlapping curves.
+            pad = (abs(l) + 1) * 1.0
+
+            ae_line, = ax.plot(ae_alog.energies, ae_alog.values + pad,
+                               label=f"AE {lch}",
+                               **self._mpl_opts_laeps(l, "ae"))
+
+            ps_line, = ax.plot(ps_alog.energies, ps_alog.values + pad,
+                               label=f"PS {lch}",
+                               **self._mpl_opts_laeps(l, "ps"))
+
 
         xlabel = "Energy (Ha)" if with_xlabel else ""
         self.decorate_ax(ax, xlabel=xlabel, ylabel="ATAN(LogDer)", title="",
                          fontsize=fontsize,
-                         lines=lines, legends=legends)
+                         )
 
         return fig
 
@@ -160,25 +162,17 @@ class OncvPlotter:
         else:
             raise ValueError(f"Invalid value for what: {what}")
 
-        lines, legends = [], []
         for nlk, ae_wf in ae_wfs.items():
             ps_wf, l, k = ps_wfs[nlk], nlk.l, nlk.k
-            #print(nlk)
 
-            ae_line, = ax.plot(ae_wf.rmesh, ae_wf.values, **self._mpl_opts_laeps(l, "ae"))
-            ps_line, = ax.plot(ps_wf.rmesh, ps_wf.values, **self._mpl_opts_laeps(l, "ps"))
-
-            lines.extend([ae_line, ps_line])
-            l_char = l2char[l]
-            if k is None:
-                legends.extend(["AE l=%s" % l_char, "PS l=%s" % l_char])
-            else:
-                legends.extend(["AE l=%s, k=%s" % (l_char, k), "PS l=%s, k=%s" % (l_char, k)])
+            ax.plot(ae_wf.rmesh, ae_wf.values, label=f"AE {nlk.latex}",
+                    **self._mpl_opts_laeps(l, "ae"))
+            ax.plot(ps_wf.rmesh, ps_wf.values, label=f"PS {nlk.latex}",
+                    **self._mpl_opts_laeps(l, "ps"))
 
         self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$\phi(r)$",
                          title="Wave Functions" if what == "bound_states" else "Scattering States",
                          fontsize=fontsize,
-                         lines=lines, legends=legends
                          )
 
         self._add_rc_vlines(ax)
@@ -196,20 +190,18 @@ class OncvPlotter:
         ax, fig, plt = get_ax_fig_plt(ax)
 
         linestyle_n = {1: "solid", 2: "dashed", 3: "dotted", 4: "dashdot"}
-        lines, legends = [], []
 
         for nlk, proj in self.parser.projectors.items():
-            line, = ax.plot(proj.rmesh, proj.values,
-                            color=self.color_l.get(nlk.l, 'black'),
-                            linestyle=linestyle_n[nlk.n],
-                            linewidth=self.linewidth,
-                            markersize=self.markersize)
-
-            lines.append(line); legends.append("Proj %s" % str(nlk))
+            ax.plot(proj.rmesh, proj.values,
+                    color=self.color_l.get(nlk.l, 'black'),
+                    linestyle=linestyle_n[nlk.n],
+                    linewidth=self.linewidth,
+                    markersize=self.markersize,
+                    label=f"Proj {nlk.n}, l={nlk.latex_l}",
+                    )
 
         self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="$p(r)$", title="Projectors",
                          fontsize=fontsize,
-                         lines=lines, legends=legends
                          )
 
         self._add_rc_vlines(ax)
@@ -226,17 +218,16 @@ class OncvPlotter:
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        lines, legends = [], []
         for name, rho in self.parser.densities.items():
             d = rho.values if not timesr2 else rho.values * rho.rmesh ** 2
-            line, = ax.plot(rho.rmesh, d, linewidth=self.linewidth, markersize=self.markersize)
-            lines.append(line); legends.append(name)
+            line, = ax.plot(rho.rmesh, d, label=name,
+                            linewidth=self.linewidth, markersize=self.markersize)
 
         ylabel = "$n(r)$" if not timesr2 else "$r^2 n(r)$"
         self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=ylabel,
                          title="Charge densities",
                          fontsize=fontsize,
-                         lines=lines, legends=legends)
+                         )
 
         return fig
 
@@ -253,7 +244,6 @@ class OncvPlotter:
 
         from scipy.interpolate import UnivariateSpline
 
-        lines, legends = [], []
         for name, rho in self.parser.densities.items():
             # Only model core charge is shown.
             if name != "rhoM": continue
@@ -263,15 +253,13 @@ class OncvPlotter:
             spline = UnivariateSpline(rho.rmesh, rho.values, s=0)
             lin_values = spline(lin_rmesh)
             vder = finite_diff(lin_values, h, order=order, acc=4)
-            line, = ax.plot(lin_rmesh, vder)
-            lines.append(line)
-
-            legends.append("%s-order derivative of %s" % (order, name))
+            ax.plot(lin_rmesh, vder, label="%s-order derivative of %s" % (order, name))
 
         self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="$D^%s \n(r)$" % order,
                          title="Derivative of the charge densities",
                          fontsize=fontsize,
-                         lines=lines, legends=legends)
+                         )
+
         return fig
 
     @add_fig_kwargs
@@ -284,19 +272,15 @@ class OncvPlotter:
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        lines, legends = [], []
         for l, pot in self.parser.potentials.items():
-            line, = ax.plot(pot.rmesh, pot.values, **self._mpl_opts_laeps(l, "ae"))
-            lines.append(line)
 
-            if l == -1:
-                legends.append("Vloc")
-            else:
-                legends.append("PS l=%s" % l2char[l])
+            ax.plot(pot.rmesh, pot.values,
+                    label="$V_{loc}$" if l == -1 else "PS $V_{%s}$" % l2char[l],
+                    **self._mpl_opts_laeps(l, "ae"))
 
         self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="$v_l(r)$", title="Ion Pseudopotentials",
                          fontsize=fontsize,
-                         lines=lines, legends=legends)
+                         )
 
         color = "k"
         if self.parser.lloc == 4: color = "magenta"
@@ -315,10 +299,10 @@ class OncvPlotter:
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
         from abipy.tools.derivatives import finite_diff
         from scipy.interpolate import UnivariateSpline
-        lines, legends = [], []
+
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         for l, pot in self.parser.potentials.items():
             # Need linear mesh for finite_difference hence spline input potentials on lin_rmesh.
@@ -326,18 +310,19 @@ class OncvPlotter:
             spline = UnivariateSpline(pot.rmesh, pot.values, s=0)
             lin_values = spline(lin_rmesh)
             vder = finite_diff(lin_values, h, order=order, acc=4)
-            line, = ax.plot(lin_rmesh, vder, **self._mpl_opts_laeps(l, "ae"))
-            lines.append(line)
 
             if l == -1:
-                legends.append("%s-order derivative Vloc" % order)
+                label = "%s-order derivative Vloc" % order
             else:
-                legends.append("$s-order derivative PS l=%s" % str(l))
+                label = "$s-order derivative PS l=%s" % str(l)
+
+            line, = ax.plot(lin_rmesh, vder, label=label,
+                             **self._mpl_opts_laeps(l, "ae"))
 
         self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$D^%s \phi(r)$" % order,
                          title="Derivative of the ion Pseudopotentials",
                          fontsize=fontsize,
-                         lines=lines, legends=legends)
+                         )
         return fig
 
     @add_fig_kwargs
@@ -350,28 +335,28 @@ class OncvPlotter:
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        lines, legends = [], []
         for l, data in self.parser.kene_vs_ecut.items():
-            line, = ax.plot(data.energies, data.values, **self._mpl_opts_laeps(l, "ae"))
-            lines.append(line)
-            legends.append("Conv l=%s" % l2char[l])
+            ax.plot(data.energies, data.values, label="Conv l=%s" % l2char[l],
+                    **self._mpl_opts_laeps(l, "ae"))
 
         for nlk, data in self.parser.kinerr_nlk.items():
-            line, = ax.plot(data.ecuts, data.values_ha, **self._mpl_opts_laeps(nlk.l, "ps"))
+            ax.plot(data.ecuts, data.values_ha,
+                    **self._mpl_opts_laeps(nlk.l, "ps"))
 
         self.decorate_ax(ax, xlabel="Ecut (Ha)", ylabel=r"$\Delta E_{kin}$ (Ha)",
                          title="",
                          fontsize=fontsize,
-                         lines=lines, legends=legends)
+                         )
 
         ax.set_yscale("log")
 
         return fig
 
     @add_fig_kwargs
-    def plot_atanlogder_econv(self, ax_list=None, fontsize: int = 8, **kwargs):
+    def plot_atanlogder_econv(self, ax_list=None, fontsize: int = 6, **kwargs):
         """
         Plot atan(logder) and converge of kinetic energy on the same figure.
+
         Return: matplotlib Figure
         """
         # Build grid of plots.
@@ -398,12 +383,11 @@ class OncvPlotter:
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        lines, legends = [], []
         for name, rho in self.parser.densities.items():
             if name == "rhoC": continue
             form = rho.get_intr2j0(ecut=ecut) / (4 * np.pi)
-            line, = ax.plot(form.mesh, form.values, linewidth=self.linewidth, markersize=self.markersize)
-            lines.append(line); legends.append(name)
+            ax.plot(form.mesh, form.values, label=name,
+                    linewidth=self.linewidth, markersize=self.markersize)
 
             intg = rho.r2f_integral()[-1]
             #print("r2 f integral: ", intg)
@@ -420,7 +404,8 @@ class OncvPlotter:
         self.decorate_ax(ax, xlabel="Ecut (Ha)", ylabel="$n(q)$",
                          fontsize=fontsize,
                          title="Form factor, l=0 ",
-                         lines=lines, legends=legends)
+                         )
+
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -429,11 +414,11 @@ class OncvPlotter:
         """
         verbose = kwargs.get("verbose", 0)
 
+        yield self.plot_atanlogder_econv(show=False)
+        yield self.plot_potentials(show=False)
         yield self.plot_radial_wfs(show=False)
         yield self.plot_radial_wfs(what="scattering_states", show=False)
-        yield self.plot_atanlogder_econv(show=False)
         yield self.plot_projectors(show=False)
-        yield self.plot_potentials(show=False)
         yield self.plot_densities(show=False)
         #yield self.plot_densities(timesr2=True, show=False)
         yield self.plot_den_formfact(show=False)
@@ -808,14 +793,14 @@ class OncvOutputParser(PseudoGenOutputParser):
                     iproj = {"first": 0, "second": 1}[iproj]
                     l = int(m.group("l"))
 
-                ikap = None
+                k = None
                 if self.relativistic:
-                    ikap = 0
-                    if (iproj, l) in iproj_l_seen: ikap = 1
+                    k = 1
+                    if (iproj, l) in iproj_l_seen: k= 2
                     iproj_l_seen.add((iproj, l))
 
                 # Use n index to store iprj index.
-                nlk = NlkState.from_nl_ik(n=iproj, l=l, ik=ikap)
+                nlk = NlkState(n=iproj, l=l, k=k)
                 #print("nlk:", nlk)
                 continue
 
@@ -973,7 +958,7 @@ class OncvOutputParser(PseudoGenOutputParser):
                 l = int(l.split("=")[1])
                 kap = int(kap.split("=")[1])
 
-            nlk = NlkState(n=n, l=l, k=kap)
+            nlk = NlkState.from_nlkap(n=n, l=l, kap=kap)
             #print("Got nlk state:", nlk)
 
             rmesh = g.data[:, 1]
@@ -1014,13 +999,13 @@ class OncvOutputParser(PseudoGenOutputParser):
             rmesh = g.data[:, 1]
             l = int(g.data[0, 0])
 
-            ik = None
+            k = None
             if self.relativistic:
-                ik = 1
-                if l <= 0: ik = 0
+                k = 2
+                if l <= 0: k = 1
 
             for n in range(len(g.data[0]) - 2):
-                nlk = NlkState.from_nl_ik(n=n + 1, l=abs(l), ik=ik)
+                nlk = NlkState(n=n + 1, l=abs(l), k=k)
                 #print("Got projector with: %s" % str(nlk))
 
                 if nlk in projectors_nlk:
@@ -1109,34 +1094,32 @@ class OncvOutputParser(PseudoGenOutputParser):
             high={"ecut": hints[2], "pawecutdg": hints[2]}
         )
 
-    def get_results(self) -> dict:
+    def get_results(self) -> AttrDict:
         """
-        Return the most important results reported by the pp generator.
-        Set the value of self.results
+        Return the most important results extracted from the output file.
         """
         # Init return values
-        #d = dict(
+        #d = AttrDict(
         #    max_ecut=None,
         #    max_atan_logder_l1err=None,
         #    max_psexc_abserr=None,
         #    herm_err=None,
-        #    status=None,
-        #    nwarns=None,
-        #    nerrs=None,
+        #    nwarns=len(self.warnings)
+        #    nerrs=len(self.errors)
         #)
 
         # Get the max ecut estimated by oncvpsp.
         # TODO: Should take into account scattering states.
-        max_ecut = max(self.kene_vs_ecut[l].energies[-1] for l in range(self.lmax + 1))
+        max_ecut = max(self.kene_vs_ecut[l].energies[-1] for l in self.kene_vs_ecut)
 
-        # Compute the l1 error in atag(logder)
+        # Compute the l1 error in atag(logder) between AE and PS
         from scipy.integrate import cumtrapz
         max_l1err = 0.0
-        for l in range(self.lmax + 1):
+        for l in self.atan_logders.ae:
             f1, f2 = self.atan_logders.ae[l], self.atan_logders.ps[l]
 
-            adiff = np.abs(f1.values - f2.values)
-            integ = cumtrapz(adiff, x=f1.energies) / (f1.energies[-1] - f1.energies[0])
+            abs_diff = np.abs(f1.values - f2.values)
+            integ = cumtrapz(abs_diff, x=f1.energies) / (f1.energies[-1] - f1.energies[0])
             max_l1err = max(max_l1err, integ[-1])
 
         # Read Hermiticity error and compute the max value of PSP excitation error=
@@ -1154,11 +1137,13 @@ class OncvOutputParser(PseudoGenOutputParser):
             if i != -1:
                 max_psexc_abserr = max(max_psexc_abserr, abs(float(line.split()[-1].replace("D", "E"))))
 
-        return dict(
+        return AttrDict(
             max_ecut=max_ecut,
             max_atan_logder_l1err=max_l1err,
+            max_psexc_abserr=max_psexc_abserr,
             herm_err=herm_err,
-            max_psexc_abserr=max_psexc_abserr
+            nwarns=len(self.warnings),
+            nerrs=len(self.errors),
         )
 
     def find_string(self, s: str) -> int:
@@ -1217,6 +1202,7 @@ class OncvOutputParser(PseudoGenOutputParser):
             if start is not None and 'END_PSP' in line:
                 stop = i
                 break
+
         if start is None and stop is None: return None
         return "\n".join(self.lines[start+1:stop])
 
@@ -1560,7 +1546,7 @@ class MultiOncvPlotter:
         ax_list, fig, plt = self._get_ax_list(ax_list)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
-            plotter.atan_logders(ax=ax, with_xlabel=with_xlabel, fontsize=fontsize, show=False)
+            plotter.plot_atan_logders(ax=ax, with_xlabel=with_xlabel, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
 
         return fig
@@ -1677,8 +1663,28 @@ class MultiOncvPlotter:
         ax_list, fig, plt = self._get_ax_list(ax_list)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
-            plotter.kene_vs_ecut(ax=ax, fontsize=fontsize, show=False)
+            plotter.plot_kene_vs_ecut(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_atanlogder_econv(self, ax_mat=None, fontsize: int = 6, **kwargs):
+        """
+        Plot atan(logder) and converge of kinetic energy on the same figure.
+        Return: matplotlib Figure
+        """
+        num_plots, ncols, nrows = 2 * len(self), 2, len(self)
+
+        # Build grid of plots.
+        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
+                                               sharex=False, sharey=False, squeeze=False)
+
+        for i, (label, plotter) in enumerate(self.items()):
+            ax_list = ax_mat[i]
+            plotter.plot_atanlogder_econv(ax_list=ax_list, fontsize=fontsize, show=False)
+            for ax in ax_list:
+                ax.set_title(label, fontsize=fontsize)
 
         return fig
 
@@ -1706,9 +1712,11 @@ class MultiOncvPlotter:
         """
         verbose = kwargs.get("verbose", 0)
 
+        #yield self.plot_atanlogder_econv(show=False)
+        yield self.plot_atan_logders(show=False)
+        yield self.plot_kene_vs_ecut()
         yield self.plot_radial_wfs(show=False)
         yield self.plot_radial_wfs(what="scattering_states", show=False)
-        #yield self.plot_atanlogder_econv(show=False)
         yield self.plot_projectors(show=False)
         yield self.plot_potentials(show=False)
         yield self.plot_densities(show=False)

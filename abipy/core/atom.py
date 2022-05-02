@@ -94,26 +94,60 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
 
     def __new__(cls, n: int, l: int, k: Optional[int] = None):
         """Extends super.__new__ adding type conversion and default values."""
-        #if k is not None and k not in (l - 1/2, l + 1/2):
-        #    raise ValueError(f"Invalid k: {k} for l: {l}")
+        if k is not None:
+            if k not in (1, 2):
+                raise ValueError(f"Invalid k index: {k} for l: {l}")
+            if l == 0 and k != 1:
+                raise ValueError(f"When l is 0, k must be 1 while it is: {k}")
+
+        #if n <= 0:
+        #    raise ValueError(f"Invalid value for n: {n}")
+        if l < 0:
+            raise ValueError(f"Invalid value for l: {l}")
 
         return super().__new__(cls, n, l, k)
 
     @classmethod
-    def from_nl_ik(cls, n: int, l: int, ik: Union[int, None]) -> NlkState:
+    def from_nlkap(cls, n: int, l: int, kap: Union[int, None]) -> NlkState:
         k = None
-        if ik is not None:
-            k = {0: l, 1: -(l + 1)}[ik]
+        if kap is not None:
+            #if(ikap==1) kap=-(ll+1)
+            #if(ikap==2) kap=  ll
+            k = 1
+            if l != 0:
+                k = {-(l + 1): 1, l:2}[kap]
 
         return cls(n=n, l=l, k=k)
 
-    def __str__(self) -> str:
-        if self.l == -1:
-            lc = "loc"
-        else:
-            lc = l2char[self.l]
+    def __repr__(self) -> str:
+        return f"n={self.n}, l={self.l}" if self.k is None else f"n={self.n}, l={self.l}, k={self.k}"
 
-        return f"n={self.n}, l={lc}" if self.k is None else f"n={self.n}, l={lc}, k={self.k}"
+    def __str__(self) -> str:
+        lc = l2char[self.l]
+        if self.k is None:
+            return f"{self.n}{lc}"  # e.g. 2s
+        else:
+            return f"{self.n}{lc}{self.ksign}"  # e.g. 2s+
+
+    @lazy_property
+    def latex(self):
+        lc = l2char[self.l]
+        if self.k is None:
+            return f"${self.n}{lc}$"  # e.g. 2s
+        else:
+            return f"${self.n}{lc}^{self.ksign}$"  # e.g. 2s^+
+
+    @lazy_property
+    def latex_l(self):
+        lc = l2char[self.l]
+        if self.k is None:
+            return f"${lc}$"  # e.g. s
+        else:
+            return f"${lc}^{self.ksign}$"  # e.g. s^+
+
+    @lazy_property
+    def ksign(self) -> str:
+        return {1: "+", 2: "-"}[self.k]
 
     @lazy_property
     def j(self) -> int:
@@ -500,9 +534,9 @@ class RadialWaveFunction(RadialFunction):
     """
     TOL_BOUND = 1.e-10
 
-    def __init__(self, state, name, rmesh, values):
-        super(RadialWaveFunction, self).__init__(name, rmesh, values)
-        self.state = state
+    def __init__(self, nlk: NlkState, name: str, rmesh, values):
+        super().__init__(name, rmesh, values)
+        self.nlk = nlk
 
     @lazy_property
     def isbound(self) -> bool:
@@ -510,9 +544,9 @@ class RadialWaveFunction(RadialFunction):
         back = min(10, len(self))
         return np.all(np.abs(self.values[-back:]) < self.TOL_BOUND)
 
-    @property
-    def to_dict(self) -> dict:
-        d = super(RadialWaveFunction, self).to_dict
-        d.update(self.state.to_dict)
-        return d
+    #@property
+    #def to_dict(self) -> dict:
+    #    d = super().to_dict
+    #    d.update(self.nlk.to_dict)
+    #    return d
 
