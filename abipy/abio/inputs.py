@@ -438,22 +438,24 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         self.enforce_znucl_and_typat(enforce_znucl, enforce_typat)
 
         # TODO:
-        # Note that here the pseudos **must** be sorted according to znucl.
-        # Here we reorder the pseudos if the order is wrong.
-        #ord_pseudos = []
+        # Note that pseudos **must** be sorted according to znucl.
+        # Here we reorder the pseudos if the initial order is wrong.
 
-        #znucl = [specie.number for specie in self.input.structure.species_by_znucl]
+        if enforce_znucl is not None:
+            znucl = self.enforce_znucl
+        else:
+            znucl = [specie.number for specie in self.structure.species_by_znucl]
 
-        #for z in znucl:
-        #    for p in self.pseudos:
-        #        if p.Z == z:
-        #            ord_pseudos.append(p)
-        #            break
-        #    else:
-        #        raise ValueError("Cannot find pseudo with znucl %s in pseudos:\n%s" % (z, self.pseudos))
+        ord_pseudos = []
+        for z in znucl:
+            for p in self.pseudos:
+                if p.Z == z:
+                    ord_pseudos.append(p)
+                    break
+            else:
+                raise ValueError("Cannot find pseudo with znucl %s in pseudos:\n%s" % (z, self.pseudos))
 
-        #for pseudo in ord_pseudos:
-        #    app(pseudo.path)
+        self._pseudos = ord_pseudos
 
     def enforce_znucl_and_typat(self, znucl, typat):
         """

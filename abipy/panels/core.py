@@ -247,7 +247,7 @@ def show_exception(func):
 
 class HTMLwithClipboardBtn(pn.pane.HTML):
     """
-    Receives an HTML string and returns an HTML pane with a button that allows the user
+    Receives an HTML string and returns an HTML pane with a button that allows users
     to copy the content to the system clipboard.
     Requires call to abipanel to load the JS extension.
     """

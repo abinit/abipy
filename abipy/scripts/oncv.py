@@ -100,7 +100,9 @@ def oncv_compare(options):
     plotter = MultiOncvPlotter.from_files(options.filepaths)
 
     # Plot data
-    plotter.expose(use_web=True)
+    use_web = False
+    use_web = True
+    plotter.expose(use_web=use_web)
 
     return 0
 
@@ -164,11 +166,27 @@ def oncv_run(options):
     psgen.start()
     retcode = psgen.wait()
 
-    if psgen.status != psgen.S_OK:
+    if retcode != 0:
         cprint("oncvpsp returned %s. Exiting" % retcode, "red")
-        return 1
+        return retcode
 
-    # Tranfer final output file.
+    if psgen.status != psgen.S_OK:
+        cprint(f"psgen.status = {psgen.status} != psgen.S_OK", "red")
+        if psgen.parser.warnings:
+            print(2 * "\n")
+            print("List of WARNINGS:")
+            for w in psgen.parser.warnings:
+                print(w)
+
+        if psgen.parser.errors:
+            print(2 * "\n")
+            print("List of ERRORS:")
+            for e in psgen.parser.errors:
+                print(e)
+
+        #return 1
+
+    # Transfer final output file.
     shutil.copy(psgen.stdout_path, out_path)
 
     # Parse the output file

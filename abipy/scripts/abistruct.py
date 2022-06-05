@@ -646,6 +646,8 @@ def main():
     elif options.command == "primitive":
         structure = abilab.Structure.from_file(options.filepath)
         primitive = structure.get_primitive_structure(tolerance=0.25, use_site_props=False, constrain_latt=None)
+        # Cast to abipy structure because get_primitive may break inheritance.
+        primitive = abilab.Structure.as_structure(primitive)
         separator = "\n" + 90 * "="
         print("\nInitial structure:\n", structure, separator)
         print("\nPrimitive structure returned by pymatgen:\n", primitive, separator)

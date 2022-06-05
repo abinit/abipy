@@ -1672,13 +1672,22 @@ to bypass the problem are made in the output file.
 When **chksymtnons** = 2, the code makes similar check, but does not stop after providing
 in the output file suggestions to bypass the problem.
 
+When **chksymtnons** = 3, the code acts as with **chksymtnons** = 1, but then generates a FFT grid which is
+left invariant under the action of the spatial symmetry operations, which might enlarge it.
+In case of Constrained DFT calculations (see [[constraint_kind]]), only **chksymtnons** = 3 or **chksymtnons** = 0 are allowed.
+
 When **chksymtnons** = 0, the code skips the check.
 
 Explanation:
 In ground-state or DFPT calculations, such breaking of the symmetry is harmless.
-However, for a GW or BSE calculation, the presence of non-symmorphic translations
-that are not coherent with the FFT grid will cause problems (e.g. enormous memory reservation, inducing segfault).
-In the GW or BSE parts, indeed, one needs to reconstruct the wavefunctions in the full Brillouin zone
+However, for a GW, BSE or cDFT calculation, the presence of non-symmorphic translations
+that are not coherent with the FFT grid will cause problems (e.g. enormous memory reservation, inducing segfault, or lack of convergence).
+
+For cDFT calculations, the local integral of magnetization or charge is evaluated in real space, on the FFT grid. So, if
+the grids are locally different for two atoms related by symmetry (so in principle equivalent), there is a incoherency, that might induce
+lack of convergence.
+
+In the GW or BSE parts of ABINIT, one needs to reconstruct the wavefunctions in the full Brillouin zone
 for calculating both the polarizability and the self-energy. The wavefunctions
 in the full Brillouin zone are obtained from the irreducible wedge by applying
 the symmetry operations of the space group of the crystal. In the present
@@ -1693,7 +1702,7 @@ the level of the ground-state calculations, although such warning might be irrel
 
 If you encounter the problem outlined above, you have two choices: change your
 atomic positions (translate them) such that the origin appears as the most
-symmetric point; or ignore the problem, and set **chksymtnons** = 2 or 0.
+symmetric point; or ignore the problem, and set **chksymtnons** = 2 or 0 (only the latter for cDFT)..
 If **chksymtnons** = 2, ABINIT makes a suggestion of a possible global translation,
 and corresponding translated atomic positions.
 """,
@@ -1760,8 +1769,9 @@ magnetization.
 When [[constraint_kind]] is 10 or above, the charge constraint will be imposed.
 
 When [[constraint_kind]]=1 or 11, the exact value (vector in the non-collinear case, amplitude and sign in the collinear case) of the magnetization is constrained;
-When [[constraint_kind]]=2 or 12, only the direction is constrained (only meaningful in the non-collinear case);
-When [[constraint_kind]]=3 or 13, only the magnitude is constrained.
+When [[constraint_kind]]=2 or 12, only the magnetization axis is constrained (only meaningful in the non-collinear case, albeit allowed);
+When [[constraint_kind]]=3 or 13, only the magnetization magnitude is constrained.
+When [[constraint_kind]]=4 or 14, only the magnetization direction is constrained (only meaningful in the non-collinear case, not allowed in the collinear case);
 
 For the algorithm, see [[topic:ConstrainedDFT]]. It makes important use of the potential residual,
 so the algorithm works only with [[iscf]] between 2 and 9.
@@ -1777,6 +1787,14 @@ Atoms of the same type are supposed to incur the same constraint.
 If the user wants to impose different constraints on atoms of the same type (in principle), it is possible (and easy) to pretend
 that they belong to different types, even if the same pseudopotential file is used for these atoms. There is an example
 in test [[test:v8_24]], the hydrogen dimer, where the charge around the first atom is constrained, and the charge around the second atom is left free.
+
+Similarly, ABINIT is more careful about the control of symmetry: supposing that two atoms are related by some symmetry, then ABINIT
+generates a FFT grid that is invariant under that symmetry, unless this additional constraint on the FFT grid is explicitly suppressed by the user.
+In this respect, the default value of [[chksymtnons]] is not allowed, but [[chksymtnons]] must be equal to 3 (with the generation of a symmetric FFT grid) or 0.
+
+The difference between [[constraint_kind]]=4 or 14 and [[constraint_kind]]=2 or 12 lies in the fact that [[constraint_kind]]=2 or 12 will consider similarly
+a magnetization vector and its opposite, as this constraint is just alignment on an axis, while [[constraint_kind]]=4 or 14 enforces that
+the scalar product of the target magnetization direction (normalized vector) and the actual optimized magnetization direction (normalized vector) is positive.
 
 Incidentally, [[ionmov]]==4 is not allowed in the present implementation of constrained DFT because the motion of atoms and simultaneous computation of constraints would be difficult to handle.
 """,
@@ -2008,7 +2026,7 @@ Variable(
     vartype="integer",
     topics=['nonlinear_basic'],
     dimensions=[2],
-    defaultval=[1, 1],
+    defaultval=[1, '[[natom]]' ],
     mnemonics="3rd Derivative of Energy, mixed PERTurbation 1: limits of ATomic POLarisations",
     requires="[[optdriver]] == 5 (non-linear response computations)",
     added_in_version="before_v9",
@@ -2026,7 +2044,7 @@ Variable(
     vartype="integer",
     topics=['nonlinear_basic'],
     dimensions=[3],
-    defaultval=[0, 0, 0],
+    defaultval=[1, 1, 1],
     mnemonics="3rd Derivative of Energy, mixed PERTurbation 1: DIRections",
     requires="[[optdriver]] == 5 (non-linear response computations)",
     added_in_version="before_v9",
@@ -2079,7 +2097,7 @@ Variable(
     vartype="integer",
     topics=['nonlinear_basic'],
     dimensions=[2],
-    defaultval=[1, 1],
+    defaultval=[1, '[[natom]]' ],
     mnemonics="3rd Derivative of Energy, mixed PERTurbation 2: limits of ATomic POLarisations",
     requires="[[optdriver]] == 5 (non-linear response computations)",
     added_in_version="before_v9",
@@ -2150,7 +2168,7 @@ Variable(
     vartype="integer",
     topics=['nonlinear_basic'],
     dimensions=[2],
-    defaultval=[1, 1],
+    defaultval=[1, '[[natom]]' ],
     mnemonics="3rd Derivative of Energy, mixed PERTurbation 3: limits of ATomic POLarisations",
     requires="[[optdriver]] == 5 (non-linear response computations)",
     added_in_version="before_v9",
@@ -2871,8 +2889,12 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 
-Value of double counting used for DMFT. Only value 1 is currently activated.
-It corresponds to the "Full Localized Limit" double counting.
+Value of double counting used for DMFT (so, only relevant for [[usedmft]]=1)..
+
+   * 1 : corresponds to the "Full Localized Limit" double counting (to be used with [[usepawu]]=10).
+   * 2 : corresponds to the "Around Mean Field" double counting (this is not yet in production).
+   * 5 : the calculation is done without magnetism in the J term (cf [[cite:Park2015]] and [[cite:Chen2016a]]), to be used with [[usepawu]]=14.
+   * 6 : this option is in development.
 """,
 ),
 
@@ -3149,6 +3171,25 @@ that this variable is not required.
 ),
 
 Variable(
+    abivarname="dmft_wanorthnorm",
+    varset="dmft",
+    vartype="real",
+    topics=['DMFT_expert'],
+    dimensions="scalar",
+    defaultval=3,
+    mnemonics="Dynamical Mean Field Theory: WANnier OrthoNormalization",
+    characteristics=['[[DEVELOP]]'],
+    added_in_version="9.4.0",
+    text=r"""
+Definition of Wannier orthormalization in DMFT.
+Default value is 3 (Normalization of the overlap of Wannier functions summed
+over k-point) if [[natom]]=1, or 2 (Normalization of the overlap for each k-point) if
+[[natom]]>1.
+""",
+),
+
+
+Variable(
     abivarname="dmftbandf",
     varset="dmft",
     vartype="integer",
@@ -3260,6 +3301,24 @@ simulation. Slow down the simulation.
 
   * 0 --> Nothing done
   * 1 --> Calculations performed and written in "Correlation.dat" file
+""",
+),
+
+Variable(
+    abivarname="dmftctqmc_config",
+    varset="dmft",
+    vartype="integer",
+    topics=['DMFT_expert'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="Dynamical Mean Field Theory: CTQMC: calculation of weight of CONFIGurations",
+    characteristics=['[[DEVELOP]]'],
+    requires="[[dmft_solv]] in [5, 8]",
+    added_in_version="9.5.0",
+    text=r"""
+Compute weight of configuration computed during CTQMC calculations.
+For example, for a calculation on $d$ orbitals, the calculations
+gives the weight of 0,1,2,3,4,5,6,7,8,9 and 10 electrons configurations.
 """,
 ),
 
@@ -4224,11 +4283,15 @@ The choice is among:
 * 8 --> Compute phonon limited transport by solving the (linearized) IBTE using collision terms taken from SIGEPH.nc file.
         Requires [[ibte_prep]] = 1 when computing the imaginary part of the e-ph self-energy with [[eph_task]] == -4.
 * 10 --> Compute polaron effective mass, using the generalized Frohlich model, in the triply-degenerate VB or CB cubic case.
-         Polaron effective masses are computed along the 3 crystallographic directions: (100), (110) and (111). Same requirement than for [[eph_task]]=6.
-         Reference B. Guster et al to be published (2021) or (2022).
+         Polaron effective masses are computed along the 3 crystallographic directions: (100), (110) and (111). Same requirements as for [[eph_task]] = 6. Reference: [[cite:Guster2021]]
+* 11 --> Compute e-ph matrix elements on homogeneous k- and q-meshes.
+         Save results in GSTORE.nc file (requires netcdf library with MPI-IO support).
+         The k-mesh must be equal to the one associated to the input WFK file, the q-mesh is specified
+         by [[eph_ngqpt_fine]] (NB: the q-mesh must be a sub-mesh of the k-mesh or equal).
 * 15, -15 --> Write the average in r-space of the DFPT potentials to the V1QAVG.nc file.
               In the first case (+15) the q-points are specified via [[ph_nqpath]] and [[ph_qpath]]. The code assumes the
-              input DVDB contains q-points in the IBZ and the potentials along the path are interpolated with Fourier transform.
+              input DVDB contains q-points in the IBZ and the potentials along the path
+              are interpolated with Fourier transform.
               An array D(R) with the decay of the W(R,r) as a function of R is computed and saved to file
               In the second case (-15) the q-points are taken directly from the DVDB file.
 
@@ -4685,17 +4748,22 @@ convergence, or even can make convergence happen. Also, even in the ground-state
 case, a cut-off Coulomb interaction might prove useful.
 
 [[fock_icutcoul]] defines the particular expression to be used for the Fock
-operator in reciprocal space. The choice of [[fock_icutcoul]] depends on the
+operator in reciprocal space (see [[icutcoul]] for the Hartree contributions to ground state calculations,
+and [[gw_icutcoul]] for the corresponding treatment in GW calculations).
+
+The choice of [[fock_icutcoul]] depends on the
 dimensionality and the character of the XC functional used (or otherwise the
 presence of the exclusive treatment of the short-range exchange interaction).
 Possible values of [[fock_icutcoul]] are from 0 to 5, but currently are available
 options 0 and 5. Option 5 is hard coded as the method to be applied to HSE functionals.
-The corresponding influential variables are [[vcutgeo]] and [[rcut]].
 
-  * 0 --> sphere (molecules, but also 3D-crystals, see below).
-  * 1 --> (W.I.P.) cylinder (nanowires, nanotubes).
-  * 2 --> (W.I.P.) surface.
-  * 3 --> 3D crystal (Coulomb interaction without cut-off).
+Like for [[icutcoul]], for 1-dimensional and 2-dimensional systems, the geometry of the system has to be specified explicitly.
+This is done thanks to [[vcutgeo]]. For 0-, 1- and 2-dimensional systems, a cut-off length has to be provided, thanks to [[rcut]].
+
+  * 0 --> Sphere (molecules, but also 3D-crystals, see below). See [[rcut]].
+  * 1 --> (W.I.P.) cylinder (nanowires, nanotubes). See [[vcutgeo]] and [[rcut]].
+  * 2 --> (W.I.P) Surface. See [[vcutgeo]] and [[rcut]].
+  * 3 --> (W.I.P) 3D crystal (Coulomb interaction without cut-off).
   * 4 --> (W.I.P.)ERF, long-range only Coulomb interaction.
   * 5 --> ERFC, short-range only Coulomb interaction (e.g. as used in the HSE functional).
 
@@ -4847,27 +4915,6 @@ spacing of an equidistant frequency mesh along the real axis. Alternatively,
 the variables [[gw_customnfreqsp]] and [[gw_freqsp]] can be used to make a user-defined grid.
 """,
 ),
-
-
-Variable(
-    abivarname="tolcum",
-    varset="gw",
-    vartype="real",
-    topics=['SelfEnergy_basic'],
-    dimensions="real",
-    defaultval=1e-3,
-    mnemonics="Tolerance to find maximum value of time mesh",
-    characteristics=['[[ENERGY]]'],
-    requires="[[eph_task]] == 9",
-    added_in_version="v9.?",
-    text=r"""
-[[tolcum]] sets the maximum real time used to calculate the spectral
-function from the Green's function. [[tolcum]] is set to 1e-3
-if left undefined. [[tolcum]] and [[nfreqsp]] define the
-spacing of an equidistant time mesh.
-""",
-),
-
 
 Variable(
     abivarname="friction",
@@ -5051,13 +5098,17 @@ phonon matrix elements) or for non linear RF calculations (to get mixed higher
 order derivatives you need several perturbed densities and wave functions).
 Indicate the files from which first-order densities must be obtained, in
 multi-dataset mode (in single dataset mode, use [[ird1den]]).
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
 
-      ndtset 3   jdtset 1 2 4  getXXX -1
-
-refers to dataset 2 when dataset 4 is initialized.
+  * If [[get1den]]=0, no previously computed values are used.
+  * If [[get1den]]>0, the value must be the index of the dataset from which the
+cell data is to be used as input data. It must be the index of a dataset already
+computed in the SAME run.
+  * If [[get1den]]=-1, the output data of the previous dataset must be taken, which
+is a frequently occurring case. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+  * If [[get1den]]=another negative number, it indicates the number of datasets to go backward
+to find the needed data (once again, going back beyond the first dataset is
+equivalent to using a zero get variable).
 """,
 ),
 
@@ -5074,9 +5125,21 @@ Variable(
 Eventually used when [[ndtset]] > 0 (in the multi-dataset mode), to indicate
 starting wavefunctions, as an alternative to [[ird1wf]].
 One should first read the explanations given for these latter variables.
-This variable is  typically used to chain the calculations in the multi-dataset mode, since they
-describe from which dataset the OUTPUT wavefunctions are to be taken, as INPUT
+This variable is  typically used to chain the calculations in the multi-dataset mode, since it
+describes from which dataset the OUTPUT wavefunctions are to be taken, as INPUT
 wavefunctions of the present dataset.
+
+  * If [[get1wf]]=0, no previously computed values are used.
+  * If [[get1wf]]>0, the value must be the index of the dataset from which the
+cell data is to be used as input data. It must be the index of a dataset already
+computed in the SAME run.
+  * If [[get1wf]]=-1, the output data of the previous dataset must be taken, which
+is a frequently occurring case. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+  * If [[get1wf]]=another negative number, it indicates the number of datasets to go backward
+to find the needed data (once again, going back beyond the first dataset is
+equivalent to using a zero get variable).
+
 See also discussion in [[getwfk]].
 """,
 ),
@@ -5091,19 +5154,22 @@ Variable(
     mnemonics="GET the Bethe-Salpeter COUPling block from...",
     added_in_version="before_v9",
     text=r"""
-Eventually used when [[ndtset]] > 0 (multi-dataset mode) and, in the case of a
-Bethe-Salpeter calculation to indicate that the starting coupling block of the
+Eventually used when [[ndtset]] > 0 (multi-dataset mode), in the case of a
+Bethe-Salpeter calculation, to indicate that the starting coupling block of the
 excitonic Hamiltonian will be taken from the output of a previous dataset. It
 is used to chain the calculations, since it describes from which dataset the
 OUTPUT coupling block is to be taken, as INPUT of the present dataset.
-If [[getbscoup]] == 0, no such use of previously computed coupling block file is done.
-If [[getbscoup]] is positive, its value gives the index of the dataset to be used as input.
-If [[getbscoup]] is -1, the output of the previous dataset must be taken,
-which is a frequently occurring case.
-If [[getbscoup]] is a negative number, it indicates the number of datasets to
-go backward to find the needed file. In this case, if one refers to a non
-existent data set (prior to the first), the coupling block is not initialised
-from a disk file, so that it is as if [[getbscoup]] = 0 for that initialisation.
+
+  * If [[getbscoup]]=0, no previously computed values are used.
+  * If [[getbscoup]]>0, the value must be the index of the dataset from which the
+cell data is to be used as input data. It must be the index of a dataset already
+computed in the SAME run.
+  * If [[getbscoup]]=-1, the output data of the previous dataset must be taken, which
+is a frequently occurring case. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+  * If [[getbscoup]]=another negative number, it indicates the number of datasets to go backward
+to find the needed data (once again, going back beyond the first dataset is
+equivalent to using a zero get variable).
 """,
 ),
 
@@ -5117,20 +5183,22 @@ Variable(
     mnemonics="GET the Bethe-Salpeter EIGenstates from...",
     added_in_version="before_v9",
     text=r"""
-Eventually used when [[ndtset]] > 0 (multi-dataset mode) and, in the case of a
-Bethe-Salpeter calculation to indicate that the starting excitonic eigenstates
+Eventually used when [[ndtset]] > 0 (multi-dataset mode), in the case of a
+Bethe-Salpeter calculation, to indicate that the starting excitonic eigenstates
 are to be taken from the output of a previous dataset. It is used to chain the
 calculations, since it describes from which dataset the OUTPUT eigenstates are
 to be taken, as INPUT eigenstates of the present dataset.
-If [[getbseig]] == 0, no such use of previously computed output eigenstates file is done.
-If [[getbseig]] is positive, its value gives the index of the dataset from
-which the output states is to be used as input.
-If [[getbseig]] is -1, the output eigenstates of the previous dataset must be
-taken, which is a frequently occurring case.
-If [[getbseig]] is a negative number, it indicates the number of datasets to
-go backward to find the needed file. In this case, if one refers to a non
-existent data set (prior to the first), the eigenstates are not initialised
-from a disk file, so that it is as if [[getbseig]] = 0 for that initialisation.
+
+  * If [[getbseig]]=0, no previously computed values are used.
+  * If [[getbseig]]>0, the value must be the index of the dataset from which the
+cell data is to be used as input data. It must be the index of a dataset already
+computed in the SAME run.
+  * If [[getbseig]]=-1, the output data of the previous dataset must be taken, which
+is a frequently occurring case. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+  * If [[getbseig]]=another negative number, it indicates the number of datasets to go backward
+to find the needed data (once again, going back beyond the first dataset is
+equivalent to using a zero get variable).
 """,
 ),
 
@@ -5144,19 +5212,22 @@ Variable(
     mnemonics="GET the Bethe-Salpeter RESOnant block from...",
     added_in_version="before_v9",
     text=r"""
-Eventually used when [[ndtset]] > 0 (multi-dataset mode) and, in the case of a
-Bethe-Salpeter calculation to indicate that the starting resonant block of the
+Eventually used when [[ndtset]] > 0 (multi-dataset mode), in the case of a
+Bethe-Salpeter calculation, to indicate that the starting resonant block of the
 excitonic Hamiltonian will be taken from the output of a previous dataset. It
 is used to chain the calculations, since it describes from which dataset the
 OUTPUT resonant block is to be taken, as INPUT of the present dataset.
-If [[getbsreso]] == 0, no such use of previously computed resonant block file is done.
-If [[getbsreso]] is positive, its value gives the index of the dataset to be used as input.
-If [[getbsreso]] is -1, the output of the previous dataset must be taken,
-which is a frequently occurring case.
-If [[getbsreso]] is a negative number, it indicates the number of datasets to
-go backward to find the needed file. In this case, if one refers to a non
-existent data set (prior to the first), the resonant block is not initialised
-from a disk file, so that it is as if [[getbsreso]] = 0 for that initialisation.
+
+  * If [[getbsreso]]=0, no previously computed values are used.
+  * If [[getbsreso]]>0, the value must be the index of the dataset from which the
+cell data is to be used as input data. It must be the index of a dataset already
+computed in the SAME run.
+  * If [[getbsreso]]=-1, the output data of the previous dataset must be taken, which
+is a frequently occurring case. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+  * If [[getbsreso]]=another negative number, it indicates the number of datasets to go backward
+to find the needed data (once again, going back beyond the first dataset is
+equivalent to using a zero get variable).
 """,
 ),
 
@@ -5171,19 +5242,20 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 This variable is typically used to chain the calculations, in the multi-
-dataset mode ([[ndtset]] > 0), since it describes from which dataset the output [[acell]]
+dataset mode ([[ndtset]] > 0). It describes from which dataset the output [[acell]]
 and [[rprim]] are to be taken (implicitly also [[scalecart]]), as input of the present dataset.
 The cell parameters are [[EVOLVING]] variables, for which such a chain of calculations is useful.
-If 0, no previously computed values are used.
-If >0, the value must be the index of the dataset from which the
+
+  * If [[getcell]]=0, no previously computed values are used.
+  * If [[getcell]]>0, the value must be the index of the dataset from which the
 cell data is to be used as input data. It must be the index of a dataset already
 computed in the SAME run.
-If equal to -1, the output data of the previous dataset must be taken, which
+  * If [[getcell]]=-1, the output data of the previous dataset must be taken, which
 is a frequently occurring case. However, if the first dataset is treated, -1
 is equivalent to 0, since no dataset has been computed in the same run.
-If another negative number, it indicates the number of datasets to go backward
+  * If [[getcell]]=another negative number, it indicates the number of datasets to go backward
 to find the needed data (once again, going back beyond the first dataset is
-equivalent to using a null get variable).
+equivalent to using a zero get variable).
 """,
 ),
 
@@ -5201,7 +5273,7 @@ This variable should be used when performing electron-phonon or temperature-depe
 with the legacy implementation that computes the e-ph matrix elements at the end of the DFPT run
 (for the new EPH code, see [[eph_task]]).
 
-More detailed explanation:
+More detailed explanation...
 
 The Born effective charge as well as the dielectric
 tensor will be read from a previous DFPT calculations of the electric field at
@@ -5210,18 +5282,17 @@ dipole that leads to an unphysical divergence of the GKK with vanishing
 q-points. The use of this variable greatly improves the k-point convergence
 speed as the density of the k-point grid required to obtain the fulfillment of
 the charge neutrality sum rule is usually prohibitively large.
-If [[getddb]] == 0, no such use of previously computed Born effective charge and dielectric tensor is done.
-If [[getddb]] is positive, its value gives the index of the dataset from which the output density is to be used as input.
-If [[getddb]] is -1, the output density of the previous dataset must be taken, which is a frequently occurring case.
-If [[getddb]] is a negative number, it indicates the number of datasets to go backward to find the needed file.
 
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
-
-      ndtset 3   jdtset 1 2 4  getXXX -1
-
-refers to dataset 2 when dataset 4 is initialized.
+  * If [[getddb]]=0, no previously computed values are used.
+  * If [[getddb]]>0, the value must be the index of the dataset from which the
+cell data is to be used as input data. It must be the index of a dataset already
+computed in the SAME run.
+  * If [[getddb]]=-1, the output data of the previous dataset must be taken, which
+is a frequently occurring case. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+  * If [[getddb]]=another negative number, it indicates the number of datasets to go backward
+to find the needed data (once again, going back beyond the first dataset is
+equivalent to using a zero get variable).
 
 Note also that, starting Abinit v9, one can also use [[getddb_filepath]] to specify the path of the file directly.
 """,
@@ -5238,42 +5309,27 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Eventually used when [[ndtset]] > 0 (in the multi-dataset mode), to indicate
-starting wavefunctions, as an alternative to
-[[irdwfk]],[[irdwfq]],[[ird1wf]],[[irdddk]]. One should first read the
-explanations given for these latter variables.
-The **getwfk**, **getwfq**, **get1wf** and [[getddk]] variables are
-typically used to chain the calculations in the multi-dataset mode, since they
-describe from which dataset the OUTPUT wavefunctions are to be taken, as INPUT
-wavefunctions of the present dataset.
+starting DDK wavefunctions, as an alternative to [[irdddk]]. One should first read the
+explanations given for the latter variable.
+This variable is typically used to chain the calculations in the multi-dataset mode, since it
+describes from which dataset the OUTPUT DDK wavefunctions are to be taken, as INPUT
+DDK wavefunctions of the present dataset.
 
-We now focus on the **getwfk** input variable (the only one used in ground-
-state calculations), but the rules for **getwfq** and **get1wf** are similar,
-with _WFK replaced by _WFQ or _1WF.
-If **getwfk** ==0, no use of previously computed output wavefunction file
-appended with _DSx_WFK is done.
-If **getwfk** is positive, its value gives the index of the dataset for which
-the output wavefunction file appended with _WFK must be used.
-If **getwfk** is -1, the output wf file with _WFK of the previous dataset must
-be taken, which is a frequently occurring case.
-If **getwfk** is a negative number, it indicates the number of datasets to go
-backward to find the needed wavefunction file. In this case, if one refers to
-a non existent data set (prior to the first), the wavefunctions are not
-initialised from a disk file, so that it is as if **getwfk** =0 for that
-initialisation. Thanks to this rule, the use of **getwfk** -1 is rather
-straightforward: except for the first wavefunctions, that are not initialized
-by reading a disk file, the output wavefunction of one dataset is input of the
-next one.
+  * If [[getddk]]=0, no use of previously computed output DDK wavefunction file
+appended with _DSx_1WF is done.
+  * If [[getddk]] is positive, its value gives the index of the dataset for which
+the output wavefunction file appended with _1WF must be used.
+  * If [[getddk]] is -1, the output 1wf file with _1WF of the previous dataset must
+be taken, which is a frequently occurring case. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+  * If [[getddk]] is a negative number, it indicates the number of datasets to go
+backward to find the needed wavefunction file.
+Going back beyond the first dataset is equivalent to using zero for the get variable.
+
 In the case of a ddk calculation in a multi dataset run, in order to compute
-correctly the localisation tensor, it is mandatory to declare give getddk the
+correctly the localisation tensor, it is mandatory to give [[getddk]] the
 value of the current dataset (i.e. getddk3 3 ) - this is a bit strange and
 should be changed in the future.
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
-
-      ndtset 3   jdtset 1 2 4  getXXX -1
-
-refers to dataset 2 when dataset 4 is initialized.
 """,
 ),
 
@@ -5288,142 +5344,22 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Eventually used when [[ndtset]] > 0 (in the multi-dataset mode), to indicate
-starting wavefunctions, as an alternative to
-[[irdwfk]],[[irdwfq]], [[ird1wf]], [[irdddk]]. One should first read the
-explanations given for these latter variables.
-The **getwfk**, **getwfq**, **get1wf** and [[getddk]] variables are
-typically used to chain the calculations in the multi-dataset mode, since they
-describe from which dataset the OUTPUT wavefunctions are to be taken, as INPUT
+starting wavefunctions for the 1st derivative of wavefunctions with respect to ELectric FielD, from _1WF file.
+The [[getdelfd]] variable is
+typically used to chain the calculations in the multi-dataset mode, since it
+describes from which dataset the OUTPUT wavefunctions is to be taken, as INPUT
 wavefunctions of the present dataset.
 
-We now focus on the **getwfk** input variable (the only one used in ground-
-state calculations), but the rules for **getwfq** and **get1wf** are similar,
-with _WFK replaced by _WFQ or _1WF.
-If **getwfk** ==0, no use of previously computed output wavefunction file
-appended with _DSx_WFK is done.
-If **getwfk** is positive, its value gives the index of the dataset for which
-the output wavefunction file appended with _WFK must be used.
-If **getwfk** is -1, the output wf file with _WFK of the previous dataset must
-be taken, which is a frequently occurring case.
-If **getwfk** is a negative number, it indicates the number of datasets to go
-backward to find the needed wavefunction file. In this case, if one refers to
-a non existent data set (prior to the first), the wavefunctions are not
-initialised from a disk file, so that it is as if **getwfk** =0 for that
-initialisation. Thanks to this rule, the use of **getwfk** -1 is rather
-straightforward: except for the first wavefunctions, that are not initialized
-by reading a disk file, the output wavefunction of one dataset is input of the
-next one.
-In the case of a ddk calculation in a multi dataset run, in order to compute
-correctly the localisation tensor, it is mandatory to declare give getddk the
-value of the current dataset (i.e. getddk3 3 ) - this is a bit strange and
-should be changed in the future.
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
-
-      ndtset 3   jdtset 1 2 4  getXXX -1
-
-refers to dataset 2 when dataset 4 is initialized.
-""",
-),
-
-Variable(
-    abivarname="getdkdk",
-    varset="files",
-    vartype="integer",
-    topics=['multidtset_useful'],
-    dimensions="scalar",
-    defaultval=0,
-    mnemonics="GET the 2nd derivative of wavefunctions with respect to K, from _1WF file",
-    added_in_version="before_v9",
-    text=r"""
-Eventually used when [[ndtset]] > 0 (in the multi-dataset mode), to indicate
-starting wavefunctions, as an alternative to
-[[irdwfk]],[[irdwfq]], [[ird1wf]], [[irdddk]]. One should first read the
-explanations given for these latter variables.
-The **getwfk**, **getwfq**, **get1wf** and [[getddk]] variables are
-typically used to chain the calculations in the multi-dataset mode, since they
-describe from which dataset the OUTPUT wavefunctions are to be taken, as INPUT
-wavefunctions of the present dataset.
-
-We now focus on the **getwfk** input variable (the only one used in ground-
-state calculations), but the rules for **getwfq** and **get1wf** are similar,
-with _WFK replaced by _WFQ or _1WF.
-If **getwfk** ==0, no use of previously computed output wavefunction file
-appended with _DSx_WFK is done.
-If **getwfk** is positive, its value gives the index of the dataset for which
-the output wavefunction file appended with _WFK must be used.
-If **getwfk** is -1, the output wf file with _WFK of the previous dataset must
-be taken, which is a frequently occurring case.
-If **getwfk** is a negative number, it indicates the number of datasets to go
-backward to find the needed wavefunction file. In this case, if one refers to
-a non existent data set (prior to the first), the wavefunctions are not
-initialised from a disk file, so that it is as if **getwfk** =0 for that
-initialisation. Thanks to this rule, the use of **getwfk** -1 is rather
-straightforward: except for the first wavefunctions, that are not initialized
-by reading a disk file, the output wavefunction of one dataset is input of the
-next one.
-In the case of a ddk calculation in a multi dataset run, in order to compute
-correctly the localisation tensor, it is mandatory to declare give getddk the
-value of the current dataset (i.e. getddk3 3) - this is a bit strange and
-should be changed in the future.
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
-
-      ndtset 3   jdtset 1 2 4  getXXX -1
-
-refers to dataset 2 when dataset 4 is initialized.
-""",
-),
-
-Variable(
-    abivarname="getdkde",
-    varset="files",
-    vartype="integer",
-    topics=['multidtset_useful'],
-    dimensions="scalar",
-    defaultval=0,
-    mnemonics="GET the mixed 2nd derivative of wavefunctions with respect to K and electric field, from _1WF file",
-    added_in_version="before_v9",
-    text=r"""
-Eventually used when [[ndtset]] > 0 (in the multi-dataset mode), to indicate
-starting wavefunctions, as an alternative to
-[[irdwfk]],[[irdwfq]], [[ird1wf]], [[irdddk]]. One should first read the
-explanations given for these latter variables.
-The **getwfk**, **getwfq**, **get1wf** and [[getddk]] variables are
-typically used to chain the calculations in the multi-dataset mode, since they
-describe from which dataset the OUTPUT wavefunctions are to be taken, as INPUT
-wavefunctions of the present dataset.
-
-We now focus on the **getwfk** input variable (the only one used in ground-
-state calculations), but the rules for **getwfq** and **get1wf** are similar,
-with _WFK replaced by _WFQ or _1WF.
-If **getwfk** ==0, no use of previously computed output wavefunction file
-appended with _DSx_WFK is done.
-If **getwfk** is positive, its value gives the index of the dataset for which
-the output wavefunction file appended with _WFK must be used.
-If **getwfk** is -1, the output wf file with _WFK of the previous dataset must
-be taken, which is a frequently occurring case.
-If **getwfk** is a negative number, it indicates the number of datasets to go
-backward to find the needed wavefunction file. In this case, if one refers to
-a non existent data set (prior to the first), the wavefunctions are not
-initialised from a disk file, so that it is as if **getwfk** =0 for that
-initialisation. Thanks to this rule, the use of **getwfk** -1 is rather
-straightforward: except for the first wavefunctions, that are not initialized
-by reading a disk file, the output wavefunction of one dataset is input of the
-next one.
-In the case of a ddk calculation in a multi dataset run, in order to compute
-correctly the localisation tensor, it is mandatory to declare give getddk the
-value of the current dataset (i.e. getddk3 3 ) - this is a bit strange and
-should be changed in the future.
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
-
-      ndtset 3   jdtset 1 2 4  getXXX -1
-
-refers to dataset 2 when dataset 4 is initialized.
+  * If [[getdelfd]]=0, no use of previously computed output wavefunction file
+appended with _DSx_1WF is done.
+  * If [[getdelfd]] is positive, its value gives the index of the dataset for which
+the output wavefunction file appended with _1WF must be used.
+  * If [[getdelfd]] is -1, the output 1wf file with _1WF of the previous dataset must
+be taken, which is a frequently occurring case. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+  * If [[getdelfd]] is a negative number, it indicates the number of datasets to go
+backward to find the needed wavefunction file.
+Going back beyond the first dataset is equivalent to using zero for the get variable.
 """,
 ),
 
@@ -5441,33 +5377,84 @@ Eventually used when [[ndtset]] > 0 (multi-dataset mode) and, in the case of a
 ground-state calculation, if [[iscf]]<0 (non-SCF calculation), to indicate
 that the starting density is to be taken from the output of a previous
 dataset. It is used to chain the calculations, since it describes from which
-dataset the OUTPUT density are to be taken, as INPUT density of the present dataset.
+dataset the OUTPUT density is to be taken, as INPUT density of the present dataset.
+Alternative to [[getden_filepath]] and [[irdden]].
 
-If [[getden]] == 0, no such use of previously computed output density file is done.
+  * If [[getden]] == 0, no such use of previously computed output density file is done.
 
-If [[getden]] is positive, its value gives the index of the dataset from which
-the output density is to be used as input.
+  * If [[getden]] is positive, its value gives the index of the dataset from which
+the output density is to be used as input. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
 
-If [[getden]] is -1, the output density of the previous dataset must be taken,
+  * If [[getden]] is -1, the output density of the previous dataset must be taken,
 which is a frequently occurring case.
 
-If [[getden]] is a negative number, it indicates the number of datasets to go
-backward to find the needed file. In this case, if one refers to a non
-existent data set (prior to the first), the density is not initialised from a
-disk file, so that it is as if [[getden]] = 0 for that initialisation. Thanks to
-this rule, the use of [[getden]] -1 is rather straightforward: except for the
-first density, that is not initialized by reading a disk file, the output
-density of one dataset is input of the next one.
+  * If [[getden]] is a negative number, it indicates the number of datasets to go
+backward to find the needed file. Going back beyond the first dataset is equivalent to using zero for the get variable.
+
 Be careful: the output density file of a run with non-zero [[ionmov]] does
 not have the proper name (it has a "TIM" indication) for use as an input of an [[iscf]]<0 calculation.
 One should use the output density of a [[ionmov]] == 0 run.
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
+""",
+),
 
-      ndtset 3   jdtset 1 2 4  getXXX -1
+Variable(
+    abivarname="getdkde",
+    varset="files",
+    vartype="integer",
+    topics=['multidtset_useful'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="GET the mixed 2nd derivative of wavefunctions with respect to K and electric field, from _1WF file",
+    added_in_version="before_v9",
+    text=r"""
+Eventually used when [[ndtset]] > 0 (in the multi-dataset mode), to indicate
+starting DKDE wavefunctions.
+The [[getdkde]] variable is
+typically used to chain the calculations in the multi-dataset mode, since it
+describes from which dataset the OUTPUT wavefunctions are to be taken, as INPUT
+wavefunctions of the present dataset.
 
-refers to dataset 2 when dataset 4 is initialized.
+  * If [[getdkde]]=0, no use of previously computed output DKDE wavefunction file
+appended with _DSx_1WF is done.
+  * If [[getdkde]] is positive, its value gives the index of the dataset for which
+the output wavefunction file appended with _1WF must be used.
+  * If [[getdkde]] is -1, the output 1wf file with _1WF of the previous dataset must
+be taken, which is a frequently occurring case. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+  * If [[getdkde]] is a negative number, it indicates the number of datasets to go
+backward to find the needed wavefunction file.
+Going back beyond the first dataset is equivalent to using zero for the get variable.
+""",
+),
+
+Variable(
+    abivarname="getdkdk",
+    varset="files",
+    vartype="integer",
+    topics=['multidtset_useful'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="GET the 2nd derivative of wavefunctions with respect to K, from _1WF file",
+    added_in_version="before_v9",
+    text=r"""
+Eventually used when [[ndtset]] > 0 (in the multi-dataset mode), to indicate
+starting DKDK wavefunctions.
+The [[getdkdk]] variable is
+typically used to chain the calculations in the multi-dataset mode, since it
+describes from which dataset the OUTPUT wavefunctions are to be taken, as INPUT
+wavefunctions of the present dataset.
+
+  * If [[getdkdk]]=0, no use of previously computed output DKDK wavefunction file
+appended with _DSx_1WF is done.
+  * If [[getdkdk]] is positive, its value gives the index of the dataset for which
+the output wavefunction file appended with _1WF must be used.
+  * If [[getdkdk]] is -1, the output 1wf file with _1WF of the previous dataset must
+be taken, which is a frequently occurring case. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+  * If [[getdkdk]] is a negative number, it indicates the number of datasets to go
+backward to find the needed wavefunction file.
+Going back beyond the first dataset is equivalent to using zero for the get variable.
 """,
 ),
 
@@ -5482,9 +5469,21 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 This variable can be used when performing electron-phonon calculations with [[optdriver]] = 7
-to read a DVDB file produced in a previous dataset.
+to read a DVDB file (derivative of potential) produced in a previous dataset.
 For example, one can concatenate a dataset in which an initial set of DFPT potentials
 on a relatively coarse q-mesh is interpolated on a denser q-mesh using [[eph_task]] = 5 and [[eph_ngqpt_fine]].
+
+  * If [[getdvdb]] == 0, no such use of previously computed output potential file is done.
+
+  * If [[getdvdb]] is positive, its value gives the index of the dataset from which
+the output potential is to be used as input. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+
+  * If [[getdvdb]] is -1, the output potential of the previous dataset must be taken,
+which is a frequently occurring case.
+
+  * If [[getdvdb]] is a negative number, it indicates the number of datasets to go
+backward to find the needed file. Going back beyond the first dataset is equivalent to using zero for the get variable.
 
 Note also that, starting Abinit v9, one can also use [[getdvdb_filepath]] to specify the path of the file directly.
 """
@@ -5503,6 +5502,19 @@ Variable(
 Eventually used when [[ndtset]] > 0 (multi-dataset mode).
 Only relevant for [[optdriver]]=7 and [[eph_task]]=6.
 If set to 1, take the data from a _EFMAS file as input. The latter must have been produced using [[prtefmas]].
+
+  * If [[getefmas]] == 0, no such use of previously computed output _EFMAS file is done.
+
+  * If [[getefmas]] is positive, its value gives the index of the dataset from which
+the output _EFMAS file is to be used as input. However, if the first dataset is treated, -1
+is equivalent to 0, since no dataset has been computed in the same run.
+
+  * If [[getefmas]] is -1, the output _EFMAS file of the previous dataset must be taken,
+which is a frequently occurring case.
+
+  * If [[getefmas]] is a negative number, it indicates the number of datasets to go
+backward to find the needed file. Going back beyond the first dataset is equivalent to using zero for the get variable.
+
 """,
 ),
 
@@ -5541,14 +5553,16 @@ Variable(
 Eventually used when [[ndtset]] > 0 (multi-dataset mode) and, in the case of a
 Bethe-Salpeter calculation to indicate that the Haydock iterative technique
 will be restarted from the output of a previous dataset.
-If [[gethaydock]] == 0, no such use of previously computed coupling block file is done.
-If [[gethaydock]] is positive, its value gives the index of the dataset to be used as input.
-If [[gethaydock]] is -1, the output of the previous dataset must be taken,
+
+  * If [[gethaydock]] == 0, no such use of previously computed coupling block file is done.
+
+  * If [[gethaydock]] is positive, its value gives the index of the dataset to be used as input.
+
+  * If [[gethaydock]] is -1, the output of the previous dataset must be taken,
 which is a frequently occurring case.
-If [[gethaydock]] is a negative number, it indicates the number of datasets to
-go backward to find the needed file. In this case, if one refers to a non
-existent data set (prior to the first), the coupling block is not initialised
-from a disk file, so that it is as if [[gethaydock]] = 0 for that initialisation.
+
+  * If [[gethaydock]] is a negative number, it indicates the number of datasets to
+go backward to find the needed file. Going back beyond the first dataset is equivalent to using zero for the get variable.
 """,
 ),
 
@@ -5566,27 +5580,23 @@ This variable is typically used to chain the calculations, in the multi-
 dataset mode ([[ndtset]] > 0), since it describes from which dataset the array
 [[occ]] is to be taken, as input of the present dataset. The occupation
 numbers are [[EVOLVING]] variables, for which such a chain of calculations is useful.
-If [[getocc]] == 0, no such use of previously computed output occupations is done.
-If [[getocc]] is positive, its value gives the index of the dataset from which
+
+  * If [[getocc]] == 0, no such use of previously computed output occupations is done.
+
+  * If [[getocc]] is positive, its value gives the index of the dataset from which
 the data are to be used as input data. It must be the index of a dataset
 already computed in the SAME run.
-If [[getocc]] is -1, the output data of the previous dataset must be taken,
+
+  * If [[getocc]] is -1, the output data of the previous dataset must be taken,
 which is a frequently occurring case.
-If [[getocc]] is a negative number, it indicates the number of datasets to go
-backward to find the needed data. In this case, if one refers to a non
-existent data set (prior to the first), the date is not initialised from a
-disk file, so that it is as if [[getocc]] == 0 for that initialisation.
+
+  * If [[getocc]] is a negative number, it indicates the number of datasets to go
+backward to find the needed data. Going back beyond the first dataset is equivalent to using zero for the get variable.
+
 NOTE that a non-zero [[getocc]] MUST be used with [[occopt]] == 2, so that the
 number of bands has to be initialized for each k point. Of course, these
 numbers of bands must be identical to the numbers of bands of the dataset from
 which [[occ]] will be copied. The same is true for the number of k points.
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
-
-      ndtset 3   jdtset 1 2 4  getXXX -1
-
-refers to dataset 2 when dataset 4 is initialized.
 """,
 ),
 
@@ -5605,13 +5615,18 @@ Used when [[ndtset]] > 0 (multi-dataset mode) and [[optdriver]] = 3, or 4
 eigenvalues and possibly the wavefunctions have to be taken from a previous
 quasi-particle calculation (instead of the usual DFT starting point). This is
 to achieve quasi-particle self-consistency. See also [[irdqps]]
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
 
-      ndtset 3   jdtset 1 2 4  getXXX -1
+  * If [[getqps]] == 0, no such use of previously computed values is done.
 
-refers to dataset 2 when dataset 4 is initialized.
+  * If [[getqps]] is positive, its value gives the index of the dataset from which
+the data are to be used as input data. It must be the index of a dataset
+already computed in the SAME run.
+
+  * If [[getqps]] is -1, the output data of the previous dataset must be taken,
+which is a frequently occurring case.
+
+  * If [[getqps]] is a negative number, it indicates the number of datasets to go
+backward to find the needed data. Going back beyond the first dataset is equivalent to using zero for the get variable.
 """,
 ),
 
@@ -5632,22 +5647,17 @@ calculations, since it describes from which dataset the OUTPUT dielectric
 matrix is to be taken, as INPUT of the present dataset.
 Note also that, starting Abinit v9, one can also use [[getscr_filepath]] to specify the path of the file directly.
 
-If [[getscr]] == 0, no such use of previously computed output _SCR file is done.
-If [[getscr]] is positive, its value gives the index of the dataset from which
-the output _SCR file is to be used as input.
-If [[getscr]] is -1, the output _SCR file of the previous dataset must be
-taken, which is a frequently occurring case.
-If [[getscr]] is a negative number, it indicates the number of datasets to go
-backward to find the needed file. In this case, if one refers to a non
-existent data set (prior to the first), the _SCR file is not initialised from
-a disk file, so that it is as if [[getscr]] = 0 for that initialisation.
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
+  * If [[getscr]] == 0, no such use of previously computed output _SCR file is done.
 
-      ndtset 3   jdtset 1 2 4  getXXX -1
+  * If [[getscr]] is positive, its value gives the index of the dataset from which
+the data are to be used as input data. It must be the index of a dataset
+already computed in the SAME run.
 
-refers to dataset 2 when dataset 4 is initialized.
+  * If [[getscr]] is -1, the output data of the previous dataset must be taken,
+which is a frequently occurring case.
+
+  * If [[getscr]] is a negative number, it indicates the number of datasets to go
+backward to find the needed data. Going back beyond the first dataset is equivalent to using zero for the get variable.
 """,
 ),
 
@@ -5673,22 +5683,18 @@ to perform a screening calculation from scratch. For example, it is possible
 to apply a cutoff to the Coulomb interaction in order to facilitate the
 convergence of the GW correction with respect to the size of the supercell
 (see [[vcutgeo]] and [[icutcoul]])
-If [[getsuscep]] == 0, no such use of previously computed output _SUSC file is done.
-If [[getsuscep]] is positive, its value gives the index of the dataset from
-which the output _SUSC file is to be used as input.
-If [[getsuscep]] is -1, the output _SUSC file of the previous dataset must be
-taken, which is a frequently occurring case.
-If [[getsuscep]] is a negative number, it indicates the number of datasets to
-go backward to find the needed file. In this case, if one refers to a non
-existent data set (prior to the first), the _SUSC file is not initialised from
-a disk file, so that it is as if [[getsuscep]] = 0 for that initialisation.
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
 
-      ndtset 3   jdtset 1 2 4  getXXX -1
+  * If [[getsuscep]] == 0, no such use of previously computed output _SUSC file is done.
 
-refers to dataset 2 when dataset 4 is initialized.
+  * If [[getsuscep]] is positive, its value gives the index of the dataset from which
+the data are to be used as input data. It must be the index of a dataset
+already computed in the SAME run.
+
+  * If [[getsuscep]] is -1, the output data of the previous dataset must be taken,
+which is a frequently occurring case.
+
+  * If [[getsuscep]] is a negative number, it indicates the number of datasets to go
+backward to find the needed data. Going back beyond the first dataset is equivalent to using zero for the get variable
 """,
 ),
 
@@ -5702,24 +5708,25 @@ Variable(
     mnemonics="GET VEL from...",
     added_in_version="before_v9",
     text=r"""
-These variables are typically used to chain the calculations, in the multi-
+This variable is typically used to chain the calculations, in the multi-
 dataset mode ([[ndtset]] > 0) since they describe from which dataset the
 corresponding output variables are to be taken, as input of the present
-dataset. The atomic positions and velocities are [[EVOLVING]] variables, for
+dataset. The velocities are [[EVOLVING]] variables, for
 which such a chain of calculation is useful.
-Note that the use of [[getxcart]] and [[getxred]] differs when [[acell]] and
-[[rprim]] are different from one dataset to the other.
-If 0, no previously computed values are used.
-If >0, the integer should correspond to the index of the dataset from which the VEL data should be used. It must be the index of a dataset already computed in the SAME run.
-If equal to -1, the output data of the previous dataset is taken, which
-is a frequently occurring case. However, if the first dataset is treated, -1
-is equivalent to 0, since no dataset has yet been computed in the same run.
-If another negative number, it indicates the number of datasets to go backward
-to find the needed data (once again, going back beyond the first dataset is
-equivalent to using a null get variable).
-Note: [[getxred]] and [[getxcart]] cannot be simultaneously non-zero for the
-same dataset. On the other hand the use of [[getvel]] with [[getxred]] is
-allowed, despite the different coordinate system.
+
+  * If [[getvel]] == 0, no such use of previously computed [[vel]] is done.
+
+  * If [[getvel]] is positive, its value gives the index of the dataset from which
+the data are to be used as input data. It must be the index of a dataset
+already computed in the SAME run.
+
+  * If [[getvel]] is -1, the output data of the previous dataset must be taken,
+which is a frequently occurring case.
+
+  * If [[getvel]] is a negative number, it indicates the number of datasets to go
+backward to find the needed data. Going back beyond the first dataset is equivalent to using zero for the get variable.
+
+Note: The use of [[getvel]] with [[getxred]] is allowed, despite the different coordinate system.
 """,
 ),
 
@@ -5734,28 +5741,34 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Eventually used when [[ndtset]] > 0 (in the multi-dataset mode), to indicate
-starting wavefunctions, as an alternative to [[irdwfk]],.
+starting wavefunctions, as an alternative to [[irdwfk]].
 Note also that, starting Abinit v9, one can also use [[getwfk_filepath]] to specify the path of the file directly.
+One should read the explanations given for these latter variables as well as the present one.
 
-The [[getwfk]], **getwfq**, **get1wf** and **getddk** variables are typically
-used to chain the calculations in the multi-dataset mode, since they describe
-from which dataset the OUTPUT wavefunctions are to be taken, as INPUT wavefunctions of the present dataset.
+The [[getwfk]] variable is
+typically used to chain the calculations in the multi-dataset mode, since it
+describes from which dataset the OUTPUT wavefunctions are to be taken, as INPUT
+wavefunctions of the present dataset.
 
-We now focus on the [[getwfk]] input variable (the only one used in ground-state calculations),
-but the rules for **getwfq** and **get1wf** are similar, with _WFK replaced by _WFQ or _1WF.
-If [[getwfk]] == 0, no use of previously computed output wavefunction file appended with _DSx_WFK is done.
-If [[getwfk]] is positive, its value gives the index of the dataset for which
+We now focus on the [[getwfk]] input variable (the only one used in ground-
+state calculations), but the rules for [[getwfq]], [[get1wf]], [[getddk]] are similar,
+with _WFK replaced by _WFQ,  _1WF or _DDK.
+
+ * If [[getwfk]] ==0, no use of previously computed output wavefunction file
+appended with _DSx_WFK is done.
+ * If [[getwfk]] >0, its value gives the index of the dataset for which
 the output wavefunction file appended with _WFK must be used.
-If [[getwfk]] is -1, the output wf file with _WFK of the previous dataset must
+ * If [[getwfk]]=-1, the output wf file with _WFK of the previous dataset must
 be taken, which is a frequently occurring case.
-If [[getwfk]] is a negative number, it indicates the number of datasets to go
+ * If [[getwfk]] is a negative number, it indicates the number of datasets to go
 backward to find the needed wavefunction file. In this case, if one refers to
 a non existent data set (prior to the first), the wavefunctions are not
-initialised from a disk file, so that it is as if [[getwfk]] = 0 for that
+initialised from a disk file, so that it is as if [[getwfk]] =0 for that
 initialisation. Thanks to this rule, the use of [[getwfk]] -1 is rather
 straightforward: except for the first wavefunctions, that are not initialized
 by reading a disk file, the output wavefunction of one dataset is input of the
 next one.
+
 NOTE: a negative value of a "get" variable indicates the number of datasets
 to go backwards; it is not the number to be subtracted from the current
 dataset to find the proper dataset. As an example:
@@ -5778,31 +5791,22 @@ Variable(
     text=r"""
 Eventually used when [[ndtset]] > 0 (in the multi-dataset mode), to indicate
 starting wavefunctions, as an alternative to [[irdwfkfine]]. One should first
-read the explanations given for these latter variables.
-The [[getwfkfine]] variables is typically used to chain the calculations in
+read the explanations given for this latter variable.
+
+The [[getwfkfine]] variable is typically used to chain the calculations in
 the multi-dataset mode, since they describe from which dataset the OUTPUT
 wavefunctions are to be taken, as INPUT wavefunctions of the present dataset.
-If [[getwfkfine]] == 0, no use of previously computed output wavefunction file
+
+  * If [[getwfkfine]] == 0, no use of previously computed output wavefunction file
 appended with _DSx_WFK is done.
-If [[getwfkfine]] is positive, its value gives the index of the dataset for
+  * If [[getwfkfine]] is positive, its value gives the index of the dataset for
 which the output wavefunction file appended with _WFK must be used.
-If [[getwfkfine]] is -1, the output wf file with _WFK of the previous dataset
+  * If [[getwfkfine]] is -1, the output wf file with _WFK of the previous dataset
 must be taken, which is a frequently occurring case.
-If [[getwfkfine]] is a negative number, it indicates the number of datasets to
-go backward to find the needed wavefunction file. In this case, if one refers
-to a non existent data set (prior to the first), the wavefunctions are not
-initialised from a disk file, so that it is as if [[getwfkfine]] = 0 for that
-initialisation. Thanks to this rule, the use of [[getwfkfine]] -1 is rather
-straightforward: except for the first wavefunctions, that are not initialized
-by reading a disk file, the output wavefunction of one dataset is input of the
-next one.
-NOTE: a negative value of a "get" variable indicates the number of datasets
-to go backwards; it is not the number to be subtracted from the current
-dataset to find the proper dataset. As an example:
+  * If [[getwfkfine]] is a negative number, it indicates the number of datasets to
+go backward to find the needed wavefunction file. Going back beyond the first dataset is equivalent to using zero for the get variable.
 
-     ndtset 3   jdtset 1 2 4  getXXX -1
-
-refers to dataset 2 when dataset 4 is initialized. Response-function calculation:
+Response-function calculation:
 
   * one and only one of [[getwfkfine]] or [[irdwfkfine]] MUST be non-zero
   * if [[getwfkfine]] = 1: read ground state k -wavefunctions from a disk file appended with _WFK,
@@ -5834,13 +5838,10 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Eventually used when [[ndtset]] > 0 (in the multi-dataset mode), to indicate
-starting wavefunctions, as an alternative to [[irdwfq]].
+starting k+q wavefunctions, as an alternative to [[irdwfq]].
 Note also that, starting Abinit v9, one can also use [[getwfq_filepath]] to specify the path of the file directly.
 
-The **getwfk**, [[getwfq]], **get1wf** and **getddk** variables are typically
-used to chain the calculations in the multi-dataset mode, since they describe
-from which dataset the OUTPUT wavefunctions are to be taken, as INPUT wavefunctions of the present dataset.
-See discussion in [[getwfk]]
+Similar to [[getwfk]] input variable, but will be used to initialize the wavefunctions at k+q.
 """,
 ),
 
@@ -5854,23 +5855,28 @@ Variable(
     mnemonics="GET XCART from...",
     added_in_version="before_v9",
     text=r"""
-These variables are typically used to chain the calculations, in the multi-
-dataset mode ([[ndtset]] > 0) since they describe from which dataset the
+This variable is typically used to chain the calculations, in the multi-
+dataset mode ([[ndtset]] > 0) since it  describes from which dataset the
 corresponding output variables are to be taken, as input of the present
-dataset. The atomic positions and velocities are [[EVOLVING]] variables, for
+dataset. The atomic positions are [[EVOLVING]] variables, for
 which such a chain of calculation is useful.
+
 Note that the use of [[getxcart]] and [[getxred]] differs when [[acell]] and
 [[rprim]] are different from one dataset to the other.
-If 0, no previously computed values are used.
-If >0, the integer must correspond to the index of the dataset from which the
+
+  * If 0, no previously computed values are used.
+
+  * If >0, the integer must correspond to the index of the dataset from which the
 data are to be used as input data. It must be the index of a dataset already
 computed in the SAME run.
-If equal to -1, the output data of the previous dataset must be taken, which
+
+  * If equal to -1, the output data of the previous dataset must be taken, which
 is a frequently occurring case. However, if the first dataset is treated, -1
 is equivalent to 0, since no dataset has yet been computed in the same run.
-If another negative number, it indicates the number of datasets to go backward
-to find the needed data (once again, going back beyond the first dataset is
-equivalent to using a null get variable).
+
+  * If another negative number, it indicates the number of datasets to go backward
+to find the needed data. Going back beyond the first dataset is equivalent to using a null get variable.
+
 Note: [[getxred]] and [[getxcart]] cannot be simultaneously non-zero for the
 same dataset. On the other hand the use of [[getvel]] with [[getxred]] is
 allowed, despite the different coordinate system.
@@ -5887,23 +5893,28 @@ Variable(
     mnemonics="GET XRED from...",
     added_in_version="before_v9",
     text=r"""
-These variables are typically used to chain the calculations, in the multi-
-dataset mode ([[ndtset]] > 0) since they describe from which dataset the
+This variable is typically used to chain the calculations, in the multi-
+dataset mode ([[ndtset]] > 0) since it describes from which dataset the
 corresponding output variables are to be taken, as input of the present
 dataset. The atomic positions and velocities are [[EVOLVING]] variables, for
 which such a chain of calculation is useful.
+
 Note that the use of [[getxcart]] and [[getxred]] differs when [[acell]] and
 [[rprim]] are different from one dataset to the other.
-If 0, no use of previously computed values must occur.
-If >0, the integer must correspond to the index of the dataset from which the
+
+  * If 0, no previously computed values are used.
+
+  * If >0, the integer must correspond to the index of the dataset from which the
 data are to be used as input data. It must be the index of a dataset already
 computed in the SAME run.
-If equal to -1, the output data of the previous dataset must be taken, which
+
+  * If equal to -1, the output data of the previous dataset must be taken, which
 is a frequently occurring case. However, if the first dataset is treated, -1
 is equivalent to 0, since no dataset has yet been computed in the same run.
-If another negative number, it indicates the number of datasets to go backward
-to find the needed data (once again, going back beyond the first dataset is
-equivalent to using a null get variable).
+
+  * If another negative number, it indicates the number of datasets to go backward
+to find the needed data. Going back beyond the first dataset is equivalent to using a null get variable.
+
 Note: [[getxred]] and [[getxcart]] cannot be simultaneously non-zero for the
 same dataset. On the other hand the use of [[getvel]] with [[getxred]] is
 allowed, despite the different coordinate system.
@@ -6139,13 +6150,15 @@ the convergence with respect to the number of q-points used to sample the
 Brillouin zone. The convergence can be accelerated by integrating accurately
 the zone in the neighborhood of $\mathbf{G}=0$.
 
-[[gw_icutcoul]] defines the particular expression to be used for such integration.
-It can be used in conjunction with its equivalent for the ground state electronic
-structure cut-off [[icutcoul]].
+[[gw_icutcoul]] defines the particular expression to be used for such integration
+in GW calculations. See [[icutcoul]] and [[fock_icutcoul]] for ground-state calculations.
 
-  * 0 --> sphere (molecules, but also 3D-crystals, see below).
-  * 1 --> cylinder (nanowires, nanotubes).
-  * 2 --> surface.
+Like for [[icutcoul]], for 1-dimensional and 2-dimensional systems, the geometry of the system has to be specified explicitly.
+This is done thanks to [[vcutgeo]]. For 0-, 1- and 2-dimensional systems, a cut-off length has to be provided, thanks to [[rcut]].
+
+  * 0 --> Sphere (molecules, but also 3D-crystals, see below). See [[rcut]].
+  * 1 --> (W.I.P.) cylinder (nanowires, nanotubes). See [[vcutgeo]] and [[rcut]].
+  * 2 --> Surface. See [[vcutgeo]] and [[rcut]].
   * 3 --> Integration in a spherical mini-Brillouin Zone, legacy value.
   * 4 --> ERF, long-range only Coulomb interaction.
   * 5 --> ERFC, short-range only Coulomb interaction (e.g. as used in the HSE functional).
@@ -6154,6 +6167,11 @@ structure cut-off [[icutcoul]].
   * 14 --> Monte-Carlo integration in the mini-Brillouin zone for ERF, long-range only Coulomb interaction.
   * 15 --> Monte-Carlo integration in the mini-Brillouin zone for ERFC, short-range only Coulomb interaction.
   * 16 --> Monte-Carlo integration in the mini-Brillouin zone for Full Coulomb interaction.
+
+It was shown in [[cite:Rangel2020]] that the Monte-Carlo approach [[gw_icutcoul]]=16 converges somewhat
+faster as a function of the k-point sampling than the auxiliary function integration technique [[gw_icutcoul]]=6
+which is the current default.
+However, the initialization might take time.
 """,
 ),
 
@@ -7270,19 +7288,20 @@ Variable(
     abivarname="icoulomb",
     varset="gstate",
     vartype="integer",
-    topics=['Coulomb_useful'],
+    topics=['Coulomb_expert'],
     dimensions="scalar",
     defaultval=0,
     mnemonics="Index for the COULOMB treatment",
     added_in_version="before_v9",
     text=r"""
-Defines the type of computation used for Hartree potential, local part of
+Defines the type of computation (reciprocal space or real space) used for Hartree potential, local part of
 pseudo-potential and ion-ion interaction:
 
-  * [[icoulomb]] = 0: usual reciprocal space computation, using $1/\GG^2$ for the Hartree potential and using Ewald correction.
+  * [[icoulomb]] = 0: usual reciprocal space computation, using [[icutcoul]], [[gw_icutcoul]] and [[fock_icutcoul]]
+to define the Hartree potential, and using Ewald correction.
   * [[icoulomb]] = 1: free boundary conditions are used when the Hartree potential is computed,
     real space expressions of pseudo-potentials are involved (restricted to GTH pseudo-potentials)
-    and simple coulomb interaction gives the ion-ion energy.
+    and simple coulomb interaction gives the ion-ion energy. The wavelet Coulomb solver is used in this case.
 """,
 ),
 
@@ -7290,7 +7309,7 @@ Variable(
     abivarname="icutcoul",
     varset="gstate",
     vartype="integer",
-    topics=['Coulomb_useful'],
+    topics=['Coulomb_basic'],
     dimensions="scalar",
     defaultval=3,
     mnemonics="Integer that governs the CUT-off for COULomb interaction",
@@ -7305,13 +7324,17 @@ convergence, or even can make convergence happen. Also, even in the ground-state
 case, a cut-off Coulomb interaction might prove useful.
 
 [[icutcoul]] defines the particular expression to be used for the Coulomb-like terms
-in reciprocal space. The choice of [[icutcoul]] depends on the dimensionality
-of the system. Possible values of [[icutcoul]] are from 0 to 5. The
-corresponding influential variables are [[vcutgeo]] and [[rcut]].
+in reciprocal space in ground-state calculations. See [[gw_icutcoul]] for GW calculationts,
+and [[fock_icutcoul]] for the Fock-like terms in ground-state calculations -e.g. using hybrid functionals-.
+.
+The choice of [[icutcoul]] depends on the dimensionality
+of the system. Possible values of [[icutcoul]] are from 0 to 5.
+For 1-dimensional and 2-dimensional systems, the geometry of the system has to be specified explicitly.
+This is done thanks to [[vcutgeo]]. For 0-, 1- and 2-dimensional systems, a cut-off length has to be provided, thanks to [[rcut]].
 
-  * 0 --> sphere (molecules, but also 3D-crystals, see below).
-  * 1 --> (W.I.P.) cylinder (nanowires, nanotubes).
-  * 2 --> surface.
+  * 0 --> Sphere (molecules, but also 3D-crystals, see below). See [[rcut]].
+  * 1 --> (W.I.P.) cylinder (nanowires, nanotubes). See [[vcutgeo]] and [[rcut]].
+  * 2 --> Surface. See [[vcutgeo]] and [[rcut]].
   * 3 --> 3D crystal (Coulomb interaction without cut-off).
   * 4 --> ERF, long-range only Coulomb interaction.
   * 5 --> ERFC, short-range only Coulomb interaction (e.g. as used in the HSE functional). (W.I.P.)
@@ -7490,15 +7513,13 @@ Variable(
     requires="[[optdriver]] in [3,99]",
     added_in_version="before_v9",
     text=r"""
-Possible values of [[inclvkb]] are 0,1,2. If [[inclvkb]] is 1 or 2, the
+Possible values of [[inclvkb]] are 0,2. If [[inclvkb]] is 2, the
 commutator of the non-local part of the pseudopotential with the position
-operator is correctly included in the q --> 0 contribution. This is
-unfortunately time-consuming and in particular when the old algorithm
-implemented by [[inclvkb]] = 1 is used ([[inclvkb]] = 2 is the recommended option). When
-[[inclvkb]] is 0, this contribution is incorrectly omitted, but the computation is much faster.
+operator is correctly included in the q --> 0 contribution. This is unfortunately time-consuming.
+When [[inclvkb]] is 0, this contribution is incorrectly omitted, but the computation is much faster.
 
 The importance of this contribution depends on the number of k points. Turning
-off [[inclvkb]] is to let to the choice of the user.
+off [[inclvkb]] is let to the choice of the user.
 
 In general, the use of [[inclvkb]] = 0 is fine for GW calculations in
 crystalline systems provided that the k-point sampling is sufficiently converged.
@@ -7932,7 +7953,7 @@ Variable(
     mnemonics="Integer that governs the ReaDing of 1st-order DEN file",
     added_in_version="before_v9",
     text=r"""
-If first order density is needed in single dataset mode (for example in
+If the first-order density is needed in single dataset mode (for example in
 nonlinear optical response), use [[ird1den]] = 1 to read first-order densities
 from _DENx files produced in other calculations. In multi-dataset mode use [[get1den]].
 
@@ -7954,33 +7975,28 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Indicates possible starting wavefunctions. As alternative, one can use the
-input variables [[getwfk]], [[getwfq]], [[get1wf]] or [[getddk]].
+input variable [[get1wf]].
+It is relevant only for Response-function calculation.
 
-Ground-state calculation:
+The role of the different input variables [[irdwfk]], [[irdwfq]] and [[ird1wf]]  and their getXXX counterparts
+is described in the following.
 
-  * only **irdwfk** and [[getwfk]] have a meaning
-  * at most one of **irdwfk** or [[getwfk]] can be non-zero
-  * if **irdwfk** and [[getwfk]] are both zero, initialize wavefunctions with random numbers for ground state calculation.
-  * if **irdwfk** = 1: read ground state wavefunctions from a disk file appended with _WFK,
-     produced in a previous ground state calculation.
 
-Response-function calculation:
-
-  * one and only one of **irdwfk** or [[getwfk]] MUST be non-zero
-  * if **irdwfk** = 1: read ground state k -wavefunctions from a disk file appended with _WFK,
+  * one and only one of [[irdwfk]] or [[getwfk]] MUST be non-zero
+  * if [[irdwfk]] = 1: read ground state k -wavefunctions from a disk file appended with _WFK,
     produced in a previous ground state calculation.
-  * only one of **irdwfq** or [[getwfq]] can be non-zero, if both of them are non-zero,
-     use as k + q file the one defined by **irdwfk** and/or [[getwfk]]
-  * if **irdwfq** = 1: read ground state k+q -wavefunctions from a disk file appended with _WFQ,
+  * only one of [[irdwfq]] or [[getwfq]] can be non-zero, if both of them are non-zero,
+     use as k + q file the one defined by [[irdwfk]] and/or [[getwfk]]
+  * if [[irdwfq]] = 1: read ground state k+q -wavefunctions from a disk file appended with _WFQ,
     produced in a previous ground state calculation.
   * at most one of [[ird1wf]] or [[get1wf]] can be non-zero
   * if both are zero, initialize first order wavefunctions to zeroes
   * if [[ird1wf]] = 1: read first-order wavefunctions from a disk file appended with _1WFx,
     produced in a previous response function calculation.
-  * at most one of **irdddk** or [[getddk]] can be non-zero
+  * at most one of [[irdddk]] or [[getddk]] can be non-zero
   * one of them must be non-zero if an homogeneous electric field calculation is done
      (presently, a ddk calculation in the same dataset is not allowed)
-  * if **irdddk** = 1: read first-order ddk wavefunctions from a disk file appended with _1WFx,
+  * if [[irdddk]] = 1: read first-order ddk wavefunctions from a disk file appended with _1WFx,
     produced in a previous response function calculation.
 
 For further information about the *files file*, consult the [[help:abinit#files-file]].
@@ -7997,7 +8013,7 @@ Variable(
     mnemonics="Integer that governs the ReaDing of COUPling block",
     added_in_version="before_v9",
     text=r"""
-Start the Bethe-Salpeter calculation from the BSC file containing the coupling block produced in a previous run.
+If 1, will start the Bethe-Salpeter calculation from the BSC file containing the coupling block produced in a previous run.
 """,
 ),
 
@@ -8011,7 +8027,7 @@ Variable(
     mnemonics="Integer that governs the ReaDing of BS_EIG file",
     added_in_version="before_v9",
     text=r"""
-Start the Bethe-Salpeter calculation from the BS_EIG containing the exciton eigenvectors produced in a previous run.
+If 1, will tart the Bethe-Salpeter calculation from the BS_EIG containing the exciton eigenvectors produced in a previous run.
 """,
 ),
 
@@ -8025,7 +8041,7 @@ Variable(
     mnemonics="Integer that governs the ReaDing of RESOnant block",
     added_in_version="before_v9",
     text=r"""
-Start the Bethe-Salpeter calculation from the BSR file containing the resonant
+If 1, will start the Bethe-Salpeter calculation from the BSR file containing the resonant
 block produced in a previous run.
 """,
 ),
@@ -8067,6 +8083,8 @@ the charge neutrality sum rule is usually prohibitively large.
 
 A non-zero value of [[irdddb]] is treated in the same way as other "ird" variables.
 For further information about the *files file*, consult the [[help:abinit#files-file]].
+
+The input variable [[getddb]] is an alternative to [[irdddb]], in the multidataset case.
 Note also that, starting Abinit v9, one can also use [[getddb_filepath]] to specify the path of the DDB file directly.
 """,
 
@@ -8082,30 +8100,10 @@ Variable(
     mnemonics="Integer that governs the ReaDing of DDK wavefunctions, in _1WF files",
     added_in_version="before_v9",
     text=r"""
-Indicates possible starting wavefunctions. As alternative, one can use the
-input variables [[getwfk]], [[getwfq]], [[get1wf]] or [[getddk]].
+Indicates whether ABINIT should read the DDK wavefunctions as possible starting wavefunctions.
+As alternative, one can use the
+input variable [[getddk]].
 
-Ground-state calculation:
-
-  * only **irdwfk** and [[getwfk]] have a meaning
-  * at most one of **irdwfk** or [[getwfk]] can be non-zero
-  * if **irdwfk** and [[getwfk]] are both zero, initialize wavefunctions with random numbers for ground state calculation.
-  * if **irdwfk** = 1: read ground state wavefunctions from a disk file appended with _WFK,
-    produced in a previous ground state calculation
-
-Response-function calculation:
-
-  * one and only one of **irdwfk** or [[getwfk]] MUST be non-zero
-  * if **irdwfk** = 1: read ground state k -wavefunctions from a disk file appended with _WFK,
-    produced in a previous ground state calculation
-  * only one of **irdwfq** or [[getwfq]] can be non-zero, if both of them are non-zero,
-    use as k + q file the one defined by **irdwfk** and/or [[getwfk]]
-  * if **irdwfq** = 1: read ground state k+q -wavefunctions from a disk file appended with _WFQ,
-    produced in a previous ground state calculation
-  * at most one of **ird1wf** or [[get1wf]] can be non-zero
-  * if both are zero, initialize first order wavefunctions to zeroes
-  * if **ird1wf** = 1: read first-order wavefunctions from a disk file appended with _1WFx,
-    produced in a previous response function calculation
   * at most one of [[irdddk]] or [[getddk]] can be non-zero
   * one of them must be non-zero if an homogeneous electric field calculation is done (presently,
     a ddk calculation in the same dataset is not allowed)
@@ -8126,8 +8124,9 @@ Variable(
     mnemonics="Integer that governs the ReaDing of DEN file",
     added_in_version="before_v9",
     text=r"""
-Start the ground-state calculation from the density file of a previous run.
+If 1, will start the ground-state calculation from the density file of a previous run.
 When [[iscf]] < 0, the reading of a DEN file is always enforced.
+Alternative to [[getden_filepath]] and [[getden]].
 
 A non-zero value of [[irdden]] is treated in the same way as other "ird" variables.
 For further information about the *files file*, consult the [[help:abinit#files-file]].
@@ -8143,8 +8142,8 @@ Variable(
     mnemonics="Integer that governs the ReaDing of DVDB file",
     added_in_version="before_v9",
     text=r"""
-This variable can be used when performing electron-phonon calculations with [[optdriver]] = 7
-to read an *input* DVDB file. See also [[getdvdb]]
+This variable can be used when performing electron-phonon calculations with [[optdriver]] = 7.
+Set to 1, an *input* DVDB file will be read. See also [[getdvdb]]
 """,
 ),
 
@@ -8174,7 +8173,7 @@ Variable(
     mnemonics="Integer that governs the ReaDing of the HAYDOCK restart file",
     added_in_version="before_v9",
     text=r"""
-Used to re-start the Haydock iterative technique from the HAYDR_SAVE file produced in a previous run.
+If 1, will re-start the Haydock iterative technique from the HAYDR_SAVE file produced in a previous run.
 """,
 ),
 
@@ -8188,7 +8187,7 @@ Variable(
     mnemonics="Integer that governs the ReaDing of QuasiParticle Structure",
     added_in_version="before_v9",
     text=r"""
-Relevant only when [[optdriver]] = 3 or 4. Indicate the file from which the
+Relevant only when [[optdriver]] = 3 or 4. If 1, indicate that the
 eigenvalues and possibly the wavefunctions must be obtained, in order to
 achieve a self-consistent quasi-particle calculations. See also [[getqps]]
 """,
@@ -8204,8 +8203,8 @@ Variable(
     mnemonics="Integer that governs the ReaDing of the SCReening",
     added_in_version="before_v9",
     text=r"""
-Relevant only when [[optdriver]] = 4. Indicate the file from which the
-dielectric matrix must be obtained. As alternative, one can use the input variable [[getscr]].
+Relevant only when [[optdriver]] = 4. If non-zero, indicate that the
+dielectric matrix must be obtained from an existing file. As alternative, one can use the input variable [[getscr]].
 When [[optdriver]] = 4, at least one of [[irdscr]] or [[getscr]] (alternatively,
 [[irdsuscep]] or [[getsuscep]]) must be non-zero.
 
@@ -8224,8 +8223,8 @@ Variable(
     mnemonics="Integer that governs the ReaDing of the SUSCEPtibility",
     added_in_version="before_v9",
     text=r"""
-Relevant only when [[optdriver]] = 4. Indicate the file from which the
-irreducible polarizability must be obtained.
+Relevant only when [[optdriver]] = 4. If non-zero, indicate that the
+irreducible polarizability must be obtained from an existing file.
 As alternative, one can use the input variable [[getsuscep]].
 When [[optdriver]] = 4, at least one of [[irdsuscep]] or [[getsuscep]]
 (alternatively, [[irdscr]] or [[getscr]]) must be non-zero.
@@ -8265,7 +8264,8 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Indicates possible starting wavefunctions. As alternative, one can use the
-input variables [[getwfk]], [[getwfq]], [[get1wf]] or [[getddk]].
+input variables [[irdwfq]], [[ird1wf]] or [[irdddk]], as well as they getXXX counterparts.
+Here follows a global description of the usage of these input variables.
 
 Ground-state calculation:
 
@@ -8280,18 +8280,18 @@ Response-function calculation:
   * one and only one of [[irdwfk]] or [[getwfk]] MUST be non-zero
   * if [[irdwfk]] = 1: read ground state k -wavefunctions from a disk file appended with _WFK,
     produced in a previous ground state calculation
-  * only one of **irdwfq** or [[getwfq]] can be non-zero, if both of them are non-zero,
+  * only one of [[irdwfq]] or [[getwfq]] can be non-zero, if both of them are non-zero,
      use as k + q file the one defined by [[irdwfk]] and/or [[getwfk]]
-  * if **irdwfq** = 1: read ground state k+q -wavefunctions from a disk file appended with _WFQ,
+  * if [[irdwfq]] = 1: read ground state k+q -wavefunctions from a disk file appended with _WFQ,
     produced in a previous ground state calculation
-  * at most one of **ird1wf** or [[get1wf]] can be non-zero
+  * at most one of [[ird1wf]] or [[get1wf]] can be non-zero
   * if both are zero, initialize first order wavefunctions to 0's.
-  * if **ird1wf** = 1: read first-order wavefunctions from a disk file appended with _1WFx,
+  * if [[ird1wf]] = 1: read first-order wavefunctions from a disk file appended with _1WFx,
     produced in a previous response function calculation
-  * at most one of **irdddk** or [[getddk]] can be non-zero
+  * at most one of [[irdddk]] or [[getddk]] can be non-zero
   * one of them must be non-zero if an homogeneous electric field calculation is done
     (presently, a ddk calculation in the same dataset is not allowed)
-  * if **irdddk** = 1: read first-order ddk wavefunctions from a disk file appended with _1WFx,
+  * if [[irdddk]] = 1: read first-order ddk wavefunctions from a disk file appended with _1WFx,
     produced in a previous response function calculation
 
 For further information about the *files file*, consult the [[help:abinit#files-file]].
@@ -8308,7 +8308,7 @@ Variable(
     mnemonics="Integer that governs the ReaDing of the grid _WFK file on the FINE grid",
     added_in_version="before_v9",
     text=r"""
-Indicates possible starting wavefunctions. As alternative, one can use the input variables [[getwfkfine]].
+If 1, will restart from existing wavefunctions on the fine grid. As alternative, one can use the input variables [[getwfkfine]].
 
 Ground-state calculation:
 
@@ -8347,37 +8347,9 @@ Variable(
     mnemonics="Integer that governs the ReaDing of _WFQ files",
     added_in_version="before_v9",
     text=r"""
-Indicates possible starting wavefunctions. As alternative, one can use the
-input variables [[getwfk]], [[getwfq]], [[get1wf]] or [[getddk]].
-
-Ground-state calculation:
-
-  * only **irdwfk** and [[getwfk]] have a meaning
-  * at most one of **irdwfk** or [[getwfk]] can be non-zero
-  * if **irdwfk** and [[getwfk]] are both zero, initialize wavefunctions with random numbers for ground state calculation.
-  * if **irdwfk** = 1: read ground state wavefunctions from a disk file appended with _WFK,
-    produced in a previous ground state calculation
-
-Response-function calculation:
-
-  * one and only one of **irdwfk** or [[getwfk]] MUST be non-zero
-  * if **irdwfk** = 1: read ground state k -wavefunctions from a disk file appended with _WFK,
-    produced in a previous ground state calculation
-  * only one of [[irdwfq]] or [[getwfq]] can be non-zero, if both of them are non-zero,
-    use as k + q file the one defined by **irdwfk** and/or [[getwfk]]
-  * if [[irdwfq]] = 1: read ground state k+q -wavefunctions from a disk file appended with _WFQ,
-    produced in a previous ground state calculation
-  * at most one of **ird1wf** or [[get1wf]] can be non-zero
-  * if both are zero, initialize first order wavefunctions to 0's.
-  * if **ird1wf** = 1: read first-order wavefunctions from a disk file appended with _1WFx,
-    produced in a previous response function calculation
-  * at most one of **irdddk** or [[getddk]] can be non-zero
-  * one of them must be non-zero if an homogeneous electric field calculation is done (presently,
-    a ddk calculation in the same dataset is not allowed)
-  * if **irdddk** = 1: read first-order ddk wavefunctions from a disk file appended with _1WFx,
-    produced in a previous response function calculation
-
-For further information about the *files file*, consult the [[help:abinit#files-file]].
+See detailed description at [[irdwfq]].
+As alternative, one can use the
+input variable [[getwfq]].
 """,
 ),
 
@@ -9670,6 +9642,27 @@ variables [[optdriver]] and [[nbandkss]].
 ),
 
 Variable(
+    abivarname="lambsig",
+    varset="paw",
+    vartype="real",
+    topics=['MagField_expert'],
+    dimensions=['[[ntypat]]'],
+    defaultval=MultipleValue(number=None, value=0),
+    mnemonics="LAMB shielding SIGma",
+    added_in_version="v9",
+    text=r"""
+Chemical shielding at each nucleus due to the core electrons. This quantity is
+input as an array of values, one for each type, see [[ntypat]]. In calculations
+where the orbital magnetic moment is requested in the presence of a nuclear magnetic
+dipole moment (see [[orbmag]] and [[nucdipmom]]), the effect of this shielding
+will be included. Because the PAW input files do not include the core orbitals,
+the user must compute this value separately, from the Lamb formula [[cite:Abragam1961Principles]],
+and input it here.
+""",
+),
+
+
+Variable(
     abivarname="ldaminushalf",
     varset="paw",
     vartype="integer",
@@ -9948,7 +9941,7 @@ Variable(
 Turns on the imposition of a constraint on the magnetization, using a penalty function. For
 each atom, the magnetization is calculated in a sphere (radius [[ratsph]]) and
 a penalty function is applied to bring it to the input values of [[spinat]].
-The constraint can be either on the direction only ([[magconon]] = 1) or on the full
+The constraint can be either on the direction/axis only ([[magconon]] = 1) or on the full
 vector ([[magconon]] = 2). The penalty function has an amplitude
 [[magcon_lambda]] that should be neither too big (bad or impossible convergence) nor too small (no effect).
 The penalty function is documented in [[cite:Ma2015]] as being a Lagrange
@@ -9956,6 +9949,10 @@ approach, which is a misnomer for the algorithm that they describe. It has the d
 the exact sought value for the magnetization. So, the true Lagrange approach has to be preferred, except for testing purposes.
 This is provided by the algorithm governed by the input variable [[constraint_kind]], which is actually also much more flexible
 than the implementation corresponding to [[magconon]].
+
+Final subtlety: when [[magconon]] = 1, if [[nspden]]==2 (collinear case), then the direction of magnetization is constraint (positive or negative along z),
+while if [[nspden]]==4, then the axis of magnetization is constraint (the actual direction is not imposed, both directions are equivalent). This might be
+confusing.
 """,
 ),
 
@@ -12403,7 +12400,7 @@ allowed x, y and z magnetization (useful only with [[nspinor]] = 2 and
 [[nsppol]] = 1, either because there is spin-orbit without time-reversal
 symmetry - and thus spontaneous magnetization, or with spin-orbit, if one
 allows for spontaneous non-collinear magnetism). Available for
-response functions [[cite:Ricci2019]]. Also note that, with [[nspden]] = 4, time-reversal symmetry
+response functions [[cite:Ricci2019]]. Not yest available for mGGA. Also note that, with [[nspden]] = 4, time-reversal symmetry
 is not taken into account (at present; this has to be checked) and thus
 [[kptopt]] has to be different from 1 or 2.
 
@@ -12687,6 +12684,50 @@ reversal symmetry and lowers the overall spatial symmetry.  The dipole
 moment values are entered in atomic units. For reference, note that
 one Bohr magneton has value $1/2$ in atomic units, while one nuclear
 Bohr magneton has value $2.7321\times 10^{-4}$ in atomic units.
+""",
+),
+
+Variable(
+    abivarname="nucefg",
+    varset="paw",
+    vartype="integer",
+    topics=['EFG_basic'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="NUClear site Electric Field Gradient",
+    requires="[[usepaw]] == 1, [[quadmom]]",
+    added_in_version="before_v9",
+    text=r"""
+If nonzero, calculate the electric field gradient at each atomic site in the unit cell.
+Using this option requires [[quadmom]] to be set as well.
+Values will be written to main output file (search for Electric Field Gradient).
+If nucefg=1, only the quadrupole coupling in MHz and asymmetry are reported.
+If nucefg=2, the full electric field gradient tensors in atomic units are also given,
+showing separate contributions from the valence electrons, the ion cores, and the PAW reconstruction.
+If nucefg=3, then in addition to the nucefg=2 output, the EFGs are computed using an ionic point charge model.
+This is useful for comparing the accurate PAW-based results to those of simple ion-only models.
+Use of nucefg=3 requires that the variable [[ptcharge]] be set as well.
+The option nucefg is compatible with spin polarized calculations (see
+[[nspden]]) and also DFT+U (see [[usepawu]]).
+""",
+),
+
+Variable(
+    abivarname="nucfc",
+    varset="paw",
+    vartype="integer",
+    topics=['EFG_basic'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="NUClear site Fermi Contact term",
+    requires="[[usepaw]] == 1",
+    added_in_version="before_v9",
+    text=r"""
+  * If set to 1, print the Fermi contact interaction at each nuclear site, that
+  is, the electron density at each site. The result appears in the main output file
+  (search for FC). Note that this calculation is different than what is done by cut3d,
+  because it also computes the PAW on-site corrections in addition to the
+  contribution from the valence pseudo-wavefunctions.
 """,
 ),
 
@@ -13363,8 +13404,9 @@ Compute quantities related to orbital magnetic moment. The
     insulators have orbital magnetization zero, except in the presence
     of nonzero nuclear dipole moments, see [[nucdipmom]].  [[orbmag]]
     is parallelized over k points only. The implementation follows the
-    theory outlined in [[cite:Gonze2011a]] extended to the PAW case;
-    see also [[cite:Ceresoli2006]]. The computed results are returned in the
+    theory outlined in [[cite:Ceresoli2010]], [[cite:Ceresoli2006]],
+    and [[cite:Gonze2011a]] extended to the PAW case.
+    The computed results are returned in the
     standard output file, search for "Orbital magnetic moment". This calculation requires
     both the ground state and DDK wavefunctions, and is triggered at the end of a
     DDK calculation.
@@ -14218,6 +14260,7 @@ Variable(
   * If set to 2, the exchange-correlation term in the spherical part of energy is developed onto lm-moments at order 2
 
 Be careful: Response function (DFPT) + PAW + GGA requires [[pawxcdev]] = 0. But if you plan to do DFPT calculations, it is better to use this option also in the preliminary ground state calculation.
+However, if [[nspden]] = 4 (non-collinear calculations) with GGA and [[usepawu]]/=0, one needs to use [[pawxcdev]] = 1.
 """,
 ),
 
@@ -14360,7 +14403,7 @@ Variable(
     topics=['q-points_useful'],
     dimensions="scalar",
     defaultval="0.1 meV",
-    mnemonics="PHonons: frequency(W)  STEP.",
+    mnemonics="PHonons: frequency(W) STEP.",
     characteristics=['[[ENERGY]]'],
     added_in_version="before_v9",
     text=r"""
@@ -14877,8 +14920,7 @@ _ions+electrons+positron_ system) that, when reached, will cause the SCF cycle
 to stop before the number of steps is [[nstep]] or the number of
 electronic/positronic steps is [[posnstep]].
 
-Can be specified in Ha (the default), Ry, eV or Kelvin, since [[postoldfe]] has
-the [[ENERGY]] characteristics.
+Can be specified in Ha (the default), Ry, eV or Kelvin, since [[postoldfe]] has the [[ENERGY]] characteristics.
 One and only one of [[postoldfe]] or [[postoldff]] can be set.
 """,
 ),
@@ -15463,31 +15505,6 @@ This option activates the output of the electron eigenvalues. Possible values:
 ),
 
 Variable(
-    abivarname="prtefg",
-    varset="paw",
-    vartype="integer",
-    topics=['printing_prngs', 'EFG_basic'],
-    dimensions="scalar",
-    defaultval=0,
-    mnemonics="PRint Electric Field Gradient",
-    requires="[[usepaw]] == 1, [[quadmom]]",
-    added_in_version="before_v9",
-    text=r"""
-If nonzero, calculate the electric field gradient at each atomic site in the unit cell.
-Using this option requires [[quadmom]] to be set as well.
-Values will be written to main output file (search for Electric Field Gradient).
-If prtefg=1, only the quadrupole coupling in MHz and asymmetry are reported.
-If prtefg=2, the full electric field gradient tensors in atomic units are also given,
-showing separate contributions from the valence electrons, the ion cores, and the PAW reconstruction.
-If prtefg=3, then in addition to the prtefg=2 output, the EFGs are computed using an ionic point charge model.
-This is useful for comparing the accurate PAW-based results to those of simple ion-only models.
-Use of prtefg=3 requires that the variable [[ptcharge]] be set as well.
-The option prtefg is compatible with spin polarized calculations (see
-[[nspden]]) and also DFT+U (see [[usepawu]]).
-""",
-),
-
-Variable(
     abivarname="prtefmas",
     varset="dfpt",
     vartype="integer",
@@ -15549,21 +15566,6 @@ account the existence of spin dependent densities (see the documentation in
 
 Please note that ELF is **not** yet implemented in the case of PAW
 ([[usepaw]] = 1) calculations.
-""",
-),
-
-Variable(
-    abivarname="prtfc",
-    varset="paw",
-    vartype="integer",
-    topics=['printing_prden', 'EFG_basic'],
-    dimensions="scalar",
-    defaultval=0,
-    mnemonics="PRinT Fermi Contact term",
-    requires="[[usepaw]] == 1",
-    added_in_version="before_v9",
-    text=r"""
-  * If set to 1, print the Fermi contact interaction at each nuclear site, that is, the electron density at each site. The result appears in the main output file (search for FC). Note that this calculation is different than what is done by cut3d, because it also computes the PAW on-site corrections in addition to the contribution from the valence pseudo-wavefunctions.
 """,
 ),
 
@@ -15903,6 +15905,9 @@ the name being made of
 
 The file structure of this unformatted output file is described in [[help:abinit#localpotfile|this section]].
 No output is provided by a negative value of this variable.
+
+NB: In DFPT calculations, prtpot is automatically set to 1 as the POT files might be used to perform EPH calculations
+unless the user explictly sets prtpot to 0 in the input file.
 """,
 ),
 
@@ -16335,6 +16340,8 @@ only matrix elements are needed [so, no wavefunction], but possibly a large
 number of conduction bands, so that the DDK file might be huge if it contains
 the wavefunctions.
 
+If [[tfkinfunc]]=2, [[prtwf]]=0 is enforced.
+
 Further explanation for the [[prtwf]] = 2 case. To produce a wave function
 suitable for use as a CASINO trial wave function, certain ABINIT parameters
 must be set correctly. Primarily, CASINO (and QMC methods generally) can only
@@ -16441,10 +16448,20 @@ Variable(
     dimensions=['[[ntypat]]'],
     defaultval=MultipleValue(number=None, value=0),
     mnemonics="PoinT CHARGEs",
-    requires="[[usepaw]] == 1 and [[prtefg]]>=3",
+    requires="[[usepaw]] == 1 and [[nucefg]]>=3",
     added_in_version="before_v9",
     text=r"""
-  * Array of point charges, in atomic units, of the nuclei. In the normal computation of electric field gradients (see [[prtefg]]) the ionic contribution is calculated from the core charges of the atomic sites. Thus for example in a PAW data set for oxygen where the core is $1s^{2}$, the core charge is +6 (total nuclear charge minus core electron charge). In point charge models, which are much less accurate than PAW calculations, all atomic sites are treated as ions with charges determined by their valence states. In such a case oxygen almost always would have a point charge of -2. The present variable taken together with [[prtefg]] performs a full PAW computation of the electric field gradient and also a simple point charge computation. The user inputs whatever point charges he/she wishes for each atom type.
+  Array of point charges, in atomic units, of the nuclei. In the normal
+  computation of electric field gradients (see [[nucefg]]) the ionic
+  contribution is calculated from the core charges of the atomic sites. Thus
+  for example in a PAW data set for oxygen where the core is $1s^{2}$, the core
+  charge is +6 (total nuclear charge minus core electron charge). In point
+  charge models, which are much less accurate than PAW calculations, all atomic
+  sites are treated as ions with charges determined by their valence states. In
+  such a case oxygen almost always would have a point charge of -2. The present
+  variable taken together with [[nucefg]] performs a full PAW computation of
+  the electric field gradient and also a simple point charge computation. The
+  user inputs whatever point charges he/she wishes for each atom type.
 """,
 ),
 
@@ -16739,10 +16756,15 @@ Variable(
     dimensions=['[[ntypat]]'],
     defaultval=MultipleValue(number=None, value=0),
     mnemonics="QUADrupole MOMents",
-    requires="[[usepaw]] == 1 and [[prtefg]]>=1",
+    requires="[[usepaw]] == 1 and [[nucefg]]>=1",
     added_in_version="before_v9",
     text=r"""
-  * Array of quadrupole moments, in barns, of the nuclei. These values are used in conjunction with the electric field gradients computed with [[prtefg]] to calculate the quadrupole couplings in MHz, as well as the asymmetries. Note that the electric field gradient at a nuclear site is independent of the nuclear quadrupole moment, thus the quadrupole moment of a nucleus can be input as 0, and the option [[prtefg]] = 2 used to determine the electric field gradient at the site.
+  * Array of quadrupole moments, in barns, of the nuclei. These values are used
+  in conjunction with the electric field gradients computed with [[nucefg]] to
+  calculate the quadrupole couplings in MHz, as well as the asymmetries. Note that
+  the electric field gradient at a nuclear site is independent of the nuclear
+  quadrupole moment, thus the quadrupole moment of a nucleus can be input as 0,
+  and the option [[nucefg]] = 2 used to determine the electric field gradient at the site.
 """,
 ),
 
@@ -16850,16 +16872,16 @@ Radius for extra spheres the DOS is projected into. See [[natsph_extra]] and
 
 Variable(
     abivarname="rcut",
-    varset="gw",
+    varset="gstate",
     vartype="real",
-    topics=['GWls_compulsory', 'Susceptibility_basic', 'SelfEnergy_basic'],
+    topics=['Coulomb_useful','GWls_compulsory', 'Susceptibility_basic', 'SelfEnergy_basic'],
     dimensions="scalar",
     defaultval=0.0,
     mnemonics="Radius of the CUT-off for coulomb interaction",
     added_in_version="before_v9",
     text=r"""
 Truncation of the Coulomb interaction in real space. The meaning of [[rcut]]
-is governed by the cutoff shape option [[icutcoul]].
+is governed by the cutoff shape options [[icutcoul]], [[gw_icutcoul]] and/or [[fock_icutcoul]].
 
 If [[rcut]] is negative, the cutoff is automatically calculated so to enclose
 the same volume inside the cutoff as the volume of the primitive cell.
@@ -17092,22 +17114,6 @@ Variable(
     text=r"""
 Control the restart of a molecular dynamics or structural optimization job.
 
-**restartxf > 0 (Deprecated) **: The code reads from the input WFK file, the
-previous history of atomic coordinates and corresponding forces, in order to
-continue the work done by the job that produced this wf file. If
-[[optcell]] /= 0, the history of [[acell]] and [[rprim]] variables is also taken
-into account. The code will take into consideration the whole history (if
-**restartxf** = 1), or discard the few first (x,f) pairs, and begin only at the
-pair whose number corresponds to **restartxf**.
-Works only for [[ionmov]] = 2 or 22 (Broyden) and when an input wavefunction file is
-specified, thanks to the appropriate values of [[irdwfk]] or [[getwfk]].
-
-NOTES:
-* The input WFK file must have been produced by a run that exited cleanly.
-  It cannot be one of the temporary wf files that exist when a job crashed.
-* One cannot restart a calculation with a non-zero [[optcell]] value from the (x,f) history of another run with a different non-zero [[optcell]] value. Starting a non-zero [[optcell]] run from a zero [[optcell]] run should work.
-* Deprecated, the use of the new options (-1 and -2) is preferred.
-
 **restartxf = 0 (Default)**: No restart procedure is enabled and the code will start a
 Molecular dynamics or structural optimization from scratch.
 
@@ -17133,6 +17139,8 @@ NOTES:
 * You can use **restartxf=-1, -2 or -3** for all predictors that make no use of random numbers.
 * You can use **restartxf=-1, -2 or -3** to restart a calculation that was not completed. The HIST.nc file is written on each iteration. So you always have something to recover from.
 * You can take advantage of the appropriate values of [[irdwfk]] or [[getwfk]] to get a good wave function to continue your job.
+
+Previously, positive values of restartxf were allowed, but these are deprecated since ABINITv8.
 """,
 ),
 
@@ -17254,7 +17262,7 @@ Variable(
     vartype="integer",
     topics=['DFPT_basic', 'Elastic_compulsory', 'Phonons_compulsory'],
     dimensions=[2],
-    defaultval=[1, 1],
+    defaultval=[1, '[[natom]]' ],
     mnemonics="Response Function: ATomic POLarisation",
     added_in_version="before_v9",
     text=r"""
@@ -17267,12 +17275,17 @@ The atoms to be moved will be defined by the do-loop variable iatpol:
   - do iatpol=[[rfatpol]](1),[[rfatpol]](2)
 
 For the calculation of a full dynamical matrix, use [[rfatpol]](1)=1 and
-[[rfatpol]](2)=[[natom]], together with [[rfdir]] 1 1 1. For selected
+[[rfatpol]](2)=[[natom]], together with [[rfdir]] 1 1 1, both being the default values.
+For selected
 elements of the dynamical matrix, use different values of [[rfatpol]] and/or
 [[rfdir]]. The name 'iatpol' is used for the part of the internal variable
 ipert when it runs from 1 to [[natom]]. The internal variable ipert can also
 assume values larger than [[natom]], denoting perturbations of electric field
 or stress type (see [the DFPT help file](/guide/respfn)).
+
+As a side technical information, the value [[rfatpol]](1)=-1 is admitted, and transformed
+immediately to [[rfatpol]](1)=1, while [[rfatpol]](2)=-1 is transformed to  [[rfatpol]](2)=[[natom]],
+while the default input values are actually [[rfatpol]]=-1 .
 """,
 ),
 
@@ -17303,7 +17316,7 @@ Variable(
     vartype="integer",
     topics=['DFPT_compulsory', 'Elastic_compulsory', 'Phonons_compulsory'],
     dimensions=[3],
-    defaultval=[0, 0, 0],
+    defaultval=[1, 1, 1],
     mnemonics="Response Function: DIRections",
     added_in_version="before_v9",
     text=r"""
@@ -17315,8 +17328,9 @@ space (phonon calculations), or in reciprocal space ($\,d/ \,d k$, homogeneous
 electric field, homogeneous magnetic field calculations). So, they generate a
 basis for the generation of the dynamical matrix or the macroscopic dielectric
 tensor or magnetic susceptibility and magnetic shielding, or the effective charge tensors.
-If equal to 1, response functions, as defined by [[rfddk]], [[rfelfd]],
-[[rfphon]], [[rfdir]] and [[rfatpol]], are to be computed for the
+If equal to 1, response functions, as defined by [[rfdir]], [[rfddk]], [[rfelfd]],
+[[rfphon]], [[rfstrs]], [[rfmagn]], [[rfatpol]], and possibly other response-function activating
+input variables, but also [[berryopt]] are to be computed for the
 corresponding direction. If 0, this direction should not be considered.
 """,
 ),
@@ -18437,13 +18451,15 @@ Indeed in the first case, it is supposed that the magnetization vector is not af
 (so-called black and white symmetry groups).
 By contrast, in the second case, the real space symmetry operations act on the magnetization vector.
 The rationale for such different treatment comes from the fact that the treatment of spin-orbit coupling is incompatible with collinear magnetism [[nspden]]=2,
-so there is no need to worry about it in this case. On the contrary, many calculations with [[nspden]]=2
+so there is no need to worry about it in this case. On the contrary, many calculations with [[nspden]]=4
 will include spin-orbit coupling. The symmetry operations should thus act coherently on the spin-orbit coupling, which implies
 that the real space operations should act also on the magnetization vector in the [[nspden]]=4 case. So, with
 [[nspden]]=4, even with [[symafm]]=1,
 symmetry operations might change the magnetization vector, e.g. possibly reverse it from one atom to another atom.
 Still, when real space operations also act on the magnetization vector, nothing prevents to have ADDITIONAL "spin-flip" operations, which
 is indeed then the meaning of [[symafm]]=-1 in the [[nspden]]=4 case.
+Note that real-space operations act on the magnetization as an axial vector, not as a normal vector. For example, the inversion symmetry
+does not change the magnetization vector.
 
 Let's illustrate this with an example. Take an H$_2$ system, with the two H atoms quite distant from each other.
 The electron on the first H atom might be 1s spin up, and the electron on the second atom might be 1s spin down.
@@ -19240,11 +19256,10 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 When equal to one or two, this variable allows one to calculate U with
-the cRPA method. An explicit test is shown in automatic tests
-[[test:v7_23]], [[test:v7_24]], [[test:v7_25]], [[test:v7_68]], and [[test:v7_69]].
+the cRPA method.
 The present implementation is parallelized (as for usual GW
 calculations), use symmetry over k points only for calculations involving one
-correlated atom, and can be use when correlated bands are entangled or not.
+correlated atom, and can be used when correlated bands are entangled or not.
 The constrained calculation of the polarisability can be done by eliminating
 transition betweens correlated bands (and not orbitals) with the variable
 [[ucrpa_bands]].
@@ -19429,6 +19444,23 @@ Note that, while running ABINIT on GPUs, it is recommended to use MAGMA
 external library (i.e. Lapack on GPUs). The latter is activated during
 compilation stage (see "configure" step of ABINIT compilation process). If
 MAGMA is not used, ABINIT performances on GPUs can be poor.
+""",
+),
+
+Variable(
+    abivarname="use_nvtx",
+    varset="paral",
+    vartype="integer",
+    topics=['parallelism_expert'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="activate USE of NVTX tracing/profiling (only meaningful use_gpu_cuda=1)",
+    added_in_version="9.7.2",
+    text=r"""
+Only available if ABINIT executable has been compiled with cuda nvcc compiler.
+This parameter activates the use of nvtx tracing/profiling if present.
+If [[use_nvtx]] = 1, when profiling with nsys, additional information with be added in report.
+If [[use_nvtx]] = 0, nothing happens.
 """,
 ),
 
@@ -19621,7 +19653,7 @@ If [[usekden]] = 1 the kinetic energy density will be computed during
 the self-consistent loop, in a way similar to the computation of the density.
 This is needed if a meta-GGA is to be used as XC functional. By default
 ([[usekden]] = 0), the kinetic energy density is not computed during the self-
-consistent loop.
+consistent loop. [[usekden]] = 1 is not yet allowed with [[nspden]]=4 (non-collinear magnetism).
 """,
 ),
 
@@ -19656,22 +19688,28 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Must be non-zero if a DFT+U calculation is done, or if a GW calculation
-following a DFT+U calculation is done (important!).
+following a DFT+U calculation is done (important!), or if a DMFT calculation is done..
 
   * If set to 0, the DFT+U method is not used.
 
-  * If set to 1, 2 or 4, the DFT+U method (cf [[cite:Anisimov1991a]]) is used.
+  * If the absolute value is set to 1, 2 or 4, the DFT+U method (cf [[cite:Anisimov1991a]]) is used.
 The full rotationally invariant formulation is used (see Eq. (3) of [[cite:Liechtenstein1995]]) for the interaction term of the energy.
 Three choices are allowed concerning the double counting term:
 
-    * If [[usepawu]] = 1, the Full Localized Limit (FLL) (or Atomic limit) double counting is used (cf Eq. (4) of [[cite:Liechtenstein1995]] or Eq. (8) of [[cite:Czyzyk1994]]).
+    * If abs([[usepawu]]) = 1 or 10, the Full Localized Limit (FLL) (or Atomic limit) double counting is used (cf Eq. (4) of [[cite:Liechtenstein1995]] or Eq. (8) of [[cite:Czyzyk1994]]).
 
-    * If [[usepawu]] = 2, the Around Mean Field (AMF) double counting is used (cf Eq. (7) of [[cite:Czyzyk1994]]). Not valid if nspinor=2.
+    * If abs([[usepawu]]) = 2, the Around Mean Field (AMF) double counting is used (cf Eq. (7) of [[cite:Czyzyk1994]]). Not valid if nspinor=2.
 
-    * If [[usepawu]] = 4, the FLL double counting is used. However, and in comparison to usepaw=1, the calculation is done without
+    * If abs([[usepawu]]) = 4 or 14, the FLL double counting is used. However, and in comparison to usepaw=1, the calculation is done without
     polarization in the exchange correlation functional (cf [[cite:Park2015]] and [[cite:Chen2016a]]). In this case, one must use [[iscf]]<10.
 
-If DFT+U is activated ([[usepawu]] = 1 or 2), the [[lpawu]], [[upawu]] and
+For DMFT calculations [[usedmft]]=1, only [[usepawu]]=10 or 14 is permitted. For other types of calculations, abs([[usepawu]])=10 or 14 cannot be used.
+Positive and negative values of [[usedmft]], only differ by their internal implementation. At some stage, only positive values will be used again.
+
+If [[nspden]] = 4 (non-collinear calculations) with GGA, one needs to use [[pawxcdev]] = 1,
+and either abs([[usepawu]])=0, 1, 4, 10 or 14.
+
+If DFT+U is activated ([[usepawu]]/=0), the [[lpawu]], [[upawu]] and
 [[jpawu]] input variables are read.
 The implementation is done inside PAW augmentation regions only (cf [[cite:Bengone2000]]).
 The initial density matrix can be given in the input file (see [[usedmatpu]]).
@@ -19694,8 +19732,7 @@ keeping a smaller U interaction in the GW calculation, by subtracting a
 smaller U than the one used in the DFT calculation. See the description of the
 [[upawu]] input variable.
 
-
-Suggested acknowledgment:[[cite:Amadon2008a]].
+Suggested acknowledgment [[cite:Amadon2008a]].
 
 """,
 ),
@@ -19737,8 +19774,11 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Fix the convention for the choice of the average value of the Hartree potential, as described in [[cite:Bruneval2014]].
+
   * [[usepotzero]] = 0, the usual convention: the smooth potential is set to zero average value.
+
   * [[usepotzero]] = 1, the new convention: the all-electron physical potential is set to zero average value.
+
   * [[usepotzero]] = 2, the PWscf convention: the potential of equivalent point charges is set to
   zero average value (convention also valid for NC pseudopotentials).
 """,
@@ -19958,13 +19998,29 @@ Variable(
 
 This flag determines how the exchange-correlation terms are computed for the
 pseudo-density.
-When **usexcnhat** = 0, the exchange-correlation potential does not include the
+
+  * When **usexcnhat** = 0, the exchange-correlation potential does not include the
 compensation charge density, i.e. $V_{xc}=V_{xc}(\tilde{n}_{core} + \tilde{n}_{valence})$.
-When **usexcnhat** = 1, the exchange-correlation potential includes the compensation
+
+  * When **usexcnhat** = 1, the exchange-correlation potential includes the compensation
 charge density, i.e. $V_{xc}=V_{xc}(\tilde{n}_{core} + \tilde{n}_{valence}+\hat{n})$.
-When **usexcnhat** = -1,the value of **usexcnhat** is determined from the
-reading of the PAW dataset file (pseudopotential file). When PAW datasets with
-different treatment of $V_{xc}$ are used in the same run, the code stops.
+
+  * When **usexcnhat** = -1,the value of **usexcnhat** is determined from the
+reading of the PAW dataset file (pseudopotential file).
+
+When PAW datasets with different treatment of $V_{xc}$ are used in the same run, the code stops.
+
+The difference between these treatments has been studied in detail in [[cite:Torrent2010]].
+The choice **usexcnhat** = 1 is implemented in VASP and QE, but **usexcnhat** = 0 is not available in these software (as of 2022).
+However, in [[cite:Torrent2010]] several advantages of the choice **usexcnhat** = 0 are made clear.
+
+The value **usexcnhat** = 0 corresponds to Bloechl form, see Eq.(2) of [[cite:Torrent2010]].
+The PAW atomic datasets from JTH table [[cite:Jollet2014]] yield **usexcnhat** = 0 by default,
+and it is expected that all future versions of this table will also yield **usexcnhat** = 0 by default..
+The value **usexcnhat** = 1 corresponds to Kresse form, see Eq.(3) of [[cite:Torrent2010]].
+With ABINIT, only the oldest PAW atomic datasets favour **usexcnhat** = 1.
+
+Still, the ABINIT user has both options.
 """,
 ),
 
@@ -20070,22 +20126,22 @@ planes of constant reduced coordinates in the investigated direction, must be em
 
 Variable(
     abivarname="vcutgeo",
-    varset="gw",
+    varset="gstate",
     vartype="real",
-    topics=['GWls_compulsory', 'Susceptibility_basic', 'SelfEnergy_basic'],
+    topics=['Coulomb_useful','GWls_compulsory', 'Susceptibility_basic', 'SelfEnergy_basic'],
     dimensions=[3],
     defaultval=MultipleValue(number=3, value=0.0),
     mnemonics="V (potential) CUT-off GEOmetry",
     requires="[[icutcoul]] in [1,2]",
     added_in_version="before_v9",
     text=r"""
-[[vcutgeo]] is used in conjunction with [[icutcoul]] to specify the geometry
-used to truncate the Coulomb interaction, as well as the particular approach
-to be used. It has a meaning only for a periodic one-dimensional system, typically
+[[vcutgeo]] is used in conjunction with [[icutcoul]], [[fock_icutcoul]] and/or [[gw_icutcoul]]
+to specify the geometry used to truncate the Coulomb interaction, as well as the particular approach
+to be used. It has a meaning either for a periodic one-dimensional system, typically
 a nanowire, nanotube or polymer surrounded by vacuum separating the system
 from images in neighbouring cells
 ([[icutcoul]] = 1) or in the case of periodic two-dimensional system,
-typically a slab with vacuum separating it from images in neighbouring cells (([[icutcoul]] = 2). For each
+typically a slab with vacuum separating it from images in neighbouring cells ([[icutcoul]] = 2). For each
 geometry, two different definitions of the cutoff region are available (see
 [[cite:Ismail-Beigi2006]] and [[cite:Rozzi2006]] for a complete description
 of the methods)
@@ -21438,7 +21494,7 @@ The set of bands can be specified either with [[sigma_erange]] or [[gw_qprange]]
 
 !!! important
 
-    sigma_ngkpt and [[nkptgw]] and are mutually exclusive.
+    sigma_ngkpt and [[nkptgw]] are mutually exclusive.
 """,
 ),
 
@@ -21491,25 +21547,44 @@ Variable(
     added_in_version="9.0.0",
     text=r"""
 
-This variable defines the quantity to compute starting from a previously generated WFK file.
+This variable defines the quantity that should be computed starting from a previously generated WFK file.
 Possible values are:
 
-  * "wfk_full" --> Read WFK file and produce new WFK file with k-points in the full BZ.
-        Wavefunctions with [[istwfk]] > 2 are automatically converted into the full G-sphere representation.
-        This option can be used to interface Abinit with external tools requiring k-points in the full BZ.
+  * "wfk_fullbz" --> Read input WFK file and produce new WFK file with $\kk$-points in the full BZ.
+     Wavefunctions with [[istwfk]] > 2 are automatically converted into the full G-sphere representation.
+     This option can be used to interface Abinit with external tools (e.g. lobster)
+     requiring $\kk$-points in the full BZ.
 
-  * "wfk_einterp" --> Read energies from WFK file and interpolate band structure using the parameters specified by [[einterp]].
+  * "wfk_einterp" --> Read energies from WFK file and interpolate the band structure with the SKW method
+     using the parameters specified by [[einterp]].
 
-  * "wfk_ddk" --> Compute DDK matrix elements for all bands and k-points in the WFK file.
-     The contribution due to the non-local part of the pseudopotential can be ignored
-     by setting [[inclvkb]] = 0 (not recommended unless you know what you are doing).
+  * "wfk_ddk" --> Compute velocity matrix elements for all bands and $\kk$-points found the input WFK file.
+     The code generates three `_EVK.nc` netcdf files with the matrix element of the $ \dfrac{d}{d_{\kk_i}} $
+     operator using the same list of $\kk$-points found in the input WFK file i.e. the same value of [[kptopt]].
+     These files can then be passed to optics via the `ddkfile_1, ddkfile_2, ddkfile_3` variables
+     without having to call the DFPT part that is much more expensive at the level of memory.
 
-  * "wfk_kpts_erange" --> Read WFK file,
-        use star-function and [[einterp]] parameters to interpolate electron energies onto fine k-mesh
-        defined by [[sigma_ngkpt]] and [[sigma_shiftk]].
-        Find k-points inside (electron/hole) pockets according to the values specified in [[sigma_erange]].
-        Write KERANGE.nc file with the tables required by the code to automate NSCF band structure calculations
-        inside the pocket(s) and electron lifetime computation in the EPH code when [[eph_task]] = -4.
+     Please note that, at present, the computation of non-linear optical properties in optic requires
+     [[kptopt]] = 3 i.e. $\kk$-points in the full BZ whereas the computation of linear optical properties
+     can take advantage of spatial and time-reversal symmetries.
+     If you use **wfk_ddk** to generate input files for optics, please make sure that your input WFK file
+     has the correct value of [[kptopt]] according to the physical properties you want to compute.
+
+     In other words, don't use a WFK with [[kptopt]] != 3 if you plan to compute non-linear optical properties.
+     To work around the limitation of the non-linear part of optics, one can use "wfk_optics_fullbz"
+     to generate WKF and EVK files in the full BZ starting from a WFK defined in the IBZ.
+
+  * "wfk_optics_fullbz" --> Similar to "wfk_ddk" but accepts a WFK with wavefunctions in the IBZ
+     and generates a new WFK and three `_EVK.nc` files with $\kk$-points in the full BZ.
+     This procedure is equivalent to performing a NSCF + DDK calculation with [[kptopt]] = 3 as documented
+     in the optic tutorial for non-linear optical properties but it is much faster and, most importantly,
+     less memory demanding.
+
+  * "wfk_kpts_erange" --> Read WFK file, use star-function and [[einterp]] parameters to interpolate
+     electron energies onto fine k-mesh defined by [[sigma_ngkpt]] and [[sigma_shiftk]].
+     Find k-points inside (electron/hole) pockets according to the values specified by [[sigma_erange]].
+     Write KERANGE.nc file with all the tables required by the code to automate NSCF band structure calculations
+     inside the pocket(s) and electron lifetime computation in the EPH code when [[eph_task]] = -4.
 """,
 ),
 
@@ -21561,13 +21636,12 @@ Variable(
     text=r"""
 This variable consists of two entries that allow one to select the k-points and the bands
 in the e-ph self-energy $\Sigma_\nk$ on the basis of their KS energy $\ee_\nk$.
-This variable is used in [eph_task]] = -4 to compute phonon-limited mobilities in the energy region relevant for transport.
+This variable is used in [[eph_task]] = -4 to compute phonon-limited mobilities in the energy region relevant for transport.
 
 If both entries in [[sigma_erange]] are negative, the code assumes a metal and only states within the energy
 window [efermi - abs(sigma_erange(1)), efermi + abs(sigma_erange(2)] are included in the calculation.
 
-Positive (or zero) values are used in semiconductors
-to define an energy range with respect to the band edges
+Positive (or zero) values are used in semiconductors to define an energy range with respect to the band edges.
 In this case, the first entry given the position of the holes with respect to the CBM while the second entry
 gives the position of electrons with respect to the VBM (energy differences are **always positive**, even for holes).
 A zero entry can be used to exclude either holes or electrons from the calculation.
@@ -21581,7 +21655,7 @@ Note that [[sigma_erange]] is not compatible with [[nkptgw]] and [[sigma_ngkpt]]
 
         sigma_erange 0.0 0.5 eV
 
-    to specify the energy intervals in eV units.
+    to specify the energy intervals in eV units. meV is supported as well.
 """,
 ),
 
@@ -21606,15 +21680,57 @@ Variable(
     abivarname="eph_phrange",
     varset="eph",
     topics=['SelfEnergy_expert'],
-    vartype="real",
+    vartype="integer",
     defaultval=[0, 0],
     dimensions=[2],
     mnemonics="EPH PHonon mode RANGE.",
     added_in_version="9.0.0",
     text=r"""
-This variable is used to select the range of phonon modes included in the computation of the electron-phonon self-energy.
-By default all phonon modes are included ([0, 0]), otherwise only the phonon modes with index between the first
-and second entry are included.
+This variable is used to select the range of phonon indices included in the computation
+of the electron-phonon self-energy.
+By default all phonon indices are included ([0, 0]), otherwise only the phonon indices between the first
+and second entry are **included**.
+Note that one can also use negative values to **exclude** a range of indices provided that
+abs(eph_phrange(1)) < abs(eph_phrange(2)).
+
+To summarize: use e.g. eph_phrange 4 6 to include phonon indices 4, 5, 6 in the calculation or
+use eph_phrange -4 -6 to include **ALL** phonon indices except 4, 5, 6.
+
+!!! important
+
+    The indices do not necessary correspond to phonon modes if there are crossings
+    in the phonon band structure.
+    At each q-point, indeed, phonons are ordered according to their energy.
+    and this order does not necessarly reflect the connection of the energy branch in q-space.
+""",
+),
+
+Variable(
+    abivarname="eph_phrange_w",
+    varset="eph",
+    topics=['SelfEnergy_expert'],
+    vartype="real",
+    defaultval=[0, 0],
+    dimensions=[2],
+    mnemonics="EPH PHonon mode RANGE (Frequency)",
+    characteristics=['[[ENERGY]]'],
+    added_in_version="9.6.2",
+    text=r"""
+This variable is used to include/exclude phonon modes in the computation of the electron-phonon self-energy
+on the basis of the vibrational energy instead of the index as done in [[eph_phrange]].
+The usage of [[eph_phrange_w]] is recommended especially if there are crossings in the phonon band structure.
+
+By default all phonon frequencies are included ([0, 0]), otherwise only the phonons
+whose energy is between the first and second entry are **included**.
+Note that one can also use negative values to **exclude** energies inside a range provided that
+abs(eph_phrange_w(1)) < abs(eph_phrange_w(2)).
+
+To summarize: use e.g. eph_phrange_w 40 60 meV to **include** phonon frequencies between 40 and 60 meV.
+Use eph_phrange_w -40 -60 meV to **exclude** phonon frequencies between 40 and 60 meV.
+
+!!! important
+
+    This variable has the [[ENERGY]] characteristics so the code assume Hartree units by default.
 """,
 ),
 
@@ -21645,12 +21761,26 @@ Variable(
     varset="eph",
     topics=['ElPhonInt_expert'],
     vartype="real",
-    defaultval="1e-4",
+    defaultval=-1.0,
     dimensions="scalar",
-    mnemonics="Iterative Boltzmann Equation: ALPHA TOLerance for convergence",
+    mnemonics="Iterative Boltzmann Equation: ABSolute TOLerance for convergence",
     added_in_version="9.3.0",
     text=r"""
-This variable is still under development.
+This variable defines the absolute tolerance used to stop the iterative solution of the Boltzmann equation.
+The code stops the iterations when $$ \max_\kk |{\bm F}_\kk^i - {\bm F}_\kk^{i-1}| $$
+is less than [[ibte_abs_tol]] where $${\bm F}_\kk^i$$ is the solution at iteration step i.
+
+Note, however, that the absolute value of $${\bm F}$$ strongly depends on the position of the Fermi level
+that in turns defines the free carrier density.
+As a consequence, the value of [[ibte_abs_tol]] should be adjusted according to the system
+under investigation.
+
+Since this procedure is not very practical, it's much easier to use a negative value
+for [[ibte_abs_tol]] (default behaviour) and let the code
+automatically define the convergence threshold from the free carrier density computed at runtime.
+
+According to numerical tests, a reasonable value of [[ibte_abs_tol]] can be estimated using
+1e-20 * carrier_density in cm^-3.
 """,
 ),
 
@@ -21704,6 +21834,31 @@ mode by using [[eph_task]] = 8 with [[getsigeph_filepath]].
 
     IBTE calculations cannot use [[sigma_ngkpt]] to donwsample the k-mesh.
     The k-mesh ([[ngkpt]] and the q-mesh [[eph_ngqpt_fine]] must be equal.
+""",
+),
+
+Variable(
+    abivarname="eph_prtscratew",
+    varset="eph",
+    topics=['ElPhonInt_expert'],
+    vartype="integer",
+    defaultval=0,
+    dimensions="scalar",
+    mnemonics="EPH PRINT spectral decomposition of SCATTERING RATES as a function of omega phonon.",
+    added_in_version="9.6.7",
+    text=r"""
+This variable can be used to compute the spectral decomposition of the SERTA/MRTA scattering rates
+in terms of an integral over phonon frequencies:
+
+$$
+1/tau_{n\kk} = \int_0^\infty f_{n\kk}(\ww)\dd\ww
+$$
+
+This option is available only when computing the imaginary part of the e-ph self-energy ([[eph_task]] = -4).
+The values of $f_{n\kk}(\ww)$ are stored in the SIGEPH file (scratew netcdf variable).
+
+The delta function $\delta(\omega - \omega_{\qnu})$ is approximated with a gaussian of standard deviation [[ph_smear]]
+and the spectral decomposition is evaluated on a linear mesh of step [[ph_wstep]] covering the entire vibrational spectrum.
 """,
 ),
 
@@ -22720,7 +22875,7 @@ Variable(
 This variable allows one to save memory in the RMM-DIIS eigensolver when [[rmm_diis]] /= 0.
 By default, the RMM-DIIS routine allocates two extra arrays to reduce the number of applications of the Hamiltonian.
 The size of these arrays depends on the number of plane-waves treated by each processor and [[nband]].
-The amount of memory scales with [[npband]] and [[npfft] yet this extra memory is not negligible and the code
+The amount of memory scales with [[npband]] and [[npfft]] yet this extra memory is not negligible and the code
 may go out of memory for large systems.
 In this case, one can use [[rmm_diis_savemem]] = 1 to activate a version of RMM-DIIS that avoids these extra allocations.
 """,
@@ -22740,16 +22895,16 @@ Enables the calculation of contributions to the energy, entropy, stresses,
 number of electrons and chemical potential using the extended first principle
 molecular dynamics model for high temperature simulations.
 
-  * **useextfpmd** = 1 *(Recommanded)*, the energy shift factor will be evaluated
+  * **useextfpmd** = 1 *(Recommanded)*, the energy shift will be evaluated
 by making an integration of the trial potential over the real space and the
 contributions will be computed with integrals over the band number.
 
-  * **useextfpmd** = 2, the energy shift factor will be evaluated by making
+  * **useextfpmd** = 2, the energy shift will be evaluated by making
 the average between the eigenvalues and the Fermi gas energy over the last
 [[extfpmd_nbcut]] bands, and the contributions will be computed with integrals
 over the band number.
 
-  * **useextfpmd** = 3, the energy shift factor will be evaluated by making the
+  * **useextfpmd** = 3, the energy shift will be evaluated by making the
 average between the eigenvalues and the kinetic energies over the last
 [[extfpmd_nbcut]] bands, and the contributions will be computed using the
 density of states of the Fermi gas.
@@ -22766,8 +22921,8 @@ Variable(
     mnemonics="EXTended FPMD: Number of Bands at CUT",
     added_in_version="9.5.2",
     text=r"""
-Specify the number of bands to use when averaging over last bands to get the
-energy shift factor when [[useextfpmd]] = 2 or 3.
+Specifies the number of bands to use when averaging over last bands to get the
+energy shift when [[useextfpmd]] = 2 or 3.
 
 **extfpmd_nbcut** must be less than [[nband]].
 """,
@@ -22826,6 +22981,198 @@ self-consistent QS$GW$ or $G_0W_0$ starting from a hybrid-functional starting po
 * 1 --> Keep the old implementation.
 
 See line 743 in src/95_drive/screening.F90 .
+""",
+),
+
+Variable(
+    abivarname="gstore_cplex",
+    varset="eph",
+    vartype="integer",
+    topics=['ElPhonInt_basic'],
+    dimensions="scalar",
+    defaultval=2,
+    mnemonics=r"GSTORE ComPLEX dimension",
+    requires="[[optdriver]] == 7",
+    added_in_version="9.6.2",
+    text=r"""
+This input variable specifies whether the EPH code should store $|g|^2$ or $g$
+when computing the e-ph matrix elements ([[eph_task]] == 11)
+Possible values are:
+
+    1 --> compute and store $|g|^2$ in GSTORE.nc.
+          Use this option to reduce the size of the file but keep in mind
+          that the GSTORE can only be used to compute expression in which
+          only $|g|^2$ is needed.
+    2 --> compute and store complex $g$ in GSTORE.nc (default)
+""",
+),
+
+Variable(
+    abivarname="gstore_with_vk",
+    varset="eph",
+    vartype="integer",
+    topics=['ElPhonInt_basic'],
+    dimensions="scalar",
+    defaultval=1,
+    mnemonics=r"GSTORE WITH Velocity_k",
+    requires="[[optdriver]] == 7",
+    added_in_version="9.6.2",
+    text=r"""
+This input variable specifies whether the EPH code should compute and store
+the matrix elements of the velocity operator when computing the e-ph matrix elements ([[eph_task]] == 11)
+Possible values are:
+
+    0 --> Do not compute velocity matrix elements
+    1 --> compute and store the diagonal matrix elements (default)
+    2 --> compute and store diagonal + off-diagonal terms.
+""",
+),
+
+Variable(
+    abivarname="gstore_kzone",
+    varset="eph",
+    vartype="string",
+    topics=['ElPhonInt_basic'],
+    dimensions="scalar",
+    defaultval="ibz",
+    mnemonics=r"GSTORE K-point ZONE",
+    requires="[[optdriver]] == 7",
+    added_in_version="9.6.2",
+    text=r"""
+This input variable specifies whether the EPH code should compute the $g(\kk, \qq)$
+matrix elements for $\kk$ in the IBZ or in the BZ.
+
+!!! important
+
+    The combination [[gstore_kzone]] = "ibz" with [[gstore_qzone]] = "ibz" is not allowed.
+    One usually restricts one wavevector to the IBZ while the other wavevector covers the full BZ.
+    Using the BZ for both $\kk$ and $\qq$ is usually used for testing purposes.
+""",
+),
+
+Variable(
+    abivarname="gstore_qzone",
+    varset="eph",
+    vartype="string",
+    topics=['ElPhonInt_basic'],
+    dimensions="scalar",
+    defaultval="bz",
+    mnemonics=r"GSTORE Q-point ZONE",
+    requires="[[optdriver]] == 7",
+    added_in_version="9.6.2",
+    text=r"""
+This input variable specifies whether the EPH code should compute the $g(\kk, \qq)$
+e-ph matrix elements for $\qq$ in the IBZ or in the BZ.
+
+!!! important
+
+    The combination [[gstore_kzone]] = "ibz" with [[gstore_qzone]] = "ibz" is not allowed.
+    One usually restricts one wavevector to the IBZ while the other wavevector covers the full BZ.
+    Using the BZ for both $\kk$ and $\qq$ is usually used for testing purposes.
+""",
+),
+
+Variable(
+    abivarname="gstore_kfilter",
+    varset="eph",
+    vartype="string",
+    topics=['ElPhonInt_basic'],
+    dimensions="scalar",
+    defaultval="none",
+    mnemonics=r"GSTORE K-FILTER",
+    requires="[[optdriver]] == 7",
+    added_in_version="9.6.2",
+    text=r"""
+This input variable can be used to introduce a filter in the electronic wavevectors (k and k+q)
+when computing the e-ph matrix elements with [[eph_task]] == 11.
+Possible values are:
+
+    "none" --> No filter is applied.
+    "fs_tetra" --> Use tetrahedron method to filter k/k+q states on the Fermi surface.
+
+Note that it is possible to use another filter based on the position of the energy states wrt to either
+the CBM/VBM or the position wrt to the Fermi level via [[gstore_erange]].
+""",
+),
+
+Variable(
+    abivarname="gstore_brange",
+    varset="eph",
+    vartype="int",
+    topics=['ElPhonInt_basic'],
+    dimensions=[2, "[[nsppol]]"],
+    defaultval=0,
+    mnemonics=r"GSTORE Band RANGE",
+    requires="[[optdriver]] == 7",
+    added_in_version="9.6.2",
+    text=r"""
+This input variable can be used to specify the band range
+when computing the GSTORE.nc file with [[eph_task]] == 11.
+The first entry gives the first band to be included while the second index specifies the last band.
+
+Note that the array depends on the value of [[nsppol]] thus one has to provide four integers for the
+two different spin channels when [[nsppol]] == 2.
+
+If not specified in input, ABINIT will use all the bands from 1 up to the maximum number of bands
+unless additional filters are activated, see [[gstore_kfilter]] and [[gstore_erange]].
+""",
+),
+
+Variable(
+    abivarname="getgstore_filepath",
+    varset="eph",
+    vartype="string",
+    topics=['ElPhonInt_basic'],
+    dimensions="scalar",
+    defaultval="None",
+    mnemonics="GET the GSTORE.nc from FILEPATH",
+    requires="[[optdriver]] == 7",
+    added_in_version="9.6.2",
+    text=r"""
+This variable defines the path of the GSTORE.nc file with the e-ph matrix elements
+that should be used as input for further analysis.
+
+This variable can also be used when [[eph_task]] == 11 i.e. when we compute the GSTORE file.
+In this case, the code assumes we want to restart a GSTORE calculation and only the (k, q) entries
+that are missing in the nc file are computed.
+This option is very useful if the previous job has been killed due to timeout limit.
+""",
+),
+
+Variable(
+    abivarname="gstore_erange",
+    varset="eph",
+    vartype="real",
+    topics=['ElPhonInt_basic'],
+    dimensions=[2, "[[nsppol]]"],
+    characteristics=['[[ENERGY]]'],
+    requires="[[optdriver]] == 7",
+    mnemonics="GSTORE Energy  RANGE",
+    added_in_version="9.6.2",
+    text=r"""
+This variable is used when [[eph_task]] = 11 to define the k/q points that should be considered when
+producing the GSTORE.nc file
+This variable consists of two x [[nsppol]] entries that allow one to select the k-points and the bands
+on the basis of their KS energy $\ee_\nk$.
+
+If both entries in [[gstore_erange]] are negative, the code assumes a metal and only states within the energy
+window [efermi - abs(gstore_erange(1)), efermi + abs(gstore_erange(2)] are included in the calculation.
+
+Positive (or zero) values are used in semiconductors to define an energy range with respect to the band edges.
+In this case, the first entry given the position of the holes with respect to the CBM while the second entry
+gives the position of electrons with respect to the VBM (energy differences are **always positive**, even for holes).
+A zero entry can be used to exclude either holes or electrons from the calculation.
+
+If both entries are zero, the variable is ignored.
+Note that [[gstore_erange]] is not compatible with [[gstore_brange]].
+
+!!! important
+
+    By default, this variable is given in Hartree. Use e.g.
+
+        gstore_erange 0.0 0.5 eV
+
+    to specify the energy intervals in eV units. meV is supported as well.
 """,
 ),
 
