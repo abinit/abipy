@@ -309,6 +309,9 @@ Usage example:
         else:
             p.add_argument('filepath', default="", help="Path to the input/output file")
 
+        from abipy.core.release import __version__
+        p.add_argument('-V', '--version', action='version', version=__version__)
+
         return p
 
     copts_parser = get_copts_parser(multi=False)

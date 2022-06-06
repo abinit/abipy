@@ -4,7 +4,7 @@ e-ph scattering potentials
 ==========================
 
 This example shows how to compute e-ph scattering potentials
-along a q-path, merge the POT files in the DVDB file and use the
+along a q-path, merge the POT files in the DVDB file and finally use the
 DVDB and the DDB file to analyze the average over the unit cell of the
 periodic part as a function of q
 """

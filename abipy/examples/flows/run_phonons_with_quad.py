@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Dynamical quadrupoles
-=====================
+Phonons + Dynamical quadrupoles
+===============================
 
 This example shows how to compute the dynamical matrix of GaP on user-defined q-mesh
 including Born effective charges, the macroscopic dielectric matric and the dynamical quadrupoles Q*.

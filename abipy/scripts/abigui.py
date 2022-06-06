@@ -19,6 +19,8 @@ Usage example:
 
     abigui.py --verbose
     abigui.py --num_procs 4 --has-remote-server  => Options used for gui.abinit.org
+
+NB: To deploy the GUI, use the ~abipy/dev_scripts/deploy_abigui.sh script.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
