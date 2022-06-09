@@ -7,6 +7,7 @@ from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
 from abipy.abio.factories import (BandsFromGsFactory, IoncellRelaxFromGsFactory, HybridOneShotFromGsFactory,
     ScfForPhononsFactory, PhononsFromGsFactory, PiezoElasticFactory, PiezoElasticFromGsFactory, ShiftMode)
+from abipy.abio.factories import _find_nscf_nband_from_gsinput
 import json
 
 write_inputs_to_json = False
@@ -21,6 +22,38 @@ class ShiftModeTest(AbipyTest):
         assert ShiftMode.from_object(gamma) == gamma
         with self.assertRaises(TypeError):
             ShiftMode.from_object({})
+
+
+class HelperTest(AbipyTest):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.si_structure = abidata.structure_from_cif("si.cif")
+        cls.si_pseudo = abidata.pseudos("14si.pspnc")
+
+    def test_find_nscf_nband_from_gsinput(self):
+        gsi = AbinitInput(self.si_structure, self.si_pseudo)
+        gsi.set_vars(nband=100)
+        assert _find_nscf_nband_from_gsinput(gsi) == 110
+
+        gsi = AbinitInput(self.si_structure, self.si_pseudo)
+        gsi.set_vars(occopt=1, nsppol=1)
+        assert _find_nscf_nband_from_gsinput(gsi) == 18
+
+        sc4 = self.si_structure.copy()
+        sc4.make_supercell([4, 4, 4])
+        gsi = AbinitInput(sc4, self.si_pseudo)
+        gsi.set_vars(occopt=1, nsppol=1)
+        assert _find_nscf_nband_from_gsinput(gsi) == 292
+
+        gsi.set_vars(occopt=3)
+        assert _find_nscf_nband_from_gsinput(gsi) == 318
+
+        gsi.set_vars(nsppol=2)
+        assert _find_nscf_nband_from_gsinput(gsi) == 318
+
+        gsi.set_vars(spinat=[[0, 0, 1]] * len(sc4))
+        assert _find_nscf_nband_from_gsinput(gsi) == 382
 
 
 class FactoryTest(AbipyTest):

@@ -154,6 +154,34 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
     return int(nband)
 
 
+def _find_nscf_nband_from_gsinput(gs_input: AbinitInput) -> int:
+    """
+    Find the value of nband for a NSCF calculation based on the input of a previous gs calculation.
+
+    Args:
+        gs_input (AbinitInput): the ground state input.
+
+    Returns:
+        the value of nband.
+    """
+    scf_nband = gs_input.get("nband")
+    if scf_nband is None:
+        occopt = gs_input.get("occopt", 1)
+        tsmear = gs_input.get("tsmear", 0.01)
+        smearing = aobj.Smearing(occopt, tsmear)
+
+        # only nsppol is used in _find_scf_nband, so just set that with a meaningful value
+        nsppol = gs_input.get("nsppol", 1)
+        spin_mode = aobj.SpinMode(mode="test", nsppol=nsppol, nspinor=1, nspden=nsppol)
+
+        charge = gs_input.get("charge", 0)
+        electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, charge=charge)
+        spinat = gs_input.get('spinat', None)
+        scf_nband = _find_scf_nband(gs_input.structure, gs_input.pseudos, electrons, spinat)
+
+    return scf_nband + 10
+
+
 def _get_shifts(shift_mode: str, structure: Structure):
     """
     Gives the shifts based on the selected shift mode and on the symmetry of the structure.
@@ -1153,7 +1181,7 @@ def ebands_from_gsinput(gs_input, nband=None, ndivsm=15, accuracy="normal") -> A
 
     nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, gs_input.structure)
     if nband is None:
-        nband = gs_input.get("nband", gs_input.structure.num_valence_electrons(gs_input.pseudos)) + 10
+        nband = _find_nscf_nband_from_gsinput(gs_input)
 
     bands_input.set_vars(nscf_ksampling.to_abivars())
     bands_input.set_vars(nband=nband, iscf=-2)
@@ -1170,7 +1198,11 @@ def dos_from_gsinput(gs_input, dos_kppa, nband=None, accuracy="normal", pdos=Fal
 
     dos_ksampling = aobj.KSampling.automatic_density(dos_input.structure, dos_kppa, chksymbreak=0)
     dos_input.set_vars(dos_ksampling.to_abivars())
-    dos_input.set_vars(iscf=-2, ionmov=0)
+
+    if nband is None:
+        nband = _find_nscf_nband_from_gsinput(gs_input)
+
+    dos_input.set_vars(nband=nband, iscf=-2)
     dos_input.set_vars(_stopping_criterion("nscf", accuracy))
 
     if pdos:
@@ -1235,13 +1267,17 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
                     spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
                     shift_mode="Symmetric"):
 
+    # add the band for nbdbuf, if needed
+    nbdbuf = 4
+    if nband is not None:
+        nband += nbdbuf
+
     abiinput = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, nband=nband,
                          accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
                          scf_algorithm=scf_algorithm, shift_mode=shift_mode)
 
-    nbdbuf = 4
-    # with no smearing set the minimum number of bands plus some nbdbuf
-    if smearing is None:
+    # with no bands set and no smearing the minimum number of bands plus some nbdbuf
+    if nband is None and smearing is None:
         nval = structure.num_valence_electrons(pseudos)
         nval -= abiinput['charge']
         nband = int(round(nval / 2) + nbdbuf)
