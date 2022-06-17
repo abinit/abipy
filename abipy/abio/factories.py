@@ -313,32 +313,16 @@ def ion_ioncell_relax_input(structure, pseudos,
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for the solution of the SCF cycle.
     """
-    structure = Structure.as_structure(structure)
-    multi = MultiDataset(structure, pseudos, ndtset=2)
-
-    # Set the cutoff energies.
-    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos, accuracy))
-
-    kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
-
-    shift_mode = ShiftMode.from_object(shift_mode)
-    shifts = _get_shifts(shift_mode, structure)
-    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
-    electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
-                               charge=charge, nband=nband, fband=None)
-
-    if spin_mode == "polarized":
-        spinat_dict = multi[0].set_autospinat()
-        multi[1].set_vars(spinat_dict)
-
-    if electrons.nband is None:
-        electrons.nband = _find_scf_nband(structure, multi.pseudos, electrons, multi[0].get('spinat', None))
+    # Scf options
+    inp = scf_input(structure=structure, pseudos=pseudos, kppa=kppa,
+                    ecut=ecut, pawecutdg=pawecutdg, nband=nband,
+                    accuracy=accuracy, spin_mode=spin_mode, smearing=smearing,
+                    charge=charge, scf_algorithm=scf_algorithm, shift_mode=shift_mode)
+    # Relaxation-specific options
+    multi = MultiDataset.replicate_input(inp, ndtset=2)
 
     ion_relax = aobj.RelaxationMethod.atoms_only(atoms_constraints=None)
     ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)
-
-    multi.set_vars(electrons.to_abivars())
-    multi.set_vars(ksampling.to_abivars())
 
     multi[0].set_vars(ion_relax.to_abivars())
     multi[0].set_vars(_stopping_criterion("relax", accuracy))
