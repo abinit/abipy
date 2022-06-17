@@ -93,6 +93,15 @@ class FactoryTest(AbipyTest):
         self.assertIn('ion_relax', ion_inp.runlevel)
         self.assertIn('relax', ion_inp.runlevel)
         self.assertIn('ground_state', ion_inp.runlevel)
+
+        if write_inputs_to_json:
+            with open('ion_ioncell_relax_ion_input.json', mode='w') as fp:
+                json.dump(ion_inp.as_dict(), fp, indent=2)
+            with open('ion_ioncell_relax_ioncell_input.json', mode='w') as fp:
+                json.dump(ioncell_inp.as_dict(), fp, indent=2)
+
+        self.assert_input_equality('ion_ioncell_relax_ion_input.json', ion_inp)
+        self.assert_input_equality('ion_ioncell_relax_ioncell_input.json', ioncell_inp)
         flow = Flow.temporary_flow()
         flow.register_work(RelaxWork(ion_inp, ioncell_inp))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
