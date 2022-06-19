@@ -1162,15 +1162,18 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
     return abinit_input
 
 
-def ebands_from_gsinput(gs_input, nband=None, ndivsm=15, accuracy="normal") -> AbinitInput:
+def ebands_from_gsinput(gs_input, nband=None, ndivsm=15, accuracy="normal",
+                        projection=None) -> AbinitInput:
     """
     Return an |AbinitInput| object to compute a band structure from a GS SCF input.
 
     Args:
-        gs_input:
-        nband:
-        ndivsm:
-        accuracy:
+        gs_input: the |AbinitInput| that was used to calculated the charge density.
+        nband: the number of bands to be used for the calculation. If None it will be
+            automatically generated.
+        ndivsm: Number of divisions used to sample the smallest segment of the k-path.
+        accuracy: Accuracy of the calculation.
+        projection: which projection should be performed. If None no projection, otherwise "l" or "lm"
 
     Return: |AbinitInput|
     """
@@ -1187,27 +1190,94 @@ def ebands_from_gsinput(gs_input, nband=None, ndivsm=15, accuracy="normal") -> A
     bands_input.set_vars(nband=nband, iscf=-2)
     bands_input.set_vars(_stopping_criterion("nscf", accuracy))
 
+    if projection is not None:
+        if "l" in projection:
+            bands_input.set_vars(prtdos=3)
+        if "m" in projection:
+            bands_input.set_vars(prtdosm=1)
+
     return bands_input
 
 
-def dos_from_gsinput(gs_input, dos_kppa, nband=None, accuracy="normal", pdos=False):
+def nscf_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal",
+                      shift_mode="Monkhorst-Pack") -> AbinitInput:
+    """
+    Return an |AbinitInput| object to perform a NSCF calculation from a GS SCF input.
 
+    Args:
+        gs_input: the |AbinitInput| that was used to calculated the charge density.
+        kppa: defines the kpt sampling used for the NSCF run. If None the kpoint sampling and
+            shifts will be the same as in the SCF input.
+        nband: the number of bands to be used for the calculation. If None it will be
+            automatically generated.
+        accuracy: accuracy of the calculation.
+        shift_mode: the mode to be used for the shifts. Options are "Gamma", "Monkhorst-Pack",
+            "Symmetric", "OneSymmetric". See ShiftMode object for more details. Only used if kppa
+            is not None.
+
+    Return: |AbinitInput|
+    """
     # create a copy to avoid messing with the previous input
-    dos_input = gs_input.deepcopy()
-    dos_input.pop_irdvars()
+    nscf_input = gs_input.deepcopy()
+    nscf_input.pop_irdvars()
 
-    dos_ksampling = aobj.KSampling.automatic_density(dos_input.structure, dos_kppa, chksymbreak=0)
-    dos_input.set_vars(dos_ksampling.to_abivars())
+    if kppa is not None:
+        shift_mode = ShiftMode.from_object(shift_mode)
+        shifts = _get_shifts(shift_mode, gs_input.structure)
+        dos_ksampling = aobj.KSampling.automatic_density(nscf_input.structure, kppa, chksymbreak=0, shifts=shifts)
+        nscf_input.set_vars(dos_ksampling.to_abivars())
 
     if nband is None:
         nband = _find_nscf_nband_from_gsinput(gs_input)
 
-    dos_input.set_vars(nband=nband, iscf=-2)
-    dos_input.set_vars(_stopping_criterion("nscf", accuracy))
+    nscf_input.set_vars(nband=nband, iscf=-2)
+    nscf_input.set_vars(_stopping_criterion("nscf", accuracy))
 
-    if pdos:
-        # FIXME
-        raise NotImplementedError()
+    return nscf_input
+
+
+def dos_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal", dos_method="tetra",
+                     projection="l", shift_mode="Monkhorst-Pack") -> AbinitInput:
+    """
+    Return an |AbinitInput| object to perform a DOS calculation from a GS SCF input.
+
+    Args:
+        gs_input: the |AbinitInput| that was used to calculated the charge density.
+        kppa: defines the kpt sampling used for the NSCF run. If None the kpoint sampling and
+            shifts will be the same as in the SCF input.
+        nband: the number of bands to be used for the calculation. If None it will be
+            automatically generated.
+        accuracy: accuracy of the calculation.
+        dos_method: method to calculate the DOS in abinit (NB: not the one used from postprocessing
+            in abipy). Set to "tetra" for the tetrahedron method (prtdos 2 or 3). If "smearing",
+            occopt and tsmear will be taken from gs_input else a "smearing-type: smearing value"
+            (prtdos 1 or 4).
+        projection: which projection should be performed. If None no projection, otherwise "l" or "lm"
+        shift_mode: the mode to be used for the shifts. Options are "Gamma", "Monkhorst-Pack",
+            "Symmetric", "OneSymmetric". See ShiftMode object for more details. Only used if kppa
+            is not None.
+
+    Return: |AbinitInput|
+    """
+    dos_input = nscf_from_gsinput(gs_input, kppa=kppa, nband=nband, accuracy=accuracy, shift_mode=shift_mode)
+
+    if dos_method == "tetra":
+        if projection is not None and "l" in projection:
+            dos_input.set_vars(prtdos=3)
+        else:
+            dos_input.set_vars(prtdos=2)
+    else:
+        if dos_method != "smearing":
+            smear_obj = aobj.Smearing.as_smearing(dos_method)
+            dos_input.set_vars(smear_obj.to_abivars())
+
+        if projection is not None and "l" in projection.lower():
+            dos_input.set_vars(prtdos=4)
+        else:
+            dos_input.set_vars(prtdos=1)
+
+    if projection is not None and "m" in projection.lower():
+        dos_input.set_vars(prtdosm=1)
 
     return dos_input
 

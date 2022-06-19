@@ -372,16 +372,34 @@ class FactoryTest(AbipyTest):
         inp["ecut"] = 2
         self.abivalidate_input(inp)
 
-    def test_ebands_dos_from_gsinput(self):
+    def test_nscf_ebands_dos_from_gsinput(self):
         """Testing ebands_from_gsinput and dos_from_gsinput"""
-        from abipy.abio.factories import ebands_from_gsinput, dos_from_gsinput
+        from abipy.abio.factories import ebands_from_gsinput, dos_from_gsinput, nscf_from_gsinput
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
+
+        nscf_inp = nscf_from_gsinput(gs_inp, kppa=None, nband=120)
+        self.assertArrayEqual(gs_inp["ngkpt"], nscf_inp["ngkpt"])
+        self.assertEqual(nscf_inp["nband"], 120)
+
         ebands_inp = ebands_from_gsinput(gs_inp, nband=None, ndivsm=15, accuracy="normal")
         self.abivalidate_input(ebands_inp)
 
+        ebands_inp = ebands_from_gsinput(gs_inp, nband=None, ndivsm=15, accuracy="normal", projection="lm")
+        self.assertEqual(ebands_inp["prtdos"], 3)
+        self.assertEqual(ebands_inp["prtdosm"], 1)
+
         dos_kppa = 3000
-        edos_inp = dos_from_gsinput(gs_inp, dos_kppa, nband=None, accuracy="normal", pdos=False)
+        edos_inp = dos_from_gsinput(gs_inp, dos_kppa, nband=None, accuracy="normal")
         self.abivalidate_input(edos_inp)
+
+        edos_inp = dos_from_gsinput(gs_inp, dos_method="smearing", projection="lm")
+        self.assertEqual(gs_inp["occopt"], edos_inp["occopt"])
+        self.assertEqual(edos_inp["prtdos"], 4)
+        self.assertEqual(edos_inp["prtdosm"], 1)
+
+        edos_inp = dos_from_gsinput(gs_inp, dos_method="marzari5: 0.01 eV", projection="l")
+        self.assertEqual(edos_inp["occopt"], 5)
+        self.assertNotIn("prtdosm", edos_inp)
 
         factory_obj = BandsFromGsFactory(nband=None, ndivsm=15, accuracy="normal")
         self.assertMSONable(factory_obj)
