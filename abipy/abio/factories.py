@@ -1190,11 +1190,14 @@ def ebands_from_gsinput(gs_input, nband=None, ndivsm=15, accuracy="normal",
     bands_input.set_vars(nband=nband, iscf=-2)
     bands_input.set_vars(_stopping_criterion("nscf", accuracy))
 
-    if projection is not None:
-        if "l" in projection:
-            bands_input.set_vars(prtdos=3)
-        if "m" in projection:
-            bands_input.set_vars(prtdosm=1)
+    if projection is None:
+        pass
+    elif projection == "l":
+        bands_input.set_vars(prtdos=3)
+    elif projection == "lm":
+        bands_input.set_vars(prtdos=3, prtdosm=1)
+    else:
+        raise ValueError(f"Unrecognized value for projection: {projection}")
 
     return bands_input
 
@@ -1262,19 +1265,27 @@ def dos_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal", dos_met
     dos_input = nscf_from_gsinput(gs_input, kppa=kppa, nband=nband, accuracy=accuracy, shift_mode=shift_mode)
 
     if dos_method == "tetra":
-        if projection is not None and "l" in projection:
-            dos_input.set_vars(prtdos=3)
-        else:
+        if projection is None:
             dos_input.set_vars(prtdos=2)
+        elif projection == "l":
+            dos_input.set_vars(prtdos=3)
+        elif projection == "lm":
+            dos_input.set_vars(prtdos=3, prtdosm=1)
+        else:
+            ValueError(f"Unrecognized value for projection: {projection}")
     else:
         if dos_method != "smearing":
             smear_obj = aobj.Smearing.as_smearing(dos_method)
             dos_input.set_vars(smear_obj.to_abivars())
 
-        if projection is not None and "l" in projection.lower():
-            dos_input.set_vars(prtdos=4)
-        else:
+        if projection is None:
             dos_input.set_vars(prtdos=1)
+        elif projection == "l":
+            dos_input.set_vars(prtdos=4)
+        elif projection == "lm":
+            raise ValueError("lm projection is only allowed for dos_method 'tetra'")
+        else:
+            ValueError(f"Unrecognized value for projection: {projection}")
 
     if projection is not None and "m" in projection.lower():
         dos_input.set_vars(prtdosm=1)

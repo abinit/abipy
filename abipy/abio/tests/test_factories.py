@@ -392,10 +392,12 @@ class FactoryTest(AbipyTest):
         edos_inp = dos_from_gsinput(gs_inp, dos_kppa, nband=None, accuracy="normal")
         self.abivalidate_input(edos_inp)
 
-        edos_inp = dos_from_gsinput(gs_inp, dos_method="smearing", projection="lm")
+        edos_inp = dos_from_gsinput(gs_inp, dos_method="smearing", projection="l")
         self.assertEqual(gs_inp["occopt"], edos_inp["occopt"])
         self.assertEqual(edos_inp["prtdos"], 4)
-        self.assertEqual(edos_inp["prtdosm"], 1)
+
+        with self.assertRaises(ValueError):
+            edos_inp = dos_from_gsinput(gs_inp, dos_method="smearing", projection="lm")
 
         edos_inp = dos_from_gsinput(gs_inp, dos_method="marzari5: 0.01 eV", projection="l")
         self.assertEqual(edos_inp["occopt"], 5)
