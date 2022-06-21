@@ -423,6 +423,40 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
     return relax_multi + ebands_multi
 
 
+def scr_from_nscfinput(nscf_input, nband=None, ecuteps=3.0, ecutwfn=None, inclvkb=2, w_type="RPA", sc_mode="one_shot", hilbert=None, accuracy="normal"):
+    scr_input = nscf_input.deepcopy()
+    scr_input.pop_irdvars()
+    if nband is None:
+        nband = nscf_input.get("nband")
+    screening = aobj.Screening(ecuteps, nband, w_type=w_type, sc_mode=sc_mode,
+                               hilbert=hilbert, ecutwfn=ecutwfn, inclvkb=inclvkb)
+
+    scr_input.set_vars(screening.to_abivars())
+    scr_input.set_vars(_stopping_criterion("screening", accuracy))  # Dummy
+
+    return scr_input
+
+
+def sigma_from_inputs(nscf_input, scr_input, nband=None, ecutwfn=None, ecuteps=None, ecutsigx=None, ppmodel="godby", gw_qprange=1, accuracy="normal"):
+    self_input = nscf_input.deepcopy()
+    self_input.pop_irdvars()
+    if nband is None:
+        nband = nscf_input.get("nband")
+    screening = aobj.Screening(ecuteps=scr_input["ecuteps"], nband=scr_input["nband"],
+                               w_type="RPA",
+                               sc_mode="one_shot",
+                               hilbert=None,
+                               ecutwfn=scr_input["ecutwfn"],)
+    ecuteps = ecuteps if ecuteps is not None else screening.ecuteps
+    self_energy = aobj.SelfEnergy(se_type="gw", sc_mode="one_shot", nband=nband, ecutsigx=ecutsigx, screening=screening,
+                                  gw_qprange=gw_qprange, ppmodel=ppmodel, ecuteps=ecuteps, ecutwfn=ecutwfn, gwpara=2)
+
+    self_input.set_vars(self_energy.to_abivars())
+    self_input.set_vars(_stopping_criterion("sigma", accuracy))  # Dummy
+
+    return self_input
+
+
 def g0w0_with_ppmodel_inputs(structure, pseudos,
                              kppa, nscf_nband, ecuteps, ecutsigx,
                              ecut=None, pawecutdg=None, shifts=(0.0, 0.0, 0.0),
