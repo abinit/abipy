@@ -293,6 +293,8 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(TypeError):
             ElectronDos.as_edos({}, {})
 
+        assert si_ebands_kmesh.to_pymatgen()
+
         mu = si_edos.find_mu(8)
         imu = si_edos.tot_idos.find_mesh_index(mu)
         self.assert_almost_equal(si_edos.tot_idos[imu][1], 8, decimal=2)
