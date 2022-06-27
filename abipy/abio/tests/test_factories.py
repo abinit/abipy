@@ -7,6 +7,7 @@ from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
 from abipy.abio.factories import (BandsFromGsFactory, IoncellRelaxFromGsFactory, HybridOneShotFromGsFactory,
     ScfForPhononsFactory, PhononsFromGsFactory, PiezoElasticFactory, PiezoElasticFromGsFactory, ShiftMode)
+from abipy.abio.factories import _find_nscf_nband_from_gsinput
 import json
 
 write_inputs_to_json = False
@@ -21,6 +22,38 @@ class ShiftModeTest(AbipyTest):
         assert ShiftMode.from_object(gamma) == gamma
         with self.assertRaises(TypeError):
             ShiftMode.from_object({})
+
+
+class HelperTest(AbipyTest):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.si_structure = abidata.structure_from_cif("si.cif")
+        cls.si_pseudo = abidata.pseudos("14si.pspnc")
+
+    def test_find_nscf_nband_from_gsinput(self):
+        gsi = AbinitInput(self.si_structure, self.si_pseudo)
+        gsi.set_vars(nband=100)
+        assert _find_nscf_nband_from_gsinput(gsi) == 110
+
+        gsi = AbinitInput(self.si_structure, self.si_pseudo)
+        gsi.set_vars(occopt=1, nsppol=1)
+        assert _find_nscf_nband_from_gsinput(gsi) == 18
+
+        sc4 = self.si_structure.copy()
+        sc4.make_supercell([4, 4, 4])
+        gsi = AbinitInput(sc4, self.si_pseudo)
+        gsi.set_vars(occopt=1, nsppol=1)
+        assert _find_nscf_nband_from_gsinput(gsi) == 292
+
+        gsi.set_vars(occopt=3)
+        assert _find_nscf_nband_from_gsinput(gsi) == 318
+
+        gsi.set_vars(nsppol=2)
+        assert _find_nscf_nband_from_gsinput(gsi) == 318
+
+        gsi.set_vars(spinat=[[0, 0, 1]] * len(sc4))
+        assert _find_nscf_nband_from_gsinput(gsi) == 382
 
 
 class FactoryTest(AbipyTest):
@@ -348,16 +381,36 @@ class FactoryTest(AbipyTest):
         inp["ecut"] = 2
         self.abivalidate_input(inp)
 
-    def test_ebands_dos_from_gsinput(self):
+    def test_nscf_ebands_dos_from_gsinput(self):
         """Testing ebands_from_gsinput and dos_from_gsinput"""
-        from abipy.abio.factories import ebands_from_gsinput, dos_from_gsinput
+        from abipy.abio.factories import ebands_from_gsinput, dos_from_gsinput, nscf_from_gsinput
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
+
+        nscf_inp = nscf_from_gsinput(gs_inp, kppa=None, nband=120)
+        self.assertArrayEqual(gs_inp["ngkpt"], nscf_inp["ngkpt"])
+        self.assertEqual(nscf_inp["nband"], 120)
+
         ebands_inp = ebands_from_gsinput(gs_inp, nband=None, ndivsm=15, accuracy="normal")
         self.abivalidate_input(ebands_inp)
 
+        ebands_inp = ebands_from_gsinput(gs_inp, nband=None, ndivsm=15, accuracy="normal", projection="lm")
+        self.assertEqual(ebands_inp["prtdos"], 3)
+        self.assertEqual(ebands_inp["prtdosm"], 1)
+
         dos_kppa = 3000
-        edos_inp = dos_from_gsinput(gs_inp, dos_kppa, nband=None, accuracy="normal", pdos=False)
+        edos_inp = dos_from_gsinput(gs_inp, dos_kppa, nband=None, accuracy="normal")
         self.abivalidate_input(edos_inp)
+
+        edos_inp = dos_from_gsinput(gs_inp, dos_method="smearing", projection="l")
+        self.assertEqual(gs_inp["occopt"], edos_inp["occopt"])
+        self.assertEqual(edos_inp["prtdos"], 4)
+
+        with self.assertRaises(ValueError):
+            edos_inp = dos_from_gsinput(gs_inp, dos_method="smearing", projection="lm")
+
+        edos_inp = dos_from_gsinput(gs_inp, dos_method="marzari5: 0.01 eV", projection="l")
+        self.assertEqual(edos_inp["occopt"], 5)
+        self.assertNotIn("prtdosm", edos_inp)
 
         factory_obj = BandsFromGsFactory(nband=None, ndivsm=15, accuracy="normal")
         self.assertMSONable(factory_obj)

@@ -4741,6 +4741,17 @@ class ElectronDos(object):
 
         return fig
 
+    def to_pymatgen(self):
+        """
+        Return a pymatgen DOS object from an Abipy |ElectronDos| object.
+        """
+
+        from pymatgen.electronic_structure.dos import Dos
+        den = {s: d.values for d, s in zip(self.spin_dos, [PmgSpin.up, PmgSpin.down])}
+        pmg_dos = Dos(energies=self.spin_dos[0].mesh, densities=den, efermi=self.fermie)
+
+        return pmg_dos
+
 
 class ElectronDosPlotter(NotebookWriter):
     """
