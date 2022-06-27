@@ -1,0 +1,219 @@
+{
+  "structure": {
+    "@module": "abipy.core.structure",
+    "@class": "Structure",
+    "charge": 0.0,
+    "lattice": {
+      "matrix": [
+        [
+          3.3488982567096763,
+          0.0,
+          1.9334873100000005
+        ],
+        [
+          1.1162994189032256,
+          3.1573715557642927,
+          1.9334873100000005
+        ],
+        [
+          0.0,
+          0.0,
+          3.86697462
+        ]
+      ],
+      "a": 3.86697462,
+      "b": 3.86697462,
+      "c": 3.86697462,
+      "alpha": 59.99999999999999,
+      "beta": 59.99999999999999,
+      "gamma": 59.99999999999999,
+      "volume": 40.88829179346891
+    },
+    "sites": [
+      {
+        "species": [
+          {
+            "element": "Si",
+            "occu": 1.0
+          }
+        ],
+        "abc": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "xyz": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "label": "Si",
+        "properties": {}
+      },
+      {
+        "species": [
+          {
+            "element": "Si",
+            "occu": 1.0
+          }
+        ],
+        "abc": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "xyz": [
+          1.1162994189032256,
+          0.7893428889410732,
+          1.9334873100000003
+        ],
+        "label": "Si",
+        "properties": {}
+      }
+    ]
+  },
+  "pseudos": [
+    {
+      "basename": "14si.pspnc",
+      "type": "NcAbinitPseudo",
+      "symbol": "Si",
+      "Z": 14,
+      "Z_val": 4.0,
+      "l_max": 2,
+      "md5": "3916b143991b1cfa1542b130be320e5e",
+      "filepath": "/home/davidwaroquiers/PycharmProjects/abipy_dw/abipy/data/pseudos/14si.pspnc",
+      "@module": "pymatgen.io.abinit.pseudos",
+      "@class": "NcAbinitPseudo"
+    }
+  ],
+  "comment": null,
+  "decorators": [],
+  "abi_args": [
+    [
+      "ecut",
+      2
+    ],
+    [
+      "pawecutdg",
+      null
+    ],
+    [
+      "spinat",
+      [
+        [
+          0.0,
+          0.0,
+          0.6
+        ],
+        [
+          0.0,
+          0.0,
+          0.6
+        ]
+      ]
+    ],
+    [
+      "nsppol",
+      2
+    ],
+    [
+      "nspinor",
+      1
+    ],
+    [
+      "nspden",
+      2
+    ],
+    [
+      "nband",
+      16
+    ],
+    [
+      "fband",
+      null
+    ],
+    [
+      "charge",
+      0.0
+    ],
+    [
+      "occopt",
+      3
+    ],
+    [
+      "tsmear",
+      0.0036749322175655
+    ],
+    [
+      "ngkpt",
+      [
+        2,
+        2,
+        2
+      ]
+    ],
+    [
+      "shiftk",
+      [
+        [
+          0.5,
+          0.5,
+          0.5
+        ]
+      ]
+    ],
+    [
+      "nshiftk",
+      1
+    ],
+    [
+      "kptopt",
+      1
+    ],
+    [
+      "chksymbreak",
+      0
+    ],
+    [
+      "ionmov",
+      3
+    ],
+    [
+      "optcell",
+      2
+    ],
+    [
+      "ntime",
+      80
+    ],
+    [
+      "tolmxf",
+      null
+    ],
+    [
+      "dilatmx",
+      1.05
+    ],
+    [
+      "ecutsm",
+      0.5
+    ],
+    [
+      "strfact",
+      null
+    ],
+    [
+      "strtarget",
+      null
+    ],
+    [
+      "tolrff",
+      0.02
+    ]
+  ],
+  "tags": [],
+  "enforce_znucl": null,
+  "enforce_typat": null,
+  "@module": "abipy.abio.inputs",
+  "@class": "AbinitInput"
+}
