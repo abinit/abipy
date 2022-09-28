@@ -25,6 +25,7 @@ __all__ = [
     "Has_PhononBands",
     "NotebookWriter",
     "Has_Header",
+    "SlotPickleMixin"
 ]
 
 
@@ -949,3 +950,17 @@ class Has_Header(object):
         return self.reader.read_abinit_hdr()
 
     #def compare_hdr(self, other_hdr):
+
+
+class SlotPickleMixin:
+    """
+    This mixin makes it possible to pickle/unpickle objects with __slots__
+    defined.
+    """
+
+    def __getstate__(self):
+        return {slot: getattr(self, slot) for slot in self.__slots__ if hasattr(self, slot)}
+
+    def __setstate__(self, state):
+        for slot, value in state.items():
+            setattr(self, slot, value)

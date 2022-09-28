@@ -13,8 +13,8 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.util.serialization import SlotPickleMixin
 from abipy.core.kpoints import wrap_to_ws, issamek, has_timrev_from_kptopt
+from abipy.core.mixins import SlotPickleMixin
 
 
 __all__ = [
