@@ -605,6 +605,8 @@ def main():
 
         supcell = structure * options.scaling_matrix
         #supcell = structure.make_supercell(scaling_matrix, to_unit_cell=True)
+        print("nsym 1")
+        print("chkprim 0")
         print(supcell.convert(fmt=options.format))
 
     elif options.command == "abisanitize":

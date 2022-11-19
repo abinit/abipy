@@ -1260,7 +1260,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         nx, ny, nz = ngqpt_coarse
         for i, j, k in itertools.product(range(-int(nx/2), int(nx/2) + 1),
                                          range(-int(ny/2), int(ny/2) + 1),
-                                        range(-int(nz/2), int(nz/2) + 1)):
+                                         range(-int(nz/2), int(nz/2) + 1)):
             coarse_qpt = np.array([i, j, k]) / np.array(ngqpt_coarse)
             for n,fine_qpt in enumerate(fine_qpoints):
                 if np.allclose(coarse_qpt, fine_qpt):

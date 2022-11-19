@@ -2075,7 +2075,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         print(f"Using {cbm_or_vbm} edge:", edge)
 
-        # Compute erage for the different temperatures.
+        # Compute erange for the different temperatures.
         erange_itemp = []
         for kt_ev in self.reader.ktmesh_ev:
             e0 = edge.eig + sign * kt_ev * kt_fact

@@ -96,7 +96,7 @@ def build_flow(options):
     # Use small ndivsm to reduce computing time.
     flow = EphPotFlow.from_scf_input(options.workdir, scf_input,
                                      ngqpt, qpath_list, ndivsm=2, ddk_tolerance={"tolwfr": 1e-12},
-                                     with_becs=True)
+                                     with_becs=True, with_quad=False)
 
     return flow
 

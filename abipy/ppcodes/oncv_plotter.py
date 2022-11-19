@@ -423,6 +423,7 @@ class OncvPlotter(NotebookWriter):
         raise NotImplementedError("write_notebooks should be tested")
         return oncv_make_open_notebook(self.parser.filepath)
 
+
 def oncv_make_open_notebook(outpath: str,
                             foreground: bool = False,
                             classic_notebook: bool = False,
