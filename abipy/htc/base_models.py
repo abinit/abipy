@@ -22,11 +22,11 @@ from pymongo.database import Database
 from pymongo.collection import Collection
 from gridfs import GridFS
 from monty.json import MontyEncoder, MontyDecoder, MSONable
-from pymatgen.util.serialization import pmg_serialize
 from pymatgen.core import __version__ as pmg_version
 from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.periodic_table import Element
+from abipy.tools.serialization import pmg_serialize
 from abipy.core.release import __version__ as abipy_version
 from abipy.core.structure import Structure
 from abipy.tools.iotools import ask_yes_no

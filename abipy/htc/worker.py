@@ -30,7 +30,7 @@ from monty.termcolor import colored
 #from monty.functools import lazy_property
 from tqdm import tqdm
 
-from pymatgen.util.serialization import pmg_serialize
+from abipy.tools.serialization import pmg_serialize
 from abipy.tools.printing import print_dataframe
 from abipy.tools import duck
 from abipy.tools.iotools import yaml_safe_load_path

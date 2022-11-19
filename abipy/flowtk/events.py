@@ -20,8 +20,8 @@ from monty.fnmatch import WildCard
 from monty.termcolor import colored
 from monty.inspect import all_subclasses
 from monty.json import MontyDecoder, MSONable
-from pymatgen.util.serialization import pmg_serialize
 from pymatgen.core.structure import Structure
+from abipy.tools.serialization import pmg_serialize
 from .abiinspect import YamlTokenizer
 
 logger = logging.getLogger(__name__)

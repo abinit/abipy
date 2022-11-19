@@ -2458,6 +2458,21 @@ Typical use is for response to electric field ([[rfelfd]] = 3), but NOT for d/dk
 ),
 
 Variable(
+    abivarname="diago_apply_block_sliced",
+    varset="rlx",
+    vartype="integer",
+    topics=['parallelism_expert'],
+    dimensions="scalar",
+    defaultval=1,
+    mnemonics="Inverse Overlapp block matrix applied in a sliced fashion",
+    added_in_version="9.7.2",
+    text=r"""
+In the Chebyshev-filtered subspace method, one need to apply inverse overlapp matrix.
+This parameter allows to choose between two variants, sliced (1) or non-sliced (0).
+""",
+),
+
+Variable(
     abivarname="diecut",
     varset="gstate",
     vartype="real",
@@ -4268,7 +4283,7 @@ Variable(
 Select the electron-phonon task to be performed when [[optdriver]] == 7.
 The choice is among:
 
-* 0 --> No computation (mainly used to access the post-processing tools)
+* 0 --> No computation. Mainly used to access the post-processing tools.
 * 1 --> Compute phonon linewidths in metals and superconducting properties (isotropic formalism).
 * 2 --> Compute e-ph matrix elements. Save results in GKK.nc file.
 * -2 --> Compute e-ph matrix elements. Save results in GKQ.nc file that can be post-processed with AbiPy.
@@ -6235,20 +6250,19 @@ vectors of the reciprocal lattice and the three Cartesian axis).
 ),
 
 Variable(
-    abivarname="gw_nstep",
+    abivarname="gwr_nstep",
     varset="gw",
     vartype="integer",
     topics=['GW_basic'],
     dimensions="scalar",
-    defaultval=30,
-    mnemonics="GW Number of self-consistent STEPs",
-    requires="[[optdriver]] == 8",
-    added_in_version="before_v9",
+    defaultval=50,
+    mnemonics="GWR Number of self-consistent STEPs",
+    requires="[[optdriver]] == 6",
+    added_in_version="9.9.0",
     text=r"""
-Gives the maximum number of self-consistent GW cycles (or "iterations") in
-which G and/or W will be updated until the quasi-particle energies are
-converged within [[gw_toldfeig]]. [[gwcalctyp]] and [[gw_sctype]] are used to
-define the type of self-consistency.
+Gives the maximum number of self-consistent iterations in
+which G and/or W will be updated until the quasi-particle energies are converged within [[gwr_tolqpe]].
+[[gwr_task]] defines the type of self-consistency.
 """,
 ),
 
@@ -6309,40 +6323,6 @@ have to provide the three variables [[nkptgw]], [[kptgw]], and [[bdgw]].
 ),
 
 Variable(
-    abivarname="gw_sctype",
-    varset="gw",
-    vartype="integer",
-    topics=['GW_basic'],
-    dimensions="scalar",
-    defaultval=1,
-    mnemonics="GW, Self-Consistency TYPE",
-    requires="[[optdriver]] in [3,4]",
-    added_in_version="before_v9",
-    text=r"""
-This variable is used to partially define the kind of self-consistency for GW
-calculations. The other piece of information is given by [[gwcalctyp]] that
-defines the particular approximation for the self-energy operator as well as
-whether the wavefunctions have to replaced by quasi-particle amplitudes.
-
-If [[gw_sctype]] is specified in the input file, the code will perform an
-iterative update of the quantities entering the GW equations until the quasi-
-particle energies are converged within [[gw_toldfeig]]. The maximum number of
-iterations is specified by [[gw_nstep]]. Possible values are:
-
-  * 1 --> standard one-shot method (one screening calculation followed by a single sigma run)
-  * 2 --> self-consistency only on W (iterative update of W followed by a sigma run in which G is approximated with the Kohn-Sham independent-particle Green's function G0)
-  * 3 --> self-consistency only of G (a single screening calculation to obtain the Kohn-Sham polarizability followed by an iterative update of the Green's functions in the self-energy)
-  * 4 --> fully self-consistent algorithm (iterative update of both G and W)
-
-It is possible to initialize the self-consistent procedure by reading a
-previously calculated SCR or SUSC file via the variables [[getscr]] or
-[[getsuscep]], respectively. [[getqps]] can be used to read a previous QPS
-file thus initializing the Green functions to be used in the first self-
-consistent iteration.
-""",
-),
-
-Variable(
     abivarname="gw_sigxcore",
     varset="gw",
     vartype="integer",
@@ -6380,19 +6360,19 @@ contribution to sigma.
 ),
 
 Variable(
-    abivarname="gw_toldfeig",
+    abivarname="gwr_tolqpe",
     varset="gw",
     vartype="real",
     topics=['GW_basic'],
     dimensions="scalar",
-    defaultval=ValueWithUnit(units='eV', value=0.1),
-    mnemonics="GW TOLerance on the DiFference of the EIGenvalues",
+    defaultval=ValueWithUnit(units='eV', value=0.01),
+    mnemonics="GWR TOLerance on the difference of the QP Energies",
     characteristics=['[[ENERGY]]'],
-    requires="[[optdriver]] == 8",
-    added_in_version="before_v9",
+    requires="[[optdriver]] == 6",
+    added_in_version="9.6.2",
     text=r"""
-Sets a tolerance for absolute differences of QP energies that will cause one
-self-consistent GW cycle to stop.
+Sets a tolerance for absolute differences of QP energies between to consecutive iterations
+that will cause the self-consistent GWR cycle to stop.
 Can be specified in Ha (the default), Ry, eV or Kelvin, since **toldfe** has
 the [[ENERGY]] characteristics (1 Ha = 27.2113845 eV)
 """,
@@ -13264,7 +13244,7 @@ updated, according to the forces. A target stress tensor might be defined, see [
   * **optcell** = 1: optimisation of volume only (do not modify [[rprim]], and allow an homogeneous dilatation of the three components of [[acell]])
   * **optcell** = 2: full optimization of cell geometry (modify [[acell]] and [[rprim]] \- normalize the vectors of [[rprim]] to generate the [[acell]]). This is the usual mode for cell shape and volume optimization. It takes into account the symmetry of the system, so that only the effectively relevant degrees of freedom are optimized.
   * **optcell** = 3: constant-volume optimization of cell geometry (modify [[acell]] and [[rprim]] under constraint \- normalize the vectors of [[rprim]] to generate the [[acell]])
-  * **optcell** = 4, 5 or 6: optimize [[acell]](1), [[acell]](2), or [[acell]](3), respectively (only works if the two other vectors are orthogonal to the optimized one, the latter being along its cartesian axis).
+  * **optcell** = 4, 5 or 6: optimize (both length and angle) the first, second or third vector, respectively (only works if, in the case **optcell**=6, the two other vectors lie in the xy cartesian plane; similarly for **optcell**=4 and **optcell**=5, the two clamped vectors must lie in the yz and xz plane respectively).
   * **optcell** = 7, 8 or 9: optimize the cell geometry while keeping the first, second or third vector unchanged (only works if the two other vectors are orthogonal to the one left unchanged, the latter being along its cartesian axis).
 
 A few details require attention when performing unit cell optimisation:
@@ -15788,7 +15768,7 @@ Variable(
 
 Variable(
     abivarname="prtnest",
-    varset="dev",
+    varset="eph",
     vartype="integer",
     topics=['printing_prfermi'],
     dimensions="scalar",
@@ -15797,9 +15777,16 @@ Variable(
     characteristics=['[[DEVELOP]]'],
     added_in_version="before_v9",
     text=r"""
-If set to 1, the nesting function for the k-point grid is printed. For the
-moment the path in q space for the nesting function is fixed, but will become
-an input as well.
+Same meaning as [[prtnest@anaddb]].
+The only difference with respect to the anaddb version is that the path in q-space
+must be specified in terms of [[ph_qpath]] and [[ph_nqpath]].
+
+By default, the nesting factor is computed using the Fermi level obtained in the GS run.
+In order to shift the Fermi level, use [[fermie_nest]].
+Note that, for the time being, the implementation is not compatible with [[nshiftk]] > 1.
+
+[[prtnest]] can be used either in the GS part or in the EPH code [[optdriver]] == 7 (possibly with
+[[eph_task]] = 0).
 """,
 ),
 
@@ -15974,11 +15961,18 @@ Variable(
     mnemonics="PRinT the STM density",
     added_in_version="before_v9",
     text=r"""
-If set to 1 or a larger value, provide output of the electron density in real
+If set to 1, provide output of the electron density in real
 space rho(r), made only from the electrons close to the Fermi energy, in a
 range of energy (positive or negative), determined by the (positive or
 negative, but non-zero) value of the STM bias [[stmbias]].
-This is a very approximate way to obtain STM profiles: one can choose an
+Specifying a non-zero negative value is also allowed, and will produce also
+the output of an electron density in real space, like the above, but moreover
+will additionally filter it to have the contribution of one band only,
+whose number is the absolute value of [[prtstm]]. Obviously abs([[prtstm]])
+must be smaller or equal to [[nband]].
+
+The electron density obtained from [[prtstm]]=1,
+is a very approximate way to obtain STM profiles: one can choose an
 equidensity surface, and consider that the STM tip will follow this surface.
 Such equidensity surface might be determined with the help of Cut3D, and
 further post-processing of it (to be implemented). The big approximations of
@@ -15987,11 +15981,16 @@ independent transfer matrix elements between the tip and the surface.
 The charge density is provided in units of electrons/Bohr^3. The name of the
 STM density file will be the root output name, followed by _STM. Like a _DEN
 file, it can be analyzed by cut3d.
+
+The negative values of [[prtstm]] allows one to perform a detailed band-by-band
+analysis of the [[prtstm]]=1 result.
+
 The file structure of this unformatted output file is described in [[help:abinit#denfile|this section]].
 For the STM charge density to be generated, one must give, as an input file,
 the converged wavefunctions obtained from a previous run, at exactly the same
 k-points and cut-off energy, self-consistently determined, using the
 occupation numbers from [[occopt]] = 7.
+
 In the run with positive [[prtstm]], one has to use:
 
   * positive [[iscf]]
@@ -16005,7 +16004,6 @@ Note that you might have to adjust the value of [[nband]] as well, for the
 treatment of unoccupied states, because the automatic determination of
 [[nband]] will often not include enough unoccupied states.
 When [[prtstm]] is non-zero, the stress tensor is set to zero.
-No output of _STM file is provided by [[prtstm]] lower or equal to 0.
 No other printing variables for density or potentials should be activated
 (e.g. [[prtden]] has to be set to zero).
 """,
@@ -21552,8 +21550,8 @@ Possible values are:
 
   * "wfk_fullbz" --> Read input WFK file and produce new WFK file with $\kk$-points in the full BZ.
      Wavefunctions with [[istwfk]] > 2 are automatically converted into the full G-sphere representation.
-     This option can be used to interface Abinit with external tools (e.g. lobster)
-     requiring $\kk$-points in the full BZ.
+     This option can be used to interface Abinit with external tools (e.g. lobster) requiring $\kk$-points in the full BZ.
+     Use [[iomode]] = 3 and [[prtkbff]] = 1 to produce a WFK file in netcdf format with Kleynmann-Bylander form factors.
 
   * "wfk_einterp" --> Read energies from WFK file and interpolate the band structure with the SKW method
      using the parameters specified by [[einterp]].
@@ -22074,7 +22072,7 @@ allocated for the wavefunctions, especially when we have to sum over empty state
 
     The total number of MPI processes must be equal to the product of the different entries.
 
-    Note also that the EPH code implements its own MPI-algorithm and this [[eph_np_pqbks]] is
+    Note also that the EPH code implements its own MPI-algorithm and [[eph_np_pqbks]] is
     the **only variable** that should be used to change the default behaviour.
     Other variables such as [[nppert]], [[npband]], [[npfft]], [[npkpt]] and [[paral_kgb]]
     are **not used** in the EPH subdriver.
@@ -22782,6 +22780,8 @@ eigensolver to **accelerate** GS computations, structural relaxations and molecu
 The algorithm is inspired to [[cite:Kresse1996]] although the ABINIT implementation is not
 completely equivalent to the original formulation.
 RMM-DIIS can be used both with NC and PAW pseudos and is fully compatible with the [[paral_kgb]] distribution.
+Note, however, that PAW seems to be more sensitive to some internal tricks used to accelerate the computation
+so you should not expect to see the same speedup as in the NC case.
 This variable has no effect when [[optdriver]] > 0.
 
 It is worth noting that RMM-DIIS is usually employed **in conjunction with another eigenvalue solver**
@@ -22895,6 +22895,13 @@ Enables the calculation of contributions to the energy, entropy, stresses,
 number of electrons and chemical potential using the extended first principle
 molecular dynamics model for high temperature simulations.
 
+For now, ExtFPMD is only available with [[occopt]] = 3, with [[tsmear]] defined
+as the electronic temperature. More occupation options will be supported in the
+future.
+
+In case of electronic SCF cycle convergency problems, try to set a number of
+unoccupied bands in the buffer with [[extfpmd_nbdbuf]] input variable.
+
   * **useextfpmd** = 1 *(Recommanded)*, the energy shift will be evaluated
 by making an integration of the trial potential over the real space and the
 contributions will be computed with integrals over the band number.
@@ -22924,7 +22931,33 @@ Variable(
 Specifies the number of bands to use when averaging over last bands to get the
 energy shift when [[useextfpmd]] = 2 or 3.
 
-**extfpmd_nbcut** must be less than [[nband]].
+**extfpmd_nbcut** must be less than or equal to [[nband]].
+""",
+),
+
+Variable(
+    abivarname="extfpmd_nbdbuf",
+    varset="gstate",
+    vartype="integer",
+    topics=['ExtFPMD_basic'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="EXTended FPMD: Number of BanDs for the BUFfer",
+    added_in_version="9.9.0",
+    text=r"""
+Specifies the number of bands to use for the buffer when [[useextfpmd]] /= 0.
+Among the total number of bands [[nband]], last [[extfpmd_nbdbuf]] bands
+occupation will be set to 0, and ExtFPMD model will take charge of computing
+electronic contributions starting from [[nband]] - [[extfpmd_nbdbuf]].
+
+In some cases, setting this input variable to a positive number can solve
+convergency problems due to high variations of electron density within the SCF
+cycle.
+
+Moreover, setting [[extfpmd_nbdbuf]] = [[nband]] should theoretically give
+access to Fermi gas orbital free calculations (not tested yet).
+
+**extfpmd_nbdbuf** must be less than or equal to [[nband]].
 """,
 ),
 
@@ -23173,6 +23206,90 @@ Note that [[gstore_erange]] is not compatible with [[gstore_brange]].
         gstore_erange 0.0 0.5 eV
 
     to specify the energy intervals in eV units. meV is supported as well.
+""",
+),
+
+Variable(
+    abivarname="gwr_np_gtks",
+    varset="gw",
+    vartype="integer",
+    topics=['GWR_expert'],
+    dimensions=[4],
+    defaultval=0,
+    mnemonics="GWR Number of Processors for G-vectors, Tau-points, K-points, Spin.",
+    requires="[[optdriver]] == 6",
+    added_in_version="9.6.2",
+    text=r"""
+This variable defines the Cartesian grid of MPI processors used for GWR calculations.
+If not specified in the input, the code will generate this grid automatically using the total number of processors
+and the basic dimensions of the job computed at runtime.
+
+!!! important
+
+    The total number of MPI processes must be equal to the product of the different entries.
+
+    Note also that the GWR code implements its own MPI-algorithm and [[gwr_np_gtks]] is
+    the **only variable** that should be used to change the default behaviour.
+    Other variables such as [[npband]], [[npfft]], [[npkpt]] and [[paral_kgb]]
+    are **not used** in the GWR subdriver.
+""",
+),
+
+Variable(
+    abivarname="gwr_task",
+    varset="gw",
+    vartype="string",
+    topics=['GWR_basic'],
+    dimensions=[1],
+    defaultval="None",
+    mnemonics="GWR TASK",
+    requires="[[optdriver]] == 6",
+    added_in_version="9.6.2",
+    text=r"""
+Select the task to be performed when [[optdriver]] == 6 i.e. GWR code.
+The choice is among:
+
+* HDIAG --> direct diagonalization of the KS Hamiltonian.
+* G0W0 -->  one-shot GW.
+* RPA_ENERGY --> Compute RPA correlation energy within the ACFDT framework.
+
+!!! important
+
+    At the time of writing ( |today| ), PAW is not supported by the GWR code.
+""",
+),
+
+Variable(
+    abivarname="gwr_ntau",
+    varset="gw",
+    vartype="integer",
+    topics=['GWR_basic'],
+    dimensions=[1],
+    defaultval=12,
+    mnemonics="GWR Number of TAU points.",
+    requires="[[optdriver]] == 6",
+    added_in_version="9.6.2",
+    text=r"""
+This variable defines the number of imaginary-time points
+
+!!! important
+
+    To avoid load imbalance the the total number of MPI processes should be a divisor/multiple of [[gwr_ntau]] * [[nsppol]]
+""",
+),
+
+Variable(
+    abivarname="gwr_boxcutmin",
+    varset="gw",
+    vartype="real",
+    topics=['GWR_useful'],
+    dimensions=[1],
+    defaultval=2.0,
+    mnemonics="GWR BOX CUT-off MINimum",
+    requires="[[optdriver]] == 6",
+    added_in_version="9.6.2",
+    text=r"""
+This variable ...
 """,
 ),
 
