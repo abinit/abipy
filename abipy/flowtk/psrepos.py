@@ -5,7 +5,8 @@ A repo has a unique name that encodes the XC functional, relativity type, the ki
 The default root is ~/.abinit/pseudos although it is possible to change it via the ABIPY_PSREPOS_ROOT env variable
 
 Note that all pseudos in a repo share the same XC functional, the type (NC, PAW) and the
-treatment of relativistic corrections although one may have multiple pseudos for the same element.
+treatment of relativistic corrections although one might have multiple pseudos for the same element.
+
 Due to this ambiguity, a repo cannot be directly used for running calculations in an automatic fashion
 hence the user is supposed to specify both the `repo_name` and the `table_name` when constructing a `PseudoTable`.
 """
@@ -130,6 +131,9 @@ def get_repo_from_name(repo_name: str) -> PseudosRepo:
 
 
 def get_installed_repos_and_root(dirpath: Optional[str] = None) -> Tuple[List[PseudosRepo], str]:
+    """
+    Return (all_repos, dirpath)
+    """
     dirpath = REPOS_ROOT if not dirpath else dirpath
     dir_basenames = [name for name in os.listdir(dirpath) if os.path.isdir(os.path.join(dirpath, name))]
     dirname2repo = {repo.name: repo for repo in _ALL_REPOS}
@@ -219,6 +223,9 @@ class PseudosRepo(abc.ABC):
     def ispaw(self) -> bool:
         """True if PAW repo."""
         return self.ps_type == "PAW"
+
+    #@property
+    #def all_table_names(self) -> List[str]:
 
     @property
     def dirpath(self) -> str:

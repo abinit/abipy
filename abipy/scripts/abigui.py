@@ -2,33 +2,68 @@
 """
 Script to start the panel-based AbiPy web GUI.
 """
+import sys
 import os
-import click
+import argparse
 import panel as pn
+import abipy.tools.cli_parsers as cli
 
 from pprint import pformat
 from abipy.core.release import version
 
+def main():
 
-@click.command()
-@click.option('--port', default=5006, help="Port to listen on. Default: 5006")
-@click.option('--address', default=None, help="The address the server should listen on for HTTP requests.")
-@click.option('--show', default=True, help="Open server app(s) in the web browser")
-@click.option('--num_procs', default=1, help="Number of worker processes for the app. Defaults to 1")
-@click.option('--panel-template', "-pnt", default="FastList",
-              help="Specify template for panel dasboard." +
-                   "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
-                   "Default: FastList")
-@click.option('--has-remote-server', default=False, is_flag=True,
-              help="True if we are running on the ABINIT server. This flag activates limitations on what the user can do." +
-                   "Default: False")
-@click.option("-v", '--verbose', default=0, count=True, help="Verbosity level")
-@click.version_option(version=version, message='%(version)s')
-def gui_app(port, address, show, num_procs, panel_template, has_remote_server, verbose):
+    def str_examples():
+        return """\
+Usage example:
+
+    oncv.py run H.in         ==> Run oncvpsp input file (scalar relativistic mode).
+    oncv.py plot H.out       ==> Use matplotlib to plot oncvpsp results for pseudo H.psp8.
+"""
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(str_examples())
+        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    def get_copts_parser():
+
+        # Parent parser implementing common options.
+        p = argparse.ArgumentParser(add_help=False)
+        p.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                       help='Verbose, can be supplied multiple times to increase verbosity')
+
+        p.add_argument('--loglevel', default="ERROR", type=str,
+                            help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
+        return p
+
+    copts_parser = get_copts_parser()
+
+    #cli.customize_mpl(options)
+
+    parents = [copts_parser, cli.pn_serve_parser()] #, plot_parser]
+
+    # Build the main parser.
+    parser = argparse.ArgumentParser(epilog=str_examples(), parents=parents,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    # Parse command line.
+    try:
+        options = parser.parse_args()
+    except Exception as exc:
+        show_examples_and_exit(error_code=1)
+
+    # loglevel is bound to the string value obtained from the command line argument.
+    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
+    import logging
+    numeric_level = getattr(logging, options.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % options.loglevel)
+    logging.basicConfig(level=numeric_level)
 
     from abipy.panels.core import abipanel, get_abinit_template_cls_kwds, AbipyParameterized
-    import abipy.panels as mod
-    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
 
     # Load abipy/panel extensions and set the default template
     #tmpl_kwds.update(dict(
@@ -36,13 +71,11 @@ def gui_app(port, address, show, num_procs, panel_template, has_remote_server, v
     #    #sidebar_width=280,
     #    #background_color="yellow",
     #))
-    abipanel(panel_template=panel_template)
+    abipanel(panel_template=options.panel_template)
 
-    print("has_remote_server:", has_remote_server)
-    if has_remote_server:
+    if options.has_remote_server:
         print("Enforcing limitations on what the user can do on the abinit server")
-        # TODO finalize, remove files created by user
-        AbipyParameterized.has_remote_server = has_remote_server
+        AbipyParameterized.has_remote_server = options.has_remote_server
 
     # Import the apps and define routes for each page.
     from abipy.panels.structure import InputFileGenerator
@@ -58,7 +91,9 @@ def gui_app(port, address, show, num_procs, panel_template, has_remote_server, v
 
 This web application exposes some of the capabilities of the [AbiPy package](https://github.com/abinit/abipy).
 It consists of **multiple pages** each of which provides **specialized tools** to operate on a particular ABINIT file.
+
 To access one of these tools, click one of the links in the sidebar or, alternatively, use the links below.
+
 To **open/close** the sidebar, click on the Hamburger Menu Icon ☰ in the header.
 
 Note that the **file extension** matters as the GUI won't work properly if you upload files
@@ -67,25 +102,29 @@ with extensions that are not recognized by AbiPy.
 """
     tmpl_cls, tmpl_kwds = get_abinit_template_cls_kwds()
 
-    if verbose:
+    if options.verbose:
         print("Using default template:", tmpl_cls, "with kwds:\n", pformat(tmpl_kwds), "\n")
 
     # url --> (cls, title)
     app_routes_titles = {
         "/": (tmpl_cls, "AbiPy GUI Home"),
         "/input_generator": (InputFileGenerator, "Abinit Input Generator"),
-        #"/structure_analyzer": (PanelWithFileInput(use_structure=True).get_panel(), "Structure Analyzer"),
         "/structure_analyzer": (PanelWithStructureInput, "Structure Analyzer"),
         "/outfile": (PanelWithFileInput, "Output File Analyzer"),
         "/ddb": (DdbPanelWithFileInput, "DDB File Analyzer"),
         "/abo": (abo_cls, "Abo File Analyzer"),
         "/ebands_vs_mp": (CompareEbandsWithMP, "Compare Ebands with MP"),
         "/ddb_vs_mp": (CompareDdbWithMP, "Compare DDB with MP"),
-        "/skw": (SkwPanelWithFileInput, "SKW Analyzer"),
-        "/robot": (RobotWithFileInput, "Robot Analyzer"),
         #"/abilog": (PanelWithFileInput().get_panel(), "DDB File Analyzer"),
         #"/state": (pn.state, "State"),
     }
+
+    if not options.has_remote_server:
+        # Add additional apps.
+        app_routes_titles.update({
+            "/skw": (SkwPanelWithFileInput, "SKW Analyzer"),
+            "/robot": (RobotWithFileInput, "Robot Analyzer"),
+        })
 
     app_routes = {k: v[0] for (k, v) in app_routes_titles.items()}
     app_title = {k: v[1] for (k, v) in app_routes_titles.items()}
@@ -106,7 +145,7 @@ with extensions that are not recognized by AbiPy.
     links = "\n".join(f"- [{title}]({url})" for (url, title) in app_title.items())
     links = pn.Column(pn.pane.Markdown(links))
 
-    class AppBuilder():
+    class AppBuilder:
 
         def __init__(self, app_cls, sidebar_links, app_kwargs=None):
             self.app_cls = app_cls
@@ -118,7 +157,7 @@ with extensions that are not recognized by AbiPy.
             if hasattr(app, "get_panel"):
                 app = app.get_panel()
 
-            if hasattr(app, "sidebar"):
+            if hasattr(app, "sidebar") and self.sidebar_links:
                 app.sidebar.append(self.sidebar_links)
                 #app.header.append(self.sidebar_links)
 
@@ -135,24 +174,10 @@ with extensions that are not recognized by AbiPy.
             app_routes[url] = AppBuilder(app_cls, sidebar_links=links).build
 
     # Call pn.serve to serve the multipage app.
-    serve_kwargs = dict(
-        address=address,
-        port=port,
-        #dev=True,
-        #start=True,
-        show=show,
-        debug=verbose > 0,
-        #title=app_title,
-        num_procs=num_procs,
-        static_dirs={"/assets": assets_path},
-        #websocket_origin="*",
-    )
-
-    if verbose:
-        print("Calling pn.serve with serve_kwargs:\n", pformat(serve_kwargs), "\n")
+    serve_kwargs = cli.get_pn_serve_kwargs(options)
 
     pn.serve(app_routes, **serve_kwargs)
 
 
 if __name__ == "__main__":
-    gui_app()
+    sys.exit(main())

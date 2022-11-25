@@ -1017,7 +1017,10 @@ class ElectronBands(Has_Structure):
 
     def deepcopy(self):
         """Deep copy of the ElectronBands object."""
-        return copy.deepcopy(self)
+        new = copy.deepcopy(self)
+        # Don't know why but we need to copy the smearing manually.
+        new.smearing = Smearing(**self.smearing)
+        return new
 
     def degeneracies(self, spin, kpoint, bands_range, tol_ediff=1.e-3):
         """
@@ -3130,16 +3133,23 @@ class ElectronBands(Has_Structure):
         else:
             raise NotImplementedError("Derivatives on homogeneous k-meshes are not supported yet")
 
-    def effective_masses(self, spin, band, acc=4):
-        """
-        Compute the effective masses for the given ``spin`` and ``band`` index.
-        Use finite difference with accuracy ``acc``.
+    #def effective_masses(self, spin, band, acc=4):
+    #    """
+    #    Compute the effective masses for the given ``spin`` and ``band`` index.
+    #    Use finite difference with accuracy ``acc``.
 
-        Returns:
-            |numpy-array| of size self.nkpt with effective masses.
+    #    Returns:
+    #        |numpy-array| of size self.nkpt with effective masses.
+    #    """
+    #    ders2 = self.derivatives(spin, band, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
+    #    return 1. / ders2
+
+    def get_effmass_analyzer(self):
+        """"
+        Return an instance of EffMassAnalyzer to compute effective masses with finite differences
         """
-        ders2 = self.derivatives(spin, band, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
-        return 1. / ders2
+        from abipy.electrons.effmass_analyzer import EffMassAnalyzer
+        return EffMassAnalyzer(self, copy=True)
 
     def get_effmass_line(self, spin, kpoint, band, acc=4):
         """
@@ -3151,13 +3161,13 @@ class ElectronBands(Has_Structure):
             band: Band index.
             acc: accuracy
         """
-        warnings.warn("This code is still under development. API may change!")
+        warnings.warn("You may want to use `emana = ebands.get_effmass_analyzer()` for a more flexible API.")
         if not self.kpoints.is_path:
             raise ValueError("get_effmass_line requires k-points along a path. Got:\n %s" % repr(self.kpoints))
 
         # We have to understand if the k-point is a vertex or not.
-        # If it is a vertex, we have to compute the left and right derivative
-        # If kpt is inside the line, left and right derivatives are supposed to be equal
+        # If it is a vertex, we have to compute the left and right derivative.
+        # If kpt is inside the line, left and right derivatives are supposed to be equal.
         from abipy.tools.derivatives import finite_diff
 
         for ik in self.kpoints.get_all_kindices(kpoint):
@@ -3193,6 +3203,7 @@ class ElectronBands(Has_Structure):
                 app("emass_left: %.3f, emass_right: %.3f" % (em_left, em_right))
             else:
                 app("emass: %.3f" % em_left)
+
             print("\n".join(lines))
 
     def _eigens_hvers_iline(self, spin, band, iline):
@@ -3228,7 +3239,7 @@ class ElectronBands(Has_Structure):
             kmesh: Used to activate the interpolation on the homogeneous mesh for DOS (uses spglib_ API).
                 kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.
             is_shift: three integers (spglib_ API). When is_shift is not None, the kmesh is shifted along
-                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshifted mesh.
             bstart, bstop: Select the range of band to be used in the interpolation
             filter_params: TO BE described.
             verbose: Verbosity level
@@ -3735,7 +3746,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
             for i, (ebands, ax) in enumerate(zip(ebands_list, ax_list)):
                 irow, icol = divmod(i, ncols)
-                ebands.plot(ax=ax, e0=e0, with_gaps=with_gaps, max_phfreq=max_phfreq, fontsize=fontsize,  show=False)
+                ebands.plot(ax=ax, e0=e0, with_gaps=with_gaps, max_phfreq=max_phfreq, fontsize=fontsize, show=False)
                 set_axlims(ax, ylims, "y")
                 # This to handle with_gaps = True
                 title = ax.get_title()
@@ -4729,6 +4740,17 @@ class ElectronDos(object):
         fig.layout.yaxis.title = 'Dos_up - Dos_down (states/eV)'
 
         return fig
+
+    def to_pymatgen(self):
+        """
+        Return a pymatgen DOS object from an Abipy |ElectronDos| object.
+        """
+
+        from pymatgen.electronic_structure.dos import Dos
+        den = {s: d.values for d, s in zip(self.spin_dos, [PmgSpin.up, PmgSpin.down])}
+        pmg_dos = Dos(energies=self.spin_dos[0].mesh, densities=den, efermi=self.fermie)
+
+        return pmg_dos
 
 
 class ElectronDosPlotter(NotebookWriter):

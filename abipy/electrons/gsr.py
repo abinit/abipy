@@ -265,7 +265,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Build panel with widgets to interact with the |GsrFile| either in a notebook or in panel app.
         """
         from abipy.panels.gsr import GsrFilePanel
-        return GsrFilePanel(gsr=self).get_panel(**kwargs)
+        return GsrFilePanel(self).get_panel(**kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

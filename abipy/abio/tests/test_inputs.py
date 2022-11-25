@@ -78,6 +78,8 @@ class TestAbinitInput(AbipyTest):
         assert inp.to_string(sortmode=None, with_structure=True, with_pseudos=True)
         assert inp.to_string(sortmode=None, with_structure=True, with_pseudos=False, mode="html")
         assert inp.to_string(sortmode="a", with_structure=False, with_pseudos=False, mode="html")
+        assert inp.to_string(sortmode=None, with_structure=True, with_pseudos=True, files_file=False)
+        assert inp.to_string(sortmode="section", with_structure=True, with_pseudos=True, files_file=False)
         assert inp._repr_html_()
 
         inp.set_vars(ecut=5, toldfe=1e-6, comment="hello")
@@ -157,8 +159,15 @@ class TestAbinitInput(AbipyTest):
 
         new_inp.set_vars(shiftk=[0, 0, 0, 0.5, 0, 0, 0, 0, 0.5])
         assert new_inp["nshiftk"] == 3
-        other_inp = new_inp.new_with_vars(ph_qpath=[0, 0, 0, 0.5, 0, 0])
+        other_inp = new_inp.new_with_vars(ph_qpath=[0, 0, 0, 0.5, 0, 0], kptgw=[0, 0, 0, 1, 1, 1, 2, 2, 2])
         assert other_inp["ph_nqpath"] == 2
+        assert other_inp["nkptgw"] == 3
+
+        new_inp["outdata_prefix"] = "some/path"
+        assert "some/path" in new_inp.to_string()
+        assert len(new_inp.pseudos_abivars) == 1
+        new_inp["pseudos"] = ["si.psp"]
+        assert len(new_inp.pseudos_abivars) == 0
 
     def test_input_errors(self):
         """Testing typical AbinitInput Error"""
@@ -244,6 +253,8 @@ class TestAbinitInput(AbipyTest):
 
         inp["kptopt"] = 4
         assert not inp.uses_ktimereversal
+
+        assert inp.pseudos_abivars["pseudos"] == f"{pseudo.filepath}"
 
     def test_new_with_structure(self):
         """Testing new_with_structure."""
@@ -860,6 +871,7 @@ class AnaddbInputTest(AbipyTest):
         inp = AnaddbInput(self.structure, comment="hello anaddb", anaddb_kwargs={"brav": 1})
         repr(inp); str(inp)
         assert inp.to_string(sortmode="a")
+        assert inp.to_string(sortmode=None, files_file=False)
         assert inp._repr_html_()
         assert "brav" in inp
         assert inp["brav"] == 1

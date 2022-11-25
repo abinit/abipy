@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow to compute e-ph matrix elements along a q-path
-===================================================
+e-ph matrix elements along a q-path
+===================================
 
 This example shows how to compute the e-ph matrix elements in AlAs along a q-path with AbiPy flows.
 The final results are stored in the GKQ.nc file (one file for q-point) in the outdata of each task.

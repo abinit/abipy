@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import io
+import sys
 import tempfile
 import functools
 import textwrap
@@ -20,7 +21,6 @@ from monty.termcolor import cprint
 from abipy.core import abinit_units as abu
 from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
-#from abipy.tools.context_managers import Timer
 from abipy.tools.decorators import Appender
 
 
@@ -45,7 +45,7 @@ def get_abinit_template_cls_kwds():
     return cls, kwds
 
 
-def open_html(html_string: str, browser=None):
+def open_html(html_string: str, browser: str = None):
     """
     Open a string with an HTML document in browser.
     """
@@ -56,7 +56,7 @@ def open_html(html_string: str, browser=None):
         webbrowser.get(browser).open_new_tab(f"file://{tmpfile.name}")
 
 
-def abipanel(panel_template="FastList"):
+def abipanel(panel_template: str = "FastList"):
     """
     Activate panel extensions used by AbiPy. Return panel module.
 
@@ -71,15 +71,25 @@ def abipanel(panel_template="FastList"):
 
     set_abinit_template(panel_template)
 
+    #pn.extension(loading_spinner='dots', loading_color='#00aa41')
+
+    pn.extension(notifications=True)
+    #pn.config.notifications = True
+    #pn.state.notifications.position = 'top-right'
+
     extensions = [
         "plotly",
-        #"mathjax",
         #"katex",
+        "mathjax",
         "terminal",
         "tabulator",
         "ace",   # NB: This enters in conflict with Abipy Book
         #"gridstack",
         #"ipywidgets",
+    ]
+
+    css_files = [
+        pn.io.resources.CSS_URLS['font-awesome'],
     ]
 
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
@@ -88,15 +98,17 @@ def abipanel(panel_template="FastList"):
     #import os
     #abipy_css = os.path.join(os.path.dirname(__file__), "assets", "css", "abipy.css")
 
-    pn.extension(*extensions) #, css_files=[abipy_css])
+    pn.extension(*extensions, css_files=css_files) #, css_files=[abipy_css])
     #pn.extension(template='fast', theme='dark')
 
     pn.config.js_files.update({
         # This for copy to clipboard.
         "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
         # This for the jsmol viewer.
-        "jsmol": "http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
+        "jsmol": "https://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
     })
+
+    #pn.extension('ipywidgets')
 
     #pn.config.js_files.update({
     #    'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js',
@@ -216,19 +228,6 @@ def depends_on_btn_click(btn_name: str,
     return decorator
 
 
-# TODO: Finalize
-#def my_depends(*args, **kwargs):
-#    show_exc = kwargs.pop("show_exc", False)
-#    def decorator(func):
-#        @functools.wraps(func)
-#        def decorated(*args, **kwargs):
-#            f = pn.depends(func, *args, **kwargs)
-#            if show_exc: f = show_exception(f)
-#        return f
-#
-#    return decorator
-
-
 def show_exception(func):
     """
     This decorator returns a Markdown pane with the backtrace
@@ -255,12 +254,12 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
 
     # This counter is shared by all the instances.
     # We use it so that the js script is included only once.
-    _init_counter = [0]
+    #_init_counter = [0]
 
     def __init__(self, object=None, btn_cls=None, **params):
         super().__init__(object=object, **params)
 
-        self._init_counter[0] += 1
+        #self._init_counter[0] += 1
         my_id = gen_id()
         btn_cls = "bk bk-btn bk-btn-default" if btn_cls is None else str(btn_cls)
 
@@ -270,36 +269,52 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
 <br>
 <button class="clip-btn {btn_cls}" type="button" data-clipboard-target="#{my_id}"> Copy to clipboard </button>
 <hr>
+
 """
-        if self._init_counter[0] == 1:
-            new_text += "<script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
+        if True: # self._init_counter[0] == 1:
+            #new_text += " <script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
+            # $(document).ready(function() {
+            new_text += """ <script>
+if (typeof abipy_clipboard === 'undefined') {
+    var abipy_clipboard = new ClipboardJS('.clip-btn');
+}
+
+if (typeof abipy_notyf === 'undefined') {
+    // Create an instance of Notyf
+    var abipy_notyf = new Notyf();
+
+    abipy_clipboard.on('success', function(e) {
+        abipy_notyf.success('Text copied to clipboard');
+    });
+
+    abipy_clipboard.on('error', function(e) {
+        abipy_notyf.error('Cannot copy text to clipboard');
+    });
+}
+</script> """
 
         self.object = new_text
 
 
-# https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/js_actions/js_actions.py
-#def copy_to_clipboard():
-#    """Copy"""
-#    source_textarea = pnw..TextAreaInput(
-#        value="Copy this text to the clipboard by clicking the button",
-#        height=100,
-#    )
-#    copy_source_button = pnw.Button(name="✂ Copy Source Value", button_type="primary")
-#    copy_source_code = "navigator.clipboard.writeText(source.value);"
-#    copy_source_button.js_on_click(args={"source": source_textarea}, code=copy_source_code)
-#    paste_text_area = pnw.TextAreaInput(placeholder="Paste your value here", height=100)
-#    return pn.Column(
-#        pn.Row(source_textarea, copy_source_button, paste_text_area),
-#        name="✂ Copy to Clipboard",
-#    )
-
-
-def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True, **kwargs):
+def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True, **kwargs) -> pn.Column:
     """
     Helper function returning a panel Column with a matplotly pane followed by
     a divider and (optionally) controls to customize the figure.
     """
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
+
+    #try:
+    #    import ipympl
+    #    has_ipympl = True
+    #except ImportError:
+    #    has_ipympl = False
+
+    #if "interactive" not in kwargs and has_ipympl: # "ipympl" in sys.modules:
+    #    print("mpl in interactive mode")
+    #    kwargs["interactive"] = True
+
+    if "tight" not in kwargs: kwargs["tight"] = True
+
     mpl_pane = pn.pane.Matplotlib(fig, **kwargs)
     ca(mpl_pane)
 
@@ -314,7 +329,7 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
 
 
 def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=False,
-        with_divider=True, with_controls=False):
+        with_divider=True, with_controls=False) -> pn.Column:
     """
     Helper function returning a panel Column with a plotly pane,  buttons to push the figure
     to plotly chart studio and, optionally, controls to customize the figure.
@@ -364,9 +379,6 @@ If everything is properly configured, a new window is automatically created in y
         else:
             ca(pn.Row(btn))
 
-        #card = pn.Card(btn, acc, title="Push", collapsed=True)
-        #ca(card)
-
     if with_controls:
         ca(pn.Accordion(("plotly controls", plotly_pane.controls(jslink=True))))
 
@@ -377,8 +389,8 @@ If everything is properly configured, a new window is automatically created in y
 
 
 def dfc(df: pd.DataFrame,
-        wdg_type: str = "dataframe",
-        #wdg_type: str ="tabulator",  # More recent version. Still problematic
+        #wdg_type: str = "dataframe",
+        wdg_type: str ="tabulator",  # More recent version. Still problematic
         with_export_btn=True, with_controls=False, with_divider=True, transpose=False, **kwargs):
     """
     Helper function returning a panel Column with a DataFrame or Tabulator widget followed by
@@ -447,7 +459,9 @@ def dfc(df: pd.DataFrame,
 
         # For the time being we use a Row with buttons.
         #ca(pn.Row(*d.values(), sizing_mode="scale_width"))
-        ca(pn.Card(*d.values(), title="Export table", collapsed=True, sizing_mode='stretch_width'))
+        ca(pn.Card(*d.values(), title="Export table", collapsed=True,
+                   sizing_mode='stretch_width', header_color="blue",
+        ))
 
         #def download(event):
         #    file_download = d[event.new]
@@ -540,7 +554,7 @@ class ButtonContext():
 
     def __enter__(self):
         # Disable the button.
-        self.btn.name = "Executing ..."
+        self.btn.name = "Running ..."
         self.btn.button_type = "warning"
         self.btn.loading = True
         self.btn.disabled = True
@@ -640,7 +654,6 @@ class AbipyParameterized(param.Parameterized):
     # For instance, structure_viewer == "Vesta" does not make sense in we are not serving from a local server.
     #
     has_remote_server = param.Boolean(False)
-    #has_remote_server = param.Boolean(True)
 
     warning = pn.pane.Markdown(SHARED_WIDGETS_WARNING, name="warning")
 
@@ -750,7 +763,7 @@ class AbipyParameterized(param.Parameterized):
         return pnw.Select(name=name, options=exts)
 
     @staticmethod
-    def html_with_clipboard_btn(html_str, **kwargs):
+    def html_with_clipboard_btn(html_str: str, **kwargs):
         if hasattr(html_str, "_repr_html_"):
             html_str = html_str._repr_html_()
 
@@ -768,7 +781,6 @@ class AbipyParameterized(param.Parameterized):
 
     @staticmethod
     def get_fileinput_section(file_input) -> pn.Column:
-
         # All credits go to:
         # https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/styling/fileinput_area.py
         #
@@ -873,12 +885,6 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
             # Assume main area acts like a GridSpec
             template.main[:,:] = tabs
 
-        # Get widgets associated to Ph-bands tab and insert them in the sidebar.
-        #row = tabs[0]
-        #controllers, out = row[0], row[1]
-        #template.sidebar.append(controllers)
-        #template.main.append(out)
-
         return template
 
 
@@ -977,7 +983,7 @@ class PanelWithStructure(AbipyParameterized):
         self.structure = structure
 
         if self.has_remote_server:
-            # Change the list of allowed visulizers if remote server.
+            # Change the list of allowed visualizers.
             self.param.structure_viewer.objects = ["jsmol", "crystalk", "ngl", "matplotlib", "plotly", "ase_atoms"]
 
         self.view_structure_btn = pnw.Button(name="View structure", button_type='primary')
@@ -1058,7 +1064,7 @@ class PanelWithStructure(AbipyParameterized):
 
     def get_structure_view(self) -> pn.Row:
         """
-        Return tab entry to visualize the structure.
+        Return Row with widgets to visualize the structure.
         """
         return pn.Row(
             self.pws_col(["## Visualize structure",
@@ -1130,7 +1136,7 @@ class NcFileViewer(AbipyParameterized):
         self.ncfile = ncfile
         self.netcdf_info_btn = pnw.Button(name="Show info", button_type='primary')
 
-    def get_ncfile_view(self):
+    def get_ncfile_view(self) -> pn.Column:
         return pn.Column(
                 self.netcdf_info_btn,
                 self.on_netcdf_info_btn,
@@ -1138,7 +1144,7 @@ class NcFileViewer(AbipyParameterized):
         )
 
     @depends_on_btn_click('netcdf_info_btn')
-    def on_netcdf_info_btn(self):
+    def on_netcdf_info_btn(self) -> pn.Column:
         """
         This Tab allows one to
         """
@@ -1217,6 +1223,10 @@ class PanelWithElectronBands(PanelWithStructure):
     ebands_kmesh = None
     ebands_kmesh_fileinput = param.FileSelector(path=".nc")
 
+    effmass_accuracy = param.Integer(default=4, bounds=(1, None), label="Finite difference accuracy")
+    effmass_degtol_ev = param.Number(default=1e-3, bounds=(0, None), label="Window in eV above/below the CBM/VBM")
+    effmass_spin = param.ObjectSelector(default=0, objects=[0, 1], label="Spin index")
+
     def __init__(self, ebands, **params):
 
         self.ebands = ebands
@@ -1241,6 +1251,10 @@ class PanelWithElectronBands(PanelWithStructure):
 
         #ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
         #ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
+
+        self.plot_effmass_btn = pnw.Button(name="Plot effective masses", button_type='primary')
+        if ebands.nsppol != 2:
+            self.param.effmass_spin.objects = [0]
 
     @staticmethod
     def _get_ebands_from_bstring(bstring):
@@ -1268,7 +1282,7 @@ class PanelWithElectronBands(PanelWithStructure):
         """
         self.skw_ebands_kpath = self._get_ebands_from_bstring(self.skw_ebands_kpath_fileinput)
 
-    def get_plot_ebands_view(self):
+    def get_plot_ebands_view(self) -> pn.Row:
         return pn.Row(
             self.pws_col(["### e-Bands Plot Options",
                           "with_gaps", "set_fermie_to_vbm", "with_kpoints_plot", "plot_ebands_btn",
@@ -1277,7 +1291,7 @@ class PanelWithElectronBands(PanelWithStructure):
         )
 
     @depends_on_btn_click('plot_ebands_btn')
-    def on_plot_ebands_btn(self):
+    def on_plot_ebands_btn(self) -> pn.Column:
         """
         This Tab allows one to plot the KS energies stored in the netcdf file
         as well as the associated list of **k**-points in the Brillouin.
@@ -1307,7 +1321,7 @@ class PanelWithElectronBands(PanelWithStructure):
 
         return col
 
-    def get_plot_edos_view(self):
+    def get_plot_edos_view(self) -> pn.Row:
         return pn.Row(
                 self.pws_col(["## E-DOS Options", "edos_method", "edos_step_ev",
                               "edos_width_ev", "plot_edos_btn"]),
@@ -1315,7 +1329,7 @@ class PanelWithElectronBands(PanelWithStructure):
                 )
 
     @depends_on_btn_click('plot_edos_btn')
-    def on_plot_edos_btn(self):
+    def on_plot_edos_btn(self) -> pn.Row:
         """
         Button triggering edos plot.
         """
@@ -1323,9 +1337,10 @@ class PanelWithElectronBands(PanelWithStructure):
 
         return pn.Row(ply(edos.plotly(show=False)), sizing_mode='scale_width')
 
-    def get_skw_view(self):
-        """Column with widgets to use SKW."""
-
+    def get_skw_view(self) -> pn.Row:
+        """
+        Column with widgets to use SKW.
+        """
         wdg = pn.Param(
             self.param['skw_ebands_kpath_fileinput'],
             widgets={'skw_ebands_kpath_fileinput': pn.widgets.FileInput}
@@ -1340,7 +1355,7 @@ class PanelWithElectronBands(PanelWithStructure):
             self.on_plot_skw_btn)
 
     @depends_on_btn_click('plot_skw_btn')
-    def on_plot_skw_btn(self):
+    def on_plot_skw_btn(self) -> pn.Column:
         """
         Button triggering SKW plot.
         """
@@ -1372,9 +1387,57 @@ class PanelWithElectronBands(PanelWithStructure):
 
         return col
 
+    def get_effmass_view(self) -> pn.Row:
+        """
+        Return Row with widgets to compute effective masses with finite diff.
+        """
+        return pn.Row(
+            self.pws_col(["### Effective masses options",
+                          "effmass_accuracy",
+                          "effmass_degtol_ev",
+                          "effmass_spin",
+                          "plot_effmass_btn",
+                         ]),
+            self.on_plot_effmass_btn
+        )
+
+    @depends_on_btn_click('plot_effmass_btn')
+    def on_plot_effmass_btn(self) -> pn.Column:
+        """
+        Compute and visualize effective masses with finite differences.
+
+        Note that the quality of the results strongly depend on the step i.e.
+        the separation between two consecutive points along the k-path.
+        The accuracy option allows one to change the number of points for the finite difference.
+        """
+        emana = self.ebands.get_effmass_analyzer()
+        acc = self.effmass_accuracy
+        degtol_ev = self.effmass_degtol_ev
+        spin = self.effmass_spin
+
+        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+
+        if emana.select_vbm():
+            ca(f"## Effective masses at the VBM with accuracy {acc}:")
+            for segment in emana.segments:
+                ca(mpl(segment.plot_emass(acc=acc, spin=spin, degtol_ev=degtol_ev, show=False)))
+                ca("### effmass wrt accuracy and step: %.3f Ang-1" % segment.dk)
+                df = segment.get_dataframe_with_accuracies()
+                ca(dfc(df, with_export_btn=False))
+
+        if emana.select_cbm():
+            ca(f"## Effective masses at the CBM with accuracy {acc}:")
+            for segment in emana.segments:
+                ca(mpl(segment.plot_emass(acc=acc, spin=spin, degtol_ev=degtol_ev, show=False)))
+                ca("### effmass wrt accuracy and step: %.3f Ang-1" % segment.dk)
+                df = segment.get_dataframe_with_accuracies()
+                ca(dfc(df, with_export_btn=False))
+
+        return col
+
     def get_ifermi_view(self):
         """
-        Widgets to visualize the Fermi surface with ifermi
+        Widgets to visualize the Fermi surface with ifermi package.
         """
         controls = self.pws_col([
                           "ifermi_offset_eV", "ifermi_eref", "ifermi_wigner_seitz", "ifermi_interpolation_factor",
@@ -1597,7 +1660,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
         return pn.Row(pn.Column(mpl(fig)), sizing_mode='scale_width')
 
 
-def jsmol_html(structure, width=700, height=700, color="black", spin="false") -> pn.Column:
+def jsmol_html(structure, supercell=(1, 1, 1), width=700, height=700, color="black", spin="false")  -> pn.Column:
 
     cif_str = structure.write_cif_with_spglib_symms(None, ret_string=True) #, symprec=symprec
 
@@ -1611,11 +1674,8 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false") ->
 
     jsmol_div_id = gen_id()
     jsmol_app_name = "js1"
-    supercell = "{2, 2, 2}"
-    supercell = "{1, 1, 1}"
-
-    #script_str = 'load inline "%s" {1 1 1};' % cif_str
-    #script_str = "load $caffeine"
+    supercell = "{" + ",".join(str(s) for s in supercell) + "}"
+    #supercell = "{2, 2, 2}"
 
     # http://wiki.jmol.org/index.php/Jmol_JavaScript_Object/Functions#getAppletHtml
 
@@ -1633,8 +1693,8 @@ def jsmol_html(structure, width=700, height=700, color="black", spin="false") ->
            antialiasDisplay: true,
            width: {width},
            height: {height},
-           j2sPath: "http://chemapps.stolaf.edu/jmol/jsmol/j2s",
-           serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+           j2sPath: "https://chemapps.stolaf.edu/jmol/jsmol/j2s",
+           serverURL: "https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
            script: script_str,
            use: 'html5',
            disableInitialConsole: true,

@@ -555,7 +555,7 @@ class EphSelfEnergy(object):
 
     @add_fig_kwargs
     def plot_tdep(self, itemps="all", zero_energy="e0", colormap="jet", ax_list=None,
-                  what_list=("re", "im", "spfunc"), with_frohl=False, xlims=None, fontsize=8, **kwargs):
+                  what_list=("re", "im", "spfunc"), with_frohl=False, xlims=None, ylims= None, fontsize=8, **kwargs):
         """
         Plot the real/imaginary part of self-energy as well as the spectral function for
         the different temperatures with a colormap.
@@ -570,6 +570,10 @@ class EphSelfEnergy(object):
             with_frohl: Visualize Frohlich contribution (if present).
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                 or scalar e.g. ``left``. If left (right) is None, default values are used.
+            ylims: Set the data limits for the y-axis. Accept list ( for real, imaginary or spectral function) of tuples e.g. ``[(left, right)]``
+                or tuple e.g. ``(left, right)`` for all graphics
+                or scalar e.g. ``left``. If left (right) is None, default values are used for all graphics.
+
             fontsize: legend and label fontsize.
             kwargs: Keyword arguments passed to ax.plot
 
@@ -584,6 +588,31 @@ class EphSelfEnergy(object):
         itemps, tlabels = self._get_itemps_labels(itemps)
         kw_color = kwargs.get("color", None)
         kw_label = kwargs.get("label", None)
+
+        if not isinstance(ax_list,np.ndarray):
+            ax_list = np.array([ax_list])
+        #try:
+        #    len(xlims)
+        #except TypeError:
+        #    xlims = [xlims]
+        try:
+            len(ylims)
+        except TypeError:
+            ylims = [ylims]
+
+        #if not any(isinstance(i, list) for i in xlims) or any(isinstance(i, tuple) for i in xlims) or any(isinstance(i, np.ndarray) for i in xlims):
+        #    xlims = [xlims]
+
+        if not any(isinstance(i, list) for i in ylims) or any(isinstance(i, tuple) for i in ylims) or any(isinstance(i, np.ndarray) for i in ylims):
+            ylims = [ylims]
+
+        #while len(xlims) < len(what_list):
+        #    xlims.append(xlims[-1])
+
+        while len(ylims) < len(what_list):
+            ylims.append(ylims[-1])
+
+
 
         for ix, (what, ax) in enumerate(zip(what_list, ax_list)):
             ax.grid(True)
@@ -603,7 +632,10 @@ class EphSelfEnergy(object):
                     )
 
             if ix == 0: ax.legend(loc="best", shadow=True, fontsize=fontsize)
+            #xl = xlims[ix]
+            yl = ylims[ix]
             set_axlims(ax, xlims, "x")
+            set_axlims(ax, yl, "y")
 
         if "title" not in kwargs:
             title = "K-point: %s, band: %d, spin: %d" % (repr(self.kpoint), self.band, self.spin)
@@ -615,7 +647,8 @@ class EphSelfEnergy(object):
     plot = plot_tdep
 
     @add_fig_kwargs
-    def plot_qpsolution(self, itemp=0, with_int_aw=True, ax_list=None, xlims=None, fontsize=8, **kwargs):
+    def plot_qpsolution(self, itemp=0, solve=False, with_int_aw=True,
+                        ax_list=None, xlims=None, fontsize=8, **kwargs):
         """
         Graphical representation of the QP solution(s) along the real axis including the
         approximated solution obtained with the linearized equation and the on-the-mass-shell approach.
@@ -626,8 +659,9 @@ class EphSelfEnergy(object):
 
         Args:
             itemp: Temperature index.
-            ax_list: List of |matplotlib-Axes|. If None, new figure is produced.
+            solve: If True, solve the non-linear QP equation. Requires shapely package.
             with_int_aw: Plot cumulative integral of A(w).
+            ax_list: List of |matplotlib-Axes|. If None, new figure is produced.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                 or scalar e.g. ``left``. If left (right) is None, default values are used.
             fontsize: legend and label fontsize.
@@ -646,7 +680,7 @@ class EphSelfEnergy(object):
         ax0.plot(xs, self.wmesh - self.qp.e0, color="b", lw=1,
                  ls=linestyles["dashed"], label=r"$\omega - \epsilon^0$")
 
-        # Add linearized solution
+        # Add linearized QP solution
         sig0 = self.vals_wr[itemp][self.nwr // 2 + 1]
         aa = self.dvals_de0ks[itemp].real
         ze0 = self.qp.ze0[itemp].real
@@ -654,16 +688,40 @@ class EphSelfEnergy(object):
         ax0.plot(xs, line, color="k", lw=1, ls=linestyles["densely_dotted"],
                  label=r"$\Re(\Sigma^0) + \dfrac{\partial\Sigma}{\partial\omega}(\omega - \epsilon^0$)")
 
-        x0 = self.qp.qpe[itemp].real - self.qp.e0
-        y0 = sig0.real + aa * x0
+        lins_x0 = self.qp.qpe[itemp].real - self.qp.e0
+        y0 = sig0.real + aa * lins_x0
         scatter_opts = dict(color="blue", marker="o", alpha=0.8, s=50, zorder=100, edgecolor='black')
-        ax0.scatter(x0, y0, label="Linearized solution", **scatter_opts)
+        ax0.scatter(lins_x0, y0, label="Linearized solution", **scatter_opts)
         text = r"$Z = %.2f$" % ze0
-        ax0.annotate(text, (x0 + 0.02, y0 + 0.1), textcoords="data", size=8)
+        ax0.annotate(text, (lins_x0 + 0.02, y0 + 0.1), textcoords="data", size=8)
 
         ax0.set_ylabel(r"$\Sigma(\omega - \epsilon^0)\,$(eV)")
         ax0.legend(loc="best", fontsize=fontsize, shadow=True)
         set_axlims(ax0, xlims, "x")
+
+        data = {
+            "OTMS": sig0.real,
+            "Linearized": lins_x0,
+        }
+
+        if solve:
+            # Solve the non-linear QP equation (may give multiple solutions).
+            try:
+                from shapely.geometry import LineString
+            except ImportError as exc:
+                raise ImportError("shapely package is required when solve=True. Install it with pip or conda.") from exc
+
+            first_line = LineString(np.column_stack((xs, self.vals_wr[itemp].real)))
+            second_line = LineString(np.column_stack((xs, self.wmesh - self.qp.e0)))
+            intersection = first_line.intersection(second_line)
+            sol_xs, sol_ys = intersection.xy
+            for i, (x, y) in enumerate(zip(sol_xs, sol_ys)):
+                data[f"NonLinear_#{i}"] = x
+
+        df = pd.DataFrame.from_dict(data, orient='index')
+        print("QP corrections computed with different approximations. All in eV")
+        print(df)
+        #ax0.table(cellText=df.values, colLabels=df.keys(), loc='center')
 
         ymin = min(self.vals_wr[itemp].real.min(), self.vals_wr[itemp].imag.min())
         ymin = ymin - abs(ymin) * 0.2
@@ -681,7 +739,7 @@ class EphSelfEnergy(object):
         #ys = ze0 / np.pi * np.abs(sig0.imag) / ((xs - x0) ** 2 + sig0.imag ** 2)
         #ax1.plot(xs, ys)
 
-        # Plot on mass shell energy as vertical line
+        # Plot on the mass shell energy as vertical line
         ax1.axvline(sig0.real, lw=1, color="red", ls="--")
         ax1.annotate("OTMS", (sig0.real + 0.02, 5.0), textcoords='data', size=8)
 
@@ -690,7 +748,7 @@ class EphSelfEnergy(object):
         set_axlims(ax1, xlims, "x")
 
         if with_int_aw:
-            # Instantiate a second axes that shares the same x-axis
+            # Instantiate a second ax sharing the same x-axis
             ax2 = ax1.twinx()
             from scipy.integrate import cumtrapz
             integral = cumtrapz(ys, x=xs, initial=0.0)
@@ -832,6 +890,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         self.nqbz = r.nqbz
         self.nqibz = r.nqibz
         self.ngqpt = r.ngqpt
+        self.ddb_ngqpt = r.ddb_ngqpt
 
         self.symsigma = r.read_value("symsigma")
         # 4 for FAN+DW, -4 for Fan Imaginary part
@@ -900,7 +959,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         #dvdb_add_lr = self.reader.read_value("dvdb_add_lr", default=None)
         app("sigma_ngkpt: %s, sigma_erange: %s" % (sigma_ngkpt, sigma_erange))
         app("Max bstart: %d, min bstop: %d" % (self.reader.max_bstart, self.reader.min_bstop))
-        app("Initial ab-initio q-mesh:\n\tngqpt: %s, with nqibz: %s" % (str(self.ngqpt), self.nqibz))
+        app("Initial ab-initio q-mesh:\n\tddb_ngqpt: %s " % str(self.ddb_ngqpt))
         eph_ngqpt_fine = self.reader.read_value("eph_ngqpt_fine")
         if np.all(eph_ngqpt_fine == 0): eph_ngqpt_fine = self.ngqpt
         app("q-mesh for self-energy integration (eph_ngqpt_fine): %s" % (str(eph_ngqpt_fine)))
@@ -1417,13 +1476,17 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Returns: class:`TdepElectronBands`.
         """
-        # TODO: Consistency check.
+        # Consistency check.
         errlines = []
         eapp = errlines.append
-        if len(self.sigma_kpoints) != len(self.ebands.kpoints):
-            eapp("QP energies should be computed for all k-points in the IBZ but nkibz != nkptgw")
         if len(self.sigma_kpoints) == 1:
             eapp("QP Interpolation requires nkptgw > 1.")
+
+        # NB: it's possible to compute QP on a submesh with sigma_ngkpt (default is 0, 0, 0)
+        sigma_ngkpt = self.reader.read_value("sigma_ngkpt", default=None)
+        if len(self.sigma_kpoints) != len(self.ebands.kpoints) and np.all(sigma_ngkpt == 0):
+            eapp("QP energies should be computed for all k-points in the IBZ but nkibz != nkptgw")
+
         #if (np.any(self.bstop_sk[0, 0] != self.gwbstop_sk):
         #    cprint("Highest bdgw band is not constant over k-points. QP Bands will be interpolated up to...")
         #if (np.any(self.gwbstart_sk[0, 0] != self.gwbstart_sk):
@@ -1467,7 +1530,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         gw_kcoords = [k.frac_coords for k in self.sigma_kpoints]
 
         # MG FIXME: Not sure this part is OK
-        qpes = self.get_qp_array(ks_ebands_kpath=ks_ebands_kpath)
+        qpes = self.get_qp_array(ks_ebands_kpath=ks_ebands_kpath, mode="qp")
 
         # Build interpolator for QP corrections.
         from abipy.core.skw import SkwInterpolator
@@ -1479,6 +1542,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         for itemp in itemp_list:
             skw_reim = []
             for reim in ("real", "imag"):
+                # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
                 qpdata = qpes[:, :, bstart:bstop, itemp]
                 qpdata = getattr(qpdata, reim).copy()
 
@@ -2459,7 +2523,9 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 cprint(w, color="yellow")
 
     def _check_dims_and_params(self):
-        """Test that nsppol, sigma_kpoints, tlist are consistent."""
+        """
+        Test that nsppol, sigma_kpoints, tlist are consistent.
+        """
         if not len(self.abifiles) > 1:
             return
 
@@ -2471,12 +2537,14 @@ class SigEPhRobot(Robot, RobotWithEbands):
             eapp("Files with different values of `nsppol`")
 
         if any(nc.nkcalc != nc0.nkcalc for nc in self.abifiles[1:]):
-            eapp("Files with different values of `nkcalc`")
-        else:
-            for nc in self.abifiles[1:]:
-                for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints):
-                    if k0 != k1:
-                        eapp("Files with different values of `sigma_kpoints`")
+            cprint("Files with different values of `nkcalc`", color="yellow")
+
+        for nc in self.abifiles[1:]:
+            for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints):
+                if k0 != k1:
+                    cprint("Files with different values of `sigma_kpoints`\n"+
+                           "Specify the kpoint via reduced coordinates and not via the index", "yellow")
+                    break
 
         if any(not np.allclose(nc.tmesh, nc0.tmesh) for nc in self.abifiles[1:]):
             eapp("Files with different tmesh")
@@ -3343,6 +3411,7 @@ class SigmaPhReader(BaseEphReader):
         self.nqbz = self.read_dimvalue("nqbz")
         self.nqibz = self.read_dimvalue("nqibz")
         self.ngqpt = self.read_value("ngqpt")
+        self.ddb_ngqpt = self.read_value("ddb_ngqpt")
 
         # T mesh and frequency meshes.
         self.ktmesh_ha = self.read_value("kTmesh")
@@ -3578,3 +3647,5 @@ class SigmaPhReader(BaseEphReader):
             qps_spin[spin] = QpTempList(qps)
 
         return tuple(qps_spin)
+
+

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 r"""
-Flow for phonon-limited mobilities in semiconductors
-====================================================
+Phonon-limited mobilities in semiconductors
+===========================================
 
-This flow computes the phonon-limited mobility in AlAs.
-using different dense k/q meshes
+This flow computes the phonon-limited mobility in AlAs
+using different dense k/q meshes.
 """
 import sys
 import os

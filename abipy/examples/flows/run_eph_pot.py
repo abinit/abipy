@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow to compute e-ph scattering potentials
-==========================================
+e-ph scattering potentials
+==========================
 
 This example shows how to compute e-ph scattering potentials
 along a q-path, merge the POT files in the DVDB file and use the

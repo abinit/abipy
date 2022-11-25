@@ -2,6 +2,7 @@
 import os
 import warnings
 import numpy as np
+from typing import Union, List, Tuple
 
 from pprint import pformat #, pprint
 from monty.string import is_string, boxed
@@ -459,6 +460,45 @@ for dataset in abinp.datasets:
 
         return self._write_nb_nbpath(nb, nbpath)
 
+    def get_differences(self, other, ignore_vars=None):
+        """
+        Get the differences between this AbinitInputFile and another.
+        """
+        diffs = []
+        to_ignore = {"acell", "angdeg", "rprim", "ntypat", "natom", "znucl", "typat", "xred", "xcart", "xangst"}
+        if ignore_vars is not None:
+            to_ignore.update(ignore_vars)
+        if self.ndtset != other.ndtset:
+            diffs.append(f"Number of datasets in this file is {self.ndtset} "
+                         f"while other file has {other.ndtset} datasets.")
+            return diffs
+        for idataset, self_dataset in enumerate(self.datasets):
+            other_dataset = other.datasets[idataset]
+            if self_dataset.structure != other_dataset.structure:
+                diffs.append("Structures are different.")
+            self_dataset_dict = dict(self_dataset)
+            other_dataset_dict = dict(other_dataset)
+            for k in to_ignore:
+                if k in self_dataset_dict:
+                    del self_dataset_dict[k]
+                if k in other_dataset_dict:
+                    del other_dataset_dict[k]
+            common_keys = set(self_dataset_dict.keys()).intersection(other_dataset_dict.keys())
+            self_only_keys = set(self_dataset_dict.keys()).difference(other_dataset_dict.keys())
+            other_only_keys = set(other_dataset_dict.keys()).difference(self_dataset_dict.keys())
+            if self_only_keys:
+                diffs.append(f"The following variables are in this file but not in other: "
+                             f"{', '.join([str(k) for k in self_only_keys])}")
+            if other_only_keys:
+                diffs.append(f"The following variables are in other file but not in this one: "
+                             f"{', '.join([str(k) for k in other_only_keys])}")
+            for k in common_keys:
+                if self_dataset_dict[k] != other_dataset_dict[k]:
+                    diffs.append(f"The variable '{k}' is different in the two files:\n"
+                                 f" - this file:  '{self_dataset_dict[k]}'\n"
+                                 f" - other file: '{other_dataset_dict[k]}'")
+        return diffs
+
 
 class AbinitInputParser(object):
 
@@ -659,6 +699,50 @@ class AbinitInputParser(object):
         varname = tok[:len(tok)-i]
 
         return varname, dtidx
+
+
+def format_string_abivars(varname, value, code="abinit") -> str:
+    """
+    Given a variable and its value, check if it is of string type and wraps it
+    in double quotes if needed.
+
+    Args:
+        varname: the name of the variable.
+        value: the value to format.
+        code: the code the variable refers to (e.g. "abinit", "anaddb")
+
+    Returns:
+        The properly formatted value.
+    """
+
+    var = get_codevars()[code].get(varname)
+    if var and var.vartype == "string":
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+
+        str_values = [str(v).strip() for v in value]
+
+        # handle gruns_ddbs separately as it supports a different syntax
+        # incompatible with other variables
+        if varname == "gruns_ddbs":
+            join_str = "\n    "
+            for i, str_val in enumerate(str_values):
+                if str_val[0] != '"':
+                    str_values[i] = '"' + str_val
+                if str_val[-1] != '"':
+                    str_values[i] += '"'
+        else:
+            join_str = ",\n    "
+            if str_values[0][0] != '"':
+                str_values[0] = '"' + str_values[0]
+            if str_values[-1][-1] != '"':
+                str_values[-1] += '"'
+
+        if len(str_values) > 1:
+            str_values[0] = "\n    " + str_values[0]
+
+        return join_str.join(str_values)
+    return value
 
 
 def structure_from_abistruct_fmt(string):

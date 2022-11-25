@@ -23,6 +23,7 @@ __all__ = [
     "set_axlims",
     "add_fig_kwargs",
     "get_ax_fig_plt",
+    "get_axarray_fig_plt",
     "get_ax3d_fig_plt",
     "plot_array",
     "ArrayPlotter",
@@ -459,7 +460,7 @@ class Marker(namedtuple("Marker", "x y s")):
         return self.__class__(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
 
 
-class MplExpose: # pragma: no cover
+class MplExpose:  # pragma: no cover
     """
     Context manager used to produce several matplotlib figures and then show
     all them at the end so that the user does not need to close the window to
@@ -554,7 +555,7 @@ class PanelExpose:  # pragma: no cover
             e(obj.plot1(show=False))
             e(obj.plot2(show=False))
     """
-    def __init__(self, title=None, verbose=1):
+    def __init__(self, title=None, dpi=92, verbose=1):
         """
         Args:
             title: String to be show in the header.
@@ -563,6 +564,7 @@ class PanelExpose:  # pragma: no cover
         self.title = title
         self.figures = []
         self.verbose = verbose
+        self.dpi = int(dpi)
 
         if self.verbose:
             print("\nLoading all figures before showing them. It may take some time...")
@@ -613,7 +615,7 @@ class PanelExpose:  # pragma: no cover
             if is_plotly_figure(fig):
                 p = ply(fig, with_divider=False)
             elif is_mpl_figure(fig):
-                p = mpl(fig, with_divider=False)
+                p = mpl(fig, with_divider=False, dpi=self.dpi)
             else:
                 raise TypeError(f"Don't know how to handle type: `{type(fig)}`")
 

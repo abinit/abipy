@@ -330,7 +330,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
             seconds=kwargs.pop("seconds", 0),
         )
         if all(not v for v in self.sched_options.values()):
-            raise self.Error("Wrong set of options passed to the scheduler.")
+            raise self.Error("Please specify at least one option among: seconds, minutes, hours ...")
 
         self.mailto = kwargs.pop("mailto", None)
         self.verbose = int(kwargs.pop("verbose", 0))
@@ -348,6 +348,8 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         self.fix_qcritical = as_bool(kwargs.pop("fix_qcritical", False))
         self.rmflow = as_bool(kwargs.pop("rmflow", False))
         self.killjobs_if_errors = as_bool(kwargs.pop("killjobs_if_errors", True))
+
+        # TODO: Add abinit_options, anaddb_options, exec_options
 
         if kwargs:
             raise self.Error("Unknown arguments `%s`" % str(kwargs))

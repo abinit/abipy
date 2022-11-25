@@ -81,6 +81,7 @@ class MpiRunner:
         self.options = str(options)
 
     def string_to_run(self, qad: QueueAdapter, executable: str,
+                      in_file: Optional[str] = None,
                       stdin: Optional[str] = None,
                       stdout: Optional[str] = None,
                       stderr: Optional[str] = None,
@@ -92,6 +93,7 @@ class MpiRunner:
         Args
             qad: QueueAdapter instance.
             executable (str): Executable name or path
+            in_file (str): Name of the input file passed to the executable as first argument.
             stdin (str): Name of the file to be used as standard input. None means no redirection.
             stdout (str): Name of the file to be used as standard output. None means no redirection.
             stderr (str): Name of the file to be used as standard error. None means no redirection.
@@ -103,6 +105,9 @@ class MpiRunner:
         stdin = "< " + stdin if stdin is not None else ""
         stdout = "> " + stdout if stdout is not None else ""
         stderr = "2> " + stderr if stderr is not None else ""
+
+        if in_file:
+            executable = f"{executable} {in_file}"
 
         if exec_args:
             executable = executable + " " + " ".join(list_strings(exec_args))
@@ -1022,7 +1027,7 @@ limits:
 
     def get_script_str(self, job_name: str, launch_dir: str,
                        executable: str, qout_path: str, qerr_path: str,
-                       stdin=None, stdout=None, stderr=None, exec_args=None) -> str:
+                       in_file: str=None, stdin=None, stdout=None, stderr=None, exec_args=None) -> str:
         """
         Returns a (multi-line) String representing the queue script, e.g. PBS script.
         Uses the template_file along with internal parameters to create the script.
@@ -1080,7 +1085,7 @@ limits:
 
         # Construct the string to run the executable with MPI and mpi_procs.
         if is_string(executable):
-            line = self.mpi_runner.string_to_run(self, executable,
+            line = self.mpi_runner.string_to_run(self, executable, in_file=in_file,
                                                  stdin=stdin, stdout=stdout, stderr=stderr, exec_args=exec_args)
             se.add_line(line)
         else:

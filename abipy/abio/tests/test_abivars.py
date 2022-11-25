@@ -7,6 +7,7 @@ from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
 from abipy.core.testing import AbipyTest
 from abipy.abio.abivars import AbinitInputFile, AbinitInputParser, expand_star_syntax, structure_from_abistruct_fmt
+from abipy.abio.abivars import format_string_abivars
 
 
 class TestAbinitInputParser(AbipyTest):
@@ -313,3 +314,88 @@ xred_symbols
         from abipy.core.structure import Structure
         same_mgb2 = Structure.from_abistring(string)
         assert same_mgb2 == mgb2
+
+    def test_format_string_abivars(self):
+        assert format_string_abivars("ecut", 30) == 30
+        assert format_string_abivars("pseudos", ["xxx", "yyy"]) == '\n    "xxx,\n    yyy"'
+        assert format_string_abivars("pseudos", 'xxx') == '"xxx"'
+        assert format_string_abivars("pseudos", '"xxx"') == '"xxx"'
+
+    def test_get_differences(self):
+        s1 = """
+             ngkpt 2 2 2
+             natom 2
+             ntypat 2
+             typat 1 2
+             znucl 48 34
+             xred
+                0.0000000000    0.0000000000    0.0000000000
+                0.2500000000    0.2500000000    0.2500000000
+             acell    1.0    1.0    1.0
+             rprim
+                0.0000000000    5.8556815705    5.8556815705
+                5.8556815705    0.0000000000    5.8556815705
+                5.8556815705    5.8556815705    0.0000000000
+        """
+        s2 = """
+             ngkpt 2 2 2
+             natom 2
+             ntypat 2
+             typat 1 2
+             znucl 48 34
+             xred
+                0.0000000000    0.0000000000    0.0000000000
+                0.2500000000    0.2500000000    0.2500000000
+             acell    0.5    0.5    0.5
+             rprim
+                0.0000000000    11.711363141    11.711363141
+                11.711363141    0.0000000000    11.711363141
+                11.711363141    11.711363141    0.0000000000
+        """
+        inp1 = AbinitInputFile.from_string(s1)
+        inp2 = AbinitInputFile.from_string(s2)
+        assert inp1.get_differences(inp2) == []
+        s1 = "natom 1 ntypat 1 typat 1 znucl 14 xred 0 0 0 ngkpt 2 2 2"
+        s2 = "natom 1 ntypat 1 typat 1 znucl 14 xred 0 0 0 ngkpt 3 3 3"
+        s3 = "natom 1 ntypat 1 typat 1 znucl 8 xred 0 0 0 ngkpt 2 2 2"
+        s4 = "natom 1 ntypat 1 typat 1 znucl 14 xred 0 0 0 ngkpt 2 2 2 ecut 6.0"
+        inp1 = AbinitInputFile.from_string(s1)
+        inp2 = AbinitInputFile.from_string(s2)
+        inp3 = AbinitInputFile.from_string(s3)
+        inp4 = AbinitInputFile.from_string(s4)
+        diffs = inp1.get_differences(inp2)
+        assert len(diffs) == 1
+        assert diffs[0] == "The variable 'ngkpt' is different in the two files:\n" \
+                           " - this file:  '2 2 2'\n" \
+                           " - other file: '3 3 3'"
+        diffs = inp2.get_differences(inp1)
+        assert len(diffs) == 1
+        assert diffs[0] == "The variable 'ngkpt' is different in the two files:\n" \
+                           " - this file:  '3 3 3'\n" \
+                           " - other file: '2 2 2'"
+        diffs = inp1.get_differences(inp2, ignore_vars=['ngkpt'])
+        assert diffs == []
+        diffs = inp1.get_differences(inp3)
+        assert diffs == ["Structures are different."]
+        diffs = inp1.get_differences(inp4)
+        assert diffs == ["The following variables are in other file but not in this one: ecut"]
+        diffs = inp4.get_differences(inp1)
+        assert diffs == ["The following variables are in this file but not in other: ecut"]
+        diffs = inp1.get_differences(inp4, ignore_vars=['ecut'])
+        assert diffs == []
+        diffs = inp2.get_differences(inp4)
+        assert len(diffs) == 2
+        assert "The following variables are in other file but not in this one: ecut" in diffs
+        assert "The variable 'ngkpt' is different in the two files:\n" \
+               " - this file:  '3 3 3'\n" \
+               " - other file: '2 2 2'" in diffs
+        diffs = inp2.get_differences(inp4, ignore_vars=["ecut"])
+        assert diffs == [
+            "The variable 'ngkpt' is different in the two files:\n"
+            " - this file:  '3 3 3'\n"
+            " - other file: '2 2 2'"
+        ]
+        diffs = inp2.get_differences(inp4, ignore_vars=["ngkpt"])
+        assert diffs == ["The following variables are in other file but not in this one: ecut"]
+        diffs = inp2.get_differences(inp4, ignore_vars=["ngkpt", "ecut"])
+        assert diffs == []

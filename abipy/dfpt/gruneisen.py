@@ -730,7 +730,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             q1shft=(0, 0, 0), qptbounds=qptbounds, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
             lo_to_splitting=lo_to_splitting, anaddb_kwargs=anaddb_kwargs)
 
-        inp["gruns_ddbs"] = ['"'+p+'"\n' for p in ddb_list]
+        inp["gruns_ddbs"] = ddb_list
         inp["gruns_nddbs"] = len(ddb_list)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=ddb0.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)

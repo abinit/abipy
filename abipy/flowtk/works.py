@@ -864,7 +864,7 @@ class Work(BaseWork, NodeContainer):
             if task.status in (task.S_OK, task.S_LOCKED): continue
             task.check_status()
 
-        # Take into account possible dependencies. Use a list instead of generators
+        # Take into account possible dependencies.
         for task in self:
             if task.status == task.S_LOCKED: continue
             if task.status < task.S_SUB and all(status == task.S_OK for status in task.deps_status):
@@ -1012,9 +1012,45 @@ class BandStructureWork(Work):
     """
     Work for band structure calculations.
 
+    The first task performs the GS-SCF calculations, the second one computes the band dispersion
+    along an high-symmetry k-path. Finally, we have a list of NSCF tasks computing the e-DOS.
+
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: BandStructureWork
     """
+
+    @classmethod
+    def from_scf_input(cls, scf_input, dos_ngkpt, nb_extra=10, ndivsm=-20, dos_shiftk=(0, 0, 0), prtdos=3):
+        """
+        Build a BandStructureWork from an |AbinitInput| representing a GS-SCF calculation.
+
+        Args:
+            scf_input: Input for the GS-SCF run.
+            dos_ngkpt: K-mesh for e-DOS. Set it to None to skip this task.
+            nb_extra: Extra bands to be added to the input nband.
+            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two consecutive high symmetry k-points
+                that are very close as ndivsm > 0 may produce a very large number of wavevectors.
+            prtdos: By default, we compute L-projections with tetrahedron method.
+                Set prtdos to zero to deactivate L-projections.
+        """
+        # Build input for NSCF along k-path.
+        nscf_input = scf_input.make_ebands_input(ndivsm=ndivsm, tolwfr=1e-20, nscf_nband=None, nb_extra=nb_extra,
+                                                 nstep=100)
+        nscf_input["prtdos"] = prtdos
+        #if prtdos != 0: nscf_input.set_ratpsh(ratsph_mode)
+
+        dos_input = None
+        if dos_ngkpt is not None:
+            # Build input for NSCF with k-mesh.
+            dos_input = scf_input.make_edos_input(dos_ngkpt, shiftk=dos_shiftk, tolwfr=1e-20, nb_extra=nb_extra, nstep=100)
+            dos_input["prtdos"] = prtdos
+            #if prtdos != 0: dos_input.set_ratpsh(ratsph_mode)
+
+        return cls(scf_input, nscf_input, [dos_input])
+
 
     def __init__(self, scf_input, nscf_input, dos_inputs=None, workdir=None, manager=None):
         """

@@ -93,6 +93,7 @@ class ElectronBandsTest(AbipyTest):
 
         same = ni_ebands_kmesh.deepcopy()
         assert same.structure == ni_ebands_kmesh.structure
+        assert same.smearing.occopt == ni_ebands_kmesh.smearing.occopt
 
         ni_edos = ni_ebands_kmesh.get_edos()
         repr(ni_edos); str(ni_edos)
@@ -292,6 +293,8 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(TypeError):
             ElectronDos.as_edos({}, {})
 
+        assert si_ebands_kmesh.to_pymatgen()
+
         mu = si_edos.find_mu(8)
         imu = si_edos.tot_idos.find_mesh_index(mu)
         self.assert_almost_equal(si_edos.tot_idos[imu][1], 8, decimal=2)
@@ -489,18 +492,19 @@ class ElectronBandsTest(AbipyTest):
                 new_eigens[spin, :, band] = branch
         ebands._eigens = new_eigens
 
-        effm_lines = ebands.effective_masses(spin=0, band=0, acc=2)
-
+        #effm_lines = ebands.effective_masses(spin=0, band=0, acc=2)
         # Flatten structure (.flatten does not work in this case)
-        values = []
-        for arr in effm_lines:
-            values.extend(arr)
-
-        self.assert_almost_equal(np.array(values), 1.0)
-
-        em = ebands.get_effmass_line(spin=0, kpoint=(0, 0, 0), band=0)
-        repr(em); str(em)
+        #values = []
+        #for arr in effm_lines:
+        #    values.extend(arr)
         #self.assert_almost_equal(np.array(values), 1.0)
+
+        ebands.get_effmass_line(spin=0, kpoint=(0, 0, 0), band=0)
+        #repr(em); str(em)
+        #self.assert_almost_equal(np.array(values), 1.0)
+
+        emana = ebands.get_effmass_analyzer()
+        repr(emana); str(emana)
 
     def test_fermi_surface(self):
         """Testing Fermi surface tools."""

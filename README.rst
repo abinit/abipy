@@ -126,10 +126,10 @@ For pip, use::
     pip install -r requirements.txt
     pip install -r requirements-optional.txt
 
-If you are using conda_ (see `Installing conda`_ to install conda itself),  create a new environment (``abienv``)
-based on python3.6 with::
+If you are using conda_ (see `Installing conda`_ to install conda itself), create a new environment (``abienv``)
+based on python3.9 with::
 
-    conda create -n abienv python=3.6
+    conda create -n abienv python=3.9
     source activate abienv
 
 Add ``conda-forge``, and ``abinit`` to your channels with::
@@ -167,13 +167,8 @@ To solve the problem, use conda to update scipy to a version >= 1.0.1 with::
 
     conda install "scipy>=1.0.1"
 
-then issue again python setup.py develop. If this fails, supposing you were upgrading abipy inside an already existing conda environment, try to restart by creating from scratch a fresh conda environment, see above.
-
-Use::
-
-    conda info pymatgen
-
-to display information about the installed version of pymatgen.
+then issue again python setup.py develop. If this fails, supposing you were upgrading abipy inside 
+an already existing conda environment, try to restart by creating from scratch a fresh conda environment, see above.
 
 Also note that the BLAS/Lapack libraries provided by conda have multithreading support activated by default.
 Each process will try to use all of the cores on your machine, which quickly overloads things

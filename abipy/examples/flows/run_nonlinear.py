@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Nnon-linear optical properties with DFPT
-========================================
+Non-linear optical properties with DFPT
+=======================================
 
 Flow to compute non-linear optical properties with DFPT (static limit).
 """

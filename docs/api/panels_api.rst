@@ -13,6 +13,14 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`a2f` Module
+------------------
+
+.. automodule:: abipy.panels.a2f
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`core` Module
 ------------------
 

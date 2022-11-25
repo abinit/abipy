@@ -2850,6 +2850,12 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             ax_list[0].grid(True)
         return fig
 
+    #def get_panel(self, **kwargs):
+    #    """Return tabs with widgets to interact with the |PhononBandsPlotter| file."""
+    #    from abipy.panels.phonons import PhononBandsPlotterPanel
+    #    return PhononBandsPlotterPanel(self).get_panel(**kwargs)
+
+
 
 class PHBST_Reader(ETSF_Reader):
     """
@@ -4819,10 +4825,10 @@ class PhononBandsPlotter(NotebookWriter):
         """Integration with jupyter_ notebooks."""
         return self.ipw_select_plot()
 
-    def get_panel(self):
+    def get_panel(self, **kwargs):
         """Return tabs with widgets to interact with the |PhononBandsPlotter| file."""
         from abipy.panels.phonons import PhononBandsPlotterPanel
-        return PhononBandsPlotterPanel(self).get_panel()
+        return PhononBandsPlotterPanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """

@@ -42,41 +42,53 @@ class PanelWithAnaddbParams(param.Parameterized):
 
     nqsmall = param.Integer(10, bounds=(1, None), label="nqsmall (q-mesh for BZ integration)",
                            doc="Number of divisions for smallest vector to generate the q-mesh")
+
     ndivsm = param.Integer(5, bounds=(None, None), label="ndivsm (density of q-path)",
                           doc="Number of divisions for smallest vector to generate the q-path")
+
     lo_to_splitting = param.ObjectSelector(default="automatic", objects=["automatic", True, False])
+
     chneut = param.ObjectSelector(default=1, objects=[0, 1, 2], doc="Abinit variable")
+
     dipdip = param.ObjectSelector(default=1, objects=[0, 1, -1], doc="Abinit variable")
+
     dipquad = param.ObjectSelector(default=1, objects=[0, 1], doc="Abinit variable")
+
     quadquad = param.ObjectSelector(default=1, objects=[0, 1], doc="Abinit variable")
+
     asr = param.ObjectSelector(default=2, objects=[0, 1, 2], doc="Abinit variable")
+
     units = param.ObjectSelector(default="eV", objects=["eV", "meV", "Ha", "cm-1", "Thz"], doc="Energy units")
 
     dos_method = param.ObjectSelector(default="tetra", objects=["tetra", "gaussian"], label="Integration method for PDOS")
-    temp_range = param.Range(default=(200.0, 400.0), bounds=(0, 1000), label="Temperature range in K.")
-    #temp_range_slider = pnw.EditableRangeSlider(
-    #    name='Range Slider', start=0, end=1000, value=(200, 4000), step=1)
+    #temp_range = param.Range(default=(200.0, 400.0), bounds=(0, 1000), label="Temperature range in K.")
+
 
     eps0_gamma_ev = param.Number(1e-4, bounds=(1e-20, None), label="Phonon linewidth in eV")
-    eps0_wrange = param.Range(default=(0.0, 0.1), bounds=(0.0, 1.0), label="Frequency range (eV)")
+    #eps0_wrange = param.Range(default=(0.0, 0.1), bounds=(0.0, 1.0), label="Frequency range (eV)")
 
     ifc_yscale = param.ObjectSelector(default="log", label="Scale for IFCs",
                                       objects=["log", "linear", "symlog", "logit"])
 
     def __init__(self, **params):
         super().__init__(**params)
-
-        #if self.has_remote_serve:
-        #    self.param.nqsmall.bounds = (1, 50)
-        #    self.param.ndivsm.bounds = (-30, 30)
-
         # FIXME
-        self.nqsmall_list = pnw.LiteralInput(name='nsmalls (python list)', value=[10, 20, 30], type=list)
+        self.nqsmall_list = pnw.LiteralInput(name='nqmall_list (python syntax)', value=[10, 20, 30], type=list)
         #nqqpt = pnw.LiteralInput(name='nsmalls (list)', value=[10, 20, 30], type=list)
+
+        self.eps0_wrange = pnw.EditableRangeSlider(name="Frequency range (eV)", value=(0.0, 0.1),
+                                                   start=0.0, end=1.0, step=0.01)
+
+        self.temp_range = pnw.EditableRangeSlider(name='T-range in K', value=(100.0, 400),
+                                                  start=0, end=1000, step=50)
 
         # Base buttons
         self.plot_without_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP",
                                                       button_type='primary')
+
+        #if self.has_remote_serve:
+        #    self.param.nqsmall.bounds = (1, 50)
+        #    self.param.ndivsm.bounds = (-30, 30)
 
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs):
         """
@@ -101,6 +113,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
     """
 
     vsound_num_points = param.Integer(20, bounds=(1, None), label="Number of q-points")
+
     vsound_qpt_norm = param.Number(0.1, bounds=(0, None), label="Norm of the largest q-point")
 
     def __init__(self, ddb, **params):
@@ -147,19 +160,23 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.eps0_gamma_ev)
 
         df_kwargs = {}
-        #m = pn.pane.LaTeX
         def m(s):
-            return pn.Row(pn.pane.LaTeX(s, style={'font-size': '18pt'}), sizing_mode="stretch_width")
+            return pn.pane.Markdown(s)
+            #return pn.Row(pn.pane.LaTeX(s, style={'font-size': '18pt'}), sizing_mode="stretch_width")
 
-        #ca(m(f"$\epsilon^0$ in Cart. coords. Computed with gamma_eV: {self.eps0_gamma_ev:.2f}"))
-        ca(m(r"$\epsilon^0$ in Cart. coords:"))
+        #ca(m(f"$$\epsilon_0$$ in Cart. coords. Computed with gamma_eV: {self.eps0_gamma_ev:.2f}"))
+        ca(m(r"## Cartesian coordinates of $$\epsilon_0$$ tensor"))
         ca(dfc(eps0.get_dataframe(cmode="real"), **df_kwargs))
-        ca(m(r"$\epsilon^\infty$ in Cart. coords:"))
+        ca(m(r"## Cartesian coordinates of $$\epsilon_\infty$$ tensor"))
         ca(dfc(epsinf.get_dataframe(), **df_kwargs))
-        ca("## Born effective charges in Cart. coords:")
+        ca("## Born effective charges in Cartesian coordinates:")
         ca(dfc(becs.get_voigt_dataframe(), **df_kwargs))
         ca("## Anaddb input file")
         ca(self.html_with_clipboard_btn(inp))
+
+        #pn.state.notifications.success('This is a success notification.', duration=0)
+        #pn.state.notifications.send('Fire!!!', background='red', icon='<i class="fas fa-burn"></i>')
+        #return pn.io.notifications.NotificationArea.demo()
 
         return col
 
@@ -179,7 +196,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         gen, inp = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                                                                mpi_procs=self.mpi_procs, verbose=self.verbose,
                                                                return_input=True)
-        ws = self.eps0_wrange
+        ws = self.eps0_wrange.value
         w_max = ws[1]
         if w_max == 1.0: w_max = None # Will compute w_max in plot routine from ph freqs.
 
@@ -232,10 +249,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         - Total phonon DOS and atom-projected phonon DOSes
         - Thermodynamic properties in the Harmonic approximation
 
-        ??? warning classes
-           Content.
-
-        !!! important
+        Important
 
             Note that **anaddb** uses the **q**-mesh found in the DDB file to build the
             interatomic force constants (IFCs) in real space and then compute phonon quantities
@@ -266,7 +280,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             ca(ply(phdos_file.plotly_pjdos_type(units=self.units, stacked=self.stacked_pjdos.value, show=False)))
 
             ca("## Thermodynamic properties in the harmonic approximation:")
-            temps = self.temp_range
+            temps = self.temp_range.value
             ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
             #ca(mpl(phdos_file.msqd_dos.plot(units=self.units, **self.mpl_kwargs)))
             #msqd_dos.plot_tensor(**self.mpl_kwargs)
@@ -305,7 +319,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
         ca("## Linear least-squares fit")
         ca(ply(sv.plotly(show=False)))
-        ca("## Speed of sound computed along different q-directions in reduced coords:")
+        ca("## Speed of sound computed along different q-directions in reduced coords")
         ca(dfc(sv.get_dataframe()))
         ca("## Anaddb input file")
         ca(self.html_with_clipboard_btn(inp))
@@ -350,8 +364,8 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
     def get_dos_vs_qmesh_view(self):
         return pn.Row(
                 self.pws_col(["## DOS vs q-mesh options",
-                              "nqsmall_list", "temp_range", "dos_method",
-                              "asr", "chneut", "dipdip", "dipquad", "quadquad",
+                              "nqsmall_list", "dos_method",
+                              "asr", "chneut", "dipdip", "dipquad", "quadquad", "temp_range",
                               "plot_dos_vs_qmesh_btn",
                              ]),
                 self.plot_dos_vs_qmesh
@@ -377,12 +391,11 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         ca(ply(r.plotter.combiplotly(show=False)))
 
         ca("## Convergence of termodynamic properties.")
-        temps = self.temp_range
-        ca(mpl(r.plotter.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50,
-                                              units=self.units, **self.mpl_kwargs)))
-        # TODO
-        #ca(ply(r.plotter.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50,
-        #                                        units=self.units, show=False)))
+        temps = self.temp_range.value
+        #ca(mpl(r.plotter.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50,
+        #                                      units=self.units, **self.mpl_kwargs)))
+        ca(ply(r.plotter.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50,
+                                                units=self.units, show=False)))
 
         return col
 
@@ -537,7 +550,6 @@ Post-process the data stored in one of the ABINIT output files (*GSR.nc*, *DDB*,
         super().__init__(**params)
 
         self.use_structure = use_structure
-        #self.with_input_gen = with_input_gen
         help_md = pn.pane.Markdown(f"""
 ## Description
 
@@ -621,9 +633,9 @@ This app allows user to upload a file with structure info and operate on it.
 class DdbPanelWithFileInput(AbipyParameterized):
 
     info_str = """
-This app allows users to post-process the data stored in one of the Abinit output files.
-The main difference with respect to [Abinit Output File Analyzer](/outfile) is that
-here it is also possible to fetch the DDB file from the Materials Project Database.
+This app allows users to upload a DDB file with the dynamical matrix, compute
+phonon-related properties such as band structures, DOS, infrared absorption and visualize
+the results.
 """
 
     def __init__(self, **params):
@@ -833,7 +845,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     #        gen, inp = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
     #                                                               mpi_procs=self.mpi_procs, verbose=self.verbose,
     #                                                               return_input=True)
-    #        ws = self.eps0_wrange
+    #        ws = self.eps0_wrange.value
     #        w_max = ws[1]
     #        if w_max == 1.0: w_max = None # Will compute w_max in plot routine from ph freqs.
 
@@ -944,7 +956,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         # Fill column
         col = pn.Column(sizing_mode='stretch_width'); ca = col.append
 
-        ca("## Phonon bands and DOS with/wo acoustic sum rule:")
+        ca("## Phonon bands and DOS with/wo the acoustic sum rule:")
         ca(ply(asr_plotter.combiplotly(show=False)))
         ca("## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
         ca(ply(dipdip_plotter.combiplotly(show=False)))

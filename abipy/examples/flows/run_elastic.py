@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow for elastic constants and piezoelectric tensor with DFPT
-=============================================================
+Elastic constants and piezoelectric tensor with DFPT
+====================================================
 
 This example shows how to use AbiPy to calculate physical properties
 related to strain for an insulator.

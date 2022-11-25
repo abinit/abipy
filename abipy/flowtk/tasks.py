@@ -961,7 +961,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             executable=task.executable,
             qout_path=task.qout_file.path,
             qerr_path=task.qerr_file.path,
-            stdin=task.files_file.path,
+            in_file=task.input_file.path,
             stdout=task.log_file.path,
             stderr=task.stderr_file.path,
             exec_args=kwargs.pop("exec_args", []),
@@ -1438,7 +1438,6 @@ class Task(Node, metaclass=abc.ABCMeta):
         # Files required for the execution.
         self.input_file = File(os.path.join(self.workdir, "run.abi"))
         self.output_file = File(os.path.join(self.workdir, "run.abo"))
-        self.files_file = File(os.path.join(self.workdir, "run.files"))
         self.job_file = File(os.path.join(self.workdir, "job.sh"))
         self.log_file = File(os.path.join(self.workdir, "run.log"))
         self.stderr_file = File(os.path.join(self.workdir, "run.err"))
@@ -2180,7 +2179,7 @@ class Task(Node, metaclass=abc.ABCMeta):
             filepaths, exts = dep.get_filepaths_and_exts()
 
             for path, ext in zip(filepaths, exts):
-                self.history.info("Need path %s with ext %s" % (path, ext))
+                self.history.info(f"Need path `{path}` with extension: `{ext}`")
                 dest = self.ipath_from_ext(ext)
 
                 if not os.path.exists(path):
@@ -2195,7 +2194,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                 if path.endswith(".nc") and not dest.endswith(".nc"): # NC --> NC file
                     dest += ".nc"
 
-                # Link path to dest if dest link does not exist.
+                # Link path to dest if dest link does not exist
                 # else check that it points to the expected file.
                 self.history.debug("Linking path %s --> %s" % (path, dest))
                 if not os.path.exists(dest):
@@ -2353,11 +2352,12 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.outdir.makedirs()
         self.tmpdir.makedirs()
 
-        # Write files file and input file.
-        if not self.files_file.exists:
-            self.files_file.write(self.filesfile_string)
-
         self.input_file.write(self.make_input())
+
+        # Write input in JSON format so that we can read it if we need to change it
+        #with open(self.path_in_workdir("run.abi.json"), "wt") as fh:
+        #    d = self.input.as_dict()
+        #    json.write(d, fh, indent=4)
 
         self.manager.write_jobfile(self)
 
@@ -4684,7 +4684,7 @@ class AnaddbTask(Task):
         Create an instance of AnaddbTask from a string containing the input.
 
         Args:
-            anaddb_input: string with the anaddb variables.
+            anaddb_input: |AnaddbInput| object.
             ddb_node: The node that will produce the DDB file. Accept |Task|, |Work| or filepath.
             gkk_node: The node that will produce the GKK file (optional). Accept |Task|, |Work| or filepath.
             md_node: The node that will produce the MD file (optional). Accept |Task|, |Work| or filepath.
@@ -4765,34 +4765,34 @@ class AnaddbTask(Task):
         # This is not very elegant! A possible approach could to be path self.ddb_node.outdir!
         if isinstance(self.ddb_node, FileNode): return self.ddb_node.filepath
         path = self.ddb_node.outdir.has_abiext("DDB")
-        return path if path else "DDB_FILE_DOES_NOT_EXIST"
+        return path if path else None
 
     @property
     def md_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input MD file."""
-        if self.md_node is None: return "MD_FILE_DOES_NOT_EXIST"
+        if self.md_node is None: return None
         if isinstance(self.md_node, FileNode): return self.md_node.filepath
 
         path = self.md_node.outdir.has_abiext("MD")
-        return path if path else "MD_FILE_DOES_NOT_EXIST"
+        return path if path else None
 
     @property
     def gkk_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input GKK file."""
-        if self.gkk_node is None: return "GKK_FILE_DOES_NOT_EXIST"
+        if self.gkk_node is None: return None
         if isinstance(self.gkk_node, FileNode): return self.gkk_node.filepath
 
         path = self.gkk_node.outdir.has_abiext("GKK")
-        return path if path else "GKK_FILE_DOES_NOT_EXIST"
+        return path if path else None
 
     @property
     def ddk_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input DKK file."""
-        if self.ddk_node is None: return "DDK_FILE_DOES_NOT_EXIST"
+        if self.ddk_node is None: return None
         if isinstance(self.ddk_node, FileNode): return self.ddk_node.filepath
 
         path = self.ddk_node.outdir.has_abiext("DDK")
-        return path if path else "DDK_FILE_DOES_NOT_EXIST"
+        return path if path else None
 
     def setup(self):
         """Public method called before submitting the task."""
@@ -4805,12 +4805,12 @@ class AnaddbTask(Task):
 
     def outpath_from_ext(self, ext):
         if ext == "anaddb.nc":
-            path = os.path.join(self.workdir, "anaddb.nc")
+            path = os.path.join(self.outdir.path, "anaddb.nc")
             if os.path.isfile(path): return path
 
-        path = self.wdir.has_abiext(ext)
+        path = self.outdir.has_abiext(ext)
         if not path:
-            raise RuntimeError("Anaddb task `%s` didn't produce file with extenstion: `%s`" % (self, ext))
+            raise RuntimeError("Anaddb task `%s` didn't produce file with extension: `%s`" % (self, ext))
 
         return path
 
@@ -4826,6 +4826,25 @@ class AnaddbTask(Task):
         phdos_path = self.outpath_from_ext("PHDOS.nc")
         return PhdosFile(phdos_path)
 
+    def make_input(self, with_header=False):
+        """return string the input file of the calculation."""
+        inp = self.input.deepcopy()
+
+        ddb_filepath = self.ddb_filepath
+        if ddb_filepath:
+            inp["ddb_filepath"] = ddb_filepath
+
+        gkk_filepath = self.gkk_filepath
+        if gkk_filepath:
+            inp["gkk_filepath"] = gkk_filepath
+
+        ddk_filepath = self.ddk_filepath
+        if ddk_filepath:
+            inp["ddk_filepath"] = ddk_filepath
+
+        s = str(inp)
+        if with_header: s = str(self) + "\n" + s
+        return s
 
 
 #class BoxcuttedPhononTask(PhononTask):

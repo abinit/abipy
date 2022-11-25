@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow for Relaxation + Bands
-===========================
+Relaxation + Bands
+==================
 
 This script shows how to perform a structural relaxation and a band structure calculation
 

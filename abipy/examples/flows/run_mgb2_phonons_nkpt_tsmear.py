@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow to analyze the convergence of phonons in metals wrt ngkpt and tsmear
-=========================================================================
+Convergence of phonons in metals wrt ngkpt and tsmear
+=====================================================
 
 This examples shows how to build a Flow to compute the
 phonon band structure in a metallic system (MgB2) with different
@@ -52,14 +52,13 @@ def build_flow(options):
 
     # Build work of GS task. Each gs_task uses different (ngkpt, tsmear) values
     # and represent the starting point of the phonon works.
-    scf_work = flowtk.Work()
+    scf_work = flow.new_work()
     ngkpt_list = [[4, 4, 4], [8, 8, 8]] #, [12, 12, 12]]
     tsmear_list = [0.01, 0.02] # , 0.04]
     for ngkpt in ngkpt_list:
         for tsmear in tsmear_list:
             scf_input = make_scf_input(structure, ngkpt, tsmear, pseudos)
             scf_work.register_scf_task(scf_input)
-    flow.register_work(scf_work)
 
     # This call uses the information reported in the GS task to
     # compute all the independent atomic perturbations corresponding to a [2, 2, 2] q-mesh.

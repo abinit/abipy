@@ -8,7 +8,7 @@ from abipy.core.structure import Structure
 
 class EosWork(Work):
     """
-    Work for the computation of the Equation of State
+    Work for the computation of the Equation of State.
     The EOS is obtained by computing E(V) for several volumes around the input V0,
     The initial volumes are obtained by rescaling the input lattice vectors so that
     length proportions and angles are preserved.
@@ -78,6 +78,18 @@ class EosWork(Work):
                 # In principle one could take into account the symmetry of the lattice...
                 new_input.set_vars_ifnotin(ionmov=2, ntime=50, optcell=3, dilatmx=1.05)
                 new_work.register_relax_task(new_input)
+
+        return new_work
+
+    @classmethod
+    def from_inputs(cls, inputs, manager=None):
+        """
+        Advanced interface to build an EosWork from an list of AbinitInputs.
+        """
+        new_work = cls(manager=manager)
+        new_work.input_volumes = [inp.structure.lattice.volume for inp in inputs]
+        for scf_inp in inputs:
+            new_work.register_scf_task(scf_inp)
 
         return new_work
 
