@@ -3104,7 +3104,7 @@ class ElectronBands(Has_Structure):
     def get_ebands3d(self):
         err_msg = self.isnot_ibz_sampling()
         if err_msg:
-            raise valueError(err_msg)
+            raise ValueError(err_msg)
 
         return ElectronBands3D(self.structure, self.kpoints, self.has_timrev, self.eigens, self.fermie)
 
