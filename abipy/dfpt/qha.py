@@ -7,6 +7,7 @@ import abipy.core.abinit_units as abu
 from scipy.interpolate import UnivariateSpline
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from pymatgen.analysis.eos import EOS
 from abipy.core.func1d import Function1D
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
@@ -67,7 +68,23 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         tot_en = self.energies[np.newaxis, :].T + ph_energies + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
 
         # list of fits objects, one for each temperature
-        fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
+        #fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
+
+        fits = []
+        for kt, e in zip(tmesh, tot_en.T):
+            try:
+                f = self.eos.fit(self.volumes, e)
+                fits.append(f)
+            except Exception as exc:
+                msg = f"""
+EOS fit failed for T={kt} with exception:
+
+    {str(exc)}
+
+Very likely the minimum volume is not in the input range.
+Try to change the temperature range with the `tstart`, `tstop` optional arguments
+"""
+                cprint(msg, color="red")
 
         # list of minimum volumes and energies, one for each temperature
         min_volumes = np.array([fit.v0 for fit in fits])
@@ -154,6 +171,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
 
         ax.set_xlabel(r'V (${\AA}^3$)')
         ax.set_ylabel('E (eV)')
+        #ax.grid(True)
 
         return fig
 

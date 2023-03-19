@@ -697,6 +697,7 @@ class MultiOncvPlotter(NotebookWriter):
         for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_atan_logders(ax=ax, with_xlabel=with_xlabel, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+            #xlims = [-5, 5]
             set_axlims(ax, xlims, "x")
             set_axlims(ax, ylims, "y")
             if i != n - 1:

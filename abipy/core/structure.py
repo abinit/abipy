@@ -459,7 +459,6 @@ class Structure(pmg_Structure, NotebookWriter):
         Example::
 
             Structure.zincblende(a, ["Zn", "S"])
-
         """
         a = pmg_units.Length(a, units).to("ang")
         lattice = 0.5 * float(a) * np.array([
@@ -484,7 +483,6 @@ class Structure(pmg_Structure, NotebookWriter):
         Example::
 
             Structure.rocksalt(a, ["Na", "Cl"])
-
         """
         a = pmg_units.Length(a, units).to("ang")
         lattice = 0.5 * float(a) * np.array([

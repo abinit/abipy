@@ -86,7 +86,8 @@ def oncv_plot(options):
     out_path = _find_oncv_output(options.filepath)
 
     plotter = OncvPlotter.from_file(out_path)
-    plotter.expose(use_web=True)
+    #plotter.expose(use_web=True)
+    plotter.expose(use_web=False)
 
     return 0
 
@@ -99,9 +100,14 @@ def oncv_compare(options):
 
     plotter = MultiOncvPlotter.from_files(options.filepaths)
 
+    plotter.plot_atan_logders(show=True, fontsize=12)
+    return
+
     # Plot data
     use_web = False
-    use_web = True
+    #use_web = True
+    #import matplotlib.pyplot as plt
+    #with plt.xkcd():
     plotter.expose(use_web=use_web)
 
     return 0

@@ -16,7 +16,7 @@ from collections import OrderedDict
 from pprint import pprint
 from typing import List, Any, Union
 from monty.json import jsanitize
-from pymatgen.util.io_utils import AtomicFile
+from abipy.tools.iotools import AtomicFile
 from pydispatch import dispatcher
 from monty.termcolor import colored
 from monty.serialization import loadfn

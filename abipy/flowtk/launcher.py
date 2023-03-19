@@ -19,8 +19,7 @@ from monty.os.path import which
 from monty.collections import AttrDict #, dict2namedtuple
 from monty.termcolor import cprint
 from monty.functools import lazy_property
-from pymatgen.util.io_utils import ask_yesno
-from abipy.tools.iotools import yaml_safe_load
+from abipy.tools.iotools import yaml_safe_load, ask_yesno
 from .utils import as_bool
 
 

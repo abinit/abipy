@@ -30,7 +30,7 @@ from monty.termcolor import cprint, colored, cprint_map, get_terminal_size
 from monty.inspect import find_top_pyfile
 from monty.json import MSONable
 from pymatgen.core.units import Memory
-from pymatgen.util.io_utils import AtomicFile
+from abipy.tools.iotools import AtomicFile
 from abipy.tools.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_serialize
 from abipy.core.globals import get_workdir
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt

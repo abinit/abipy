@@ -122,7 +122,7 @@ class PspsFile(AbinitNcFile):
     @add_fig_kwargs
     def plot_tcore_rspace(self, ax=None, ders=(0, 1, 2, 3), rmax=3.0,  **kwargs):
         """
-        Plot the model core and its derivatives in real space.
+        Plot the model core charge and its derivatives in real space.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -136,8 +136,8 @@ class PspsFile(AbinitNcFile):
         linewidth = kwargs.pop("linewidth", 2.0)
         rmeshes, coresd = self.reader.read_coresd(rmax=rmax)
 
-        scale = None
         scale = 1.0
+        #scale = None
         for rmesh, mcores in zip(rmeshes, coresd):
             for der, values in enumerate(mcores):
                 if der not in ders: continue
@@ -150,6 +150,7 @@ class PspsFile(AbinitNcFile):
         ax.set_xlabel("r [Bohr]")
         ax.set_title("Model core in r-space")
         if kwargs.get("with_legend", False): ax.legend(loc="best")
+        #ax.legend(loc="best")
 
         return fig
 
@@ -347,6 +348,13 @@ class PspsFile(AbinitNcFile):
             other.plot_ffspl(ax=ax, with_qn=0, color=mkcolor(count+1), show=False)
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot(show=False)
+
 
 
 class PspsReader(ETSF_Reader):
