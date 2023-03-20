@@ -26,7 +26,11 @@ from .utils import as_bool
 import logging
 logger = logging.getLogger(__name__)
 
-has_sched_v3 = apscheduler.version >= "3.0.0"
+try:
+    has_sched_v3 = apscheduler.version >= "3.0.0"
+except AttributeError:
+    has_sched_v3 = False
+
 
 __all__ = [
     "ScriptEditor",
