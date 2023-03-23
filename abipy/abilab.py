@@ -47,7 +47,7 @@ from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, Electro
     dataframe_from_ebands, EdosFile)
 from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.eskw import EskwFile
-from abipy.electrons.psps import PspsFile
+from abipy.electrons.psps import PspsFile, PspsRobot
 from abipy.electrons.gw import SigresFile, SigresRobot
 from abipy.electrons.gwr import GwrFile
 from abipy.electrons.bse import MdfFile, MdfRobot
