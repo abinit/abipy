@@ -592,6 +592,11 @@ def abicomp_pseudos(options):
     return 0
 
 
+def abicomp_psps(options):
+    """"Compare multiple PSPS.nc files."""
+    return _invoke_robot(options)
+
+
 def _build_robot(options, trim_paths=True):
     """Build robot instance from CLI options."""
     robot_cls = abilab.Robot.class_for_ext(options.command.upper())
@@ -666,8 +671,7 @@ def _invoke_robot(options):
                 print(robot.to_string(verbose=options.verbose))
 
         else:
-            cprint("%s does not provide `get_dataframe` method. Using `to_string`" % (
-                    robot.__class__.__name__), "yellow")
+            cprint("%s does not provide `get_dataframe` method. Using `to_string`" % (robot.__class__.__name__), "yellow")
             print(robot.to_string(verbose=options.verbose))
 
         if not options.verbose:
@@ -685,7 +689,7 @@ def _invoke_robot(options):
             elif hasattr(robot, "expose"):
                 # matplotlib version.
                 robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                             verbose=options.verbose)
+                             verbose=options.verbose, use_web=options.expose_web)
     else:
         # Default behaviour: use ipython
         import IPython
@@ -859,6 +863,7 @@ Usage example:
   abicomp.py getattr energy *_GSR.nc              => Extract the `energy` attribute from a list of GSR files
                                                      and print results. Use `--list` to get list of possible names.
   abicomp.py pseudos PSEUDO_FILES                 => Compare pseudopotential files.
+  abicomp.py psps *_PSPS.nc                       => Compare multiple PSPS.nc files produced with prtpsp 1.
 
 ############
 # Text files
@@ -1095,6 +1100,8 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
                                    "Default: FastList"
                               )
     robot_parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
+    robot_parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
+            help='Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.')
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
@@ -1116,6 +1123,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
 
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
+    p_pspsp = subparsers.add_parser('psps', parents=robot_parents, help=abicomp_psps.__doc__)
 
     # Subparser for time command.
     p_time = subparsers.add_parser('time', parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)
@@ -1202,8 +1210,15 @@ def main():
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
-    if options.verbose > 2:
-        print(options)
+    ##############################################################################################
+    # Handle meta options i.e. options that set other options.
+    # OK, it's not very clean but I haven't find any parse API to express this kind of dependency.
+    ##############################################################################################
+    #if options.plotly: options.expose = True
+    #if options.expose_web: options.expose = True
+    #if options.classic_notebook: options.notebook = True
+
+    if options.verbose > 2: print(options)
 
     # Dispatch
     return globals()["abicomp_" + options.command](options)

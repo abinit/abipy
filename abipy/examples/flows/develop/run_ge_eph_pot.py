@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 r"""
-e-ph scattering potentials
-==========================
+Flow to compute e-ph scattering potentials
+==========================================
 
 This example shows how to compute e-ph scattering potentials
-along a q-path, merge the POT files in the DVDB file and finally use the
+along a q-path, merge the POT files in the DVDB file and use the
 DVDB and the DDB file to analyze the average over the unit cell of the
 periodic part as a function of q
 """
@@ -20,24 +20,27 @@ def make_scf_input(ngkpt):
     """
     This function constructs the input file for the GS calculation:
     """
-    structure = dict(
-        angdeg=3*[60.0],
-        acell=3*[7.1992351952],
-        natom=2,
-        ntypat=2,
-        typat=[1, 2],
-        znucl=[31, 15],
-        xred=[
-            0.0000000000, 0.0000000000, 0.0000000000,
-            0.2500000000, 0.2500000000, 0.2500000000,
-        ])
+    structure = abilab.Structure.from_abistring(
+"""
+acell 1.0522E+01  1.0522E+01  1.0522E+01
+rprim  0.0  0.5 0.5
+       0.5  0.0 0.5
+       0.5  0.5 0.0
 
-    pseudos = abidata.pseudos("Ga.oncvpsp", "P.psp8")
+ntypat 1
+znucl  32
+natom 2
+typat 1 1
+xred  0.0  0.0  0.0
+      1/4  1/4  1/4
+""")
+
+    pseudos = abidata.pseudos("Ge.psp8")
     gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
     gs_inp.set_vars(
-        nband=8,
-        ecut=20.0,   # Too low
+        nband=16,
+        ecut=40.0,
         ngkpt=ngkpt,
         nshiftk=1,
         shiftk=[0, 0, 0],
@@ -65,49 +68,36 @@ def build_flow(options):
 
     # Use 2x2x2 both for k-mesh and q-mesh
     # Build input for GS calculation
-    scf_input = make_scf_input(ngkpt=(2, 2, 2))
+    scf_input = make_scf_input(ngkpt=(8, 8, 8))
 
     # Create flow to compute all the independent atomic perturbations
     # corresponding to a [4, 4, 4] q-mesh.
     # Electric field and Born effective charges are also computed.
     from abipy.flowtk.eph_flows import EphPotFlow
-    ngqpt = [2, 2, 2]
+    ngqpt = [4, 4, 4]
 
     qpath_list = [
-        +0.10000,  +0.10000,  +0.10000,  # L -> G
-        +0.00000,  +0.00000,  +0.00000,  # $\Gamma$
-        +0.10000,  +0.00000,  +0.10000,  # G -> X
-
-        #+0.50000,  +0.50000,  +0.50000,  # L
-        #+0.00000,  +0.00000,  +0.00000,  # $\Gamma$
-        #+0.50000,  +0.00000,  +0.50000,  # X
-        #+0.50000,  +0.25000,  +0.75000,  # W
-        #+0.37500,  +0.37500,  +0.75000,  # K
-        #+0.00000,  +0.00000,  +0.00000,  # $\Gamma$
-        #+0.50000,  +0.25000,  +0.75000,  # W
-        #+0.62500  +0.25000  +0.62500  # U
-        #+0.50000  +0.25000  +0.75000  # W
-        #+0.50000  +0.50000  +0.50000  # L
-        #+0.37500  +0.37500  +0.75000  # K
-        #+0.62500  +0.25000  +0.62500  # U
-        #+0.50000  +0.00000  +0.50000  # X
+        [+0.000, +0.000, +0.000],  # name: $\Gamma$, weight: 0.000
+        [+0.500, +0.000, +0.500],  # name: X, weight: 0.000
+        [+0.500, +0.250, +0.750],  # name: W, weight: 0.000
+        [+0.375, +0.375, +0.750],  # name: K, weight: 0.000
+        [+0.000, +0.000, +0.000],  # name: $\Gamma$, weight: 0.000
+        [+0.500, +0.500, +0.500],  # name: L, weight: 0.000
+        #[+0.625, +0.250, +0.625],  # name: U, weight: 0.000
+        #[+0.500, +0.250, +0.750],  # name: W, weight: 0.000
+        #[+0.500, +0.500, +0.500],  # name: L, weight: 0.000
+        #[+0.375, +0.375, +0.750],  # name: K, weight: 0.000
+        #[+0.625, +0.250, +0.625],  # name: U, weight: 0.000
+        #[+0.500, +0.000, +0.500],  # name: X, weight: 0.000
     ]
 
     # Use small ndivsm to reduce computing time.
     flow = EphPotFlow.from_scf_input(options.workdir, scf_input,
-                                     ngqpt, qpath_list, ndivsm=2, ddk_tolerance={"tolwfr": 1e-12},
-                                     with_becs=True, with_quad=False)
+                                     ngqpt, qpath_list, ndivsm=10,
+                                     with_quads=True,
+                                     with_becs=True)
 
     return flow
-
-
-# This block generates the thumbnails in the Abipy gallery.
-# You can safely REMOVE this part if you are using this script for production runs.
-if os.getenv("READTHEDOCS", False):
-    __name__ = None
-    import tempfile
-    options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main

@@ -1,19 +1,25 @@
 # coding: utf-8
-"""PSPS file with tabulated data."""
+"""
+Interface to the PSPS.nc file containing form factors computed by ABINIT.
+"""
+from __future__ import annotations
+
+import os
 import numpy as np
 
+from typing import List, Any
 from collections import OrderedDict
 from monty.bisect import find_gt
+from monty.string import list_strings, marquee
 from monty.functools import lazy_property
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.iotools import ETSF_Reader
-from abipy.core.mixins import AbinitNcFile
+from abipy.core.structure import Structure
+from abipy.core.mixins import AbinitNcFile, NotebookWriter
+from abipy.abio.robots import Robot
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
 
-import logging
-logger = logging.getLogger(__name__)
 
-
-def mklabel(fsym, der, arg):
+def _mklabel(fsym: str, der: int, arg: str) -> str:
     """mklabel(f, 2, x) --> $f''(x)$"""
     if der == 0:
         return "$%s(%s)$" % (fsym, arg)
@@ -22,7 +28,7 @@ def mklabel(fsym, der, arg):
         return "$%s(%s)$" % (fsym, arg)
 
 
-def rescale(arr, scale=1.0):
+def _rescale(arr, scale=1.0):
     if scale is None:
         return arr, 0.0
 
@@ -60,10 +66,19 @@ def dataframe_from_pseudos(pseudos, index=None):
     return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
 
 
-class PspsFile(AbinitNcFile):
+#def run_and_compare_pseudos_same_element(pseudos):
+#    """
+#    """
+#    from abipy.abio.factories import gs_input
+#    pseudos = for pseudo in pseudos
+#
+#    input= gs_input(structure: Structure, pseudos,
+#                    kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
+#                    smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
+
+class PspsFile(AbinitNcFile, NotebookWriter):
     """
-    Netcdf file with the tables used in Abinit to apply the
-    pseudopotential part of the KS Hamiltonian.
+    Netcdf file with the tables used in Abinit to apply the pseudopotential part of the KS Hamiltonian.
 
     Usage example:
 
@@ -76,22 +91,66 @@ class PspsFile(AbinitNcFile):
     color_der = ["black", "red", "green", "orange", "cyan"]
 
     @classmethod
-    def from_file(cls, filepath):
-        """Initialize the object from a Netcdf file"""
+    def from_file(cls, filepath: str):
+        """Initialize the object from a filepath."""
         return cls(filepath)
 
-    def __init__(self, filepath):
-        super().__init__(filepath)
-        self.reader = r = PspsReader(filepath)
+    @classmethod
+    def from_abinit_run(cls, pseudo):
+        """Initialize the object from a filepath."""
+        from abipy.flowtk.pseudos import Pseudo
+        pseudo = Pseudo.as_pseudo(pseudo)
+        structure = Structure.boxed_atom(pseudo)
 
-    def close(self):
+        from abipy.abio.factories import gs_input
+        inp = gs_input(structure, pseudo,
+                       kppa=1, ecut=None, pawecutdg=None, accuracy="normal", spin_mode="unpolarized",
+                       smearing="fermi_dirac:0.1 eV", charge=0.0)
+
+        inp["prtpsps"] = -1  # Print PSPS.nc and exit
+        inp["ecut"] = 100  # Print PSPS.nc and exit
+        print(inp)
+        filepath = ""
+
+        from abipy.flowtk import AbinitTask
+        task = AbinitTask.temp_shell_task(inp) #, workdir=workdir, manager=manager)
+        retcode = task.start_and_wait(autoparal=False) #, exec_args=["--dry-run"])
+        print(retcode)
+        print(task.workdir)
+
+        filepath = os.path.join(task.outdir.path_in("out_PSPS.nc"))
+        return cls(filepath)
+
+    def __init__(self, filepath: str):
+        super().__init__(filepath)
+        self.reader = PspsReader(filepath)
+
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         return {}
+
+    def __str__(self):
+        """String representation."""
+        return self.to_string()
+
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation."""
+        lines = []; app = lines.append
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+
+        if verbose > 1:
+            app("")
+            #app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
+
+        return "\n".join(lines)
+
 
     @add_fig_kwargs
     def plot(self, **kwargs):
@@ -120,51 +179,57 @@ class PspsFile(AbinitNcFile):
         return fig
 
     @add_fig_kwargs
-    def plot_tcore_rspace(self, ax=None, ders=(0, 1, 2, 3), rmax=3.0,  **kwargs):
+    def plot_tcore_rspace(self, ax=None, ders=(0, 1, 2, 3), scale=1.0, rmax=3.0, **kwargs):
         """
-        Plot the model core and its derivatives in real space.
+        Plot the model core charge and its derivatives in real space.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             ders: Tuple used to select the derivatives to be plotted.
+            scale: 1.0 if all derivatives should be scaled to 1 else None.
             rmax: Max radius for plot in Bohr. None is full grid is wanted.
 
         Returns: |matplotlib-Figure|
         """
+        if not isinstance(ders, (list, tuple)): ders = [ders]
+
+        rmeshes, coresd = self.reader.read_coresd(rmax=rmax)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        linewidth = kwargs.pop("linewidth", 2.0)
-        rmeshes, coresd = self.reader.read_coresd(rmax=rmax)
-
-        scale = None
-        scale = 1.0
         for rmesh, mcores in zip(rmeshes, coresd):
             for der, values in enumerate(mcores):
                 if der not in ders: continue
-                yvals, fact, = rescale(values, scale=scale)
-                ax.plot(rmesh, yvals, color=self.color_der[der], linewidth=linewidth,
-                        linestyle=self.linestyles_der[der],
-                        label=mklabel("\\tilde{n}_c", der, "r") + " x %.4f" % fact)
+                yvals, fact, = _rescale(values, scale=scale)
+                ax.plot(rmesh, yvals,
+                        color=kwargs.get("color", self.color_der[der]),
+                        linewidth=kwargs.get("linewidth", 2.0),
+                        linestyle=kwargs.get("linestyle", self.linestyles_der[der]),
+                        label=_mklabel(r"\tilde{n}_c", der, "r") + " x %.4f" % fact
+                       )
 
         ax.grid(True)
-        ax.set_xlabel("r [Bohr]")
+        ax.set_xlabel("r (Bohr)")
         ax.set_title("Model core in r-space")
-        if kwargs.get("with_legend", False): ax.legend(loc="best")
+        if kwargs.get("with_legend", False):
+            ax.legend(loc="best")
 
         return fig
 
     @add_fig_kwargs
-    def plot_tcore_qspace(self, ax=None, ders=(0,), with_fact=True, with_qn=0, **kwargs):
+    def plot_tcore_qspace(self, ax=None, ders=(0,), with_fact=True, with_qn=0, scale=1.0, **kwargs):
         """
-        Plot the model core in q space
+        Plot the model core charge in q space
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             ders: Tuple used to select the derivatives to be plotted.
+            scale: 1.0 if all derivatives should be scaled to 1 else None.
             with_qn:
 
         Returns: |matplotlib-Figure|
         """
+        if not isinstance(ders, (list, tuple)): ders = [ders]
+
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         color = kwargs.pop("color", "black")
@@ -174,15 +239,13 @@ class PspsFile(AbinitNcFile):
         #print(qmesh, tcore_spl)
         ecuts = 2 * (np.pi * qmesh)**2
         lines = []
-        scale = 1.0
-        scale = None
         for atype, tcore_atype in enumerate(tcore_spl):
             for der, values in enumerate(tcore_atype):
-                if der == 1: der = 2
+                #if der == 1: der = 2
                 if der not in ders: continue
-                yvals, fact = rescale(values, scale=scale)
+                yvals, fact = _rescale(values, scale=scale)
 
-                label = mklabel("\\tilde{n}_{c}", der, "q")
+                label = _mklabel("\\tilde{n}_{c}", der, "q")
                 if with_fact: label += " x %.4f" % fact
 
                 line, = ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
@@ -190,31 +253,35 @@ class PspsFile(AbinitNcFile):
                 lines.append(line)
 
                 if with_qn and der == 0:
-                    yvals, fact = rescale(qmesh * values, scale=scale)
+                    yvals, fact = _rescale(qmesh * values, scale=scale)
                     line, ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
-                                  label=mklabel("q f", der, "q") + " x %.4f" % fact)
+                                  label=_mklabel("q f", der, "q") + " x %.4f" % fact)
 
                     lines.append(line)
 
         ax.grid(True)
-        ax.set_xlabel("Ecut [Hartree]")
+        ax.set_xlabel("Ecut (Hartree)")
         ax.set_title("Model core in q-space")
-        if kwargs.get("with_legend", False): ax.legend(loc="best")
+        if kwargs.get("with_legend", False):
+            ax.legend(loc="best")
 
         return fig
 
     @add_fig_kwargs
-    def plot_vlocq(self, ax=None, ders=(0,), with_qn=0, with_fact=True, **kwargs):
+    def plot_vlocq(self, ax=None, ders=(0,), with_qn=0, with_fact=True, scale=None, **kwargs):
         """
         Plot the local part of the pseudopotential in q space.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             ders: Tuple used to select the derivatives to be plotted.
+            scale: 1.0 if all derivatives should be scaled to 1 else None.
             with_qn:
 
         Returns: |matplotlib-Figure|
         """
+        if not isinstance(ders, (list, tuple)): ders = [ders]
+
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         color = kwargs.pop("color", "black")
@@ -222,45 +289,52 @@ class PspsFile(AbinitNcFile):
 
         qmesh, vlspl = self.reader.read_vlspl()
         ecuts = 2 * (np.pi * qmesh)**2
-        scale = 1.0
-        scale = None
         for atype, vl_atype in enumerate(vlspl):
             for der, values in enumerate(vl_atype):
-                if der == 1: der = 2
+                #if der == 1: der = 2
                 if der not in ders: continue
 
-                yvals, fact = rescale(values, scale=scale)
-                label = mklabel("v_{loc}", der, "q")
+                yvals, fact = _rescale(values, scale=scale)
+                label = _mklabel("v_{loc}", der, "q")
                 if with_fact: label += " x %.4f" % fact
 
                 ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
                         linestyle=self.linestyles_der[der], label=label)
 
                 if with_qn and der == 0:
-                    yvals, fact = rescale(qmesh * values, scale=scale)
+                    yvals, fact = _rescale(qmesh * values, scale=scale)
                     ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
                             label="q*f(q) x %2.f" % fact)
 
         ax.grid(True)
-        ax.set_xlabel("Ecut [Hartree]")
+        ax.set_xlabel("Ecut (Hartree)")
         ax.set_title("Vloc(q)")
-        if kwargs.get("with_legend", False): ax.legend(loc="best")
+        if kwargs.get("with_legend", False):
+            ax.legend(loc="best")
 
         return fig
 
     @add_fig_kwargs
-    def plot_ffspl(self, ax=None, ecut_ffnl=None, ders=(0,), with_qn=0, with_fact=False, **kwargs):
+    def plot_ffspl(self, ax=None, ecut_ffnl=None, ders=(0,), l_select=None,
+                   with_qn=0, with_fact=False, scale=None, **kwargs):
         """
         Plot the nonlocal part of the pseudopotential in q-space.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             ecut_ffnl: Max cutoff energy for ffnl plot (optional)
+            scale: 1.0 if all derivatives should be scaled to 1 else None.
             ders: Tuple used to select the derivatives to be plotted.
             with_qn:
 
         Returns: |matplotlib-Figure|
         """
+        if not isinstance(ders, (list, tuple)): ders = [ders]
+
+        if l_select is not None:
+            if not isinstance(l_select, (list, tuple)): l_select = [l_select]
+            #print("l_select:", l_select)
+
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         color = kwargs.pop("color", "black")
@@ -268,91 +342,235 @@ class PspsFile(AbinitNcFile):
 
         color_l = {-1: "black", 0: "red", 1: "blue", 2: "green", 3: "orange"}
         linestyles_n = ["solid", '-', '--', '-.', ":"]
-        scale = None
         l_seen = set()
 
+        # vlspl has shape [ntypat, 2, mqgrid_vl]
         qmesh, vlspl = self.reader.read_vlspl()
-
         all_projs = self.reader.read_projectors()
+
         for itypat, projs_type in enumerate(all_projs):
             # Loop over the projectors for this atom type.
             for p in projs_type:
+                if l_select is not None and p.l not in l_select: continue
+                print("Printing p.l:", p.l)
+
                 for der, values in enumerate(p.data):
-                    if der == 1: der = 2
                     if der not in ders: continue
-                    #yvals, fact = rescale(values, scale=scale)
+                    #yvals, fact = _rescale(values, scale=scale)
+
                     label = None
                     if p.l not in l_seen:
                         l_seen.add(p.l)
-                        label = mklabel("v_{nl}", der, "q") + ", l=%d" % p.l
+                        label = _mklabel("v_{nl}", der, "q") + ", l=%d" % p.l
 
-                    stop = len(p.ecuts)
+                    stop = len(p.ecuts) +  1
                     if ecut_ffnl is not None:
                         stop = find_gt(p.ecuts, ecut_ffnl)
 
                     #values = p.ekb * p.values - vlspl[itypat, 0, :]
-                    values = vlspl[itypat, 0, :] + p.sign_sqrtekb * p.values
+                    #values = vlspl[itypat, der] + p.sign_sqrtekb * p.values
+                    #values = p.sign_sqrtekb * p.values
+                    values = p.data[der]
 
                     #print(values.min(), values.max())
-                    ax.plot(p.ecuts[:stop], values[:stop], color=color_l[p.l], linewidth=linewidth,
+                    ax.plot(p.ecuts[:stop], values[:stop],
+                            color=color_l[p.l], linewidth=linewidth,
                             linestyle=linestyles_n[p.n], label=label)
 
         ax.grid(True)
-        ax.set_xlabel("Ecut [Hartree]")
-        ax.set_title("ffnl(q)")
-        if kwargs.get("with_legend", False): ax.legend(loc="best")
+        ax.set_xlabel("Ecut (Hartree)")
+        #ax.set_title("ffnl(q)")
+        if kwargs.get("with_legend", False):
+            ax.legend(loc="best")
 
-        ax.axhline(y=0, linewidth=linewidth, color='k', linestyle="solid")
+        #ax.axhline(y=0, linewidth=linewidth, color='k', linestyle="solid")
         fig.tight_layout()
 
         return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot(show=False)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("psps = abilab.abiopen(%s)" % self.filepath),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+class PspsRobot(Robot):
+    """
+    This robot analyzes the results contained in multiple PSPS.nc files.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: PspsRobot
+    """
+    EXT = "PSPS"
+
+    #@classmethod
+    #def from_pseudos(cls, pseudos):
+    #    """Initialize the object from a list of filepaths or Pseudos."""
+    #
+    #    PspsFile.from_pseudo(pseudo)
+    #    filepaths = []
+    #    return cls.from_files(filepaths)
+
+    def _mkcolor(self, count):
+        npseudos = len(self)
+        if npseudos <= 2:
+            return {0: "red", 1: "blue"}[count]
+        else:
+            cmap = plt.get_cmap("jet")
+            return cmap(float(count) / (1 + len(others)))
+
     @add_fig_kwargs
-    def compare(self, others, **kwargs):
-        """Produce matplotlib plot comparing self with another list of pseudos ``others``."""
-        if not isinstance(others, (list, tuple)):
-            others = [others]
+    def plot_tcore_rspace(self, ders=(0, 1, 2, 3), with_qn=0, scale=None, fontsize=8, **kwargs):
+        """
+        Plot the model core charge and its derivatives in r-space.
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=2, ncols=2,
-                                                sharex=False, sharey=False, squeeze=True)
-        ax_list = ax_list.ravel()
-        #fig.suptitle("%s vs %s" % (self.basename, ", ".join(o.basename for o in others)))
+        Args:
+            fontsize: fontsize for subtitles.
 
-        def mkcolor(count):
-            npseudos = 1 + len(others)
-            if npseudos <= 2:
-                return {0: "red", 1: "blue"}[count]
-            else:
-                cmap = plt.get_cmap("jet")
-                return cmap(float(count) / (1 + len(others)))
+        Returns: |matplotlib-Figure|
+        """
+        nrows, ncols = len(self), len(ders)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
 
-        ic = 0; ax = ax_list[ic]
-        self.plot_tcore_rspace(ax=ax, color=mkcolor(0), show=False, with_legend=False)
-        for count, other in enumerate(others):
-            other.plot_tcore_rspace(ax=ax, color=mkcolor(count+1), show=False, with_legend=False)
-
-        ic += 1; ax = ax_list[ic]
-        self.plot_tcore_qspace(ax=ax, with_qn=0, color=mkcolor(0), show=False)
-        for count, other in enumerate(others):
-            other.plot_tcore_qspace(ax=ax, with_qn=0, color=mkcolor(count+1), show=False)
-
-        ic += 1; ax = ax_list[ic]
-        self.plot_vlocq(ax=ax, with_qn=0, color=mkcolor(0), show=False)
-        for count, other in enumerate(others):
-            other.plot_vlocq(ax=ax, with_qn=0, color=mkcolor(count+1), show=False)
-
-        ic += 1; ax = ax_list[ic]
-        self.plot_ffspl(ax=ax, with_qn=0, color=mkcolor(0), show=False)
-        for count, other in enumerate(others):
-            other.plot_ffspl(ax=ax, with_qn=0, color=mkcolor(count+1), show=False)
+        fig.suptitle(f"Model core in r-space")
+        for i, (label, psps) in enumerate(self.items()):
+            kws = dict(color=self._mkcolor(i), show=False)
+            for j, der in enumerate(ders):
+                ax = ax_mat[i,j]
+                psps.plot_tcore_rspace(ax=ax, ders=der, with_legend=False, scale=scale, **kws)
+                ax.set_title(f"$rho_M^{der}(r)$", fontsize=fontsize) if i == 0 else ax.set_title("")
+                if i != len(self) - 1: set_visible(ax, False, "xlabel")
 
         return fig
+
+    @add_fig_kwargs
+    def plot_tcore_qspace(self, ders=(0, 1), with_qn=0, scale=None, fontsize=8, **kwargs):
+        """
+        Plot the model core charge and its derivatives in q-space.
+
+        Args:
+            fontsize: fontsize for subtitles.
+
+        Returns: |matplotlib-Figure|
+        """
+        nrows, ncols = len(self), len(ders)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+
+        fig.suptitle(f"Model core in q-space")
+        for i, (label, psps) in enumerate(self.items()):
+            kws = dict(color=self._mkcolor(i), show=False)
+            for j, der in enumerate(ders):
+                ax = ax_mat[i,j]
+                psps.plot_tcore_qspace(ax=ax, ders=der, with_qn=with_qn, scale=scale, **kws)
+                ax.set_title(f"$rho_M^{der}(q)$", fontsize=fontsize) if i == 0 else ax.set_title("")
+                if i != len(self) - 1: set_visible(ax, False, "xlabel")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_vlocq(self, ders=(0, 1), with_qn=0, with_fact=True, scale=None, fontsize=8, **kwargs):
+        """
+        Plot the local part of the pseudopotential in q space.
+        """
+        nrows, ncols = len(self), len(ders)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+
+        fig.suptitle(r"$V_{loc}(q)$")
+        for i, (label, psps) in enumerate(self.items()):
+            kws = dict(color=self._mkcolor(i), show=False)
+            for j, der in enumerate(ders):
+                ax = ax_mat[i,j]
+                psps.plot_vlocq(ax=ax, ders=der, with_qn=with_qn, scale=scale, **kws)
+                vloc = "v_{loc}"
+                ax.set_title(f"${vloc}^{der}(q)$", fontsize=fontsize) if i == 0 else ax.set_title("")
+                if i != len(self) - 1: set_visible(ax, False, "xlabel")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_ffspl(self, ecut_ffnl=None, ders=(0, 1), with_qn=0, scale=None, fontsize=8, **kwargs):
+        """
+        Plot the nonlocal part of the pseudopotential in q-space.
+        """
+        l_select = [0, 1, 2]
+        #nrows, ncols = len(self), len(ders)
+        nrows, ncols = len(self), len(l_select)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+
+        fig.suptitle(f"ffnl in q-space")
+        for i, (label, psps) in enumerate(self.items()):
+            kws = dict(color=self._mkcolor(i), show=False)
+            for j, l in enumerate(l_select):
+            #for j, der in enumerate(ders):
+                ax = ax_mat[i,j]
+                psps.plot_ffspl(ax=ax, ders=ders, l_select=l, with_qn=with_qn, scale=scale, **kws)
+                #ax.set_title(f"$ff_{nl}{der}(q)$", fontsize=fontsize) if i == 0 else ax.set_title("")
+                if i != len(self) - 1: set_visible(ax, False, "xlabel")
+
+        #fig.suptitle(r"$V_{loc} in q-space$")
+
+        return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        verbose = kwargs.get("verbose", 0)
+        kws = dict(show=False, tight_layout=True)
+        yield self.plot_ffspl(**kws)
+        yield self.plot_vlocq(**kws)
+        yield self.plot_tcore_rspace(**kws)
+        yield self.plot_tcore_qspace(**kws)
+
+
+    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+    #    """
+    #    This function *generates* a predefined list of plotly figures with minimal input from the user.
+    #    """
+    #    verbose = kwargs.get("verbose", 0)
+    #    for fig in self.yield_ebands_plotly_figs(**kwargs): yield fig
+    #    if verbose:
+    #        for fig in self.yield_structure_plotly_figs(**kwargs): yield fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.PspsRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class PspsReader(ETSF_Reader):
     """
     This object reads the results stored in the PSPS file produced by ABINIT.
-    It provides helper function to access the most important quantities.
+    It provides helper functions to access the most important quantities.
     """
     def __init__(self, filepath):
         super().__init__(filepath)
@@ -367,14 +585,6 @@ class PspsReader(ETSF_Reader):
         self.znucl_typat = self.read_value("znucltypat")
         self.zion_typat = self.read_value("ziontypat")
 
-        # TODO
-        #self.psps_files = []
-        #for strng in r.read_value("filpsp"):
-        #    s = "".join(strng)
-        #    print(s)
-        #    self.psps_files.append(s)
-        #print(self.psps_files)
-
     def read_coresd(self, rmax=None):
         """
         Read the core charges and derivatives for the different types of atoms.
@@ -388,7 +598,7 @@ class PspsReader(ETSF_Reader):
 
             (np.zeros. np.zeros) if core charge is not present
 
-        xccc1d[ntypat6,n1xccc*(1-usepaw)]
+        xccc1d[ntypat, n1xccc*(1-usepaw)]
 
         Norm-conserving psps only
         The component xccc1d(n1xccc,1,ntypat) is the pseudo-core charge
@@ -410,7 +620,7 @@ class PspsReader(ETSF_Reader):
             rvals, step = np.linspace(0, rc, num=npts, retstep=True)
             ir_stop = -1
             if rmax is not None:
-                # Truncate mesh
+                # Truncate the mesh
                 ir_stop = min(int(rmax / step), npts) + 1
                 #print(rmax, step, ir_stop, npts)
 
@@ -422,12 +632,10 @@ class PspsReader(ETSF_Reader):
     def read_tcorespl(self):
         """
         Returns:
-            qmesh: Linear q-mesh in G-space
-            tcorespl:
-
-        tcorespl[ntypat, 2, mqgrid_vl]
-        Gives the pseudo core density in reciprocal space on a regular grid.
-        Only if has_tcore
+            qmesh: Linear q-mesh in q-space
+            tcorespl: numpy array of shape [ntypat, 2, mqgrid_vl]
+                with the pseudo core density in reciprocal space on a regular grid.
+                Only if pseudo has_tcore
         """
         return self.read_value("qgrid_vl"), self.read_value("nc_tcorespl")
 
@@ -435,24 +643,23 @@ class PspsReader(ETSF_Reader):
         """
         Returns:
             qmesh: Linear q-mesh in G-space
-            vlspl:
-
-        vlspl[2, ntypat, mqgrid_vl]
-        Gives, on the radial grid, the local part of each type of psp.
+            vlspl: numpy array of shape [ntypat, two, mqgrid_vl]
+            with the local part of each type of psp in q-space
         """
         return self.read_value("qgrid_vl"), self.read_value("vlspl")
 
     def read_projectors(self):
         """
-        ffspl(ntypat, lnmax, 2, mqgrid_ff]
-        Gives, on the radial grid, the different non-local projectors,
-        in both the norm-conserving case, and the PAW case
+        ffspl[ntypat, lnmax, 2, mqgrid_ff]
+        Gives, on the radial grid, the {n,l} non-local projectors both for NC and PAW.
         """
         # ekb(dimekb,ntypat*(1-usepaw))
         ekb = self.read_value("ekb")
         qgrid_ff = self.read_value("qgrid_ff")
-        ffspl = self.read_value("ffspl")
         #print("qgrid", qgrid_ff.min(), qgrid_ff.max())
+
+        # ffspl[ntypat, lnmax, 2, mqgrid_ff]
+        ffspl = self.read_value("ffspl")
 
         projs = self.ntypat * [None]
         for itypat in range(self.ntypat):
@@ -460,7 +667,7 @@ class PspsReader(ETSF_Reader):
             ln_list = self.get_lnlist_for_type(itypat)
             for i, ln in enumerate(ln_list):
                 #print(ffspl[itypat, i, :, :])
-                p = VnlProjector(itypat, ln, ekb[itypat, i], qgrid_ff, ffspl[itypat, i, :, :])
+                p = VnlProjector(itypat, ln, ekb[itypat, i], qgrid_ff, ffspl[itypat, i])
                 projs_type.append(p)
 
             projs[itypat] = projs_type
@@ -468,9 +675,11 @@ class PspsReader(ETSF_Reader):
         return projs
 
     def get_lnlist_for_type(self, itypat):
-        """Return a list of (l, n) indices for this atom type."""
-        # indlmn(6,lmn_size,ntypat)=array giving l,m,n,lm,ln,s for i=lmn
-        indlmn_type = self.indlmn[itypat, :, :]
+        """
+        Return a list of (l, n) indices for this atom type.
+        """
+        # indlmn(6,lmn_size,ntypat) = array giving l,m,n,lm,ln,s for i=lmn
+        indlmn_type = self.indlmn[itypat,:,:]
 
         iln0 = 0; ln_list = []
         for ilmn in range(self.lmnmax):
@@ -484,12 +693,15 @@ class PspsReader(ETSF_Reader):
         return ln_list
 
 
-class VnlProjector(object):
-    """Data and parameters associated to a non-local projector."""
+class VnlProjector:
+    """
+    Data and parameters associated to a non-local projector.
+    """
+
     def __init__(self, itypat, ln, ekb, qmesh, data):
         """
         Args:
-            itypat:
+            itypat: Type atom index (C index >= 0)
             ln: Tuple with l and n.
             ekb: KB energy in Hartree.
             qmesh: Mesh of q-points.
@@ -505,16 +717,16 @@ class VnlProjector(object):
     @property
     def values(self):
         """Values of the projector in q-space."""
-        return self.data[0, :]
+        return self.data[0,:]
 
     @property
     def der2(self):
         """Second order derivative."""
-        return self.data[1, :]
+        return self.data[1,:]
 
     @property
     def ecuts(self):
-        """List of cutoff energies corresponding to self.qmesh."""
+        """List of cutoff energies in Ha corresponding to self.qmesh."""
         return 2 * (np.pi * self.qmesh)**2
 
     @property

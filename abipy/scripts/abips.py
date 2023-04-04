@@ -170,6 +170,19 @@ def abips_show(options):
     return 0
 
 
+def abips_mkff(options):
+    """
+    Call Abinit to compute PSPS.nc file and show results
+    """
+    from abipy.electrons.psps import PspsFile
+    with PspsFile.from_abinit_run(options.pseudo_path) as abifile:
+        print(abifile)
+        abifile.expose(use_web=True,
+                       #slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                       #use_web=options.expose_web, verbose=options.verbose
+                       )
+
+
 def get_epilog():
     return """\
 
@@ -234,6 +247,10 @@ def get_parser(with_epilog=False):
     # Subparser for show command.
     p_show = subparsers.add_parser("show", parents=[copts_parser], help=abips_show.__doc__)
     p_show.add_argument("repo_names", type=str, nargs="+", help="List of Repo names.")
+
+    # Subparser for show command.
+    p_mkff = subparsers.add_parser("mkff", parents=[copts_parser], help=abips_show.__doc__)
+    p_mkff.add_argument("pseudo_path", type=str, help="Pseudopotential path")
 
     return parser
 

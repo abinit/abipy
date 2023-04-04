@@ -39,14 +39,6 @@ The notebook will be opened in your browser after building.
 AbiPy is free to use. However, we also welcome your help to improve this library by making your own contributions.
 Please report any bugs and issues at AbiPy's `Github page <https://github.com/abinit/abipy>`_.
 
-.. important::
-
-    Note that the majority of the post-processing tools available in AbiPy require output files in
-    netcdf_ format so we **strongly** suggest to compile Abinit with netcdf support
-    (use ``--with-trio-flavor="netcdf"`` at configure time to activate the internal netcdf library,
-    to link Abinit against an external netcdf library please consult the configuration examples provided by abiconfig_).
-
-
 Links to talks
 ==============
 
@@ -87,7 +79,7 @@ in the form of pre-compiled packages that can be easily installed with e.g.::
 
     conda install numpy scipy netcdf4
 
-Create a new conda_ environment (let's call it ``abienv``) based on python3.6 with::
+Create a new conda_ environment (let's call it ``abienv``) based on e.g. python3.6 with::
 
     conda create --name abienv python=3.6
 
@@ -110,8 +102,6 @@ Finally, install AbiPy with::
 Additional information on the steps required to install AbiPy with anaconda are available
 in the `anaconda howto <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
 
-We are also collaborating with the spack_ community
-to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.
 
 Developmental version
 ---------------------
@@ -213,8 +203,7 @@ to the latest stable release.
 Installing Abinit
 =================
 
-One of the big advantages of conda over pip is that conda can also install
-libraries and executables written in Fortran.
+One of the big advantages of conda over pip is that conda can also install libraries and executables written in Fortran.
 A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the
 conda-forge channel with::
 
@@ -329,8 +318,7 @@ If the script fails with the error message::
     Abinit executable does not support netcdf
     Abipy requires Abinit version >= 8.0.8 but got 0.0.0
 
-it means that your environment is not property configured or that there's a problem
-with the binary executable.
+it means that your environment is not property configured or that there's a problem with the binary executable.
 In this case, look at the files produced in the temporary directory of the flow.
 The script reports the name of the directory, something like::
 
@@ -339,7 +327,7 @@ The script reports the name of the directory, something like::
 Check the `job.sh` script for possible typos, then search for possible error messages in `run.err`.
 
 The last test consists in executing a small calculation with AbiPy and Abinit.
-Inside the shell, execute::
+Inside the terminal, execute::
 
     abicheck.py --with-flow
 

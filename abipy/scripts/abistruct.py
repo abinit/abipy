@@ -605,6 +605,8 @@ def main():
 
         supcell = structure * options.scaling_matrix
         #supcell = structure.make_supercell(scaling_matrix, to_unit_cell=True)
+        print("nsym 1")
+        print("chkprim 0")
         print(supcell.convert(fmt=options.format))
 
     elif options.command == "abisanitize":
@@ -646,6 +648,8 @@ def main():
     elif options.command == "primitive":
         structure = abilab.Structure.from_file(options.filepath)
         primitive = structure.get_primitive_structure(tolerance=0.25, use_site_props=False, constrain_latt=None)
+        # Cast to abipy structure because get_primitive may break inheritance.
+        primitive = abilab.Structure.as_structure(primitive)
         separator = "\n" + 90 * "="
         print("\nInitial structure:\n", structure, separator)
         print("\nPrimitive structure returned by pymatgen:\n", primitive, separator)

@@ -23,12 +23,12 @@ from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
 from pymatgen.core.units import Energy
-from pymatgen.util.serialization import pmg_serialize
 from pymatgen.symmetry.bandstructure import HighSymmKpath
 from abipy.tools.numtools import is_diagonal
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.core.kpoints import has_timrev_from_kptopt
+from abipy.tools.serialization import pmg_serialize
 from abipy.abio.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var, format_string_abivars
 from abipy.abio.abivars_db import get_abinit_variables, get_anaddb_variables
@@ -438,22 +438,24 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         self.enforce_znucl_and_typat(enforce_znucl, enforce_typat)
 
         # TODO:
-        # Note that here the pseudos **must** be sorted according to znucl.
-        # Here we reorder the pseudos if the order is wrong.
-        #ord_pseudos = []
+        # Note that pseudos **must** be sorted according to znucl.
+        # Here we reorder the pseudos if the initial order is wrong.
 
-        #znucl = [specie.number for specie in self.input.structure.species_by_znucl]
+        if enforce_znucl is not None:
+            znucl = self.enforce_znucl
+        else:
+            znucl = [specie.number for specie in self.structure.species_by_znucl]
 
-        #for z in znucl:
-        #    for p in self.pseudos:
-        #        if p.Z == z:
-        #            ord_pseudos.append(p)
-        #            break
-        #    else:
-        #        raise ValueError("Cannot find pseudo with znucl %s in pseudos:\n%s" % (z, self.pseudos))
+        ord_pseudos = []
+        for z in znucl:
+            for p in self.pseudos:
+                if p.Z == z:
+                    ord_pseudos.append(p)
+                    break
+            else:
+                raise ValueError("Cannot find pseudo with znucl %s in pseudos:\n%s" % (z, self.pseudos))
 
-        #for pseudo in ord_pseudos:
-        #    app(pseudo.path)
+        self._pseudos = ord_pseudos
 
     def enforce_znucl_and_typat(self, znucl, typat):
         """

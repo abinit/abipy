@@ -253,6 +253,10 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
+class SusFile(ScrFile):
+    pass
+
+
 class ScrReader(ETSF_Reader):
     """
     This object reads the results stored in the SCR (Screening) file produced by ABINIT.
@@ -378,7 +382,7 @@ class ScrReader(ETSF_Reader):
         cls = _AwggMatrix.class_from_netcdf_name(self.netcdf_name) if cls is None else cls
 
         var = self.rootgrp.variables["reduced_coordinates_plane_waves_dielectric_function"]
-        # Use ik=0 because the basis set is not k-dependent.
+        # Use ik = 0 because the basis set is not k-dependent.
         ik0 = 0
         gvecs = var[ik0, :]
         #print("gvecs", gvecs)
@@ -417,11 +421,11 @@ class ScrReader(ETSF_Reader):
         return values[:, 0] + 1j * values[:, 1]
 
 
-class _AwggMatrix(object):
+class _AwggMatrix:
     r"""
     Base class for two-point functions expressed in reciprocal space
     i.e. a complex matrix :math:`A_{G,G'}(\omega)` where G, G' are reciprocal
-    lattice vectors defines inside the G-sphere.
+    lattice vectors defined inside the G-sphere.
 
     This class is not supposed to be instantiated directly.
 

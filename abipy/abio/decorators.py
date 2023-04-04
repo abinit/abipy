@@ -4,7 +4,7 @@ import abc
 import pymatgen.io.abinit.abiobjects as aobj
 
 from monty.json import MSONable
-from pymatgen.util.serialization import pmg_serialize
+from abipy.tools.serialization import pmg_serialize
 from abipy.flowtk.abiobjects import LdauParams, LexxParams
 from .inputs import AbinitInput, MultiDataset
 

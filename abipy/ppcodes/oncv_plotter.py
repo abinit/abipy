@@ -16,7 +16,7 @@ from monty.os.path import which
 from monty.termcolor import cprint
 from abipy.core.atom import l2char # NlkState, RadialFunction, RadialWaveFunction,
 from abipy.core.mixins import NotebookWriter
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, set_axlims
 from abipy.tools.derivatives import finite_diff
 from abipy.ppcodes.oncv_parser import OncvParser
 
@@ -128,10 +128,12 @@ class OncvPlotter(NotebookWriter):
 
 
         xlabel = "Energy (Ha)" if with_xlabel else ""
-        self.decorate_ax(ax, xlabel=xlabel, ylabel="ATAN(LogDer)", title="",
+        ylabel = "ATAN(LogDer)"
+        ylabel = r"$\phi(E) = \arctan(R * d \psi_E(r)/dr |_R)$"
+
+        self.decorate_ax(ax, xlabel=xlabel, ylabel=ylabel, title="",
                          fontsize=fontsize,
                          )
-
         return fig
 
     @add_fig_kwargs
@@ -421,6 +423,7 @@ class OncvPlotter(NotebookWriter):
         raise NotImplementedError("write_notebooks should be tested")
         return oncv_make_open_notebook(self.parser.filepath)
 
+
 def oncv_make_open_notebook(outpath: str,
                             foreground: bool = False,
                             classic_notebook: bool = False,
@@ -673,7 +676,7 @@ class MultiOncvPlotter(NotebookWriter):
         num_plots, ncols, nrows = len(self), 1, len(self)
 
         # Build grid of plots.
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols, # figsize=(8, 8),
                                                 sharex=sharex, sharey=False, squeeze=False)
         if ravel:
             ax_list = ax_list.ravel()
@@ -681,18 +684,24 @@ class MultiOncvPlotter(NotebookWriter):
         return ax_list, fig, plt
 
     @add_fig_kwargs
-    def plot_atan_logders(self, ax_list=None, with_xlabel=True, fontsize: int = 8, **kwargs):
+    def plot_atan_logders(self, ax_list=None, with_xlabel=True, xlims=None, ylims=None, fontsize: int = 8, **kwargs):
         """
         Plot arctan of logder on axis ax.
 
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
         """
-        ax_list, fig, plt = self._get_ax_list(ax_list)
+        ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
+        n = len(ax_list)
 
-        for ax, (label, plotter) in zip(ax_list, self.items()):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_atan_logders(ax=ax, with_xlabel=with_xlabel, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+            #xlims = [-5, 5]
+            set_axlims(ax, xlims, "x")
+            set_axlims(ax, ylims, "y")
+            if i != n - 1:
+                set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig
 
@@ -705,7 +714,7 @@ class MultiOncvPlotter(NotebookWriter):
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             what: "bound_states" or "scattering_states".
         """
-        ax_list, fig, plt = self._get_ax_list(ax_list)
+        ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
             plotter.plot_radial_wfs(ax=ax, what=what, fontsize=fontsize, show=False)
@@ -722,7 +731,7 @@ class MultiOncvPlotter(NotebookWriter):
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             ax: |matplotlib-Axes| or None if a new figure should be created.
         """
-        ax_list, fig, plt = self._get_ax_list(ax_list)
+        ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
             plotter.plot_projectors(ax=ax, fontsize=fontsize, show=False)
@@ -739,7 +748,7 @@ class MultiOncvPlotter(NotebookWriter):
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             ax: |matplotlib-Axes| or None if a new figure should be created.
         """
-        ax_list, fig, plt = self._get_ax_list(ax_list)
+        ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
             plotter.plot_densities(ax=ax, timesr2=timesr2, fontsize=fontsize, show=False)
@@ -756,7 +765,7 @@ class MultiOncvPlotter(NotebookWriter):
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
         """
-        ax_list, fig, plt = self._get_ax_list(ax_list)
+        ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
             plotter.plot_der_densities(ax=ax, order=order, fontsize=fontsize, show=False)
@@ -772,7 +781,7 @@ class MultiOncvPlotter(NotebookWriter):
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
         """
-        ax_list, fig, plt = self._get_ax_list(ax_list)
+        ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
             plotter.plot_potentials(ax=ax, fontsize=fontsize, show=False)
@@ -789,7 +798,7 @@ class MultiOncvPlotter(NotebookWriter):
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
         """
-        ax_list, fig, plt = self._get_ax_list(ax_list)
+        ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
             plotter.plot_der_potentials(ax=ax, order=order, fontsize=fontsize, show=False)
@@ -805,7 +814,7 @@ class MultiOncvPlotter(NotebookWriter):
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
         """
-        ax_list, fig, plt = self._get_ax_list(ax_list)
+        ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
             plotter.plot_kene_vs_ecut(ax=ax, fontsize=fontsize, show=False)
@@ -843,7 +852,7 @@ class MultiOncvPlotter(NotebookWriter):
 
         Return: matplotlib Figure.
         """
-        ax_list, fig, plt = self._get_ax_list(ax_list)
+        ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
         for ax, (label, plotter) in zip(ax_list, self.items()):
             plotter.plot_den_formfact(ax=ax, ecut=ecut, fontsize=fontsize, show=False)

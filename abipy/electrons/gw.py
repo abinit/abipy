@@ -1,5 +1,7 @@
 # coding: utf-8
 """Classes for the analysis of GW calculations."""
+from __future__ import annotations
+
 import sys
 import copy
 import warnings
@@ -221,7 +223,7 @@ class QPList(list):
         """String representation."""
         return self.to_string()
 
-    def to_table(self):
+    def to_table(self) -> list:
         """Return a table (list of list of strings)."""
         header = QPState.get_fields(exclude=["spin", "kpoint"])
         table = [header]
@@ -231,7 +233,7 @@ class QPList(list):
 
         return tabulate(table, tablefmt="plain")
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         return self.to_table()
 
@@ -591,11 +593,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     color_spin = {0: "k", 1: "r"}
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> SigresFile:
         """Initialize an instance from file."""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         """Read data from the netcdf file path."""
         super().__init__(filepath)
 
@@ -650,20 +652,22 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return Marker(*(x, y, s))
 
     @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies e.g ecuteps"""
+    def params(self) -> dict:
+        """
+        dictionary with parameters that might be subject to convergence studies e.g ecuteps
+        """
         od = self.get_ebands_params()
         od.update(self.reader.read_params())
         return od
 
-    def close(self):
+    def close(self) -> None:
         """Close the netcdf file."""
         self.reader.close()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level ``verbose``."""
         lines = []; app = lines.append
 
@@ -934,7 +938,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Plot the spectral function for all k-points, bands and spins available in the SIGRES file.
 
         Args:
-            include_bands: List of bands to include. Nonee means all.
+            include_bands: List of bands to include. None means all.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
@@ -958,7 +962,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                     sigw.plot_ax(ax, what="a", label=label, fontsize=fontsize, **kwargs)
 
             ax.set_title("K-point: %s" % repr(sigw.kpoint), fontsize=fontsize)
-            #if ik_gw == len(self.sigma_kpoints) - 1:
 
         return fig
 
@@ -1114,9 +1117,56 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         index = len(bands) * [index] if index is not None else bands
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
-    #def plot_matrix_elements(self, mel_name, spin, kpoint, *args, **kwargs):
-    #   matrix = self.reader.read_mel(mel_name, spin, kpoint):
-    #   return plot_matrix(matrix, *args, **kwargs)
+    @add_fig_kwargs
+    def plot_sigma_imag_axis(self, kpoint, spin=0, ax=None, fontsize=8, **kwargs):
+        """
+        Plot ...
+
+        Args:
+            kpoint:
+            spin: Spin index.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # sigcmesi(b1gw:b2gw, nkibz, nomega_i, nsppol*nsig_ab))
+
+        # nctkarr_t('sigxcmesi', "dp", 'cplex, nbgw, number_of_kpoints, nomega_i, ndim_sig'),&
+        # nctkarr_t('sigcmesi', "dp",'cplex, nbgw, number_of_kpoints, nomega_i, ndim_sig'),&
+        # nctkarr_t('omega_i', "dp", 'cplex, nomega_i')])
+        # Matrix elements of $\Sigma_c$ along the imaginary axis.
+        # Only used in case of analytical continuation.
+        # Values in the netcdf file are in eV
+
+        var = self.reader.read_variable("sigcmesi")
+        wmesh_ev = self.reader.read_value("omega_i")[:, 1]
+
+        ik_gw = self.reader.gwkpt2seqindex(kpoint)
+        ik_ibz = self.reader.kpt2fileindex(kpoint)
+
+        nrows, ncols = 1, 2
+        ax_list = None
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = np.array(ax_list).ravel()
+        re_ax, im_ax = ax_list
+
+        for band in range(self.gwbstart_sk[spin, ik_gw], self.gwbstop_sk[spin, ik_gw]):
+            #print("band", band, "shape", var.shape)
+            ib_gw = band - self.min_gwbstart
+            sigma = var[spin, :, ik_ibz, ib_gw, 0] + 1j*var[spin, :, ik_ibz, ib_gw, 1]
+            re_ax.plot(wmesh_ev, sigma.real, label=f"Re band {band}")
+            im_ax.plot(wmesh_ev, sigma.imag, label=f"Im band {band}")
+
+        re_ax.set_ylabel(r"$\Re{\Sigma_c}$ (eV)")
+        im_ax.set_ylabel(r"$\Im{\Sigma_c}$ (eV)")
+        for ax in ax_list:
+            ax.grid(True)
+            ax.set_xlabel(r"$i\omega$ (eV)")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
 
     #def plot_mlda_to_qps(self, spin, kpoint, *args, **kwargs):
     #    matrix = self.reader.read_mlda_to_qps(spin, kpoint)
@@ -1493,7 +1543,7 @@ class SigresReader(ETSF_Reader):
     ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
     ! Frequencies used to evaluate the Derivative of Sigma.
     """
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
         super().__init__(path)
@@ -1521,7 +1571,7 @@ class SigresReader(ETSF_Reader):
         for kpoint in self.gwkpoints:
             kpoint.set_name(self.structure.findname_in_hsym_stars(kpoint))
 
-        # minbnd[nkptgw,nsppol] gives the minimum band index computed
+        # minbnd[nkptgw, nsppol] gives the minimum band index computed
         # Note conversion between Fortran and python convention.
         self.gwbstart_sk = self.read_value("minbnd") - 1
         self.gwbstop_sk = self.read_value("maxbnd")

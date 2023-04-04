@@ -13,10 +13,10 @@ from collections import namedtuple
 from monty.collections import AttrDict
 from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder, MSONable
-from pymatgen.util.serialization import pmg_serialize
 from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.tools.serialization import pmg_serialize
 
 
 __all__ = [
@@ -343,32 +343,16 @@ def ion_ioncell_relax_input(structure, pseudos,
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for the solution of the SCF cycle.
     """
-    structure = Structure.as_structure(structure)
-    multi = MultiDataset(structure, pseudos, ndtset=2)
-
-    # Set the cutoff energies.
-    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos, accuracy))
-
-    kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
-
-    shift_mode = ShiftMode.from_object(shift_mode)
-    shifts = _get_shifts(shift_mode, structure)
-    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
-    electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
-                               charge=charge, nband=nband, fband=None)
-
-    if spin_mode == "polarized":
-        spinat_dict = multi[0].set_autospinat()
-        multi[1].set_vars(spinat_dict)
-
-    if electrons.nband is None:
-        electrons.nband = _find_scf_nband(structure, multi.pseudos, electrons, multi[0].get('spinat', None))
+    # Scf options
+    inp = scf_input(structure=structure, pseudos=pseudos, kppa=kppa,
+                    ecut=ecut, pawecutdg=pawecutdg, nband=nband,
+                    accuracy=accuracy, spin_mode=spin_mode, smearing=smearing,
+                    charge=charge, scf_algorithm=scf_algorithm, shift_mode=shift_mode)
+    # Relaxation-specific options
+    multi = MultiDataset.replicate_input(inp, ndtset=2)
 
     ion_relax = aobj.RelaxationMethod.atoms_only(atoms_constraints=None)
     ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)
-
-    multi.set_vars(electrons.to_abivars())
-    multi.set_vars(ksampling.to_abivars())
 
     multi[0].set_vars(ion_relax.to_abivars())
     multi[0].set_vars(_stopping_criterion("relax", accuracy))
@@ -423,6 +407,42 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
     return relax_multi + ebands_multi
 
 
+def scr_from_nscfinput(nscf_input, nband=None, ecuteps=3.0, ecutwfn=None, inclvkb=2, w_type="RPA", sc_mode="one_shot", hilbert=None, accuracy="normal"):
+    """Return a screening input."""
+    scr_input = nscf_input.deepcopy()
+    scr_input.pop_irdvars()
+    if nband is None:
+        nband = nscf_input.get("nband")
+    screening = aobj.Screening(ecuteps, nband, w_type=w_type, sc_mode=sc_mode,
+                               hilbert=hilbert, ecutwfn=ecutwfn, inclvkb=inclvkb)
+
+    scr_input.set_vars(screening.to_abivars())
+    scr_input.set_vars(_stopping_criterion("screening", accuracy))  # Dummy
+
+    return scr_input
+
+
+def sigma_from_inputs(nscf_input, scr_input, nband=None, ecutwfn=None, ecuteps=None, ecutsigx=None, ppmodel="godby", gw_qprange=1, accuracy="normal"):
+    """Return a sigma input."""
+    self_input = nscf_input.deepcopy()
+    self_input.pop_irdvars()
+    if nband is None:
+        nband = nscf_input.get("nband")
+    screening = aobj.Screening(ecuteps=scr_input["ecuteps"], nband=scr_input["nband"],
+                               w_type="RPA",
+                               sc_mode="one_shot",
+                               hilbert=None,
+                               ecutwfn=scr_input["ecutwfn"],)
+    ecuteps = ecuteps if ecuteps is not None else screening.ecuteps
+    self_energy = aobj.SelfEnergy(se_type="gw", sc_mode="one_shot", nband=nband, ecutsigx=ecutsigx, screening=screening,
+                                  gw_qprange=gw_qprange, ppmodel=ppmodel, ecuteps=ecuteps, ecutwfn=ecutwfn, gwpara=2)
+
+    self_input.set_vars(self_energy.to_abivars())
+    self_input.set_vars(_stopping_criterion("sigma", accuracy))  # Dummy
+
+    return self_input
+
+
 def g0w0_with_ppmodel_inputs(structure, pseudos,
                              kppa, nscf_nband, ecuteps, ecutsigx,
                              ecut=None, pawecutdg=None, shifts=(0.0, 0.0, 0.0),
@@ -462,55 +482,34 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     """
 
     structure = Structure.as_structure(structure)
-    multi = MultiDataset(structure, pseudos, ndtset=4)
-
-    # Set the cutoff energies.
-    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos, accuracy))
-
-    scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
+    # Scf input
+    # Note that kppa and shift_mode here are dummy as, they will be overwritten just after.
+    scf_inp = scf_input(structure=structure, pseudos=pseudos, kppa=kppa,
+                        ecut=ecut, pawecutdg=pawecutdg, nband=None, accuracy=accuracy,
+                        spin_mode=spin_mode, smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
+                        shift_mode="Monkhorst-Pack")
+    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
+    scf_inp.set_vars(ksampling.to_abivars())
+    scf_inp.set_vars(istwfk="*1")
+    # The following is to keep the previous behavior
+    # - The spinat is not set
+    # - The number of bands is not adapted for spinat
+    # TODO: Should we consider changing that and update the reference files accordingly ?
+    scf_inp.pop_vars('spinat')
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=None, fband=None)
-
-    if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, multi.pseudos, scf_electrons)
-
-    multi[0].set_vars(scf_ksampling.to_abivars())
-    multi[0].set_vars(scf_electrons.to_abivars())
-    multi[0].set_vars(_stopping_criterion("scf", accuracy))
-
-    nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
-    nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
-                                    charge=charge, nband=nscf_nband, fband=None)
-
-    multi[1].set_vars(nscf_ksampling.to_abivars())
-    multi[1].set_vars(nscf_electrons.to_abivars())
-    multi[1].set_vars(_stopping_criterion("nscf", accuracy))
-    # nbdbuf
-
-    # Screening.
-    if scr_nband is None: scr_nband = nscf_nband
-    screening = aobj.Screening(ecuteps, scr_nband, w_type="RPA", sc_mode="one_shot",
-                               hilbert=None, ecutwfn=None, inclvkb=inclvkb)
-
-    multi[2].set_vars(nscf_ksampling.to_abivars())
-    multi[2].set_vars(nscf_electrons.to_abivars())
-    multi[2].set_vars(screening.to_abivars())
-    multi[2].set_vars(_stopping_criterion("screening", accuracy)) # Dummy
-
-    # Sigma.
-    if sigma_nband is None: sigma_nband = nscf_nband
-    self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening,
-                                  gw_qprange=gw_qprange, ppmodel=ppmodel)
-
-    multi[3].set_vars(nscf_ksampling.to_abivars())
-    multi[3].set_vars(nscf_electrons.to_abivars())
-    multi[3].set_vars(self_energy.to_abivars())
-    multi[3].set_vars(_stopping_criterion("sigma", accuracy)) # Dummy
-
-    # TODO: Cannot use istwfk != 1.
-    multi.set_vars(istwfk="*1")
-
-    return multi
+    nband = _find_scf_nband(structure, scf_inp.pseudos, scf_electrons)
+    scf_inp.set_vars(nband=nband)
+    # Non-Scf input
+    nscf_inp = nscf_from_gsinput(gs_input=scf_inp, nband=nscf_nband, accuracy=accuracy)
+    # Scr input
+    scr_inp = scr_from_nscfinput(nscf_input=nscf_inp, nband=scr_nband, ecuteps=ecuteps, ecutwfn=None,
+                                 inclvkb=inclvkb, w_type="RPA", sc_mode="one_shot", hilbert=None, accuracy="normal")
+    # Sigma input
+    sigma_inp = sigma_from_inputs(nscf_input=nscf_inp, scr_input=scr_inp, nband=sigma_nband,
+                                  ecutwfn=None, ecuteps=None, ecutsigx=ecutsigx,
+                                  ppmodel=ppmodel, gw_qprange=gw_qprange)
+    return MultiDataset.from_inputs([scf_inp, nscf_inp, scr_inp, sigma_inp])
 
 
 def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, ecut,
@@ -1329,7 +1328,7 @@ def hybrid_oneshot_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange
     ecut = hybrid_input['ecut']
     ecutsigx = ecutsigx or 2*ecut
 
-    hybrid_input.set_vars(optdriver=4, gwcalctyp=gwcalctyp, gw_nstep=1, gwpara=2, icutcoul=icutcoul, rcut=rcut,
+    hybrid_input.set_vars(optdriver=4, gwcalctyp=gwcalctyp, gwpara=2, icutcoul=icutcoul, rcut=rcut,
                           gw_qprange=gw_qprange, ecutwfn=ecut*0.995, ecutsigx=ecutsigx)
 
     return hybrid_input

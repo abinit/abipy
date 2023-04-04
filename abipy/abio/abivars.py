@@ -460,6 +460,45 @@ for dataset in abinp.datasets:
 
         return self._write_nb_nbpath(nb, nbpath)
 
+    def get_differences(self, other, ignore_vars=None):
+        """
+        Get the differences between this AbinitInputFile and another.
+        """
+        diffs = []
+        to_ignore = {"acell", "angdeg", "rprim", "ntypat", "natom", "znucl", "typat", "xred", "xcart", "xangst"}
+        if ignore_vars is not None:
+            to_ignore.update(ignore_vars)
+        if self.ndtset != other.ndtset:
+            diffs.append(f"Number of datasets in this file is {self.ndtset} "
+                         f"while other file has {other.ndtset} datasets.")
+            return diffs
+        for idataset, self_dataset in enumerate(self.datasets):
+            other_dataset = other.datasets[idataset]
+            if self_dataset.structure != other_dataset.structure:
+                diffs.append("Structures are different.")
+            self_dataset_dict = dict(self_dataset)
+            other_dataset_dict = dict(other_dataset)
+            for k in to_ignore:
+                if k in self_dataset_dict:
+                    del self_dataset_dict[k]
+                if k in other_dataset_dict:
+                    del other_dataset_dict[k]
+            common_keys = set(self_dataset_dict.keys()).intersection(other_dataset_dict.keys())
+            self_only_keys = set(self_dataset_dict.keys()).difference(other_dataset_dict.keys())
+            other_only_keys = set(other_dataset_dict.keys()).difference(self_dataset_dict.keys())
+            if self_only_keys:
+                diffs.append(f"The following variables are in this file but not in other: "
+                             f"{', '.join([str(k) for k in self_only_keys])}")
+            if other_only_keys:
+                diffs.append(f"The following variables are in other file but not in this one: "
+                             f"{', '.join([str(k) for k in other_only_keys])}")
+            for k in common_keys:
+                if self_dataset_dict[k] != other_dataset_dict[k]:
+                    diffs.append(f"The variable '{k}' is different in the two files:\n"
+                                 f" - this file:  '{self_dataset_dict[k]}'\n"
+                                 f" - other file: '{other_dataset_dict[k]}'")
+        return diffs
+
 
 class AbinitInputParser(object):
 
