@@ -89,7 +89,8 @@ def abipanel(panel_template: str = "FastList"):
     ]
 
     css_files = [
-        pn.io.resources.CSS_URLS['font-awesome'],
+        # FIXME
+        #pn.io.resources.CSS_URLS['font-awesome'],
     ]
 
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
@@ -247,7 +248,7 @@ def show_exception(func):
 
 class HTMLwithClipboardBtn(pn.pane.HTML):
     """
-    Receives an HTML string and returns an HTML pane with a button that allows the user
+    Receives an HTML string and returns an HTML pane with a button that allows users
     to copy the content to the system clipboard.
     Requires call to abipanel to load the JS extension.
     """

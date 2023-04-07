@@ -21,7 +21,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
-from pymatgen.util.serialization import pmg_serialize
+from abipy.tools.serialization import pmg_serialize
 from abipy.flowtk import AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -1260,7 +1260,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         nx, ny, nz = ngqpt_coarse
         for i, j, k in itertools.product(range(-int(nx/2), int(nx/2) + 1),
                                          range(-int(ny/2), int(ny/2) + 1),
-                                        range(-int(nz/2), int(nz/2) + 1)):
+                                         range(-int(nz/2), int(nz/2) + 1)):
             coarse_qpt = np.array([i, j, k]) / np.array(ngqpt_coarse)
             for n,fine_qpt in enumerate(fine_qpoints):
                 if np.allclose(coarse_qpt, fine_qpt):

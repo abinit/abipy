@@ -14,7 +14,7 @@ from monty.termcolor import cprint
 from monty.string import list_strings
 from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ButtonContext, Loading
 from abipy.ppcodes.ppgen import OncvGenerator
-from abipy.ppcodes.oncvpsp import OncvOutputParser
+from abipy.ppcodes.oncv_parser import OncvParser
 
 
 GE_ANNOTATED = """
@@ -1202,7 +1202,7 @@ The present values of rc_l are: {rc_l}
             #out_path = self._execute_stdout_path = psgen.stdout_path
 
             # Parse the output file
-            #onc_parser = OncvOutputParser(out_path)
+            #onc_parser = OncvParser(out_path)
             #onc_parser.scan()
             #if not onc_parser.run_completed:
             #    cprint("oncvpsp output is not complete. Exiting", "red")

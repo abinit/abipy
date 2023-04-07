@@ -26,7 +26,7 @@ from . import qutils as qu
 from collections import namedtuple
 from subprocess import Popen, PIPE
 from typing import Optional, List, Tuple, Any
-from pymatgen.util.io_utils import AtomicFile
+from abipy.tools.iotools import AtomicFile
 from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property

@@ -112,6 +112,22 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`printing` Module
+----------------------
+
+.. automodule:: abipy.tools.printing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`serialization` Module
+---------------------------
+
+.. automodule:: abipy.tools.serialization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`tensors` Module
 ---------------------
 

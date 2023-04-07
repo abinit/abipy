@@ -23,8 +23,8 @@ from monty.json import MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
-from pymatgen.util.serialization import pmg_serialize
 from pymatgen.electronic_structure.core import Spin as PmgSpin
+from abipy.tools.serialization import pmg_serialize
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingInfo, KpointsReaderMixin,
@@ -3104,7 +3104,7 @@ class ElectronBands(Has_Structure):
     def get_ebands3d(self):
         err_msg = self.isnot_ibz_sampling()
         if err_msg:
-            raise valueError(err_msg)
+            raise ValueError(err_msg)
 
         return ElectronBands3D(self.structure, self.kpoints, self.has_timrev, self.eigens, self.fermie)
 

@@ -16,7 +16,7 @@ from collections import OrderedDict
 from pprint import pprint
 from typing import List, Any, Union
 from monty.json import jsanitize
-from pymatgen.util.io_utils import AtomicFile
+from abipy.tools.iotools import AtomicFile
 from pydispatch import dispatcher
 from monty.termcolor import colored
 from monty.serialization import loadfn
@@ -25,7 +25,7 @@ from monty.io import FileLock
 from monty.collections import AttrDict, Namespace
 from monty.functools import lazy_property
 from monty.json import MSONable
-from pymatgen.util.serialization import json_pretty_dump, pmg_serialize
+from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from .utils import File, Directory, Dirviz, irdvars_for_ext, abi_extensions
 
 

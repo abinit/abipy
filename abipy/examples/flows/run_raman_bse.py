@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Raman Flow with BSE and frozen phonon
-=====================================
+Raman with BSE and frozen phonon
+================================
 
 This script shows how to perform a Raman calculation with
 excitonic effects included with the BSE formalism.

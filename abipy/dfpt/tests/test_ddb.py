@@ -29,6 +29,8 @@ class DdbTest(AbipyTest):
                 assert same_ddb.qpoints[0] == ddb.qpoints[0]
                 assert same_ddb.structure == ddb.structure
 
+            #self.serialize_with_pickle(ddb, test_eq=False)
+
             # Test header
             h = ddb.header
             assert h.version == 100401 and h.ecut == 3

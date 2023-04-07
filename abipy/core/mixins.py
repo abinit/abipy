@@ -885,7 +885,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
                False to show figures in different GUIs
         """
         if not use_web:
-            # Produce all matplotlib versions and show them with the X-server.
+            # Produce all matplotlib figures and show them with the X-server.
             from abipy.tools.plotting import MplExpose
             with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
                 e(self.yield_figs(**kwargs))

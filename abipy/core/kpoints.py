@@ -13,7 +13,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import marquee
 from pymatgen.core.lattice import Lattice
-from pymatgen.util.serialization import pmg_serialize
+from abipy.tools.serialization import pmg_serialize
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.numtools import add_periodic_replicas, is_diagonal

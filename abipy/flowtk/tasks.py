@@ -25,7 +25,7 @@ from monty.json import MSONable
 from monty.fnmatch import WildCard
 from pymatgen.core.units import Memory
 from pymatgen.core.structure import Structure as pmg_Structure
-from pymatgen.util.serialization import json_pretty_dump, pmg_serialize
+from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.core.globals import get_workdir
 from abipy.tools.iotools import yaml_safe_load
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram

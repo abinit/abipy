@@ -623,7 +623,7 @@ Also, avoid uploading big files (size > XXX).
 class PanelWithStructureInput(PanelWithFileInput):
 
     info_str = """
-This app allows user to upload a file with structure info and operate on it.
+This app allows users to upload a file with structure info and operate on it.
 """
 
     def __init__(self, **params):

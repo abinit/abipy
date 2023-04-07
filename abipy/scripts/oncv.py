@@ -86,7 +86,8 @@ def oncv_plot(options):
     out_path = _find_oncv_output(options.filepath)
 
     plotter = OncvPlotter.from_file(out_path)
-    plotter.expose(use_web=True)
+    #plotter.expose(use_web=True)
+    plotter.expose(use_web=False)
 
     return 0
 
@@ -99,8 +100,15 @@ def oncv_compare(options):
 
     plotter = MultiOncvPlotter.from_files(options.filepaths)
 
+    plotter.plot_atan_logders(show=True, fontsize=12)
+    return
+
     # Plot data
-    plotter.expose(use_web=True)
+    use_web = False
+    #use_web = True
+    #import matplotlib.pyplot as plt
+    #with plt.xkcd():
+    plotter.expose(use_web=use_web)
 
     return 0
 
@@ -164,11 +172,27 @@ def oncv_run(options):
     psgen.start()
     retcode = psgen.wait()
 
-    if psgen.status != psgen.S_OK:
+    if retcode != 0:
         cprint("oncvpsp returned %s. Exiting" % retcode, "red")
-        return 1
+        return retcode
 
-    # Tranfer final output file.
+    if psgen.status != psgen.S_OK:
+        cprint(f"psgen.status = {psgen.status} != psgen.S_OK", "red")
+        if psgen.parser.warnings:
+            print(2 * "\n")
+            print("List of WARNINGS:")
+            for w in psgen.parser.warnings:
+                print(w)
+
+        if psgen.parser.errors:
+            print(2 * "\n")
+            print("List of ERRORS:")
+            for e in psgen.parser.errors:
+                print(e)
+
+        #return 1
+
+    # Transfer final output file.
     shutil.copy(psgen.stdout_path, out_path)
 
     # Parse the output file
@@ -290,6 +314,9 @@ Usage example:
             p.add_argument('filepaths', nargs="+", help="List of files to compare.")
         else:
             p.add_argument('filepath', default="", help="Path to the input/output file")
+
+        from abipy.core.release import __version__
+        p.add_argument('-V', '--version', action='version', version=__version__)
 
         return p
 

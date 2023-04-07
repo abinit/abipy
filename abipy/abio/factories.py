@@ -13,10 +13,10 @@ from collections import namedtuple
 from monty.collections import AttrDict
 from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder, MSONable
-from pymatgen.util.serialization import pmg_serialize
 from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.tools.serialization import pmg_serialize
 
 
 __all__ = [
@@ -1328,7 +1328,7 @@ def hybrid_oneshot_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange
     ecut = hybrid_input['ecut']
     ecutsigx = ecutsigx or 2*ecut
 
-    hybrid_input.set_vars(optdriver=4, gwcalctyp=gwcalctyp, gw_nstep=1, gwpara=2, icutcoul=icutcoul, rcut=rcut,
+    hybrid_input.set_vars(optdriver=4, gwcalctyp=gwcalctyp, gwpara=2, icutcoul=icutcoul, rcut=rcut,
                           gw_qprange=gw_qprange, ecutwfn=ecut*0.995, ecutsigx=ecutsigx)
 
     return hybrid_input
