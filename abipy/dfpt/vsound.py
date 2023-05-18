@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from typing import List
+from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.dfpt.ddb import DdbFile
@@ -15,7 +15,8 @@ from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvec
 from abipy.abio.inputs import AnaddbInput
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible, get_fig_plotly, get_figs_plotly, \
     add_plotly_fig_kwargs, PlotlyRowColDesc
-from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
+from abipy.tools.typing import Figure
+
 
 
 class SoundVelocity(Has_Structure, NotebookWriter):
@@ -59,10 +60,11 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         return len(self.directions)
 
     @classmethod
-    def from_ddb(cls, ddb_path, directions=None, labels=None, num_points=20, qpt_norm=0.1,
+    def from_ddb(cls, ddb_path: str, 
+                 directions=None, labels=None, num_points=20, qpt_norm=0.1,
                  ignore_neg_freqs=True, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
                  ngqpt=None, spell_check=True, anaddb_kwargs=None, verbose=0, mpi_procs=1, workdir=None, manager=None,
-                 return_input=False):
+                 return_input=False) -> SoundVelocity:
         """
         Creates and instance of the object. Runs anaddb along the specified
         directions or the standard directions in the standard paths given
@@ -157,7 +159,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
     @classmethod
     def from_phbst(cls, phbst_path: str,
                    ignore_neg_freqs: bool = True,
-                   labels: List[str] = None) -> SoundVelocity:
+                   labels: list[str] = None) -> SoundVelocity:
         """
         Creates an instance of the object starting interpolating the acoustic frequencies
         from a PHBST netcdf file.
@@ -295,7 +297,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         return pd.DataFrame(rows, columns=columns).set_index(["direction", "label"])
 
     @add_fig_kwargs
-    def plot_fit_freqs_dir(self, idir, ax=None, units="eV", fontsize=8, **kwargs):
+    def plot_fit_freqs_dir(self, idir, ax=None, units="eV", fontsize=8, **kwargs) -> Figure:
         """
         Plots the phonon frequencies with matplotlib, if available, along the specified direction.
         The line representing the fitted value will be shown as well.
@@ -396,7 +398,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot(self, units="eV", fontsize=8, **kwargs):
+    def plot(self, units="eV", fontsize=8, **kwargs) -> Figure:
         """
         Plots the phonon frequencies with matplotlib, if available, along all the directions.
         The lines representing the fitted values will be shown as well.
@@ -453,7 +455,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         for i in range(self.n_directions):
             yield self.plot_fit_freqs_dir(i)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write an jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.

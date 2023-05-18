@@ -6,6 +6,7 @@ import os
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from typing import List, Tuple
@@ -22,7 +23,7 @@ from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
-import abipy.core.abinit_units as abu
+from abipy.tools.typing import Figure
 from abipy.core.structure import Structure
 
 
@@ -55,10 +56,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     @lazy_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """dict with parameters that might be subject to convergence studies."""
         return {}
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
     # TODO: Add more metadata.
@@ -286,7 +287,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         #else:
         #    hist.mvanimate()
 
-    def plot_ax(self, ax, what, fontsize=8, **kwargs):
+    def plot_ax(self, ax, what, fontsize=8, **kwargs) -> None:
         """
         Helper function to plot quantity ``what`` on axis ``ax`` with matplotlib.
 
@@ -487,7 +488,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         fig.layout.legend.font.size = fontsize
 
     @add_fig_kwargs
-    def plot(self, what_list=None, ax_list=None, fontsize=8, **kwargs):
+    def plot(self, what_list=None, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
         as well as pressure, info on forces and total energy with matplotlib.
@@ -568,7 +569,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return self.plotly(what_list="energy", fig=fig, fontsize=fontsize, show=False, **kwargs)
 
     @add_fig_kwargs
-    def plot_energies(self, ax=None, fontsize=8, **kwargs):
+    def plot_energies(self, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the total energies as function of the iteration step with matplotlib.
 
@@ -686,7 +687,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         from abipy.panels.hist import HistFilePanel
         return HistFilePanel(self).get_panel(**kwargs)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -788,7 +789,7 @@ class HistRobot(Robot):
         return ["energy", "abc", "angles", "volume", "pressure", "forces"]
 
     @add_fig_kwargs
-    def gridplot(self, what_list=None, sharex="row", sharey="row", fontsize=8, **kwargs):
+    def gridplot(self, what_list=None, sharex="row", sharey="row", fontsize=8, **kwargs) -> Figure:
         """
         Plot the ``what`` value extracted from multiple HIST.nc_ files on a grid.
 
@@ -826,7 +827,7 @@ class HistRobot(Robot):
         return fig
 
     @add_fig_kwargs
-    def combiplot(self, what_list=None, colormap="jet", fontsize=6, **kwargs):
+    def combiplot(self, what_list=None, colormap="jet", fontsize=6, **kwargs) -> Figure:
         """
         Plot multiple HIST.nc_ files on a grid. One plot for each ``what`` value.
 
@@ -875,7 +876,7 @@ class HistRobot(Robot):
         yield self.gridplot(show=False)
         yield self.combiplot(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.

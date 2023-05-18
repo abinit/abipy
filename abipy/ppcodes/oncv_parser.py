@@ -10,7 +10,7 @@ import tempfile
 import numpy as np
 
 from collections import namedtuple
-from typing import Union, Any  #, List, Optional
+from typing import Union, Any
 from monty.functools import lazy_property
 from monty.collections import AttrDict, dict2namedtuple
 from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction, l2char

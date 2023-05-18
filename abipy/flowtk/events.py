@@ -14,7 +14,7 @@ import abc
 import logging
 import numpy as np
 
-from typing import List, Union
+from typing import Union, Iterator
 from monty.string import indent, is_string
 from monty.fnmatch import WildCard
 from monty.termcolor import colored
@@ -38,7 +38,7 @@ __all__ = [
 ]
 
 
-def straceback():
+def straceback() -> str:
     """Returns a string with the traceback."""
     import traceback
     return traceback.format_exc()
@@ -283,16 +283,16 @@ class EventReport(collections.abc.Iterable, MSONable):
             for ev in events:
                 self.append(ev)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._events)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[AbinitEvent]:
         return self._events.__iter__()
 
-    def __getitem__(self, slice):
+    def __getitem__(self, slice) -> Union[AbinitEvent, list[AbinitEvent]]:
         return self._events[slice]
 
-    def __str__(self):
+    def __str__(self) -> str:
         #has_colours = stream_has_colours(stream)
         has_colours = True
 
@@ -317,7 +317,7 @@ class EventReport(collections.abc.Iterable, MSONable):
         self._events.append(event)
         self._events_by_baseclass[event.baseclass].append(event)
 
-    def set_run_completed(self, boolean, start_datetime, end_datetime):
+    def set_run_completed(self, boolean, start_datetime, end_datetime) -> None:
         """Set the value of _run_completed."""
         self._run_completed = boolean
 
@@ -349,17 +349,17 @@ class EventReport(collections.abc.Iterable, MSONable):
             return False
 
     @property
-    def comments(self) -> List[AbinitComment]:
+    def comments(self) -> list[AbinitComment]:
         """List of comments found."""
         return self.select(AbinitComment)
 
     @property
-    def errors(self) -> List[Union[AbinitError, AbinitBug]]:
+    def errors(self) -> list[Union[AbinitError, AbinitBug]]:
         """List of errors + bugs found."""
         return self.select(AbinitError) + self.select(AbinitBug)
 
     @property
-    def warnings(self) -> List[AbinitWarning]:
+    def warnings(self) -> list[AbinitWarning]:
         """List of warnings found."""
         return self.select(AbinitWarning)
 
@@ -424,6 +424,7 @@ class EventsParser:
         w = WildCard("*Error|*Warning|*Comment|*Bug|*ERROR|*WARNING|*COMMENT|*BUG")
         import warnings
         warnings.simplefilter('ignore', yaml.error.UnsafeLoaderWarning)
+
         with YamlTokenizer(filename) as tokens:
             for doc in tokens:
                 if w.match(doc.tag):
@@ -535,7 +536,7 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
 
         return "\n".join(lines)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "<%s>" % self.__class__.__name__
 
     def can_handle(self, event: AbinitEvent) -> bool:
@@ -577,7 +578,6 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
         """
         Basic implementation of from_dict if __init__ has no arguments. Subclasses may need to overwrite.
         """
-
         return cls()
 
     @classmethod
@@ -657,7 +657,7 @@ _ABC_EVHANDLER_CLASSES = set([ErrorHandler,])
 
 
 # Public API
-def autodoc_event_handlers(stream=sys.stdout):
+def autodoc_event_handlers(stream=sys.stdout) -> None:
     """
     Print to the given string, the documentation for the events
     and the associated handlers.

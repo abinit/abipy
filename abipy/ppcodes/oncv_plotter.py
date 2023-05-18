@@ -10,13 +10,14 @@ import tempfile
 import numpy as np
 
 from typing import Any, Union, List, Optional
-from monty.functools import lazy_property
-from monty.collections import AttrDict, dict2namedtuple
-from monty.os.path import which
+#from monty.functools import lazy_property
+from monty.collections import dict2namedtuple
+from shutil import which
 from monty.termcolor import cprint
 from abipy.core.atom import l2char # NlkState, RadialFunction, RadialWaveFunction,
 from abipy.core.mixins import NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, set_axlims
+from abipy.tools.typing import Figure
 from abipy.tools.derivatives import finite_diff
 from abipy.ppcodes.oncv_parser import OncvParser
 
@@ -74,8 +75,8 @@ class OncvPlotter(NotebookWriter):
         return dict(
             color=self.color_l[l],
             linestyle=self.linestyle_aeps[aeps],
-            #marker=self.markers_aeps[aeps],
             linewidth=self.linewidth,
+            #marker=self.markers_aeps[aeps],
             markersize=self.markersize
         )
 
@@ -92,7 +93,8 @@ class OncvPlotter(NotebookWriter):
             ax.axvline(rc, lw=1, color=self.color_l[l], ls="--")
 
     @add_fig_kwargs
-    def plot_atan_logders(self, ax=None, with_xlabel=True, fontsize: int = 8, **kwargs):
+    def plot_atan_logders(self, ax=None, with_xlabel=True,
+                          fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot arctan of logder on axis ax.
 
@@ -102,8 +104,7 @@ class OncvPlotter(NotebookWriter):
         ae, ps = self.parser.atan_logders.ae, self.parser.atan_logders.ps
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        # Note that l can be negative if FR pseudo.
-        # This corresponds to ikap 2 in Fortran.
+        # Note that l can be negative if FR pseudo. This corresponds to ikap 2 in Fortran.
 
         for l, ae_alog in ae.items():
             ps_alog = ps[l]
@@ -115,7 +116,7 @@ class OncvPlotter(NotebookWriter):
                 if l >= 0: lch = f"${l2char[abs(l)]}^+$"
                 if l < 0: lch  = f"${l2char[abs(l)]}^-$"
 
-            # Add pad to avoid overlapping curves.
+            # Add pad to avoid overlapping curves. We only need to compare AE vs PS atan(logder)
             pad = (abs(l) + 1) * 1.0
 
             ae_line, = ax.plot(ae_alog.energies, ae_alog.values + pad,
@@ -128,7 +129,7 @@ class OncvPlotter(NotebookWriter):
 
 
         xlabel = "Energy (Ha)" if with_xlabel else ""
-        ylabel = "ATAN(LogDer)"
+        #ylabel = "ATAN(LogDer)"
         ylabel = r"$\phi(E) = \arctan(R * d \psi_E(r)/dr |_R)$"
 
         self.decorate_ax(ax, xlabel=xlabel, ylabel=ylabel, title="",
@@ -137,7 +138,8 @@ class OncvPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_radial_wfs(self, ax=None, what="bound_states", fontsize: int = 8, **kwargs):
+    def plot_radial_wfs(self, ax=None, what="bound_states",
+                        fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot AE and PS radial wavefunctions on axis ax.
 
@@ -157,10 +159,8 @@ class OncvPlotter(NotebookWriter):
         for nlk, ae_wf in ae_wfs.items():
             ps_wf, l, k = ps_wfs[nlk], nlk.l, nlk.k
 
-            ax.plot(ae_wf.rmesh, ae_wf.values, label=f"AE {nlk.latex}",
-                    **self._mpl_opts_laeps(l, "ae"))
-            ax.plot(ps_wf.rmesh, ps_wf.values, label=f"PS {nlk.latex}",
-                    **self._mpl_opts_laeps(l, "ps"))
+            ax.plot(ae_wf.rmesh, ae_wf.values, label=f"AE {nlk.latex}", **self._mpl_opts_laeps(l, "ae"))
+            ax.plot(ps_wf.rmesh, ps_wf.values, label=f"PS {nlk.latex}", **self._mpl_opts_laeps(l, "ps"))
 
         self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$\phi(r)$",
                          title="Wave Functions" if what == "bound_states" else "Scattering States",
@@ -172,7 +172,7 @@ class OncvPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_projectors(self, ax=None, fontsize: int = 8, **kwargs):
+    def plot_projectors(self, ax=None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot projectors on axis ax.
 
@@ -201,7 +201,7 @@ class OncvPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_densities(self, ax=None, timesr2=False, fontsize: int = 8, **kwargs):
+    def plot_densities(self, ax=None, timesr2=False, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot AE, PS and model densities on axis ax.
 
@@ -224,7 +224,7 @@ class OncvPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_der_densities(self, ax=None, order=1, fontsize=8, **kwargs):
+    def plot_der_densities(self, ax=None, order=1, fontsize=8, **kwargs) -> Figure:
         """
         Plot the radial derivatives of the densities on axis ax.
         Used to analyze possible discontinuities or strong oscillations in r-space.
@@ -255,7 +255,7 @@ class OncvPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_potentials(self, ax=None, fontsize: int = 8, **kwargs):
+    def plot_potentials(self, ax=None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot v_l and v_loc potentials on axis ax.
 
@@ -265,7 +265,6 @@ class OncvPlotter(NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax)
 
         for l, pot in self.parser.potentials.items():
-
             ax.plot(pot.rmesh, pot.values,
                     label="$V_{loc}$" if l == -1 else "PS $V_{%s}$" % l2char[l],
                     **self._mpl_opts_laeps(l, "ae"))
@@ -277,13 +276,12 @@ class OncvPlotter(NotebookWriter):
         color = "k"
         if self.parser.lloc == 4: color = "magenta"
         ax.axvline(self.parser.rc5, lw=1, color=color, ls="--")
-
         self._add_rc_vlines(ax)
 
         return fig
 
     @add_fig_kwargs
-    def plot_der_potentials(self, ax=None, order=1, fontsize: int = 8, **kwargs):
+    def plot_der_potentials(self, ax=None, order=1, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot the derivatives of vl and vloc potentials on axis ax.
         Used to analyze the derivative discontinuity introduced by the RRKJ method at rc.
@@ -318,7 +316,7 @@ class OncvPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_kene_vs_ecut(self, ax=None, fontsize: int = 8, **kwargs):
+    def plot_kene_vs_ecut(self, ax=None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot the convergence of the kinetic energy wrt ecut on axis ax.
 
@@ -345,9 +343,9 @@ class OncvPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_atanlogder_econv(self, ax_list=None, fontsize: int = 6, **kwargs):
+    def plot_atanlogder_econv(self, ax_list=None, fontsize: int = 6, **kwargs) -> Figure:
         """
-        Plot atan(logder) and converge of kinetic energy on the same figure.
+        Plot atan(logder) and the convergence of kinetic energy on the same figure.
 
         Return: matplotlib Figure
         """
@@ -364,7 +362,7 @@ class OncvPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_den_formfact(self, ecut=120, ax=None, fontsize: int = 8, **kwargs):
+    def plot_den_formfact(self, ecut=120, ax=None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot the density form factor as a function of ecut in Ha.
 
@@ -494,7 +492,7 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
         # Based on https://github.com/arose/nglview/blob/master/nglview/scripts/nglview.py
         notebook_name = os.path.basename(nbpath)
         dirname = os.path.dirname(nbpath)
-        print("nbpath:", nbpath)
+        #print("nbpath:", nbpath)
 
         import socket
 
@@ -619,7 +617,7 @@ plotter = onc_parser.get_plotter()"""),
 
 class MultiOncvPlotter(NotebookWriter):
     """
-    Class for comparing multiple pseudos.
+    Class for comparing/plotting multiple pseudos.
 
     Usage example:
 
@@ -684,7 +682,8 @@ class MultiOncvPlotter(NotebookWriter):
         return ax_list, fig, plt
 
     @add_fig_kwargs
-    def plot_atan_logders(self, ax_list=None, with_xlabel=True, xlims=None, ylims=None, fontsize: int = 8, **kwargs):
+    def plot_atan_logders(self, ax_list=None, with_xlabel=True, xlims=None, ylims=None,
+                          fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot arctan of logder on axis ax.
 
@@ -697,7 +696,6 @@ class MultiOncvPlotter(NotebookWriter):
         for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_atan_logders(ax=ax, with_xlabel=with_xlabel, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
-            #xlims = [-5, 5]
             set_axlims(ax, xlims, "x")
             set_axlims(ax, ylims, "y")
             if i != n - 1:
@@ -706,7 +704,8 @@ class MultiOncvPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_radial_wfs(self, ax_list=None, what="bound_states", fontsize: int = 8, **kwargs):
+    def plot_radial_wfs(self, ax_list=None, what="bound_states",
+                        fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot AE and PS radial wavefunctions of ax_list.
 
@@ -715,15 +714,18 @@ class MultiOncvPlotter(NotebookWriter):
             what: "bound_states" or "scattering_states".
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
+        n = len(ax_list)
 
-        for ax, (label, plotter) in zip(ax_list, self.items()):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_radial_wfs(ax=ax, what=what, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+            if i != n - 1:
+                set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_projectors(self, ax_list=None, fontsize: int = 8, **kwargs):
+    def plot_projectors(self, ax_list=None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot projectors on ax_list.
 
@@ -732,15 +734,18 @@ class MultiOncvPlotter(NotebookWriter):
             ax: |matplotlib-Axes| or None if a new figure should be created.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
+        n = len(ax_list)
 
-        for ax, (label, plotter) in zip(ax_list, self.items()):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_projectors(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+            if i != n - 1:
+                set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_densities(self, ax_list=None, timesr2=False, fontsize: int = 8, **kwargs):
+    def plot_densities(self, ax_list=None, timesr2=False, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot AE, PS and model densities on ax_list
 
@@ -749,15 +754,18 @@ class MultiOncvPlotter(NotebookWriter):
             ax: |matplotlib-Axes| or None if a new figure should be created.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
+        n = len(ax_list)
 
-        for ax, (label, plotter) in zip(ax_list, self.items()):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_densities(ax=ax, timesr2=timesr2, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+            if i != n - 1:
+                set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_der_densities(self, ax_list=None, order=1, fontsize=8, **kwargs):
+    def plot_der_densities(self, ax_list=None, order=1, fontsize=8, **kwargs) -> Figure:
         """
         Plot the radial derivatives of the densities on ax_list
         Used to analyze possible discontinuities or strong oscillations in r-space.
@@ -766,15 +774,18 @@ class MultiOncvPlotter(NotebookWriter):
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
+        n = len(ax_list)
 
-        for ax, (label, plotter) in zip(ax_list, self.items()):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_der_densities(ax=ax, order=order, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+            if i != n - 1:
+                set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_potentials(self, ax_list=None, fontsize: int = 8, **kwargs):
+    def plot_potentials(self, ax_list=None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot v_l and v_loc potentials on ax_list
 
@@ -782,15 +793,18 @@ class MultiOncvPlotter(NotebookWriter):
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
+        n = len(ax_list)
 
-        for ax, (label, plotter) in zip(ax_list, self.items()):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_potentials(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+            if i != n - 1:
+                set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_der_potentials(self, ax_list=None, order=1, fontsize: int = 8, **kwargs):
+    def plot_der_potentials(self, ax_list=None, order=1, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot the derivatives of vl and vloc potentials on ax_list.
         Used to analyze the derivative discontinuity introduced by the RRKJ method at rc.
@@ -799,15 +813,18 @@ class MultiOncvPlotter(NotebookWriter):
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
+        n = len(ax_list)
 
-        for ax, (label, plotter) in zip(ax_list, self.items()):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_der_potentials(ax=ax, order=order, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+            if i != n - 1:
+                set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_kene_vs_ecut(self, ax_list=None, fontsize: int = 8, **kwargs):
+    def plot_kene_vs_ecut(self, ax_list=None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot the convergence of the kinetic energy wrt ecut on ax_list
 
@@ -815,15 +832,18 @@ class MultiOncvPlotter(NotebookWriter):
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
+        n = len(ax_list)
 
-        for ax, (label, plotter) in zip(ax_list, self.items()):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_kene_vs_ecut(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+            if i != n - 1:
+                set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_atanlogder_econv(self, ax_mat=None, fontsize: int = 6, **kwargs):
+    def plot_atanlogder_econv(self, ax_mat=None, fontsize: int = 6, **kwargs) -> Figure:
         """
         Plot atan(logder) and converge of kinetic energy on the same figure.
         Return: matplotlib Figure
@@ -836,14 +856,17 @@ class MultiOncvPlotter(NotebookWriter):
 
         for i, (label, plotter) in enumerate(self.items()):
             ax_list = ax_mat[i]
+            n = len(ax_list)
             plotter.plot_atanlogder_econv(ax_list=ax_list, fontsize=fontsize, show=False)
             for ax in ax_list:
                 ax.set_title(label, fontsize=fontsize)
+            if i != n - 1:
+                set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_den_formfact(self, ecut=120, ax_list=None, fontsize: int = 8, **kwargs):
+    def plot_den_formfact(self, ecut=120, ax_list=None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot the density form factor as a function of ecut in Ha on ax_list
 
@@ -853,10 +876,13 @@ class MultiOncvPlotter(NotebookWriter):
         Return: matplotlib Figure.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
+        n = len(ax_list)
 
-        for ax, (label, plotter) in zip(ax_list, self.items()):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_den_formfact(ax=ax, ecut=ecut, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
+            if i != n - 1:
+                set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig
 
@@ -944,6 +970,7 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
     from pymatgen.io.abinit.pseudos import _dict_from_lines
     with open(path, "rt") as fh:
         lines = [fh.readline() for _ in range(6)]
+
         header = _dict_from_lines(lines[1:3], [3, 6])
 
         # Number of points on the linear mesh.

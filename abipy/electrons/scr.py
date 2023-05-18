@@ -1,5 +1,7 @@
 # coding: utf-8
 """Objects to analyze the screening files produced by the GW code (optdriver 3)."""
+from __future__ import annotations
+
 import numpy as np
 import pymatgen.core.units as pmgu
 
@@ -11,21 +13,20 @@ from monty.functools import lazy_property
 from monty.bisect import index as bs_index
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
+from abipy.core.structure import Structure
 from abipy.core.gsphere import GSphere
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, NotebookWriter
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import ArrayPlotter, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.typing import Figure
 from abipy.tools import duck
-
-import logging
-logger = logging.getLogger(__name__)
 
 
 _COLOR_CMODE = dict(re="red", im="blue", abs="black", angle="green")
 
 
-def _latex_symbol_cplxmode(symbol, cplx_mode):
+def _latex_symbol_cplxmode(symbol: str, cplx_mode: str) -> str:
     """Latex label to be used to plot ``symbol`` in ``cplx_mode``."""
     return {"re": r"$\Re(" + symbol + ")$",
             "im": r"$\Im(" + symbol + ")$",
@@ -50,22 +51,22 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
     .. inheritance-diagram:: ScrFile
     """
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> ScrFile:
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = ScrReader(filepath)
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -91,7 +92,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.reader.structure
 
@@ -101,7 +102,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         return self.reader.kpoints
 
     @lazy_property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """
         |ElectronBands| object with the single-particle energies used to compute the screening.
         """
@@ -112,48 +113,48 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         return ebands
 
     @property
-    def ng(self):
+    def ng(self) -> int:
         """Number of G-vectors in screening matrices."""
         return self.reader.ng
 
     @property
-    def wpoints(self):
+    def wpoints(self) -> np.ndarray:
         """
         Array of complex numbers with the frequencies of the dielectric function in Hartree.
         """
         return self.reader.wpoints
 
     @property
-    def nw(self):
+    def nw(self) -> int:
         """Total number of frequencies."""
         return self.reader.nw
 
     @property
-    def nrew(self):
+    def nrew(self) -> int:
         """Number of real frequencies."""
         return self.reader.nrew
 
     @property
-    def nimw(self):
+    def nimw(self) -> int:
         """Number of imaginary frequencies."""
         return self.reader.nimw
 
     @property
-    def netcdf_name(self):
+    def netcdf_name(self) -> str:
         """The netcdf_ name associated to the data on disk."""
         return self.reader.netcdf_name
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """
-        |AttrDict| with the most important parameters used to compute the screening
+        dict with the most important parameters used to compute the screening
         keys can be accessed with the dot notation i.e. ``params.zcut``.
         """
         #od = self.get_ebands_params()
         return self.reader.read_params()
 
     @add_fig_kwargs
-    def plot_emacro(self, cplx_mode="re-im", ax=None, xlims=None, fontsize=12, **kwargs):
+    def plot_emacro(self, cplx_mode="re-im", ax=None, xlims=None, fontsize=12, **kwargs) -> Figure:
         r"""
         Plot the macroscopic dielectric function with local-field effects.
 
@@ -190,7 +191,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_eelf(self, ax=None, xlims=None, fontsize=12, **kwargs):
+    def plot_eelf(self, ax=None, xlims=None, fontsize=12, **kwargs) -> Figure:
         r"""
         Plot electron energy loss function.
 
@@ -228,7 +229,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
             yield self.plot_emacro(show=False)
             yield self.plot_eelf(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -269,7 +270,7 @@ class ScrReader(ETSF_Reader):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ScrReader
     """
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
 
         # Read and store important quantities.
@@ -306,7 +307,7 @@ class ScrReader(ETSF_Reader):
         if nfound > 1:
             raise RuntimeError("Find multiple netcdf arrays (%s) in netcdf file!" % str(netcdf_names))
 
-    def read_params(self):
+    def read_params(self) -> AttrDict:
         """
         Read the most important parameters used to compute the screening i.e.
         the parameters that may be subject to convergence studies.
@@ -326,7 +327,7 @@ class ScrReader(ETSF_Reader):
 
         return AttrDict({k: convert(self.read_value(k)) for k in keys})
 
-    def read_emacro_lf(self, kpoint=(0, 0, 0)):
+    def read_emacro_lf(self, kpoint=(0, 0, 0)) -> Function1D:
         """
         Read the macroscopic dielectric function *with* local field effects 1 / em1_{0,0)(kpoint, omega).
 
@@ -340,7 +341,7 @@ class ScrReader(ETSF_Reader):
 
         return Function1D(np.real(self.wpoints[:self.nrew]).copy(), emacro)
 
-    def read_emacro_nlf(self, kpoint=(0, 0, 0)):
+    def read_emacro_nlf(self, kpoint=(0, 0, 0)) -> Function1D:
         """
         Read the macroscopic dielectric function *without* local field effects e_{0,0)(kpoint, omega).
 
@@ -359,7 +360,7 @@ class ScrReader(ETSF_Reader):
 
         return Function1D(np.real(self.wpoints[:self.nrew]).copy(), e[:, 0, 0])
 
-    def read_eelf(self, kpoint=(0, 0, 0)):
+    def read_eelf(self, kpoint=(0, 0, 0)) -> Function1D:
         """
         Read electron energy loss function
 
@@ -437,6 +438,7 @@ class _AwggMatrix:
         nwim:
     """
     netcdf_name = "_AwggMatrix"
+
     latex_name = "Unknown"
 
     def __init__(self, wpoints, gsphere, wggmat, inord="C"):
@@ -475,7 +477,7 @@ class _AwggMatrix:
                 "followed by imaginary points but got: %s" % str(self.wpoints))
 
     @classmethod
-    def class_from_netcdf_name(cls, netcdf_name):
+    def class_from_netcdf_name(cls, netcdf_name: str):
         """Return the subclass associated to the given netcdf name."""
         nfound = 0
         for subclass in all_subclasses(cls):
@@ -490,10 +492,10 @@ class _AwggMatrix:
 
         return out_cls
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -515,12 +517,12 @@ class _AwggMatrix:
         return self.gsphere.kpoint
 
     @property
-    def ng(self):
+    def ng(self) -> int:
         """Number of G-vectors."""
         return len(self.gsphere)
 
     @property
-    def nw(self):
+    def nw(self) -> int:
         """Total number of frequencies."""
         return len(self.wpoints)
 
@@ -578,7 +580,7 @@ class _AwggMatrix:
         return _latex_symbol_cplxmode(self.latex_name, cplx_mode)
 
     @add_fig_kwargs
-    def plot_freq(self, gvec1, gvec2=None, waxis="real", cplx_mode="re-im", ax=None, fontsize=12, **kwargs):
+    def plot_freq(self, gvec1, gvec2=None, waxis="real", cplx_mode="re-im", ax=None, fontsize=8, **kwargs) -> Figure:
         r"""
         Plot the frequency dependence of :math:`W_{G1, G2}(\omega)`
 
@@ -631,7 +633,7 @@ class _AwggMatrix:
         return fig
 
     @add_fig_kwargs
-    def plot_gg(self, cplx_mode="abs", wpos=None, **kwargs):
+    def plot_gg(self, cplx_mode="abs", wpos=None, **kwargs) -> Figure:
         r"""
         Use matplotlib imshow to plot :math:`W_{GG'}` matrix
 

@@ -21,6 +21,7 @@ from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEn
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands, ElectronBands
 
@@ -55,7 +56,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = r = GsrReader(filepath)
+        self.reader = self.r = r = GsrReader(filepath)
 
         # Initialize the electron bands from file
         self._ebands = r.read_ebands()
@@ -103,20 +104,20 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """True if the GSR has been produced by a SCF run."""
         # NOTE: We use kptopt to understand if we have a SCF/NSCF run
         # In principle one should use iscf but it's not available in the GSR.
-        if "kptopt" in self.reader.rootgrp.variables:
-            return int(self.reader.read_value("kptopt")) >= 0
+        if "kptopt" in self.r.rootgrp.variables:
+            return int(self.r.read_value("kptopt")) >= 0
         else:
             return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
 
     @lazy_property
     def ecut(self):
         """Cutoff energy in Hartree (Abinit input variable)"""
-        return units.Energy(self.reader.read_value("ecut"), "Ha")
+        return units.Energy(self.r.read_value("ecut"), "Ha")
 
     @lazy_property
     def pawecutdg(self):
         """Cutoff energy in Hartree for the PAW double grid (Abinit input variable)"""
-        return units.Energy(self.reader.read_value("pawecutdg"), "Ha")
+        return units.Energy(self.r.read_value("pawecutdg"), "Ha")
 
     @property
     def structure(self) -> Structure:
@@ -126,7 +127,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     @lazy_property
     def energy(self):
         """Total energy in eV."""
-        return units.Energy(self.reader.read_value("etotal"), "Ha").to("eV")
+        return units.Energy(self.r.read_value("etotal"), "Ha").to("eV")
 
     @lazy_property
     def energy_per_atom(self):
@@ -139,7 +140,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Cartesian forces in eV / Ang. None if forces are not available.
         """
         if self.is_scf_run:
-            return self.reader.read_cart_forces()
+            return self.r.read_cart_forces()
         return None
 
     @lazy_property
@@ -184,7 +185,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Stress tensor in GPa. Return None if not available e.g. if NSCF run.
         """
         if self.is_scf_run:
-            return self.reader.read_cart_stress_tensor()
+            return self.r.read_cart_stress_tensor()
         return None
 
     @lazy_property
@@ -202,7 +203,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         Maximum of the residuals
         """
-        return self.reader.read_value("residm")
+        return self.r.read_value("residm")
 
     @lazy_property
     def xc(self):
@@ -210,12 +211,12 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         :class:`XcFunc` object with info on the exchange-correlation functional.
         Use libxc convention :cite:`Marques2012`.
         """
-        return self.reader.read_abinit_xcfunc()
+        return self.r.read_abinit_xcfunc()
 
     @lazy_property
     def energy_terms(self):
         """:class:`EnergyTerms` with the different contributions to the total energy in eV."""
-        return self.reader.read_energy_terms(unit="eV")
+        return self.r.read_energy_terms(unit="eV")
 
     @lazy_property
     def params(self) -> dict:
@@ -227,7 +228,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return od
 
     def close(self) -> None:
-        self.reader.close()
+        self.r.close()
 
     # FIXME: This is deprecated. Must keep it to avoid breaking ScfTask.get_results
     def as_dict(self) -> dict:
@@ -583,7 +584,7 @@ class GsrRobot(Robot, RobotWithEbands):
         return df
 
     @add_fig_kwargs
-    def gridplot_eos(self, eos_names="all", fontsize=6, **kwargs):
+    def gridplot_eos(self, eos_names="all", fontsize=6, **kwargs) -> Figure:
         """
         Plot multiple EOS on a grid with captions showing the final results.
 
@@ -615,22 +616,22 @@ class GsrRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_gsr_convergence(self, sortby=None, hue=None, fontsize=6,
-                             items=("energy", "pressure", "max_force"), **kwargs):
+    def plot_gsr_convergence(self, sortby=None, hue=None, fontsize=8,
+                             items=("energy", "pressure", "max_force"), **kwargs) -> Figure:
         """
         Plot the convergence of the most important quantities available in the GSR file
-        wrt to the ``sortby`` parameter. Values can optionally be grouped by ``hue``.
+        wrt to the ``sortby`` parameter. Values can be optionally grouped by ``hue``.
 
         Args:
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
-                If callable, the output of sortby(abifile) is used.
+                If callable, the output of `sortby(abifile)` is used.
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-                If callable, the output of hue(abifile) is used.
+                If callable, the output of `hue(abifile)` is used.
             items: List of GSR attributes (or callables) to be analyzed.
             fontsize: legend and label fontsize.
 
@@ -638,9 +639,11 @@ class GsrRobot(Robot, RobotWithEbands):
 
         Example::
 
-             robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
+             gsr.plot_gsr_convergence(sortby="ecut")
+             gsr.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
         """
-        return self.plot_convergence_items(items, sortby=sortby, hue=hue, fontsize=fontsize, show=False, **kwargs)
+        return self.plot_convergence_items(items, sortby=sortby, hue=hue, 
+                                           fontsize=fontsize, show=False, **kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

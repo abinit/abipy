@@ -308,7 +308,7 @@ def abiopen(filepath: str):
     return cls.from_file(filepath)
 
 
-def abirobot(filepaths: Union[str, List[str]]):
+def abirobot(filepaths: Union[str, List[str]]) -> Robot:
     """
     Factory function to create and return a Robot subclass from a list of filenames
     The Robot subclass is detected from the extension of the first file hence
@@ -589,7 +589,7 @@ so that the abinit executable is in $PATH.
     return 0
 
 
-def abipy_logo1():
+def abipy_logo1() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""
                  `:-                                                               -:`
@@ -607,7 +607,7 @@ def abipy_logo1():
 """
 
 
-def abipy_logo2():
+def abipy_logo2() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""
 MMMMMMMMMMMMMMMMNhdMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMdhmMMMMMMMMMMMMMMM
@@ -625,7 +625,7 @@ MMMMMMMMMMMMMMMMmmNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 """
 
 
-def abipy_logo3():
+def abipy_logo3() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""\
              `-.                                                  `--`

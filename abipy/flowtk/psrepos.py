@@ -22,7 +22,7 @@ import shutil
 import hashlib
 import requests
 
-from typing import List, Optional, Tuple
+from typing import Optional
 from urllib.parse import urlsplit
 from monty.termcolor import cprint, colored
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
@@ -130,7 +130,7 @@ def get_repo_from_name(repo_name: str) -> PseudosRepo:
         raise KeyError(f"Couldn't find {repo_name} in the list of registered repos:\n{all_names}")
 
 
-def get_installed_repos_and_root(dirpath: Optional[str] = None) -> Tuple[List[PseudosRepo], str]:
+def get_installed_repos_and_root(dirpath: Optional[str] = None) -> tuple[list[PseudosRepo], str]:
     """
     Return (all_repos, dirpath)
     """
@@ -267,7 +267,7 @@ class PseudosRepo(abc.ABC):
         """The name of repository built from the metadata. Must be unique"""
 
     @abc.abstractmethod
-    def get_citations(self) -> List[Citation]:
+    def get_citations(self) -> list[Citation]:
         """Return list of citations for this repository."""
 
     @abc.abstractmethod
@@ -308,7 +308,7 @@ class OncvpspRepo(PseudosRepo):
         # ONCVPSP-PBE-FR-PDv0.4/
         return f"{self.ps_generator}-{self.xc_name}-{self.relativity_type}-{self.project_name}v{self.version}"
 
-    def get_citations(self) -> List[Citation]:
+    def get_citations(self) -> list[Citation]:
         return [
             Citation(
                 title="The PseudoDojo: Training and grading a 85 element optimized norm-conserving pseudopotential table",
@@ -419,7 +419,7 @@ class JthRepo(PseudosRepo):
 
         return PseudoTable(pseudos)
 
-    def get_citations(self) -> List[Citation]:
+    def get_citations(self) -> list[Citation]:
         return [
             Citation(
                 title="Generation of Projector Augmented-Wave atomic data: A 71 element validated table in the XML format",
@@ -427,7 +427,7 @@ class JthRepo(PseudosRepo):
         ]
 
 
-def repos_from_names(repo_names: List[str]) -> List[PseudosRepo]:
+def repos_from_names(repo_names: list[str]) -> list[PseudosRepo]:
     """
     Return list of PP Repos from a list of repo_names
     """
@@ -445,7 +445,7 @@ def repo_from_name(repo_name: str) -> PseudosRepo:
     return id2repo[repo_name]
 
 
-def tabulate_repos(repos: List[PseudosRepo], exclude: Optional[List[str]] = None,
+def tabulate_repos(repos: list[PseudosRepo], exclude: Optional[list[str]] = None,
                    with_citations: bool = False, verbose: int = 0) -> str:
 
     bool2color = {True: "green", False: "red"}

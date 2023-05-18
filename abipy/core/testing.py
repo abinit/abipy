@@ -25,7 +25,7 @@ import abipy.data as abidata
 
 from typing import Optional
 from functools import wraps
-from monty.os.path import which
+from shutil import which
 from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
 from abipy.core.structure import Structure

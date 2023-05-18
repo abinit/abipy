@@ -130,7 +130,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
             return f"{self.n}{lc}{self.ksign}"  # e.g. 2s+
 
     @lazy_property
-    def latex(self):
+    def latex(self) -> str:
         lc = l2char[self.l]
         if self.k is None:
             return f"${self.n}{lc}$"  # e.g. 2s
@@ -138,7 +138,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
             return f"${self.n}{lc}^{self.ksign}$"  # e.g. 2s^+
 
     @lazy_property
-    def latex_l(self):
+    def latex_l(self) -> str:
         lc = l2char[self.l]
         if self.k is None:
             return f"${lc}$"  # e.g. s
@@ -285,21 +285,21 @@ class AtomicConfiguration:
         """True if self is a neutral configuration."""
         return abs(self.echarge + self.Z) < 1.e-8
 
-    def add_state(self, **qnumbers):
+    def add_state(self, **qnumbers) -> None:
         """Add a list of :class:`QState` instances to self."""
         self._push(QState(**qnumbers))
 
-    def remove_state(self, **qnumbers):
+    def remove_state(self, **qnumbers) -> None:
         """Remove a quantum state from self."""
         self._pop(QState(**qnumbers))
 
-    def _push(self, state):
+    def _push(self, state) -> None:
         # TODO check that ordering in the input does not matter!
         if state in self.states:
             raise ValueError("state %s is already in self" % str(state))
         self.states.append(state)
 
-    def _pop(self, state):
+    def _pop(self, state) -> None:
         try:
             self.states.remove(state)
         except ValueError:
@@ -457,7 +457,7 @@ class RadialFunction:
 
         return r2v2_spline.integral(a, b)
 
-    def ifromr(self, rpoint):
+    def ifromr(self, rpoint) -> int:
         """
         The index of the point in the radial mesh.
         """

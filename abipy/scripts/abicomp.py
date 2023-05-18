@@ -4,11 +4,13 @@ Script to analyze/compare results stored in multiple netcdf/output files.
 By default the script displays the results/plots in the shell.
 Use --ipython to start an ipython terminal or -nb to generate an ipython notebook.
 """
+from __future__ import annotations
 
 import sys
 import os
 import argparse
 import numpy as np
+import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
 from monty.functools import prof_main
@@ -974,6 +976,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 
     # Parent parser for commands supporting expose
     expose_parser = argparse.ArgumentParser(add_help=False)
+
     expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
             help='Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.')
     expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
@@ -1191,13 +1194,7 @@ def main():
     if getattr(options, "plotly", None): options.expose = True
     if getattr(options, "classic_notebook", None): options.notebook = True
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     if options.mpl_backend is not None:
         # Set matplotlib backend

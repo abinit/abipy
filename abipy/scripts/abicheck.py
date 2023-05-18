@@ -3,12 +3,14 @@
 This script checks that the options in ``manager.yml``, ``scheduler.yml``,
 and the environment on the local machine are properly configured.
 """
+from __future__ import annotations
 
 import sys
 import os
 import argparse
 import abipy.flowtk as flowtk
 import abipy.data as abidata
+import abipy.tools.cli_parsers as cli
 
 from monty import termcolor
 from monty.termcolor import cprint
@@ -34,7 +36,7 @@ def show_managers(options):
     return 0
 
 
-def get_epilog():
+def get_epilog() -> str:
     return """\
 Usage example:
     abicheck.py                ==> Test abipy installation and requirements.
@@ -86,13 +88,7 @@ def main():
     except Exception:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     if options.no_colors:
         # Disable colors

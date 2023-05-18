@@ -5,7 +5,7 @@ import panel as pn
 import panel.widgets as pnw
 
 from .core import (PanelWithElectronBands,
-  PanelWithEbandsRobot, ButtonContext, ply, mpl, dfc, depends_on_btn_click)
+  PanelWithEbandsRobot, ply, mpl, dfc, depends_on_btn_click)
 
 
 class GsrFilePanel(PanelWithElectronBands):

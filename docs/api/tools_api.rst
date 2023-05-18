@@ -143,3 +143,11 @@ tools Package
    :members:
    :undoc-members:
    :show-inheritance:
+
+:mod:`typing` Module
+--------------------
+
+.. automodule:: abipy.tools.typing
+   :members:
+   :undoc-members:
+   :show-inheritance:

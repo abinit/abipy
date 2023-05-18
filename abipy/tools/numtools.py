@@ -1,14 +1,11 @@
 # coding: utf-8
 """Numeric tools."""
+from __future__ import annotations
+
 import numpy as np
 
 from monty.collections import dict2namedtuple
 from abipy.tools import duck
-
-#########################################################################################
-# Array tools
-#########################################################################################
-
 
 def transpose_last3dims(arr):
     """

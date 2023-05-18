@@ -1,12 +1,13 @@
 # coding: utf-8
 """Mock objects for unit tests."""
+from __future__ import annotations
 
 from .nodes import Status
 from .tasks import AbinitTask
 from .flows import Flow
 
 
-def change_task_start(task, mocked_status="Error"):
+def change_task_start(task: Task, mocked_status="Error"):
     """Return a AbinitTaskMockedStart object."""
     task.__class__ = AbinitTaskMockedStart
     task.mocked_status = Status.as_status(mocked_status)
@@ -20,7 +21,7 @@ class AbinitTaskMockedStart(AbinitTask):
         return 1
 
 
-def infinite_flow(flow):
+def infinite_flow(flow: Flow):
     """Return an InfiniteFlow."""
     flow.__class__ = InfiniteFlow
     return flow

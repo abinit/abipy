@@ -1,5 +1,7 @@
 # coding: utf-8
 """This module defines objects describing the sampling of the Brillouin Zone."""
+from __future__ import annotations
+
 import collections
 import json
 import sys
@@ -662,7 +664,7 @@ class Kpoint(SlotPickleMixin):
     def __repr__(self):
         s = "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
         if self.name is not None:
-            s += " %s" % self.name
+            s = "%s %s" % (self.name, s)
         return s
 
     def tos(self, m="fract", scale=False):
@@ -691,7 +693,7 @@ class Kpoint(SlotPickleMixin):
         else:
             raise ValueError(f"Invalid mode: {m}")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
@@ -704,8 +706,8 @@ class Kpoint(SlotPickleMixin):
             s = "[%+.9f, %+.9f, %+.9f]" % tuple(self.frac_coords)
 
         if self.name is not None:
-            s += ", name: %s" % self.name
-        if self._weight is not None: s += ", weight: %.3f" % self.weight
+            s = "%s %s" % (self.name, s)
+        if self._weight is not None and float(self._weight) > 0.0: s += ", weight: %.3f" % self.weight
 
         return s
 
@@ -898,17 +900,17 @@ class KpointList(collections.abc.Sequence):
         """|Lattice| object defining the reciprocal lattice."""
         return self._reciprocal_lattice
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.to_string(func=repr)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string(func=str)
 
-    def to_string(self, func=str, title=None, verbose=0):
+    def to_string(self, func=str, title=None, verbose=0, pre_string="") -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
-        lines.extend(["%d) %s" % (i, func(kpoint)) for i, kpoint in enumerate(self)])
+        lines.extend(["%s%d) %s" % (pre_string, i, func(kpoint)) for i, kpoint in enumerate(self)])
 
         return "\n".join(lines)
 
@@ -1301,7 +1303,7 @@ class Kpath(KpointList):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None, **kwargs):
+    def to_string(self, verbose=0, title=None, **kwargs) -> str:
         """
         String representation.
 
@@ -1522,7 +1524,7 @@ class IrredZone(KpointList):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, func=str, verbose=0, title=None):
+    def to_string(self, func=str, verbose=0, title=None) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -1685,7 +1687,7 @@ class KSamplingInfo(AttrDict):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None, **kwargs):
+    def to_string(self, verbose=0, title=None, **kwargs) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -1880,7 +1882,7 @@ class Ktables(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None, **kwargs):
+    def to_string(self, verbose=0, title=None, **kwargs) -> str:
         """String representation"""
         lines = collections.deque(); app = lines.append
         if title is not None: app(marquee(title, mark="="))

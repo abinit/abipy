@@ -163,6 +163,28 @@ class TestAbinitInput(AbipyTest):
         assert other_inp["ph_nqpath"] == 2
         assert other_inp["nkptgw"] == 3
 
+        # Test news_varname_values with single variable.
+        varname_values = ("nband", [1, 4])
+        inp_list = new_inp.news_varname_values(varname_values)
+        assert len(inp_list) == len(varname_values[1])
+        for inp, nband in zip(inp_list, varname_values[1]):
+            assert inp["nband"] == nband
+
+        # Test news_varname_values with Cartesian product.
+        varname_values = [
+            ("nband", [8, 12]), 
+            ("ecut", [4, 8]),
+        ]
+
+        inp_list = new_inp.news_varname_values(varname_values)
+        assert len(inp_list) == 4
+        i = -1
+        for nband in varname_values[0][1]:
+            for ecut in varname_values[1][1]:
+                i += 1
+                assert inp_list[i]["nband"] == nband
+                assert inp_list[i]["ecut"] == ecut
+
         new_inp["outdata_prefix"] = "some/path"
         assert "some/path" in new_inp.to_string()
         assert len(new_inp.pseudos_abivars) == 1

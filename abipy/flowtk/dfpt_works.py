@@ -1,7 +1,13 @@
 # coding: utf-8
 """Work subclasses related to DFTP."""
+from __future__ import annotations
 
+from abipy.tools.typing import TYPE_CHECKING
+from .tasks import ScfTask
 from .works import Work, MergeDdb
+
+if TYPE_CHECKING:  # needed to avoid circular imports
+    from abipy.abio.inputs import AbinitInput
 
 
 class ElasticWork(Work, MergeDdb):
@@ -26,8 +32,9 @@ class ElasticWork(Work, MergeDdb):
     The Phonon tasks and the elastic task will read the DDK produced at the beginning
     """
     @classmethod
-    def from_scf_input(cls, scf_input, with_relaxed_ion=True, with_piezo=False, with_dde=False,
-                       tolerances=None, den_deps=None, manager=None):
+    def from_scf_input(cls, scf_input: AbinitInput,
+                       with_relaxed_ion=True, with_piezo=False, with_dde=False,
+                       tolerances=None, den_deps=None, manager=None) -> ElasticWork:
         """
         Args:
             scf_input:
@@ -122,7 +129,8 @@ class NscfDdksWork(Work):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task, ddk_ngkpt, ddk_shiftk, ddk_nband, manager=None):
+    def from_scf_task(cls, scf_task : ScfTask,
+                      ddk_ngkpt, ddk_shiftk, ddk_nband, manager=None) -> NscfDdksWork:
         """
         Build NscfDdksWork from a scf_task.
 

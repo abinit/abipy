@@ -20842,6 +20842,25 @@ Typical value range is 0.00001-0.001.
 ),
 
 Variable(
+    abivarname="vloc_rcut",
+    varset="dev",
+    vartype="real",
+    topics=['Planewaves_expert'],
+    dimensions="scalar",
+    defaultval=6.0,
+    mnemonics="V LOCal Radial CUToff",
+    added_in_version="9.8.0",
+    text=r"""
+This variable defines the cutoff for the radial mesh used to compute `epsatm`
+(the alpha term in the total energy due to the pseudos) and the Bessel transform for the local part
+in the case of NC pseudos in UPF2 format.
+
+This is used to cut off the numerical noise arising from the large-r tail when integrating V_loc-Z/r.
+""",
+),
+
+
+Variable(
     abivarname="vprtrb",
     varset="ffield",
     vartype="real",

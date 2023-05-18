@@ -44,7 +44,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         with open(filepath, "rb") as fh:
             return pickle.load(fh)
 
-    def pickle_dump(self, filepath: str):
+    def pickle_dump(self, filepath: str) -> None:
         """Save the status of the object in pickle format."""
         with open(filepath, "wb") as fh:
             pickle.dump(self, fh)
@@ -108,7 +108,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     #    return self.fermie
 
     @property
-    def val_ib(self):
+    def val_ib(self) -> int:
         """The index of the valence band."""
         if self.occtype != "insulator":
             print("Trying to access valence band index with occtype:", self.occtype)
@@ -914,7 +914,7 @@ class SkwInterpolator(ElectronInterpolator):
 
         return "\n".join(lines)
 
-    def eval_sk(self, spin, kpt, der1=None, der2=None):
+    def eval_sk(self, spin, kpt, der1=None, der2=None) -> np.ndarray:
         """
         Interpolate eigenvalues for all bands at a given (spin, k-point).
         Optionally compute gradients and Hessian matrices.
@@ -995,7 +995,7 @@ class SkwInterpolator(ElectronInterpolator):
 
     #    return oeig, der1, der2
 
-    def get_stark(self, kpt):
+    def get_stark(self, kpt) -> np.ndarray:
         """
         Return the star function for k-point `kpt`.
 
@@ -1015,7 +1015,7 @@ class SkwInterpolator(ElectronInterpolator):
 
         return skr
 
-    def get_stark_dk1(self, kpt):
+    def get_stark_dk1(self, kpt) -> np.ndarray:
         """
         Compute the 1st-order derivative of the star function wrt k
 
@@ -1041,7 +1041,7 @@ class SkwInterpolator(ElectronInterpolator):
         srk_dk1 *= 1.j / self.ptg_nsym
         return srk_dk1
 
-    def get_stark_dk2(self, kpt):
+    def get_stark_dk2(self, kpt) -> np.ndarray:
         """
         Compute the 2nd-order derivatives of the star function wrt k.
 
@@ -1091,7 +1091,7 @@ class SkwInterpolator(ElectronInterpolator):
 
     #    return results
 
-    def _find_rstar_gen(self, nrwant, rmax):
+    def _find_rstar_gen(self, nrwant, rmax) -> tuple:
         """
         Find all lattice points generating the stars inside the supercell defined by `rmax`
 
@@ -1198,7 +1198,7 @@ class SkwInterpolator(ElectronInterpolator):
         return rpts, r2vals, ok
 
 
-def extract_point_group(symrel, has_timrev):
+def extract_point_group(symrel, has_timrev) -> tuple:
     """
     Extract the point group rotations from the spacegroup. Add time-reversal
     if spatial inversion is not present and `has_timrev`.

@@ -101,7 +101,7 @@ def _stopping_criterion(runlevel: str, accuracy: str) -> dict:
 
 
 def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy):
-    """Return a |AttrDict| with the value of ``ecut`` and ``pawecutdg``."""
+    """Return an |AttrDict| with the value of ``ecut`` and ``pawecutdg``."""
     # Get ecut and pawecutdg from the pseudo hints.
     has_hints = False
     if ecut is None or (pawecutdg is None and any(p.ispaw for p in pseudos)):
@@ -267,7 +267,7 @@ def ebands_input(structure: Structure, pseudos,
         spin_mode: Spin polarization.
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
-        scf_algorithm: Algorithm used for solving of the SCF cycle.
+        scf_algorithm: Algorithm used for solving the SCF cycle.
         dos_kppa: Scalar or List of integers with the number of k-points per atom
             to be used for the computation of the DOS (None if DOS is not wanted).
     """

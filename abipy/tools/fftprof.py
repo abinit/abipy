@@ -7,7 +7,7 @@ import tempfile
 import numpy as np
 
 from subprocess import Popen, PIPE
-from monty.os.path import which
+from shutil import which
 from monty.fnmatch import WildCard
 from abipy.tools.plotting import add_fig_kwargs
 

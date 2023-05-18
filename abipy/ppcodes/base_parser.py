@@ -7,7 +7,7 @@ from __future__ import annotations
 import abc
 import os
 
-from typing import List
+#from typing import List
 
 
 class ParserError(Exception):
@@ -35,21 +35,21 @@ class BaseParser(metaclass=abc.ABCMeta):
         self._warnings = []
 
     @property
-    def errors(self) -> List[str]:
+    def errors(self) -> list[str]:
         """
         List of strings with possible errors reported by the generator at run-time.
         """
         return self._errors
 
     @property
-    def warnings(self) -> List[str]:
+    def warnings(self) -> list[str]:
         """
         List of strings with possible errors reported by the generator at run-time.
         """
         return self._warnings
 
     @abc.abstractmethod
-    def get_results(self):
+    def get_results(self) -> dict:
         """
         Return the most important results in a dictionary.
         """

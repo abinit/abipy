@@ -12,7 +12,7 @@ import collections
 import numpy as np
 import pandas as pd
 
-#from typying import List, Any
+from typing import Iterator, Union # Any
 from monty.collections import AttrDict
 from monty.itertools import chunks
 from monty.functools import lazy_property
@@ -20,16 +20,21 @@ from monty.fnmatch import WildCard
 from monty.dev import deprecated
 from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
+from abipy.tools.typing import TYPE_CHECKING, Figure
 from abipy.flowtk import wrappers
-from abipy.flowtk.nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status #, check_spectator
-from abipy.flowtk.tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
+from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status #, check_spectator
+from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
                     DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask,
-                    EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, TaskManager,
+                    EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
+from .utils import Directory
+from .netcdf import ETSF_Reader, NetcdfReader
+from .abitimer import AbinitTimerParser
 
-from abipy.flowtk.utils import Directory
-from abipy.flowtk.netcdf import ETSF_Reader, NetcdfReader
-from abipy.flowtk.abitimer import AbinitTimerParser
+if TYPE_CHECKING:  # needed to avoid circular imports
+    from .flows import Flow
+    from abipy.abio.inputs import AbinitInput
+
 
 __author__ = "Matteo Giantomassi"
 __copyright__ = "Copyright 2013, The Materials Project"
@@ -59,7 +64,7 @@ class WorkResults(NodeResults):
     JSON_SCHEMA = NodeResults.JSON_SCHEMA.copy()
 
     @classmethod
-    def from_node(cls, work):
+    def from_node(cls, work: Work) -> WorkResults:
         """Initialize an instance from a |Work| instance."""
         new = super().from_node(work)
 
@@ -87,22 +92,22 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
     # interface modeled after subprocess.Popen
     @property
     @abc.abstractmethod
-    def processes(self):
+    def processes(self) -> list:
         """Return a list of objects that support the `subprocess.Popen` protocol."""
 
-    def poll(self):
+    def poll(self) -> list:
         """
         Check if all child processes have terminated. Set and return returncode attribute.
         """
         return [task.poll() for task in self]
 
-    def wait(self):
+    def wait(self) -> list:
         """
         Wait for child processed to terminate. Set and return returncode attribute.
         """
         return [task.wait() for task in self]
 
-    def communicate(self, input=None):
+    def communicate(self, input=None) -> list[tuple]:
         """
         Interact with processes: Send data to stdin. Read data from stdout and
         stderr, until end-of-file is reached.
@@ -115,7 +120,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         return [task.communicate(input) for task in self]
 
     @property
-    def returncodes(self):
+    def returncodes(self) -> list[int]:
         """
         The children return codes, set by poll() and wait() (and indirectly by communicate()).
         A None value indicates that the process hasn't terminated yet.
@@ -149,7 +154,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         """
         return sum(task.manager.num_cores for task in self if task.status == task.S_RUN)
 
-    def fetch_task_to_run(self):
+    def fetch_task_to_run(self) -> Union[Task, None]:
         """
         Returns the first task that is ready to run or
         None if no task can be submitted at present"
@@ -171,7 +176,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         self.history.warning("Possible deadlock in fetch_task_to_run!")
         return None
 
-    def fetch_alltasks_to_run(self):
+    def fetch_alltasks_to_run(self) -> list[Task]:
         """
         Returns a list with all the tasks that can be submitted.
         Empty list if not task has been found.
@@ -182,7 +187,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
     def setup(self, *args, **kwargs):
         """Method called before submitting the calculations."""
 
-    def _setup(self, *args, **kwargs):
+    def _setup(self, *args, **kwargs) -> None:
         self.setup(*args, **kwargs)
 
     def connect_signals(self) -> None:
@@ -257,8 +262,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         Method called once the calculations are completed.
         The base version returns a dictionary task_name: TaskResults for each task in self.
         """
-        results = self.Results.from_node(self)
-        return results
+        return self.Results.from_node(self)
 
     def get_graphviz(self, engine="automatic", graph_attr=None, node_attr=None, edge_attr=None):
         """
@@ -361,7 +365,8 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
 
 class NodeContainer(metaclass=abc.ABCMeta):
     """
-    Mixin classes for `Work` and `Flow` objects providing helper functions to register tasks in the container.
+    Mixin classes for `Work` and `Flow` objects providing helper functions 
+    to register tasks in the container.
     The helper function call the `register` method of the container.
     """
     # Abstract protocol for containers
@@ -458,6 +463,15 @@ class NodeContainer(metaclass=abc.ABCMeta):
         kwargs["task_class"] = SigmaTask
         return self.register_task(*args, **kwargs)
 
+    def register_gwr_task(self, *args, **kwargs) -> GwrTask:
+        """Register a sigma task."""
+        kwargs["task_class"] = GwrTask                               
+        task = self.register_task(*args, **kwargs)                     
+        gwr_task = task.input["gwr_task"]
+        #if gwr_task = ""
+
+        return task
+
     def register_dde_task(self, *args, **kwargs) -> DdeTask:
         """Register a Dde task."""
         kwargs["task_class"] = DdeTask
@@ -529,7 +543,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
         task.history.info("Enforcing sequential execution as Kerange is not MPI parallelized although it's fast.")
         return task
 
-    def walknset_vars(self, task_class=None, *args, **kwargs):
+    def walknset_vars(self, task_class=None, *args, **kwargs) -> None:
         """
         Set the values of the ABINIT variables in the input files of the nodes
 
@@ -574,7 +588,6 @@ class Work(BaseWork, NodeContainer):
             manager: |TaskManager| object.
         """
         super().__init__()
-
         self._tasks = []
 
         if workdir is not None:
@@ -583,18 +596,18 @@ class Work(BaseWork, NodeContainer):
         if manager is not None:
             self.set_manager(manager)
 
-    def set_manager(self, manager: TaskManager):
+    def set_manager(self, manager: TaskManager) -> None:
         """Set the |TaskManager| to be used to launch the |Task|."""
         self.manager = manager.deepcopy()
         for task in self:
             task.set_manager(manager)
 
     @property
-    def flow(self):
+    def flow(self) -> Flow:
         """The flow containing this |Work|."""
         return self._flow
 
-    def set_flow(self, flow) -> None:
+    def set_flow(self, flow: Flow) -> None:
         """Set the flow associated to this |Work|."""
         if not hasattr(self, "_flow"):
             self._flow = flow
@@ -603,7 +616,7 @@ class Work(BaseWork, NodeContainer):
                 raise ValueError("self._flow != flow")
 
     @lazy_property
-    def pos(self):
+    def pos(self) -> int:
         """The position of work in the |Flow|"""
         for i, work in enumerate(self.flow):
             if self == work:
@@ -638,13 +651,13 @@ class Work(BaseWork, NodeContainer):
             new_tdir = os.path.join(self.workdir, "t" + str(i))
             task.set_workdir(new_tdir, chroot=True)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._tasks)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Task]:
         return self._tasks.__iter__()
 
-    def __getitem__(self, slice):
+    def __getitem__(self, slice) -> Union[Task, list[Task]]:
         return self._tasks[slice]
 
     def postpone_on_all_ok(self):
@@ -660,19 +673,19 @@ class Work(BaseWork, NodeContainer):
 
         return super().on_all_ok()
 
-    def chunks(self, chunk_size):
+    def chunks(self, chunk_size) -> list[Task]:
         """Yield successive chunks of tasks of lenght chunk_size."""
         for tasks in chunks(self, chunk_size):
             yield tasks
 
-    def ipath_from_ext(self, ext):
+    def ipath_from_ext(self, ext: str) -> str:
         """
         Returns the path of the output file with extension ext.
         Use it when the file does not exist yet.
         """
         return self.indir.path_in("in_" + ext)
 
-    def opath_from_ext(self, ext):
+    def opath_from_ext(self, ext: str) -> str:
         """
         Returns the path of the output file with extension ext.
         Use it when the file does not exist yet.
@@ -680,7 +693,7 @@ class Work(BaseWork, NodeContainer):
         return self.outdir.path_in("out_" + ext)
 
     @property
-    def processes(self):
+    def processes(self) -> list:
         return [task.process for task in self]
 
     @property
@@ -699,7 +712,7 @@ class Work(BaseWork, NodeContainer):
         return all(task.ispaw for task in self)
 
     @property
-    def status_counter(self):
+    def status_counter(self) -> collections.Counter:
         """
         Returns a `Counter` object that counts the number of task with
         given status (use the string representation of the status as key).
@@ -742,7 +755,8 @@ class Work(BaseWork, NodeContainer):
                 if task.workdir != task_workdir:
                     raise ValueError("task.workdir != task_workdir: %s, %s" % (task.workdir, task_workdir))
 
-    def register(self, obj, deps=None, required_files=None, manager=None, task_class=None):
+    def register(self, obj: Union[AbinitInput, Task], 
+                 deps=None, required_files=None, manager=None, task_class=None) -> Task:
         """
         Registers a new |Task| and add it to the internal list, taking into account possible dependencies.
 
@@ -792,17 +806,17 @@ class Work(BaseWork, NodeContainer):
     # Needed by NodeContainer
     register_task = register
 
-    def path_in_workdir(self, filename):
+    def path_in_workdir(self, filename: str) -> str:
         """Create the absolute path of filename in the working directory."""
         return os.path.join(self.workdir, filename)
 
-    def setup(self, *args, **kwargs):
+    def setup(self, *args, **kwargs) -> None:
         """
         Method called before running the calculations.
         The default implementation is empty.
         """
 
-    def build(self, *args, **kwargs):
+    def build(self, *args, **kwargs) -> None:
         """Creates the top level directory."""
         # Create the directories of the work.
         self.indir.makedirs()
@@ -856,7 +870,7 @@ class Work(BaseWork, NodeContainer):
         else:
             return status_list
 
-    def check_status(self):
+    def check_status(self) -> None:
         """Check the status of the tasks."""
         # Recompute the status of the tasks
         # Ignore OK and LOCKED tasks.
@@ -943,7 +957,7 @@ class Work(BaseWork, NodeContainer):
 
         shutil.move(self.workdir, dest)
 
-    def submit_tasks(self, wait=False):
+    def submit_tasks(self, wait=False) -> None:
         """
         Submits the task in self and wait.
         TODO: change name.
@@ -954,7 +968,7 @@ class Work(BaseWork, NodeContainer):
         if wait:
             for task in self: task.wait()
 
-    def start(self, *args, **kwargs):
+    def start(self, *args, **kwargs) -> None:
         """
         Start the work. Calls build and _setup first, then submit the tasks.
         Non-blocking call unless wait is set to True
@@ -970,7 +984,7 @@ class Work(BaseWork, NodeContainer):
         # Submit tasks (does not block)
         self.submit_tasks(wait=wait)
 
-    def read_etotals(self, unit="Ha"):
+    def read_etotals(self, unit="Ha") -> EnergyArray:
         """
         Reads the total energy from the GSR file produced by the task.
 
@@ -993,7 +1007,7 @@ class Work(BaseWork, NodeContainer):
 
         return EnergyArray(etotals, "Ha").to(unit)
 
-    def parse_timers(self):
+    def parse_timers(self) -> AbinitTimerParser:
         """
         Parse the TIMER section reported in the ABINIT output files.
 
@@ -1020,7 +1034,9 @@ class BandStructureWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, dos_ngkpt, nb_extra=10, ndivsm=-20, dos_shiftk=(0, 0, 0), prtdos=3):
+    def from_scf_input(cls, scf_input: AbinitInput, 
+                       dos_ngkpt, nb_extra=10, ndivsm=-20, 
+                       dos_shiftk=(0, 0, 0), prtdos=3) -> BandStructureWork:
         """
         Build a BandStructureWork from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -1052,7 +1068,8 @@ class BandStructureWork(Work):
         return cls(scf_input, nscf_input, [dos_input])
 
 
-    def __init__(self, scf_input, nscf_input, dos_inputs=None, workdir=None, manager=None):
+    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput, 
+                 dos_inputs=None, workdir=None, manager=None):
         """
         Args:
             scf_input: Input for the SCF run
@@ -1079,7 +1096,7 @@ class BandStructureWork(Work):
                 dos_task = self.register_nscf_task(dos_input, deps={self.scf_task: "DEN"})
                 self.dos_tasks.append(dos_task)
 
-    def plot_ebands(self, **kwargs):
+    def plot_ebands(self, **kwargs) -> Figure:
         """
         Plot the band structure. kwargs are passed to the plot method of |ElectronBands|.
 
@@ -1088,7 +1105,8 @@ class BandStructureWork(Work):
         with self.nscf_task.open_gsr() as gsr:
             return gsr.ebands.plot(**kwargs)
 
-    def plot_ebands_with_edos(self, dos_pos=0, method="gaussian", step=0.01, width=0.1, **kwargs):
+    def plot_ebands_with_edos(self, dos_pos=0, method="gaussian", 
+                              step=0.01, width=0.1, **kwargs) -> Figure:
         """
         Plot the band structure and the DOS.
 
@@ -1110,7 +1128,7 @@ class BandStructureWork(Work):
         edos = dos_ebands.get_edos(method=method, step=step, width=width)
         return gs_ebands.plot_with_edos(edos, **kwargs)
 
-    def plot_edoses(self, dos_pos=None, method="gaussian", step=0.01, width=0.1, **kwargs):
+    def plot_edoses(self, dos_pos=None, method="gaussian", step=0.01, width=0.1, **kwargs) -> Figure:
         """
         Plot the band structure and the DOS.
 
@@ -1148,7 +1166,8 @@ class RelaxWork(Work):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: RelaxWork
     """
-    def __init__(self, ion_input, ioncell_input, workdir=None, manager=None, target_dilatmx=None):
+    def __init__(self, ion_input: AbinitInput, ioncell_input: AbinitInput, 
+                 workdir=None, manager=None, target_dilatmx=None):
         """
         Args:
             ion_input: Input for the relaxation of the ions (cell is fixed)
@@ -1209,7 +1228,7 @@ class RelaxWork(Work):
 
         return super().on_ok(sender)
 
-    def plot_ion_relaxation(self, **kwargs):
+    def plot_ion_relaxation(self, **kwargs) -> Figure:
         """
         Plot the history of the ion-cell relaxation.
         kwargs are passed to the plot method of |HistFile|
@@ -1219,7 +1238,7 @@ class RelaxWork(Work):
         with self.ion_task.open_hist() as hist:
             return hist.plot(**kwargs) if hist else None
 
-    def plot_ioncell_relaxation(self, **kwargs):
+    def plot_ioncell_relaxation(self, **kwargs) -> Figure:
         """
         Plot the history of the ion-cell relaxation.
         kwargs are passed to the plot method of |HistFile|
@@ -1334,7 +1353,8 @@ class BseMdfWork(Work):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: BseMdfWork
     """
-    def __init__(self, scf_input, nscf_input, bse_inputs, workdir=None, manager=None):
+    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput, 
+                 bse_inputs, workdir=None, manager=None):
         """
         Args:
             scf_input: Input for the SCF run.
@@ -1380,7 +1400,7 @@ class QptdmWork(Work):
     """
 
     @deprecated(message="QptdmWork is deprecated and will be removed in abipy 1.0, use flowtk.ScreeningWork")
-    def create_tasks(self, wfk_file, scr_input):
+    def create_tasks(self, wfk_file: str, scr_input: AbinitInput):
         """
         Create the SCR tasks and register them in self.
 
@@ -1460,7 +1480,7 @@ class QptdmWork(Work):
 # TODO: MergeDdb --> DfptWork(Work) postpone it because it may break pickle.
 
 
-class MergeDdb(object):
+class MergeDdb:
     """
     Mixin class for Works that need to merge the DDB files produced by the tasks in self.
     """
@@ -1648,7 +1668,8 @@ class PhononWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task, qpoints, is_ngqpt=False, with_becs=False,
+    def from_scf_task(cls, scf_task: ScfTask, 
+                      qpoints, is_ngqpt=False, with_becs=False,
                       with_quad=False, with_flexoe=False, with_dvdb=True,
                       tolerance=None, ddk_tolerance=None, ndivsm=0,
                       prtwf=-1, manager=None) -> PhononWork:
@@ -1720,7 +1741,7 @@ class PhononWork(Work, MergeDdb):
         return new
 
     @classmethod
-    def from_scf_input(cls, scf_input, qpoints, is_ngqpt=False, with_becs=False,
+    def from_scf_input(cls, scf_input: AbinitInput, qpoints, is_ngqpt=False, with_becs=False,
                        with_quad=False, with_flexoe=False,
                        with_dvdb=True, tolerance=None,
                        ddk_tolerance=None, ndivsm=0, prtwf=-1, manager=None) -> PhononWork:
@@ -1799,7 +1820,8 @@ class PhononWfkqWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task, ngqpt, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
+    def from_scf_task(cls, scf_task: ScfTask, 
+                      ngqpt, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
                       with_becs=False, with_quad=False, ddk_tolerance=None, shiftq=(0, 0, 0),
                       is_ngqpt=True, remove_wfkq=True,
                       prepgkk=0, manager=None) -> PhononWfkqWork:
@@ -1935,7 +1957,7 @@ class PhononWfkqWork(Work, MergeDdb):
 class GKKPWork(Work):
     """
     This work computes electron-phonon matrix elements for all the q-points
-    present in a DVDB and DDB file
+    present in a DVDB and a DDB file
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GKKPWork
@@ -1944,7 +1966,7 @@ class GKKPWork(Work):
     def from_den_ddb_dvdb(cls, inp, den_path, ddb_path, dvdb_path, mpiprocs=1, remove_wfkq=True,
                           qpath=None, with_ddk=True, expand=True, manager=None):
         """
-        Construct a `PhononWfkqWork` from a DDB and DVDB file.
+        Construct a `GKKPWork` from a DDB and DVDB file.
         For each q found, a WFQ task and an EPH task computing the matrix elements are created.
         """
         import abipy.abilab as abilab
@@ -2126,7 +2148,8 @@ class BecWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task, ddk_tolerance=None, ph_tolerance=None, manager=None):
+    def from_scf_task(cls, scf_task: ScfTask, 
+                      ddk_tolerance=None, ph_tolerance=None, manager=None):
         """
         Build tasks for the computation of Born effective charges from a ground-state task.
 
@@ -2163,7 +2186,8 @@ class DteWork(Work, MergeDdb):
     .. inheritance-diagram:: DteWork
     """
     @classmethod
-    def from_scf_task(cls, scf_task, ddk_tolerance=None, manager=None) -> DteWork:
+    def from_scf_task(cls, scf_task: ScfTask, 
+                      ddk_tolerance=None, manager=None) -> DteWork:
         """
         Build a DteWork from a ground-state task.
 

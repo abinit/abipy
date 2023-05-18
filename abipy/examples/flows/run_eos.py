@@ -40,7 +40,7 @@ def build_flow(options):
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     # Si is cubic and atomic positions are fixed by symmetry so we
-    # use move_atoms=False to compute E(V) with SCF-GS tasks instead of
+    # use move_atoms=False to compute E(V) with GS-SCF tasks instead of
     # performing a constant-volume optimization of the cell geometry.
     work = EosWork.from_scf_input(scf_input, move_atoms=False, ecutsm=0.5)
     flow.register_work(work)

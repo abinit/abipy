@@ -1,6 +1,6 @@
 monty
 tabulate
-apscheduler
+apscheduler<=3.9.1
 pydispatcher>=2.0.5
 tqdm
 pyyaml>=3.11

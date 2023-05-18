@@ -1,29 +1,20 @@
 #!/usr/bin/env python
 """
-Script to download and install pseudopotential tables from the web
+Script to download and install pseudopotential tables from the web.
 """
 from __future__ import annotations
 
 import sys
 #import os
 import argparse
+import abipy.tools.cli_parsers as cli
 
 from abipy.core.release import __version__
 from abipy.flowtk.psrepos import (tabulate_repos, repos_from_names,
                                   get_all_registered_repos, get_installed_repos_and_root)
 
 
-def user_wants_to_abort():
-    """Interactive problem, return False if user entered `n` or `no`."""
-    try:
-        answer = input("\nDo you want to continue [Y/n]")
-    except EOFError:
-        return False
-
-    return answer.lower().strip() in ["n", "no"]
-
-
-def abips_list(options):
+def abips_list(options) -> list:
     """
     List all installed pseudopotential repos.
     """
@@ -35,14 +26,6 @@ def abips_list(options):
 
     print(f"The following pseudopotential repositories are installed in {repos_root}:\n")
     print(tabulate_repos(repos, exclude=["installed"], verbose=options.verbose))
-
-    #if options.verbose:
-    #    for repo in repos:
-    #        if repo.ispaw: continue
-    #        pseudos = repo.get_pseudos(table_name="standard")
-    #        print(pseudos)
-    #else:
-    #    print("\nUse -v to print the pseudos")
 
     if not options.checksums:
         print("\nUse -c to validate the md5 checksum")
@@ -63,7 +46,7 @@ def abips_list(options):
     return len(exc_list)
 
 
-def abips_avail(options):
+def abips_avail(options) -> None:
     """
     Show available repos.
     """
@@ -74,19 +57,19 @@ def abips_avail(options):
 
 #def abips_nc_install(options):
 #    """
-#    Get NC repo. Can choose among three formats: psp8, upf2 and psml.
-#    By default we fetch all formats.
+#    Get all NC repos for a given version,
+#    Can choose among three formats: psp8, upf2 and psml. By default we fetch all formats.
 #    """
 #    repos_root = get_repos_root(options)
 #    all_repos = get_all_registered_repos()
-#    repos = [repo for repo in ALL_REPOS if repo.isnc and not repo.is_installed(repos_root)]
+#    repos = [repo for repo in all_repos if repo.isnc and not repo.is_installed(repos_root)]
 #    if not repos:
 #        print(f"All registered NC repositories are already installed in {repos_root}. Returning")
 #        return 0
 #
 #    print("The following NC repositories will be installed:\n")
 #    pprint_repos(repos, repos_root=repos_root)
-#    if not options.yes and user_wants_to_abort():
+#    if not options.yes and cli.user_wants_to_abort():
 #        return 2
 #
 #    print("Fetching NC repositories. It may take some time ...")
@@ -99,7 +82,7 @@ def abips_avail(options):
 #
 #def abips_paw_install(options):
 #    """
-#    Get PAW repositories in PAWXML format.
+#    Get all JTH PAW repositories in PAWXML format for the given version.
 #    """
 #    repos_root = get_repos_root(options)
 #    all_repos = get_all_registered_repos()
@@ -110,7 +93,7 @@ def abips_avail(options):
 #
 #    print("The following PAW repositories will be installed:")
 #    pprint_repos(repos, repos_root=repos_root)
-#    if not options.yes and user_wants_to_abort():
+#    if not options.yes and cli.user_wants_to_abort():
 #        return 2
 #
 #    print("Fetching PAW repositories. It may take some time ...")
@@ -121,7 +104,7 @@ def abips_avail(options):
 #    return 0
 
 
-def abips_install(options):
+def abips_install(options) -> int:
     """
     Install pseudopotential repositories by name(s).
     Use the `avail` command to get the repo name.
@@ -135,18 +118,20 @@ def abips_install(options):
 
     print("The following pseudopotential repositories will be installed:")
     print(tabulate_repos(repos, verbose=options.verbose))
-    #if not options.yes and user_wants_to_abort(): return 2
+    #if not options.yes and cli.user_wants_to_abort(): return 2
 
     for repo in repos:
         repo.install(verbose=options.verbose)
 
-    if options.verbose: abips_list(options)
+    if options.verbose:
+        abips_list(options)
+
     return 0
 
 
-def abips_show(options):
+def abips_show(options) -> int:
     """
-    Show pseudopotential tables
+    Show pseudopotential tables.
     """
     repos = repos_from_names(options.repo_names)
     repos = [repo for repo in repos if repo.is_installed()]
@@ -160,11 +145,11 @@ def abips_show(options):
         table_names = ["standard", "stringent"]
         for table_name in table_names:
             pseudos = repo.get_pseudos(table_name=table_name)
-            #for pseudo in pseudos:
-            #    print(pseudo.filepath)
-            #    print(pseudo.as_dict()["filepath"])
-            print(f"For accuracy: {table_name}:")
-            #print(pseudos.summarize())
+            print(f"For accuracy: {table_name}:\n")
+            if options.symbol is not None:
+                print("Selecting pseudos with symbol:", options.symbol)
+                pseudos = pseudos.pseudo_with_symbol(options.symbol, allow_multi=True)
+                #print(pseudos.__class__)
             print(pseudos)
 
     return 0
@@ -172,18 +157,43 @@ def abips_show(options):
 
 def abips_mkff(options):
     """
-    Call Abinit to compute PSPS.nc file and show results
+    Call Abinit to compute PSPS.nc files from a list of pseudos and show results.
     """
-    from abipy.electrons.psps import PspsFile
-    with PspsFile.from_abinit_run(options.pseudo_path) as abifile:
-        print(abifile)
-        abifile.expose(use_web=True,
-                       #slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       #use_web=options.expose_web, verbose=options.verbose
-                       )
+    from abipy.electrons.psps import PspsFile, PspsRobot
+    ecut = options.ecut
+
+    if len(options.pseudo_paths) == 1:
+        if options.vloc_rcut_list is None:
+            with PspsFile.from_abinit_run(options.pseudo_paths[0], ecut) as abifile:
+                if options.verbose: print(abifile)
+                abifile.expose(use_web=options.expose_web,
+                               slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                               verbose=options.verbose
+                               )
+
+        else:
+            robot = PspsRobot.from_vloc_rcut_list(options.pseudo_paths[0], options.vloc_rcut_list, ecut)
+            if options.verbose: print(robot)
+            robot.expose(use_web=options.expose_web,
+                         slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                         verbose=options.verbose
+                         )
+
+    else:
+        if options.vloc_rcut_list is not None:
+            raise ValueError("vloc_rcut_list does not support more than one pseudo!")
+        robot = PspsRobot.from_abinit_run(options.pseudo_paths, ecut)
+
+        if options.verbose: print(robot)
+        robot.expose(use_web=options.expose_web,
+                     slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                     verbose=options.verbose
+                     )
+
+    return 0
 
 
-def get_epilog():
+def get_epilog() -> str:
     return """\
 
 Usage example:
@@ -191,12 +201,12 @@ Usage example:
   abips.py avail                             --> Show all registered pseudopotential repositories
   abips.py list                              --> List repositories installed on this machine
   abips.py install ONCVPSP-PBEsol-SR-PDv0.4  --> Install repository by name (requires internet connection).
+  abips.py show ONCVPSP-PBEsol-SR-PDv0.4     --> Show info on pseudos in repository.
+  abips.py mkff PSEUDO1 [PSEUDO2 ...]        --> Compute form factors for pseudos and show them
 """
-
-  #abips.py show ONCVPSP-PBEsol-SR-PDv0.4  --> Install repository.
-  #abips.py nc_install                        --> Get all NC repositories (most recent version)
-  #abips.py nc_install -xc PBE -fr -sr --version 0.4
-  #abips.py paw_install                        --> Get all PAW repositories (most recent version)
+  #abips.py onc_install                        --> Get all NC repositories (most recent version)
+  #abips.py onc_install -xc PBE -fr -sr -v 0.4
+  #abips.py jth_install                        --> Get all JTH PAW repositories (most recent version)
 
 
 def get_parser(with_epilog=False):
@@ -230,27 +240,34 @@ def get_parser(with_epilog=False):
     # Subparser for list command.
     p_list = subparsers.add_parser("list", parents=[copts_parser], help=abips_list.__doc__)
     p_list.add_argument("-c", "--checksums", action="store_true", default=False,
-                        help="Validate md5 checksums")
+                        help="Validate md5 checksums.")
 
     # Subparser for install command.
     p_install = subparsers.add_parser("install", parents=[copts_parser], help=abips_install.__doc__)
     p_install.add_argument("repo_names", type=str, nargs="+", help="List of repositories to download.")
     p_install.add_argument("-c", "--checksums", action="store_true", default=False,
-                           help="Validate md5 checksums")
+                           help="Validate md5 checksums.")
 
-    # Subparser for nc_install command.
-    #p_nc_install = subparsers.add_parser("nc_install", parents=[copts_parser], help=abips_nc_install.__doc__)
+    # Subparser for onc_install command.
+    #p_onc_install = subparsers.add_parser("onc_install", parents=[copts_parser], help=abips_onc_install.__doc__)
+    #p_onc_install.add_argument("-v", type=str, default=None, help="Table version. Default: latest one ")
 
-    # Subparser for paw_install command.
-    #p_paw_install = subparsers.add_parser("paw_install", parents=[copts_parser], help=abips_paw_install.__doc__)
+    # Subparser for jth_install command.
+    #p_jth_install = subparsers.add_parser("jth_install", parents=[copts_parser], help=abips_paw_install.__doc__)
+    #p_jth_install.add_argument("-v", type=str, default=None, help="Table version. Default: latest one ")
 
     # Subparser for show command.
     p_show = subparsers.add_parser("show", parents=[copts_parser], help=abips_show.__doc__)
-    p_show.add_argument("repo_names", type=str, nargs="+", help="List of Repo names.")
+    p_show.add_argument("repo_names", type=str, nargs="+", help="List of repo names.")
+    p_show.add_argument("-s", "--symbol", type=str, default=None, help="Select pseudo by element symbol.")
 
-    # Subparser for show command.
-    p_mkff = subparsers.add_parser("mkff", parents=[copts_parser], help=abips_show.__doc__)
-    p_mkff.add_argument("pseudo_path", type=str, help="Pseudopotential path")
+    # Subparser for mkff command.
+    p_mkff = subparsers.add_parser("mkff", parents=[copts_parser], help=abips_mkff.__doc__)
+    p_mkff.add_argument("pseudo_paths", nargs="+", type=str, help="Pseudopotential path.")
+    p_mkff.add_argument("--ecut", type=float, required=True, help="Cutoff energy in Ha.")
+    p_mkff.add_argument("-rc", "--vloc-rcut-list", nargs="+", default=None, type=float,
+                        help="List of cutoff radii for vloc in Bohr.")
+    cli.add_expose_options_to_parser(p_mkff)
 
     return parser
 
@@ -272,15 +289,23 @@ def main():
         print(exc)
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
-
+    cli.set_loglevel(options.loglevel)
     #if options.repos_root:
+
+    #if options.verbose:
+    #    for repo in repos:
+    #        if repo.ispaw: continue
+    #        pseudos = repo.get_pseudos(table_name="standard")
+    #        print(pseudos)
+    #else:
+    #    print("\nUse -v to print the pseudos")
+
+    # Use seaborn settings.
+    if hasattr(options, "seaborn") and options.seaborn:
+        import seaborn as sns
+        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
+                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
 
     return globals()[f"abips_{options.command}"](options)
 
