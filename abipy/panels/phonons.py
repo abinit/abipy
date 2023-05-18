@@ -1,4 +1,6 @@
 """"Panels for phonon-related objects."""
+from __future__ import annotations
+
 import param
 import panel as pn
 import panel.widgets as pnw
@@ -13,16 +15,16 @@ class PhononBandsPlotterPanel(AbipyParameterized):
     def __init__(self, plotter, **params):
 
         self.phbands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
-                                          options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
+                                               options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
         self.phbands_plotter_units = pnw.Select(name="Units", value="eV",
-                                           options=["eV", "meV", "Ha", "cm-1", "Thz"])
+                                                options=["eV", "meV", "Ha", "cm-1", "Thz"])
         self.phbands_plotter_btn = pnw.Button(name="Plot", button_type='primary')
 
         self.plotter = plotter
         super().__init__(**params)
 
     @depends_on_btn_click('phbands_blotter_btn')
-    def on_phbands_plot_btn(self):
+    def on_phbands_plot_btn(self) -> pn.Row:
         plot_mode = self.phbands_plotter_mode.value
         plotfunc = getattr(self.plotter, plot_mode, None)
         if plotfunc is None:

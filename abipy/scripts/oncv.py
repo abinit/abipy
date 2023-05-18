@@ -7,7 +7,7 @@ from __future__ import annotations
 import sys
 import os
 import argparse
-import json
+#import json
 import shutil
 import abipy.tools.cli_parsers as cli
 
@@ -106,21 +106,21 @@ def oncv_compare(options):
     return 0
 
 
-def oncv_json(options):
-    """
-    Produce a string with the results in a JSON dictionary and exit
-    Requires oncvpsp output file.
-    """
-    out_path = _find_oncv_output(options.filepath)
-    onc_parser = OncvParser(out_path)
-    onc_parser.scan()
-    if not onc_parser.run_completed:
-        cprint(f"oncvpsp output `{out_path}` is not completed. Exiting", "red")
-        return 1
-
-    # Generate json files with oncvpsp results.
-    print(json.dumps(onc_parser.to_dict, indent=-1))
-    return 0
+#def oncv_json(options):
+#    """
+#    Produce a string with the results in a JSON dictionary and exit
+#    Requires oncvpsp output file.
+#    """
+#    out_path = _find_oncv_output(options.filepath)
+#    onc_parser = OncvParser(out_path)
+#    onc_parser.scan()
+#    if not onc_parser.run_completed:
+#        cprint(f"oncvpsp output `{out_path}` is not completed. Exiting", "red")
+#        return 1
+#
+#    # Generate json files with oncvpsp results.
+#    print(json.dumps(onc_parser.as_dict(), indent=-1))
+#    return 0
 
 
 def oncv_run(options):
@@ -357,7 +357,7 @@ Usage example:
 
     p_gnuplot = subparsers.add_parser('gnuplot', parents=[copts_parser], help=oncv_gnuplot.__doc__)
 
-    p_json = subparsers.add_parser('json', parents=[copts_parser], help=oncv_json.__doc__)
+    #p_json = subparsers.add_parser('json', parents=[copts_parser], help=oncv_json.__doc__)
 
     # Parse command line.
     try:

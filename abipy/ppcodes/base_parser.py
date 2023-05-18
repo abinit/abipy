@@ -7,8 +7,6 @@ from __future__ import annotations
 import abc
 import os
 
-#from typing import List
-
 
 class ParserError(Exception):
     """Exceptions raised by Parser objects."""

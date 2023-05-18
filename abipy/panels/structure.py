@@ -1,4 +1,5 @@
 """"GUIs for structure."""
+from __future__ import annotations 
 
 import os
 import io
@@ -123,14 +124,14 @@ class StructurePanel(PanelWithStructure):
         return self.html_with_clipboard_btn(f"<pre> {s} </pre>")
 
     @pn.depends("spglib_symprec.value", "spglib_angtol.value")
-    def spglib_summary(self):
+    def spglib_summary(self) -> pn.Row:
         """Call spglib to find space group symmetries and Wyckoff positions."""
         s = self.structure.spget_summary(symprec=self.spglib_symprec.value,
                                          angle_tolerance=self.spglib_angtol.value)
         return pn.Row(bkw.PreText(text=s, sizing_mode='stretch_width'))
 
     @depends_on_btn_click('abisanitize_btn')
-    def on_abisanitize_btn(self):
+    def on_abisanitize_btn(self) -> None:
         """
         Returns a new structure in which:
 
@@ -170,7 +171,7 @@ class StructurePanel(PanelWithStructure):
                 sizing_mode='stretch_width')
 
     @pn.depends("kpath_format.value", "line_density.value")
-    def get_kpath(self):
+    def get_kpath(self) -> pn.Column:
         """
         Generate high-symmetry k-path from input structure in the ABINIT format.
         """
@@ -190,7 +191,7 @@ class StructurePanel(PanelWithStructure):
 
         return col
 
-    def _get_pseudos_ecut_pawecutdg(self):
+    def _get_pseudos_ecut_pawecutdg(self) -> tuple:
         #from abipy.data.hgh_pseudos import HGH_TABLE
         #return HGH_TABLE
         from abipy.flowtk.psrepos import get_repo_from_name
@@ -266,7 +267,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         return pn.Column(*items, sizing_mode="stretch_width")
 
-    def get_gs_input(self):
+    def get_gs_input(self) -> AbinitInput:
         """
         Return an AbinitInput for GS calculation from the parameters selected via the widgets.
         """

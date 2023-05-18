@@ -6,12 +6,13 @@ from __future__ import annotations
 import panel as pn
 
 from abc import ABC
-from typing import List
+#from typing import List
 from pydantic import Field, root_validator
-from abipy.abio.inputs import AbinitInput
+from abipy.core.structure import Structure
 from abipy.panels.core import ply
 #from abipy.panels.viewers import JSONViewer
 from abipy.abio.factories import ebands_input
+from abipy.abio.inputs import AbinitInput
 from abipy.flowtk import TaskManager, Flow
 from abipy.flowtk.flows import bandstructure_flow
 from abipy.htc.base_models import AbipyModel, MongoConnector, GfsFileDesc
@@ -78,7 +79,7 @@ class _EbandsFlowModel(FlowModel, ABC):
         #    self.scf_den_gfsd = mng_connector.gfs_put_filepath(den_filepath)
 
     @classmethod
-    def get_preset_queries(cls) -> List[PresetQuery]:
+    def get_preset_queries(cls) -> list[PresetQuery]:
         """
         Return list of MongoDB queries typically used to filter documents.
         """
