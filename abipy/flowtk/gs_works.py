@@ -11,7 +11,7 @@ from abipy.abio.inputs import AbinitInput
 
 class EosWork(Work):
     """
-    Work for the computation of the Equation of State.
+    Work to compute the Equation of State.
     The EOS is obtained by computing E(V) for several volumes around the input V0,
     The initial volumes are obtained by rescaling the input lattice vectors so that
     length proportions and angles are preserved.
@@ -26,6 +26,9 @@ class EosWork(Work):
     `eos_data.json` file produced in the `outdata` directory.
     The file contains the energies, the volumes and the values of V0, B0, B1 obtained
     with different EOS models.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: EosWork
     """
 
     @classmethod
@@ -86,7 +89,7 @@ class EosWork(Work):
         return new_work
 
     @classmethod
-    def from_inputs(cls, inputs, manager=None) -> EosWork:
+    def from_inputs(cls, inputs: list, manager=None) -> EosWork:
         """
         Advanced interface to build an EosWork from an list of AbinitInputs.
         """

@@ -1952,7 +1952,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             self.write_json_in_workdir("abipy_meta.json", data)
 
         # Write fix_flow.py script for advanced users.
-        #self.write_fix_flow_script()
+        self.write_fix_flow_script()
 
         for work in self:
             work.build(*args, **kwargs)
@@ -2558,18 +2558,27 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     def explain(self, nids=None, verbose=0) -> str:
         """
+        Return string with the docstring of the works/tasks in the Flow grouped by class.
+
+        Args:
+            verbose: Verbosity level
         """
         black_list = {
             ".. rubric:: Inheritance Diagram",
             ".. inheritance-diagram:",
         }
 
-        def polish_doc(doc: str) -> str:
+        def polish_doc(doc: str, node_type) -> str:
             """Remove all lines in black_list"""
             new_lines = [l for l in doc.splitlines() if not any(bad in l for bad in black_list)]
-            return "\n".join(new_lines)
+            s =  "\n".join(new_lines)
+            color_node = dict(work="green", task="magenta")
+            s = colored(s, color=color_node[node_type])
+            return s
 
         lines = []; app = lines.append
+
+        #if explain_works:
         cls2works = self.groupby_work_class()
         nids = as_set(nids)
 
@@ -2580,13 +2589,13 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             s = f"work name: {work_cls.__name__}, declared in module: {work_cls.__module__}"
             app(make_banner(s, mark="="))
             app("Class docstring:")
-            app(polish_doc(work_cls.__doc__))
+            app(polish_doc(work_cls.__doc__, "work"))
             app("Number of works of this class: %d" % len(works))
             app("List of works of this class:")
             for work  in works:
                 app("\t" + str(work))
-            #app(1 * "\n")
 
+        #if explain_tasks:
         cls2tasks = self.groupby_task_class()
         for task_cls, tasks in cls2tasks.items():
             #if not (nids and self.node_id not in nids):
@@ -2594,12 +2603,10 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             s = f"Task name: {task_cls.__name__}, declared in module: {task_cls.__module__}"
             app(make_banner(s, mark="="))
             app("Class docstring:")
-            app(polish_doc(task_cls.__doc__))
-            app("Number of tasks of this class: %d" % len(tasks))
-            app("List of tasks of this class:")
+            app(polish_doc(task_cls.__doc__, "task"))
+            app("List of tasks of this class: (%s)" % len(tasks))
             for task  in tasks:
                 app("\t" + str(task))
-            #app(1 * "\n")
 
         return "\n".join(lines)
 
@@ -2724,8 +2731,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
     def plot_networkx(self, mode="network", with_edge_labels=False, ax=None, arrows=False,
                       node_size="num_cores", node_label="name_class", layout_type="spring", **kwargs) -> Figure:
         """
-        Use networkx to draw the flow with the connections among the nodes and
-        the status of the tasks.
+        Use networkx to draw the flow with the connections among the nodes and the status of the tasks.
 
         Args:
             mode: `networkx` to show connections, `status` to group tasks by status.
@@ -2846,7 +2852,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         ax.axis("off")
         return fig
 
-    def write_open_notebook(self, foreground):
+    def write_open_notebook(self, foreground) -> int:
         """
         Generate an ipython notebook and open it in the browser.
         Return system exit code.

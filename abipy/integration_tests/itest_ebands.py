@@ -123,6 +123,8 @@ def itest_unconverged_scf(fwp, tvars):
         flow.debug()
         raise RuntimeError()
 
+    assert flow.explain(verbose=1)
+
     # Test inspect methods
     if has_matplotlib():
         assert t0.inspect(show=False)

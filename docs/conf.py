@@ -134,6 +134,10 @@ set_plotly_default_show(False)
 from sphinx_gallery.sorting import ExampleTitleSortKey
 
 sphinx_gallery_conf = {
+    'only_warn_on_example_error': True,
+    #'abort_on_example_error': True,
+    'log_level': {'backreference_missing': 'warning'},
+    #
     # path to your examples scripts
     'examples_dirs': [
         "../abipy/examples/plot",
@@ -149,7 +153,6 @@ sphinx_gallery_conf = {
     'within_subsection_order': ExampleTitleSortKey,
     'backreferences_dir': None,
     #'reset_modules': (reset_mpl,),
-    #'find_mayavi_figures': True,
     'reference_url': {
         'abipy': None,  # The module you locally document uses None
         'numpy': 'https://docs.scipy.org/doc/numpy/',

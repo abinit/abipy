@@ -18,6 +18,7 @@ from monty.bisect import find_le, find_ge
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
     set_axlims, set_visible, rotate_ticklabels, set_ax_xylabels)
@@ -681,8 +682,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         self._structure = reader.read_structure()
         self.gwcalctyp = reader.gwcalctyp
         self.ibz = reader.ibz
-        self.gwkpoints = reader.gwkpoints
-        self.nkcalc = len(self.gwkpoints)
+        self.sigma_kpoints = reader.sigma_kpoints
+        self.nkcalc = len(self.sigma_kpoints)
 
         self.bstart_sk = reader.bstart_sk
         self.bstop_sk = reader.bstop_sk
@@ -701,10 +702,10 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         self.qpenes = reader.read_qpenes()
         self.ksgaps = reader.read_ksgaps()
 
-    @property
-    def sigma_kpoints(self):
-        """The k-points where QP corrections have been calculated."""
-        return self.gwkpoints
+    #@property
+    #def sigma_kpoints(self):
+    #    """The k-points where QP corrections have been calculated."""
+    #    return self.sigma_kpoints
 
     def get_marker(self, qpattr):
         """
@@ -756,7 +757,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         # TODO: Finalize the implementation: add GW metadata.
         app(marquee("QP direct gaps", mark="="))
-        for kgw in self.gwkpoints:
+        for kgw in self.sigma_kpoints:
             for spin in range(self.nsppol):
                 qp_dirgap = self.get_qpgap(spin, kgw)
                 app("QP_dirgap: %.3f (eV) for K-point: %s, spin: %s" % (qp_dirgap, repr(kgw), spin))
@@ -781,7 +782,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return "\n".join(lines)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
@@ -845,7 +846,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         from abipy.tools.printing import print_dataframe
         keys = "band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0".split()
-        for gwkpoint in self.gwkpoints:
+        for gwkpoint in self.sigma_kpoints:
             for spin in range(self.nsppol):
                 df_sk = self.get_dataframe_sk(spin, gwkpoint, ignore_imag=ignore_imag)[keys]
                 print_dataframe(df_sk, title="K-point: %s, spin: %s" % (repr(gwkpoint), spin),
@@ -879,7 +880,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             raise TypeError("Expecting band structure with a Kpath, got %s" % type(kpath))
         if verbose:
             print("Input kpath\n", ebands_kpath.kpoints)
-            print("gwkpoints included in GW calculation\n", self.gwkpoints)
+            print("sigma_kpoints included in GW calculation\n", self.sigma_kpoints)
             print("lines\n", kpath.lines)
             print("kpath.frac_bounds:\n", kpath.frac_bounds)
             print("kpath.cart_bounds:\n", kpath.frac_bounds)
@@ -888,7 +889,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # In principle, the input k-path is arbitrary and not necessarily in the IBZ used for GW
         # so we have to build the k-stars and find the k-points lying along the path and keep
         # track of the mapping kpt --> star --> kgw
-        gw_stars = [kpoint.compute_star(self.structure.abi_spacegroup.fm_symmops) for kpoint in self.gwkpoints]
+        gw_stars = [kpoint.compute_star(self.structure.abi_spacegroup.fm_symmops) for kpoint in self.sigma_kpoints]
         cart_coords, back2istar = [], []
         for istar, gw_star in enumerate(gw_stars):
             cart_coords.extend([k.cart_coords for k in gw_star])
@@ -943,12 +944,12 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         xs = np.arange(self.nkcalc)
 
         # Add xticklabels from k-points.
-        tick_labels = [repr(k) for k in self.gwkpoints]
+        tick_labels = [repr(k) for k in self.sigma_kpoints]
         ax.set_xticks(xs)
         ax.set_xticklabels(tick_labels, fontdict=None, rotation=30, minor=False, size="x-small")
 
         for spin in range(self.nsppol):
-            qp_gaps, ks_gaps = map(np.array, zip(*[self.get_qpgap(spin, kgw, with_ksgap=True) for kgw in self.gwkpoints]))
+            qp_gaps, ks_gaps = map(np.array, zip(*[self.get_qpgap(spin, kgw, with_ksgap=True) for kgw in self.sigma_kpoints]))
             if not plot_qpmks:
                 # Plot QP gaps
                 ax.plot(xs, qp_gaps, marker=self.marker_spin[spin],
@@ -1162,7 +1163,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         df_list = []
         for spin in range(self.nsppol):
-            for gwkpoint in self.gwkpoints:
+            for gwkpoint in self.sigma_kpoints:
                 df_sk = self.get_dataframe_sk(spin, gwkpoint, ignore_imag=ignore_imag)
                 df_list.append(df_sk)
 
@@ -1300,9 +1301,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # TODO: Consistency check.
         errlines = []
         eapp = errlines.append
-        if len(self.gwkpoints) != len(self.ibz):
+        if len(self.sigma_kpoints) != len(self.ibz):
             eapp("QP energies should be computed for all k-points in the IBZ but nkibz != nkptgw")
-        if len(self.gwkpoints) == 1:
+        if len(self.sigma_kpoints) == 1:
             eapp("QP Interpolation requires nkptgw > 1.")
         #if (np.any(self.bstop_sk[0, 0] != self.bstop_sk):
         #    cprint("Highest bdgw band is not constant over k-points. QP Bands will be interpolated up to...")
@@ -1341,7 +1342,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         # Interpolate QP energies if ks_ebands_kpath is None else interpolate QP corrections
         # and re-apply them on top of the KS band structure.
-        gw_kcoords = [k.frac_coords for k in self.gwkpoints]
+        gw_kcoords = [k.frac_coords for k in self.sigma_kpoints]
 
         # Read GW energies from file (real part) and compute corrections if ks_ebands_kpath.
         egw_rarr = self.r.read_value("egw", cmode="c").real
@@ -1350,10 +1351,10 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
             egw_rarr -= self.r.read_value("e0")
 
-        # Note there's no guarantee that the gwkpoints and the corrections have the same k-point index.
+        # Note there's no guarantee that the sigma_kpoints and the corrections have the same k-point index.
         # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
         qpdata = np.empty(egw_rarr.shape)
-        for gwk in self.gwkpoints:
+        for gwk in self.sigma_kpoints:
             ik_ibz = self.r.kpt2fileindex(gwk)
             for spin in range(self.nsppol):
                 qpdata[spin, ik_ibz, :] = egw_rarr[spin, ik_ibz, :]
@@ -1382,13 +1383,12 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         kpts_kpath = Kpath(self.structure.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
         occfacts_kpath = np.zeros(eigens_kpath.shape)
 
-        # Finding the new Fermi level of the interpolated bands is not trivial, in particular if metallic.
+        # Finding the new Fermi level of the interpolated bands is not trivial, in particular if metals
         # because one should first interpolate the QP bands on a mesh. Here I align the QP bands
         # at the HOMO of the KS bands.
         homos = ks_ebands_kpath.homos if ks_ebands_kpath is not None else self.ebands.homos
         qp_fermie = max([eigens_kpath[e.spin, e.kidx, e.band] for e in homos])
-        #qp_fermie = self.ebands.fermie
-        #qp_fermie = 0.0
+        #qp_fermie = self.ebands.fermie; qp_fermie = 0.0
 
         qp_ebands_kpath = ElectronBands(self.structure, kpts_kpath, eigens_kpath, qp_fermie, occfacts_kpath,
                                         self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden,
@@ -1407,16 +1407,16 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             if not ks_ebands_kmesh.kpoints.is_ibz:
                 cprint("Energies in ks_ebands_kmesh should be given in the IBZ", "red")
 
-            # K-points and weight for DOS are taken from ks_ebands_kmesh
+            # K-points and weights for DOS are taken from ks_ebands_kmesh.
             dos_kcoords = [k.frac_coords for k in ks_ebands_kmesh.kpoints]
             dos_weights = [k.weight for k in ks_ebands_kmesh.kpoints]
 
-            # Interpolate QP corrections from bstart to bstop
+            # Interpolate QP corrections from bstart to bstop.
             ref_eigens = ks_ebands_kmesh.eigens[:, :, bstart:bstop]
             qp_corrs = skw.interp_kpts_and_enforce_degs(dos_kcoords, ref_eigens, atol=ks_degatol).eigens
             eigens_kmesh = qp_corrs if only_corrections else ref_eigens + qp_corrs
 
-            # Build new ebands object with k-mesh
+            # Build new ebands object with k-mesh.
             kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights,
                                    names=None, ksampling=ks_ebands_kmesh.kpoints.ksampling)
             occfacts_kmesh = np.zeros(eigens_kmesh.shape)
@@ -1644,10 +1644,10 @@ class SigresReader(ETSF_Reader):
         self.ibz = self.ks_bands.kpoints
 
         # 2) The K-points where QPState corrections have been calculated.
-        gwred_coords = self.read_redc_gwkpoints()
-        self.gwkpoints = KpointList(self.structure.reciprocal_lattice, gwred_coords)
+        gwred_coords = self.read_value("kptgw")
+        self.sigma_kpoints = KpointList(self.structure.reciprocal_lattice, gwred_coords)
         # Find k-point name
-        for kpoint in self.gwkpoints:
+        for kpoint in self.sigma_kpoints:
             kpoint.set_name(self.structure.findname_in_hsym_stars(kpoint))
 
         # minbnd[nkptgw, nsppol] gives the minimum band index computed
@@ -1691,9 +1691,9 @@ class SigresReader(ETSF_Reader):
     #    return self.gwcalctyp
 
     @property
-    def has_spfunc(self):
+    def has_spfunc(self) -> bool:
         """True if self contains the spectral function."""
-        return self.nomega_r
+        return self.nomega_r > 0
 
     def kpt2fileindex(self, kpoint):
         """
@@ -1719,10 +1719,10 @@ class SigresReader(ETSF_Reader):
         if duck.is_intlike(gwkpoint):
             return int(gwkpoint)
         else:
-            return self.gwkpoints.index(gwkpoint)
+            return self.sigma_kpoints.index(gwkpoint)
 
-    def read_redc_gwkpoints(self):
-        return self.read_value("kptgw")
+    #def read_redc_sigma_kpoints(self):
+    #    return self.read_value("kptgw")
 
     def read_allqps(self, ignore_imag=False) -> tuple:
         """
@@ -1735,7 +1735,7 @@ class SigresReader(ETSF_Reader):
 
         for spin in range(self.nsppol):
             qps = []
-            for gwkpoint in self.gwkpoints:
+            for gwkpoint in self.sigma_kpoints:
                 ikcalc = self.gwkpt2seqindex(gwkpoint)
                 for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
                     qps.append(self.read_qp(spin, gwkpoint, band, ignore_imag=ignore_imag))
@@ -1925,8 +1925,8 @@ class SigresRobot(Robot, RobotWithEbands):
             for w in warns:
                 cprint(w, color="yellow")
 
-    def _check_dims_and_params(self):
-        """Test that nsppol, sigma_kpoints, tlist are consistent."""
+    def _check_dims_and_params(self) -> None:
+        """Test that nsppol, sigma_kpoints, are consistent."""
         if not len(self.abifiles) > 1:
             return 0
 
@@ -1954,7 +1954,8 @@ class SigresRobot(Robot, RobotWithEbands):
             if i == 0:
                 table = frame
             else:
-                table = table.append(frame)
+                #table = table.append(frame)
+                table = pd.concat([table, frame], ignore_index=True)
 
         return table
 

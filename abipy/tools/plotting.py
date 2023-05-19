@@ -14,7 +14,7 @@ import itertools
 import numpy as np
 
 from collections import OrderedDict, namedtuple
-from typing import Any, List
+from typing import Any, List, Callable
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
 from .numtools import data_from_cplx_mode
 from abipy.tools import duck
@@ -1196,12 +1196,12 @@ _PLOTLY_DEFAULT_SHOW = [True]
 def set_plotly_default_show(true_or_false: bool) -> None:
     """
     Set the default value of show in the add_plotly_fig_kwargs decorator.
-    Usefule for instance when generating the sphinx gallery of plotly plots.
+    Useful for instance when generating the sphinx gallery of plotly plots.
     """
     _PLOTLY_DEFAULT_SHOW[0] = true_or_false
 
 
-def add_plotly_fig_kwargs(func):
+def add_plotly_fig_kwargs(func: Callable) -> Callable:
     """
     Decorator that adds keyword arguments for functions returning plotly figures.
     The function should return either a plotly figure or None to signal some

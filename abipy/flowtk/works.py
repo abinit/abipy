@@ -1378,7 +1378,7 @@ class SigmaConvWork(Work):
 
 class BseMdfWork(Work):
     """
-    Work for simple BSE calculations in which the self-energy corrections
+    Work for BSE calculations in which the self-energy corrections
     are approximated by the scissors operator and the screening is modeled
     with the model dielectric function.
 
@@ -1475,7 +1475,7 @@ class QptdmWork(Work):
 
         self.allocate()
 
-    def merge_scrfiles(self, remove_scrfiles=True):
+    def merge_scrfiles(self, remove_scrfiles=True) -> str:
         """
         This method is called when all the q-points have been computed.
         It runs `mrgscr` in sequential on the local machine to produce
@@ -1518,7 +1518,7 @@ class MergeDdb:
     """
 
     def add_becs_from_scf_task(self, scf_task, ddk_tolerance, ph_tolerance,
-                               with_quad=False, with_flexoe=False):
+                               with_quad=False, with_flexoe=False) -> tuple:
         """
         Build tasks for the computation of Born effective charges and add them to the work.
 
@@ -1590,7 +1590,7 @@ class MergeDdb:
                 self.register_flexoe_task(flexoe_inp, deps=quad_deps)
 
     def merge_ddb_files(self, delete_source_ddbs=False, only_dfpt_tasks=True,
-                        exclude_tasks=None, include_tasks=None):
+                        exclude_tasks=None, include_tasks=None) -> str:
         """
         This method is called when all the q-points have been computed.
         It runs `mrgddb` in sequential on the local machine to produce
@@ -1641,7 +1641,7 @@ class MergeDdb:
 
         return out_ddb
 
-    def merge_pot1_files(self, delete_source=False):
+    def merge_pot1_files(self, delete_source=False) -> Union[str, None]:
         """
         This method is called when all the q-points have been computed.
         It runs `mrgdvdb` in sequential on the local machine to produce
@@ -2256,7 +2256,10 @@ class DteWork(Work, MergeDdb):
             dde_tasks.append(dde_task)
 
         # DTE calculations
-        dte_deps = {scf_task: "WFK DEN"}
+        # Read WFK only and use it to compute the density on the fly
+        # to avoid possibe problems with paral_kgb 1 and MPI-FFT
+        #dte_deps = {scf_task: "WFK DEN"}
+        dte_deps = {scf_task: "WFK"}
         dte_deps.update({dde_task: "1WF 1DEN" for dde_task in dde_tasks})
 
         multi_dte = scf_task.input.make_dte_inputs()
@@ -2295,6 +2298,9 @@ class ConducWork(Work):
         3. Kerange (Kerange only)
         4. WFK Interpolation (Kerange only)
         5. Electrical Conductivity Calculation.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: ConducWork
     """
 
     @classmethod
@@ -2357,7 +2363,7 @@ class ConducWork(Work):
 
     @classmethod
     def from_filepath(cls, ddb_path, dvdb_path, multi, nbr_proc=None, flow=None,
-                      with_kerange=False, omp_nbr_thread=1, manager=None):
+                      with_kerange=False, omp_nbr_thread=1, manager=None) -> ConducWork:
         """
         Construct a ConducWork from previously calculated DDB/DVDB file and |MultiDataset|.
 
