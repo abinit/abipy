@@ -599,6 +599,13 @@ def abicomp_psps(options):
     return _invoke_robot(options)
 
 
+def abicomp_gwr(options):
+    """
+    Compare multiple GWR files.
+    """
+    return _invoke_robot(options)
+
+
 def _build_robot(options, trim_paths=True):
     """Build robot instance from CLI options."""
     robot_cls = abilab.Robot.class_for_ext(options.command.upper())
@@ -642,6 +649,9 @@ def _invoke_robot(options):
     or --nb to generate a jupyter notebook.
     """
     robot = _build_robot(options)
+
+    if options.expose_web:
+        options.expose = True
 
     if options.notebook:
         robot.make_and_open_notebook(foreground=options.foreground,
@@ -1104,7 +1114,8 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
                               )
     robot_parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
     robot_parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
-            help='Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.')
+                              help="Generate matplotlib plots in $BROWSER instead of X-server.\n" +
+                                   "WARNING: Not all the features are supported.")
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
@@ -1123,6 +1134,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_v1qavg = subparsers.add_parser('v1qavg', parents=robot_parents, help=abicomp_v1qavg.__doc__)
     #p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
     p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
+    p_gwr = subparsers.add_parser('gwr', parents=robot_parents, help=abicomp_gwr.__doc__)
 
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)

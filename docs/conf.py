@@ -158,7 +158,6 @@ sphinx_gallery_conf = {
         "pymatgen": "https://pymatgen.org/",
     },
     #'image_scrapers': ('matplotlib',),
-    #'image_scrapers': ('matplotlib', 'mayavi'),
     #'image_scrapers': ('matplotlib', PNGScraper()),
     #'image_scrapers': ('matplotlib', plotly),
 
@@ -208,7 +207,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'abipy'
-copyright = '2021, ' + relmod.author
+copyright = '2023, ' + relmod.author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -421,9 +420,9 @@ texinfo_documents = [
 intersphinx_mapping = {
     'python': ('https://docs.python.org/{.major}'.format(sys.version_info), None),
     'numpy': ('https://numpy.org/doc/stable/', None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
-    'pandas': ("http://pandas-docs.github.io/pandas-docs-travis/", None),
-    'matplotlib': ('https://matplotlib.org/', None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "pandas": ("http://pandas.pydata.org/pandas-docs/stable/", None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
     "monty": ("https://pythonhosted.org/monty/", None),
     "pymatgen": ("https://pymatgen.org/", None),
     'mayavi': ('http://docs.enthought.com/mayavi/mayavi', None),

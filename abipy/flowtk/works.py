@@ -365,7 +365,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
 
 class NodeContainer(metaclass=abc.ABCMeta):
     """
-    Mixin classes for `Work` and `Flow` objects providing helper functions 
+    Mixin classes for `Work` and `Flow` objects providing helper functions
     to register tasks in the container.
     The helper function call the `register` method of the container.
     """
@@ -465,8 +465,8 @@ class NodeContainer(metaclass=abc.ABCMeta):
 
     def register_gwr_task(self, *args, **kwargs) -> GwrTask:
         """Register a sigma task."""
-        kwargs["task_class"] = GwrTask                               
-        task = self.register_task(*args, **kwargs)                     
+        kwargs["task_class"] = GwrTask
+        task = self.register_task(*args, **kwargs)
         gwr_task = task.input["gwr_task"]
         #if gwr_task = ""
 
@@ -680,7 +680,7 @@ class Work(BaseWork, NodeContainer):
 
     def ipath_from_ext(self, ext: str) -> str:
         """
-        Returns the path of the output file with extension ext.
+        Returns the path of the input file with extension ext.
         Use it when the file does not exist yet.
         """
         return self.indir.path_in("in_" + ext)
@@ -691,6 +691,18 @@ class Work(BaseWork, NodeContainer):
         Use it when the file does not exist yet.
         """
         return self.outdir.path_in("out_" + ext)
+
+    def get_all_outdata_files_with_ext(self, ext: str) -> list:
+        """
+        Returns list with all the output files produced in outdata
+        with extension `ext`.
+        """
+        paths = []
+        for task in self:
+            p = task.outdir.has_abiext(ext)
+            if p:
+                paths.append(p)
+        return paths
 
     @property
     def processes(self) -> list:
@@ -755,7 +767,7 @@ class Work(BaseWork, NodeContainer):
                 if task.workdir != task_workdir:
                     raise ValueError("task.workdir != task_workdir: %s, %s" % (task.workdir, task_workdir))
 
-    def register(self, obj: Union[AbinitInput, Task], 
+    def register(self, obj: Union[AbinitInput, Task],
                  deps=None, required_files=None, manager=None, task_class=None) -> Task:
         """
         Registers a new |Task| and add it to the internal list, taking into account possible dependencies.
@@ -883,6 +895,26 @@ class Work(BaseWork, NodeContainer):
             if task.status == task.S_LOCKED: continue
             if task.status < task.S_SUB and all(status == task.S_OK for status in task.deps_status):
                 task.set_status(task.S_READY, "Status set to Ready")
+
+    def has_different_structures(self, rtol=1e-05, atol=1e-08) -> str:
+        """
+        Check if structures are equivalent, return string with info about differences (if any).
+        """
+        if len(self) <= 1: return ""
+        formulas = set([task.input.structure.composition.formula for task in self])
+        if len(formulas) != 1:
+            return "Found structures with different full formulas: %s" % str(formulas)
+
+        lines = []
+        s0 = self[0].input.structure
+        for task in self[1:]:
+            s1 = task.input.structure
+            if not np.allclose(s0.lattice.matrix, s1.lattice.matrix, rtol=rtol, atol=atol):
+                lines.append("Structures have different lattice:")
+            if not np.allclose(s0.frac_coords, s1.frac_coords, rtol=rtol, atol=atol):
+                lines.append("Structures have different atomic positions:")
+
+        return "\n".join(lines)
 
     def get_panel(self, **kwargs):
         """
@@ -1034,8 +1066,8 @@ class BandStructureWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, 
-                       dos_ngkpt, nb_extra=10, ndivsm=-20, 
+    def from_scf_input(cls, scf_input: AbinitInput,
+                       dos_ngkpt, nb_extra=10, ndivsm=-20,
                        dos_shiftk=(0, 0, 0), prtdos=3) -> BandStructureWork:
         """
         Build a BandStructureWork from an |AbinitInput| representing a GS-SCF calculation.
@@ -1068,7 +1100,7 @@ class BandStructureWork(Work):
         return cls(scf_input, nscf_input, [dos_input])
 
 
-    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput, 
+    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput,
                  dos_inputs=None, workdir=None, manager=None):
         """
         Args:
@@ -1105,7 +1137,7 @@ class BandStructureWork(Work):
         with self.nscf_task.open_gsr() as gsr:
             return gsr.ebands.plot(**kwargs)
 
-    def plot_ebands_with_edos(self, dos_pos=0, method="gaussian", 
+    def plot_ebands_with_edos(self, dos_pos=0, method="gaussian",
                               step=0.01, width=0.1, **kwargs) -> Figure:
         """
         Plot the band structure and the DOS.
@@ -1166,7 +1198,7 @@ class RelaxWork(Work):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: RelaxWork
     """
-    def __init__(self, ion_input: AbinitInput, ioncell_input: AbinitInput, 
+    def __init__(self, ion_input: AbinitInput, ioncell_input: AbinitInput,
                  workdir=None, manager=None, target_dilatmx=None):
         """
         Args:
@@ -1353,7 +1385,7 @@ class BseMdfWork(Work):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: BseMdfWork
     """
-    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput, 
+    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput,
                  bse_inputs, workdir=None, manager=None):
         """
         Args:
@@ -1668,7 +1700,7 @@ class PhononWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task: ScfTask, 
+    def from_scf_task(cls, scf_task: ScfTask,
                       qpoints, is_ngqpt=False, with_becs=False,
                       with_quad=False, with_flexoe=False, with_dvdb=True,
                       tolerance=None, ddk_tolerance=None, ndivsm=0,
@@ -1820,7 +1852,7 @@ class PhononWfkqWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task: ScfTask, 
+    def from_scf_task(cls, scf_task: ScfTask,
                       ngqpt, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
                       with_becs=False, with_quad=False, ddk_tolerance=None, shiftq=(0, 0, 0),
                       is_ngqpt=True, remove_wfkq=True,
@@ -2148,7 +2180,7 @@ class BecWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task: ScfTask, 
+    def from_scf_task(cls, scf_task: ScfTask,
                       ddk_tolerance=None, ph_tolerance=None, manager=None):
         """
         Build tasks for the computation of Born effective charges from a ground-state task.
@@ -2186,7 +2218,7 @@ class DteWork(Work, MergeDdb):
     .. inheritance-diagram:: DteWork
     """
     @classmethod
-    def from_scf_task(cls, scf_task: ScfTask, 
+    def from_scf_task(cls, scf_task: ScfTask,
                       ddk_tolerance=None, manager=None) -> DteWork:
         """
         Build a DteWork from a ground-state task.

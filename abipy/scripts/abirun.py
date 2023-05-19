@@ -522,6 +522,10 @@ Default: o
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
 
+    # Subparser for explain
+    p_explain = subparsers.add_parser('explain', parents=[copts_parser],
+        help="Explain operations performed by Works or Tasks")
+
     # Subparser for panel
     p_panel = subparsers.add_parser('panel', parents=[copts_parser, flow_selector_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
@@ -906,6 +910,11 @@ def main():
 
         # Update the database.
         return flow.build_and_pickle_dump()
+
+    elif options.command == "explain":
+        #s = flow.explain(nids=select_nids(flow, options)), verbose=options.verbose))
+        s = flow.explain(verbose=options.verbose)
+        print(s)
 
     elif options.command == "panel":
         pn = abilab.abipanel()

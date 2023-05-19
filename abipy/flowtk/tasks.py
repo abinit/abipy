@@ -1385,7 +1385,7 @@ class Task(Node, metaclass=abc.ABCMeta):
     prefix = Prefix(pj("indata", "in"), pj("outdata", "out"), pj("tmpdata", "tmp"))
     del Prefix, pj
 
-    def __init__(self, input: AbinitInput, 
+    def __init__(self, input: AbinitInput,
                  workdir=None, manager=None, deps=None):
         """
         Args:
@@ -1529,7 +1529,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
     def set_vars(self, *args, **kwargs) -> dict:
         """
-        Set the values of the ABINIT variables in the input file. 
+        Set the values of the ABINIT variables in the input file.
         Return dict with old values.
         """
         kwargs.update(dict(*args))
@@ -2711,7 +2711,7 @@ class DecreaseDemandsError(Exception):
 
 class AbinitTask(Task):
     """
-    Base class defining an ABINIT calculation
+    Base class for ABINIT Tasks.
     """
     Results = TaskResults
 
@@ -2728,7 +2728,7 @@ class AbinitTask(Task):
         return cls(input, workdir=workdir, manager=manager)
 
     @classmethod
-    def temp_shell_task(cls, inp: AbinitInput, 
+    def temp_shell_task(cls, inp: AbinitInput,
                         mpi_procs=1, workdir=None, manager=None) -> AbinitTask:
         """
         Build a Task with a temporary workdir. The task is executed via the shell with 1 MPI proc.
@@ -3333,8 +3333,8 @@ class ProduceHist:
 
 class GsTask(AbinitTask):
     """
-    Base class for ground-state tasks. A ground state task produces a GSR file
-    Provides the method `open_gsr` that reads and returns a GSR file.
+    Base class for ground-state calculations.
+    A GsTask produces a GSR file and provides the `open_gsr` method to read a GSR.nc file.
     """
     @property
     def gsr_path(self) -> str:
@@ -3423,8 +3423,8 @@ class GsTask(AbinitTask):
 
 class ScfTask(GsTask):
     """
-    Self-consistent ground-state calculations.
-    Provide support for in-place restart via (WFK|DEN) files
+    Task for self-consistent GS calculations.
+    Provide support for in-place restart via (WFK|DEN) files.
     """
     CRITICAL_EVENTS = [
         events.ScfConvergenceWarning,
@@ -3521,7 +3521,9 @@ class CollinearThenNonCollinearScfTask(ScfTask):
 
 class NscfTask(GsTask):
     """
-    Non-Self-consistent GS calculation. Provides in-place restart via WFK files
+    Task for non-self-consistent GS calculations.
+    Provides in-place restart via the WFK file and a specialized setup method
+    that enforces the same ngfft FFT-mesh as the one used in the previous GS task.
     """
     CRITICAL_EVENTS = [
         events.NscfConvergenceWarning,
@@ -3739,11 +3741,11 @@ class DfptTask(AbinitTask):
     """
     Base class for DFPT tasks (Phonons, DdeTask, DdkTask, ElasticTask ...)
     Mainly used to implement methods that are common to DFPT calculations with Abinit.
-    Provide the method `open_ddb` that reads and return a Ddb file.
+    Provide the method `open_ddb` that reads and return a DDB file.
 
     .. warning::
 
-        This class should not be instantiated directly.
+        This class is not supposed to be instantiated directly.
     """
     # TODO:
     # for the time being we don't discern between GS and PhononCalculations.
@@ -4333,10 +4335,11 @@ class BseTask(ManyBodyTask):
             self.history.critical("Exception while reading MDF file at %s:\n%s" % (mdf_path, str(exc)))
             return None
 
-class GwrTask(AbinitTask):                              
-    """                                                 
-    Class for GWR calculations.             
-    """                                                 
+
+class GwrTask(AbinitTask):
+    """
+    Class for calculations with the GWR code. Provide `open_gwr` method to open GWR.nc
+    """
 
     color_rgb = np.array((255, 128, 0)) / 255
 
@@ -4360,15 +4363,16 @@ class GwrTask(AbinitTask):
 
         if not gwr_path:
             self.history.critical("%s didn't produce a GWR.nc file in %s" % (self, self.outdir))
-            return None                                                                                    
-                                                                                                           
+            return None
+
         # Open the GWR file
-        from abipy.electrons.gwr import GwrFile                                                            
-        try:                                                                                               
-            return GwrFile(gwr_path)                                                                       
-        except Exception as exc:                                                                           
-            self.history.critical("Exception while reading GWR.nc file at %s:\n%s" % (gwr_path, str(exc)))    
-            return None                                                                                    
+        from abipy.electrons.gwr import GwrFile
+        try:
+            return GwrFile(gwr_path)
+        except Exception as exc:
+            self.history.critical("Exception while reading GWR.nc file at %s:\n%s" % (gwr_path, str(exc)))
+            return None
+
 
 class OpticTask(Task):
     """
@@ -4736,7 +4740,9 @@ class OpticTask(Task):
 
 
 class AnaddbTask(Task):
-    """Task for Anaddb runs (post-processing of DFPT calculations)."""
+    """
+    Task for Anaddb runs (post-processing of DFPT calculations).
+    """
 
     color_rgb = np.array((204, 102, 255)) / 255
 

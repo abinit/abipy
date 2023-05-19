@@ -1211,7 +1211,7 @@ class ElectronBands(Has_Structure):
                                ("spin", spin),
                                ("kidx", k),
                                ("band", band),
-                               ("eig", eig),
+                               ("eig", float(eig)),
                                ("occ", self.occfacts[spin, k, band]),
                                ("kpoint", self.kpoints[k]),
                             ]))
@@ -2555,11 +2555,11 @@ class ElectronBands(Has_Structure):
             #xy = rectangle.get_xy()
             #rx, ry = xy[0,:]
             #cx = rx + xy[1,0]/2
-            #cy = ry + xy[1,1]/2 
-            #ax.annotate("KS gap", (cx, cy), color='black', weight='bold', 
-            #            fontsize=4, ha='center', va='center')            
+            #cy = ry + xy[1,1]/2
+            #ax.annotate("KS gap", (cx, cy), color='black', weight='bold',
+            #            fontsize=4, ha='center', va='center')
             #(x0, y0), (x1, y1) = rectangle.get_path()[0].get_extents().get_points()
-            #ax.text((x0 + x1) / 2, (y0 + y1) / 2, "KS band gap", 
+            #ax.text((x0 + x1) / 2, (y0 + y1) / 2, "KS band gap",
             #         ha="center", va="center", fontsize=fontsize, color="red")
 
     def get_e0(self, e0):
@@ -2692,7 +2692,7 @@ class ElectronBands(Has_Structure):
 
     @add_fig_kwargs
     def plot_with_edos(self, edos, klabels=None, ax_list=None, e0="fermie", points=None,
-                       with_gaps=False, max_phfreq=None, ylims=None, 
+                       with_gaps=False, max_phfreq=None, ylims=None,
                        width_ratios=(2, 1), **kwargs) -> Figure:
         r"""
         Plot the band structure and the DOS with matplotlib.
@@ -4530,7 +4530,7 @@ class ElectronDos(object):
                         line=line_opts, **kwargs, row=ply_row, col=ply_col)
 
     @add_fig_kwargs
-    def plot(self, e0="fermie", spin=None, ax=None, exchange_xy=False, 
+    def plot(self, e0="fermie", spin=None, ax=None, exchange_xy=False,
              xlims=None, ylims=None, **kwargs) -> Figure:
         """
         Plot electronic DOS with matplotlib.
@@ -4614,7 +4614,7 @@ class ElectronDos(object):
         return fig
 
     @add_fig_kwargs
-    def plot_dos_idos(self, e0="fermie", ax_list=None, xlims=None, 
+    def plot_dos_idos(self, e0="fermie", ax_list=None, xlims=None,
                       height_ratios=(1, 2), **kwargs) -> Figure:
         """
         Plot electronic DOS and Integrated DOS on two different subplots with matplotlib.
@@ -5527,7 +5527,7 @@ class Bands3D(Has_Structure):
         return figure
 
     @add_fig_kwargs
-    def plot_contour(self, band, spin=0, plane="xy", elevation=0, 
+    def plot_contour(self, band, spin=0, plane="xy", elevation=0,
                      ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Contour plot with matplotlib.
@@ -5823,7 +5823,7 @@ class RobotWithEbands:
         ]
 
     @add_fig_kwargs
-    def gridplot_with_hue(self, hue, ylims=None, fontsize=8, 
+    def gridplot_with_hue(self, hue, ylims=None, fontsize=8,
                           sharex=False, sharey=False, **kwargs) -> Figure:
         """
         Plot multiple electron bandstructures on a grid. Group bands by ``hue``.

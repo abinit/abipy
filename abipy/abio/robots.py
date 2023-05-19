@@ -7,24 +7,25 @@ from __future__ import annotations
 
 import sys
 import os
+#import abc
 import inspect
 import itertools
 import numpy as np
 import pandas as pd
 
 from collections import OrderedDict, deque
-from typing import List, ClassVar, Callable, Union
+from typing import Callable, Union
 from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from abipy.core.mixins import NotebookWriter
 from abipy.tools.numtools import sort_and_groupby
 from abipy.tools import duck
+from abipy.tools.typing import Figure
 from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     rotate_ticklabels, set_visible)
 
-
-class Robot(NotebookWriter):
+class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
     """
     This is the base class from which all Robot subclasses should derive.
     A Robot supports the `with` context manager:
@@ -58,7 +59,7 @@ class Robot(NotebookWriter):
             self.add_file(label, abifile)
 
     @classmethod
-    def get_supported_extensions(self) -> List[str]:
+    def get_supported_extensions(self) -> list[str]:
         """List of strings with extensions supported by Robot subclasses."""
         # This is needed to have all subclasses.
         from abipy.abilab import Robot
@@ -98,7 +99,7 @@ class Robot(NotebookWriter):
         return new
 
     @classmethod
-    def from_dirs(cls, dirpaths: List[str], walk: bool = True, abspath: bool = False) -> Robot:
+    def from_dirs(cls, dirpaths: list[str], walk: bool = True, abspath: bool = False) -> Robot:
         """
         Similar to `from_dir` but accepts a list of directories instead of a single directory.
 
@@ -393,7 +394,7 @@ class Robot(NotebookWriter):
                     print("Exception while closing: ", abifile.filepath)
                     print(exc)
 
-    def change_labels(self, new_labels: List[str], dryrun: bool = False) -> dict:
+    def change_labels(self, new_labels: list[str], dryrun: bool = False) -> dict:
         """
         Change labels of the files.
 
@@ -487,7 +488,7 @@ class Robot(NotebookWriter):
         return self._abifiles.items()
 
     @property
-    def labels(self) -> List[str]:
+    def labels(self) -> list[str]:
         """
         List of strings used to create labels in matplotlib figures when plotting results
         taked from multiple files. By default, labels is initialized with the path of the files in the robot.
@@ -531,10 +532,13 @@ class Robot(NotebookWriter):
         """List of netcdf files."""
         return list(self._abifiles.values())
 
+    #@abc.abstractproperty
+    #def abifiles(self) -> list:
+    #    """List of netcdf files."""
+
     def has_different_structures(self, rtol=1e-05, atol=1e-08) -> str:
         """
-        Check if structures are equivalent,
-        return string with info about differences (if any).
+        Check if structures are equivalent, return string with info about differences (if any).
         """
         if len(self) <= 1: return ""
         formulas = set([af.structure.composition.formula for af in self.abifiles])
@@ -649,7 +653,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
 
     def sortby(self, func_or_string: Union[Callable, str, None],
-               reverse: bool = False, unpack: bool = False) -> List[tuple]:
+               reverse: bool = False, unpack: bool = False) -> list[tuple]:
         """
         Sort files in the robot by ``func_or_string``.
 
@@ -669,7 +673,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
     def group_and_sortby(self,
                          hue: Union[Callable, str],
-                         func_or_string: Union[Callable, str, None]) -> List[HueGroup]:
+                         func_or_string: Union[Callable, str, None]) -> list[HueGroup]:
         """
         Group files by ``hue`` and, inside each group` sort items by ``func_or_string``.
 
@@ -860,7 +864,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
     @add_fig_kwargs
     def plot_convergence(self, item: Union[str, Callable],
-                         sortby=None, hue=None, ax=None, fontsize=8, **kwargs):
+                         sortby=None, hue=None, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of ``item`` wrt the ``sortby`` parameter.
         Values can optionally be grouped by ``hue``.
@@ -926,8 +930,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         return fig
 
     @add_fig_kwargs
-    def plot_convergence_items(self, items: List[Union[str, Callable]],
-                               sortby=None, hue=None, fontsize=6, **kwargs):
+    def plot_convergence_items(self, items: list[Union[str, Callable]],
+                               sortby=None, hue=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of a list of ``items`` wrt to the ``sortby`` parameter.
         Values can optionally be grouped by ``hue``.
@@ -1002,7 +1006,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         return fig
 
     @add_fig_kwargs
-    def plot_lattice_convergence(self, what_list=None, sortby=None, hue=None, fontsize=8, **kwargs):
+    def plot_lattice_convergence(self, what_list=None, sortby=None, hue=None,
+                                 fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of the lattice parameters (a, b, c, alpha, beta, gamma).
         wrt the``sortby`` parameter. Values can optionally be grouped by ``hue``.

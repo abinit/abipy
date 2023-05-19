@@ -21,7 +21,6 @@ from pprint import pprint
 from typing import Any, Union, Iterator, Generator
 from tabulate import tabulate
 from pydispatch import dispatcher
-from collections import OrderedDict
 from monty.collections import dict2namedtuple
 from monty.string import list_strings, is_string, make_banner
 from monty.operator import operator_from_str
@@ -619,14 +618,26 @@ class Flow(Node, NodeContainer, MSONable):
             d[task.status].append(Entry(task, wi, ti))
 
         # Sort keys according to their status.
-        return OrderedDict([(k, d[k]) for k in sorted(list(d.keys()))])
+        return {k: d[k] for k in sorted(list(d.keys()))}
+
+    def groupby_work_class(self) -> dict:
+        """
+        Returns a dictionary mapping the work class to the list of works in the flow
+        """
+        class2works = {}
+        for work in self:
+            cls = work.__class__
+            if cls not in class2works: class2works[cls] = []
+            class2works[cls].append(work)
+
+        return class2works
 
     def groupby_task_class(self) -> dict:
         """
         Returns a dictionary mapping the task class to the list of tasks in the flow
         """
         # Find all Task classes
-        class2tasks = OrderedDict()
+        class2tasks = {}
         for task in self.iflat_tasks():
             cls = task.__class__
             if cls not in class2tasks: class2tasks[cls] = []
@@ -910,7 +921,7 @@ class Flow(Node, NodeContainer, MSONable):
             index.append(task.pos_str)
             dstruct = task.input.structure.as_dict(fmt="abivars")
 
-            od = OrderedDict()
+            od = {}
             for vname in varnames:
                 value = task.input.get(vname, None)
                 if value is None: # maybe in structure?
@@ -973,93 +984,9 @@ class Flow(Node, NodeContainer, MSONable):
         Write python script in the flow workdir that can be used by expert
         users to change the input variables of the task according to their status.
         """
-
-        script = """\
-#!/usr/bin/env python
-'''
- WARNING WARNING WARNING
-
-This script changes the input variables of particular tasks and resets certain tasks
-so that it's possible to fix errors before starting a new scheduler.
-
-This is an advanced script and you are supposed to be familiar with the Abipy API.
-Very bad things will happen if you don't use this script properly.
-
-DO NOT RUN THIS SCRIPT IF THE SCHEDULER IS STILL RUNNING YOUR FLOW.
-YOU HAVE BEEN WARNED!
-'''
-
-import sys
-import argparse
-
-import abipy.flowtk as flowtk
-
-def main():
-
-    # Build the main parser.
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('flowdir', help="File or directory containing the ABINIT flow")
-    parser.add_argument('--remove-lock', default=False, action="store_true",
-        help="Remove the lock on the pickle file used to save the status of the flow.")
-    parser.add_argument('--apply', default=False, action="store_true", help="Apply changes to the flow.")
-
-    options = parser.parse_args()
-
-    # Read the flow from the pickle file
-    flow = flowtk.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
-
-    # List with the id of the tasks that will be changed.
-    nids = []
-
-    for task in flow.iflat_tasks():
-
-        # Select tasks according to class and status
-        # Clearly, you will need to customize this part.
-        if task.__class__.__name__ == "PhononTask" and task.status in (task.S_UNCONVERGED, task.S_ERROR):
-
-            nids.append(task.node_id)
-
-            # Here we operate on the AbinitInput of the task.
-            # In this particular case, we want to use toldfe instead of tolvrs.
-            # Again, you will need to customize this part.
-
-            # Remove all the tolerance variables present in the input.
-            task.input.pop_tolerances()
-
-            # Set new stopping criterion
-            task.input["toldfe"] = 1e-8
-            task.input["nstep"] = 1000
-            task.input["prtwf"] = 0
-
-    if options.apply:
-        print(f"Resetting {len(nids)} tasks modified by the user.")
-
-        if nids:
-            for task in flow.iflat_tasks(nids=nids):
-                task.reset()
-
-        print("Writing new pickle file.")
-
-        flow.build_and_pickle_dump()
-    else:
-        print(f"Dry run mode. {len(nids)} tasks have been modified in memory.")
-
-        if nids:
-            for task in flow.iflat_tasks(nids=nids):
-                print(task)
-
-        print("Use --apply to reset these tasks and update the pickle file.")
-        print("Then restart the scheduler with `nohup abirun.py FLOWDIR scheduler ...`")
-
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
-"""
         path_py = os.path.join(self.workdir, "_fix_flow.py")
         with open(path_py, "wt") as fh:
-            fh.write(script)
+            fh.write(_FIX_FLOW_SCRIPT)
             import stat
             st = os.stat(path_py)
             os.chmod(path_py, st.st_mode | stat.S_IEXEC)
@@ -1143,7 +1070,7 @@ if __name__ == "__main__":
         return dfs
 
     def compare_ebands(self, nids=None, with_path=True, with_ibz=True, with_spglib=False, verbose=0,
-                       precision=3, printout=False, with_colors=False):
+                       precision=3, printout=False, with_colors=False) -> tuple:
         """
         Analyze electron bands produced by the tasks.
         Return pandas DataFrame and |ElectronBandsPlotter|.
@@ -1207,7 +1134,7 @@ if __name__ == "__main__":
         return df, ebands_plotter
 
     def compare_hist(self, nids=None, with_spglib=False, verbose=0,
-                     precision=3, printout=False, with_colors=False):
+                     precision=3, printout=False, with_colors=False) -> tuple:
         """
         Analyze HIST nc files produced by the tasks. Print pandas DataFrame with final results.
         Return: (df, hist_plotter)
@@ -1278,7 +1205,7 @@ if __name__ == "__main__":
         stream.write("%s, num_tasks=%s, all_ok=%s\n" % (str(self), self.num_tasks, self.all_ok))
         stream.write("\n")
 
-    def get_dataframe(self, as_dict=False):
+    def get_dataframe(self, as_dict=False) -> pd.DataFrame:
         """
         Return pandas dataframe task info or dictionary if as_dict is True.
         This function should be called after flow.get_status to update the status.
@@ -2003,6 +1930,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                        "   1) Change the workdir of the new flow.\n"
                        "   2) remove the old directory either with `rm -r` or by calling the method flow.rmtree()\n"
                        % (node_id, nodeid_path, self.node_id))
+                #print(msg)
                 raise RuntimeError(msg)
 
         else:
@@ -2024,7 +1952,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             self.write_json_in_workdir("abipy_meta.json", data)
 
         # Write fix_flow.py script for advanced users.
-        self.write_fix_flow_script()
+        #self.write_fix_flow_script()
 
         for work in self:
             work.build(*args, **kwargs)
@@ -2627,6 +2555,53 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         os.chdir(back)
         return name
+
+    def explain(self, nids=None, verbose=0) -> str:
+        """
+        """
+        black_list = {
+            ".. rubric:: Inheritance Diagram",
+            ".. inheritance-diagram:",
+        }
+
+        def polish_doc(doc: str) -> str:
+            """Remove all lines in black_list"""
+            new_lines = [l for l in doc.splitlines() if not any(bad in l for bad in black_list)]
+            return "\n".join(new_lines)
+
+        lines = []; app = lines.append
+        cls2works = self.groupby_work_class()
+        nids = as_set(nids)
+
+        app("")
+        for work_cls, works in cls2works.items():
+            #if not (nids and self.node_id not in nids):
+            #    yield self
+            s = f"work name: {work_cls.__name__}, declared in module: {work_cls.__module__}"
+            app(make_banner(s, mark="="))
+            app("Class docstring:")
+            app(polish_doc(work_cls.__doc__))
+            app("Number of works of this class: %d" % len(works))
+            app("List of works of this class:")
+            for work  in works:
+                app("\t" + str(work))
+            #app(1 * "\n")
+
+        cls2tasks = self.groupby_task_class()
+        for task_cls, tasks in cls2tasks.items():
+            #if not (nids and self.node_id not in nids):
+            #    yield self
+            s = f"Task name: {task_cls.__name__}, declared in module: {task_cls.__module__}"
+            app(make_banner(s, mark="="))
+            app("Class docstring:")
+            app(polish_doc(task_cls.__doc__))
+            app("Number of tasks of this class: %d" % len(tasks))
+            app("List of tasks of this class:")
+            for task  in tasks:
+                app("\t" + str(task))
+            #app(1 * "\n")
+
+        return "\n".join(lines)
 
     def get_graphviz(self, engine="automatic", graph_attr=None, node_attr=None, edge_attr=None):
         """
@@ -3340,3 +3315,88 @@ def phonon_conv_flow(workdir: str, scf_input: AbinitInput, qpoints, params,
 
     if allocate: flow.allocate()
     return flow
+
+
+_FIX_FLOW_SCRIPT = """\
+#!/usr/bin/env python
+'''
+WARNING WARNING WARNING
+
+This script changes the input variables of particular tasks and resets certain tasks
+so that it's possible to fix errors before starting a new scheduler.
+
+This is an advanced script and you are supposed to be familiar with the Abipy API.
+Very bad things will happen if you don't use this script properly.
+
+DO NOT RUN THIS SCRIPT IF THE SCHEDULER IS STILL RUNNING YOUR FLOW.
+YOU HAVE BEEN WARNED!
+'''
+
+import sys
+import argparse
+
+import abipy.flowtk as flowtk
+
+def main():
+
+    # Build the main parser.
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('flowdir', help="File or directory containing the ABINIT flow")
+    parser.add_argument('--remove-lock', default=False, action="store_true",
+        help="Remove the lock on the pickle file used to save the status of the flow.")
+    parser.add_argument('--apply', default=False, action="store_true", help="Apply changes to the flow.")
+
+    options = parser.parse_args()
+
+    # Read the flow from the pickle file
+    flow = flowtk.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
+
+    # List with the id of the tasks that will be changed.
+    nids = []
+
+    for task in flow.iflat_tasks():
+
+        # Select tasks according to class and status
+        # Clearly, you will need to customize this part.
+        if task.__class__.__name__ == "PhononTask" and task.status in (task.S_UNCONVERGED, task.S_ERROR):
+
+            nids.append(task.node_id)
+
+            # Here we operate on the AbinitInput of the task.
+            # In this particular case, we want to use toldfe instead of tolvrs.
+            # Again, you will need to customize this part.
+
+            # Remove all the tolerance variables present in the input.
+            task.input.pop_tolerances()
+
+            # Set new stopping criterion
+            task.input["toldfe"] = 1e-8
+            task.input["nstep"] = 1000
+            task.input["prtwf"] = 0
+
+    if options.apply:
+        print(f"Resetting {len(nids)} tasks modified by the user.")
+
+        if nids:
+            for task in flow.iflat_tasks(nids=nids):
+                task.reset()
+
+        print("Writing new pickle file.")
+
+        flow.build_and_pickle_dump()
+    else:
+        print(f"Dry run mode. {len(nids)} tasks have been modified in memory.")
+
+        if nids:
+            for task in flow.iflat_tasks(nids=nids):
+                print(task)
+
+        print("Use --apply to reset these tasks and update the pickle file.")
+        print("Then restart the scheduler with `nohup abirun.py FLOWDIR scheduler ...`")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+"""
