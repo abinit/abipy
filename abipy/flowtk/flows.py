@@ -13,6 +13,7 @@ import collections
 import warnings
 import shutil
 import tempfile
+import json
 import numpy as np
 import pandas as pd
 
@@ -36,6 +37,7 @@ from abipy.tools.typing import Figure, TYPE_CHECKING
 from abipy.core.globals import get_workdir
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.printing import print_dataframe
+from abipy.tools.serialization import mjson_loads
 from abipy.flowtk import wrappers
 from .nodes import Status, Node, NodeError, NodeResults, Dependency, GarbageCollector, check_spectator
 from .tasks import Task, ScfTask, TaskManager, FixQueueCriticalError
@@ -1321,7 +1323,6 @@ class Flow(Node, NodeContainer, MSONable):
             cprint("\nall_ok reached\n", "green", file=stream)
 
         if return_df:
-            import pandas as pd
             rows = []
             for task, data in data_task.items():
                 d = task.get_dataframe(as_dict=True)
@@ -2556,11 +2557,13 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         os.chdir(back)
         return name
 
-    def explain(self, nids=None, verbose=0) -> str:
+    def explain(self, what="all", nids=None, verbose=0) -> str:
         """
         Return string with the docstring of the works/tasks in the Flow grouped by class.
 
         Args:
+            what: "all" to print all nodes, "works" for Works only, "tasks" for tasks only.
+            nids: list of node identifiers used to filter works or tasks.
             verbose: Verbosity level
         """
         black_list = {
@@ -2576,39 +2579,64 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             s = colored(s, color=color_node[node_type])
             return s
 
-        lines = []; app = lines.append
-
-        #if explain_works:
-        cls2works = self.groupby_work_class()
+        explain_works = what in {"all", "works"}
+        explain_tasks = what in {"all", "tasks"}
         nids = as_set(nids)
 
-        app("")
-        for work_cls, works in cls2works.items():
-            #if not (nids and self.node_id not in nids):
-            #    yield self
-            s = f"work name: {work_cls.__name__}, declared in module: {work_cls.__module__}"
-            app(make_banner(s, mark="="))
-            app("Class docstring:")
-            app(polish_doc(work_cls.__doc__, "work"))
-            app("Number of works of this class: %d" % len(works))
-            app("List of works of this class:")
-            for work  in works:
-                app("\t" + str(work))
+        lines = []; app = lines.append
 
-        #if explain_tasks:
-        cls2tasks = self.groupby_task_class()
-        for task_cls, tasks in cls2tasks.items():
-            #if not (nids and self.node_id not in nids):
-            #    yield self
-            s = f"Task name: {task_cls.__name__}, declared in module: {task_cls.__module__}"
-            app(make_banner(s, mark="="))
-            app("Class docstring:")
-            app(polish_doc(task_cls.__doc__, "task"))
-            app("List of tasks of this class: (%s)" % len(tasks))
-            for task  in tasks:
-                app("\t" + str(task))
+        if explain_works:
+            app("")
+            cls2works = self.groupby_work_class()
+            for work_cls, works in cls2works.items():
+                if nids and not any(work.node_id in nids for work in works): continue
+                s = f"work name: {work_cls.__name__}, declared in module: {work_cls.__module__}"
+                app(make_banner(s, mark="="))
+                app(polish_doc(work_cls.__doc__, "work"))
+                app("Works belonging to this class (%d):" % len(works))
+                for work  in works:
+                    app(4* " " + str(work) + ", status: " + work.status.colored)
+
+        if explain_tasks:
+            app("")
+            cls2tasks = self.groupby_task_class()
+            for task_cls, tasks in cls2tasks.items():
+                if nids and not any(task.node_id in nids for task in tasks): continue
+                s = f"Task name: {task_cls.__name__}, declared in module: {task_cls.__module__}"
+                app(make_banner(s, mark="="))
+                app(polish_doc(task_cls.__doc__, "task"))
+                app("Tasks belonging to this class (%s):" % len(tasks))
+                for task  in tasks:
+                    app(4 * " " + str(task) + ", status: " + task.status.colored)
 
         return "\n".join(lines)
+
+    def show_autoparal(self, nids=None, verbose=0):
+        """
+        Print to terminal the autoparal configurations for each task in the Flow.
+
+        Args:
+            nids: list of node identifiers used to filter works or tasks.
+            verbose: Verbosity level
+        """
+        print("")
+        for task in self.iflat_tasks():
+            if nids and task.node_id not in nids: continue
+            json_path = os.path.join(task.workdir, "autoparal.json")
+            if not os.path.exists(json_path):
+                if verbose: print("Cannot find:", json_path)
+                continue
+
+            with open(json_path, "rt") as fh:
+                d = json.load(fh)
+
+            optimal_conf = d.pop("optimal_conf")
+            paral_hints = mjson_loads(json.dumps(d))
+            df = paral_hints.get_dataframe()
+            print("Task:", task, ", status:", task.status.colored)
+            print(df)
+            print("info:", paral_hints.info)
+            print("optimal:", optimal_conf)
 
     def get_graphviz(self, engine="automatic", graph_attr=None, node_attr=None, edge_attr=None):
         """
@@ -2644,7 +2672,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 color=node.color_hex,
                 fontsize="8.0",
                 label=(str(node) if not hasattr(node, "pos_str") else
-                    node.pos_str + "\n" + node.__class__.__name__),
+                       node.pos_str + "\n" + node.__class__.__name__),
             )
 
         edge_kwargs = dict(arrowType="vee", style="solid")
@@ -2781,8 +2809,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 i = [dep.node for dep in child.deps].index(work)
                 edge_labels[(work, child)] = "+".join(child.deps[i].exts)
 
-        # Get positions for all nodes using layout_type.
-        # e.g. pos = nx.spring_layout(g)
+        # Get positions for all nodes using layout_type e.g. pos = nx.spring_layout(g)
         pos = getattr(nx, layout_type + "_layout")(g)
 
         # Select function used to compute the size of the node
@@ -2864,22 +2891,22 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         nb.cells.extend([
             #nbf.new_markdown_cell("This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
             nbf.new_code_cell("""\
-    import sys, os
-    import numpy as np
+import sys, os
+import numpy as np
 
-    %matplotlib notebook
-    from IPython.display import display
+%matplotlib notebook
+from IPython.display import display
 
-    # This to render pandas DataFrames with https://github.com/quantopian/qgrid
-    #import qgrid
-    #qgrid.nbinstall(overwrite=True)  # copies javascript dependencies to your /nbextensions folder
+# This to render pandas DataFrames with https://github.com/quantopian/qgrid
+#import qgrid
+#qgrid.nbinstall(overwrite=True)  # copies javascript dependencies to your /nbextensions folder
 
-    from abipy import abilab
+from abipy import abilab
 
-    # Tell AbiPy we are inside a notebook and use seaborn settings for plots.
-    # See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
-    abilab.enable_notebook(with_seaborn=True)
-    """),
+# Tell AbiPy we are inside a notebook and use seaborn settings for plots.
+# See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
+abilab.enable_notebook(with_seaborn=True)
+"""),
 
             nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % self.workdir),
             nbf.new_code_cell("if flow.num_errored_tasks: flow.debug()"),
@@ -3001,7 +3028,7 @@ class FlowCallbackError(Exception):
     """Exceptions raised by FlowCallback."""
 
 
-class FlowCallback(object):
+class FlowCallback:
     """
     This object implements the callbacks executed by the |Flow| when
     particular conditions are fulfilled. See on_dep_ok method of |Flow|.
@@ -3223,6 +3250,7 @@ class NonLinearCoeffFlow(Flow):
        nirred tasks where nirred is the number of irreducible perturbations
        for that particular q-point.
     """
+
     @classmethod
     def from_scf_input(cls, workdir: str, scf_input: AbinitInput,
                        manager=None, allocate=True) -> NonLinearCoeffFlow:
@@ -3284,8 +3312,6 @@ class NonLinearCoeffFlow(Flow):
 
         # Call the method of the super class.
         retcode = super().finalize()
-        print("retcode", retcode)
-        #if retcode != 0: return retcode
         return retcode
 
 

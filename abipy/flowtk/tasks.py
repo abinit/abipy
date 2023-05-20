@@ -31,11 +31,11 @@ from abipy.tools.iotools import yaml_safe_load
 from abipy.tools.typing import TYPE_CHECKING
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
 from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
-from . import qutils as qu
 from .nodes import Status, Node, NodeError, NodeResults, FileNode #, check_spectator
+from .abitimer import AbinitTimerParser
+from . import qutils as qu
 from . import abiinspect
 from . import events
-from .abitimer import AbinitTimerParser
 
 if TYPE_CHECKING: # Avoid circular dependencies
     from abipy.abio.inputs import AbinitInput, OpticInput
@@ -134,11 +134,10 @@ class TaskResults(NodeResults):
 
 class ParalConf(AttrDict):
     """
-    This object store the parameters associated to one
-    of the possible parallel configurations reported by ABINIT.
-    Essentially it is a dictionary whose values can also be accessed
-    as attributes. It also provides default values for selected keys
-    that might not be present in the ABINIT dictionary.
+    This object store the parameters associated to one of the possible
+    parallel configurations reported by ABINIT.
+    Essentially it is a dictionary whose values can also be accessed as attributes.
+    It also provides default values for selected keys that might not be present in the ABINIT dictionary.
 
     Example:
 
@@ -181,7 +180,7 @@ class ParalConf(AttrDict):
             if k not in self:
                 self[k] = v
 
-    def __str__(self):
+    def __str__(self) -> str:
         stream = StringIO()
         pprint(self, stream=stream)
         return stream.getvalue()
@@ -250,9 +249,10 @@ class ParalHints(collections.abc.Iterable):
     """
     Iterable with the hints for the parallel execution reported by ABINIT.
     """
+
     Error = ParalHintsError
 
-    def __init__(self, info, confs):
+    def __init__(self, info: dict, confs: list[dict]):
         self.info = info
         self._confs = [ParalConf(**d) for d in confs]
 
@@ -260,8 +260,8 @@ class ParalHints(collections.abc.Iterable):
     def from_mpi_omp_lists(cls, mpi_procs: int, omp_threads: int) -> ParalHints:
         """
         Build a list of Parallel configurations from two lists
-        containing the number of MPI processes and the number of OpenMP threads
-        i.e. product(mpi_procs, omp_threads).
+        with the number of MPI processes and the number of OpenMP threads i.e. product(mpi_procs, omp_threads).
+
         The configuration have parallel efficiency set to 1.0 and no input variables.
         Mainly used for preparing benchmarks.
         """
@@ -277,13 +277,13 @@ class ParalHints(collections.abc.Iterable):
     def __iter__(self):
         return self._confs.__iter__()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._confs.__len__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "\n".join(str(conf) for conf in self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self)
 
     @lazy_property
@@ -315,8 +315,18 @@ class ParalHints(collections.abc.Iterable):
         return cls(info=d["info"], confs=d["confs"])
 
     def copy(self) -> ParalHints:
-        """Shallow copy of self."""
+        """Shallow copy"""
         return copy.copy(self)
+
+    def get_dataframe(self) -> pd.DataFrame:
+        rows = []
+        for conf in self:
+            d = conf.copy()
+            abi_vars = d.pop("vars")
+            d.update(**abi_vars)
+            rows.append(d)
+
+        return pd.DataFrame(rows)
 
     def select_with_condition(self, condition, key=None) -> None:
         """
@@ -2991,7 +3001,7 @@ class AbinitTask(Task):
         # Write autoparal configurations to JSON file.
         d = pconfs.as_dict()
         d["optimal_conf"] = optconf
-        json_pretty_dump(d, os.path.join(self.workdir, "autoparal.json"))
+        #json_pretty_dump(d, os.path.join(self.workdir, "autoparal.json"))
 
         ##############
         # Finalization

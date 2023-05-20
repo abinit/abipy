@@ -145,6 +145,29 @@ def cod_search(formula, primitive=False):
     return restapi.CodStructures(structures, cod_ids, data=data)
 
 
+def display_structure(obj, **kwargs):
+    """
+    Use Jsmol to display a structure in the jupyter notebook.
+    Requires `nbjsmol` notebook extension installed on the local machine.
+    Install it with `pip install nbjsmol`. See also https://github.com/gmatteo/nbjsmol.
+
+    Args:
+        obj: Structure object or file with a structure or python object with a `structure` attribute.
+        kwargs: Keyword arguments passed to `nbjsmol_display`
+    """
+    try:
+        from nbjsmol import nbjsmol_display
+    except ImportError as exc:
+        raise ImportError(str(exc) +
+                          "\ndisplay structure requires nbjsmol package\n."
+                          "Install it with `pip install nbjsmol.`\n"
+                          "See also https://github.com/gmatteo/nbjsmol.")
+
+    # Cast to structure, get string with cif data and pass it to nbjsmol.
+    structure = Structure.as_structure(obj)
+    return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
+
+
 class Structure(pmg_Structure, NotebookWriter):
     """
     Extends :class:`pymatgen.core.structure.Structure` with Abinit-specific methods.

@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Works and Flows for GWR calculations (GW with supercells)
+Works and Flows for GWR calculations (GW with supercells).
 """
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from abipy.abio.inputs import AbinitInput, RUNL, GWR_TASK
 from abipy.electrons.gwr import GwrRobot
+
 from .nodes import Node
 from .tasks import TaskManager # ScfTask, NscfTask,
 from .works import Work
@@ -16,8 +17,8 @@ from .works import Work
 class DirectDiagoWork(Work):
     """
     This work performs the direct diagonalization of the KS Hamiltonian
-    using the density produced by a SCF run to produce a WFK file with
-    empty states in the outdir of the second task of the Work.
+    using the density produced by a SCF run and produces a WFK file with
+    empty states in the outdir of the second task.
 
     NB: An Abinit build with Scalapack is required to run GWR.
 
@@ -84,8 +85,8 @@ class _BaseGwrWork(Work):
 class GwrSigmaConvWork(_BaseGwrWork):
     """
     This work performs multiple QP calculations with the GWR code
-    and produces a `qp_dirgaps.xlsx` file in the `outdata` directory
-    of the work with the direct QP gaps obtained with the different settings.
+    and produces a `qp_dirgaps.xlsx` file in its `outdata` directory
+    with the direct QP gaps obtained with the different parameters.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GwrSigmaConvWork
@@ -103,13 +104,18 @@ class GwrSigmaConvWork(_BaseGwrWork):
         return super().on_all_ok()
 
 
-class GwrRpaEneConvWork(_BaseGwrWork):
-    """
-    This work computes the RPA energy for different number
-    of points in the minimax mesh.
-    """
-
-    def on_all_ok(self):
-        """
-        """
-        return super().on_all_ok()
+#class GwrRpaEneConvWork(_BaseGwrWork):
+#    """
+#    This work computes the RPA energy for different number
+#    of points in the minimax mesh.
+#    """
+#
+#    def on_all_ok(self):
+#        """
+#        """
+#        gwr_files = self.get_all_outdata_files_with_ext("_GWR.nc")
+#        with GwrRobot.from_files(gwr_files) as robot:
+#            df = robot.get_rpaene_dataframe(with_params=True)
+#            df.to_excel(self.outdir.path_in("rpaene.xlsx"))
+#
+#        return super().on_all_ok()

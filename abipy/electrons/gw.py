@@ -28,8 +28,6 @@ from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.electrons.scissors import Scissors
 
-import logging
-logger = logging.getLogger(__name__)
 
 __all__ = [
     "QPState",
@@ -1345,6 +1343,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         gw_kcoords = [k.frac_coords for k in self.sigma_kpoints]
 
         # Read GW energies from file (real part) and compute corrections if ks_ebands_kpath.
+        # This is the section in which the fileoformat (SIGRES.nc, GWR.nc) enters into play...
         egw_rarr = self.r.read_value("egw", cmode="c").real
         if ks_ebands_kpath is not None:
             if ks_ebands_kpath.structure != self.structure:
@@ -1403,7 +1402,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                     ks_ebands_kmesh.nband, bstop))
             if ks_ebands_kpath.structure != self.structure:
                 cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
-                #raise ValueError("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!")
             if not ks_ebands_kmesh.kpoints.is_ibz:
                 cprint("Energies in ks_ebands_kmesh should be given in the IBZ", "red")
 
@@ -1622,6 +1620,7 @@ class SigresReader(ETSF_Reader):
     ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
     ! Frequencies used to evaluate the Derivative of Sigma.
     """
+
     def __init__(self, path: str):
         self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
@@ -1695,7 +1694,7 @@ class SigresReader(ETSF_Reader):
         """True if self contains the spectral function."""
         return self.nomega_r > 0
 
-    def kpt2fileindex(self, kpoint):
+    def kpt2fileindex(self, kpoint) -> int:
         """
         Helper function that returns the index of kpoint in the netcdf file.
         Accepts |Kpoint| instance or integer
@@ -1711,7 +1710,7 @@ class SigresReader(ETSF_Reader):
         if duck.is_intlike(kpoint): return int(kpoint)
         return self.ibz.index(kpoint)
 
-    def gwkpt2seqindex(self, gwkpoint):
+    def gwkpt2seqindex(self, gwkpoint) -> int:
         """
         This function returns the index of the GW k-point in (0:nkptgw)
         Used to access data in the arrays that are dimensioned [0:nkptgw] e.g. minbnd.
@@ -1787,18 +1786,18 @@ class SigresReader(ETSF_Reader):
             ze0=ri(self._ze0[spin, ik_file, ib_gw]),
         )
 
-    def read_qpgaps(self):
+    def read_qpgaps(self) -> np.ndarray:
         """Read the QP gaps. Returns [nsppol, nkibz] array with QP gaps in eV."""
         return self.read_value("egwgap")
 
-    def read_ksgaps(self):
+    def read_ksgaps(self) -> np.ndarray:
         """Read the KS gaps. Returns [nsppol, nkibz] array with KS gaps in eV."""
         return self.read_value("e0gap")
 
-    def read_e0(self, spin, kfile, band):
+    def read_e0(self, spin, kfile, band) -> float:
         return self.ks_bands.eigens[spin, kfile, band]
 
-    def read_sigmaw(self, spin, kpoint, band):
+    def read_sigmaw(self, spin, kpoint, band) -> tuple:
         """Returns the real and the imaginary part of the self energy."""
         if not self.has_spfunc:
             raise ValueError("%s does not contain spectral function data." % self.path)
@@ -1810,7 +1809,7 @@ class SigresReader(ETSF_Reader):
 
         return self._omega_r, self._sigxcme[spin,:, ik, ib_gw]
 
-    def read_spfunc(self, spin, kpoint, band):
+    def read_spfunc(self, spin, kpoint, band) -> tuple[np.ndarray]:
         """
         Returns the spectral function.
 
@@ -1851,10 +1850,10 @@ class SigresReader(ETSF_Reader):
         else:
             return eigvec_qp[spin, ik, :, :, 0] + 1j * eigvec_qp[spin, ik, :, :, 1]
 
-    def read_params(self):
+    def read_params(self) -> dict:
         """
         Read the parameters of the calculation.
-        Returns: OrderedDict with the value of the parameters.
+        Returns dict with the value of the parameters.
         """
         param_names = [
             "ecutwfn", "ecuteps", "ecutsigx", "scr_nband", "sigma_nband",
@@ -1863,7 +1862,7 @@ class SigresReader(ETSF_Reader):
 
         # Read data and convert to scalar to avoid problems with pandas dataframes.
         # Old sigres files may not have all the metadata.
-        params = OrderedDict()
+        params = {}
         for pname in param_names:
             v = self.read_value(pname, default=None)
             params[pname] = v if v is None else np.asarray(v).item()
@@ -1882,7 +1881,7 @@ class SigresReader(ETSF_Reader):
     #        return self._mlda_to_qp[spin,ik,:,:]
 
     #def read_qprhor(self):
-    #    """Returns the QPState density in real space."""
+    #    """Returns the QP density in real space."""
 
 
 class SigresRobot(Robot, RobotWithEbands):
@@ -1986,7 +1985,7 @@ class SigresRobot(Robot, RobotWithEbands):
         rows, row_names = [], []
         for label, sigres in self.items():
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
             for aname in attrs:
                 d[aname] = getattr(sigres, aname, None)
 
