@@ -91,7 +91,7 @@ def oncv_plot(options):
 
 def oncv_compare(options):
     """
-    Compare multiple oncvpsp output fies.
+    Compare multiple oncvpsp output files.
     """
     cli.customize_mpl(options)
 
@@ -193,7 +193,7 @@ def oncv_run(options):
     onc_parser = OncvParser(out_path)
     onc_parser.scan()
     if not onc_parser.run_completed:
-        cprint("oncvpsp output is not complete. Exiting", "red")
+        cprint("oncvpsp output is not completed. Exiting", "red")
         return 1
 
     # Extract psp8 files from the oncvpsp output and write it to file.

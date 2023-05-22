@@ -248,20 +248,20 @@ class Smearing(AttrDict):
     ]
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict):
         """
         Makes Smearing obey the general json interface used in pymatgen for easier serialization.
         """
         return cls(**{k: d[k] for k in cls._MANDATORY_KEYS})
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         """
         Makes Smearing obey the general json interface used in pymatgen for easier serialization.
         """
         return self
 
-    def to_json(self):
+    def to_json(self) -> str:
         """
         Returns a JSON_ string representation of the MSONable object.
         """
@@ -369,7 +369,9 @@ class ElectronBands(Has_Structure):
 
     @classmethod
     def from_dict(cls, d: dict) -> ElectronBands:
-        """Reconstruct object from the dictionary in MSONable format produced by as_dict."""
+        """
+        Reconstruct object from the dictionary in MSONable format produced by as_dict.
+        """
         d = d.copy()
         kd = d["kpoints"].copy()
         kd.pop("@module")

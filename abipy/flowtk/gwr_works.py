@@ -97,9 +97,16 @@ class GwrSigmaConvWork(_BaseGwrWork):
         Generate `qp_dirgaps.xlsx` file in the `outdata` directory.
         """
         gwr_files = self.get_all_outdata_files_with_ext("_GWR.nc")
-        with GwrRobot.from_files(gwr_files) as robot:
-            df = robot.get_dirgaps_dataframe(with_params=True)
+        with GwrRobot.from_files(gwr_files) as gwr_robot:
+            df = gwr_robot.get_dirgaps_dataframe(with_params=True)
             df.to_excel(self.outdir.path_in("qp_dirgaps.xlsx"))
+
+            with gwr_robot.get_pyscript(self.outdir.path_in("gwr_robot.py")) as script:
+                script.add_text("""
+#ca = robot.get_convergence_analyzer("ecut", ytols_dict)
+#print(ca)
+#ca.plot()
+""")
 
         return super().on_all_ok()
 

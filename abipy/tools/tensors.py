@@ -2,6 +2,7 @@
 """
 This modules provides subclasses of pymatgen tensor objects.
 """
+from __future__ import annotations
 import numpy as np
 import pandas as pd
 
@@ -12,13 +13,13 @@ from pymatgen.analysis.piezo import PiezoTensor # noqa: F401
 from abipy.iotools import ETSF_Reader
 
 
-class _Tensor33(object):
+class _Tensor33:
 
     def _repr_html_(self):
         """Integration with jupyter notebooks."""
         return self.get_dataframe()._repr_html_()
 
-    def get_dataframe(self, tol=1e-3, cmode=None):
+    def get_dataframe(self, tol=1e-3, cmode=None) -> pd.DataFrame:
         """
         Return |pandas-Dataframe| with tensor elements set to zero below `tol`.
 
@@ -31,7 +32,7 @@ class _Tensor33(object):
 
         return pd.DataFrame({"x": tensor[:,0], "y": tensor[:,1], "z": tensor[:,2]}, index=["x", "y", "z"])
 
-    def get_voigt_dataframe(self, tol=1e-3):
+    def get_voigt_dataframe(self, tol=1e-3) -> pd.DataFrame:
         """
         Return |pandas-DataFrame| with Voigt indices as colums.
         Elements below tol are set to zero.
@@ -62,7 +63,7 @@ class DielectricTensor(SquareTensor, _Tensor33):
     .. inheritance-diagram:: DielectricTensor
     """
 
-    def reflectivity(self, n1=1, tol=1e-6):
+    def reflectivity(self, n1=1, tol=1e-6) -> pd.DataFrame:
         """
         If the tensor is diagonal (with off diagonal elements smaller than tol)
         returns the three components of the reflectivity
@@ -97,7 +98,7 @@ class NLOpticalSusceptibilityTensor(Tensor):
     """
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> NLOpticalSusceptibilityTensor:
         """
         Creates the tensor from an anaddb.nc netcdf file containing ``dchide``.
         This requires to run anaddb with ``tnlflag`` > 0

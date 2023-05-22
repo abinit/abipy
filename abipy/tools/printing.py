@@ -4,9 +4,11 @@ from __future__ import annotations
 import sys
 import pandas as pd
 
+from io import StringIO
 
-def print_dataframe(df: pd.DataFrame, 
-                    title=None, precision=6, sortby=None, file=sys.stdout, display=None):
+
+def print_dataframe(df: pd.DataFrame,
+                    title=None, precision=6, sortby=None, file=sys.stdout, display=None) -> None:
     """
     Print entire pandas DataFrame.
 
@@ -23,13 +25,12 @@ def print_dataframe(df: pd.DataFrame,
     """
     return_string = file == "string"
     if return_string:
-        from io import StringIO
         file = StringIO()
 
     if title is not None: print(title, file=file)
     if sortby is not None and sortby in df:
         df = df.sort_values(sortby, inplace=False)
-    
+
     with pd.option_context("display.max_rows", len(df),
                            "display.max_columns", len(list(df.keys())),
                            "display.precision", precision,

@@ -6,12 +6,11 @@ import collections
 import numpy as np
 
 from io import StringIO
-from typing import Any, List, Union, Optional, Iterable, Tuple
-from abipy.data import nist_database
+from typing import Any, Union, Optional, Iterable
+from monty.functools import lazy_property
 from scipy.interpolate import UnivariateSpline
 from scipy.integrate import cumtrapz
-
-from monty.functools import lazy_property
+from abipy.data import nist_database
 
 __version__ = "0.1"
 __author__ = "Matteo Giantomassi"
@@ -56,7 +55,7 @@ def _asl(obj: Any) -> int:
         return int(obj)
 
 
-def states_from_string(confstr: str) -> List[QState]:
+def states_from_string(confstr: str) -> list[QState]:
     """
     Parse a string with an atomic configuration and build a list of `QState` instance.
     """
@@ -203,7 +202,7 @@ class AtomicConfiguration:
     """
     Atomic configuration of an all-electron atom.
     """
-    def __init__(self, Z: int, states: List[QState]) -> None:
+    def __init__(self, Z: int, states: list[QState]) -> None:
         """
         Args:
             Z: Atomic number.
@@ -393,7 +392,7 @@ class RadialFunction:
         return len(self.rmesh)
 
     @property
-    def minmax_ridx(self) -> Tuple[int, int]:
+    def minmax_ridx(self) -> tuple[int, int]:
         """
         Returns the indices of the values in a list with the maximum and minimum value.
         """
@@ -402,7 +401,7 @@ class RadialFunction:
         return minimum[0], maximum[0]
 
     @property
-    def inodes(self) -> List[int]:
+    def inodes(self) -> list[int]:
         """"
         List with the index of the nodes of the radial function.
         """

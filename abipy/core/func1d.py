@@ -58,7 +58,7 @@ class Function1D:
     def __iter__(self):
         return zip(self.mesh, self.values)
 
-    def __getitem__(self, slice) -> Tuple(float, float):
+    def __getitem__(self, slice) -> Tuple[float, float]:
         return self.mesh[slice], self.values[slice]
 
     def __eq__(self, other) -> bool:

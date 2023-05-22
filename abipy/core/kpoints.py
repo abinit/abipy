@@ -1847,7 +1847,6 @@ class Ktables:
     """
     def __init__(self, structure, mesh, is_shift, has_timrev):
         """
-
         Args:
             structure
             mesh
@@ -1973,7 +1972,7 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
                            path_ticks=np.array(path_ticks))
 
 
-def build_segments(k0_list, npts, step, red_dirs, reciprocal_lattice):
+def build_segments(k0_list, npts, step, red_dirs, reciprocal_lattice) -> np.ndarray:
     """
     For each point in k0_list, build a line passing through the point for each
     reduced direction in red_dir. Each line consists of `npts` points with step `step` in Ang-1

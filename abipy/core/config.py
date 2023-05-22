@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import os
 
-from typing import Optional, List
-from pydantic import BaseSettings, Field
+from typing import Optional
 from monty.json import jsanitize
+from pydantic import BaseSettings, Field
 from abipy.tools.iotools import yaml_safe_load
 
 
@@ -44,7 +44,7 @@ class AbipyConfig(BaseSettings):
 
     worker_scratchdir: str = Field(None, description="Scratch directory used by AbipyWorkers to generate Flows")
 
-    remote_hosts_for_workers: List[str] = Field(None, description="List of remote hosts used to run AbipyWorkers")
+    remote_hosts_for_workers: list[str] = Field(None, description="List of remote hosts used to run AbipyWorkers")
 
     class Config:
         case_sensitive = False

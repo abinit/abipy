@@ -789,11 +789,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         """
         if mode == "html":
             import html
-
             def escape(text):
                 return html.escape(text, quote=True)
         else:
-
             def escape(text):
                 return text
 

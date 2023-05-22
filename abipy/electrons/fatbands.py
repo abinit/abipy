@@ -1873,8 +1873,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @add_plotly_fig_kwargs
     def plotly_fatbands_with_pjdos(self, e0="fermie", fact=1.0, lmax=None, blist=None, view="type",
-                                 pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
-                                 fontsize=12, ylims=None, **kwargs):
+                                   pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
+                                   fontsize=12, ylims=None, **kwargs):
         """
         Compute the fatbands and the PJDOS on the same figure with plotly, a.k.a the Sistine Chapel.
 

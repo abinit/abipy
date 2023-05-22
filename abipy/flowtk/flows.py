@@ -2559,7 +2559,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     def explain(self, what="all", nids=None, verbose=0) -> str:
         """
-        Return string with the docstring of the works/tasks in the Flow grouped by class.
+        Return string with the docstrings of the works/tasks in the Flow grouped by class.
 
         Args:
             what: "all" to print all nodes, "works" for Works only, "tasks" for tasks only.
@@ -2611,7 +2611,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         return "\n".join(lines)
 
-    def show_autoparal(self, nids=None, verbose=0):
+    def show_autoparal(self, nids=None, verbose=0) -> None:
         """
         Print to terminal the autoparal configurations for each task in the Flow.
 

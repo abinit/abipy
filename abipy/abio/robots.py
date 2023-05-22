@@ -10,6 +10,7 @@ import os
 #import abc
 import inspect
 import itertools
+import json
 import numpy as np
 import pandas as pd
 
@@ -18,12 +19,16 @@ from typing import Callable, Union
 from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
+from monty.json import MontyEncoder
+from abipy.tools.serialization import pmg_serialize
+from abipy.tools.iotools import make_executable
 from abipy.core.mixins import NotebookWriter
 from abipy.tools.numtools import sort_and_groupby
 from abipy.tools import duck
 from abipy.tools.typing import Figure
 from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    rotate_ticklabels, set_visible)
+    rotate_ticklabels, set_visible, ConvergenceAnalyzer)
+
 
 class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
     """
@@ -199,6 +204,24 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
         return new
 
     @classmethod
+    def from_json_file(cls, filepath: str):
+        from abipy.tools.serialization import mjson_load
+        new = mjson_load(filepath)
+        print(new)
+        return new
+        #with open(filepath, "rt") as fh:
+        #    d = json.load(fh)
+        #    return cls.from_dict(d)
+
+    @classmethod
+    def from_work(cls, work, outdirs="all", nids=None, ext=None, task_class=None) -> Robot:
+        """
+        Build a robot from a |Work| object.
+        """
+        nids = [work.node_id] + [task.node_id for task in work]
+        return cls.from_flow(work.flow, nids=nids)
+
+    @classmethod
     def from_flow(cls, flow, outdirs="all", nids=None, ext=None, task_class=None) -> Robot:
         """
         Build a robot from a |Flow| object.
@@ -221,10 +244,6 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
         .. code-block:: python
 
             with abilab.GsrRobot.from_flow(flow) as robot:
-                print(robot)
-
-            # That is equivalent to:
-            with Robot.from_flow(flow, ext="GSR") as robot:
                 print(robot)
 
         Returns:
@@ -337,19 +356,30 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
 
         self._abifiles[label] = abifile
 
-    #def pop_filepath(self, filepath):
+    @pmg_serialize
+    def as_dict(self) -> dict:
+        return dict(filepaths=[abifile.filepath for abifile in self.abifiles])
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        return cls.from_files(d["filepaths"])
+
+    def to_json(self) -> str:
+        """
+        Returns a JSON string representation of the object.
+        """
+        return json.dumps(self.as_dict(), cls=MontyEncoder)
+
+    def get_pyscript(self, filepath: str) -> RobotPythonScript:
+        return RobotPythonScript(self, filepath)
+
+    #def pop_filepath(self, filepath: str) -> None:
     #    """
-    #    Remove the file with the given `filepath` and close it.
+    #    Remove the file with the given `filepath`.
     #    """
     #    if label, abifile in self._abifiles.items():
     #        if abifile.filepath != filepath: continue
     #        self._abifiles.pop(label)
-    #        if self._do_close.pop(abifile.filepath, False):
-    #            try:
-    #                abifile.close()
-    #            except Exception as exc:
-    #                print("Exception while closing: ", abifile.filepath)
-    #                print(exc)
 
     def iter_lineopt(self):
         """Generates matplotlib linestyles."""
@@ -843,7 +873,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
     @staticmethod
     @wraps(plot_xy_with_hue)
-    def plot_xy_with_hue(*args, **kwargs):
+    def plot_xy_with_hue(*args, **kwargs) -> Figure:
         return plot_xy_with_hue(*args, **kwargs)
 
     @staticmethod
@@ -1005,6 +1035,10 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         return fig
 
+    def get_convergence_analyzer(self, xname: str, ytols_dict: dict) -> ConvergenceAnalyzer:
+        df = self.get_dataframe()
+        return ConvergenceAnalyzer.from_dataframe(df, xname, ytols_dict)
+
     @add_fig_kwargs
     def plot_lattice_convergence(self, what_list=None, sortby=None, hue=None,
                                  fontsize=8, **kwargs) -> Figure:
@@ -1134,7 +1168,7 @@ class HueGroup:
         assert len(abifiles) == len(labels)
         assert len(abifiles) == len(xvalues)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.abifiles)
 
     def __iter__(self):
@@ -1151,3 +1185,64 @@ class HueGroup:
     #            return "%.3f" % self.hvalue
     #        except:
     #            return str(self.hvalue)
+
+
+class RobotPythonScript:
+    """
+    Small object used to generate a python script that reconstructs the
+    robot from a json file wih the list of files.
+    Client code can then add additional logic to the script and write it to disk.
+
+    This is tipycally done in the `on_all_ok` method of Works
+    to generate ready-to-use python scripts to post-process/visualize the results.
+
+    Example:
+
+        with gsr_robot.get_pyscript(work.outdir.path_in("gsr_robot.py")) as script:
+            script.add_text("a = 1")
+    """
+
+    def __init__(self, robot: Robot, filepath_py: str):
+        self.robot = robot
+        self.filepath_py = filepath_py
+
+        root, _ = os.path.splitext(filepath_py)
+        self.filepath_json = root + ".json"
+        basename = os.path.basename(filepath_py)
+
+        self.pytext = f"""\
+#!/usr/bin/env python
+# This script has been automatically generated by AbiPy.
+from __future__ import annotations
+
+from abipy.abio.robots import Robot
+robot = Robot.from_json_file("{self.filepath_json}")
+print(robot)
+
+# Uncomment these two lines to produce an excel file 
+#df = robot.get_dataframe(with_geo=False)
+#df.to_excel(self.outdir.path_in("{basename}.xls"))
+
+"""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement."""
+        self.write()
+
+    def add_text(self, text: str) -> None:
+        """Add `text` to the script."""
+        self.pytext += text
+
+    def write(self) -> None:
+        """
+        Write python script and json file with the list of files in the Robot.
+        """
+        with open(self.filepath_py, "wt") as fh:
+            fh.write(self.pytext)
+        make_executable(self.filepath_py)
+
+        with open(self.filepath_json, "wt") as fh:
+            fh.write(self.robot.to_json())

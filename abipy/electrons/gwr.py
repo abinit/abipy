@@ -9,6 +9,7 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections.abc import Iterable
+from typing import Union, Any
 from monty.functools import lazy_property
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
@@ -193,21 +194,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #app("k-mesh for electrons:")
         #app("\t" + self.ebands.kpoints.ksampling.to_string(verbose=verbose))
 
-        #if not self.imag_only:
-        #    # QP corrections
-        #    for it in it_list:
-        #        app("\nKS, QP (Z factor) and on-the-mass-shell (OTMS) direct gaps in eV for T = %.1f K:" % self.tmesh[it])
-        #        data = []
-        #        for ikc, kpoint in enumerate(self.sigma_kpoints):
-        #            for spin in range(self.nsppol):
-        #                ks_gap = self.ks_dirgaps[spin, ikc]
-        #                qp_gap = self.qp_dirgaps_t[spin, ikc, it]
-        #                data.append([spin, repr(kpoint), ks_gap, qp_gap, qp_gap - ks_gap, oms_gap, oms_gap - ks_gap])
-        #        app(str(tabulate(data,
-        #            headers=["Spin", "k-point", "KS_gap", "QPZ0_gap", "QPZ0 - KS", "OTMS_gap", "OTMS - KS"],
-        #            floatfmt=".3f")))
-        #        app("")
-
         app(marquee("QP direct gaps in eV", mark="="))
         app(str(self.get_dirgaps_dataframe(with_params=False)))
         app("")
@@ -226,11 +212,11 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     def get_dirgaps_dataframe(self, with_params: bool=True, with_geo=False) -> pd.DataFrame:
         """
-        Build and return pandas DataFrame with QP direct gaps in eV
+        Build and return a pandas DataFrame with the QP direct gaps in eV.
 
         Args:
             with_params: True if GWR parameters should be included.
-            with_geo: True if structure info should be added to the dataframe
+            with_geo: True if geometry info should be included.
         """
         d = {}
         d["kpoint"] = [k.frac_coords for k in self.sigma_kpoints] * self.nsppol
@@ -261,7 +247,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             index:
             ignore_imag: Only real part is returned if ``ignore_imag``.
             with_params: True if GWR parameters should be included.
-            with_geo: True if structure info should be added to the dataframe
+            with_geo: True if geometry info should be included.
         """
         rows, bands = [], []
 
@@ -284,7 +270,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         index = len(bands) * [index] if index is not None else bands
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
-    def _get_include_bands(self, include_bands, spin):
+    def _get_include_bands(self, include_bands: Any, spin: int) -> Union[set, None]:
         """
         Helper function to return include_bands for given spin.
         """
@@ -436,8 +422,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_spectral_functions(self, include_bands=None, ax_list=None,
-                                fontsize=8, **kwargs) -> Figure:
+    def plot_spectral_functions(self, include_bands=None, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the spectral function for all k-points, bands and spins available in the GWR file.
 
@@ -478,8 +463,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     #    """
     #    Build panel with widgets to interact with the GWR.nc either in a notebook or in panel app.
     #    """
-    #    from abipy.panels.gwr import GWRFilePanel
-    #    return GWRFilePanel(self).get_panel(**kwargs)
+    #    from abipy.panels.gwr import GwrFilePanel
+    #    return GwrFilePanel(self).get_panel(**kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -828,6 +813,7 @@ class TchimVsSus:
                          fontsize=10)
 
         return fig
+
 
 class GwrRobot(Robot, RobotWithEbands):
     """
@@ -1326,7 +1312,7 @@ class GwrRobot(Robot, RobotWithEbands):
                     for axis in ("wreal", "wimag", "tau"):
                         yield self.plot_selfenergy_conv(spin, ikcalc, band, axis=axis, show=False)
 
-    def write_notebook(self, nbpath=None, title=None):
+    def write_notebook(self, nbpath=None, title=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -1335,7 +1321,6 @@ class GwrRobot(Robot, RobotWithEbands):
 
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.SigEPhRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             nbv.new_code_cell("robot.get_params_dataframe()"),
             nbv.new_code_cell("# data = robot.get_dataframe()\ndata"),

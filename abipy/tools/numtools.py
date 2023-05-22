@@ -7,7 +7,7 @@ import numpy as np
 from monty.collections import dict2namedtuple
 from abipy.tools import duck
 
-def transpose_last3dims(arr):
+def transpose_last3dims(arr) -> np.ndarray:
     """
     Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x).
     """
@@ -18,7 +18,7 @@ def transpose_last3dims(arr):
     return np.ascontiguousarray(view)
 
 
-def add_periodic_replicas(arr):
+def add_periodic_replicas(arr: np.ndarray) -> np.ndarray:
     """
     Returns a new array of shape=(..., nx+1,ny+1,nz+1) with redundant data points.
 
@@ -331,7 +331,7 @@ def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
     return i + 1
 
 
-class BlochRegularGridInterpolator(object):
+class BlochRegularGridInterpolator:
     """
     This object interpolates the periodic part of a Bloch state in real space.
     """

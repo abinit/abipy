@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Relaxation with different K-meshes
+Relaxation with different k-meshes
 ==================================
 
 In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``optcell``)

@@ -39,7 +39,7 @@ class AbinitTextFile(TextFile):
             self._events = EventsParser().parse(self.filepath)
         return self._events
 
-    def get_timer(self):
+    def get_timer(self) -> AbinitTimerParser:
         """
         Timer data.
         """
