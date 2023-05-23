@@ -314,14 +314,14 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
 
     def scan_dir(self, top: str, walk: bool = True) -> int:
         """
-        Scan directory tree starting from ``top``. Add files to the robot instance.
+        Scan directory tree starting from ``top``. 
+        Add files to the robot instance.
 
         Args:
             top (str): Root directory
             walk: if True, directories inside ``top`` are included as well.
 
-        Return:
-            Number of files found.
+        Return: Number of files found.
         """
         count = 0
         for filepath, abifile in self.__class__._open_files_in_dir(top, walk):
@@ -529,7 +529,8 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
     def get_label_files_str(self):
         """Return string with [label, filepath]."""
         from tabulate import tabulate
-        return tabulate([(label, abifile.relpath) for label, abifile in self.items()], headers=["Label", "Relpath"]) + "\n"
+        return tabulate([(label, abifile.relpath) for label, abifile in self.items()], 
+                        headers=["Label", "Relpath"]) + "\n"
 
     def show_files(self, stream=sys.stdout) -> None:
         """Show label --> file path"""
@@ -902,15 +903,15 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         Args:
             item: Define the quantity to plot. Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and `getattr` is invoked.
-                Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
-                If callable, the output of item(abifile) is used.
+                Dot notation is also supported e.g. hue="structure.formula" --> `abifile.structure.formula`.
+                If callable, the output of `item(abifile)` is used.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of sortby(abifile) is used.
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
-                Accepts callable or string
+                Accepts callable or string.
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -1036,12 +1037,20 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         return fig
 
     def get_convergence_analyzer(self, xname: str, ytols_dict: dict) -> ConvergenceAnalyzer:
+        """
+
+        Args:
+            xname: Name of the x-variable.
+            ytols_dict: dict mapping the name of the y-variable to the tolerance(s). 
+                Negative tolerances activate check on percentage difference.
+
+        Example:
+        """
         df = self.get_dataframe()
         return ConvergenceAnalyzer.from_dataframe(df, xname, ytols_dict)
 
     @add_fig_kwargs
-    def plot_lattice_convergence(self, what_list=None, sortby=None, hue=None,
-                                 fontsize=8, **kwargs) -> Figure:
+    def plot_lattice_convergence(self, what_list=None, sortby=None, hue=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of the lattice parameters (a, b, c, alpha, beta, gamma).
         wrt the``sortby`` parameter. Values can optionally be grouped by ``hue``.
@@ -1054,8 +1063,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 with the same name and `getattr` is invoked.
                 If callable, the output of item(abifile) is used.
             sortby: Define the convergence parameter, sort files and produce plot labels.
-                Can be None, string or function.
-                If None, no sorting is performed.
+                Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of sortby(abifile) is used.
@@ -1234,7 +1242,7 @@ print(robot)
 
     def add_text(self, text: str) -> None:
         """Add `text` to the script."""
-        self.pytext += text
+        self.pytext += "\n" + text
 
     def write(self) -> None:
         """

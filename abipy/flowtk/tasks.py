@@ -3298,12 +3298,23 @@ class AbinitTask(Task):
 
         Return: :class:`AbinitTimerParser` instance, None if error.
         """
-
         parser = AbinitTimerParser()
         read_ok = parser.parse(self.output_file.path)
         if read_ok:
             return parser
         return None
+
+    def get_output_file(self):
+        """
+        Parse the main output file in text format, return AbinitOutputFile object.
+
+        example:
+
+            with task.get_output_file() as out:
+                dims_dataset, spginfo_dataset = out.get_dims_spginfo_dataset(verbose=0)
+        """
+        from abipy.abio.outputs import AbinitOutputFile
+        return AbinitOutputFile(self.output_file.path)
 
 
 class ProduceHist:

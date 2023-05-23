@@ -269,7 +269,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         return vars_global, vars_dataset
 
-    def _get_structures(self, what: str):
+    def _get_structures(self, what: str) -> list[Structure]:
         if what == "header":
             vars_global, vars_dataset = self.initial_vars_global, self.initial_vars_dataset
         elif what == "footer":
@@ -516,7 +516,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         df = df.set_index('dataset')
         return df
 
-    def get_dims_spginfo_dataset(self, verbose=0) -> tuple:
+    def get_dims_spginfo_dataset(self, verbose=0) -> tuple[dict, dict]:
         """
         Parse the section with the dimensions of the calculation. Return dictionaries
 
@@ -524,6 +524,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             verbose: Verbosity level.
 
         Return: (dims_dataset, spginfo_dataset)
+
             where dims_dataset[i] is an OrderedDict with the dimensions of dataset `i`
             spginfo_dataset[i] is a dictionary with space group information.
         """

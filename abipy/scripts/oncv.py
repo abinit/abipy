@@ -105,6 +105,24 @@ def oncv_compare(options):
 
     return 0
 
+    
+#@flowtk.flow_main
+#def main(options):
+#    return build_flow(options)
+    
+#def oncv_hints(options):
+#    """
+#    """
+#    from abipy import flowtk
+#    from abipy.flowtk.pseudo_works import GsEcutConvWork
+#    flow = flowtk.Flow(workdir=options.workdir)
+#
+#    ecut_list = [35, 40, 45, 50, 55, 60, 65]
+#    #ecut_list = [35, 40, 45]
+#    work = GsEcutConvWork.from_pseudo(pseudo, ecut_list)
+#    flow.register_work(work)
+#    return flow
+
 
 #def oncv_json(options):
 #    """
@@ -308,8 +326,6 @@ Usage example:
         else:
             p.add_argument('filepath', default="", help="Path to the input/output file")
 
-
-
         return p
 
     copts_parser = get_copts_parser(multi=False)
@@ -356,6 +372,8 @@ Usage example:
     p_gui = subparsers.add_parser('gui', parents=parents, help=oncv_gui.__doc__)
 
     p_gnuplot = subparsers.add_parser('gnuplot', parents=[copts_parser], help=oncv_gnuplot.__doc__)
+
+    #p_hints = subparsers.add_parser('hints', parents=[copts_parser], help=oncv_hints.__doc__)
 
     #p_json = subparsers.add_parser('json', parents=[copts_parser], help=oncv_json.__doc__)
 

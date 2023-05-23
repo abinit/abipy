@@ -1736,7 +1736,7 @@ class PhononWork(Work, MergeDdb):
                 By default we set it to -1 when q != 0 so that AbiPy is still able
                 to restart the DFPT task if the calculation is not converged (worst case scenario)
                 but we avoid the output of the 1-st order WFK if the calculation converged successfully.
-                Non-linear DFT applications should not be affected since they assume q == 0.
+                Non-linear DFPT tasks should not be affected since they assume q == 0.
             manager: |TaskManager| object.
         """
         if not isinstance(scf_task, ScfTask):

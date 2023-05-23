@@ -2,6 +2,8 @@
 """
 Objects to plot electronic, vibrational and e-ph properties.
 """
+from __future__ import annotations
+
 import numpy as np
 
 from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_visible, ax_share)
@@ -10,9 +12,10 @@ from abipy.electrons.ebands import ElectronBands
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhbstFile, PhdosFile
 from abipy.eph.sigeph import SigEPhFile
+from abipy.tools.typing import Figure
 
 
-class EphPlotter(object):
+class EphPlotter:
     """
     This object provides methods to plot electron and phonons for a single system.
     An EphPlotter has:
@@ -29,7 +32,7 @@ class EphPlotter(object):
     .. inheritance-diagram:: EphPlotter
     """
     @classmethod
-    def from_ddb(cls, ddb, ebands_kpath, ebands_kmesh=None, **kwargs):
+    def from_ddb(cls, ddb, ebands_kpath, ebands_kmesh=None, **kwargs) -> EphPlotter:
         """
         Build the object from the ddb file, invoke anaddb to get phonon properties.
         This entry point is needed to have phonon plots with LO-TO splitting
@@ -60,7 +63,7 @@ class EphPlotter(object):
             self.phdos_file = PhdosFile(phdos_file)
 
     @add_fig_kwargs
-    def plot(self, eb_ylims=None, **kwargs):
+    def plot(self, eb_ylims=None, **kwargs) -> Figure:
         """
         Plot electrons with possible (phonon-mediated) scattering channels for the CBM and VBM.
         Also plot phonon band structure and phonon PJDOS.
@@ -101,7 +104,7 @@ class EphPlotter(object):
         return fig
 
     @add_fig_kwargs
-    def plot_phonons_occ(self, temps=(100, 200, 300, 400), **kwargs):
+    def plot_phonons_occ(self, temps=(100, 200, 300, 400), **kwargs) -> Figure:
         """
         Plot phonon band structure with markers proportional to the occupation
         of each phonon mode for different temperatures.
@@ -130,7 +133,7 @@ class EphPlotter(object):
         return fig
 
     @add_fig_kwargs
-    def plot_linewidths_sigeph(self, sigeph, eb_ylims=None, **kwargs):
+    def plot_linewidths_sigeph(self, sigeph, eb_ylims=None, **kwargs) -> Figure:
         """
         Plot e-bands + e-DOS + Im(Sigma_{eph}) + phonons + gkq^2
 

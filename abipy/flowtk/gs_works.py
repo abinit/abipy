@@ -100,15 +100,15 @@ class EosWork(Work):
 
         return new_work
 
-    def getnwrite_eosdata(self, write_json=True) -> dict:
+    def get_and_write_eosdata(self, write_json=True) -> dict:
         """
         Compute the EOS and produce a JSON file `eos_data.json` in outdata.
         """
         energies_ev, volumes = [], []
         for task in self:
             with task.open_gsr() as gsr:
-                volumes.append(float(gsr.structure.volume))
                 energies_ev.append(float(gsr.energy))
+                volumes.append(float(gsr.structure.volume))
         
         eos_data = {"input_volumes_ang3": self.input_volumes,
                     "volumes_ang3": volumes,
@@ -134,14 +134,14 @@ class EosWork(Work):
         It reads the energies and the volumes from the GSR file, computes the EOS 
         and produce a JSON file `eos_data.json` in outdata.
         """
-        self.getnwrite_eosdata()
+        self.get_and_write_eosdata()
         return super().on_all_ok()
 
         
 class GsKmeshTsmearConvWork(Work):
     """
-    This work is used to perform a convergence study of the GS properties 
-    of metals wrt the k-mesh and the smearing
+    This work performs convergence study of the GS properties 
+    wrt the k-mesh and the smearing.
 
     It produces ...
     """
@@ -149,8 +149,8 @@ class GsKmeshTsmearConvWork(Work):
     @classmethod
     def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list, tsmear_list: list) -> GsKmeshTsmearConvWork:
         """
-        Build the object from a `scf_input` for GS-SCF run including `occopt` 
-        and a list with 
+        Build the object from a `scf_input` for a SCF-GS run including `occopt` 
+        and a list with the smallest number of divisions for the k-mesh.
         """
         occopt = scf_input.get("occopt", default=None)
         if occopt is None or occopt <= 0:
@@ -167,7 +167,7 @@ class GsKmeshTsmearConvWork(Work):
 
     def on_all_ok(self): 
         """                                                                          
-        This method is called when all tasks in the EOSWork have reached S_OK. 
+        This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK. 
         """                                                                          
         with GsrRobot.from_work(self) as gsr_robot:
             df = gsr_robot.get_dataframe(with_geo=False)
@@ -175,7 +175,8 @@ class GsKmeshTsmearConvWork(Work):
 
             with gsr_robot.get_pyscript(self.outdir.path_in("gsr_robot.py")) as script:
                 script.add_text("""
-a = 1
+item = "energy_per_atom"
+robot.plot_covergence(item, sortby="nkpt", hue="tsmear")
 """)
 
         return super().on_all_ok()

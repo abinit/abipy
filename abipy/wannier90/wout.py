@@ -283,7 +283,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         return 0
 
     @add_fig_kwargs
-    def plot(self, fontsize=12, **kwargs) -> Figure:
+    def plot(self, fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of the Wannierise cycle.
 
@@ -325,7 +325,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
                 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
                 ax2 = inset_axes(ax, width="60%", height="40%", loc="upper right")
                 ax2.grid(True)
-                ax2.set_title("delta_frac", fontsize=8)
+                ax2.set_title("delta_frac", fontsize=fontsize)
                 ax2.plot(self.dis_df.iter[s:], self.dis_df["delta_frac"][s:], marker=marker)
 
             else:

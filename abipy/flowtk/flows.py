@@ -3296,7 +3296,7 @@ class NonLinearCoeffFlow(Flow):
             self.history.critical("Exception while reading DDB file at %s:\n%s" % (ddb_path, str(exc)))
             return None
 
-    def finalize(self):
+    def finalize(self) -> int:
         """This method is called when the flow is completed."""
         # Merge all the out_DDB files found in work.outdir.
         ddb_files = list(filter(None, [work.outdir.has_abiext("DDB") for work in self]))
@@ -3311,8 +3311,7 @@ class NonLinearCoeffFlow(Flow):
         print("Final DDB file available at %s" % out_ddb)
 
         # Call the method of the super class.
-        retcode = super().finalize()
-        return retcode
+        return super().finalize()
 
 
 def phonon_conv_flow(workdir: str, scf_input: AbinitInput, qpoints, params,

@@ -7,6 +7,7 @@ from __future__ import annotations
 from monty.functools import lazy_property
 from monty.string import marquee
 from abipy.core import Mesh3D, GSphere
+from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import Visualizer
 from abipy.electrons.ebands import ElectronsReader, ElectronBands
@@ -83,7 +84,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return od
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
@@ -352,7 +353,7 @@ class WFK_Reader(ElectronsReader):
         """FFT divisions used to compute the data in the WFK file."""
         return self.nfft1, self.nfft2, self.nfft3
 
-    def kindex(self, kpoint):
+    def kindex(self, kpoint) -> int:
         """
         Index of the k-point in the internal tables.
 
@@ -363,7 +364,7 @@ class WFK_Reader(ElectronsReader):
         else:
             return self.kpoints.index(kpoint)
 
-    def read_gvecs_istwfk(self, kpoint):
+    def read_gvecs_istwfk(self, kpoint) -> tuple:
         """
         Read the set of G-vectors and the value of istwfk for the given k-point.
         Accepts :class:`Kpoint` object or integer.

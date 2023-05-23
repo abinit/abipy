@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 from collections import namedtuple, OrderedDict
-from typing import Any, Callable
+from typing import Any, Callable, Iterator
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
@@ -331,24 +331,35 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs) -> Figure:
 
 class ConvergenceAnalyzer:
     """
-    This object allows one to plot the convergence of ...
+    This object allows one to plot the convergence of an arbitrary list
+    of quantities as a function of the same x.
     """
 
+    # Colors for different convergence criteria
     color_ilevel = ["red", "blue", "green"]
 
-    small = 1e-12
-
+    # Use for fill convergence window patch.
     hatch = "/"
+
+    @classmethod
+    def from_xy_label_vals(cls, xlabel, xs, ylabel, yvalues, tols) -> ConvergenceAnalyzer:
+        """
+        Simplified interface to analyze a single list of values.
+        """
+        yvals_dict = {ylabel: yvalues}
+        ytols_dict = {ylabel: tols}
+        return cls(xlabel, xs, yvals_dict, ytols_dict)
 
     @classmethod
     def from_file(cls, filepath: str, xkey: str, ytols_dict: dict) -> ConvergenceAnalyzer:
         """
-        Build the object from a file containing data that can be converted to DataFrame.
+        High-level constructor to build the object from a file containing data
+        that can be converted to panda DataFrame.
 
         Args:
-            filepath:
-            xkey:
-            ytols_dict:
+            filepath: Filename.
+            xkey: name of the x-variable.
+            ytols_dict: dict mapping the name of the y-variable to absolute tolerance(s).
         """
         df = dataframe_from_filepath(filepath)
         return cls.from_dataframe(df, xkey, ytols_dict)
@@ -356,13 +367,15 @@ class ConvergenceAnalyzer:
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame, xkey: str, ytols_dict: dict) -> ConvergenceAnalyzer:
         """
-        Build the object from a dataframe.
+        Build the object from a dataframe df:
 
         Args:
-            df:
-            xkey:
-            ytols_dict:
+            df: DataFrame
+            xkey: name of the x-variable.
+            ytols_dict: dict mapping the name of the y-variable to tolerance(s).
+                Negative values are interpreted as percentage difference instead of absolute convergence.
         """
+        df = df.sort_values(xkey)
         xs = df[xkey].values
         yvals_dict = {k: df[k].values for k in ytols_dict}
         return cls(xkey, xs, yvals_dict, ytols_dict)
@@ -370,10 +383,10 @@ class ConvergenceAnalyzer:
     def __init__(self, xkey: str, xs: VectorLike, yvals_dict: dict[str, VectorLike], ytols_dict: dict):
         """
         Args:
-            xkey
-            xs
+            xkey:
+            xs:
             yvals_dict:
-            ytols:dict
+            ytols_dict: dict mapping the name of the y-variable to absolute tolerance(s).
 
         Example::
 
@@ -383,21 +396,25 @@ class ConvergenceAnalyzer:
         # Convert to numpy arrays and store data in self.
         self.xkey = self.xlabel = xkey
         self.xs = np.array(xs)
+        if not np.all(self.xs[:-1] <= self.xs[1:]):
+            raise ValueError("xs values should be in ascending order")
+
         self.yvals_dict = {k: np.array(v) for k, v in yvals_dict.items()}
         self.ykey2label = {k: k for k in yvals_dict}
 
-        # Treat input ytols_dict.
+        if len(self.yvals_dict) > len(self.color_ilevel):
+            raise ValueError(f"Not programmed for more than {len(self.color_ilevel)} convergence levels")
+
+        # Handle ytols_dict.
         self.ytols_dict = {}
         for ykey, ytols in ytols_dict.items():
             if not duck.is_listlike(ytols): ytols = [ytols]
 
-            # Make sure we don't mix absolute and relative tolerances.
-            if any(ytols[0] * yt <= 0 for yt in ytols):
-                raise ValueError(f"tolerances cannot have different sign: {ytols}")
+            if any(yt <= 0 for yt in ytols):
+                raise ValueError(f"tolerances cannot be negative: {ytols}")
 
             # Sort input tolerances just to be on the safe side.
-            sot = np.sort(np.array(ytols))[::-1] if ytols[0] > 0 else np.sort(np.array(ytols))
-            self.ytols_dict[ykey] = sot
+            self.ytols_dict[ykey] = np.sort(np.array(ytols))[::-1]
 
         # Compute the first index in xs that gives value within the convergence window.
         # -1 or None indicates that convergence has not been achieved.
@@ -410,7 +427,7 @@ class ConvergenceAnalyzer:
 
             tol_levels = self.ytols_dict[ykey]
 
-            # Init values assuming no convergence.
+            # Init values assuming no convergence achieved.
             self.ykey_ixs[ykey] = [-1] * len(tol_levels)
             self.ykey_best_xs[ykey] = [None] * len(tol_levels)
 
@@ -419,27 +436,13 @@ class ConvergenceAnalyzer:
             y_inf = ys[-1]
             for il, ytol in enumerate(tol_levels):
                 for _, xx in enumerate(self.xs[::-1]):
-
                     ix = -_ + num_x - 1
-                    if ytol > 0.0:
-                        # Handle absolute tolerance.
-                        if abs(y_inf - ys[ix]) > ytol:
-                            self.ykey_ixs[ykey][il] = ix + 1
-                            break
-                    else:
-                        # Handle relative tolerance.
-                        if abs(y_inf) > self.small:
-                            if 100 * abs((y_inf - ys[ix]) / abs(y_inf)) > ytol:
-                                self.ykey_ixs[ykey][il] = ix + 1
-                                break
-                        else:
-                            # Handle small y_inf.
-                            if 100 * abs((y_inf - ys[ix])) / max(abs(y_inf), abs(ys[ix])) > ytol:
-                                break
+                    if abs(y_inf - ys[ix]) > ytol:
+                        self.ykey_ixs[ykey][il] = ix + 1
+                        break
 
                 ix = self.ykey_ixs[ykey][il]
                 if ix != -1:
-                    # TODO
                     # If converged, use linear interpolation to get a better estimate of the
                     # converged xx. This is useful especially if the xs grid is too coarse.
                     best_xx = self.xs[ix]
@@ -448,14 +451,14 @@ class ConvergenceAnalyzer:
                         x1, y1 = xs[ix], ys[ix]
                         alpha = (y1 - y0) / (x1 - x0)
                         # y(x) = alpha * (x - x0) + y0
-                        print("best_xx 1", best_xx)
-                        if (y0 - y_inf) >= 0: best_xx = x0 + (ytol + y_inf - y0) / alpha
-                        if (y0 - y_inf) < 0: best_xx = x0 + (-ytol + y_inf - y0) / alpha
-                        print("best_xx 2", best_xx)
+                        #print("best_xx 1", best_xx)
+                        if (y0 - y_inf) >= 0: best_xx = x0 + ( ytol + y_inf - y0) / alpha
+                        if (y0 - y_inf) <  0: best_xx = x0 + (-ytol + y_inf - y0) / alpha
+                        #print("best_xx 2", best_xx)
 
                     self.ykey_best_xs[ykey][il] = best_xx
 
-        # Here we change the x-y labels for the plots using an hard-coded mapping.
+        # Here we change the x-y labels for the plots using an hard-coded mapping
         # in order to add additional info on units and normalization.
         auto_key_label = dict(
             ecut=r"$E_{cut}$ (Ha)",
@@ -468,8 +471,7 @@ class ConvergenceAnalyzer:
 
     def set_label(self, key: str, label: str, ignore_exc=False) -> None:
         """
-        Set the label for `key` to be used in the plot.
-        Dont't raise exception if `ignore_exc` is True.
+        Set the label for `key` to be used in the plot. Dont't raise exception if `ignore_exc` is True.
         """
         if key in self.ykey2label:
             self.ykey2label[key] = label
@@ -484,17 +486,11 @@ class ConvergenceAnalyzer:
         """Return the ylabel to be used for `ykey` in the plot."""
         return self.ykey2label[ykey]
 
-    def ytol_ix_xx(self, ykey):
+    def ytol_ix_xx(self, ykey) -> Iterator[tuple]:
         """
         Iterate over ytols, ixs, and xs for the given ``ykey`.
         """
         return zip(self.ytols_dict[ykey], self.ykey_ixs[ykey] ,self.ykey_best_xs[ykey])
-
-    @staticmethod
-    def ytol2s(ytol: float) -> str:
-        """Convert tolerance value to string."""
-        if ytol > 0: return str(ytol)
-        return "%.1f%s" % abs(ytol) * 100
 
     def get_dataframe_ykey(self, ykey: str) -> pd.DataFrame:
         """Return dataframe with convergence params for `ykey`."""
@@ -502,11 +498,12 @@ class ConvergenceAnalyzer:
         for ytol, ix, xx in self.ytol_ix_xx(ykey):
             rows.append(dict(ytol=ytol, ix=ix, xx=xx, ykey=ykey))
             #rows.append(dict(ytol=ytol, ix=ix, xx=xx), xx_best=xx_best, ykey=ykey)
-        df = pd.DataFrame(rows)
-        return df
+        return pd.DataFrame(rows)
 
     def to_string(self, verbose=0) -> str:
-        """String representation with verbosity level `verbose`."""
+        """
+        String representation with verbosity level `verbose`.
+        """
         lines = []; app = lines.append
         app(f"Number of points for x-axis: {len(self.xs)}")
         for ykey in self.yvals_dict:
@@ -521,15 +518,16 @@ class ConvergenceAnalyzer:
 
     def _decorate_ax(self, ax, ykey, ys, yscale) -> None:
         """
-        Decorate axis ax:
+        Decorate axis ax by adding patches showing the convergence window
+        and vertical lines where convergence is achieved.
 
         Args:
-            ax:
-            ykey:
-            ys:
-            yscale:
+            ax: matplotlib axes.
+            ykey: y-name
+            ys: y-values
+            yscale: "linear" or "log"
         """
-        # Precompute ylimits of the window for each tolerance.
+        # Precompute y-limits of the converge window for each tolerance.
         y_inf = ys[-1]
         ytols = self.ytols_dict[ykey]
         ntols = len(ytols)
@@ -537,38 +535,34 @@ class ConvergenceAnalyzer:
         ylims_log = np.empty((ntols, 2))
 
         for il, ytol in enumerate(ytols):
-            if ytol > 0:
-                y0, y1 = y_inf - ytol, y_inf + ytol
-                y1_log = ytol
-            else:
-                #y0, y1 = y_inf - ytol, y_inf + ytol
-                raise NotImplementedError("")
-
+            # Absolute tolerance.
+            y0, y1 = y_inf - ytol, y_inf + ytol
+            y1_log = ytol
             ylims[il] = [y0, y1]
             ylims_log[il] = [0, y1_log]
 
-        # Loop again now that limits are known.
+        # Loop again as ylimits are known.
         for il, ytol in enumerate(ytols):
-            span_style = dict(alpha=0.2, color=self.color_ilevel[il],
-                              zorder=abs(ytol), hatch=self.hatch)
+            label = r"$|y-y_\infty| \leq %s$" % ytol
+            span_style = dict(alpha=0.2, color=self.color_ilevel[il], zorder=abs(ytol), hatch=self.hatch)
 
             y0, y1 = ylims[il]
             y0_log, y1_log = ylims_log[il]
 
             if il == ntols - 1:
                 if yscale == "linear":
-                    ax.axhspan(y0, y1, **span_style)
+                    ax.axhspan(y0, y1, label=label, **span_style)
                 elif yscale == "log":
-                    ax.axhspan(y0_log, y1_log, **span_style)
+                    ax.axhspan(y0_log, y1_log, label=label, **span_style)
                 else:
                     raise ValueError(f"Invalid yscale: {yscale}")
             else:
                 # Use limits of the next window to avoid overlapping patches.
                 if yscale == "linear":
-                    ax.axhspan(y0, ylims[il+1,0], **span_style)
+                    ax.axhspan(y0, ylims[il+1,0], label=label, **span_style)
                     ax.axhspan(ylims[il+1,1], y1, **span_style)
                 elif yscale == "log":
-                    ax.axhspan(y0_log, ylims_log[il+1,0], **span_style)
+                    ax.axhspan(y0_log, ylims_log[il+1,0], label=label, **span_style)
                     ax.axhspan(ylims_log[il+1,1], y1_log, **span_style)
                 else:
                     raise ValueError(f"Invalid yscale: {yscale}")
@@ -582,6 +576,7 @@ class ConvergenceAnalyzer:
     @add_fig_kwargs
     def plot(self, ax_mat=None, fontsize=8, **kwargs) -> Figure:
         """
+        Plot convergence profile. A new grid is build if `ax_mat` is None:
         """
         nrows, ncols = len(self.yvals_dict), 2
 
@@ -593,7 +588,6 @@ class ConvergenceAnalyzer:
         #    ax_share("x", ax_mat[0,icol], ax_mat[1,icol])
 
         for irow, ((ykey, ys), ax_row) in enumerate(zip(self.yvals_dict.items(), ax_mat)):
-
             # Plot y(x)
             ax1, ax2 = ax_row
             ax1.plot(self.xs, ys, marker="o", color="k")
@@ -610,22 +604,22 @@ class ConvergenceAnalyzer:
             title = ""
             for i, (ytol, ix, xx) in enumerate(self.ytol_ix_xx(ykey)):
                 pre_str = "" if i == 0 else ", "
-                ytol_string = self.ytol2s(ytol)
-                title += f"{pre_str}x: {xx:.1f} for tol: {ytol_string}"
+                ytol_string = str(ytol)
+                #print("ytol_string:", ytol_string, "pre_str:", pre_str, "ytol_string:", ytol_string, "xx:", xx)
+                if xx is not None:
+                    s = "x: %.1f for $\Delta$: %s" % (xx, ytol_string)
+                else:
+                    s = "x: ?? for $\Delta$: %s" % (ytol_string)
+                title += pre_str + s
 
             ax2.set_title(title, fontsize=fontsize)
+            ax2.set_ylabel(r"$|y-y_\infty|$", fontsize=fontsize)
 
             set_grid_legend(ax_row, fontsize,
                             xlabel=self.xlabel if irow == (nrows - 1) else None,
-                            grid=False, legend=False)
+                            grid=False, legend=True)
 
-        # Add a table at the bottom of the axes
-        #for ykey in self.yvals_dict:
-        #    df = self.get_dataframe_ykey(ykey)
-        #    table = plt.table(cellText=df.values, rowLabels=df.index, colLabels=df.columns,
-        #                      loc='bottom')
-        #    fig.axes[-1].add_table(table)
-
+        fig.tight_layout()
         return fig
 
 
@@ -798,7 +792,7 @@ class Marker(namedtuple("Marker", "x y s")):
         return self.__class__(pos_x, pos_y, pos_s), self.__class__(neg_x, neg_y, neg_s)
 
 
-class MplExpose:  # pragma: no cover
+class MplExpose: # pragma: no cover
     """
     Context manager used to produce several matplotlib figures and then show
     all them at the end so that the user does not need to close the window to
@@ -886,8 +880,8 @@ class MplExpose:  # pragma: no cover
 
 class PanelExpose:  # pragma: no cover
     """
-    Context manager used to produce several matplotlib/plotly figures and then show
-    all them inside the Browser using a panel template.
+    Context manager used to produce several matplotlib/plotly figures
+    and show all of them inside the Browser using a panel template.
 
     Example:
 
@@ -913,7 +907,7 @@ class PanelExpose:  # pragma: no cover
 
     def __call__(self, obj: Any):
         """
-        Add an object to MplPanelExpose.
+        Add an object to PanelExpose.
         Support mpl figure, list of figures or generator yielding figures.
         """
         import types
@@ -926,7 +920,6 @@ class PanelExpose:  # pragma: no cover
     def add_fig(self, fig: Figure) -> None:
         """Add a matplotlib figure."""
         if fig is None: return
-
         self.figures.append(fig)
 
     def __enter__(self):

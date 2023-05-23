@@ -57,7 +57,7 @@ def add_periodic_replicas(arr: np.ndarray) -> np.ndarray:
     return oarr
 
 
-def data_from_cplx_mode(cplx_mode, arr, tol=None):
+def data_from_cplx_mode(cplx_mode: str, arr, tol=None):
     """
     Extract the data from the numpy array ``arr`` depending on the values of ``cplx_mode``.
 
@@ -173,7 +173,7 @@ def sort_and_groupby(items, key=None, reverse=False, ret_lists=False):
 # Sorting and ordering
 #########################################################################################
 
-def prune_ord(alist):
+def prune_ord(alist: list) -> list:
     """
     Return new list where all duplicated items in alist are removed
 

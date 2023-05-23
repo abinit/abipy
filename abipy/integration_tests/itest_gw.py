@@ -1,4 +1,5 @@
 """Integration tests for GW flows."""
+from __future__ import annotations
 
 import abipy.data as abidata
 import abipy.abilab as abilab

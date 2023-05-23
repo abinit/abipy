@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from abipy.abio.inputs import AbinitInput, RUNL, GWR_TASK
 from abipy.electrons.gwr import GwrRobot
-
 from .nodes import Node
 from .tasks import TaskManager # ScfTask, NscfTask,
 from .works import Work
@@ -17,7 +16,7 @@ from .works import Work
 class DirectDiagoWork(Work):
     """
     This work performs the direct diagonalization of the KS Hamiltonian
-    using the density produced by a SCF run and produces a WFK file with
+    using the density produced by a GS-SCF run and produces a WFK file with
     empty states in the outdir of the second task.
 
     NB: An Abinit build with Scalapack is required to run GWR.
@@ -31,7 +30,7 @@ class DirectDiagoWork(Work):
                        manager: TaskManager=None) -> DirectDiagoWork:
         """
         Args:
-            scf_input: Input for the GS-SCF calculation.
+            scf_input: Input for the GS-SCF calculations.
             green_nband: Number of bands to compute in the direct diagonalization.
                 A negative value activate full diagonalization with nband equal to
                 the number of PWs.
@@ -85,8 +84,8 @@ class _BaseGwrWork(Work):
 class GwrSigmaConvWork(_BaseGwrWork):
     """
     This work performs multiple QP calculations with the GWR code
-    and produces a `qp_dirgaps.xlsx` file in its `outdata` directory
-    with the direct QP gaps obtained with the different parameters.
+    and produces `xlsx` files in its `outdata` directory
+    with the QP results obtained with the different parameters.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GwrSigmaConvWork
@@ -98,14 +97,17 @@ class GwrSigmaConvWork(_BaseGwrWork):
         """
         gwr_files = self.get_all_outdata_files_with_ext("_GWR.nc")
         with GwrRobot.from_files(gwr_files) as gwr_robot:
-            df = gwr_robot.get_dirgaps_dataframe(with_params=True)
-            df.to_excel(self.outdir.path_in("qp_dirgaps.xlsx"))
+            dirgaps_df = gwr_robot.get_dirgaps_dataframe()
+            dirgaps_df.to_excel(self.outdir.path_in("dirgaps.xlsx"))
+            qpdata_df = gwr_robot.get_dataframe()
+            qpdata_df.to_excel(self.outdir.path_in("qpdata.xlsx"))
 
             with gwr_robot.get_pyscript(self.outdir.path_in("gwr_robot.py")) as script:
                 script.add_text("""
-#ca = robot.get_convergence_analyzer("ecut", ytols_dict)
-#print(ca)
-#ca.plot()
+
+#robot.plot_selfenergy_conv(spin=0, kpoint=?, band=?, axis="wreal", sortby=None, hue=None)
+
+#robot.plot_qpgaps_convergence(self, qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None)
 """)
 
         return super().on_all_ok()

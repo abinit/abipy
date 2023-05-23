@@ -21,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def as_bool(s: Union[str, bool]):
+def as_bool(s: Union[str, bool]) -> bool:
     """
     Convert a string into a boolean value.
 

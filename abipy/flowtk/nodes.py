@@ -206,18 +206,18 @@ class Dependency:
             else:
                 raise ValueError("Wrong getter %s" % getter)
 
-    def connecting_vars(self):
+    def connecting_vars(self) -> dict:
         """
         Returns a dictionary with the variables that must be added to the
         input file in order to connect this |Node| to its dependencies.
         """
-        vars = {}
+        dvars = {}
         for prod in self.products:
-            vars.update(prod.connecting_vars())
+            dvars.update(prod.connecting_vars())
 
-        return vars
+        return dvars
 
-    def get_filepaths_and_exts(self):
+    def get_filepaths_and_exts(self) -> tuple[list, list]:
         """Returns the paths of the output files produced by self and its extensions"""
         filepaths = [prod.filepath for prod in self.products]
         exts = [prod.ext for prod in self.products]
@@ -560,7 +560,7 @@ class Node(metaclass=abc.ABCMeta):
     #    return super().__setattr__(name,value)
 
     @lazy_property
-    def color_hex(self):
+    def color_hex(self) -> str:
         """Node color as Hex Triplet https://en.wikipedia.org/wiki/Web_colors#Hex_triplet"""
         def clamp(x):
             return max(0, min(int(x), 255))
@@ -620,7 +620,7 @@ class Node(metaclass=abc.ABCMeta):
                 return os.path.basename(self.workdir)
 
     @property
-    def relworkdir(self):
+    def relworkdir(self) -> str:
         """Return a relative version of the workdir"""
         if getattr(self, "workdir", None) is None:
             return None
@@ -700,6 +700,7 @@ class Node(metaclass=abc.ABCMeta):
 
     @property
     def num_corrections(self) -> int:
+        """Number of corrections performed."""
         return len(self.corrections)
 
     def log_correction(self, event, action: str) -> None:
@@ -818,7 +819,7 @@ class Node(metaclass=abc.ABCMeta):
                 task.remove_deps(deps)
 
     @property
-    def deps_status(self):
+    def deps_status(self) -> list:
         """Returns a list with the status of the dependencies."""
         if not self.deps:
             return [self.S_OK]
@@ -940,7 +941,7 @@ class Node(metaclass=abc.ABCMeta):
             return None
 
     @property
-    def event_handlers(self):
+    def event_handlers(self) -> list:
         """
         The list of handlers registered for this node.
         If the node is not a `Flow` and does not have its own list of
@@ -960,7 +961,7 @@ class Node(metaclass=abc.ABCMeta):
             return self.flow._event_handlers
 
     @check_spectator
-    def install_event_handlers(self, categories=None, handlers=None):
+    def install_event_handlers(self, categories=None, handlers=None) -> None:
         """
         Install the `EventHandlers for this `Node`. If no argument is provided
         the default list of handlers is installed.
@@ -1101,15 +1102,14 @@ class FileNode(Node):
 
     def get_results(self, **kwargs):
         results = super().get_results(**kwargs)
-        #results.register_gridfs_files(filepath=self.filepath)
         return results
 
-    def add_filechild(self, node: Node):
+    def add_filechild(self, node: Node) -> None:
         """Add a node (usually Task) to the children of this FileNode."""
         self._filechildren.append(node)
 
     @property
-    def filechildren(self):
+    def filechildren(self) -> list:
         """List with the children (nodes) of this FileNode."""
         return self._filechildren
 
