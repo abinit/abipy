@@ -18,7 +18,6 @@ import abipy.abio.input_tags as atags
 
 from collections import OrderedDict
 from collections.abc import MutableMapping
-from enum import Enum, IntEnum #, StrEnum
 from typing import Any, Union, Iterable, Iterator
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
@@ -37,6 +36,7 @@ from abipy.tools import duck
 from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
 from abipy.flowtk import abiobjects as aobj
+from .enums import RUNL, WFK_TASK, GWR_TASK
 
 import logging
 logger = logging.getLogger(__file__)
@@ -126,26 +126,26 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
     """
 
     # ABC protocol
-    def __delitem__(self, key):
+    def __delitem__(self, key: str):
         return self.vars.__delitem__(key)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
         return self.vars.__getitem__(key)
 
     def __iter__(self):
         return self.vars.__iter__()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.vars)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any):
         self._check_varname(key)
         return self.vars.__setitem__(key, value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<%s at %s>" % (self.__class__.__name__, id(self))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
     def write(self, filepath: str = "run.abi", files_file: bool = False) -> None:
@@ -359,59 +359,6 @@ class AbiAbstractInput(AbstractInput):
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
                 task: Task object
         """
-
-class ChangeEnumStr:
-    def __str__(self):
-        return str(self.value)
-
-class RUNL(ChangeEnumStr, IntEnum):
-
-    """
-    Values of optdriver corresponding to the different run-levels. See defs_basis.F90
-    """
-    GSTATE     = 0
-    RESPFN     = 1
-    SCREENING  = 3
-    SIGMA      = 4
-    NONLINEAR  = 5
-    GWR        = 6
-    EPH        = 7
-    WFK        = 8
-    RTTDDFT    = 9
-    GWLS       = 66
-    BSE        = 99
-    LONGWAVE   = 10
-
-class WFK_TASK(ChangeEnumStr, Enum):
-    """
-    Integer flags defining the task to be performed in wfk_analyze. See defs_basis.F90
-    """
-    NONE      = 0
-    FULLBZ    = 1
-    CLASSIFY  = 2
-    PAW_AEPSI = 3
-    EINTERP   = 4
-    DDK       = 5
-    DDK_DIAGO = 6
-    OPTICS_FULLBZ = 7
-    KPTS_ERANGE= 8
-    CHECK_SYMTAB = 9
-
-
-class GWR_TASK(ChangeEnumStr, Enum):  # StrEnum added in 3.11
-    """String """
-    HDIAGO = "HDIAGO"
-    HDIAGO_FULL = "HDIAGO_FULL"
-    CC4S = "CC4S"
-    CC4S_FULL = "CC4S_FULL"
-    G0W0 = "G0W0"
-    G0V = "G0V"
-    EGEW = "EGEW"
-    EGW0 = "EGW0"
-    G0EW = "G0EW"
-    RPA_ENERGY = "RPA_ENERGY"
-    GAMMA_GW = "GAMMA_GW"
-
 
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by ``AbinitInput``."""

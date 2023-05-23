@@ -29,6 +29,7 @@ from abipy.core.structure import Structure
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.tools.iotools import yaml_safe_load
 from abipy.tools.typing import TYPE_CHECKING
+from abipy.abio.enums import GWR_TASK
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
 from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
 from .nodes import Status, Node, NodeError, NodeResults, FileNode #, check_spectator
@@ -4374,6 +4375,16 @@ class GwrTask(AbinitTask):
     """
 
     color_rgb = np.array((255, 128, 0)) / 255
+
+    def setup(self): 
+
+        #if self["gwr_task"] in (GWR_TASK.HDIAGO_FULL, ):
+        #    print("To perform full diago, need to know mpw...")
+        #    parent_scf_task = self.get_parents()
+        #    dims, _ = parent_scf_task.abiget_dims_spginfo()
+        #    nband = dims["mpw"]
+
+        return super().setup()
 
     @property
     def gwr_path(self) -> str:

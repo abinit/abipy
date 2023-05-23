@@ -10,6 +10,104 @@ from abipy.abio.inputs import AbinitInput
 from abipy.electrons.gsr import GsrRobot
 from .works import Work
 
+__all__ = [
+    "GsKmeshConvWork"
+    "GsKmeshTsmearConvWork",
+    "EosWork",
+]
+
+
+class GsKmeshConvWork(Work):
+    """
+    This work performs convergence studies of GS properties 
+    with respect to the k-mesh
+
+    It produces ...
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: GsKmeshConvWork
+    """
+
+    @classmethod
+    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list) -> GsKmeshConvWork:
+        """
+        Build the work from a `scf_input` for a GS SCF run and a list 
+        with the smallest number of divisions for the k-mesh.
+        """
+        work = cls()
+        for nksmall in nksmall_list:
+            new_inp = scf_input.deepcopy()
+            new_inp.set_autokmesh(nksmall)
+            work.register_scf_task(new_inp)
+
+        return work
+
+    def on_all_ok(self):
+        """
+        This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK.
+        """
+        with GsrRobot.from_work(self) as gsr_robot:
+            df = gsr_robot.get_dataframe(with_geo=False)
+            basename = self.__class__.__name__
+            df.to_excel(self.outdir.path_in(f"{basename}.xlsx"))
+
+            with gsr_robot.get_pyscript(self.outdir.path_in("gsr_robot.py")) as script:
+                script.add_text("""
+item = "energy_per_atom"
+robot.plot_covergence(item, sortby="nkpt")
+""")
+
+        return super().on_all_ok()
+
+
+
+class GsKmeshTsmearConvWork(Work):
+    """
+    This work performs convergence studies of GS properties
+    with respect to the k-mesh and the electronic smearing.
+
+    It produces ...
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: GsKmeshTsmearConvWork
+    """
+
+    @classmethod
+    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list, tsmear_list: list) -> GsKmeshTsmearConvWork:
+        """
+        Build the work from a `scf_input` for a GS SCF run including `occopt`
+        and a list with the smallest number of divisions for the k-mesh.
+        """
+        occopt = scf_input.get("occopt", default=None)
+        if occopt is None or occopt <= 0:
+            raise ValueError(f"scf_input should define occopt but found: {occopt}")
+
+        work = cls()
+        for tsmear in tsmear_list:
+            for nksmall in nksmall_list:
+                new_inp = scf_input.new_with_vars(tsmear=tsmear)
+                new_inp.set_autokmesh(nksmall)
+                work.register_scf_task(new_inp)
+
+        return work
+
+    def on_all_ok(self):
+        """
+        This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK.
+        """
+        with GsrRobot.from_work(self) as gsr_robot:
+            df = gsr_robot.get_dataframe(with_geo=False)
+            basename = self.__class__.__name__
+            df.to_excel(self.outdir.path_in(f"{basename}.xlsx"))
+
+            with gsr_robot.get_pyscript(self.outdir.path_in("gsr_robot.py")) as script:
+                script.add_text("""
+item = "energy_per_atom"
+robot.plot_covergence(item, sortby="nkpt", hue="tsmear")
+""")
+
+        return super().on_all_ok()
+
 
 class EosWork(Work):
     """
@@ -109,7 +207,7 @@ class EosWork(Work):
             with task.open_gsr() as gsr:
                 energies_ev.append(float(gsr.energy))
                 volumes.append(float(gsr.structure.volume))
-        
+
         eos_data = {"input_volumes_ang3": self.input_volumes,
                     "volumes_ang3": volumes,
                     "energies_ev": energies_ev}
@@ -130,56 +228,9 @@ class EosWork(Work):
 
     def on_all_ok(self):
         """
-        This method is called when all tasks have reached S_OK. 
-        It reads the energies and the volumes from the GSR file, computes the EOS 
+        This method is called when all tasks have reached S_OK.
+        It reads the energies and the volumes from the GSR file, computes the EOS
         and produce a JSON file `eos_data.json` in outdata.
         """
         self.get_and_write_eosdata()
         return super().on_all_ok()
-
-        
-class GsKmeshTsmearConvWork(Work):
-    """
-    This work performs convergence study of the GS properties 
-    wrt the k-mesh and the smearing.
-
-    It produces ...
-    """
-
-    @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list, tsmear_list: list) -> GsKmeshTsmearConvWork:
-        """
-        Build the object from a `scf_input` for a SCF-GS run including `occopt` 
-        and a list with the smallest number of divisions for the k-mesh.
-        """
-        occopt = scf_input.get("occopt", default=None)
-        if occopt is None or occopt <= 0:
-            raise ValueError(f"scf_input should define occopt but found: {occopt}")
-
-        work = cls()
-        for tsmear in tsmear_list:
-            for nksmall in nksmall_list:
-                new_inp = scf_input.new_with_vars(tsmear=tsmear)
-                new_inp.set_autokmesh(nksmall)
-                work.register_scf_task(new_inp)
-
-        return work
-
-    def on_all_ok(self): 
-        """                                                                          
-        This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK. 
-        """                                                                          
-        with GsrRobot.from_work(self) as gsr_robot:
-            df = gsr_robot.get_dataframe(with_geo=False)
-            df.to_excel(self.outdir.path_in("gs_vs_ecut.xlsx"))
-
-            with gsr_robot.get_pyscript(self.outdir.path_in("gsr_robot.py")) as script:
-                script.add_text("""
-item = "energy_per_atom"
-robot.plot_covergence(item, sortby="nkpt", hue="tsmear")
-""")
-
-        return super().on_all_ok()
-
-
-

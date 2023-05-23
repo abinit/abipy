@@ -335,10 +335,10 @@ class ConvergenceAnalyzer:
     of quantities as a function of the same x.
     """
 
-    # Colors for different convergence criteria
+    # Colors for the different convergence criteria.
     color_ilevel = ["red", "blue", "green"]
 
-    # Use for fill convergence window patch.
+    # matplotlib option to fill convergence window.
     hatch = "/"
 
     @classmethod
@@ -351,29 +351,28 @@ class ConvergenceAnalyzer:
         return cls(xlabel, xs, yvals_dict, ytols_dict)
 
     @classmethod
-    def from_file(cls, filepath: str, xkey: str, ytols_dict: dict) -> ConvergenceAnalyzer:
+    def from_file(cls, filepath: str, xkey: str, ytols_dict: dict, **kwargs) -> ConvergenceAnalyzer:
         """
         High-level constructor to build the object from a file containing data
-        that can be converted to panda DataFrame.
+        that can be converted to pandas DataFrame. kwargs are passed to the pandas IO routines.
 
         Args:
             filepath: Filename.
             xkey: name of the x-variable.
             ytols_dict: dict mapping the name of the y-variable to absolute tolerance(s).
         """
-        df = dataframe_from_filepath(filepath)
+        df = dataframe_from_filepath(filepath, **kwargs)
         return cls.from_dataframe(df, xkey, ytols_dict)
 
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame, xkey: str, ytols_dict: dict) -> ConvergenceAnalyzer:
         """
-        Build the object from a dataframe df:
+        Build the object from a pandas dataframe.
 
         Args:
             df: DataFrame
             xkey: name of the x-variable.
             ytols_dict: dict mapping the name of the y-variable to tolerance(s).
-                Negative values are interpreted as percentage difference instead of absolute convergence.
         """
         df = df.sort_values(xkey)
         xs = df[xkey].values
@@ -471,7 +470,8 @@ class ConvergenceAnalyzer:
 
     def set_label(self, key: str, label: str, ignore_exc=False) -> None:
         """
-        Set the label for `key` to be used in the plot. Dont't raise exception if `ignore_exc` is True.
+        Set the label for `key` to be used in the plot. 
+        Dont't raise exception if `ignore_exc` is True.
         """
         if key in self.ykey2label:
             self.ykey2label[key] = label
@@ -488,7 +488,7 @@ class ConvergenceAnalyzer:
 
     def ytol_ix_xx(self, ykey) -> Iterator[tuple]:
         """
-        Iterate over ytols, ixs, and xs for the given ``ykey`.
+        Iterate over (ytols, ixs, and xs) for the given ``ykey`.
         """
         return zip(self.ytols_dict[ykey], self.ykey_ixs[ykey] ,self.ykey_best_xs[ykey])
 

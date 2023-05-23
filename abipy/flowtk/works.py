@@ -1774,8 +1774,7 @@ class PhononWork(Work, MergeDdb):
 
     @classmethod
     def from_scf_input(cls, scf_input: AbinitInput, qpoints, is_ngqpt=False, with_becs=False,
-                       with_quad=False, with_flexoe=False,
-                       with_dvdb=True, tolerance=None,
+                       with_quad=False, with_flexoe=False, with_dvdb=True, tolerance=None,
                        ddk_tolerance=None, ndivsm=0, prtwf=-1, manager=None) -> PhononWork:
         """
         Similar to `from_scf_task`, the difference is that this method requires
