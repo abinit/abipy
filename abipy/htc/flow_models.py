@@ -12,14 +12,14 @@ from __future__ import annotations
 import traceback
 import sys
 import logging
-import functools
+#import functools
 import pandas as pd
 
 from datetime import datetime
 from pprint import pformat
 from enum import Enum
 from abc import ABC, abstractmethod
-from typing import List, Tuple, ClassVar, Union, TypeVar, Type, Dict, Optional, Any  # , Type,
+from typing import ClassVar, Union, TypeVar, Type, Optional, Any  # , Type,
 from pydantic import BaseModel, Field
 from bson.objectid import ObjectId
 from pymongo.collection import Collection
@@ -120,7 +120,7 @@ class PresetQuery(BaseModel):
 
     @classmethod
     def for_large_forces_or_high_pressure(cls, root_name: str, model_cls: Type[TopLevelModel],
-            force_ev_ang: float = 1e-4, p_gpa: float = 2.0) -> PresetQuery:
+                                          force_ev_ang: float = 1e-4, p_gpa: float = 2.0) -> PresetQuery:
         """
         Find documents with large forces or large pressure.
 
@@ -192,14 +192,6 @@ class PresetQuery(BaseModel):
                 )
 
 
-
-
-
-
-
-
-
-
 class _NodeData(AbipyModel):
 
     node_id: str = Field(..., description="Node identifier")
@@ -209,7 +201,7 @@ class _NodeData(AbipyModel):
     status: str = Field(..., description="Status of the Node")
 
     @classmethod
-    def get_data_for_node(cls, node):
+    def get_data_for_node(cls, node) -> dict:
         return dict(
             node_id=node.node_id,
             node_class=node.__class__.__name__,
@@ -246,7 +238,7 @@ class TaskData(_NodeData):
 
     #cpu_time: float = Field(..., description="CPU-time in seconds")
     #wall_time: float = Field(..., description="Wall-time in seconds")
-    #history: List[str] = Field(..., description="Task history. List of strings logged by AbiPy")
+    #history: list[str] = Field(..., description="Task history. List of strings logged by AbiPy")
 
     out_gfsd: GfsFileDesc = Field(None, description="Metadata needed to retrieve the output file from GridFS.")
 
@@ -292,7 +284,7 @@ class WorkData(_NodeData):
     Data Model associated to an AbiPy |Work|
     """
 
-    tasks_data: List[TaskData] = Field(..., description="List of TaskData")
+    tasks_data: list[TaskData] = Field(..., description="List of TaskData")
 
     @classmethod
     def from_work(cls, work: Work, mng_connector: MongoConnector, with_out: bool, with_log: bool) -> WorkData:
@@ -363,12 +355,12 @@ class FlowData(AbipyModel):
         description="Timestamp for the most recent calculation update for this property (UTC)",
     )
 
-    works_data: List[WorkData] = Field([], description="List of WorkData objects")
+    works_data: list[WorkData] = Field([], description="List of WorkData objects")
 
-    tracebacks: List[str] = Field([], description="List of exception tracebacks produced by the AbiPy Worker")
+    tracebacks: list[str] = Field([], description="List of exception tracebacks produced by the AbiPy Worker")
 
     # Private class attributes
-    #_aggregation_class_method_names: List[str] = []
+    #_aggregation_class_method_names: list[str] = []
 
     def summarize(self, verbose: int = 0, stream=sys.stdout) -> None:
         """
@@ -406,7 +398,7 @@ class FlowData(AbipyModel):
 #    Document associated to an AbiPy |Flow|
 #    """
 #
-#    works_data: List[WorkData] = Field(..., description="")
+#    works_data: list[WorkData] = Field(..., description="")
 #
 #    @classmethod
 #    def from_flow(cls, flow: Flow) -> __FlowData:
@@ -457,7 +449,7 @@ class FlowModel(TopLevelModel, ABC):
 
     with_log: bool = Field(False, description="True if log files should be added to GridFS.")
 
-    #previous_flow_oids: List[ObjectId] = Field(
+    #previous_flow_oids: list[ObjectId] = Field(
     #    None,
     #   description="List of ObjectId associated to documents in the some collection that are connected to this one. "
     #               "May be used to implement convergence studies and/or relaxations with different settings "
@@ -470,7 +462,7 @@ class FlowModel(TopLevelModel, ABC):
 
     #priority: int = Field(1, description="Priority associated to the calculation. Can be changed by the user at runtime)
 
-    custom_data: Dict[str, Any] = Field(None, description="Dictionary with custom entries set by the user.")
+    custom_data: dict[str, Any] = Field(None, description="Dictionary with custom entries set by the user.")
 
     # Private class attributes
     _magic_key: ClassVar[str] = "_flow_model_"
@@ -562,7 +554,7 @@ class FlowModel(TopLevelModel, ABC):
         return FlowData(**data)
 
     @classmethod
-    def mng_find_completed_oids(cls, collection: Collection, **kwargs) -> List[ObjectId]:
+    def mng_find_completed_oids(cls, collection: Collection, **kwargs) -> list[ObjectId]:
         """
         Find all the models in collection that are completed.
         Return: list of ObjectId.
@@ -571,7 +563,7 @@ class FlowModel(TopLevelModel, ABC):
         return d[ExecStatus.completed]
 
     @classmethod
-    def mng_get_status2oids(cls, collection: Collection, **kwargs) -> Dict[ExecStatus, List[ObjectId]]:
+    def mng_get_status2oids(cls, collection: Collection, **kwargs) -> dict[ExecStatus, list[ObjectId]]:
         """
         Return dictionary mapping the Execution status to the list of ObjectId.
         """
@@ -588,7 +580,7 @@ class FlowModel(TopLevelModel, ABC):
         return status2oids
 
     @classmethod
-    def find_runnable_oid_models(cls, collection: Collection, **kwargs) -> List[Tuple[ObjectId, FlowModel]]:
+    def find_runnable_oid_models(cls, collection: Collection, **kwargs) -> list[tuple[ObjectId, FlowModel]]:
         """
         Return list of (oid, model) tuple with the FlowModels in collection that are ready to run.
         """
@@ -612,22 +604,22 @@ class FlowModel(TopLevelModel, ABC):
         return items
 
     @property
-    def is_init(self):
+    def is_init(self) -> bool:
         """True if the model is in `init` state"""
         return self.flow_data.exec_status == ExecStatus.init
 
     @property
-    def is_built(self):
+    def is_built(self) -> bool:
         """True if the model is in `built` state"""
         return self.flow_data.exec_status == ExecStatus.built
 
     @property
-    def is_completed(self):
+    def is_completed(self) -> bool:
         """True if the model is in `completed` state"""
         return self.flow_data.exec_status == ExecStatus.completed
 
     @property
-    def is_errored(self):
+    def is_errored(self) -> bool:
         """True if the model is in `errored` state"""
         return self.flow_data.exec_status == ExecStatus.errored
 
@@ -716,7 +708,7 @@ class FlowModel(TopLevelModel, ABC):
             self.mng_full_update_oid(oid, collection)
 
     @classmethod
-    def mng_get_crystal_systems_incoll(cls, collection: Collection, **kwargs) -> List[int]:
+    def mng_get_crystal_systems_incoll(cls, collection: Collection, **kwargs) -> list[int]:
         """
         Return list of crystal systems in collection
         kwargs are passed to pymongo `create_index`
@@ -736,7 +728,7 @@ class FlowModel(TopLevelModel, ABC):
         return cls.mng_find({key: crystal_system}, collection, **kwargs)
 
     @classmethod
-    def mng_get_spg_numbers_incoll(cls, collection: Collection, **kwargs) -> List[int]:
+    def mng_get_spg_numbers_incoll(cls, collection: Collection, **kwargs) -> list[int]:
         """
         Return list if all space group numbers found in the collection.
         """
@@ -766,7 +758,7 @@ class FlowModel(TopLevelModel, ABC):
 
     @classmethod
     @abstractmethod
-    def get_preset_queries(cls) -> List[PresetQuery]:
+    def get_preset_queries(cls) -> list[PresetQuery]:
         """
         Return list of dictionaries with the MongoDB queries typically used to filter results.
         Empty list if no suggestion is available. Mainly used by the panel-based GUI.

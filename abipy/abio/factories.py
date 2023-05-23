@@ -13,10 +13,10 @@ from collections import namedtuple
 from monty.collections import AttrDict
 from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder, MSONable
-from pymatgen.util.serialization import pmg_serialize
 from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.tools.serialization import pmg_serialize
 
 
 __all__ = [
@@ -100,8 +100,8 @@ def _stopping_criterion(runlevel: str, accuracy: str) -> dict:
     return {tolname: getattr(_tolerances[tolname], accuracy)}
 
 
-def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy):
-    """Return a |AttrDict| with the value of ``ecut`` and ``pawecutdg``."""
+def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy) -> AttrDict:
+    """Return an |AttrDict| with the value of ``ecut`` and ``pawecutdg``."""
     # Get ecut and pawecutdg from the pseudo hints.
     has_hints = False
     if ecut is None or (pawecutdg is None and any(p.ispaw for p in pseudos)):
@@ -122,7 +122,7 @@ def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy):
     return AttrDict(ecut=ecut, pawecutdg=pawecutdg)
 
 
-def _find_scf_nband(structure, pseudos, electrons, spinat=None):
+def _find_scf_nband(structure, pseudos, electrons, spinat=None) -> int:
     """Find the value of ``nband``."""
     if electrons.nband is not None: return electrons.nband
 
@@ -267,7 +267,7 @@ def ebands_input(structure: Structure, pseudos,
         spin_mode: Spin polarization.
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
-        scf_algorithm: Algorithm used for solving of the SCF cycle.
+        scf_algorithm: Algorithm used for solving the SCF cycle.
         dos_kppa: Scalar or List of integers with the number of k-points per atom
             to be used for the computation of the DOS (None if DOS is not wanted).
     """
@@ -407,7 +407,8 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
     return relax_multi + ebands_multi
 
 
-def scr_from_nscfinput(nscf_input, nband=None, ecuteps=3.0, ecutwfn=None, inclvkb=2, w_type="RPA", sc_mode="one_shot", hilbert=None, accuracy="normal"):
+def scr_from_nscfinput(nscf_input, nband=None, ecuteps=3.0, ecutwfn=None, inclvkb=2, w_type="RPA", 
+                       sc_mode="one_shot", hilbert=None, accuracy="normal") -> AbinitInput:
     """Return a screening input."""
     scr_input = nscf_input.deepcopy()
     scr_input.pop_irdvars()
@@ -422,7 +423,8 @@ def scr_from_nscfinput(nscf_input, nband=None, ecuteps=3.0, ecutwfn=None, inclvk
     return scr_input
 
 
-def sigma_from_inputs(nscf_input, scr_input, nband=None, ecutwfn=None, ecuteps=None, ecutsigx=None, ppmodel="godby", gw_qprange=1, accuracy="normal"):
+def sigma_from_inputs(nscf_input, scr_input, nband=None, ecutwfn=None, ecuteps=None, ecutsigx=None, 
+                      ppmodel="godby", gw_qprange=1, accuracy="normal") -> AbinitInput:
     """Return a sigma input."""
     self_input = nscf_input.deepcopy()
     self_input.pop_irdvars()
@@ -509,6 +511,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     sigma_inp = sigma_from_inputs(nscf_input=nscf_inp, scr_input=scr_inp, nband=sigma_nband,
                                   ecutwfn=None, ecuteps=None, ecutsigx=ecutsigx,
                                   ppmodel=ppmodel, gw_qprange=gw_qprange)
+
     return MultiDataset.from_inputs([scf_inp, nscf_inp, scr_inp, sigma_inp])
 
 
@@ -791,7 +794,7 @@ def bse_with_mdf_inputs(structure: Structure, pseudos,
 
 def scf_phonons_inputs(structure, pseudos, kppa,
                        ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
-                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None) -> list[AbinitInput]:
     # TODO: Please check the unused variables in the function
     """
     Returns a list of input files for performing phonon calculations.
@@ -1292,7 +1295,7 @@ def dos_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal", dos_met
     return dos_input
 
 
-def ioncell_relax_from_gsinput(gs_input, accuracy="normal"):
+def ioncell_relax_from_gsinput(gs_input: AbinitInput, accuracy="normal") -> AbinitInput:
 
     ioncell_input = gs_input.deepcopy()
     ioncell_input.pop_irdvars()
@@ -1304,7 +1307,8 @@ def ioncell_relax_from_gsinput(gs_input, accuracy="normal"):
     return ioncell_input
 
 
-def hybrid_oneshot_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange=1):
+def hybrid_oneshot_input(gs_input: AbinitInput, 
+                         functional="hse06", ecutsigx=None, gw_qprange=1) -> AbinitInput:
 
     hybrid_input = gs_input.deepcopy()
     hybrid_input.pop_irdvars()
@@ -1328,16 +1332,16 @@ def hybrid_oneshot_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange
     ecut = hybrid_input['ecut']
     ecutsigx = ecutsigx or 2*ecut
 
-    hybrid_input.set_vars(optdriver=4, gwcalctyp=gwcalctyp, gw_nstep=1, gwpara=2, icutcoul=icutcoul, rcut=rcut,
+    hybrid_input.set_vars(optdriver=4, gwcalctyp=gwcalctyp, gwpara=2, icutcoul=icutcoul, rcut=rcut,
                           gw_qprange=gw_qprange, ecutwfn=ecut*0.995, ecutsigx=ecutsigx)
 
     return hybrid_input
 
 
-def hybrid_scf_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange=1):
+def hybrid_scf_input(gs_input: AbinitInput, 
+                     functional="hse06", ecutsigx=None, gw_qprange=1) -> AbinitInput:
 
     hybrid_input = hybrid_oneshot_input(gs_input=gs_input, functional=functional, ecutsigx=ecutsigx, gw_qprange=gw_qprange)
-
     hybrid_input['gwcalctyp'] += 10
 
     return hybrid_input
@@ -1345,7 +1349,7 @@ def hybrid_scf_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange=1):
 
 def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
                     spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                    shift_mode="Symmetric"):
+                    shift_mode="Symmetric") -> AbinitInput:
 
     # add the band for nbdbuf, if needed
     nbdbuf = 4
@@ -1370,7 +1374,7 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
 
 
 def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None,
-                     skip_dte_permutations=False, manager=None):
+                     skip_dte_permutations=False, manager=None) -> MultiDataset:
     """
     Returns a list of inputs in the form of a |MultiDataset| to perform calculations of non-linear properties, based on
     a ground state AbinitInput.
@@ -1438,7 +1442,7 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
 
 def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=True, do_strain=True,
                       do_dte=False, ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, strain_tol=None,
-                      skip_dte_permutations=False, manager=None):
+                      skip_dte_permutations=False, manager=None) -> MultiDataset:
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations based on DFPT including
     phonons, elastic and non-linear properties. Requires a ground state |AbinitInput| as a starting point.
@@ -1541,7 +1545,8 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     return multi
 
 
-def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, sigma_erange, boxcutmin=1.1, mixprec=1):
+def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, sigma_erange, 
+                       boxcutmin=1.1, mixprec=1) -> MultiDataset:
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
@@ -1588,7 +1593,7 @@ def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, 
 
 def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine,
                                sigma_ngkpt, sigma_erange, sigma_kerange=None, epad=0.25*abu.eV_Ha,
-                               einterp=(1, 5, 0, 0), boxcutmin=1.1, mixprec=1):
+                               einterp=(1, 5, 0, 0), boxcutmin=1.1, mixprec=1) -> MultiDataset:
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine the conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
@@ -1677,7 +1682,6 @@ def minimal_scf_input(structure: Structure, pseudos) -> AbinitInput:
 
     Returns: |AbinitInput|
     """
-
     inp = scf_input(structure, pseudos, smearing=None, spin_mode="unpolarized")
     inp["ngkpt"] = [1, 1, 1]
     inp["nshiftk"] = 1
@@ -1726,12 +1730,12 @@ class InputFactory(MSONable):
         return abiinput
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         # sanitize to avoid numpy arrays and serialize MSONable objects
         return jsanitize(dict(args=self.args, kwargs=self.kwargs), strict=True)
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict):
         dec = MontyDecoder()
         return cls(*dec.process_decoded(d['args']), **dec.process_decoded(d['kwargs']))
 

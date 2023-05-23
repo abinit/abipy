@@ -1,4 +1,5 @@
 """"GUIs for structure."""
+from __future__ import annotations 
 
 import os
 import io
@@ -18,9 +19,9 @@ add_inp_docstring = Appender("""
 kprra (number of **k**-points per reciprocal atom) defines the **k**-mesh for electrons.
 AbiPy automatically computes the variables [[ngkpt]], [[nshiftk]] and [[shiftk]] from kprra.
 
-The pseudopotentials are taken from the PseudoDojo table (XXX) according to value of `XC type`
-and `Pseudos type` and recommended values for [[ecut]] and [[pawecutdg]] and [[nband]]
-are automatically added to the input.
+The pseudopotentials are taken from the [PseudoDojo project](http://www.pseudo-dojo.org/)
+according to value of `XC type` and `Pseudos type` and recommended values for [[ecut]]
+and [[pawecutdg]] and [[nband]] are automatically added to the input.
 
 At the end of the page, there is a button to download a targz file with all the required input files.
 """, indents=0)
@@ -123,14 +124,14 @@ class StructurePanel(PanelWithStructure):
         return self.html_with_clipboard_btn(f"<pre> {s} </pre>")
 
     @pn.depends("spglib_symprec.value", "spglib_angtol.value")
-    def spglib_summary(self):
+    def spglib_summary(self) -> pn.Row:
         """Call spglib to find space group symmetries and Wyckoff positions."""
         s = self.structure.spget_summary(symprec=self.spglib_symprec.value,
                                          angle_tolerance=self.spglib_angtol.value)
         return pn.Row(bkw.PreText(text=s, sizing_mode='stretch_width'))
 
     @depends_on_btn_click('abisanitize_btn')
-    def on_abisanitize_btn(self):
+    def on_abisanitize_btn(self) -> None:
         """
         Returns a new structure in which:
 
@@ -170,7 +171,7 @@ class StructurePanel(PanelWithStructure):
                 sizing_mode='stretch_width')
 
     @pn.depends("kpath_format.value", "line_density.value")
-    def get_kpath(self):
+    def get_kpath(self) -> pn.Column:
         """
         Generate high-symmetry k-path from input structure in the ABINIT format.
         """
@@ -190,12 +191,21 @@ class StructurePanel(PanelWithStructure):
 
         return col
 
-    def _get_pseudos(self):
+    def _get_pseudos_ecut_pawecutdg(self) -> tuple:
         #from abipy.data.hgh_pseudos import HGH_TABLE
         #return HGH_TABLE
         from abipy.flowtk.psrepos import get_repo_from_name
         repo = get_repo_from_name(self.repos_name.value)
-        return repo.get_pseudos(self.table_name.value)
+        pseudos = repo.get_pseudos(self.table_name.value)
+        ecut = 0
+        pawecutdg = 0
+
+        for p in pseudos:
+            hint = p.hint_for_accuracy(accuracy="normal")
+            ecut = max(ecut, hint.ecut)
+            pawecutdg = max(pawecutdg, hint.pawecutdg)
+
+        return pseudos, ecut, pawecutdg
 
     def _get_smearing(self):
         smearing = None
@@ -257,25 +267,27 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         return pn.Column(*items, sizing_mode="stretch_width")
 
-    def get_gs_input(self):
+    def get_gs_input(self) -> AbinitInput:
         """
         Return an AbinitInput for GS calculation from the parameters selected via the widgets.
         """
-        # TODO: ecut, ....
         from abipy.abio.factories import gs_input
+        pseudos, ecut, pawecutdg = self._get_pseudos_ecut_pawecutdg()
+
         gs_inp = gs_input(structure=self.structure,
-                          pseudos=self._get_pseudos(),
+                          pseudos=pseudos,
                           kppa=self.kppra.value,
-                          ecut=8,
+                          ecut=ecut,
+                          pawecutdg=pawecutdg,
                           spin_mode=self.label2mode[self.spin_mode.value],
                           smearing=self._get_smearing(),
                           charge=0.0,
                          )
 
         gs_inp.set_mnemonics(False)
-
-        # TODO: Should reorder pseudos?
         gs_inp.pop_vars(("charge", "chksymbreak"))
+
+        # TODO: ecut, ....
         #gs_inp.set_vars(#ecut="??  # depends on pseudos",
         #                #nband="?? # depends on pseudos",
         #                pseudos='"%s"' % ", ".join(p.basename for p in gs_inp.pseudos),
@@ -318,14 +330,15 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         dos_kppa = self.edos_kppra.value
         if dos_kppa == 0.0: dos_kppa = None
+        pseudos, ecut, pawecutdg = self._get_pseudos_ecut_pawecutdg()
 
         multi = ebands_input(structure=self.structure,
-                             pseudos=self._get_pseudos(),
+                             pseudos=pseudos,
                              kppa=self.kppra.value,
                              nscf_nband=None,
                              ndivsm=10,
-                             ecut=8,
-                             pawecutdg=None,
+                             ecut=ecut,
+                             pawecutdg=pawecutdg,
                              scf_nband=None,
                              spin_mode=self.label2mode[self.spin_mode.value],
                              smearing=self._get_smearing(),
@@ -340,7 +353,6 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         multi.pop_vars(("charge", "chksymbreak"))
         #multi.set_vars(#ecut="??  # depends on pseudos",
         #               #nband="?? # depends on pseudos",
-        #               pseudos='"%s"' % ", ".join(p.basename for p in multi.pseudos),
         #               )
 
         return self._finalize(multi)

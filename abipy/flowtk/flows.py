@@ -14,10 +14,11 @@ import warnings
 import shutil
 import tempfile
 import numpy as np
+import pandas as pd
 
 from io import StringIO
 from pprint import pprint
-from typing import Any, Union, List
+from typing import Any, Union, Iterator, Generator
 from tabulate import tabulate
 from pydispatch import dispatcher
 from collections import OrderedDict
@@ -29,9 +30,10 @@ from monty.pprint import draw_tree
 from monty.termcolor import cprint, colored, cprint_map, get_terminal_size
 from monty.inspect import find_top_pyfile
 from monty.json import MSONable
-from pymatgen.util.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_serialize
 from pymatgen.core.units import Memory
-from pymatgen.util.io_utils import AtomicFile
+from abipy.tools.iotools import AtomicFile
+from abipy.tools.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_serialize
+from abipy.tools.typing import Figure, TYPE_CHECKING
 from abipy.core.globals import get_workdir
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.printing import print_dataframe
@@ -41,6 +43,10 @@ from .tasks import Task, ScfTask, TaskManager, FixQueueCriticalError
 from .utils import File, Directory, Editor
 from .works import NodeContainer, Work, BandStructureWork, PhononWork, BecWork, G0W0Work, QptdmWork, DteWork
 from .events import EventsParser
+
+if TYPE_CHECKING:  # needed to avoid circular imports
+    from abipy.abio.inputs import AbinitInput
+
 
 __author__ = "Matteo Giantomassi"
 __copyright__ = "Copyright 2013, The Materials Project"
@@ -79,7 +85,7 @@ class FlowResults(NodeResults):
     #}
 
     @classmethod
-    def from_node(cls, flow):
+    def from_node(cls, flow) -> FlowResults:
         """Initialize an instance from a Work instance."""
         new = super().from_node(flow)
 
@@ -379,13 +385,13 @@ class Flow(Node, NodeContainer, MSONable):
         from abipy.panels.flows import FlowPanel
         return FlowPanel(self).get_panel(**kwargs)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.works)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Work]:
         return self.works.__iter__()
 
-    def __getitem__(self, slice):
+    def __getitem__(self, slice) -> Union[Work, list[Work]]:
         return self.works[slice]
 
     def set_pyfile(self, pyfile: str) -> None:
@@ -492,7 +498,7 @@ class Flow(Node, NodeContainer, MSONable):
         return {}
 
     @property
-    def works(self) -> List[Work]:
+    def works(self) -> list[Work]:
         """List of |Work| objects contained in self.."""
         return self._works
 
@@ -510,13 +516,13 @@ class Flow(Node, NodeContainer, MSONable):
         return len(list(self.iflat_tasks()))
 
     @property
-    def errored_tasks(self) -> List[Task]:
-        """List of errored tasks."""
-        etasks = []
+    def errored_tasks(self) -> set[Task]:
+        """Set errored tasks."""
+        tasks = []
         for status in [self.S_ERROR, self.S_QCRITICAL, self.S_ABICRITICAL]:
-            etasks.extend(list(self.iflat_tasks(status=status)))
+            tasks.extend(list(self.iflat_tasks(status=status)))
 
-        return set(etasks)
+        return set(tasks)
 
     @property
     def num_errored_tasks(self) -> int:
@@ -585,7 +591,7 @@ class Flow(Node, NodeContainer, MSONable):
         except AttributeError:
             return ""
 
-    def chroot(self, new_workdir):
+    def chroot(self, new_workdir: str) -> None:
         """
         Change the workir of the |Flow|. Mainly used for
         allowing the user to open the GUI on the local host
@@ -601,9 +607,9 @@ class Flow(Node, NodeContainer, MSONable):
             new_wdir = os.path.join(self.workdir, "w" + str(i))
             work.chroot(new_wdir)
 
-    def groupby_status(self):
+    def groupby_status(self) -> dict:
         """
-        Returns a ordered dictionary mapping the task status to
+        Returns dictionary mapping the task status to
         the list of named tuples (task, work_index, task_index).
         """
         Entry = collections.namedtuple("Entry", "task wi ti")
@@ -615,7 +621,7 @@ class Flow(Node, NodeContainer, MSONable):
         # Sort keys according to their status.
         return OrderedDict([(k, d[k]) for k in sorted(list(d.keys()))])
 
-    def groupby_task_class(self):
+    def groupby_task_class(self) -> dict:
         """
         Returns a dictionary mapping the task class to the list of tasks in the flow
         """
@@ -628,7 +634,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         return class2tasks
 
-    def iflat_nodes(self, status=None, op="==", nids=None):
+    def iflat_nodes(self, status=None, op="==", nids=None) -> Generator[None]:
         """
         Generators that produces a flat sequence of nodes.
         if status is not None, only the tasks with the specified status are selected.
@@ -664,13 +670,14 @@ class Flow(Node, NodeContainer, MSONable):
                     if nids and task.node_id not in nids: continue
                     if op(task.status, status): yield task
 
-    def node_from_nid(self, nid):
+    def node_from_nid(self, nid: int) -> Node:
         """Return the node in the `Flow` with the given `nid` identifier"""
         for node in self.iflat_nodes():
             if node.node_id == nid: return node
         raise ValueError("Cannot find node with node id: %s" % nid)
 
-    def iflat_tasks_wti(self, status=None, op="==", nids=None):
+    def iflat_tasks_wti(self, status=None, op="==",
+                        nids=None) -> Generator[tuple[Task,int,int]]:
         """
         Generator to iterate over all the tasks of the `Flow`.
         Yields:
@@ -685,7 +692,7 @@ class Flow(Node, NodeContainer, MSONable):
         """
         return self._iflat_tasks_wti(status=status, op=op, nids=nids, with_wti=True)
 
-    def iflat_tasks(self, status=None, op="==", nids=None):
+    def iflat_tasks(self, status=None, op="==", nids=None) -> Generator[Task]:
         """
         Generator to iterate over all the tasks of the |Flow|.
 
@@ -699,7 +706,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     def _iflat_tasks_wti(self, status=None, op="==", nids=None, with_wti=True):
         """
-        Generators that produces a flat sequence of task.
+        Generator that produces a flat sequence of task.
         if status is not None, only the tasks with the specified status are selected.
         nids is an optional list of node identifiers used to filter the tasks.
 
@@ -733,7 +740,7 @@ class Flow(Node, NodeContainer, MSONable):
                         else:
                             yield task
 
-    def abivalidate_inputs(self):
+    def abivalidate_inputs(self) -> tuple:
         """
         Run ABINIT in dry mode to validate all the inputs of the flow.
 
@@ -883,7 +890,8 @@ class Flow(Node, NodeContainer, MSONable):
 
         stream.write("\n".join(lines))
 
-    def compare_abivars(self, varnames, nids=None, wslice=None, printout=False, with_colors=False):
+    def compare_abivars(self, varnames, nids=None, wslice=None,
+                        printout=False, with_colors=False) -> pd.DataFrame:
         """
         Print the input of the tasks to the given stream.
 
@@ -913,14 +921,13 @@ class Flow(Node, NodeContainer, MSONable):
             od["status"] = task.status.colored if with_colors else str(task.status)
             rows.append(od)
 
-        import pandas as pd
         df = pd.DataFrame(rows, index=index)
         if printout:
             print_dataframe(df, title="Input variables:")
 
         return df
 
-    def get_dims_dataframe(self, nids=None, printout=False, with_colors=False):
+    def get_dims_dataframe(self, nids=None, printout=False, with_colors=False) -> pd.DataFrame:
         """
         Analyze output files produced by the tasks. Print pandas DataFrame with dimensions.
 
@@ -1282,8 +1289,6 @@ if __name__ == "__main__":
             rows.extend(dict_list)
 
         if as_dict: return rows
-
-        import pandas as pd
         return pd.DataFrame(rows)
 
     def show_status(self, return_df=False, **kwargs):
@@ -1448,7 +1453,8 @@ if __name__ == "__main__":
         if not count: print("No correction found.", file=stream)
         return count
 
-    def show_history(self, status=None, nids=None, full_history=False, metadata=False, stream=sys.stdout):
+    def show_history(self, status=None, nids=None, full_history=False,
+                     metadata=False, stream=sys.stdout) -> None:
         """
         Print the history of the flow to stream
 
@@ -1481,7 +1487,7 @@ if __name__ == "__main__":
             cprint(make_banner(str(self), width=ncols, mark="="), file=stream, **self.status.color_opts)
             print(self.history.to_string(metadata=metadata), file=stream)
 
-    def show_inputs(self, varnames=None, nids=None, wslice=None, stream=sys.stdout):
+    def show_inputs(self, varnames=None, nids=None, wslice=None, stream=sys.stdout) -> None:
         """
         Print the input of the tasks to the given stream.
 
@@ -1531,7 +1537,7 @@ if __name__ == "__main__":
 
             stream.writelines(lines)
 
-    def listext(self, ext, stream=sys.stdout):
+    def listext(self, ext, stream=sys.stdout) -> None:
         """
         Print to the given `stream` a table with the list of the output files
         with the given `ext` produced by the flow.
@@ -1553,7 +1559,7 @@ if __name__ == "__main__":
         else:
             print("No output file with extension %s has been produced by the flow" % ext, file=stream)
 
-    def select_tasks(self, nids=None, wslice=None, task_class=None) -> List[Task]:
+    def select_tasks(self, nids=None, wslice=None, task_class=None) -> list[Task]:
         """
         Return a list with a subset of tasks.
 
@@ -1585,7 +1591,8 @@ if __name__ == "__main__":
 
         return tasks
 
-    def get_task_scfcycles(self, nids=None, wslice=None, task_class=None, exclude_ok_tasks=False):
+    def get_task_scfcycles(self, nids=None, wslice=None, task_class=None,
+                           exclude_ok_tasks=False) -> list[Task]:
         """
         Return list of (taks, scfcycle) tuples for all the tasks in the flow with a SCF algorithm
         e.g. electronic GS-SCF iteration, DFPT-SCF iterations etc.
@@ -1618,7 +1625,7 @@ if __name__ == "__main__":
 
         return tasks_cycles
 
-    def show_tricky_tasks(self, verbose=0, stream=sys.stdout):
+    def show_tricky_tasks(self, verbose=0, stream=sys.stdout) -> None:
         """
         Print list of tricky tasks i.e. tasks that have been restarted or
         launched more than once or tasks with corrections.
@@ -1700,7 +1707,7 @@ if __name__ == "__main__":
 
         return "\n".join(errors)
 
-    def tasks_from_nids(self, nids) -> List[Task]:
+    def tasks_from_nids(self, nids) -> list[Task]:
         """
         Return the list of tasks associated to the given list of node identifiers (nids).
 
@@ -1713,7 +1720,7 @@ if __name__ == "__main__":
         n2task = {task.node_id: task for task in self.iflat_tasks()}
         return [n2task[n] for n in nids if n in n2task]
 
-    def wti_from_nids(self, nids) -> List[Task]:
+    def wti_from_nids(self, nids) -> list[Task]:
         """Return the list of (w, t) indices from the list of node identifiers nids."""
         return [task.pos for task in self.tasks_from_nids(nids)]
 
@@ -1824,11 +1831,6 @@ if __name__ == "__main__":
             lines.append("=" * len(header) + 2*"\n")
 
         return stream.writelines(lines)
-
-    #def change_inputs(self, status=None, nids=None): #, stream=sys.stdout):
-    #    tasks = list(self.iflat_tasks(status=status, nids=nids))
-    #    for task in tasks.
-    #        d = task.read_json_input()
 
     def debug(self, status=None, nids=None, stream=sys.stdout):
         """
@@ -1968,17 +1970,17 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         """
         return self.manager.qadapter.get_njobs_in_queue(username=username)
 
-    def rmtree(self, ignore_errors=False, onerror=None):
+    def rmtree(self, ignore_errors=False, onerror=None) -> None:
         """Remove workdir (same API as shutil.rmtree)."""
         if not os.path.exists(self.workdir): return
         shutil.rmtree(self.workdir, ignore_errors=ignore_errors, onerror=onerror)
 
-    def rm_and_build(self):
+    def rm_and_build(self) -> None:
         """Remove the workdir and rebuild the flow."""
         self.rmtree()
         self.build()
 
-    def build(self, *args, **kwargs):
+    def build(self, *args, **kwargs) -> None:
         """Make directories and files of the `Flow`."""
         # Allocate here if not done yet!
         if not self.allocated: self.allocate()
@@ -2080,7 +2082,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                         protocol=self.pickle_protocol if protocol is None else protocol)
         return strio.getvalue()
 
-    def register_task(self, input, deps=None, manager=None, task_class=None, append=False) -> Work:
+    def register_task(self, input: AbinitInput,
+                      deps=None, manager=None, task_class=None, append=False) -> Work:
         """
         Utility function that generates a `Work` made of a single task
 
@@ -2130,7 +2133,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         work = Work()
         return self.register_work(work, deps=deps, manager=manager, workdir=workdir)
 
-    def register_work(self, work, deps=None, manager=None, workdir=None) -> Work:
+    def register_work(self, work: Work, deps=None, manager=None, workdir=None) -> Work:
         """
         Register a new |Work| and add it to the internal list, taking into account
         possible dependencies.
@@ -2204,7 +2207,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         return work
 
     @property
-    def allocated(self):
+    def allocated(self) -> int:
         """Numer of allocations. Set by `allocate`."""
         try:
             return self._allocated
@@ -2718,7 +2721,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         return fg
 
     @add_fig_kwargs
-    def graphviz_imshow(self, ax=None, figsize=None, dpi=300, fmt="png", **kwargs):
+    def graphviz_imshow(self, ax=None, figsize=None, dpi=300, fmt="png", **kwargs) -> Figure:
         """
         Generate flow graph in the DOT language and plot it with matplotlib.
 
@@ -2744,7 +2747,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     @add_fig_kwargs
     def plot_networkx(self, mode="network", with_edge_labels=False, ax=None, arrows=False,
-                      node_size="num_cores", node_label="name_class", layout_type="spring", **kwargs):
+                      node_size="num_cores", node_label="name_class", layout_type="spring", **kwargs) -> Figure:
         """
         Use networkx to draw the flow with the connections among the nodes and
         the status of the tasks.
@@ -2918,7 +2921,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         with io.open(nbpath, 'wt', encoding="utf8") as fh:
             nbformat.write(nb, fh)
 
-        from monty.os.path import which
+        from shutil import which
         has_jupyterlab = which("jupyter-lab") is not None
         appname = "jupyter-lab" if has_jupyterlab else "jupyter notebook"
         if not has_jupyterlab:
@@ -3095,8 +3098,13 @@ class FlowCallback(object):
         return sender in [d.node for d in self.deps]
 
 
-# Factory functions.
-def bandstructure_flow(workdir, scf_input, nscf_input, dos_inputs=None, manager=None, flow_class=Flow, allocate=True):
+####################
+# Factory functions
+####################
+
+def bandstructure_flow(workdir: str, scf_input: AbinitInput, nscf_input: AbinitInput,
+                       dos_inputs=None, manager=None,
+                       flow_class=Flow, allocate=True):
     """
     Build a |Flow| for band structure calculations.
 
@@ -3122,7 +3130,10 @@ def bandstructure_flow(workdir, scf_input, nscf_input, dos_inputs=None, manager=
     return flow
 
 
-def g0w0_flow(workdir, scf_input, nscf_input, scr_input, sigma_inputs, manager=None, flow_class=Flow, allocate=True):
+def g0w0_flow(workdir: str,
+              scf_input: AbinitInput, nscf_input: AbinitInput,
+              scr_input: AbinitInput, sigma_inputs,
+              manager=None, flow_class=Flow, allocate=True):
     """
     Build a |Flow| for one-shot $G_0W_0$ calculations.
 
@@ -3147,7 +3158,6 @@ def g0w0_flow(workdir, scf_input, nscf_input, scr_input, sigma_inputs, manager=N
 
 # TODO: Move it to dfpt_works
 
-
 class PhononFlow(Flow):
     """
     This Flow provides a high-level interface to compute phonons with DFPT
@@ -3159,7 +3169,7 @@ class PhononFlow(Flow):
        Only the irreducible phonon perturbations are espliclty computed.
     """
     @classmethod
-    def from_scf_input(cls, workdir, scf_input, ph_ngqpt,
+    def from_scf_input(cls, workdir: str, scf_input: AbinitInput, ph_ngqpt,
                        with_becs=True, with_quad=False, with_flexoe=False,
                        manager=None, allocate=True) -> PhononFlow:
         """
@@ -3233,7 +3243,7 @@ class NonLinearCoeffFlow(Flow):
        for that particular q-point.
     """
     @classmethod
-    def from_scf_input(cls, workdir, scf_input,
+    def from_scf_input(cls, workdir: str, scf_input: AbinitInput,
                        manager=None, allocate=True) -> NonLinearCoeffFlow:
         """
         Create a `NonlinearFlow` for second order susceptibility calculations from
@@ -3244,9 +3254,6 @@ class NonLinearCoeffFlow(Flow):
             scf_input: |AbinitInput| object with the parameters for the GS-SCF run.
             manager: |TaskManager| object. Read from `manager.yml` if None.
             allocate: True if the flow should be allocated before returning.
-
-        Return:
-            :class:`NonlinearFlow` object.
         """
         flow = cls(workdir, manager=manager)
 
@@ -3301,14 +3308,15 @@ class NonLinearCoeffFlow(Flow):
         return retcode
 
 
-def phonon_conv_flow(workdir, scf_input, qpoints, params, manager=None, allocate=True):
+def phonon_conv_flow(workdir: str, scf_input: AbinitInput, qpoints, params,
+                     manager=None, allocate=True):
     """
     Create a |Flow| to perform convergence studies for phonon calculations.
 
     Args:
         workdir: Working directory of the flow.
         scf_input: |AbinitInput| object defining a GS-SCF calculation.
-        qpoints: List of list of lists with the reduced coordinates of the q-point(s).
+        qpoints: List with the reduced coordinates of the q-point(s).
         params:
             To perform a converge study wrt ecut: params=["ecut", [2, 4, 6]]
         manager: |TaskManager| object responsible for the submission of the jobs.

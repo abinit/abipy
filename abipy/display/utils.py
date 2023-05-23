@@ -1,5 +1,6 @@
 # coding: utf-8
 """Tools to build ipython widgets."""
+from __future__ import annotations
 
 import ipywidgets as ipw
 

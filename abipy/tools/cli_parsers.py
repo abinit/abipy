@@ -1,12 +1,36 @@
 """
+Tools and helper functions to build the command line interface of the AbiPy scripts.
 """
+from __future__ import annotations
+
 import argparse
 import os
 
 from pprint import pformat
 
 
-def pn_serve_parser(**kwargs):
+def user_wants_to_abort() -> bool:
+    """Interactive prompt, return False if user entered `n` or `no`."""
+    try:
+        answer = input("\nDo you want to continue [Y/n]")
+    except EOFError:
+        return False
+
+    return answer.lower().strip() in ["n", "no"]
+
+
+def set_loglevel(loglevel: str) -> None:
+    # loglevel is bound to the string value obtained from the command line argument.
+    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
+    import logging
+    numeric_level = getattr(logging, loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+    logging.basicConfig(level=numeric_level)
+
+
+
+def pn_serve_parser(**kwargs) -> argparse.ArgumentParser:
     """
     Parent parser implementing cli options for panel.serve
     """
@@ -84,7 +108,7 @@ for port forwarding.
     return serve_kwargs
 
 
-def customize_mpl(options):
+def customize_mpl(options) -> None:
 
     if options.mpl_backend is not None:
         # Set matplotlib backend
@@ -96,3 +120,29 @@ def customize_mpl(options):
         import seaborn as sns
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
+
+def add_expose_options_to_parser(parser, with_mpl_options=True) -> None:
+    """Add Expose options to the parser."""
+
+    parser.add_argument('-e', '--expose', action='store_true', default=False,
+        help="Open file and generate matplotlib figures automatically by calling expose method.")
+    parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
+        help="Iterate over figures. Expose all figures at once if not given on the CLI.")
+    parser.add_argument("-t", "--slide-timeout", type=int, default=None,
+        help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
+    parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
+            help='Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.')
+    parser.add_argument("-ply", "--plotly", default=False, action="store_true",
+            help='Generate plotly plots in $BROWSER instead of matplotlib. WARNING: Not all the features are supported.')
+    parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
+            help="Push figure to plotly chart studio ." +
+                 "Requires --plotly option and user account at https://chart-studio.plotly.com.")
+
+    if with_mpl_options:
+        parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
+            help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
+        parser.add_argument('-mpl', "--mpl-backend", default=None,
+            help=("Set matplotlib interactive backend. "
+                  "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
+                  "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))

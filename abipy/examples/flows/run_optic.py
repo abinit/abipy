@@ -3,7 +3,7 @@ r"""
 Optic Flow
 ==========
 
-This example shows how to create a flow to compute optical spectra with Optic
+This example shows how to create a Flow to compute optical spectra with Optic
 (independent particle approximation, no local field effects) and perform
 a convergence study with respect to the k-point sampling.
 """

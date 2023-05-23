@@ -9,7 +9,7 @@ import pandas as pd
 
 from collections import OrderedDict
 from io import StringIO
-from typing import List, Union
+from typing import Union
 from monty.string import is_string, marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -29,7 +29,7 @@ class AbinitTextFile(TextFile):
     Base class for the ABINIT main output files and log files.
     """
     @property
-    def events(self):
+    def events(self) -> list:
         """
         List of ABINIT events reported in the file.
         """
@@ -69,7 +69,7 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
         """
         yield None
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -98,7 +98,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         self.debug_level = 0
         self._parse()
 
-    def _parse(self):
+    def _parse(self) -> None:
         """
         header: String with the input variables
         footer: String with the output variables
@@ -358,7 +358,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return structures
 
     @lazy_property
-    def initial_structures(self) -> List[Structure]:
+    def initial_structures(self) -> list[Structure]:
         """List of initial |Structure|."""
         return self._get_structures("header")
 
@@ -368,7 +368,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return all(self.initial_structures[0] == s for s in self.initial_structures)
 
     @lazy_property
-    def final_structures(self) -> List[Structure]:
+    def final_structures(self) -> list[Structure]:
         """List of final |Structure|."""
         if self.run_completed:
             return self._get_structures("footer")
@@ -452,7 +452,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             else:
                 return os.system(cmd)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
@@ -516,7 +516,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         df = df.set_index('dataset')
         return df
 
-    def get_dims_spginfo_dataset(self, verbose=0):
+    def get_dims_spginfo_dataset(self, verbose=0) -> tuple:
         """
         Parse the section with the dimensions of the calculation. Return dictionaries
 
@@ -642,13 +642,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
             return dims_dataset, spginfo_dataset
 
-    def next_gs_scf_cycle(self):
+    def next_gs_scf_cycle(self) -> GroundStateScfCycle:
         """
         Return the next :class:`GroundStateScfCycle` in the file. None if not found.
         """
         return GroundStateScfCycle.from_stream(self)
 
-    def get_all_gs_scf_cycles(self):
+    def get_all_gs_scf_cycles(self) -> list[GroundStateScfCycle]:
         """Return list of :class:`GroundStateScfCycle` objects. Empty list if no entry is found."""
         # NOTE: get_all should not used with next because of the call to self.seek(0)
         # The API should be refactored
@@ -662,13 +662,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         self.seek(0)
         return cycles
 
-    def next_d2de_scf_cycle(self):
+    def next_d2de_scf_cycle(self) -> D2DEScfCycle:
         """
         Return :class:`D2DEScfCycle` with information on the DFPT iterations. None if not found.
         """
         return D2DEScfCycle.from_stream(self)
 
-    def get_all_d2de_scf_cycles(self):
+    def get_all_d2de_scf_cycles(self) -> list[D2DEScfCycle]:
         """Return list of :class:`D2DEScfCycle` objects. Empty list if no entry is found."""
         cycles = []
         self.seek(0)
@@ -685,7 +685,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         Args:
             with_timer: True if timer section should be plotted
         """
-        from abipy.tools.plotting import MplExpose
+        from abipy.tools.plotting import MplExpose #, PanelExpose
         with MplExpose(slide_mode=False, slide_timeout=5.0) as e:
             e(self.yield_figs(tight_layout=tight_layout, with_timer=with_timer))
 
@@ -814,7 +814,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         from abipy.panels.outputs import AbinitOutputFilePanel
         return AbinitOutputFilePanel(self).get_panel(**kwargs)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -1002,7 +1002,7 @@ class AboRobot(Robot):
         """
         yield None
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -1030,6 +1030,7 @@ class OutNcFile(AbinitNcFile):
     via instance attribute e.g. ``outfile.ecut``. Provides integration with ipython_.
     """
     # TODO: This object is deprecated
+
     def __init__(self, filepath):
         super().__init__(filepath)
         self.reader = NetcdfReader(filepath)
@@ -1053,11 +1054,11 @@ class OutNcFile(AbinitNcFile):
             return varscache[name]
 
     @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    def params(self) -> dict:
+        """dict with parameters that might be subject to convergence studies."""
         return {}
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 

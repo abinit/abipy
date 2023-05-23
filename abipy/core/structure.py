@@ -23,12 +23,11 @@ from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, add_plotly_fig_kwargs
-from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, add_plotly_fig_kwargs
 from abipy.iotools import as_etsfreader, Visualizer
-from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars, species_by_znucl
+
 
 
 __all__ = [
@@ -459,7 +458,6 @@ class Structure(pmg_Structure, NotebookWriter):
         Example::
 
             Structure.zincblende(a, ["Zn", "S"])
-
         """
         a = pmg_units.Length(a, units).to("ang")
         lattice = 0.5 * float(a) * np.array([
@@ -484,7 +482,6 @@ class Structure(pmg_Structure, NotebookWriter):
         Example::
 
             Structure.rocksalt(a, ["Na", "Cl"])
-
         """
         a = pmg_units.Length(a, units).to("ang")
         lattice = 0.5 * float(a) * np.array([
@@ -551,6 +548,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         ``xred`` can be replaced with ``xcart`` or ``xangst``.
         """
+        from abipy.flowtk.abiobjects import structure_from_abivars
         return structure_from_abivars(cls, *args, **kwargs)
 
     @property
@@ -569,6 +567,7 @@ class Structure(pmg_Structure, NotebookWriter):
         reproduce the value of `znucl(ntypat)` specified in an **arbitrary** ABINIT input file created by the user.
         This array is ordered as the znucl list produced by AbiPy when writing the structure to the input file.
         """
+        from abipy.flowtk.abiobjects import species_by_znucl
         return species_by_znucl(self)
 
     def __str__(self):
@@ -583,7 +582,7 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             app(super().__str__())
 
-        if verbose:
+        if verbose > 1:
             for i, vec in enumerate(self.lattice.matrix):
                 app("a_%d: %.8f %.8f %.8f" % (i + 1, vec[0], vec[1], vec[2]))
 
@@ -662,6 +661,7 @@ class Structure(pmg_Structure, NotebookWriter):
             enforce_znucl[ntypat] = Enforce this value for znucl.
             enforce_typat[natom] = Fortran conventions. Start to count from 1.
         """
+        from abipy.flowtk.abiobjects import structure_to_abivars
         return structure_to_abivars(self, enforce_znucl=enforce_znucl, enforce_typat=enforce_typat, **kwargs)
 
     @property
@@ -2288,6 +2288,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Args:
             pseudos: List of |Pseudo| objects or list of filenames.
         """
+        from abipy.flowtk import PseudoTable
         nval, table = 0, PseudoTable.as_table(pseudos)
         for site in self:
             pseudo = table.pseudo_with_symbol(site.specie.symbol)
@@ -2302,6 +2303,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Args:
             pseudos: List of |Pseudo| objects or list of filenames.
         """
+        from abipy.flowtk import PseudoTable
         table = PseudoTable.as_table(pseudos)
         psp_valences = []
         for site in self:

@@ -1,9 +1,12 @@
 # coding: utf-8
 """Work subclasses related to GS calculations."""
+from __future__ import annotations
+
 import json
 
 from .works import Work
 from abipy.core.structure import Structure
+from abipy.abio.inputs import AbinitInput
 
 
 class EosWork(Work):
@@ -26,13 +29,14 @@ class EosWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, npoints=4, deltap_vol=0.25, ecutsm=0.5, move_atoms=True,
-                       manager=None):
+    def from_scf_input(cls, scf_input: AbinitInput,
+                       npoints=4, deltap_vol=0.25, ecutsm=0.5, move_atoms=True,
+                       manager=None) -> EosWork:
         """
         Build a EosWork from an AbinitInput representing a SCF-GS calculation.
 
         Args:
-            scf_input: AbinitInput for SCF-GS used as template to generate the other inputs.
+            scf_input: AbinitInput for GS-SCF used as template to generate the other inputs.
             npoints: Number of volumes generated on the right (left) of the equilibrium volume
                 The total number of points is therefore 2 * n + 1.
             deltap_vol: Step of the linear mesh given in relative percentage of the equilibrium volume
@@ -82,7 +86,7 @@ class EosWork(Work):
         return new_work
 
     @classmethod
-    def from_inputs(cls, inputs, manager=None):
+    def from_inputs(cls, inputs, manager=None) -> EosWork:
         """
         Advanced interface to build an EosWork from an list of AbinitInputs.
         """
@@ -93,7 +97,7 @@ class EosWork(Work):
 
         return new_work
 
-    def getnwrite_eosdata(self, write_json=True):
+    def getnwrite_eosdata(self, write_json=True) -> dict:
         """
         This method is called when all tasks reach S_OK. It reads the energies
         and the volumes from the GSR file, computes the EOS and produce a

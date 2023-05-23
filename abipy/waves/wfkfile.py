@@ -1,5 +1,7 @@
 # coding: utf-8
 """Wavefunction file."""
+from __future__ import annotations
+
 #import numpy as np
 
 from monty.functools import lazy_property
@@ -7,7 +9,7 @@ from monty.string import marquee
 from abipy.core import Mesh3D, GSphere
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import Visualizer
-from abipy.electrons.ebands import ElectronsReader
+from abipy.electrons.ebands import ElectronsReader, ElectronBands
 from abipy.waves.pwwave import PWWaveFunction
 from abipy.tools import duck
 
@@ -42,7 +44,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: WfkFile
     """
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         """
         Initialize the object from a Netcdf file.
         """
@@ -71,12 +73,12 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         # Save reference to the reader.
         self.reader = reader
 
-    def close(self):
+    def close(self) -> None:
         self.reader.close()
 
     @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    def params(self) -> dict:
+        """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
@@ -86,24 +88,24 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return self.ebands.structure
 
     @property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object"""
         return self._ebands
 
     @property
-    def nkpt(self):
+    def nkpt(self) -> int:
         """Number of k-points."""
         return len(self.kpoints)
 
     @property
-    def gspheres(self):
+    def gspheres(self) -> list:
         """List of :class:`GSphere` objects ordered by k-points."""
         return self._gspheres
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """
         String representation
 
@@ -124,11 +126,11 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         return "\n".join(lines)
 
-    def kindex(self, kpoint):
+    def kindex(self, kpoint) -> int:
         """The index of the k-point in the file. Accepts :class:`Kpoint` object or int."""
         return self.reader.kindex(kpoint)
 
-    def get_wave(self, spin, kpoint, band):
+    def get_wave(self, spin, kpoint, band) -> PWWaveFunction:
         """
         Read and return the wavefunction with the given spin, band and kpoint.
 
@@ -159,7 +161,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         Export :math:`|u(r)|^2` on file filename.
 
-        returns:
+        return:
             Instance of :class:`Visualizer`
         """
         # Read the wavefunction from file.
@@ -281,7 +283,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         yield self.ebands.plot(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -310,7 +312,7 @@ class WFK_Reader(ElectronsReader):
     .. inheritance-diagram:: Wfk_Reader
     """
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         """Initialize the object from a filename."""
         super().__init__(filepath)
 
@@ -335,18 +337,18 @@ class WFK_Reader(ElectronsReader):
         self._kg = self.read_value("reduced_coordinates_of_plane_waves")
 
     @lazy_property
-    def basis_set(self):
+    def basis_set(self) -> str:
         """String defining the basis set."""
         basis_set = self.read_value("basis_set")
         return "".join(str(basis_set, encoding='UTF-8')).strip()
 
     @property
-    def has_pwbasis_set(self):
+    def has_pwbasis_set(self) -> bool:
         """True if the plane-wave basis set is used."""
         return self.basis_set == "plane_waves"
 
     @property
-    def fft_divs(self):
+    def fft_divs(self) -> tuple:
         """FFT divisions used to compute the data in the WFK file."""
         return self.nfft1, self.nfft2, self.nfft3
 

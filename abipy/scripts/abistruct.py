@@ -2,10 +2,13 @@
 """
 Script to analyze/export/visualize the crystal structure saved in the netcdf files produced by ABINIT.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse
 import numpy as np
+import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
 from tabulate import tabulate
@@ -44,7 +47,7 @@ to build an appropriate supercell from partial occupancies.""", color="magenta")
         sys.exit(1)
 
 
-def get_epilog():
+def get_epilog() -> str:
     return """\
 Usage example:
 
@@ -493,7 +496,7 @@ ehull < show_unstable will be shown.""")
     return parser
 
 
-def serve_kwargs_from_options(options):
+def serve_kwargs_from_options(options) -> dict:
 
     #address = "localhost"
     if options.no_browser:
@@ -541,13 +544,7 @@ def main():
     if hasattr(options, "format"):
         options.format = options.format.strip()
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     if options.verbose > 2:
         print(options)
@@ -605,6 +602,8 @@ def main():
 
         supcell = structure * options.scaling_matrix
         #supcell = structure.make_supercell(scaling_matrix, to_unit_cell=True)
+        print("nsym 1")
+        print("chkprim 0")
         print(supcell.convert(fmt=options.format))
 
     elif options.command == "abisanitize":
@@ -646,6 +645,8 @@ def main():
     elif options.command == "primitive":
         structure = abilab.Structure.from_file(options.filepath)
         primitive = structure.get_primitive_structure(tolerance=0.25, use_site_props=False, constrain_latt=None)
+        # Cast to abipy structure because get_primitive may break inheritance.
+        primitive = abilab.Structure.as_structure(primitive)
         separator = "\n" + 90 * "="
         print("\nInitial structure:\n", structure, separator)
         print("\nPrimitive structure returned by pymatgen:\n", primitive, separator)

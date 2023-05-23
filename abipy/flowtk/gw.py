@@ -2,6 +2,8 @@
 """
 Works and Flows for GW calculations with Abinit.
 """
+from __future__ import annotations
+
 import os
 import numpy as np
 
@@ -27,7 +29,8 @@ class ScreeningWork(Work):
     """
 
     @classmethod
-    def from_nscf_task(cls, nscf_task, scr_input, manager=None):
+    def from_nscf_task(cls, nscf_task: NscfTask, scr_input, 
+                       manager=None) -> ScreeningWork:
         """
         Construct a `ScreeningWork` from a |NscfTask| object.
 
@@ -52,7 +55,7 @@ class ScreeningWork(Work):
         return new
 
     @classmethod
-    def from_wfk_filepath(cls, wfk_filepath, scr_input, manager=None):
+    def from_wfk_filepath(cls, wfk_filepath, scr_input, manager=None) -> ScreeningWork:
         """
         Construct a `ScreeningWork` from a WFK filepath and a screening input.
 
@@ -66,7 +69,7 @@ class ScreeningWork(Work):
             manager: |TaskManager| object.
         """
         new = cls(manager=manager)
-        wkf_node = Node.as_node(wfk_filepath)
+        wfk_node = Node.as_node(wfk_filepath)
 
         # Get list of q-points for the dielectric matrix
         scr_ibz = scr_input.abiget_scr_ibz()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Raman Flow with independent-particle approximation (optic)
+Raman with independent-particle approximation (optic)
 ==========================================================
 
 This script shows how to perform a Raman calculation with excitonic effects

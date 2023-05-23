@@ -18,17 +18,18 @@ import abipy.abio.input_tags as atags
 
 from collections import OrderedDict
 from collections.abc import MutableMapping
-from typing import List, Any, Union, Iterable
+from enum import Enum, IntEnum #, StrEnum
+from typing import Any, Union, Iterable, Iterator
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
 from pymatgen.core.units import Energy
-from pymatgen.util.serialization import pmg_serialize
 from pymatgen.symmetry.bandstructure import HighSymmKpath
 from abipy.tools.numtools import is_diagonal
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.core.kpoints import has_timrev_from_kptopt
+from abipy.tools.serialization import pmg_serialize
 from abipy.abio.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var, format_string_abivars
 from abipy.abio.abivars_db import get_abinit_variables, get_anaddb_variables
@@ -115,6 +116,8 @@ _DATA_PREFIX = {
 #        return np.repeat(values, numcells, axis=0)
 #    else:
 #        raise ValueError("Don't know how to reallocate variable %s" % str(name))
+
+
 
 
 class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
@@ -244,7 +247,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
 
         return self.set_vars(**added)
 
-    def pop_vars(self, keys: List[str]) -> dict:
+    def pop_vars(self, keys: list[str]) -> dict:
         """
         Remove the variables listed in keys.
         Return dictionary with the variables that have been removed.
@@ -357,6 +360,58 @@ class AbiAbstractInput(AbstractInput):
                 task: Task object
         """
 
+class ChangeEnumStr:
+    def __str__(self):         
+        return str(self.value) 
+
+class RUNL(ChangeEnumStr, IntEnum):
+
+    """
+    Values of optdriver corresponding to the different run-levels. See defs_basis.F90
+    """
+    GSTATE     = 0
+    RESPFN     = 1
+    SCREENING  = 3
+    SIGMA      = 4
+    NONLINEAR  = 5
+    GWR        = 6
+    EPH        = 7
+    WFK        = 8
+    RTTDDFT    = 9
+    GWLS       = 66
+    BSE        = 99
+    LONGWAVE   = 10
+
+class WFK_TASK(ChangeEnumStr, Enum):
+    """
+    Integer flags defining the task to be performed in wfk_analyze. See defs_basis.F90
+    """
+    NONE      = 0
+    FULLBZ    = 1
+    CLASSIFY  = 2
+    PAW_AEPSI = 3
+    EINTERP   = 4
+    DDK       = 5
+    DDK_DIAGO = 6
+    OPTICS_FULLBZ = 7
+    KPTS_ERANGE= 8
+    CHECK_SYMTAB = 9
+
+    
+class GWR_TASK(ChangeEnumStr, Enum):  # StrEnum added in 3.11
+    """String """
+    HDIAGO = "HDIAGO"
+    HDIAGO_FULL = "HDIAGO_FULL"
+    CC4S = "CC4S"
+    CC4S_FULL = "CC4S_FULL"
+    G0W0 = "G0W0"
+    G0V = "G0V"
+    EGEW = "EGEW"
+    EGW0 = "EGW0"
+    G0EW = "G0EW"
+    RPA_ENERGY = "RPA_ENERGY"
+    GAMMA_GW = "GAMMA_GW"        
+
 
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by ``AbinitInput``."""
@@ -371,7 +426,8 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
     """
     Error = AbinitInputError
 
-    def __init__(self, structure, pseudos, pseudo_dir=None, comment=None, decorators=None, abi_args=None,
+    def __init__(self, structure, pseudos, 
+                 pseudo_dir=None, comment=None, decorators=None, abi_args=None,
                  abi_kwargs=None, tags=None, enforce_znucl=None, enforce_typat=None):
         """
         Args:
@@ -410,25 +466,15 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         self._vars = OrderedDict(args)
         self.set_structure(structure)
 
-        #if pseudo_dir is not None:
         if pseudo_dir:
             pseudo_dir = os.path.abspath(pseudo_dir)
             if not os.path.exists(pseudo_dir): raise self.Error("Directory `%s` does not exist" % pseudo_dir)
             pseudos = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
-            #self["pp_dirpath"] = f'"{pseudo_dir}"'
 
         try:
             self._pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(self.structure)
         except ValueError as exc:
             raise self.Error(str(exc))
-
-        # This section will be activated when we finally drop support for Abinitv8 and the files file.
-        #if "pp_dirpath" in self:
-        #    pstring = ", ".join(p.basename for p in self._pseudos)
-        #else:
-        #    pstring = ", ".join(p.path for p in self._pseudos)
-        #
-        #self["pseudos"] = f'"{pstring}"'
 
         if comment is not None: self.set_comment(comment)
 
@@ -437,23 +483,24 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
 
         self.enforce_znucl_and_typat(enforce_znucl, enforce_typat)
 
-        # TODO:
-        # Note that here the pseudos **must** be sorted according to znucl.
-        # Here we reorder the pseudos if the order is wrong.
-        #ord_pseudos = []
+        # Note that pseudos **must** be sorted according to znucl.
+        # Here we reorder the pseudos if the initial order is wrong.
 
-        #znucl = [specie.number for specie in self.input.structure.species_by_znucl]
+        if enforce_znucl is not None:
+            znucl = self.enforce_znucl
+        else:
+            znucl = [specie.number for specie in self.structure.species_by_znucl]
 
-        #for z in znucl:
-        #    for p in self.pseudos:
-        #        if p.Z == z:
-        #            ord_pseudos.append(p)
-        #            break
-        #    else:
-        #        raise ValueError("Cannot find pseudo with znucl %s in pseudos:\n%s" % (z, self.pseudos))
+        ord_pseudos = []
+        for z in znucl:
+            for p in self.pseudos:
+                if p.Z == z:
+                    ord_pseudos.append(p)
+                    break
+            else:
+                raise ValueError("Cannot find pseudo with znucl %s in pseudos:\n%s" % (z, self.pseudos))
 
-        #for pseudo in ord_pseudos:
-        #    app(pseudo.path)
+        self._pseudos = ord_pseudos
 
     def enforce_znucl_and_typat(self, znucl, typat):
         """
@@ -542,7 +589,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
                     )
 
     @property
-    def vars(self) -> dict:
+    def vars(self) -> dict[str, Any]:
         """Dictionary with variables."""
         return self._vars
 
@@ -679,20 +726,20 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return runlevel
 
     @property
-    def decorators(self):
+    def decorators(self) -> list:
         """List of decorators."""
         return self._decorators
 
-    def register_decorator(self, decorator):
+    def register_decorator(self, decorator) -> None:
         """Register a :class:`AbinitInputDecorator`."""
         self._decorators.append(decorator)
 
-    def set_mnemonics(self, boolean):
+    def set_mnemonics(self, boolean: bool) -> None:
         """True if mnemonics should be printed"""
         self._mnemonics = bool(boolean)
 
     @property
-    def mnemonics(self):
+    def mnemonics(self) -> bool:
         """Return True if mnemonics should be printed"""
         try:
             return self._mnemonics
@@ -700,7 +747,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             return False
 
     @property
-    def uses_ktimereversal(self):
+    def uses_ktimereversal(self) -> bool:
         """
         True if time-reversal symmetry is used to generate k-points in the IBZ.
         """
@@ -1096,11 +1143,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Set the variables for the NSCF computation of the electronic band structure.
 
         Args:
-            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+            ndivsm: 
+                if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
                 if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
                 in the segment is proportional to its length. Typical value: -20.
-                This option is the recommended one if the k-path contains two consecutive high symmetry k-points
-                that are very close as ndivsm > 0 may produce a very large number of wavevectors.
+                This option is the recommended one if the k-path contains two consecutive 
+                high symmetry k-points that are very close as ndivsm > 0 may produce 
+                a very large number of wavevectors.
             kptbounds: k-points defining the path in k-space.
                 If None, we use the default high-symmetry k-path defined in the pymatgen database.
         """
@@ -1166,8 +1215,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     def set_autospinat(self, default=0.6) -> dict:
         """
-        Set the variable spinat for collinear calculation in the format (0, 0, m) with the value of m determined
-        with the following order of preference:
+        Set the variable spinat for collinear calculations in the format (0, 0, m) 
+        with the value of m determined with the following order of preference:
 
         1. If the site of the structure has a magmom setting, that is used.
         2. If the species on the site has a spin setting, that is used.
@@ -1337,7 +1386,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return d
 
     @property
-    def pseudos(self) -> List[Pseudo]:
+    def pseudos(self) -> list[Pseudo]:
         """List of |Pseudo| objects."""
         return self._pseudos
 
@@ -1361,9 +1410,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         """Number of valence electrons for each atom in the structure."""
         return self.structure.valence_electrons_per_atom(self.pseudos)
 
-    def linspace(self, varname, start, stop, num=50, endpoint=True) -> List[AbinitInput]:
+    def linspace(self, varname, start, stop, num=50, endpoint=True) -> list[AbinitInput]:
         """
-        Generate `num` input files by changing the value of variable `varname` over the interval [`start`, `stop`].
+        Generate `num` input files by changing the value of variable `varname` 
+        over the interval [`start`, `stop`].
         The endpoint of the interval can optionally be excluded.
 
         Example:
@@ -1382,15 +1432,15 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         """
         inps = []
         for value in np.linspace(start, stop, num=num, endpoint=endpoint, retstep=False):
-            inp = self.deepcopy()
-            inp[varname] = value
+            inp = self.new_with_vars(**{varname: value})
             inps.append(inp)
 
         return inps
 
-    def arange(self, varname, start, stop, step) -> List[AbinitInput]:
+    def arange(self, varname: str, start, stop, step) -> list[AbinitInput]:
         """
-        Generate list of input files by changing the value of variable `varname` over the interval [`start`, `stop`].
+        Generate list of input files by changing the value of variable `varname` 
+        over the interval [`start`, `stop`].
         Values are generated within the half-open interval ``[start, stop)``
         (in other words, the interval including `start` but excluding `stop`).
 
@@ -1417,7 +1467,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return inps
 
-    def product(self, *items) -> List[AbinitInput]:
+    def product(self, *items) -> list[AbinitInput]:
         """
         Cartesian product of input iterables. Equivalent to nested for-loops.
 
@@ -1581,6 +1631,46 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return inp
 
+    def news_varname_values(self, varname_values) -> list[AbinitInput]:
+        """
+        Return list of new inputs by adding the variable and values 
+        specified in `varname_values`. Useful for performing convergence studies.
+        Two cases are possible:
+
+        1) Generate e.g. 3 inputs with different number of `nband`:
+
+            varname_values = ("nband", [8, 12, 14])
+
+            for new_inp in input.news_with_varname_values(varname_values):
+                print(new_inp)
+
+        2) Take Cartesian product of two or multiple variables:          
+                                                                                   
+            var_vals = [                                                          
+                 ("nband", [8, 12]),                                               
+                 ("ecut", [4, 8]),                                                 
+            ]                                                                     
+
+            for new_inp in input.news_with_varname_values(varname_values):
+                print(new_inp)
+        """
+        if duck.is_string(varname_values[0]):
+            # varname_values = ("nband", [8, 12, 14])
+            varname, values = varname_values
+            if len(values) == 1: values = [values]
+            new_inputs = []
+            for val in values:
+                new_inputs.append(self.new_with_vars(**{varname: val}))
+            return new_inputs 
+        else:
+            #varname_values = [
+            #    ("nband", [8, 12]),             
+            #    ("gwr_ntau", [6, 8]),               
+            #]                                   
+            items = [t[0] for t in varname_values]
+            items.extend(t[1] for t in varname_values)
+            return self.product(*items)
+
     def pop_tolerances(self) -> dict:
         """
         Remove all the tolerance variables present in the input.
@@ -1603,7 +1693,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     #    return self.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])
 
     @property
-    def scf_tolvar(self) -> Tuple[str, float]:
+    def scf_tolvar(self) -> tuple[str, float]:
         """
         Returns the tolerance variable and value relative to the SCF convergence.
         If more than one is present, an error is raised.
@@ -1676,7 +1766,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return nscf_input
 
-    def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None, nb_extra=10, nstep=100) -> AbinitInput:
+    def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None, 
+                        nb_extra=10, nstep=100) -> AbinitInput:
         """
         Generate an input file for electron DOS calculation from a GS-SCF input.
 
@@ -1719,7 +1810,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return nscf_input
 
-    def make_dfpt_effmass_inputs(self, kpts, effmass_bands_f90, ngfft=None, tolwfr=1e-20, iscf=-2) -> MultiDataset:
+    def make_dfpt_effmass_inputs(self, kpts, effmass_bands_f90, ngfft=None, 
+                                 tolwfr=1e-20, iscf=-2) -> MultiDataset:
         """
         Return a |MultiDataset| object with 2 inputs for the calculation of effective masses with DFPT
         The first input in a standard NSCF run, the second input computes the effective masses.
@@ -1777,7 +1869,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_ph_inputs_qpoint(self, qpt, tolerance=None, prtwf=-1, prepgkk=0, manager=None) -> MultiDataset:
+    def make_ph_inputs_qpoint(self, qpt, tolerance=None, 
+                              prtwf=-1, prepgkk=0, manager=None) -> MultiDataset:
         """
         Builds and returns a |MultiDataset| list of input files for the calculation of phonons
         at the given q-point `qpt`. This method should be called with an input the represents a GS run.
@@ -2236,7 +2329,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return multi
 
     def make_wfk_kerange_inputs(self, sigma_kerange, sigma_ngkpt,
-                               kptopt=1, einterp=(1, 5, 0, 0)) -> MultiDataset:
+                                kptopt=1, einterp=(1, 5, 0, 0)) -> MultiDataset:
         """
         Return a |MultiDataset| with two inputs for performing a WFK calculation with the kerange trick.
         This method should be called with the input associated to the NSCF run that produces
@@ -2386,6 +2479,29 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     #        **kwargs
     #    )
     #    return new
+
+    def make_gwr_qprange_input(self, gwr_ntau, nband, ecuteps, 
+                               gw_qprange=0, **kwargs) -> AbinitInput:
+        """
+        Build and return an input file to compute QP corrections with the GWR code.
+
+        Args:
+            gw_qprange = 0 to Compute the QP corrections only for the 
+                fundamental and the direct gap.
+        """
+        new = self.new_with_vars(
+            optdriver=RUNL.GWR,             
+            gwr_task=GWR_TASK.G0W0,
+            gwr_ntau=gwr_ntau,
+            nband=nband,             
+            ecuteps=ecuteps,         
+            #ecutsigx=4,
+            nkptgw=0,
+            gw_qprange=gw_qprange, 
+            comment="Input file for GWR QP calculations generated by AbiPy",
+            **kwargs                 
+        )                            
+        return new
 
     def abivalidate(self, workdir=None, manager=None):
         """
@@ -2895,7 +3011,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return task
 
 
-class MultiDataset(object):
+class MultiDataset:
     """
     This object is essentially a list of |AbinitInput| objects.
     It provides an easy-to-use interface to apply global changes to the inputs.
@@ -2934,7 +3050,7 @@ class MultiDataset(object):
     Error = AbinitInputError
 
     @classmethod
-    def from_inputs(cls, inputs: Union[List[AbinitInput], MultiDataset]) -> MultiDataset:
+    def from_inputs(cls, inputs: Union[list[AbinitInput], MultiDataset]) -> MultiDataset:
         """Build a |MultiDataset| from a list of |AbinitInput| objects."""
         for inp in inputs:
             if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
@@ -3045,14 +3161,14 @@ class MultiDataset(object):
         """True if norm-conserving calculation."""
         return all(p.isnc for p in self.pseudos)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Number of inputs."""
         return len(self._inputs)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: int) -> AbinitInput:
         return self._inputs[key]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[AbinitInput]:
         return self._inputs.__iter__()
 
     def __getattr__(self, name: str):
@@ -3120,7 +3236,7 @@ class MultiDataset(object):
         """Add a new entry in the multidataset by copying the input with index ``dtindex``."""
         self.append(self[dtindex].deepcopy())
 
-    def split_datasets(self) -> List[AbinitInput]:
+    def split_datasets(self) -> list[AbinitInput]:
         """Return list of |AbinitInput| objects.."""
         return self._inputs
 
@@ -3133,7 +3249,7 @@ class MultiDataset(object):
         """True if all inputs in the MultiDataset are equal."""
         return all(self[0].structure == inp.structure for inp in self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, mode="text", verbose=0, with_pseudos=True, files_file=False) -> str:
@@ -3243,7 +3359,7 @@ class MultiDataset(object):
 
     def filter_by_tags(self, tags=None, exclude_tags=None) -> MultiDataset:
         """
-        Filters the input according to the tags
+        Filters the inputs according to the tags
 
         Args:
             tags: A single tag or list/tuple/set of tags

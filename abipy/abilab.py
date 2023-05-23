@@ -47,8 +47,9 @@ from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, Electro
     dataframe_from_ebands, EdosFile)
 from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.eskw import EskwFile
-from abipy.electrons.psps import PspsFile
+from abipy.electrons.psps import PspsFile, PspsRobot
 from abipy.electrons.gw import SigresFile, SigresRobot
+from abipy.electrons.gwr import GwrFile
 from abipy.electrons.bse import MdfFile, MdfRobot
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
@@ -144,6 +145,7 @@ abiext2ncfile = collections.OrderedDict([
     ("PHDOS.nc", PhdosFile),
     ("SCR.nc", ScrFile),
     ("SIGRES.nc", SigresFile),
+    ("GWR.nc", GwrFile),
     ("GRUNS.nc", GrunsNcFile),
     ("MDF.nc", MdfFile),
     ("FATBANDS.nc", FatBandsFile),
@@ -306,7 +308,7 @@ def abiopen(filepath: str):
     return cls.from_file(filepath)
 
 
-def abirobot(filepaths: Union[str, List[str]]):
+def abirobot(filepaths: Union[str, List[str]]) -> Robot:
     """
     Factory function to create and return a Robot subclass from a list of filenames
     The Robot subclass is detected from the extension of the first file hence
@@ -587,7 +589,7 @@ so that the abinit executable is in $PATH.
     return 0
 
 
-def abipy_logo1():
+def abipy_logo1() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""
                  `:-                                                               -:`
@@ -605,7 +607,7 @@ def abipy_logo1():
 """
 
 
-def abipy_logo2():
+def abipy_logo2() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""
 MMMMMMMMMMMMMMMMNhdMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMdhmMMMMMMMMMMMMMMM
@@ -623,7 +625,7 @@ MMMMMMMMMMMMMMMMmmNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 """
 
 
-def abipy_logo3():
+def abipy_logo3() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""\
              `-.                                                  `--`

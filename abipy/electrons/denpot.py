@@ -1,5 +1,7 @@
 # coding: utf-8
 """Density/potential files in netcdf/fortran format."""
+from __future__ import annotations
+
 import os
 #import tempfile
 #import numpy as np
@@ -10,10 +12,12 @@ from monty.functools import lazy_property
 from abipy.core.globals import get_workdir
 from abipy.core.mixins import (AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter,
     AbinitFortranFile, CubeFile)
-from abipy.flowtk import Cut3D
+from abipy.core.structure import Structure
 from abipy.core.fields import FieldReader
+from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.abio.inputs import Cut3DInput
-from abipy.electrons.ebands import ElectronsReader
+from abipy.flowtk import Cut3D
+
 
 
 __all__ = [
@@ -34,23 +38,23 @@ class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Cut3dDenPotNcFile
     """
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = FieldReader(filepath)
         self.field = self.reader.read_field()
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.field.structure
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    def params(self) -> dict:
+        """dict with parameters that might be subject to convergence studies."""
         return {}
 
 
@@ -65,21 +69,21 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
     field_name = None
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str):
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = _DenPotNcReader(filepath)
 
     @lazy_property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
@@ -89,8 +93,8 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         return self.reader.read_abinit_xcfunc()
 
     @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    def params(self) -> dict:
+        """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
@@ -103,15 +107,15 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         """
         return getattr(self, self.__class__.field_name)
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -141,7 +145,7 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         yield self.structure.plot(show=False)
         yield self.ebands.plot(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -184,7 +188,7 @@ class DensityNcFile(_NcFileWithField):
         """Density object."""
         return self.reader.read_density()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         s = super().to_string(verbose=verbose)
 
@@ -319,7 +323,7 @@ class DensityFortranFile(AbinitFortranFile):
 
         return converted_file
 
-    def get_cube(self, out_filepath, workdir=None):
+    def get_cube(self, out_filepath, workdir=None) -> CubeFile:
         """
         Runs cut3d to convert the density to the cube format
 

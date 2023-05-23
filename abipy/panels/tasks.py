@@ -75,7 +75,7 @@ class TaskPanel(NodeParameterized):
 
         return col if count > 0 else None
 
-    def get_main_text_outs_view(self):
+    def get_main_text_outs_view(self) -> pn.Column:
         """
         Show the main text output files of the task.
         """

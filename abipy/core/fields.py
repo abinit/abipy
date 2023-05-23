@@ -915,7 +915,7 @@ class Density(_DensityField):
         if spin != 'total':
             raise ValueError('Argument "spin" should be "total"')
 
-        structure, mesh, datar = cube.cube_read_structure_mesh_data(file=filename)
+        structure, mesh, datar = cube.cube_read_structure_mesh_data(filepath=filename)
         return cls(nspinor=1, nsppol=1, nspden=1, datar=datar, structure=structure, iorder="c")
 
     #@lazy_property

@@ -65,7 +65,7 @@ class Robot(NotebookWriter):
         return sorted([cls.EXT for cls in Robot.__subclasses__()])
 
     @classmethod
-    def class_for_ext(cls, ext: str) -> ClassVar:
+    def class_for_ext(cls, ext: str):
         """Return the Robot subclass associated to the given extension."""
         for subcls in cls.__subclasses__():
             if subcls.EXT in (ext, ext.upper()):
@@ -136,8 +136,10 @@ class Robot(NotebookWriter):
         return new
 
     @classmethod
-    def _open_files_in_dir(cls, top: str, walk: bool):
-        """Open files in directory tree starting from `top`. Return list of Abinit files."""
+    def _open_files_in_dir(cls, top: str, walk: bool) -> list:
+        """
+        Open files in directory tree starting from `top`. Return list of Abinit files.
+        """
         if not os.path.isdir(top):
             raise ValueError("%s: no such directory" % str(top))
         from abipy.abilab import abiopen
@@ -257,7 +259,7 @@ class Robot(NotebookWriter):
 
         return robot
 
-    def add_extfile_of_node(self, node, nids=None, task_class=None):
+    def add_extfile_of_node(self, node, nids=None, task_class=None) -> None:
         """
         Add the file produced by this node to the robot.
 
@@ -354,7 +356,7 @@ class Robot(NotebookWriter):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
     @staticmethod
-    def ordered_intersection(list_1, list_2):
+    def ordered_intersection(list_1, list_2) -> list:
         """Return ordered intersection of two lists. Items must be hashable."""
         set_2 = frozenset(list_2)
         return [x for x in list_1 if x in set_2]
@@ -368,12 +370,12 @@ class Robot(NotebookWriter):
     #    return values
 
     @staticmethod
-    def _to_relpaths(paths):
+    def _to_relpaths(paths) -> list[str]:
         """Convert a list of absolute paths to relative paths."""
         root = os.getcwd()
         return [os.path.relpath(p, root) for p in paths]
 
-    def remove(self):
+    def remove(self) -> None:
         """Close the file handle, remove the file from disk for each file in the robot."""
         for abifile in self.abifiles:
             abifile.remove()
@@ -437,7 +439,7 @@ class Robot(NotebookWriter):
 
         return self.change_labels(new_labels, dryrun=dryrun)
 
-    def trim_paths(self, start=None):
+    def trim_paths(self, start=None) -> str:
         """
         Replace absolute filepaths in the robot with relative paths wrt to ``start`` directory.
         If start is None, os.getcwd() is used. Set ``self.start`` attribute, return ``self.start``.
@@ -454,7 +456,7 @@ class Robot(NotebookWriter):
         return self.start
 
     @property
-    def exceptions(self):
+    def exceptions(self) -> list:
         """List of exceptions."""
         return self._exceptions
 
@@ -498,7 +500,7 @@ class Robot(NotebookWriter):
         from tabulate import tabulate
         return tabulate([(label, abifile.relpath) for label, abifile in self.items()], headers=["Label", "Relpath"]) + "\n"
 
-    def show_files(self, stream=sys.stdout):
+    def show_files(self, stream=sys.stdout) -> None:
         """Show label --> file path"""
         stream.write(self.get_label_files_str())
 
@@ -525,7 +527,7 @@ class Robot(NotebookWriter):
         return '<ol start="0">\n{}\n</ol>'.format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
 
     @property
-    def abifiles(self):
+    def abifiles(self) -> list:
         """List of netcdf files."""
         return list(self._abifiles.values())
 
@@ -628,7 +630,16 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             self.is_sortable(func_or_string, raise_exc=True)
             if duck.hasattrd(self.abifiles[0], func_or_string):
                 items = [(label, abifile, duck.getattrd(abifile, func_or_string)) for (label, abifile) in labelfile_list]
+
+            #elif hasattr(self.abifiles[0], "reader") and duck.hasattrd(self.abifiles[0].reader, func_or_string):
+            #    items = [(label, abifile, duck.getattrd(abifile.reader, func_or_string)) for (label, abifile) in labelfile_list]
+
+            #elif hasattr(self.abifiles[0], "r") and duck.hasattrd(self.abifiles[0].r, func_or_string):
+            #elif hasattr(self.abifiles[0], "r"):
+            #    items = [(label, abifile, duck.getattrd(abifile.r, func_or_string)) for (label, abifile) in labelfile_list]
+
             else:
+                #print("Cannot find", func_or_string, " in self.abifiles[0]")
                 items = [(label, abifile, abifile.params[func_or_string]) for (label, abifile) in labelfile_list]
 
         items = sorted(items, key=lambda t: t[2], reverse=reverse)
@@ -754,7 +765,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
     #    else:
     #        return list(od.values())
 
-    def _exec_funcs(self, funcs, arg):
+    def _exec_funcs(self, funcs, arg) -> dict:
         """
         Execute list of callable functions. Each function receives arg as argument.
         """
@@ -770,7 +781,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         return d
 
     @staticmethod
-    def sortby_label(sortby, param):
+    def sortby_label(sortby, param) -> str:
         """Return the label to be used when files are sorted with ``sortby``."""
         return "%s %s" % (sortby, param) if not (callable(sortby) or sortby is None) else str(param)
 
@@ -832,7 +843,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         return plot_xy_with_hue(*args, **kwargs)
 
     @staticmethod
-    def _get_label(func_or_string):
+    def _get_label(func_or_string) -> str:
         """
         Return label associated to ``func_or_string``.
         If callable, docstring __doc__ is used.
@@ -1082,7 +1093,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         return fig
 
-    def get_baserobot_code_cells(self, title=None):
+    def get_baserobot_code_cells(self, title=None) -> list:
         """
         Return list of jupyter_ cells with calls to methods provided by the base class.
         """
@@ -1097,7 +1108,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         ]
 
 
-class HueGroup(object):
+class HueGroup:
     """
     This small object is used by ``group_and_sortby`` to store information about the group.
     """

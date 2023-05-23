@@ -1,9 +1,11 @@
 """Panels for interacting with FATBANDS.nc files."""
+from __future__ import annotations
 
 #import param
 import panel as pn
 import panel.widgets as pnw
 
+from abipy.electrons.fatbands import FatBandsFile
 from .core import PanelWithElectronBands, ply, mpl, dfc, depends_on_btn_click #, PanelWithEbandsRobot
 
 
@@ -12,7 +14,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
     Panel with widgets to interact with a |FatBandsFile|.
     """
 
-    def __init__(self, ncfile, **params):
+    def __init__(self, ncfile: FatBandsFile, **params):
         PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
         self.ncfile = ncfile
 
@@ -21,7 +23,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
         self.plot_fatdos_btn = pnw.Button(name="Plot fatdos", button_type='primary')
 
     @depends_on_btn_click('plot_fatbands_btn')
-    def on_plot_fatbands_btn(self):
+    def on_plot_fatbands_btn(self) -> pn.Column:
         """
         Plot fatbands grouped by atomic type and angular momentum l
         """
@@ -43,7 +45,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
         return col
 
     @depends_on_btn_click('plot_fatdos_btn')
-    def on_plot_fatdos_btn(self):
+    def on_plot_fatdos_btn(self) -> pn.Column:
         """
         Plot PJDOS grouped by atomic type and angular momentum l
         """

@@ -17,6 +17,8 @@ from collections import OrderedDict, namedtuple
 from typing import Any, List
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
 from .numtools import data_from_cplx_mode
+from abipy.tools import duck
+from abipy.tools.typing import Figure, Axes
 
 
 __all__ = [
@@ -134,19 +136,47 @@ def set_axlims(ax, lims, axname: str) -> tuple:
     return left, right
 
 
-def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool) -> None:
+def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> None:
     """
-    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy
+    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy.
     """
     if exchange_xy: xlabel, ylabel = ylabel, xlabel
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
 
+def set_grid_legend(ax_or_axlist, fontsize: int, xlabel=None, ylabel=None) -> None:
+    """
+    Activate grid and legend for one axis or a list of axis.
+    """
+    if duck.is_listlike(ax_or_axlist):
+        for ax in ax_or_axlist:
+            ax.grid(True)
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            if xlabel: ax.set_xlabel(xlabel)
+            if ylabel: ax.set_ylabel(ylabel)
+    else:
+        ax = ax_or_axlist
+        ax.grid(True)
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        if xlabel: ax.set_xlabel(xlabel)
+        if ylabel: ax.set_ylabel(ylabel)
+
+
 def set_visible(ax, boolean: bool, *args) -> None:
     """
     Hide/Show the artists of axis ax listed in args.
+    ax can be a single axis, a list or axis or a numpy arrays.
     """
+    if duck.is_listlike(ax):
+        if isinstance(ax, np.ndarray):
+            for _ in ax.ravel():
+                set_visible(_, *args)
+        else:
+            for _ in ax:
+                set_visible(_, *args)
+        return
+
     if "legend" in args and ax.legend():
         ax.legend().set_visible(boolean)
     if "title" in args and ax.title:
@@ -178,7 +208,7 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
                      xlims=None, ylims=None, fontsize=12, **kwargs):
     """
     Plot y = f(x) relation for different values of `hue`.
-    Useful for convergence tests done wrt to two parameters.
+    Useful for convergence tests done wrt two parameters.
 
     Args:
         data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.
@@ -507,7 +537,7 @@ class MplExpose:  # pragma: no cover
         else:
             self.add_fig(obj)
 
-    def add_fig(self, fig):
+    def add_fig(self, fig) -> None:
         """Add a matplotlib figure."""
         if fig is None: return
 
@@ -534,7 +564,7 @@ class MplExpose:  # pragma: no cover
         if exc_type is not None: return
         self.expose()
 
-    def expose(self):
+    def expose(self) -> None:
         """Show all figures. Clear figures if needed."""
         if not self.slide_mode:
             print("All figures in memory, elapsed time: %.3f s" % (time.time() - self.start_time))
@@ -583,7 +613,7 @@ class PanelExpose:  # pragma: no cover
         else:
             self.add_fig(obj)
 
-    def add_fig(self, fig):
+    def add_fig(self, fig) -> None:
         """Add a matplotlib figure."""
         if fig is None: return
 
@@ -630,7 +660,7 @@ class PanelExpose:  # pragma: no cover
         return template.show()
 
 
-def plot_unit_cell(lattice, ax=None, **kwargs):
+def plot_unit_cell(lattice, ax=None, **kwargs) -> tuple[Figure, Axes]:
     """
     Adds the unit cell of the lattice to a matplotlib Axes3D
 
@@ -668,7 +698,7 @@ def plot_unit_cell(lattice, ax=None, **kwargs):
     return fig, ax
 
 
-def ax_add_cartesian_frame(ax, start=(0, 0, 0)):
+def ax_add_cartesian_frame(ax, start=(0, 0, 0)) -> Axes:
     """
     Add cartesian frame to 3d axis at point `start`.
     """
@@ -702,7 +732,7 @@ def ax_add_cartesian_frame(ax, start=(0, 0, 0)):
 
 
 def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
-                   style="points+labels", color_scheme="VESTA", **kwargs):
+                   style="points+labels", color_scheme="VESTA", **kwargs) -> Figure:
     """
     Plot structure with matplotlib (minimalistic version).
 
@@ -795,7 +825,7 @@ def _generic_parser_fh(fh):
     return od
 
 
-class GenericDataFilePlotter(object):
+class GenericDataFilePlotter:
     """
     Extract data from a generic text file with results
     in tabular format and plot data with matplotlib.
@@ -803,11 +833,11 @@ class GenericDataFilePlotter(object):
     No attempt is made to handle metadata (e.g. column name)
     Mainly used to handle text files written without any schema.
     """
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         with open(filepath, "rt") as fh:
             self.od = _generic_parser_fh(fh)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
@@ -818,7 +848,7 @@ class GenericDataFilePlotter(object):
         return "\n".join(lines)
 
     @add_fig_kwargs
-    def plot(self, use_index=False, fontsize=8, **kwargs):
+    def plot(self, use_index=False, fontsize=8, **kwargs) -> Figure:
         """
         Plot all arrays. Use multiple axes if datasets.
 
@@ -856,7 +886,7 @@ class GenericDataFilePlotter(object):
 class GenericDataFilesPlotter:
 
     @classmethod
-    def from_files(cls, filepaths: List[str]) -> GenericDataFilesPlotter:
+    def from_files(cls, filepaths: list[str]) -> GenericDataFilesPlotter:
         """
         Build object from a list of `filenames`.
         """
@@ -869,7 +899,7 @@ class GenericDataFilesPlotter:
         self.odlist = []
         self.filepaths = []
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
@@ -889,7 +919,7 @@ class GenericDataFilesPlotter:
             self.filepaths.append(filepath)
 
     @add_fig_kwargs
-    def plot(self, use_index=False, fontsize=8, colormap="viridis", **kwargs):
+    def plot(self, use_index=False, fontsize=8, colormap="viridis", **kwargs) -> Figure:
         """
         Plot all arrays. Use multiple axes if datasets.
 
@@ -1110,7 +1140,7 @@ def get_fig_plotly(fig=None, **fig_kw):
     return fig, go
 
 
-def plotly_set_lims(fig, lims, axname, iax=None):
+def plotly_set_lims(fig, lims, axname, iax=None) -> tuple:
     """
     Set the data limits for the axis ax.
 
@@ -1417,7 +1447,7 @@ PLOTLY_API_KEY: secret  # to get your api_key go to profile > settings > regener
     _PLOTLY_AUTHEHTICATED = True
 
 
-def push_to_chart_studio(figs):
+def push_to_chart_studio(figs) -> None:
     """
     Push a plotly figure or a list of figures to the chart studio cloud.
     """

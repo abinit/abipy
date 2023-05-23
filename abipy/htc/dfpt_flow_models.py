@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import List  # , Tuple, ClassVar, Union, TypeVar, Type, Dict  #, Optional, Any, Type,
+#from typing import List  # , Tuple, ClassVar, Union, TypeVar, Type, Dict  #, Optional, Any, Type,
 from pydantic import Field, validator
 from abipy.abio.inputs import AbinitInput
 from abipy.flowtk import TaskManager, PhononFlow
 from .base_models import MongoConnector, GfsFileDesc
+from .worker import AbipyWorker
 from .gs_models import ScfData
 from .dfpt_models import PhononData
 from .flow_models import FlowModel, PresetQuery
@@ -106,7 +107,7 @@ class _BasePhononFlowModel(FlowModel):
             self.dvdb_gfsd = mng_connector.gfs_put_filepath(dvdb_filepath)
 
     @classmethod
-    def get_preset_queries(cls) -> List[PresetQuery]:
+    def get_preset_queries(cls) -> list[PresetQuery]:
         """
         Return list of dictionaries with the MongoDB queries typically used to filter documents for this model.
         Empty list if no suggestion is available.

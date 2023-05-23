@@ -3,6 +3,8 @@
 The abirun.py script allows the user to submit the calculations contained in an AbiPy `Flow`.
 It provides a command line interface as well graphical interfaces.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse
@@ -12,6 +14,7 @@ import platform
 import tempfile
 import abipy.flowtk as flowtk
 import abipy.abilab as abilab
+import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
 from collections import defaultdict, OrderedDict
@@ -22,20 +25,21 @@ from monty.termcolor import cprint, colored, get_terminal_size
 from monty.string import boxed, make_banner
 from abipy.tools import duck
 from abipy.flowtk import Status
+from abipy.flowtk.flows import Flow
 
 
-def straceback():
+def straceback() -> str:
     """Returns a string with the traceback."""
     import traceback
     return traceback.format_exc()
 
 
-def parse_strings(s):
+def parse_strings(s: str):
     """Parse comma separated values. Return None if s is None."""
     return s.split(",") if s is not None else s
 
 
-def flowdir_wname_tname(dirname):
+def flowdir_wname_tname(dirname: str):
     """"
     Given a initial directory `dirname` containing a node of the `Flow`,
     this function locates the directory of the flow (e.g. the directory with the pickle file)
@@ -76,9 +80,9 @@ def flowdir_wname_tname(dirname):
     raise RuntimeError("Cannot locate flowdir from %s" % dirname)
 
 
-def select_nids(flow, options):
+def select_nids(flow: Flow, options) -> set:
     """
-    Return the list of node ids selected by the user via the command line interface.
+    Return the set of node ids selected by the user via the command line interface.
     """
     #print("options.nids:", options.nids)
     task_ids = [task.node_id for task in
@@ -93,7 +97,7 @@ def select_nids(flow, options):
     return set(work_ids + task_ids)
 
 
-def cli_abiopen(options, filepath):
+def cli_abiopen(options, filepath: str):
     """Code taken from abiopen.py."""
     # TODO: One should have a single API but make_and_open_notebook are different so
     # for the time being we use two different versions.
@@ -134,7 +138,7 @@ def cli_abiopen(options, filepath):
             #return make_and_open_notebook(options)
 
 
-def flow_debug_reset_tasks(flow, nids=None, verbose=0):
+def flow_debug_reset_tasks(flow: Flow, nids=None, verbose=0) -> None:
     """
     Analyze error files produced by reset tasks for possible error messages
 
@@ -172,7 +176,7 @@ def flow_debug_reset_tasks(flow, nids=None, verbose=0):
     print("Number of tasks analyzed: %d" % ntasks)
 
 
-def flow_watch_status(flow, delay=5, nids=None, verbose=0, func_name="show_func"):
+def flow_watch_status(flow: Flow, delay=5, nids=None, verbose=0, func_name="show_func"):
     """
     Enter an infinite loop and delay execution for the given number of seconds. (default: 5 secs).
 
@@ -270,7 +274,7 @@ def flow_watch_status(flow, delay=5, nids=None, verbose=0, func_name="show_func"
         cprint("Received KeyboardInterrupt from user\n", "yellow")
 
 
-def get_epilog():
+def get_epilog() -> str:
     usage = """\
 
 Usage example:
@@ -732,7 +736,7 @@ Default: o
     return parser
 
 
-def serve_kwargs_from_options(options):
+def serve_kwargs_from_options(options) -> dict:
 
     #address = "localhost"
     if options.no_browser:
@@ -778,13 +782,7 @@ def main():
     if not options.command:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     if options.verbose > 2:
         print(options)

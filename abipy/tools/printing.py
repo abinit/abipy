@@ -1,14 +1,17 @@
 """Utilities for pandas dataframes"""
+from __future__ import annotations
 
 import sys
+import pandas as pd
 
 
-def print_dataframe(frame, title=None, precision=6, sortby=None, file=sys.stdout, display=None):
+def print_dataframe(df: pd.DataFrame, 
+                    title=None, precision=6, sortby=None, file=sys.stdout, display=None):
     """
     Print entire pandas DataFrame.
 
     Args:
-        frame: pandas DataFrame.
+        df: pandas DataFrame.
         title: Optional string to print as initial title.
         precision: Floating point output precision (number of significant digits).
             This is only a suggestion [default: 6] [currently: 6]
@@ -24,19 +27,18 @@ def print_dataframe(frame, title=None, precision=6, sortby=None, file=sys.stdout
         file = StringIO()
 
     if title is not None: print(title, file=file)
-    if sortby is not None and sortby in frame:
-        frame = frame.sort_values(sortby, inplace=False)
-
-    import pandas as pd
-    with pd.option_context("display.max_rows", len(frame),
-                           "display.max_columns", len(list(frame.keys())),
+    if sortby is not None and sortby in df:
+        df = df.sort_values(sortby, inplace=False)
+    
+    with pd.option_context("display.max_rows", len(df),
+                           "display.max_columns", len(list(df.keys())),
                            "display.precision", precision,
                            ):
         if display is None:
-            print(frame, file=file)
+            print(df, file=file)
             print(" ", file=file)
             if return_string: return file.getvalue()
         else:
             from IPython.core.display import HTML
-            output = getattr(frame, "_repr_%s_" % display)()
+            output = getattr(df, "_repr_%s_" % display)()
             return HTML(output)

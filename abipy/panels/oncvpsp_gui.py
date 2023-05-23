@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
-import sys
+#import sys
 import os
 import functools
 import itertools
@@ -14,7 +14,7 @@ from monty.termcolor import cprint
 from monty.string import list_strings
 from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ButtonContext, Loading
 from abipy.ppcodes.ppgen import OncvGenerator
-from abipy.ppcodes.oncvpsp import OncvOutputParser
+#from abipy.ppcodes.oncv_parser import OncvParser
 
 
 GE_ANNOTATED = """
@@ -424,7 +424,7 @@ class OncvInput(AbipyParameterized):
         """Return the minimum of rc(l) over l."""
         return min(p.rc for p in self.lparams)
 
-    def find_lparam(self, l: int, what: str) -> Tuple(int, float):
+    def find_lparam(self, l: int, what: str) -> tuple(int, float):
         for i, p in enumerate(self.lparams):
             if p.l == l:
                 return i, getattr(p, what)
@@ -589,7 +589,7 @@ class OncvGui(AbipyParameterized):
 
     @param.depends("ace_theme")
     def change_ace_theme(self):
-        print("Changing theme")
+        #print("Changing theme")
         self.input_ace.theme = self.ace_theme
 
     def get_oncv_input(self) -> OncvInput:
@@ -662,7 +662,7 @@ class OncvGui(AbipyParameterized):
         #print(self.tabs)
         return template
 
-    def get_history_view(self):
+    def get_history_view(self) -> pn.Row:
         return pn.Row(
             self.pws_col(["## History",
                           "history_idx",
@@ -672,8 +672,8 @@ class OncvGui(AbipyParameterized):
         )
 
     @depends_on_btn_click('history_btn')
-    def on_history_btn(self):
-        print("hello")
+    def on_history_btn(self) -> pn.Column:
+        #print("hello")
         hist_len = len(self.input_history)
         idx = self.history_idx
         if hist_len == 0 or idx >= hist_len:
@@ -692,7 +692,7 @@ class OncvGui(AbipyParameterized):
                 pn.pane.HTML(html_table),
         )
 
-    def get_rc_widgets(self, oncv_input):
+    def get_rc_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the value of rc(l)"""
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
         menu_button = pnw.MenuButton(name='Change rc(l)', items=menu_items, button_type='primary')
@@ -707,7 +707,7 @@ The present values of rc_l are: {rc_l}
                             *[self.param[k] for k in ("rc_num", "rc_step", "rc_dir")],
                             help_str)
 
-    def get_qcut_widgets(self, oncv_input):
+    def get_qcut_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the value of qc(l)"""
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
         menu_button = pnw.MenuButton(name='Change qcut(l)', items=menu_items, button_type='primary')
@@ -722,7 +722,7 @@ The present values are: {qc_l}
                             *[self.param[k] for k in ("qcut_num", "qcut_step", "qcut_dir")],
                             help_str)
 
-    def get_debl_widgets(self, oncv_input):
+    def get_debl_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the value of debl(l)"""
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
         menu_button = pnw.MenuButton(name='Change debl(l)', items=menu_items, button_type='primary')
@@ -734,7 +734,7 @@ Here one can change the value of debl(l) with fixed nproj(l).
                             *[self.param[k] for k in ("debl_num", "debl_step", "debl_dir")],
                             help_str)
 
-    def get_rc5_widgets(self, oncv_input):
+    def get_rc5_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the value of rc5"""
         btn = pnw.Button(name="Run", button_type='primary')
         btn.on_click(self.on_change_rc5)
@@ -747,7 +747,7 @@ The present value of rc5 is {oncv_input.rc5} and min(rc) is: {oncv_input.get_min
                             btn,
                             help_str)
 
-    def get_dvloc0_widgets(self, oncv_input):
+    def get_dvloc0_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the value of dvloc0"""
         btn = pnw.Button(name="Run", button_type='primary')
         btn.on_click(self.on_change_dvloc0)
@@ -760,7 +760,7 @@ The present value of dvloc0 is {oncv_input.dvloc0} with lpopt: {oncv_input.lpopt
                             btn,
                             help_str)
 
-    def get_rhomodel_widgets(self, oncv_input):
+    def get_rhomodel_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the parameters for the model core charge"""
         btn = pnw.Button(name="Run", button_type='primary')
         btn.on_click(self.on_change_rhomodel)
@@ -775,7 +775,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
                             btn,
                             help_str)
 
-    def gridplot_psgens(self, psgens, titles, func_names="plot_atanlogder_econv"):
+    def gridplot_psgens(self, psgens, titles, func_names="plot_atanlogder_econv") -> pn.GridBox:
         """
         Return a GridBox with the figures obtained by calling `plotter.func_name`
         for all the PseudoGenerators in psgens.
@@ -802,7 +802,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
         return pn.GridBox(*figs, ncols=ncols, nrows=nrows)
 
-    def on_change_qcut(self, event):
+    def on_change_qcut(self, event) -> None:
         """
         Change the value of qcut(l), run oncvpsp and show the results.
         """
@@ -870,7 +870,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
         dfw.on_click(update_input)
         return dfw
 
-    def on_change_debl(self, event):
+    def on_change_debl(self, event) -> None:
         """
         Change the value of debl(l), run oncvpsp and show the results.
         """
@@ -913,7 +913,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             self.out_area.objects = col.objects
 
-    def on_change_rc5(self, event):
+    def on_change_rc5(self, event) -> None:
         """
         Change the value of rc5 for the local part, run oncvpsp and show the results.
         """
@@ -954,7 +954,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             self.out_area.objects = col.objects
 
-    def on_change_dvloc0(self, event):
+    def on_change_dvloc0(self, event) -> None:
         """
         Change the value of dvloc0 for the local part, run oncvpsp and show the results.
         """
@@ -995,7 +995,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             self.out_area.objects = col.objects
 
-    def on_change_rc(self, event):
+    def on_change_rc(self, event) -> None:
         """
         Change the value of rc(l), run oncvpsp and show the results.
         """
@@ -1038,7 +1038,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             self.out_area.objects = col.objects
 
-    def on_change_rhomodel(self, event):
+    def on_change_rhomodel(self, event) -> None:
         """
         Change the parameters for the model core charge, run oncvpsp and show the results.
         """
@@ -1107,7 +1107,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             self.out_area.objects = col.objects
 
-    def get_rc_qcut_opt_view(self):
+    def get_rc_qcut_opt_view(self) -> pn.Row:
         oncv_input = self.get_oncv_input()
 
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
@@ -1130,7 +1130,7 @@ The present values of rc_l are: {rc_l}
         return pn.Row(wbox, self.rc_qcut_out_area, sizing_mode="stretch_width")
 
     #@depends_on_btn_click('rc_qcut_btn')
-    def on_change_rc_qcut(self, event):
+    def on_change_rc_qcut(self, event) -> None:
         """
         Generate pseudos using a grid of (rc, qcut) values for given l.
         """
@@ -1183,7 +1183,7 @@ The present values of rc_l are: {rc_l}
             self.rc_qcut_out_area.objects = col.objects
 
     #@depends_on_btn_click('execute_btn')
-    def on_execute_btn(self, event):
+    def on_execute_btn(self, event) -> None:
         """
         Build a new generator from the input file, run it and update out_area.
         """
@@ -1202,7 +1202,7 @@ The present values of rc_l are: {rc_l}
             #out_path = self._execute_stdout_path = psgen.stdout_path
 
             # Parse the output file
-            #onc_parser = OncvOutputParser(out_path)
+            #onc_parser = OncvParser(out_path)
             #onc_parser.scan()
             #if not onc_parser.run_completed:
             #    cprint("oncvpsp output is not complete. Exiting", "red")
@@ -1216,7 +1216,7 @@ The present values of rc_l are: {rc_l}
 
             self._update_out_area(psgen, oncv_input)
 
-    def _update_out_area(self, psgen, oncv_input):
+    def _update_out_area(self, psgen, oncv_input: OncvInput) -> None:
 
         with Loading(self.out_area):
             #self.psgen_to_save = psgen
@@ -1262,7 +1262,7 @@ The present values of rc_l are: {rc_l}
             self.out_area.objects = new_rows
             #self.tabs[0].active = 1
 
-    def on_save_btn(self, event):
+    def on_save_btn(self, event) -> None:
         with ButtonContext(event.obj):
             print("on_save_button")
             #self._execute_stdout_path

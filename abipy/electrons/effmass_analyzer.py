@@ -15,6 +15,7 @@ from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure, Has_ElectronBands
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.printing import print_dataframe
+from abipy.tools.typing import Figure
 from abipy.electrons.ebands import ElectronBands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
 
@@ -232,7 +233,8 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
     #    for segment in self.segments
 
     @add_fig_kwargs
-    def plot_emass(self, acc=4, units="eV", sharey=True, fontsize=6, colormap="viridis", verbose=0, **kwargs):
+    def plot_emass(self, acc=4, units="eV", sharey=True, fontsize=6, 
+                   colormap="viridis", verbose=0, **kwargs) -> Figure:
         """
         Plot electronic dispersion and quadratic approximant based on the
         effective masses computed along each segment.
@@ -272,7 +274,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         return fig
 
     @add_fig_kwargs
-    def plot_all_segments(self, ax=None, colormap="viridis", fontsize=8, **kwargs):
+    def plot_all_segments(self, ax=None, colormap="viridis", fontsize=8, **kwargs) -> Figure:
         """
 
         Args:
@@ -393,7 +395,8 @@ class Segment:
         return pd.DataFrame(rows, columns=list(rows[0].keys())).set_index('accuracy')
 
     @add_fig_kwargs
-    def plot_emass(self, acc: int = 4, units="eV", ax=None, fontsize: int = 8, colormap: str = "viridis", **kwargs):
+    def plot_emass(self, acc: int = 4, units="eV", ax=None, fontsize: int = 8, 
+                   colormap: str = "viridis", **kwargs) -> Figure:
         """
         Plot band dispersion and quadratic approximation.
 
