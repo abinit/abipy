@@ -1669,7 +1669,7 @@ class PhononWork(Work, MergeDdb):
 
     @classmethod
     def from_scf_task(cls, scf_task: ScfTask, 
-                      qpoints, is_ngqpt=False, with_becs=False,
+                      qpoints, is_ngqpt=False, qptopt=1, with_becs=False,
                       with_quad=False, with_flexoe=False, with_dvdb=True,
                       tolerance=None, ddk_tolerance=None, ndivsm=0,
                       prtwf=-1, manager=None) -> PhononWork:
@@ -1683,6 +1683,8 @@ class PhononWork(Work, MergeDdb):
             qpoints: q-points in reduced coordinates. Accepts single q-point, list of q-points
                 or three integers defining the q-mesh if `is_ngqpt`.
             is_ngqpt: True if `qpoints` should be interpreted as divisions instead of q-points.
+            qptopt: If 'is_ngqpt' specifies which symmetries have to be taken into account
+                for the q-mesh.
             with_becs: Activate calculation of Electric field and Born effective charges.
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
                 Note that only selected features are compatible with dynamical quadrupoles.
@@ -1711,7 +1713,7 @@ class PhononWork(Work, MergeDdb):
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
 
         if is_ngqpt:
-            qpoints = scf_task.input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=1).points
+            qpoints = scf_task.input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=qptopt).points
         qpoints = np.reshape(qpoints, (-1, 3))
 
         new = cls(manager=manager)
@@ -1741,8 +1743,8 @@ class PhononWork(Work, MergeDdb):
         return new
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, qpoints, is_ngqpt=False, with_becs=False,
-                       with_quad=False, with_flexoe=False,
+    def from_scf_input(cls, scf_input: AbinitInput, qpoints, is_ngqpt=False, qptopt=1,
+                       with_becs=False, with_quad=False, with_flexoe=False,
                        with_dvdb=True, tolerance=None,
                        ddk_tolerance=None, ndivsm=0, prtwf=-1, manager=None) -> PhononWork:
         """
@@ -1752,7 +1754,7 @@ class PhononWork(Work, MergeDdb):
         This is needed for the computation of relaxed-atom elastic constants.
         """
         if is_ngqpt:
-            qpoints = scf_input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=1).points
+            qpoints = scf_input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=qptopt).points
 
         qpoints = np.reshape(qpoints, (-1, 3))
 
