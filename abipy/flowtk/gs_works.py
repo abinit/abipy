@@ -19,7 +19,7 @@ __all__ = [
 
 class GsKmeshConvWork(Work):
     """
-    This work performs convergence studies of GS properties 
+    This work performs convergence studies of GS properties
     with respect to the k-mesh
 
     It produces ...
@@ -31,7 +31,7 @@ class GsKmeshConvWork(Work):
     @classmethod
     def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list) -> GsKmeshConvWork:
         """
-        Build the work from a `scf_input` for a GS SCF run and a list 
+        Build the work from a `scf_input` for a GS SCF run and a list
         with the smallest number of divisions for the k-mesh.
         """
         work = cls()
@@ -48,13 +48,25 @@ class GsKmeshConvWork(Work):
         """
         with GsrRobot.from_work(self) as gsr_robot:
             df = gsr_robot.get_dataframe(with_geo=False)
+            # Write excel file.
             basename = self.__class__.__name__
             df.to_excel(self.outdir.path_in(f"{basename}.xlsx"))
 
             with gsr_robot.get_pyscript(self.outdir.path_in("gsr_robot.py")) as script:
                 script.add_text("""
-item = "energy_per_atom"
-robot.plot_covergence(item, sortby="nkpt")
+#item = "energy_per_atom"
+#robot.plot_convergence(item, sortby="nkpt", abs_conv=1e-3)
+
+items = ["energy_per_atom", "pressure", "max_force"]
+robot.plot_convergence_items(items, sortby="nkpt")
+
+abs_conv = {
+"energy_per_atom": 1e-3,
+"pressure": 1e-2,
+"max_force": 1e-4,
+}
+items = abs_conv.keys()
+robot.plot_convergence_items(items, sortby="nkpt", abs_conv=abs_conv)
 """)
 
         return super().on_all_ok()
@@ -97,13 +109,25 @@ class GsKmeshTsmearConvWork(Work):
         """
         with GsrRobot.from_work(self) as gsr_robot:
             df = gsr_robot.get_dataframe(with_geo=False)
+            # Write excel file.
             basename = self.__class__.__name__
             df.to_excel(self.outdir.path_in(f"{basename}.xlsx"))
 
             with gsr_robot.get_pyscript(self.outdir.path_in("gsr_robot.py")) as script:
                 script.add_text("""
-item = "energy_per_atom"
-robot.plot_covergence(item, sortby="nkpt", hue="tsmear")
+#item = "energy_per_atom"
+#robot.plot_convergence(item, sortby="nkpt", abs_conv=1e-3)
+
+items = ["energy_per_atom", "pressure", "max_force"]
+robot.plot_convergence_items(items, sortby="nkpt")
+
+abs_conv = {
+"energy_per_atom": 1e-3,
+"pressure": 1e-2,
+"max_force": 1e-4,
+}
+items = abs_conv.keys()
+robot.plot_convergence_items(items, sortby="nkpt", hue="tsmear", abs_conv=abs_conv)
 """)
 
         return super().on_all_ok()

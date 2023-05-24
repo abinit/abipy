@@ -339,7 +339,7 @@ class ConvergenceAnalyzer:
     color_ilevel = ["red", "blue", "green"]
 
     # matplotlib option to fill convergence window.
-    hatch = "/"
+    HATCH = "/"
 
     @classmethod
     def from_xy_label_vals(cls, xlabel, xs, ylabel, yvalues, tols) -> ConvergenceAnalyzer:
@@ -470,7 +470,7 @@ class ConvergenceAnalyzer:
 
     def set_label(self, key: str, label: str, ignore_exc=False) -> None:
         """
-        Set the label for `key` to be used in the plot. 
+        Set the label for `key` to be used in the plot.
         Dont't raise exception if `ignore_exc` is True.
         """
         if key in self.ykey2label:
@@ -544,7 +544,7 @@ class ConvergenceAnalyzer:
         # Loop again as ylimits are known.
         for il, ytol in enumerate(ytols):
             label = r"$|y-y_\infty| \leq %s$" % ytol
-            span_style = dict(alpha=0.2, color=self.color_ilevel[il], zorder=abs(ytol), hatch=self.hatch)
+            span_style = dict(alpha=0.2, color=self.color_ilevel[il], zorder=abs(ytol), hatch=self.HATCH)
 
             y0, y1 = ylims[il]
             y0_log, y1_log = ylims_log[il]

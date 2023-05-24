@@ -1433,7 +1433,8 @@ class Kpath(KpointList):
             der = finite_diff(vals_on_line, h, order=order, acc=acc)
             ders_on_lines.append(der)
 
-        return np.array(ders_on_lines)
+        return np.array(ders_on_lines, dtype=object)
+        #return np.array(ders_on_lines)
 
 
 class IrredZone(KpointList):

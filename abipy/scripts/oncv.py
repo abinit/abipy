@@ -105,11 +105,11 @@ def oncv_compare(options):
 
     return 0
 
-    
+
 #@flowtk.flow_main
 #def main(options):
 #    return build_flow(options)
-    
+
 #def oncv_hints(options):
 #    """
 #    """

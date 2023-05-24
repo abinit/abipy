@@ -52,6 +52,9 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
     _LINE_STYLES = ["-", ":", "--", "-.",]
     _LINE_WIDTHS = [2, ]
 
+    # matplotlib option to fill convergence window.
+    HATCH = "/"
+
     def __init__(self, *args):
         """
         Args:
@@ -314,7 +317,7 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
 
     def scan_dir(self, top: str, walk: bool = True) -> int:
         """
-        Scan directory tree starting from ``top``. 
+        Scan directory tree starting from ``top``.
         Add files to the robot instance.
 
         Args:
@@ -529,7 +532,7 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
     def get_label_files_str(self):
         """Return string with [label, filepath]."""
         from tabulate import tabulate
-        return tabulate([(label, abifile.relpath) for label, abifile in self.items()], 
+        return tabulate([(label, abifile.relpath) for label, abifile in self.items()],
                         headers=["Label", "Relpath"]) + "\n"
 
     def show_files(self, stream=sys.stdout) -> None:
@@ -895,7 +898,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
     @add_fig_kwargs
     def plot_convergence(self, item: Union[str, Callable],
-                         sortby=None, hue=None, ax=None, fontsize=8, **kwargs) -> Figure:
+                         sortby=None, hue=None, abs_conv=None,
+                         ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of ``item`` wrt the ``sortby`` parameter.
         Values can optionally be grouped by ``hue``.
@@ -914,6 +918,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 Accepts callable or string.
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
+            abs_conv: If not None, plot f(x) and |f(x) - f(x_inf)| in log scale.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and label fontsize.
             kwargs: keyword arguments passed to matplotlib plot method.
@@ -927,42 +932,56 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
              robot.plot_convergence("energy", sortby="nkpt")
 
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear")
+
+             robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear", abs_conv=1e-3)
         """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
         if "marker" not in kwargs:
             kwargs["marker"] = "o"
 
-        def get_yvalues(abifiles):
-            if callable(item):
-                return [float(item(a)) for a in abifiles]
-            else:
-                return [float(getattr(a, item)) for a in abifiles]
+        if abs_conv is None:
+            # Plot f(x) only
+            ax1, fig, plt = get_ax_fig_plt(ax=ax)
+            ax2 = None
+        else:
+            # Plot f(x) and |f(x) - f(x_inf)| in log scale.
+            (ax1, ax2), fig, plt = get_axarray_fig_plt(ax, nrows=2, ncols=1,
+                                                       sharex=True, sharey=False, squeeze=True)
+            ax2.grid(True)
 
         if hue is None:
-            labels, abifiles, params = self.sortby(sortby, unpack=True)
-            yvals = get_yvalues(abifiles)
-            #print("params", params, "\nyvals", yvals)
-            ax.plot(params, yvals, **kwargs)
+            labels, abifiles, xs = self.sortby(sortby, unpack=True)
+            yvals = _get_yvals(item, abifiles)
+            ax1.plot(xs, yvals, **kwargs)
+
+            if ax2:
+                _plot_abs_conv(ax1, ax2, xs, yvals, abs_conv, self._get_label(sortby),
+                               fontsize, self.HATCH, **kwargs)
+
         else:
             groups = self.group_and_sortby(hue, sortby)
             for g in groups:
-                yvals = get_yvalues(g.abifiles)
+                yvals = _get_yvals(item, g.abifiles)
                 label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                ax.plot(g.xvalues, yvals, label=label, **kwargs)
+                ax1.plot(g.xvalues, yvals, label=label, **kwargs)
 
-        ax.grid(True)
-        ax.set_xlabel("%s" % self._get_label(sortby))
-        if sortby is None: rotate_ticklabels(ax, 15)
-        ax.set_ylabel("%s" % self._get_label(item))
+                if ax2:
+                    _plot_abs_conv(ax1, ax2, g.xvalues, yvals, abs_conv, self._get_label(sortby),
+                                   fontsize, self.HATCH, **kwargs)
+
+        ax1.grid(True)
+        ax1.set_xlabel("%s" % self._get_label(sortby))
+        if sortby is None: rotate_ticklabels(ax1, 15)
+        ax1.set_ylabel("%s" % self._get_label(item))
 
         if hue is not None:
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            ax1.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
     def plot_convergence_items(self, items: list[Union[str, Callable]],
-                               sortby=None, hue=None, fontsize=8, **kwargs) -> Figure:
+                               sortby=None, hue=None, abs_conv=None,
+                               fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of a list of ``items`` wrt to the ``sortby`` parameter.
         Values can optionally be grouped by ``hue``.
@@ -979,6 +998,9 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of hue(abifile) is used.
+            abs_conv: If not None, plot f(x) and |f(x) - f(x_inf)| in log scale.
+                Since we are plotting multiple quantities, abs_conv is a dict mapping the name of the item to
+                to the convergence.
             fontsize: legend and label fontsize.
             kwargs: keyword arguments are passed to ax.plot
 
@@ -988,61 +1010,68 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         # this one is faster as sorting is done only once.
 
         # Build grid plot.
-        nrows, ncols = len(items), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+        nrows, ncols = len(items), 1 if abs_conv is None else 2
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
-        ax_list = ax_list.ravel()
 
         # Sort and group files if hue.
         if hue is None:
-            labels, ncfiles, params = self.sortby(sortby, unpack=True)
+            labels, ncfiles, xs = self.sortby(sortby, unpack=True)
         else:
             groups = self.group_and_sortby(hue, sortby)
 
-        marker = kwargs.pop("marker", "o")
-        for i, (ax, item) in enumerate(zip(ax_list, items)):
+        if "marker" not in kwargs:
+            kwargs["marker"] = "o"
+
+        for i, (ax_row, item) in enumerate(zip(ax_mat, items)):
+            ax1 = ax_row[0]
+            ax2 = ax_row[1] if abs_conv is not None else None
+
             if hue is None:
                 # Extract data.
-                if callable(item):
-                    yvals = [float(item(gsr)) for gsr in self.abifiles]
-                else:
-                    yvals = [duck.getattrd(gsr, item) for gsr in self.abifiles]
+                yvals = _get_yvals(item, self.abifiles)
 
-                if not is_string(params[0]):
-                    ax.plot(params, yvals, marker=marker, **kwargs)
-                else:
-                    # Must handle list of strings in a different way.
-                    xn = range(len(params))
-                    ax.plot(xn, yvals, marker=marker, **kwargs)
-                    ax.set_xticks(xn)
-                    ax.set_xticklabels(params, fontsize=fontsize)
+                _plot_xvals_or_xstr(ax1, xs, yvals, fontsize, **kwargs)
+
+                if ax2:
+                    xlabel = self._get_label(sortby) if i == len(items) - 1 else None
+                    _plot_abs_conv(ax1, ax2, xs, yvals, abs_conv[item], xlabel, fontsize, self.HATCH,
+                                   **kwargs)
+
             else:
                 for g in groups:
-                    # Extract data.
-                    if callable(item):
-                        yvals = [float(item(gsr)) for gsr in g.abifiles]
-                    else:
-                        yvals = [duck.getattrd(gsr, item) for gsr in g.abifiles]
-                    label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                    ax.plot(g.xvalues, yvals, label=label, marker=marker, **kwargs)
+                    # Extract data in group
+                    yvals = _get_yvals(item, g.abifiles)
 
-            ax.grid(True)
-            ax.set_ylabel(self._get_label(item))
+                    label = "%s: %s" % (self._get_label(hue), g.hvalue)
+                    ax1.plot(g.xvalues, yvals, label=label, **kwargs)
+
+                    if ax2:
+                        _plot_abs_conv(ax1, ax2, g.xvalues, yvals, abs_conv[item], None,
+                                       fontsize, self.HATCH, **kwargs)
+
+            ax1.grid(True)
+            ax1.set_ylabel(self._get_label(item))
+            if ax2:
+                ax2.grid(True)
+
             if i == len(items) - 1:
-                ax.set_xlabel("%s" % self._get_label(sortby))
-                if sortby is None: rotate_ticklabels(ax, 15)
+                ax1.set_xlabel("%s" % self._get_label(sortby))
+                if sortby is None: rotate_ticklabels(ax1, 15)
+
             if i == 0 and hue is not None:
-                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+                ax1.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     def get_convergence_analyzer(self, xname: str, ytols_dict: dict) -> ConvergenceAnalyzer:
         """
+        The main difference is that ConvergenceAnalyze supports multiple convergence tolerances
+        for a given y-value.
 
         Args:
             xname: Name of the x-variable.
-            ytols_dict: dict mapping the name of the y-variable to the tolerance(s). 
-                Negative tolerances activate check on percentage difference.
+            ytols_dict: dict mapping the name of the y-variable to the tolerance(s).
 
         Example:
         """
@@ -1155,6 +1184,48 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         ]
 
 
+##########################################################
+# Helper functions used by Robot to extract and plot data
+##########################################################
+
+def _get_yvals(item: Any, abifiles: list) -> np.ndarray:
+    if callable(item):
+        return np.array([float(item(a)) for a in abifiles])
+    else:
+        return np.array([float(duck.getattrd(a, item)) for a in abifiles])
+
+
+def _plot_xvals_or_xstr(ax, xs, yvals, fontsize, **kwargs):
+
+    if not is_string(xs[0]):
+        ax.plot(xs, yvals, **kwargs)
+    else:
+        # Must handle list of strings in a different way.
+        xn = range(len(xs))
+        ax.plot(xn, yvals, **kwargs)
+        ax.set_xticks(xn)
+        ax.set_xticklabels(xs, fontsize=fontsize)
+
+
+
+def _plot_abs_conv(ax1, ax2, xs, yvals, abs_conv, xlabel, fontsize, hatch, **kwargs) -> None:
+    y_inf = yvals[-1]
+    span_style = dict(alpha=0.2, color="green", hatch=hatch)
+
+    ax1.axhspan(y_inf - abs_conv, y_inf + abs_conv, label=r"$|y-y_\infty| \leq %s$" % abs_conv, **span_style)
+
+    # Plot |y - y_inf| in log scale on ax2.
+    ax2.plot(xs, np.abs(yvals - y_inf), **kwargs)
+    ax2.set_yscale("log")
+    ax2.set_ylabel(r"$|y-y_\infty|$", fontsize=fontsize)
+    ax2.axhspan(0, abs_conv, label=r"$|y-y_\infty| \leq %s$" % abs_conv, **span_style)
+    ax2.legend(loc="best", fontsize=fontsize, shadow=True)
+    #ax2.set_title(r"$\Delta =%s" % xlabel)
+    if xlabel:
+        ax2.set_xlabel("%s" % xlabel)
+
+
+
 class HueGroup:
     """
     This small object is used by ``group_and_sortby`` to store information about the group.
@@ -1183,16 +1254,6 @@ class HueGroup:
         """Iterate over (label, abifile, xvalue)."""
         return zip(self.labels, self.abifiles, self.xvalues)
 
-    #@lazy_property
-    #def pretty_hvalue(self):
-    #    """Return pretty string with hvalue."""
-    #    if duck.is_intlike(self.hvalue):
-    #        return "%d" % self.havalue
-    #    else:
-    #        try:
-    #            return "%.3f" % self.hvalue
-    #        except:
-    #            return str(self.hvalue)
 
 
 class RobotPythonScript:
@@ -1227,7 +1288,7 @@ from abipy.abio.robots import Robot
 robot = Robot.from_json_file("{self.filepath_json}")
 print(robot)
 
-# Uncomment these two lines to produce an excel file 
+# Uncomment these two lines to produce an excel file
 #df = robot.get_dataframe(with_geo=False)
 #df.to_excel(self.outdir.path_in("{basename}.xls"))
 

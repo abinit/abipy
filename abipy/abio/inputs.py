@@ -808,7 +808,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
             for sec, names in sec2names.items():
                 app(w * "#")
-                app("####" + ("SECTION: %s" % sec).center(w - 1))
+                #app("####" + ("SECTION: %s" % sec).center(w - 1))
+                app("####" + ("SECTION: %s" % sec).center(w - 1).rstrip())
                 app(w * "#")
                 for name in names:
                     value = vars[name]
@@ -823,7 +824,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
             if with_structure:
                 app(w * "#")
-                app("####" + "STRUCTURE".center(w - 1))
+                #app("####" + "STRUCTURE".center(w - 1))
+                app("####" + "STRUCTURE".center(w - 1).rstrip())
                 app(w * "#")
                 for name, value in self.structure_abivars.items():
                     if mnemonics and value is not None:
@@ -2291,7 +2293,6 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             kptopt: Option for the generation of the mesh. Default: use all symmetries.
             einterp: The interpolation used. By default it is a star-function interpolation.
         """
-
         # Create a MultiDataset from the nscf input
         multi = MultiDataset.from_inputs([self, self])
 
@@ -2418,26 +2419,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     #    return new
 
-    #def make_plasmonpole_input(self, ecuteps, nband, **kwargs):
-    #    new = self.new_with_vars(
-    #        optdriver=3,
-    #        ecuteps=ecuteps,
-    #        nband=nband,
-    #        #inclvkb=2,
-    #        #symchi=1,
-    #        #comment=""
-    #        **kwargs
-    #    )
-    #    return new
-
-    def make_gwr_qprange_input(self, gwr_ntau, nband, ecuteps,
-                               gw_qprange=0, **kwargs) -> AbinitInput:
+    def make_gwr_qprange_input(self, gwr_ntau, nband, ecuteps, gw_qprange=0, **kwargs) -> AbinitInput:
         """
         Build and return an input file to compute QP corrections with the GWR code.
 
         Args:
-            gw_qprange = 0 to Compute the QP corrections only for the
-                fundamental and the direct gap.
+            gw_qprange = 0 to Compute the QP corrections only for the fundamental and the direct gap.
         """
         new = self.new_with_vars(
             optdriver=RUNL.GWR,
@@ -2455,8 +2442,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     def abivalidate(self, workdir=None, manager=None):
         """
-        Run ABINIT in dry-run mode to validate the input file.
-        No changes are done in the input file
+        Run ABINIT in dry-run mode to validate the input file. No change done in the input file.
 
         Args:
             workdir: Working directory of the temporary task. Use None for temporary dir.
@@ -2535,6 +2521,18 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 return dims_dataset[1], spginfo_dataset[1]
         except Exception as exc:
             self._handle_task_exception(task, exc)
+
+    #def get_qptopt(self) -> int:
+    #    """Helper function that returns"""
+    #    if "qptopt" in self:
+    #        return self["qptopt"]
+
+    #    kptopt = self.get("kptopt", 1)
+    #    nspinor = self.get("nspinor", 1)
+    #    nsppol = self.get("nsppol", 1)
+    #    nspden = self.get("nspden", 1)
+    #    qptopt = 1
+    #    return qptopt
 
     def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None, verbose=0):
         """
@@ -2899,7 +2897,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     def pop_par_vars(self, all=False) -> dict:
         """
         Remove all the variables associated to parallelism from the input file.
-        Useful in case of a restart when we need to remove the parallel variables before rerunning autoparal
+        Useful in case of a restart when we need to remove the parallel variables
+        before rerunning autoparal
         """
         parvars = ['npkpt', 'npfft', 'npband', 'npspinor', 'npimage']
         if all:

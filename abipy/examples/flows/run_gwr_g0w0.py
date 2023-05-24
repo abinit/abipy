@@ -39,15 +39,15 @@ def build_flow(options):
         shiftk=[0.0, 0.0, 0.0],
     )
 
-    # GS-SCF to get the DEN, followed by direct diago to obtain green_nband bands.
-    from abipy.flowtk.gwr_works import DirectDiagoWork
-
     flow = flowtk.Flow(workdir=options.workdir)
 
+    # GS-SCF to get the DEN, followed by direct diago to obtain green_nband bands.
+    from abipy.flowtk.gwr_works import DirectDiagoWork
     green_nband = -1
     diago_work = DirectDiagoWork.from_scf_input(scf_input, green_nband)
     flow.register_work(diago_work)
 
+    # Build template for GWR
     gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=8, ecuteps=4)
 
     # Two possibilities:

@@ -223,8 +223,17 @@ class GsrRobotTest(AbipyTest):
 
             assert robot.plot_gsr_convergence(show=False)
             assert robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear", show=False)
+
+            #assert robot.plot_convergence("energy_per_atom", sortby="nkpt", hue=None, abs_tol=1e-3, show=False)
+            #assert robot.plot_convergence("energy_per_atom", sortby="nkpt", hue="tsmear", abs_tol=1e-3, show=False)
+
             y_vars = ["energy", "structure.lattice.a", "structure.volume"]
             assert robot.plot_convergence_items(y_vars, sortby="nkpt", hue="tsmear", show=False)
+
+            # TODO
+            #abs_tols = {"energy": 1e-3,, "structure.lattice.a": 1e-2,, "structure.volume": 1e-1}
+            #assert robot.plot_convergence_items(y_vars, sortby="nkpt", hue=None, abs_tols, show=False)
+            #assert robot.plot_convergence_items(y_vars, sortby="nkpt", hue="tsmear", abs_tols, show=False)
 
             assert robot.plot_egaps(show=False)
             assert robot.plot_egaps(sortby="nkpt", hue="tsmear")

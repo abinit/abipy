@@ -22,7 +22,7 @@ from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
 from abipy.tools.typing import TYPE_CHECKING, Figure
 from abipy.flowtk import wrappers
-from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status #, check_spectator
+from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status
 from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
                     DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask,
                     EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
@@ -214,7 +214,6 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
     def all_ok(self) -> bool:
         return all(task.status == task.S_OK for task in self)
 
-    #@check_spectator
     def on_ok(self, sender):
         """
         This callback is called when one task reaches status `S_OK`.
@@ -244,7 +243,6 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
 
         return AttrDict(returncode=1, message="Not all tasks are OK!")
 
-    #@check_spectator
     def on_all_ok(self):
         """
         This method is called once the `Work` is completed i.e. when all tasks have reached status S_OK.
@@ -1230,7 +1228,6 @@ class RelaxWork(Work):
 
         self.target_dilatmx = target_dilatmx
 
-    #@check_spectator
     def on_ok(self, sender):
         """
         This callback is called when one task reaches status S_OK.
@@ -1499,7 +1496,6 @@ class QptdmWork(Work):
 
         return final_scr
 
-    #@check_spectator
     def on_all_ok(self):
         """
         This method is called when all the q-points have been computed.
@@ -1733,7 +1729,7 @@ class PhononWork(Work, MergeDdb):
                 This option is the recommended one if the k-path contains two high symmetry k-points that are very close
                 as ndivsm > 0 may produce a very large number of wavevectors.
             prtwf: Controls the output of the first-order WFK.
-                By default we set it to -1 when q != 0 so that AbiPy is still able
+                By default we set it to -1 when q != 0 so that AbiPy is still able.
                 to restart the DFPT task if the calculation is not converged (worst case scenario)
                 but we avoid the output of the 1-st order WFK if the calculation converged successfully.
                 Non-linear DFPT tasks should not be affected since they assume q == 0.
@@ -1816,7 +1812,6 @@ class PhononWork(Work, MergeDdb):
 
         return new
 
-    #@check_spectator
     def on_all_ok(self):
         """
         This method is called when all the q-points have been computed.
@@ -1969,7 +1964,6 @@ class PhononWfkqWork(Work, MergeDdb):
 
         return super().on_ok(sender)
 
-    #@check_spectator
     def on_all_ok(self):
         """
         This method is called when all the q-points have been computed.
