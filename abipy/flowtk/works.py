@@ -1699,7 +1699,7 @@ class PhononWork(Work, MergeDdb):
     def from_scf_task(cls, scf_task: ScfTask,
                       qpoints, is_ngqpt=False, with_becs=False,
                       with_quad=False, with_flexoe=False, with_dvdb=True,
-                      tolerance=None, ddk_tolerance=None, ndivsm=0,
+                      tolerance=None, ddk_tolerance=None, ndivsm=0, qptopt=1,
                       prtwf=-1, manager=None) -> PhononWork:
         """
         Construct a `PhononWork` from a |ScfTask| object.
@@ -1728,8 +1728,9 @@ class PhononWork(Work, MergeDdb):
                 in the segment is proportional to its length. Typical value: -20.
                 This option is the recommended one if the k-path contains two high symmetry k-points that are very close
                 as ndivsm > 0 may produce a very large number of wavevectors.
+            qptopt: Option for the generation of q-points. Default: 1
             prtwf: Controls the output of the first-order WFK.
-                By default we set it to -1 when q != 0 so that AbiPy is still able.
+                By default we set it to -1 when q != 0 so that AbiPy is still able
                 to restart the DFPT task if the calculation is not converged (worst case scenario)
                 but we avoid the output of the 1-st order WFK if the calculation converged successfully.
                 Non-linear DFPT tasks should not be affected since they assume q == 0.
@@ -1739,7 +1740,7 @@ class PhononWork(Work, MergeDdb):
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
 
         if is_ngqpt:
-            qpoints = scf_task.input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=1).points
+            qpoints = scf_task.input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=qptopt).points
         qpoints = np.reshape(qpoints, (-1, 3))
 
         new = cls(manager=manager)
@@ -1771,7 +1772,8 @@ class PhononWork(Work, MergeDdb):
     @classmethod
     def from_scf_input(cls, scf_input: AbinitInput, qpoints, is_ngqpt=False, with_becs=False,
                        with_quad=False, with_flexoe=False, with_dvdb=True, tolerance=None,
-                       ddk_tolerance=None, ndivsm=0, prtwf=-1, manager=None) -> PhononWork:
+                       ddk_tolerance=None, ndivsm=0, qptopt=1,
+                       prtwf=-1, manager=None) -> PhononWork:
         """
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation. A new |ScfTask| is created and added to the Work.
@@ -1779,7 +1781,7 @@ class PhononWork(Work, MergeDdb):
         This is needed for the computation of relaxed-atom elastic constants.
         """
         if is_ngqpt:
-            qpoints = scf_input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=1).points
+            qpoints = scf_input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=qptopt).points
 
         qpoints = np.reshape(qpoints, (-1, 3))
 
@@ -1849,7 +1851,7 @@ class PhononWfkqWork(Work, MergeDdb):
     def from_scf_task(cls, scf_task: ScfTask,
                       ngqpt, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
                       with_becs=False, with_quad=False, ddk_tolerance=None, shiftq=(0, 0, 0),
-                      is_ngqpt=True, remove_wfkq=True,
+                      is_ngqpt=True, qptopt=1, remove_wfkq=True,
                       prepgkk=0, manager=None) -> PhononWfkqWork:
         """
         Construct a `PhononWfkqWork` from a |ScfTask| object.
@@ -1871,6 +1873,7 @@ class PhononWfkqWork(Work, MergeDdb):
             shiftq: Q-mesh shift. Multiple shifts are not supported.
             is_ngqpt: the ngqpt is interpreted as a set of integers defining the q-mesh, otherwise
                       is an explicit list of q-points
+            qptopt: Option for the generation of q-points. Default: 1
             remove_wfkq: Remove WKQ files when the children are completed.
             prepgkk: 1 to activate computation of all 3*natom perts (debugging option).
             manager: |TaskManager| object.
@@ -1886,7 +1889,7 @@ class PhononWfkqWork(Work, MergeDdb):
         shiftq = np.reshape(shiftq, (3, ))
         #print("ngqpt", ngqpt, "\nshiftq", shiftq)
         if is_ngqpt:
-            qpoints = scf_task.input.abiget_ibz(ngkpt=ngqpt, shiftk=shiftq, kptopt=1).points
+            qpoints = scf_task.input.abiget_ibz(ngkpt=ngqpt, shiftk=shiftq, kptopt=qptopt).points
         else:
             qpoints = np.reshape(ngqpt, (-1, 3))
 
