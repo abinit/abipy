@@ -1372,12 +1372,12 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
     return abiinput
 
 # VT Addition for Atomate2 SHG WF
-def ddkpert_from_gsinput(gs_inp, ddk_pert, use_symmetries=False, ddk_tol=None, manager=None) -> AbinitInput:
+def ddkpert_from_gsinput(gs_input, ddk_pert, use_symmetries=False, ddk_tol=None, manager=None) -> AbinitInput:
     """
     Returns an |AbinitInput| to perform a DDK calculations for a specific perturbation and based on a ground state |AbinitInput|.
 
     Args:
-        gs_inp:   an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
+        gs_input:   an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         ddk_pert: dict with the Abinit variables defining the perturbation
                 Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
         use_symmetries: boolean that determines if the irreducible components of the perturbation are used.
@@ -1385,23 +1385,23 @@ def ddkpert_from_gsinput(gs_inp, ddk_pert, use_symmetries=False, ddk_tol=None, m
         ddk_tol:  a dictionary with a single key defining the type of tolerance used for the DDK calculations and its value. Default: {"tolvrs": 1.0e-22}.
         manager:  |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
-    gs_inp = gs_inp.deepcopy()
-    gs_inp.pop_irdvars()
+    gs_input = gs_input.deepcopy()
+    gs_input.pop_irdvars()
 
     if ddk_tol is None:
         ddk_tol = {"tolwfr": 1.0e-22}
 
-    ddk_inp = gs_inp.make_ddkpert_input(perturbation=ddk_pert, use_symmetries=use_symmetries, tolerance=ddk_tol, manager=manager)
+    ddk_inp = gs_input.make_ddkpert_input(perturbation=ddk_pert, use_symmetries=use_symmetries, tolerance=ddk_tol, manager=manager)
 
     return ddk_inp
 
 # VT Addition for Atomate2 SHG WF
-def ddepert_from_gsinput(gs_inp, dde_pert, use_symmetries=True, dde_tol=None, manager=None) -> AbinitInput:
+def ddepert_from_gsinput(gs_input, dde_pert, use_symmetries=True, dde_tol=None, manager=None) -> AbinitInput:
     """
     Returns an |AbinitInput| to perform a DDE calculations for a specific perturbation and based on a ground state |AbinitInput|.
 
     Args:
-        gs_inp:   an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
+        gs_input:   an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         dde_pert: dict with the Abinit variables defining the perturbation
                 Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
         use_symmetries: boolean that determines if the irreducible components of the perturbation are used.
@@ -1410,35 +1410,35 @@ def ddepert_from_gsinput(gs_inp, dde_pert, use_symmetries=True, dde_tol=None, ma
             its value. Default: {"tolvrs": 1.0e-22}.
         manager:  |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
-    gs_inp = gs_inp.deepcopy()
-    gs_inp.pop_irdvars()
+    gs_input = gs_input.deepcopy()
+    gs_input.pop_irdvars()
 
     if dde_tol is None:
         dde_tol = {"tolvrs": 1.0e-22}
 
-    dde_inp = gs_inp.make_ddepert_input(perturbation=dde_pert, use_symmetries=use_symmetries, tolerance=dde_tol, manager=manager)
+    dde_inp = gs_input.make_ddepert_input(perturbation=dde_pert, use_symmetries=use_symmetries, tolerance=dde_tol, manager=manager)
 
     return dde_inp
 
 # VT Addition for Atomate2 SHG WF
-def dtepert_from_gsinput(gs_inp, dte_pert, manager=None) -> AbinitInput:
+def dtepert_from_gsinput(gs_input, dte_pert, manager=None) -> AbinitInput:
     """
     Returns an |AbinitInput| to perform a DTE calculations for a specific perturbation and based on a ground state |AbinitInput|.
 
     Args:
-        gs_inp:   an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
+        gs_input:   an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         dte_pert: dict with the Abinit variables defining the perturbation
                 Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
         manager:  |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
-    gs_inp = gs_inp.deepcopy()
-    gs_inp.pop_irdvars()
+    gs_input = gs_input.deepcopy()
+    gs_input.pop_irdvars()
 
-    dte_inp = gs_inp.make_dtepert_input(perturbation=dte_pert, manager=manager)
+    dte_inp = gs_input.make_dtepert_input(perturbation=dte_pert, manager=manager)
 
     return dte_inp
 
-def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None,
+def dte_from_gsinput(gs_input, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None,
                      skip_dte_permutations=False, manager=None):
     """
     Returns a list of inputs in the form of a |MultiDataset| to perform calculations of non-linear properties, based on
@@ -1448,7 +1448,7 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
     All of them have the tag "dfpt".
 
     Args:
-        gs_inp: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
+        gs_input: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         use_phonons: determine wether the phonon perturbations at gamma should be included or not
         ph_tol: a dictionary with a single key defining the type of tolerance used for the phonon calculations and
             its value. Default: {"tolvrs": 1.0e-22}.
@@ -1461,8 +1461,8 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
             duplicated outputs.
         manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
-    gs_inp = gs_inp.deepcopy()
-    gs_inp.pop_irdvars()
+    gs_input = gs_input.deepcopy()
+    gs_input.pop_irdvars()
 
     if ph_tol is None:
         ph_tol = {"tolvrs": 1.0e-22}
@@ -1475,26 +1475,26 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
 
     multi = []
 
-    multi_ddk = gs_inp.make_ddk_inputs(tolerance=ddk_tol)
+    multi_ddk = gs_input.make_ddk_inputs(tolerance=ddk_tol)
     multi_ddk.add_tags(atags.DDK)
     multi.extend(multi_ddk)
-    multi_dde = gs_inp.make_dde_inputs(dde_tol, use_symmetries=False, manager=manager)
+    multi_dde = gs_input.make_dde_inputs(dde_tol, use_symmetries=False, manager=manager)
     multi_dde.add_tags(atags.DDE)
     multi.extend(multi_dde)
 
     if use_phonons:
-        multi_ph = gs_inp.make_ph_inputs_qpoint([0, 0, 0], ph_tol, manager=manager)
+        multi_ph = gs_input.make_ph_inputs_qpoint([0, 0, 0], ph_tol, manager=manager)
         multi_ph.add_tags(atags.PH_Q_PERT)
         multi.extend(multi_ph)
 
     # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
     # Do this as last, so not to interfere with the the generation of the other steps.
-    nval = gs_inp.structure.num_valence_electrons(gs_inp.pseudos)
-    nval -= gs_inp['charge']
+    nval = gs_input.structure.num_valence_electrons(gs_input.pseudos)
+    nval -= gs_input['charge']
     nband = int(round(nval / 2))
-    gs_inp.set_vars(nband=nband)
-    gs_inp.pop('nbdbuf', None)
-    multi_dte = gs_inp.make_dte_inputs(phonon_pert=use_phonons, skip_permutations=skip_dte_permutations,
+    gs_input.set_vars(nband=nband)
+    gs_input.pop('nbdbuf', None)
+    multi_dte = gs_input.make_dte_inputs(phonon_pert=use_phonons, skip_permutations=skip_dte_permutations,
                                        manager=manager)
     multi_dte.add_tags(atags.DTE)
     multi.extend(multi_dte)
