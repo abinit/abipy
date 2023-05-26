@@ -157,7 +157,7 @@ sphinx_gallery_conf = {
         'abipy': None,  # The module you locally document uses None
         'numpy': 'https://docs.scipy.org/doc/numpy/',
         'matplotlib': 'https://matplotlib.org',
-        'pandas': "http://pandas-docs.github.io/pandas-docs-travis/",
+        'pandas': "http://pandas.pydata.org/pandas-docs/stable/",
         "pymatgen": "https://pymatgen.org/",
     },
     #'image_scrapers': ('matplotlib',),

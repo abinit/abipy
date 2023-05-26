@@ -93,4 +93,4 @@ class FunctionsTest(AbipyTest):
                [[[1, 0, 0], [0, 1, 0], [0, 0, 1]]]])
 
         g = calculate_gruns_finite_differences(phfreqs, eig, iv0=1, volume=1, dv=1)
-        self.assertArrayEqual(g, [[-1, -1, -1]])
+        self.assert_equal(g, [[-1, -1, -1]])

@@ -10,6 +10,7 @@ effective masses and plot the data.
 #%%
 # Initialize the EffMassAnalyzer from a GSR file with energies
 # computed along segments passing through the k-points of interest.
+#
 # Clearly the accuracy of the finite difference results strongly depends
 # on the spacing between the points along the path.
 # The GSR file used in this example is not accurate enough!
@@ -19,7 +20,6 @@ from abipy.electrons.effmass_analyzer import EffMassAnalyzer
 
 emana = EffMassAnalyzer.from_file(abidata.ref_file("si_nscf_GSR.nc"))
 print(emana)
-#print(emana.to_string(verbose=0))
 
 #%%
 # Before computing the effective masses, we have to select the k-points.
@@ -29,14 +29,16 @@ emana.select_vbm()
 # Alternatively, one can use:
 
 #emana.select_cbm()
-
 #emana.select_band_edges()
 
 # or the most flexible API:
+
 #emana.select_kpoint_band((0, 0, 0), band=3, spin=0, degtol_ev=0.1)
 
 #%%
-# Print the results to terminal with:
+# Compute effective masses with different accuracies and print results in tabular format.
+# Useful to understand if results are sensitive to the number of points in the finite difference.
+# Note however that numerical differentiation is performed with the same delta_k step.
 
 emana.summarize()
 
@@ -55,7 +57,9 @@ print(df)
 #    segment.get_effmass_line(acc=2)
 
 #%%
-# To plot
+# Plot electronic dispersion and quadratic approximant based on the
+# effective masses computed along each segment.
+
 emana.plot_emass(acc=4)
 
 #emana.plot_all_segments()

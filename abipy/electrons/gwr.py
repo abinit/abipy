@@ -20,7 +20,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.typing import Figure, KptSelect
 from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
-    set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend)
+    set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line)
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.electrons.gw import SelfEnergy, QPState, QPList
 from abipy.abio.robots import Robot
@@ -31,17 +31,19 @@ __all__ = [
     "TchimVsSus",
 ]
 
+
 class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
 
 
 class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    High-level interface to the GWR.nc file
+    This object provides an interface to the GWR.nc file produced by the GWR code.
     """
 
     # Markers used for up/down bands.
     marker_spin = {0: "^", 1: "v"}
+
     color_spin = {0: "k", 1: "r"}
 
     @classmethod
@@ -82,7 +84,10 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @lazy_property
     def qpz0_dirgaps(self) -> np.ndarray:
-       """QP direct gaps in eV. Shape: [nsppol, nkcalc]"""
+       """
+       QP direct gaps in eV computed with the Z factor at the KS energy
+       Shape: [nsppol, nkcalc]
+       """
        return self.r.read_value("qpz_gaps") * abu.Ha_eV
 
     @lazy_property
@@ -825,6 +830,9 @@ class GwrRobot(Robot, RobotWithEbands):
     # Try to have API similar to SigresRobot
     EXT = "GWR"
 
+    # matplotlib option to fill convergence window.
+    HATCH = "/"
+
     def __init__(self, *args):
         super().__init__(*args)
         if len(self.abifiles) in (0, 1): return
@@ -988,13 +996,13 @@ class GwrRobot(Robot, RobotWithEbands):
                 sigma = ncfile.r.read_sigee_skb(spin, kpoint, band)
 
                 if axis == "wreal":
+                    # Plot Sigma(w) along the real axis.
                     sigma.plot_reima_rw(ax_list, **kws)
-
                 elif axis == "wimag":
                     # Plot Sigma(iw) along the imaginary axis.
                     sigma.plot_reimc_iw(ax_list, **kws)
-
                 elif axis == "tau":
+                    # Plot Sigma(itau) along the imaginary axis.
                     sigma.plot_reimc_tau(ax_list, **kws)
 
             if axis == "wreal": ebands0.add_fundgap_span(ax_list, spin)
@@ -1030,6 +1038,7 @@ class GwrRobot(Robot, RobotWithEbands):
                         sigma.plot_reimc_iw(ax_list, **kws)
 
                     elif axis == "tau":
+                        # Plot Sigma(itau) along the imaginary axis.
                         sigma.plot_reimc_tau(ax_list, **kws)
 
                 if axis == "wreal": ebands0.add_fundgap_span(ax_list, spin)
@@ -1047,7 +1056,7 @@ class GwrRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None,
+    def plot_qpgaps_convergence(self, qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None, abs_conv=0.01,
                                 plot_qpmks=True, fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of the direct QP gaps for all the k-points and spins treated by the GWR robot.
@@ -1066,29 +1075,28 @@ class GwrRobot(Robot, RobotWithEbands):
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
+            abs_conv: If not None, show absolute convergence window.
             plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
             fontsize: legend and label fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        # Make sure that nsppol, sigma_kpoints are the same
+        # Make sure that nsppol and sigma_kpoints are the same
         self._check_dims_and_params()
 
         nc0 = self.abifiles[0]
         nsppol = nc0.nsppol
         qpkinds = nc0.find_qpkinds(qp_kpoints)
         if len(qpkinds) > 10:
-            cprint("More that 10 k-points in file. Only 10 k-points will be show. Specify kpt index expliclty", "yellow")
+            cprint("More that 10 k-points in file. Only 10 k-points will be shown. Specify kpt index expliclty", "yellow")
             qpkinds = qpkinds[:10]
 
         # Build grid with (nkpt, 1) plots.
         nrows, ncols = len(qpkinds), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
-        ax_list = np.array(ax_list).ravel()
-
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
         if hue is None:
-            labels, ncfiles, params = self.sortby(sortby, unpack=True)
+            labels, ncfiles, xs = self.sortby(sortby, unpack=True)
         else:
             groups = self.group_and_sortby(hue, sortby)
 
@@ -1099,7 +1107,8 @@ class GwrRobot(Robot, RobotWithEbands):
         name = "QP dirgap" if not plot_qpmks else "QP - KS dirgap"
         name = "%s (%s)" % (name, qp_type.upper())
 
-        for ix, ((kpt, ikc), ax) in enumerate(zip(qpkinds, ax_list)):
+        for ix, ((kpt, ikc), ax_row) in enumerate(zip(qpkinds, ax_mat)):
+            ax = ax_row[0]
             for spin in range(nsppol):
                 ax.set_title("%s k:%s" % (name, repr(kpt)), fontsize=fontsize)
 
@@ -1110,14 +1119,9 @@ class GwrRobot(Robot, RobotWithEbands):
                     if plot_qpmks:
                         yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in ncfiles])
 
-                    if not duck.is_string(params[0]):
-                        ax.plot(params, yvals, marker=nc0.marker_spin[spin])
-                    else:
-                        # Must handle list of strings in a different way.
-                        xn = range(len(params))
-                        ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
-                        ax.set_xticks(xn)
-                        ax.set_xticklabels(params, fontsize=fontsize)
+                    lines = self.plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, marker=nc0.marker_spin[spin],
+                                                      **kwargs)
+                    hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
 
                 else:
                     for g in groups:
@@ -1125,30 +1129,32 @@ class GwrRobot(Robot, RobotWithEbands):
                         #if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in g.abifiles]
                         if plot_qpmks:
                             yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in g.abifiles])
+
                         label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                        ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
+                        lines = ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
+
+                        hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
 
             ax.grid(True)
             if ix == len(qpkinds) - 1:
                 ax.set_ylabel("%s (eV)" % name)
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
-            if hue is not None:
-                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            #if hue is not None:
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
     def plot_qpdata_conv_skb(self, spin, kpoint, band,
-                             itemp=0, sortby=None, hue=None, fontsize=8, **kwargs) -> Figure:
+                             sortby=None, hue=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot the convergence of the QP results at the given temperature for given (spin, kpoint, band)
+        Plot the convergence of the QP results for given (spin, kpoint, band).
 
         Args:
             spin: Spin index.
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: Band index.
-            itemp: Temperature index.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
@@ -1162,7 +1168,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
         """
-        # Make sure that nsppol, sigma_kpoints are consistent.
+        # Make sure that nsppol and sigma_kpoints are consistent.
         self._check_dims_and_params()
 
         # TODO: Add more quantities DW, Fan(0)
@@ -1196,7 +1202,7 @@ class GwrRobot(Robot, RobotWithEbands):
         for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
             if hue is None:
                 # Extract QP data.
-                yvals = [getattr(qp, what)[itemp] for qp in qplist]
+                #yvals = [getattr(qp, what)[itemp] for qp in qplist]
                 if not duck.is_string(params[0]):
                     ax.plot(params, yvals, marker=nc0.marker_spin[spin])
                 else:

@@ -16,7 +16,7 @@ class DielectricTensorTest(AbipyTest):
         assert eps._repr_html_()
         assert len(eps.get_dataframe()) == 3
         assert len(eps.get_voigt_dataframe().keys()) == 6
-        self.assertArrayAlmostEqual(eps.reflectivity(), [0., 0.029437251522859434, 0.071796769724490825])
+        self.assert_almost_equal(eps.reflectivity(), [0., 0.029437251522859434, 0.071796769724490825])
 
 
 class NLOpticalSusceptibilityTensorTest(AbipyTest):

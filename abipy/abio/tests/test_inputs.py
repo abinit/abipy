@@ -131,7 +131,7 @@ class TestAbinitInput(AbipyTest):
 
         # Compatible with Pickle and MSONable?
         self.serialize_with_pickle(inp, test_eq=False)
-        self.assertMSONable(inp)
+        self.assert_msonable(inp)
 
         # Test generate method.
         ecut_list = [10, 20]
@@ -415,7 +415,7 @@ class TestAbinitInput(AbipyTest):
         #self.assertIsInstance(inp_dict['abi_kwargs'], collections.OrderedDict)
         assert "abi_args" in inp_dict and len(inp_dict["abi_args"]) == len(inp)
         assert all(k in inp for k, _ in inp_dict["abi_args"])
-        self.assertMSONable(inp)
+        self.assert_msonable(inp)
 
     def test_enforce_znucl_and_typat(self):
         """
@@ -877,7 +877,7 @@ class TestMultiDataset(AbipyTest):
 
         # Compatible with Pickle and MSONable?
         self.serialize_with_pickle(multi, test_eq=False)
-        #self.assertMSONable(multi)
+        #self.assert_msonable(multi)
 
         # Test tags
         new_multi.add_tags([GROUND_STATE, RELAX], [0, 2])
@@ -906,7 +906,7 @@ class AnaddbInputTest(AbipyTest):
         assert inp.get("brav") == 1
 
         self.serialize_with_pickle(inp, test_eq=False)
-        self.assertMSONable(inp)
+        self.assert_msonable(inp)
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
@@ -1041,7 +1041,7 @@ class TestCut3DInput(AbipyTest):
         cut3d_input.write(self.get_tmpname(text=True))
 
         self.serialize_with_pickle(cut3d_input, test_eq=False)
-        self.assertMSONable(cut3d_input)
+        self.assert_msonable(cut3d_input)
 
     def test_generation_methods(self):
         cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
@@ -1105,7 +1105,7 @@ class OpticInputTest(AbipyTest):
         self.serialize_with_pickle(optic_input, test_eq=True)
 
         # TODO: But change function that build namelist to ignore @module ...
-        #self.assertMSONable(optic_input)
+        #self.assert_msonable(optic_input)
 
         self.abivalidate_input(optic_input)
 

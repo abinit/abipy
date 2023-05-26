@@ -57,7 +57,7 @@ class PhononBandsTest(AbipyTest):
         assert hasattr(p, "combiplot")
 
         assert phbands.minfreq == 0.0
-        #self.assertEqual(phbands.maxfreq, 30)
+        #self.assert_equal(phbands.maxfreq, 30)
         assert phbands.phfactor_ev2units("eV") == abu.phfactor_ev2units("eV")
 
         # Test XYZ vib
@@ -79,7 +79,7 @@ class PhononBandsTest(AbipyTest):
         assert len(umodes) == 0
 
         acoustic_modes = phbands.acoustic_indices((0, 0, 0))
-        self.assertArrayEqual(acoustic_modes, [0, 1, 2])
+        self.assert_equal(acoustic_modes, [0, 1, 2])
         asr_breaking = phbands.asr_breaking()
         assert asr_breaking.absmax_break == 0
 
@@ -151,8 +151,8 @@ class PhononBandsTest(AbipyTest):
         assert phbands.has_linewidths
 
         lf = phbands.get_longitudinal_fraction([0.0375, 0.0375, 0.075])
-        self.assertAlmostEqual(lf[5], 0.999984194)
-        self.assertAlmostEqual(lf[0], 0.)
+        self.assert_almost_equal(lf[5], 0.999984194)
+        self.assert_almost_equal(lf[0], 0.)
 
     def test_with_loto(self):
         with abilab.abiopen(abidata.ref_file("ZnSe_hex_886.out_PHBST.nc")) as ncfile:
@@ -161,7 +161,7 @@ class PhononBandsTest(AbipyTest):
         phbands.read_non_anal_from_file(abidata.ref_file("ZnSe_hex_886.anaddb.nc"))
 
         lf = phbands.get_longitudinal_fraction([0., 0., 0.], idir=0)
-        self.assertAlmostEqual(lf[11], 1.0)
+        self.assert_almost_equal(lf[11], 1.0)
 
         if self.has_matplotlib():
             assert phbands.plot_longitudinal_fatbands(match_bands=True, show=False)
@@ -409,8 +409,8 @@ class PhononDosTest(AbipyTest):
         f = phdos.get_free_energy()
         self.assert_almost_equal(f.values, (u - s.mesh * s.values).values)
 
-        self.assertAlmostEqual(phdos.debye_temp, 469.01524830328606)
-        self.assertAlmostEqual(phdos.get_acoustic_debye_temp(len(ncfile.structure)), 372.2576492728813)
+        self.assert_almost_equal(phdos.debye_temp, 469.01524830328606)
+        self.assert_almost_equal(phdos.get_acoustic_debye_temp(len(ncfile.structure)), 372.2576492728813)
 
         assert ncfile.to_pymatgen()
 

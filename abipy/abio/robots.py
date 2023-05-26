@@ -615,7 +615,7 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
         try:
             obj = None
             try:
-                # abiifile.foo.bar?
+                # abifile.foo.bar ?
                 obj = duck.getattrd(self.abifiles[0], aname)
             except AttributeError:
                 # abifile.params[aname] ?
@@ -634,7 +634,7 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
                 if key.startswith('_') or callable(obj) or hasattr(obj, "__len__"): continue
                 attrs.append(key)
 
-            # Add entries in params.
+            # Add all keys in params dict.
             if hasattr(self.abifiles[0], "params") and hasattr(self.abifiles[0].params, "keys"):
                 attrs.extend(self.abifiles[0].params.keys())
 
@@ -648,8 +648,8 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
     def _sortby_labelfile_list(self, labelfile_list, func_or_string, reverse=False, unpack=False):
         """
-        Return: list of (label, abifile, param) tuples where param is obtained via ``func_or_string``.
-            or labels, abifiles, params if ``unpack``
+        Return: list of (label, abifile, xs) tuples where xs is obtained via ``func_or_string``.
+            or labels, abifiles, xs if ``unpack``
         """
         if not func_or_string:
             # Catch None or empty
@@ -692,15 +692,15 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         Sort files in the robot by ``func_or_string``.
 
         Args:
-            func_or_string: Either None, string, callable defining the quantity to be used for sorting.
+            func_or_string: Can be None, string or callable defining the quantity to be used for sorting.
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of func_or_string(abifile) is used.
                 If None, no sorting is performed.
             reverse: If set to True, then the list elements are sorted as if each comparison were reversed.
-            unpack: Return (labels, abifiles, params) if True
+            unpack: Return (labels, abifiles, xs) if True
 
-        Return: list of (label, abifile, param) tuples where param is obtained via ``func_or_string``.
-            or labels, abifiles, params if ``unpack``
+        Return: list of (label, abifile, xs) tuples where xs is obtained via ``func_or_string``.
+            or labels, abifiles, xs if ``unpack``
         """
         labelfile_list = list(self.items())
         return self._sortby_labelfile_list(labelfile_list, func_or_string, reverse=reverse, unpack=unpack)
@@ -950,23 +950,23 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         if hue is None:
             labels, abifiles, xs = self.sortby(sortby, unpack=True)
-            yvals = _get_yvals(item, abifiles)
+            yvals = self.get_yvals_item_abifiles(item, abifiles)
             ax1.plot(xs, yvals, **kwargs)
 
             if ax2:
-                _plot_abs_conv(ax1, ax2, xs, yvals, abs_conv, self._get_label(sortby),
-                               fontsize, self.HATCH, **kwargs)
+                self.plot_abs_conv(ax1, ax2, xs, yvals, abs_conv, self._get_label(sortby),
+                                   fontsize, self.HATCH, **kwargs)
 
         else:
             groups = self.group_and_sortby(hue, sortby)
             for g in groups:
-                yvals = _get_yvals(item, g.abifiles)
+                yvals = self.get_yvals_item_abifiles(item, g.abifiles)
                 label = "%s: %s" % (self._get_label(hue), g.hvalue)
                 ax1.plot(g.xvalues, yvals, label=label, **kwargs)
 
                 if ax2:
-                    _plot_abs_conv(ax1, ax2, g.xvalues, yvals, abs_conv, self._get_label(sortby),
-                                   fontsize, self.HATCH, **kwargs)
+                    self.plot_abs_conv(ax1, ax2, g.xvalues, yvals, abs_conv, self._get_label(sortby),
+                                       fontsize, self.HATCH, **kwargs)
 
         ax1.grid(True)
         ax1.set_xlabel("%s" % self._get_label(sortby))
@@ -1029,25 +1029,25 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
             if hue is None:
                 # Extract data.
-                yvals = _get_yvals(item, self.abifiles)
+                yvals = self.get_yvals_item_abifiles(item, self.abifiles)
 
-                _plot_xvals_or_xstr(ax1, xs, yvals, fontsize, **kwargs)
+                self.plot_xvals_or_xstr_ax(ax1, xs, yvals, fontsize, **kwargs)
 
                 if ax2:
                     xlabel = self._get_label(sortby) if i == len(items) - 1 else None
-                    _plot_abs_conv(ax1, ax2, xs, yvals, abs_conv[item], xlabel, fontsize, self.HATCH,
-                                   **kwargs)
+                    self.plot_abs_conv(ax1, ax2, xs, yvals, abs_conv[item], xlabel, fontsize, self.HATCH,
+                                       **kwargs)
 
             else:
                 for g in groups:
                     # Extract data in group
-                    yvals = _get_yvals(item, g.abifiles)
+                    yvals = self.get_yvals_item_abifiles(item, g.abifiles)
 
                     label = "%s: %s" % (self._get_label(hue), g.hvalue)
                     ax1.plot(g.xvalues, yvals, label=label, **kwargs)
 
                     if ax2:
-                        _plot_abs_conv(ax1, ax2, g.xvalues, yvals, abs_conv[item], None,
+                        self.plot_abs_conv(ax1, ax2, g.xvalues, yvals, abs_conv[item], None,
                                        fontsize, self.HATCH, **kwargs)
 
             ax1.grid(True)
@@ -1183,46 +1183,49 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             nbv.new_code_cell("#robot.get_coords_dataframe()"),
         ]
 
+    ##########################################################
+    # Helper functions used by Robot to extract and plot data
+    ##########################################################
 
-##########################################################
-# Helper functions used by Robot to extract and plot data
-##########################################################
-
-def _get_yvals(item: Any, abifiles: list) -> np.ndarray:
-    if callable(item):
-        return np.array([float(item(a)) for a in abifiles])
-    else:
-        return np.array([float(duck.getattrd(a, item)) for a in abifiles])
-
-
-def _plot_xvals_or_xstr(ax, xs, yvals, fontsize, **kwargs):
-
-    if not is_string(xs[0]):
-        ax.plot(xs, yvals, **kwargs)
-    else:
-        # Must handle list of strings in a different way.
-        xn = range(len(xs))
-        ax.plot(xn, yvals, **kwargs)
-        ax.set_xticks(xn)
-        ax.set_xticklabels(xs, fontsize=fontsize)
+    @staticmethod
+    def get_yvals_item_abifiles(item: Any, abifiles: list) -> np.ndarray:
+        """Extract values for a list of Abinit files."""
+        if callable(item):
+            return np.array([float(item(a)) for a in abifiles])
+        else:
+            return np.array([float(duck.getattrd(a, item)) for a in abifiles])
 
 
+    @staticmethod
+    def plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, **kwargs) -> list:
+        """Plot xs where xs can contain either numbers or strings."""
+        if not is_string(xs[0]):
+            lines = ax.plot(xs, yvals, **kwargs)
+        else:
+            # Must handle list of strings in a different way.
+            xn = range(len(xs))
+            lines = ax.plot(xn, yvals, **kwargs)
+            ax.set_xticks(xn)
+            ax.set_xticklabels(xs, fontsize=fontsize)
 
-def _plot_abs_conv(ax1, ax2, xs, yvals, abs_conv, xlabel, fontsize, hatch, **kwargs) -> None:
-    y_inf = yvals[-1]
-    span_style = dict(alpha=0.2, color="green", hatch=hatch)
+        return lines
 
-    ax1.axhspan(y_inf - abs_conv, y_inf + abs_conv, label=r"$|y-y_\infty| \leq %s$" % abs_conv, **span_style)
+    @staticmethod
+    def plot_abs_conv(ax1, ax2, xs, yvals, abs_conv, xlabel, fontsize, hatch, **kwargs) -> None:
+        """Plot |y - y_xmax| in log scale on ax2 and add hspan to ax1."""
+        y_xmax = yvals[-1]
+        span_style = dict(alpha=0.2, color="green", hatch=hatch)
 
-    # Plot |y - y_inf| in log scale on ax2.
-    ax2.plot(xs, np.abs(yvals - y_inf), **kwargs)
-    ax2.set_yscale("log")
-    ax2.set_ylabel(r"$|y-y_\infty|$", fontsize=fontsize)
-    ax2.axhspan(0, abs_conv, label=r"$|y-y_\infty| \leq %s$" % abs_conv, **span_style)
-    ax2.legend(loc="best", fontsize=fontsize, shadow=True)
-    #ax2.set_title(r"$\Delta =%s" % xlabel)
-    if xlabel:
-        ax2.set_xlabel("%s" % xlabel)
+        ax1.axhspan(y_xmax - abs_conv, y_xmax + abs_conv, label=r"$|y-y(Max)}| \leq %s$" % abs_conv, **span_style)
+
+        # Plot |y - y_xmax| in log scale on ax2.
+        ax2.plot(xs, np.abs(yvals - y_xmax), **kwargs)
+        ax2.set_yscale("log")
+        ax2.set_ylabel(r"$|y-y_{Max}|$", fontsize=fontsize)
+        ax2.axhspan(0, abs_conv, label=r"$|y-y(Max)| \leq %s$" % abs_conv, **span_style)
+        ax2.legend(loc="best", fontsize=fontsize, shadow=True)
+        if xlabel:
+            ax2.set_xlabel("%s" % xlabel)
 
 
 

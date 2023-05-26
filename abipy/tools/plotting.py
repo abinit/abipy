@@ -215,6 +215,31 @@ def rotate_ticklabels(ax, rotation: float, axname: str ="x") -> None:
             tick.set_rotation(rotation)
 
 
+
+
+def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None:
+    """
+    Add hspan to ax showing the convergence region of width `abs_conv`.
+    Use same color as line. Return immediately if abs_conv is None of x-values are strings.
+    """
+    if abs_conv is None: return
+    xs = line.get_xdata()
+    ys = line.get_ydata()
+    if duck.is_string(xs[0]): return
+
+    color = line.get_color()
+    span_style = dict(alpha=0.2, color=color, hatch=hatch)
+
+    x_max = xs[-1]
+    x_inds = np.where(xs == x_max)[0]
+    # This to support the case in which we have multiple ys for the same x_max
+    for i, ix in enumerate(x_inds):
+        y_xmax = ys[ix]
+        ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
+                   label=r"$|y-y(Max)| \leq %s$" % abs_conv if (with_label and i == 0) else None,
+                   **span_style)
+
+
 @add_fig_kwargs
 def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
                      decimals=None, ax=None, xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
@@ -232,7 +257,7 @@ def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
         xlims, ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
             or scalar e.g. `left`. If left (right) is None, default values are used
         fontsize: Legend fontsize.
-        kwargs: Keywork arguments are passed to ax.plot method.
+        kwargs: Keyword arguments are passed to ax.plot method.
 
     Returns: |matplotlib-Figure|
     """
@@ -432,11 +457,11 @@ class ConvergenceAnalyzer:
 
             # For each y-tolerance.
             num_x = len(self.xs)
-            y_inf = ys[-1]
+            y_xmax = ys[-1]
             for il, ytol in enumerate(tol_levels):
                 for _, xx in enumerate(self.xs[::-1]):
                     ix = -_ + num_x - 1
-                    if abs(y_inf - ys[ix]) > ytol:
+                    if abs(y_xmax - ys[ix]) > ytol:
                         self.ykey_ixs[ykey][il] = ix + 1
                         break
 
@@ -451,8 +476,8 @@ class ConvergenceAnalyzer:
                         alpha = (y1 - y0) / (x1 - x0)
                         # y(x) = alpha * (x - x0) + y0
                         #print("best_xx 1", best_xx)
-                        if (y0 - y_inf) >= 0: best_xx = x0 + ( ytol + y_inf - y0) / alpha
-                        if (y0 - y_inf) <  0: best_xx = x0 + (-ytol + y_inf - y0) / alpha
+                        if (y0 - y_xmax) >= 0: best_xx = x0 + ( ytol + y_xmax - y0) / alpha
+                        if (y0 - y_xmax) <  0: best_xx = x0 + (-ytol + y_xmax - y0) / alpha
                         #print("best_xx 2", best_xx)
 
                     self.ykey_best_xs[ykey][il] = best_xx
@@ -528,7 +553,7 @@ class ConvergenceAnalyzer:
             yscale: "linear" or "log"
         """
         # Precompute y-limits of the converge window for each tolerance.
-        y_inf = ys[-1]
+        y_xmax = ys[-1]
         ytols = self.ytols_dict[ykey]
         ntols = len(ytols)
         ylims = np.empty((ntols, 2))
@@ -536,7 +561,7 @@ class ConvergenceAnalyzer:
 
         for il, ytol in enumerate(ytols):
             # Absolute tolerance.
-            y0, y1 = y_inf - ytol, y_inf + ytol
+            y0, y1 = y_xmax - ytol, y_xmax + ytol
             y1_log = ytol
             ylims[il] = [y0, y1]
             ylims_log[il] = [0, y1_log]
@@ -594,7 +619,7 @@ class ConvergenceAnalyzer:
             ax1.set_ylabel(self.get_ylabel(ykey))
             self._decorate_ax(ax1, ykey, ys, "linear")
 
-            # Plot |y(x) - y_inf| on log scale.
+            # Plot |y(x) - y_xmax| on log scale.
             abs_diffs = np.abs(ys - ys[-1])
             ax2.plot(self.xs, abs_diffs, marker="o", color="k")
             ax2.set_yscale("log")
@@ -613,7 +638,7 @@ class ConvergenceAnalyzer:
                 title += pre_str + s
 
             ax2.set_title(title, fontsize=fontsize)
-            ax2.set_ylabel(r"$|y-y_\infty|$", fontsize=fontsize)
+            ax2.set_ylabel(r"$|y-y(Max)|$", fontsize=fontsize)
 
             set_grid_legend(ax_row, fontsize,
                             xlabel=self.xlabel if irow == (nrows - 1) else None,
