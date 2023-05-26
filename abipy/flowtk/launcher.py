@@ -291,7 +291,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
 
     @classmethod
     def autodoc(cls) -> str:
-        """Return String with scheduler options."""
+        """Return string with scheduler options."""
         i = cls.__init__.__doc__.index("Args:")
         return cls.__init__.__doc__[i+5:]
 

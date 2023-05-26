@@ -407,7 +407,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
     return relax_multi + ebands_multi
 
 
-def scr_from_nscfinput(nscf_input, nband=None, ecuteps=3.0, ecutwfn=None, inclvkb=2, w_type="RPA", 
+def scr_from_nscfinput(nscf_input, nband=None, ecuteps=3.0, ecutwfn=None, inclvkb=2, w_type="RPA",
                        sc_mode="one_shot", hilbert=None, accuracy="normal") -> AbinitInput:
     """Return a screening input."""
     scr_input = nscf_input.deepcopy()
@@ -423,7 +423,7 @@ def scr_from_nscfinput(nscf_input, nband=None, ecuteps=3.0, ecutwfn=None, inclvk
     return scr_input
 
 
-def sigma_from_inputs(nscf_input, scr_input, nband=None, ecutwfn=None, ecuteps=None, ecutsigx=None, 
+def sigma_from_inputs(nscf_input, scr_input, nband=None, ecutwfn=None, ecuteps=None, ecutsigx=None,
                       ppmodel="godby", gw_qprange=1, accuracy="normal") -> AbinitInput:
     """Return a sigma input."""
     self_input = nscf_input.deepcopy()
@@ -794,7 +794,7 @@ def bse_with_mdf_inputs(structure: Structure, pseudos,
 
 def scf_phonons_inputs(structure, pseudos, kppa,
                        ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
-                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None) -> list[AbinitInput]:
+                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, qptopt=1) -> list[AbinitInput]:
     # TODO: Please check the unused variables in the function
     """
     Returns a list of input files for performing phonon calculations.
@@ -814,6 +814,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
+        qptopt: Option for the generation of q-points. Default: 1
     """
     # Build the input file for the GS run.
     gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
@@ -827,7 +828,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
     # i.e. the same parameters used for the k-mesh in gs_inp.
-    qpoints = gs_inp.abiget_ibz(ngkpt=(4, 4, 4), shiftk=(0, 0, 0), kptopt=1).points
+    qpoints = gs_inp.abiget_ibz(ngkpt=(4, 4, 4), shiftk=(0, 0, 0), kptopt=qptopt).points
     #print("get_ibz qpoints:", qpoints)
 
     # Build the input files for the q-points in the IBZ.
@@ -871,7 +872,8 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
 
 def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, with_dde=True, with_bec=False,
-                         ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, qpoints_to_skip=None, manager=None):
+                         ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None,
+                         qpoints_to_skip=None, qptopt=1, manager=None):
     """
     Returns a list of inputs in the form of a MultiDataset to perform phonon calculations, based on
     a ground state |AbinitInput|.
@@ -904,6 +906,8 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         qpoints_to_skip: a list of coordinates of q points in reduced coordinates that will be skipped.
             Useful when calculating multiple grids for the same system to avoid duplicate calculations.
             If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array().
+        qptopt: Option for the generation of q-points. Default: 1
+
         manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
     gs_inp = gs_inp.deepcopy()
@@ -939,7 +943,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         else:
             ph_ngqpt = np.array(ph_ngqpt)
 
-        qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0, 0, 0), kptopt=1, manager=manager).points
+        qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0, 0, 0), kptopt=qptopt, manager=manager).points
 
     if qpoints_to_skip:
         preserved_qpoints = []
@@ -1307,7 +1311,7 @@ def ioncell_relax_from_gsinput(gs_input: AbinitInput, accuracy="normal") -> Abin
     return ioncell_input
 
 
-def hybrid_oneshot_input(gs_input: AbinitInput, 
+def hybrid_oneshot_input(gs_input: AbinitInput,
                          functional="hse06", ecutsigx=None, gw_qprange=1) -> AbinitInput:
 
     hybrid_input = gs_input.deepcopy()
@@ -1338,7 +1342,7 @@ def hybrid_oneshot_input(gs_input: AbinitInput,
     return hybrid_input
 
 
-def hybrid_scf_input(gs_input: AbinitInput, 
+def hybrid_scf_input(gs_input: AbinitInput,
                      functional="hse06", ecutsigx=None, gw_qprange=1) -> AbinitInput:
 
     hybrid_input = hybrid_oneshot_input(gs_input=gs_input, functional=functional, ecutsigx=ecutsigx, gw_qprange=gw_qprange)
@@ -1545,7 +1549,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     return multi
 
 
-def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, sigma_erange, 
+def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, sigma_erange,
                        boxcutmin=1.1, mixprec=1) -> MultiDataset:
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity.

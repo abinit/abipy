@@ -7,9 +7,6 @@ from monty.string import list_strings
 from io import StringIO
 from abipy.core.globals import get_workdir
 
-import logging
-logger = logging.getLogger(__name__)
-
 __author__ = "Matteo Giantomassi"
 __copyright__ = "Copyright 2013, The Materials Project"
 __version__ = "0.1"
@@ -22,6 +19,8 @@ __all__ = [
     "Mrgscr",
     "Mrgddb",
     "Mrgdvdb",
+    "Cut3D",
+    "Fold2Bloch",
 ]
 
 
@@ -30,7 +29,9 @@ class ExecError(Exception):
 
 
 class ExecWrapper:
-    """Base class that runs an executable in a subprocess."""
+    """
+    Base class that runs an executable in a subprocess.
+    """
     Error = ExecError
 
     def __init__(self, manager=None, executable=None, verbose=0):
@@ -102,6 +103,9 @@ class ExecWrapper:
 
 
 class Mrgscr(ExecWrapper):
+    """
+    Wraps the mrgddb Fortran executable.
+    """
     _name = "mrgscr"
 
     def merge_qpoints(self, workdir, files_to_merge, out_prefix):
@@ -145,6 +149,9 @@ class Mrgscr(ExecWrapper):
 
 
 class Mrgddb(ExecWrapper):
+    """
+    Wraps the mrgddb Fortran executable.
+    """
     _name = "mrgddb"
 
     def merge(self, workdir, ddb_files, out_ddb, description, delete_source_ddbs=True) -> str:
@@ -199,6 +206,10 @@ class Mrgddb(ExecWrapper):
 
 
 class Mrgdvdb(ExecWrapper):
+    """
+    Wraps the mrgdvdb Fortran executable.
+    """
+
     _name = "mrgdv"
 
     def merge(self, workdir, pot_files, out_dvdb, delete_source=True) -> str:
@@ -258,6 +269,9 @@ class Mrgdvdb(ExecWrapper):
 
 
 class Cut3D(ExecWrapper):
+    """
+    Wraps the cut3d Fortran executable.
+    """
     _name = "cut3d"
 
     def cut3d(self, cut3d_input, workdir) -> tuple[str, str]:
@@ -295,7 +309,9 @@ class Cut3D(ExecWrapper):
 
 
 class Fold2Bloch(ExecWrapper):
-    """Wrapper for fold2Bloch Fortran executable."""
+    """
+    Wraps the fold2Bloch Fortran executable.
+    """
     _name = "fold2Bloch"
 
     def unfold(self, wfkpath, folds, workdir=None) -> str:

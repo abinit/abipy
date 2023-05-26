@@ -727,7 +727,7 @@ http://localhost:{port}/notebooks/{notebook_name}
 
     @staticmethod
     def get_nbformat_nbv() -> tuple:
-        """Return nbformat module, notebook version module"""
+        """Return (nbformat module, notebook version module)"""
         import nbformat
         nbv = nbformat.v4
         return nbformat, nbv
@@ -955,7 +955,6 @@ class Has_Header:
 class SlotPickleMixin:
     """
     This mixin makes it possible to pickle/unpickle objects with __slots__
-    defined.
     """
 
     def __getstate__(self):

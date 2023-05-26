@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-G0W0 Flow with convergence study wrt nband
-==========================================
+GWR flow with convergence studies
+=================================
 
 This script shows how to compute the G0W0 corrections in silicon.
 More specifically, we build a flow to analyze the convergence of the QP corrections
@@ -13,6 +13,7 @@ import os
 import sys
 import abipy.data as data
 import abipy.abilab as abilab
+
 from abipy import flowtk
 
 
@@ -38,16 +39,15 @@ def build_flow(options):
         shiftk=[0.0, 0.0, 0.0],
     )
 
-    # GS-SCF to get the DEN, followed by direct diago to obtain green_nband bands.
-    from abipy.flowtk.gwr_works import DirectDiagoWork
-
     flow = flowtk.Flow(workdir=options.workdir)
 
+    # GS-SCF to get the DEN, followed by direct diago to obtain green_nband bands.
+    from abipy.flowtk.gwr_works import DirectDiagoWork
     green_nband = -1
     diago_work = DirectDiagoWork.from_scf_input(scf_input, green_nband)
     flow.register_work(diago_work)
 
-    from abipy.flowtk.gwr_works import GwrSigmaConv
+    # Build template for GWR
     gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=8, ecuteps=4)
 
     # Two possibilities:
@@ -55,16 +55,16 @@ def build_flow(options):
 
     varname_values = ("nband", [8, 12, 14])
 
-    # or take the Cartesian product of two or more variables with:
+    # or take the Cartesian product of two or more variables with e.g.:
 
     #varname_values = [
     #   ("gwr_ntau", [6, 8]),
     #   ("ecuteps", [2, 4]),
     #]
 
-    gwr_work = GwrSigmaConv.from_varname_values(varname_values, gwr_template,
-                                                den_node=diago_work[0],
-                                                wfk_node=diago_work[1])
+    from abipy.flowtk.gwr_works import GwrSigmaConvWork
+    gwr_work = GwrSigmaConvWork.from_varname_values(
+            varname_values, gwr_template, den_node=diago_work[0], wfk_node=diago_work[1])
 
     flow.register_work(gwr_work)
 

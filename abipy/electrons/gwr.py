@@ -9,6 +9,7 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections.abc import Iterable
+from typing import Union, Any
 from monty.functools import lazy_property
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
@@ -141,12 +142,13 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         r = self.r
         return dict(
-            ntau=r.read_dimvalue("ntau"),
+            gwr_ntau=r.read_dimvalue("ntau"),
             nband=self.ebands.nband,
             ecuteps=r.read_value("ecuteps"),
             ecutsigx=r.read_value("ecutsigx"),
             ecut=r.read_value("ecut"),
             gwr_boxcutmin=r.read_value("gwr_boxcutmin"),
+            nkpt=self.ebands.nkpt,
             symchi=r.read_value("symchi"),
             symsigma=r.read_value("symsigma"),
         )
@@ -192,21 +194,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #app("k-mesh for electrons:")
         #app("\t" + self.ebands.kpoints.ksampling.to_string(verbose=verbose))
 
-        #if not self.imag_only:
-        #    # QP corrections
-        #    for it in it_list:
-        #        app("\nKS, QP (Z factor) and on-the-mass-shell (OTMS) direct gaps in eV for T = %.1f K:" % self.tmesh[it])
-        #        data = []
-        #        for ikc, kpoint in enumerate(self.sigma_kpoints):
-        #            for spin in range(self.nsppol):
-        #                ks_gap = self.ks_dirgaps[spin, ikc]
-        #                qp_gap = self.qp_dirgaps_t[spin, ikc, it]
-        #                data.append([spin, repr(kpoint), ks_gap, qp_gap, qp_gap - ks_gap, oms_gap, oms_gap - ks_gap])
-        #        app(str(tabulate(data,
-        #            headers=["Spin", "k-point", "KS_gap", "QPZ0_gap", "QPZ0 - KS", "OTMS_gap", "OTMS - KS"],
-        #            floatfmt=".3f")))
-        #        app("")
-
         app(marquee("QP direct gaps in eV", mark="="))
         app(str(self.get_dirgaps_dataframe(with_params=False)))
         app("")
@@ -223,30 +210,34 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     #    else:
     #        return self.qpgaps[spin, ik], self.ksgaps[spin, ik]
 
-    def get_dirgaps_dataframe(self, with_params: bool=True) -> pd.DataFrame:
-       """
-       Build and return pandas DataFrame with QP direct gaps in eV
+    def get_dirgaps_dataframe(self, with_params: bool=True, with_geo=False) -> pd.DataFrame:
+        """
+        Build and return a pandas DataFrame with the QP direct gaps in eV.
 
-       Args:
+        Args:
             with_params: True if GWR parameters should be included.
-       """
-       d = {}
-       d["kpoint"] = [k.frac_coords for k in self.sigma_kpoints] * self.nsppol
-       d["kname"] = [k.name for k in self.sigma_kpoints] * self.nsppol
-       d["ks_dirgaps"] = self.ks_dirgaps.ravel()
-       d["qpz0_dirgaps"] = self.qpz0_dirgaps.ravel()
-       #d["qp_pade_dirgaps"] = self.qp_pade_dirgaps.ravel()
-       d["spin"] = [0] * len(self.sigma_kpoints)
-       if self.nsppol == 2: d["spin"].extend([1] * len(self.sigma_kpoints))
+            with_geo: True if geometry info should be included.
+        """
+        d = {}
+        d["kpoint"] = [k.frac_coords for k in self.sigma_kpoints] * self.nsppol
+        d["kname"] = [k.name for k in self.sigma_kpoints] * self.nsppol
+        d["ks_dirgaps"] = self.ks_dirgaps.ravel()
+        d["qpz0_dirgaps"] = self.qpz0_dirgaps.ravel()
+        #d["qp_pade_dirgaps"] = self.qp_pade_dirgaps.ravel()
+        d["spin"] = [0] * len(self.sigma_kpoints)
+        if self.nsppol == 2: d["spin"].extend([1] * len(self.sigma_kpoints))
 
-       if with_params:
-           for k, v in self.params.items():
-             d[k] = [v] * len(self.sigma_kpoints) * self.nsppol
+        if with_params:
+            for k, v in self.params.items():
+                 d[k] = [v] * len(self.sigma_kpoints) * self.nsppol
 
-       return pd.DataFrame(d)
+        if with_geo:
+            d.update(**self.structure.get_dict4pandas(with_spglib=True))
 
-    def get_dataframe_sk(self, spin: int, kpoint: KptSelect, index=None, 
-                         ignore_imag=False, with_params=True) -> pd.Dataframe:
+        return pd.DataFrame(d)
+
+    def get_dataframe_sk(self, spin: int, kpoint: KptSelect, index=None,
+                         ignore_imag=False, with_params=True, with_geo=False) -> pd.Dataframe:
         """
         Returns |pandas-DataFrame| with the QP results for the given (spin, k-point).
 
@@ -255,23 +246,31 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             kpoint:
             index:
             ignore_imag: Only real part is returned if ``ignore_imag``.
-            with_params: True to include convergence parameters.
+            with_params: True if GWR parameters should be included.
+            with_geo: True if geometry info should be included.
         """
         rows, bands = [], []
+
+        if with_geo:
+            geo_dict = self.structure.get_dict4pandas(with_spglib=True)
 
         qp_list = self.r.read_qplist_sk(spin, kpoint, ignore_imag=ignore_imag)
         for qp in qp_list:
             bands.append(qp.band)
             d = qp.as_dict()
+
+            # Add other entries that may be useful when comparing different calculations.
             if with_params:
-                # Add other entries that may be useful when comparing different calculations.
                 d.update(self.params)
+            if with_geo:
+                d.update(**geo_dict)
+
             rows.append(d)
 
         index = len(bands) * [index] if index is not None else bands
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
-    def _get_include_bands(self, include_bands, spin):
+    def _get_include_bands(self, include_bands: Any, spin: int) -> Union[set, None]:
         """
         Helper function to return include_bands for given spin.
         """
@@ -292,8 +291,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         raise ValueError(f"Invalid value for include_bands: {include_bands}")
 
     @add_fig_kwargs
-    def plot_sigma_imag_axis(self, kpoint: KptSelect, spin=0, 
-                             include_bands="gap", with_tau=True, 
+    def plot_sigma_imag_axis(self, kpoint: KptSelect, spin=0,
+                             include_bands="gap", with_tau=True,
                              fontsize=8, ax_mat=None, **kwargs) -> Figure:
         """
         Plot Sigma(iw) for given k-point, spin and list of bands.
@@ -316,7 +315,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         ikcalc, kpoint = self.r.get_ikcalc_kpoint(kpoint)
         include_bands = self._get_include_bands(include_bands, spin)
         sigma_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands)
-        
+
         # Plot Sigmac_nk(iw)
         re_ax, im_ax = ax_list = ax_mat[0]
         style = dict(marker="o")
@@ -345,7 +344,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_sigma_real_axis(self, kpoint: KptSelect, spin=0, include_bands="gap", 
+    def plot_sigma_real_axis(self, kpoint: KptSelect, spin=0, include_bands="gap",
                              fontsize=8, ax_mat=None, **kwargs) -> Figure:
         """
         Plot Sigma(w) along the real-axis.
@@ -423,8 +422,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_spectral_functions(self, include_bands=None, ax_list=None, 
-                                fontsize=8, **kwargs) -> Figure:
+    def plot_spectral_functions(self, include_bands=None, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the spectral function for all k-points, bands and spins available in the GWR file.
 
@@ -465,8 +463,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     #    """
     #    Build panel with widgets to interact with the GWR.nc either in a notebook or in panel app.
     #    """
-    #    from abipy.panels.gwr import GWRFilePanel
-    #    return GWRFilePanel(self).get_panel(**kwargs)
+    #    from abipy.panels.gwr import GwrFilePanel
+    #    return GwrFilePanel(self).get_panel(**kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -643,8 +641,7 @@ class GwrReader(ETSF_Reader):
             qps = []
             for kpoint in self.sigma_kpoints:
                 ikcalc = self.kpt2ikcalc(kpoint)
-                for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
-                    qps.extend(self.read_qplist_sk(spin, kpoint, ignore_imag=ignore_imag))
+                qps.extend(self.read_qplist_sk(spin, kpoint, ignore_imag=ignore_imag))
 
             qps_spin[spin] = QPList(qps)
 
@@ -676,6 +673,7 @@ class GwrReader(ETSF_Reader):
             ze0 = self.read_variable("ze0_kcalc")[spin, ikcalc, ib]
             ze0 = ze0[0] + 1j*ze0[1]
 
+            # TODO Finalize the implementation
             qp_list.append(QPState(
                 spin=spin,
                 kpoint=kpoint,
@@ -702,7 +700,7 @@ class TchimVsSus:
         self.tchi_reader = ETSF_Reader(tchim_filepath)
 
     @add_fig_kwargs
-    def plot_qpoint_gpairs(self, qpoint, gpairs, fontsize=7, spins=(0, 0), **kwargs) -> Figure:
+    def plot_qpoint_gpairs(self, qpoint, gpairs, fontsize=8, spins=(0, 0), **kwargs) -> Figure:
         gpairs = np.array(gpairs)
 
         sus_reader = self.sus_file.reader
@@ -816,6 +814,7 @@ class TchimVsSus:
 
         return fig
 
+
 class GwrRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple GWR.nc files.
@@ -832,7 +831,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
         # Check dimensions and self-energy states and issue warning.
         warns = []; wapp = warns.append
-        nc0 = self.abifiles[0]
+        nc0 : GwrFile = self.abifiles[0]
         same_nsppol, same_nkcalc = True, True
         if any(nc.nsppol != nc0.nsppol for nc in self.abifiles):
             same_nsppol = False
@@ -862,7 +861,7 @@ class GwrRobot(Robot, RobotWithEbands):
         if not len(self.abifiles) > 1:
             return
 
-        nc0 = self.abifiles[0]
+        nc0: GwrFile = self.abifiles[0]
         errors = []
         eapp = errors.append
 
@@ -900,37 +899,44 @@ class GwrRobot(Robot, RobotWithEbands):
 
         return pd.concat(df_list)
 
-    def get_dirgaps_dataframe(self, with_params=True) -> pd.DataFrame:
+    def get_dirgaps_dataframe(self, sortby="kname", with_params=True) -> pd.DataFrame:
         """
         Returns |pandas-DataFrame| with QP direct gaps for all the files treated by the GWR robot.
 
         Args:
+            sortby: Name to sort by.
             with_params: False to exclude calculation parameters from the dataframe.
         """
+        with_geo = self.has_different_structures()
+
         df_list = []; app = df_list.append
-        for label, ncfile in self.items():
-            df = ncfile.get_dirgaps_dataframe(with_params=with_params)
-            app(df)
+        for _, ncfile in self.items():
+            app(ncfile.get_dirgaps_dataframe(with_params=with_params, with_geo=with_geo))
 
-        return pd.concat(df_list)
+        df = pd.concat(df_list)
+        if sortby and sortby in df: df = df.sort_values(sortby)
+        return df
 
-    def get_dataframe(self, with_params=True, ignore_imag=False) -> pd.DataFrame:
+    def get_dataframe(self, sortby="kname", with_params=True, ignore_imag=False) -> pd.DataFrame:
         """
         Return |pandas-Dataframe| with QP results for all k-points, bands and spins
         present in the files treated by the GWR robot.
 
         Args:
+            sortby: Name to sort by.
             with_params:
             ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
-        for label, ncfile in self.items():
+        for _, ncfile in self.items():
             for spin in range(ncfile.nsppol):
-                for ikc, kpoint in enumerate(ncfile.sigma_kpoints):
+                for ikc, _ in enumerate(ncfile.sigma_kpoints):
                     app(ncfile.get_dataframe_sk(spin, ikc, with_params=with_params,
-                        ignore_imag=ignore_imag))
+                                                ignore_imag=ignore_imag))
 
-        return pd.concat(df_list)
+        df = pd.concat(df_list)
+        if sortby and sortby in df: df = df.sort_values(sortby)
+        return df
 
     @add_fig_kwargs
     def plot_selfenergy_conv(self, spin, kpoint, band, axis="wreal", sortby=None, hue=None,
@@ -986,7 +992,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
                 elif axis == "wimag":
                     # Plot Sigma(iw) along the imaginary axis.
-                    sigma.plot_reim_iw(ax_list, **kws)
+                    sigma.plot_reimc_iw(ax_list, **kws)
 
                 elif axis == "tau":
                     sigma.plot_reimc_tau(ax_list, **kws)
@@ -1172,7 +1178,7 @@ class GwrRobot(Robot, RobotWithEbands):
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = np.array(ax_list).ravel()
 
-        nc0 = self.abifiles[0]
+        nc0: GwrFile = self.abifiles[0]
         ikc = nc0.kpt2ikcalc(kpoint)
         kpoint = nc0.sigma_kpoints[ikc]
 
@@ -1291,8 +1297,22 @@ class GwrRobot(Robot, RobotWithEbands):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         verbose = kwargs.pop("verbose", 0)
+        yield self.plot_qpgaps_convergence(qp_kpoints="all", show=False)
 
-    def write_notebook(self, nbpath=None, title=None):
+        # Visualize the convergence of the self-energy for
+        # all the k-points and the most important bands.
+        nc0: GwrFile = self.abifiles[0]
+
+        for spin in range(nc0.nsppol):
+            for ikcalc in range(nc0.nkcalc):
+                ik_ibz = nc0.r.kcalc2ibz[ikcalc]
+                band_v = nc0.ebands.homo_sk(spin, ik_ibz).band
+                band_c = nc0.ebands.lumo_sk(spin, ik_ibz).band
+                for band in range(band_v, band_c + 1):
+                    for axis in ("wreal", "wimag", "tau"):
+                        yield self.plot_selfenergy_conv(spin, ikcalc, band, axis=axis, show=False)
+
+    def write_notebook(self, nbpath=None, title=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -1301,7 +1321,6 @@ class GwrRobot(Robot, RobotWithEbands):
 
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.SigEPhRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             nbv.new_code_cell("robot.get_params_dataframe()"),
             nbv.new_code_cell("# data = robot.get_dataframe()\ndata"),

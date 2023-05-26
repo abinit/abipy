@@ -113,7 +113,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     AnaddbError = AnaddbError
 
     @classmethod
-    def from_file(cls, filepath) -> DdbFile:
+    def from_file(cls, filepath: str) -> DdbFile:
         """Needed for the :class:`TextFile` abstract interface."""
         return cls(filepath)
 
@@ -2928,7 +2928,7 @@ class DdbRobot(Robot):
     EXT = "DDB"
 
     @classmethod
-    def class_handles_filename(cls, filename):
+    def class_handles_filename(cls, filename: str):
         """Exclude DDB.nc files. Override base class."""
         return filename.endswith("_" + cls.EXT)
 

@@ -46,16 +46,17 @@ def abips_list(options) -> list:
     return len(exc_list)
 
 
-def abips_avail(options) -> None:
+def abips_avail(options) -> int:
     """
     Show available repos.
     """
     print("List of available pseudopotential repositories:\n")
     all_repos = get_all_registered_repos()
     print(tabulate_repos(all_repos, with_citations=True, verbose=options.verbose))
+    return 0
 
 
-#def abips_nc_install(options):
+#def abips_nc_install(options) -> int:
 #    """
 #    Get all NC repos for a given version,
 #    Can choose among three formats: psp8, upf2 and psml. By default we fetch all formats.
@@ -155,7 +156,7 @@ def abips_show(options) -> int:
     return 0
 
 
-def abips_mkff(options):
+def abips_mkff(options) -> int:
     """
     Call Abinit to compute PSPS.nc files from a list of pseudos and show results.
     """
@@ -191,6 +192,15 @@ def abips_mkff(options):
                      )
 
     return 0
+
+
+#def abips_hints(options):
+#    """
+#    Compute ecut/pawecutd hints by running Abinit for a list of pseudos and show results.
+#    """
+#    from abipy.electrons.psps import PspsFile, PspsRobot
+#    ecut = options.ecut
+#    return 0
 
 
 def get_epilog() -> str:
@@ -268,6 +278,14 @@ def get_parser(with_epilog=False):
     p_mkff.add_argument("-rc", "--vloc-rcut-list", nargs="+", default=None, type=float,
                         help="List of cutoff radii for vloc in Bohr.")
     cli.add_expose_options_to_parser(p_mkff)
+
+    # Subparser for hints command.
+    #p_hints = subparsers.add_parser("hints", parents=[copts_parser], help=abips_hints.__doc__)
+    #p_hints.add_argument("pseudo_paths", nargs="+", type=str, help="Pseudopotential path.")
+    #p_hints.add_argument("--ecut", type=float, required=True, help="Cutoff energy in Ha.")
+    #p_hints.add_argument("-rc", "--vloc-rcut-list", nargs="+", default=None, type=float,
+    #                    help="List of cutoff radii for vloc in Bohr.")
+    #cli.add_expose_options_to_parser(p_hints)
 
     return parser
 

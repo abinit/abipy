@@ -91,7 +91,7 @@ def oncv_plot(options):
 
 def oncv_compare(options):
     """
-    Compare multiple oncvpsp output fies.
+    Compare multiple oncvpsp output files.
     """
     cli.customize_mpl(options)
 
@@ -104,6 +104,24 @@ def oncv_compare(options):
                    use_web=options.expose_web, verbose=options.verbose)
 
     return 0
+
+
+#@flowtk.flow_main
+#def main(options):
+#    return build_flow(options)
+
+#def oncv_hints(options):
+#    """
+#    """
+#    from abipy import flowtk
+#    from abipy.flowtk.pseudo_works import GsEcutConvWork
+#    flow = flowtk.Flow(workdir=options.workdir)
+#
+#    ecut_list = [35, 40, 45, 50, 55, 60, 65]
+#    #ecut_list = [35, 40, 45]
+#    work = GsEcutConvWork.from_pseudo(pseudo, ecut_list)
+#    flow.register_work(work)
+#    return flow
 
 
 #def oncv_json(options):
@@ -193,7 +211,7 @@ def oncv_run(options):
     onc_parser = OncvParser(out_path)
     onc_parser.scan()
     if not onc_parser.run_completed:
-        cprint("oncvpsp output is not complete. Exiting", "red")
+        cprint("oncvpsp output is not completed. Exiting", "red")
         return 1
 
     # Extract psp8 files from the oncvpsp output and write it to file.
@@ -308,8 +326,6 @@ Usage example:
         else:
             p.add_argument('filepath', default="", help="Path to the input/output file")
 
-
-
         return p
 
     copts_parser = get_copts_parser(multi=False)
@@ -356,6 +372,8 @@ Usage example:
     p_gui = subparsers.add_parser('gui', parents=parents, help=oncv_gui.__doc__)
 
     p_gnuplot = subparsers.add_parser('gnuplot', parents=[copts_parser], help=oncv_gnuplot.__doc__)
+
+    #p_hints = subparsers.add_parser('hints', parents=[copts_parser], help=oncv_hints.__doc__)
 
     #p_json = subparsers.add_parser('json', parents=[copts_parser], help=oncv_json.__doc__)
 

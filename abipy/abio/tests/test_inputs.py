@@ -172,7 +172,7 @@ class TestAbinitInput(AbipyTest):
 
         # Test news_varname_values with Cartesian product.
         varname_values = [
-            ("nband", [8, 12]), 
+            ("nband", [8, 12]),
             ("ecut", [4, 8]),
         ]
 
@@ -351,6 +351,12 @@ class TestAbinitInput(AbipyTest):
         structure_with_abispg = inp_si.abiget_spacegroup()
         assert structure_with_abispg.abi_spacegroup is not None
         assert structure_with_abispg.abi_spacegroup.spgid == 227
+
+        # Test abiget_dims_spginfo
+        dims, spginfo = inp_si.abiget_dims_spginfo()
+        assert dims["nsppol"] == 1
+        assert dims["mpw"] == 20
+        assert spginfo["spg_number"] == 227
 
         # Test abiget_ibz
         ibz = inp_si.abiget_ibz()

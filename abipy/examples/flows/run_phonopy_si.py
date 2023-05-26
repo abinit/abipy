@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Phonopy with AbiPy Flow
+Phonopy with AbiPy flow
 =======================
 
 This example shows how to compute phonon frequencies with phonopy

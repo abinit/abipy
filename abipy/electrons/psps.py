@@ -11,7 +11,7 @@ import pandas as pd
 #from typing import List, Any
 from collections import OrderedDict
 from monty.bisect import find_gt
-from monty.string import marquee # list_strings, 
+from monty.string import marquee # list_strings,
 from monty.functools import lazy_property
 from abipy.iotools import ETSF_Reader
 from abipy.core.structure import Structure
@@ -221,7 +221,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_tcore_qspace(self, ax=None, ders=(0,), with_fact=True, 
+    def plot_tcore_qspace(self, ax=None, ders=(0,), with_fact=True,
                           with_qn=0, scale=1.0, **kwargs) -> Figure:
         """
         Plot the model core charge in q space.
@@ -273,7 +273,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_q2vq(self, ax=None, ders=(0,), with_qn=0, with_fact=True, 
+    def plot_q2vq(self, ax=None, ders=(0,), with_qn=0, with_fact=True,
                   scale=None, **kwargs) -> Figure:
         r"""
         Plot the local part of the pseudopotential in q space.
@@ -429,6 +429,7 @@ class PspsRobot(Robot):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: PspsRobot
     """
+
     EXT = "PSPS"
 
     @classmethod
@@ -491,7 +492,7 @@ class PspsRobot(Robot):
         return fig
 
     @add_fig_kwargs
-    def plot_tcore_qspace(self, ders=(0, 1), with_qn=0, scale=None, 
+    def plot_tcore_qspace(self, ders=(0, 1), with_qn=0, scale=None,
                           fontsize=8, **kwargs) -> Figure:
         """
         Plot the model core charge and its derivatives in q-space.
@@ -518,7 +519,7 @@ class PspsRobot(Robot):
         return fig
 
     @add_fig_kwargs
-    def plot_q2vq(self, ders=(0, 1), with_qn=0, with_fact=True, scale=None, 
+    def plot_q2vq(self, ders=(0, 1), with_qn=0, with_fact=True, scale=None,
                   fontsize=8, **kwargs) -> Figure:
         """
         Plot the local part of the pseudopotential in q space.
@@ -541,7 +542,7 @@ class PspsRobot(Robot):
         return fig
 
     @add_fig_kwargs
-    def plot_ffspl(self, ecut_ffnl=None, ders=(0, 1), with_qn=0, 
+    def plot_ffspl(self, ecut_ffnl=None, ders=(0, 1), with_qn=0,
                    scale=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the nonlocal part of the pseudopotential in q-space.
@@ -584,7 +585,7 @@ class PspsRobot(Robot):
     #    if verbose:
     #        for fig in self.yield_structure_plotly_figs(**kwargs): yield fig
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -618,7 +619,7 @@ class PspsReader(ETSF_Reader):
         self.znucl_typat = self.read_value("znucltypat")
         self.zion_typat = self.read_value("ziontypat")
 
-    def read_coresd(self, rmax=None):
+    def read_coresd(self, rmax=None) -> tuple[np.ndarray, np.ndarray]:
         """
         Read the core charges and real-space derivatives for the different types of atoms.
 
@@ -662,7 +663,7 @@ class PspsReader(ETSF_Reader):
 
         return rmeshes, coresd
 
-    def read_tcorespl(self):
+    def read_tcorespl(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Returns:
             qmesh: Linear q-mesh in q-space
@@ -703,7 +704,7 @@ class PspsReader(ETSF_Reader):
 
         return projs
 
-    def get_lnlist_for_type(self, itypat: int):
+    def get_lnlist_for_type(self, itypat: int) -> list:
         """
         Return a list of (l, n) indices for this atom type.
         """

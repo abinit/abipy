@@ -5,6 +5,8 @@ other files are supported as well). By default the script starts an interactive 
 session so that one can interact with the file and call its methods.
 Alternatively, it is possible to generate automatically a jupyter notebook to execute code.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse

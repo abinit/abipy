@@ -92,8 +92,8 @@ xred
             raise RuntimeError("Only NC pseudos are compatible with Q*")
         if pseudo.has_nlcc:
             raise RuntimeError("NLCC is not compatible with Q*")
-        if pseudo.xc.type != "LDA":
-            raise RuntimeError("Only LDA is compatible with Q*")
+        #if pseudo.xc.type != "LDA":
+        #    raise RuntimeError("Only LDA is compatible with Q*")
 
     # Initialize the flow
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)

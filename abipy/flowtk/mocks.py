@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .nodes import Status
-from .tasks import AbinitTask
+from .tasks import Task, AbinitTask
 from .flows import Flow
 
 

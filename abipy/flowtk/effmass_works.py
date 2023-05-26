@@ -32,14 +32,14 @@ class EffMassLineWork(Work):
     """
     Work for the computation of effective masses via finite differences along a k-line.
     Useful for cases such as NC+SOC where DFPT is not implemented or if one is interested
-    in non-parabolic behaviour.
+    in the non-parabolic behaviour of the energy dispersion.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: EffMassLineWork
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, 
+    def from_scf_input(cls, scf_input: AbinitInput,
                        k0_list, step=0.01, npts=15,
                        red_dirs=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], ndivsm=-20,
                        cart_dirs=None, den_node=None, manager=None) -> EffMassLineWork:
@@ -96,8 +96,8 @@ class EffMassDFPTWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, 
-                       k0_list, effmass_bands_f90, 
+    def from_scf_input(cls, scf_input: AbinitInput,
+                       k0_list, effmass_bands_f90,
                        ngfft=None, den_node=None, manager=None) -> EffMassDFPTWork:
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
@@ -143,7 +143,7 @@ class EffMassAutoDFPTWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, 
+    def from_scf_input(cls, scf_input: AbinitInput,
                        ndivsm=15, tolwfr=1e-20, den_node=None, manager=None) -> EffMassAutoDFPTWork:
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
@@ -216,11 +216,11 @@ class FrohlichZPRFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls, workdir: str, scf_input: AbinitInput, 
-                       ddb_node=None, ndivsm=15, tolwfr=1e-20, 
+    def from_scf_input(cls, workdir: str, scf_input: AbinitInput,
+                       ddb_node=None, ndivsm=15, tolwfr=1e-20,
                        metadata=None, manager=None) -> FrohlichZPRFlow:
         """
-        Build the Work from an |AbinitInput| representing a GS-SCF calculation.
+        Build the Flow from an |AbinitInput| representing a GS-SCF calculation.
         Final results are stored in the "zprfrohl_results.json" in the outdata directory of the flow.
 
         Args:

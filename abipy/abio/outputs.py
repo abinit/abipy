@@ -18,11 +18,11 @@ from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure, dataframes_from_structures
 from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.core.mixins import TextFile, AbinitNcFile, NotebookWriter
+from abipy.tools.typing import Figure
 from abipy.abio.inputs import GEOVARS
 from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import Robot
 from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
-
 
 class AbinitTextFile(TextFile):
     """
@@ -39,7 +39,7 @@ class AbinitTextFile(TextFile):
             self._events = EventsParser().parse(self.filepath)
         return self._events
 
-    def get_timer(self):
+    def get_timer(self) -> AbinitTimerParser:
         """
         Timer data.
         """
@@ -269,7 +269,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         return vars_global, vars_dataset
 
-    def _get_structures(self, what: str):
+    def _get_structures(self, what: str) -> list[Structure]:
         if what == "header":
             vars_global, vars_dataset = self.initial_vars_global, self.initial_vars_dataset
         elif what == "footer":
@@ -516,7 +516,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         df = df.set_index('dataset')
         return df
 
-    def get_dims_spginfo_dataset(self, verbose=0) -> tuple:
+    def get_dims_spginfo_dataset(self, verbose=0) -> tuple[dict, dict]:
         """
         Parse the section with the dimensions of the calculation. Return dictionaries
 
@@ -524,6 +524,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             verbose: Verbosity level.
 
         Return: (dims_dataset, spginfo_dataset)
+
             where dims_dataset[i] is an OrderedDict with the dimensions of dataset `i`
             spginfo_dataset[i] is a dictionary with space group information.
         """
@@ -729,7 +730,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         #    except Exception:
         #        print("Abinit output files does not contain timopt data")
 
-    def compare_gs_scf_cycles(self, others, show=True):
+    def compare_gs_scf_cycles(self, others, show=True) -> list[Figure]:
         """
         Produce and returns a list of matplotlib_ figure comparing the GS self-consistent
         cycle in self with the ones in others.
@@ -768,9 +769,9 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         return figures
 
-    def compare_d2de_scf_cycles(self, others, show=True):
+    def compare_d2de_scf_cycles(self, others, show=True) -> list[Figure]:
         """
-        Produce and returns a matplotlib_ figure comparing the DFPT self-consistent
+        Produce and returns a list of matplotlib_ figure comparing the DFPT self-consistent
         cycle in self with the ones in others.
 
         Args:
@@ -830,7 +831,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-def validate_output_parser(abitests_dir=None, output_files=None):  # pragma: no cover
+def validate_output_parser(abitests_dir=None, output_files=None) -> int:  # pragma: no cover
     """
     Validate/test Abinit output parser.
 
@@ -919,7 +920,7 @@ class AboRobot(Robot):
 
     def get_dims_dataframe(self, with_time=True, index=None) -> pd.DataFrame:
         """
-        Build and return |pandas-DataFrame| with the dimensions of the calculation.
+        Build and return a |pandas-DataFrame| with the dimensions of the calculation.
 
         Args:
             with_time: True if walltime and cputime should be added
@@ -1031,7 +1032,7 @@ class OutNcFile(AbinitNcFile):
     """
     # TODO: This object is deprecated
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = NetcdfReader(filepath)
         self._varscache = {k: None for k in self.reader.rootgrp.variables}

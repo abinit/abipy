@@ -13,6 +13,7 @@ import collections
 import warnings
 import shutil
 import tempfile
+import json
 import numpy as np
 import pandas as pd
 
@@ -21,7 +22,6 @@ from pprint import pprint
 from typing import Any, Union, Iterator, Generator
 from tabulate import tabulate
 from pydispatch import dispatcher
-from collections import OrderedDict
 from monty.collections import dict2namedtuple
 from monty.string import list_strings, is_string, make_banner
 from monty.operator import operator_from_str
@@ -37,6 +37,7 @@ from abipy.tools.typing import Figure, TYPE_CHECKING
 from abipy.core.globals import get_workdir
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.printing import print_dataframe
+from abipy.tools.serialization import mjson_loads
 from abipy.flowtk import wrappers
 from .nodes import Status, Node, NodeError, NodeResults, Dependency, GarbageCollector, check_spectator
 from .tasks import Task, ScfTask, TaskManager, FixQueueCriticalError
@@ -619,14 +620,26 @@ class Flow(Node, NodeContainer, MSONable):
             d[task.status].append(Entry(task, wi, ti))
 
         # Sort keys according to their status.
-        return OrderedDict([(k, d[k]) for k in sorted(list(d.keys()))])
+        return {k: d[k] for k in sorted(list(d.keys()))}
+
+    def groupby_work_class(self) -> dict:
+        """
+        Returns a dictionary mapping the work class to the list of works in the flow
+        """
+        class2works = {}
+        for work in self:
+            cls = work.__class__
+            if cls not in class2works: class2works[cls] = []
+            class2works[cls].append(work)
+
+        return class2works
 
     def groupby_task_class(self) -> dict:
         """
         Returns a dictionary mapping the task class to the list of tasks in the flow
         """
         # Find all Task classes
-        class2tasks = OrderedDict()
+        class2tasks = {}
         for task in self.iflat_tasks():
             cls = task.__class__
             if cls not in class2tasks: class2tasks[cls] = []
@@ -910,7 +923,7 @@ class Flow(Node, NodeContainer, MSONable):
             index.append(task.pos_str)
             dstruct = task.input.structure.as_dict(fmt="abivars")
 
-            od = OrderedDict()
+            od = {}
             for vname in varnames:
                 value = task.input.get(vname, None)
                 if value is None: # maybe in structure?
@@ -973,93 +986,9 @@ class Flow(Node, NodeContainer, MSONable):
         Write python script in the flow workdir that can be used by expert
         users to change the input variables of the task according to their status.
         """
-
-        script = """\
-#!/usr/bin/env python
-'''
- WARNING WARNING WARNING
-
-This script changes the input variables of particular tasks and resets certain tasks
-so that it's possible to fix errors before starting a new scheduler.
-
-This is an advanced script and you are supposed to be familiar with the Abipy API.
-Very bad things will happen if you don't use this script properly.
-
-DO NOT RUN THIS SCRIPT IF THE SCHEDULER IS STILL RUNNING YOUR FLOW.
-YOU HAVE BEEN WARNED!
-'''
-
-import sys
-import argparse
-
-import abipy.flowtk as flowtk
-
-def main():
-
-    # Build the main parser.
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('flowdir', help="File or directory containing the ABINIT flow")
-    parser.add_argument('--remove-lock', default=False, action="store_true",
-        help="Remove the lock on the pickle file used to save the status of the flow.")
-    parser.add_argument('--apply', default=False, action="store_true", help="Apply changes to the flow.")
-
-    options = parser.parse_args()
-
-    # Read the flow from the pickle file
-    flow = flowtk.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
-
-    # List with the id of the tasks that will be changed.
-    nids = []
-
-    for task in flow.iflat_tasks():
-
-        # Select tasks according to class and status
-        # Clearly, you will need to customize this part.
-        if task.__class__.__name__ == "PhononTask" and task.status in (task.S_UNCONVERGED, task.S_ERROR):
-
-            nids.append(task.node_id)
-
-            # Here we operate on the AbinitInput of the task.
-            # In this particular case, we want to use toldfe instead of tolvrs.
-            # Again, you will need to customize this part.
-
-            # Remove all the tolerance variables present in the input.
-            task.input.pop_tolerances()
-
-            # Set new stopping criterion
-            task.input["toldfe"] = 1e-8
-            task.input["nstep"] = 1000
-            task.input["prtwf"] = 0
-
-    if options.apply:
-        print(f"Resetting {len(nids)} tasks modified by the user.")
-
-        if nids:
-            for task in flow.iflat_tasks(nids=nids):
-                task.reset()
-
-        print("Writing new pickle file.")
-
-        flow.build_and_pickle_dump()
-    else:
-        print(f"Dry run mode. {len(nids)} tasks have been modified in memory.")
-
-        if nids:
-            for task in flow.iflat_tasks(nids=nids):
-                print(task)
-
-        print("Use --apply to reset these tasks and update the pickle file.")
-        print("Then restart the scheduler with `nohup abirun.py FLOWDIR scheduler ...`")
-
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
-"""
         path_py = os.path.join(self.workdir, "_fix_flow.py")
         with open(path_py, "wt") as fh:
-            fh.write(script)
+            fh.write(_FIX_FLOW_SCRIPT)
             import stat
             st = os.stat(path_py)
             os.chmod(path_py, st.st_mode | stat.S_IEXEC)
@@ -1143,7 +1072,7 @@ if __name__ == "__main__":
         return dfs
 
     def compare_ebands(self, nids=None, with_path=True, with_ibz=True, with_spglib=False, verbose=0,
-                       precision=3, printout=False, with_colors=False):
+                       precision=3, printout=False, with_colors=False) -> tuple:
         """
         Analyze electron bands produced by the tasks.
         Return pandas DataFrame and |ElectronBandsPlotter|.
@@ -1207,7 +1136,7 @@ if __name__ == "__main__":
         return df, ebands_plotter
 
     def compare_hist(self, nids=None, with_spglib=False, verbose=0,
-                     precision=3, printout=False, with_colors=False):
+                     precision=3, printout=False, with_colors=False) -> tuple:
         """
         Analyze HIST nc files produced by the tasks. Print pandas DataFrame with final results.
         Return: (df, hist_plotter)
@@ -1278,7 +1207,7 @@ if __name__ == "__main__":
         stream.write("%s, num_tasks=%s, all_ok=%s\n" % (str(self), self.num_tasks, self.all_ok))
         stream.write("\n")
 
-    def get_dataframe(self, as_dict=False):
+    def get_dataframe(self, as_dict=False) -> pd.DataFrame:
         """
         Return pandas dataframe task info or dictionary if as_dict is True.
         This function should be called after flow.get_status to update the status.
@@ -1394,7 +1323,6 @@ if __name__ == "__main__":
             cprint("\nall_ok reached\n", "green", file=stream)
 
         if return_df:
-            import pandas as pd
             rows = []
             for task, data in data_task.items():
                 d = task.get_dataframe(as_dict=True)
@@ -2003,6 +1931,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                        "   1) Change the workdir of the new flow.\n"
                        "   2) remove the old directory either with `rm -r` or by calling the method flow.rmtree()\n"
                        % (node_id, nodeid_path, self.node_id))
+                #print(msg)
                 raise RuntimeError(msg)
 
         else:
@@ -2628,6 +2557,87 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         os.chdir(back)
         return name
 
+    def explain(self, what="all", nids=None, verbose=0) -> str:
+        """
+        Return string with the docstrings of the works/tasks in the Flow grouped by class.
+
+        Args:
+            what: "all" to print all nodes, "works" for Works only, "tasks" for tasks only.
+            nids: list of node identifiers used to filter works or tasks.
+            verbose: Verbosity level
+        """
+        black_list = {
+            ".. rubric:: Inheritance Diagram",
+            ".. inheritance-diagram:",
+        }
+
+        def polish_doc(doc: str, node_type) -> str:
+            """Remove all lines in black_list"""
+            new_lines = [l for l in doc.splitlines() if not any(bad in l for bad in black_list)]
+            s =  "\n".join(new_lines)
+            color_node = dict(work="green", task="magenta")
+            s = colored(s, color=color_node[node_type])
+            return s
+
+        explain_works = what in {"all", "works"}
+        explain_tasks = what in {"all", "tasks"}
+        nids = as_set(nids)
+
+        lines = []; app = lines.append
+
+        if explain_works:
+            app("")
+            cls2works = self.groupby_work_class()
+            for work_cls, works in cls2works.items():
+                if nids and not any(work.node_id in nids for work in works): continue
+                s = f"work name: {work_cls.__name__}, declared in module: {work_cls.__module__}"
+                app(make_banner(s, mark="="))
+                app(polish_doc(work_cls.__doc__, "work"))
+                app("Works belonging to this class (%d):" % len(works))
+                for work  in works:
+                    app(4* " " + str(work) + ", status: " + work.status.colored)
+
+        if explain_tasks:
+            app("")
+            cls2tasks = self.groupby_task_class()
+            for task_cls, tasks in cls2tasks.items():
+                if nids and not any(task.node_id in nids for task in tasks): continue
+                s = f"Task name: {task_cls.__name__}, declared in module: {task_cls.__module__}"
+                app(make_banner(s, mark="="))
+                app(polish_doc(task_cls.__doc__, "task"))
+                app("Tasks belonging to this class (%s):" % len(tasks))
+                for task  in tasks:
+                    app(4 * " " + str(task) + ", status: " + task.status.colored)
+
+        return "\n".join(lines)
+
+    def show_autoparal(self, nids=None, verbose=0) -> None:
+        """
+        Print to terminal the autoparal configurations for each task in the Flow.
+
+        Args:
+            nids: list of node identifiers used to filter works or tasks.
+            verbose: Verbosity level
+        """
+        print("")
+        for task in self.iflat_tasks():
+            if nids and task.node_id not in nids: continue
+            json_path = os.path.join(task.workdir, "autoparal.json")
+            if not os.path.exists(json_path):
+                if verbose: print("Cannot find:", json_path)
+                continue
+
+            with open(json_path, "rt") as fh:
+                d = json.load(fh)
+
+            optimal_conf = d.pop("optimal_conf")
+            paral_hints = mjson_loads(json.dumps(d))
+            df = paral_hints.get_dataframe()
+            print("Task:", task, ", status:", task.status.colored)
+            print(df)
+            print("info:", paral_hints.info)
+            print("optimal:", optimal_conf)
+
     def get_graphviz(self, engine="automatic", graph_attr=None, node_attr=None, edge_attr=None):
         """
         Generate flow graph in the DOT language.
@@ -2662,7 +2672,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 color=node.color_hex,
                 fontsize="8.0",
                 label=(str(node) if not hasattr(node, "pos_str") else
-                    node.pos_str + "\n" + node.__class__.__name__),
+                       node.pos_str + "\n" + node.__class__.__name__),
             )
 
         edge_kwargs = dict(arrowType="vee", style="solid")
@@ -2749,8 +2759,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
     def plot_networkx(self, mode="network", with_edge_labels=False, ax=None, arrows=False,
                       node_size="num_cores", node_label="name_class", layout_type="spring", **kwargs) -> Figure:
         """
-        Use networkx to draw the flow with the connections among the nodes and
-        the status of the tasks.
+        Use networkx to draw the flow with the connections among the nodes and the status of the tasks.
 
         Args:
             mode: `networkx` to show connections, `status` to group tasks by status.
@@ -2800,8 +2809,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 i = [dep.node for dep in child.deps].index(work)
                 edge_labels[(work, child)] = "+".join(child.deps[i].exts)
 
-        # Get positions for all nodes using layout_type.
-        # e.g. pos = nx.spring_layout(g)
+        # Get positions for all nodes using layout_type e.g. pos = nx.spring_layout(g)
         pos = getattr(nx, layout_type + "_layout")(g)
 
         # Select function used to compute the size of the node
@@ -2871,7 +2879,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         ax.axis("off")
         return fig
 
-    def write_open_notebook(self, foreground):
+    def write_open_notebook(self, foreground) -> int:
         """
         Generate an ipython notebook and open it in the browser.
         Return system exit code.
@@ -2883,22 +2891,22 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         nb.cells.extend([
             #nbf.new_markdown_cell("This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
             nbf.new_code_cell("""\
-    import sys, os
-    import numpy as np
+import sys, os
+import numpy as np
 
-    %matplotlib notebook
-    from IPython.display import display
+%matplotlib notebook
+from IPython.display import display
 
-    # This to render pandas DataFrames with https://github.com/quantopian/qgrid
-    #import qgrid
-    #qgrid.nbinstall(overwrite=True)  # copies javascript dependencies to your /nbextensions folder
+# This to render pandas DataFrames with https://github.com/quantopian/qgrid
+#import qgrid
+#qgrid.nbinstall(overwrite=True)  # copies javascript dependencies to your /nbextensions folder
 
-    from abipy import abilab
+from abipy import abilab
 
-    # Tell AbiPy we are inside a notebook and use seaborn settings for plots.
-    # See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
-    abilab.enable_notebook(with_seaborn=True)
-    """),
+# Tell AbiPy we are inside a notebook and use seaborn settings for plots.
+# See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
+abilab.enable_notebook(with_seaborn=True)
+"""),
 
             nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % self.workdir),
             nbf.new_code_cell("if flow.num_errored_tasks: flow.debug()"),
@@ -3020,7 +3028,7 @@ class FlowCallbackError(Exception):
     """Exceptions raised by FlowCallback."""
 
 
-class FlowCallback(object):
+class FlowCallback:
     """
     This object implements the callbacks executed by the |Flow| when
     particular conditions are fulfilled. See on_dep_ok method of |Flow|.
@@ -3242,6 +3250,7 @@ class NonLinearCoeffFlow(Flow):
        nirred tasks where nirred is the number of irreducible perturbations
        for that particular q-point.
     """
+
     @classmethod
     def from_scf_input(cls, workdir: str, scf_input: AbinitInput,
                        manager=None, allocate=True) -> NonLinearCoeffFlow:
@@ -3287,7 +3296,7 @@ class NonLinearCoeffFlow(Flow):
             self.history.critical("Exception while reading DDB file at %s:\n%s" % (ddb_path, str(exc)))
             return None
 
-    def finalize(self):
+    def finalize(self) -> int:
         """This method is called when the flow is completed."""
         # Merge all the out_DDB files found in work.outdir.
         ddb_files = list(filter(None, [work.outdir.has_abiext("DDB") for work in self]))
@@ -3302,10 +3311,7 @@ class NonLinearCoeffFlow(Flow):
         print("Final DDB file available at %s" % out_ddb)
 
         # Call the method of the super class.
-        retcode = super().finalize()
-        print("retcode", retcode)
-        #if retcode != 0: return retcode
-        return retcode
+        return super().finalize()
 
 
 def phonon_conv_flow(workdir: str, scf_input: AbinitInput, qpoints, params,
@@ -3340,3 +3346,88 @@ def phonon_conv_flow(workdir: str, scf_input: AbinitInput, qpoints, params,
 
     if allocate: flow.allocate()
     return flow
+
+
+_FIX_FLOW_SCRIPT = """\
+#!/usr/bin/env python
+'''
+WARNING WARNING WARNING
+
+This script changes the input variables of particular tasks and resets certain tasks
+so that it's possible to fix errors before starting a new scheduler.
+
+This is an advanced script and you are supposed to be familiar with the Abipy API.
+Very bad things will happen if you don't use this script properly.
+
+DO NOT RUN THIS SCRIPT IF THE SCHEDULER IS STILL RUNNING YOUR FLOW.
+YOU HAVE BEEN WARNED!
+'''
+
+import sys
+import argparse
+
+import abipy.flowtk as flowtk
+
+def main():
+
+    # Build the main parser.
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('flowdir', help="File or directory containing the ABINIT flow")
+    parser.add_argument('--remove-lock', default=False, action="store_true",
+        help="Remove the lock on the pickle file used to save the status of the flow.")
+    parser.add_argument('--apply', default=False, action="store_true", help="Apply changes to the flow.")
+
+    options = parser.parse_args()
+
+    # Read the flow from the pickle file
+    flow = flowtk.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
+
+    # List with the id of the tasks that will be changed.
+    nids = []
+
+    for task in flow.iflat_tasks():
+
+        # Select tasks according to class and status
+        # Clearly, you will need to customize this part.
+        if task.__class__.__name__ == "PhononTask" and task.status in (task.S_UNCONVERGED, task.S_ERROR):
+
+            nids.append(task.node_id)
+
+            # Here we operate on the AbinitInput of the task.
+            # In this particular case, we want to use toldfe instead of tolvrs.
+            # Again, you will need to customize this part.
+
+            # Remove all the tolerance variables present in the input.
+            task.input.pop_tolerances()
+
+            # Set new stopping criterion
+            task.input["toldfe"] = 1e-8
+            task.input["nstep"] = 1000
+            task.input["prtwf"] = 0
+
+    if options.apply:
+        print(f"Resetting {len(nids)} tasks modified by the user.")
+
+        if nids:
+            for task in flow.iflat_tasks(nids=nids):
+                task.reset()
+
+        print("Writing new pickle file.")
+
+        flow.build_and_pickle_dump()
+    else:
+        print(f"Dry run mode. {len(nids)} tasks have been modified in memory.")
+
+        if nids:
+            for task in flow.iflat_tasks(nids=nids):
+                print(task)
+
+        print("Use --apply to reset these tasks and update the pickle file.")
+        print("Then restart the scheduler with `nohup abirun.py FLOWDIR scheduler ...`")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+"""

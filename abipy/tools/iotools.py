@@ -7,12 +7,25 @@ import codecs
 import errno
 import tempfile
 import ruamel.yaml as yaml
+import pandas as pd
 
 from contextlib import ExitStack
 from subprocess import call
 from typing import Any
 from monty.termcolor import cprint
 from monty.string import list_strings
+
+
+def make_executable(filepath: str) -> None:
+    """Make file executable"""
+    mode = os.stat(filepath).st_mode
+    mode |= (mode & 0o444) >> 2    # copy R bits to X
+    os.chmod(filepath, mode)
+
+    #from pathlib import Path
+    #import stat
+    #f = Path(filepath)
+    #f.chmod(f.stat().st_mode | stat.S_IEXEC)
 
 
 def yaml_safe_load(string: str) -> Any:
@@ -25,6 +38,17 @@ def yaml_safe_load_path(filepath: str) -> Any:
     with open(filepath, "rt") as fh:
         return yaml.YAML(typ='safe', pure=True).load(fh.read())
 
+
+def dataframe_from_filepath(filepath: str, **kwargs) -> pd.DataFrame:
+    """
+    Try to read a dataframe from an external file according to the file extension.
+    """
+    _, ext = os.path.splitext(filepath)
+    if ext == 'csv': return pd.read_csv(filepath, **kwargs)
+    if ext == "json": return pd.read_json(filepath, **kwargs)
+    if ext in ("xls", "xlsx"): return pd.read_excel(filepath, **kwargs)
+
+    raise ValueError(f"Don't know how to construct DataFrame from file {filepath} with extension: {ext}")
 
 class ExitStackWithFiles(ExitStack):
     """
@@ -59,7 +83,7 @@ class ExitStackWithFiles(ExitStack):
         return self.files.__getitem__(slice)
 
 
-def get_input(prompt):
+def get_input(prompt: str):
     """
     Wraps python builtin input so that we can easily mock it in unit tests using:
 
@@ -117,7 +141,7 @@ class EditorError(Exception):
     """Base class for exceptions raised by `Editor`"""
 
 
-class Editor(object):  # pragma: no cover
+class Editor:  # pragma: no cover
     DEFAULT_EDITOR = "vi"
 
     Error = EditorError
@@ -128,20 +152,20 @@ class Editor(object):  # pragma: no cover
         else:
             self.editor = str(editor)
 
-    def edit_file(self, fname):
-        retcode = call([self.editor, fname])
+    def edit_file(self, filepath):
+        retcode = call([self.editor, filepath])
         if retcode != 0:
-            cprint("Retcode %s while editing file: %s" % (retcode, fname), "red")
+            cprint("Retcode %s while editing file: %s" % (retcode, filepath), "red")
         return retcode
 
-    def edit_files(self, fnames, ask_for_exit=True):
-        for idx, fname in enumerate(list_strings(fnames)):
+    def edit_files(self, filepaths, ask_for_exit=True):
+        for idx, fname in enumerate(list_strings(filepaths)):
             exit_status = self.edit_file(fname)
 
             if exit_status != 0:
                 return exit_status
 
-            if ask_for_exit and idx != len(fnames) - 1 and _user_wants_to_exit():
+            if ask_for_exit and idx != len(filepaths) - 1 and _user_wants_to_exit():
                 break
 
         return 0
@@ -159,7 +183,7 @@ def input_from_editor(message=None):  # pragma: no cover
         return fileobj.read()
 
 
-def ask_yesno(question, default=True):
+def ask_yesno(question: str, default=True):
     """
     Args:
         question ():
@@ -176,7 +200,7 @@ def ask_yesno(question, default=True):
 umask = os.umask(0)
 os.umask(umask)
 
-def _maketemp(name, createmode=None):
+def _maketemp(name: str, createmode=None) -> str:
     """
     Create a temporary file with the filename similar the given ``name``.
     The permission bits are copied from the original file or ``createmode``.
@@ -243,7 +267,7 @@ class AtomicFile:
             return
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the file.
         """
@@ -257,7 +281,7 @@ class AtomicFile:
                 os.remove(self.__name)
             os.rename(self._tempname, self.__name)
 
-    def discard(self):
+    def discard(self) -> None:
         """
         Discard the file.
         """

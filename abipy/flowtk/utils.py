@@ -21,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def as_bool(s: Union[str, bool]):
+def as_bool(s: Union[str, bool]) -> bool:
     """
     Convert a string into a boolean value.
 
@@ -314,7 +314,7 @@ class Directory:
 
         return files[0] if single_file else files
 
-    def symlink_abiext(self, inext: str, outext: str) -> 0:
+    def symlink_abiext(self, inext: str, outext: str) -> int:
         """
         Create a simbolic link (outext --> inext). The file names are implicitly
         given by the ABINIT file extension.

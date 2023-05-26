@@ -454,14 +454,14 @@ class GsrRobot(Robot, RobotWithEbands):
     """
     EXT = "GSR"
 
-    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs) -> pd.DataFrame:
+    def get_dataframe(self, with_geo=True, abspath=False, with_paths=True, funcs=None, **kwargs) -> pd.DataFrame:
         """
-        Return a |pandas-DataFrame| with the most important GS results.
-        and the filenames as index.
+        Return a |pandas-DataFrame| with the most important GS results and the filenames as index.
 
         Args:
             with_geo: True if structure info should be added to the dataframe
-            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+            abspath: True if paths in the index should be absolute. Default: Relative to getcwd().
+            with_paths: False if filepaths should not be added
 
         kwargs:
             attrs:
@@ -473,9 +473,8 @@ class GsrRobot(Robot, RobotWithEbands):
         # Add attributes specified by the users
         # TODO add more columns
         attrs = [
-            "energy", "pressure", "max_force",
-            "ecut", "pawecutdg",
-            "tsmear", "nkpt",
+            "energy", "energy_per_atom", "pressure", "max_force",
+            "ecut", "pawecutdg", "tsmear", "nkpt",
             "nsppol", "nspinor", "nspden",
         ] + kwargs.pop("attrs", [])
 
@@ -500,8 +499,10 @@ class GsrRobot(Robot, RobotWithEbands):
             if funcs is not None: d.update(self._exec_funcs(funcs, gsr))
             rows.append(d)
 
-        row_names = row_names if not abspath else self._to_relpaths(row_names)
-        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+        index = None
+        if with_paths:
+            index = row_names if not abspath else self._to_relpaths(row_names)
+        return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
     def get_eos_fits_dataframe(self, eos_names="murnaghan"):
         """
@@ -642,7 +643,7 @@ class GsrRobot(Robot, RobotWithEbands):
              gsr.plot_gsr_convergence(sortby="ecut")
              gsr.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
         """
-        return self.plot_convergence_items(items, sortby=sortby, hue=hue, 
+        return self.plot_convergence_items(items, sortby=sortby, hue=hue,
                                            fontsize=fontsize, show=False, **kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -661,7 +662,7 @@ class GsrRobot(Robot, RobotWithEbands):
         from abipy.panels.gsr import GsrRobotPanel
         return GsrRobotPanel(robot=self).get_panel(**kwargs)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.

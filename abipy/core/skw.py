@@ -717,13 +717,6 @@ class SkwInterpolator(ElectronInterpolator):
     the names of the variables are chosen assuming we are interpolating electronic eigenvalues
     but the same object can be used to interpolate other quantities. Just set the first dimension to 1.
     """
-    #@class method
-    #def from_ncreader(cls, reader):
-    #    return cls(lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
-    #               filter_params=None, verbose=1)
-
-    #@class method
-    #def from_file(cls, filepath)
 
     def __init__(self, lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
                  filter_params=None, verbose=1):

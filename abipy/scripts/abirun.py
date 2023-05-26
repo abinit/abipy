@@ -522,6 +522,16 @@ Default: o
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
 
+    # Subparser for explain_(works|tasks)
+    p_explain_works = subparsers.add_parser('explain_works', parents=[copts_parser, flow_selector_parser],
+        help="Explain operations performed by Works")
+    p_explain_tasks = subparsers.add_parser('explain_tasks', parents=[copts_parser, flow_selector_parser],
+        help="Explain operations performed by Tasks")
+
+    # Subparser for autoparal
+    p_autoparal = subparsers.add_parser('autoparal', parents=[copts_parser, flow_selector_parser],
+        help="Show autoparal configurations and optimal ones.")
+
     # Subparser for panel
     p_panel = subparsers.add_parser('panel', parents=[copts_parser, flow_selector_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
@@ -906,6 +916,14 @@ def main():
 
         # Update the database.
         return flow.build_and_pickle_dump()
+
+    elif options.command in ("explain_works", "explain_tasks"):
+        what = options.command.split("_")[1]
+        s = flow.explain(what=what, nids=select_nids(flow, options), verbose=options.verbose)
+        print(s)
+
+    elif options.command == "autoparal":
+        flow.show_autoparal(nids=select_nids(flow, options), verbose=options.verbose)
 
     elif options.command == "panel":
         pn = abilab.abipanel()

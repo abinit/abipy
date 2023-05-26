@@ -1,5 +1,7 @@
 # coding: utf-8
-"""Work subclasses related to DFTP."""
+"""
+Work subclasses related to DFTP.
+"""
 from __future__ import annotations
 
 from abipy.tools.typing import TYPE_CHECKING
@@ -13,7 +15,7 @@ if TYPE_CHECKING:  # needed to avoid circular imports
 class ElasticWork(Work, MergeDdb):
     """
     This Work computes the elastic constants and (optionally) the piezoelectric tensor.
-    It consists of Response function calculations for:
+    It consists of response function calculations for:
 
         * rigid-atom elastic tensor
         * rigid-atom piezoelectric tensor
@@ -140,7 +142,6 @@ class NscfDdksWork(Work):
             ddk_shiftk: k-mesh shifts
             ddk_nband: Number of bands (occupied + empty) used in the NSCF task and the DDKs tasks.
             manager: TaskManager instance. Use default if None.
-        Return: NscfDdksWork instance
         """
         new = cls(manager=manager)
 

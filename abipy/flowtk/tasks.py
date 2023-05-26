@@ -29,16 +29,17 @@ from abipy.core.structure import Structure
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.tools.iotools import yaml_safe_load
 from abipy.tools.typing import TYPE_CHECKING
+from abipy.abio.enums import GWR_TASK
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
 from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
-from . import qutils as qu
 from .nodes import Status, Node, NodeError, NodeResults, FileNode #, check_spectator
+from .abitimer import AbinitTimerParser
+from . import qutils as qu
 from . import abiinspect
 from . import events
-from .abitimer import AbinitTimerParser
 
 if TYPE_CHECKING: # Avoid circular dependencies
-    from abipy.abio.inputs import AbinitInput
+    from abipy.abio.inputs import AbinitInput, OpticInput
     from .works import Work
     from .flows import Flow
 
@@ -134,11 +135,10 @@ class TaskResults(NodeResults):
 
 class ParalConf(AttrDict):
     """
-    This object store the parameters associated to one
-    of the possible parallel configurations reported by ABINIT.
-    Essentially it is a dictionary whose values can also be accessed
-    as attributes. It also provides default values for selected keys
-    that might not be present in the ABINIT dictionary.
+    This object store the parameters associated to one of the possible
+    parallel configurations reported by ABINIT.
+    Essentially it is a dictionary whose values can also be accessed as attributes.
+    It also provides default values for selected keys that might not be present in the ABINIT dictionary.
 
     Example:
 
@@ -181,7 +181,7 @@ class ParalConf(AttrDict):
             if k not in self:
                 self[k] = v
 
-    def __str__(self):
+    def __str__(self) -> str:
         stream = StringIO()
         pprint(self, stream=stream)
         return stream.getvalue()
@@ -250,9 +250,10 @@ class ParalHints(collections.abc.Iterable):
     """
     Iterable with the hints for the parallel execution reported by ABINIT.
     """
+
     Error = ParalHintsError
 
-    def __init__(self, info, confs):
+    def __init__(self, info: dict, confs: list[dict]):
         self.info = info
         self._confs = [ParalConf(**d) for d in confs]
 
@@ -260,8 +261,8 @@ class ParalHints(collections.abc.Iterable):
     def from_mpi_omp_lists(cls, mpi_procs: int, omp_threads: int) -> ParalHints:
         """
         Build a list of Parallel configurations from two lists
-        containing the number of MPI processes and the number of OpenMP threads
-        i.e. product(mpi_procs, omp_threads).
+        with the number of MPI processes and the number of OpenMP threads i.e. product(mpi_procs, omp_threads).
+
         The configuration have parallel efficiency set to 1.0 and no input variables.
         Mainly used for preparing benchmarks.
         """
@@ -277,13 +278,13 @@ class ParalHints(collections.abc.Iterable):
     def __iter__(self):
         return self._confs.__iter__()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._confs.__len__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "\n".join(str(conf) for conf in self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self)
 
     @lazy_property
@@ -315,8 +316,18 @@ class ParalHints(collections.abc.Iterable):
         return cls(info=d["info"], confs=d["confs"])
 
     def copy(self) -> ParalHints:
-        """Shallow copy of self."""
+        """Shallow copy"""
         return copy.copy(self)
+
+    def get_dataframe(self) -> pd.DataFrame:
+        rows = []
+        for conf in self:
+            d = conf.copy()
+            abi_vars = d.pop("vars")
+            d.update(**abi_vars)
+            rows.append(d)
+
+        return pd.DataFrame(rows)
 
     def select_with_condition(self, condition, key=None) -> None:
         """
@@ -1385,7 +1396,7 @@ class Task(Node, metaclass=abc.ABCMeta):
     prefix = Prefix(pj("indata", "in"), pj("outdata", "out"), pj("tmpdata", "tmp"))
     del Prefix, pj
 
-    def __init__(self, input: AbinitInput, 
+    def __init__(self, input: AbinitInput,
                  workdir=None, manager=None, deps=None):
         """
         Args:
@@ -1529,7 +1540,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
     def set_vars(self, *args, **kwargs) -> dict:
         """
-        Set the values of the ABINIT variables in the input file. 
+        Set the values of the ABINIT variables in the input file.
         Return dict with old values.
         """
         kwargs.update(dict(*args))
@@ -2711,7 +2722,7 @@ class DecreaseDemandsError(Exception):
 
 class AbinitTask(Task):
     """
-    Base class defining an ABINIT calculation
+    Base class for ABINIT Tasks.
     """
     Results = TaskResults
 
@@ -2728,7 +2739,7 @@ class AbinitTask(Task):
         return cls(input, workdir=workdir, manager=manager)
 
     @classmethod
-    def temp_shell_task(cls, inp: AbinitInput, 
+    def temp_shell_task(cls, inp: AbinitInput,
                         mpi_procs=1, workdir=None, manager=None) -> AbinitTask:
         """
         Build a Task with a temporary workdir. The task is executed via the shell with 1 MPI proc.
@@ -2991,7 +3002,7 @@ class AbinitTask(Task):
         # Write autoparal configurations to JSON file.
         d = pconfs.as_dict()
         d["optimal_conf"] = optconf
-        json_pretty_dump(d, os.path.join(self.workdir, "autoparal.json"))
+        #json_pretty_dump(d, os.path.join(self.workdir, "autoparal.json"))
 
         ##############
         # Finalization
@@ -3288,12 +3299,23 @@ class AbinitTask(Task):
 
         Return: :class:`AbinitTimerParser` instance, None if error.
         """
-
         parser = AbinitTimerParser()
         read_ok = parser.parse(self.output_file.path)
         if read_ok:
             return parser
         return None
+
+    def get_output_file(self):
+        """
+        Parse the main output file in text format, return AbinitOutputFile object.
+
+        example:
+
+            with task.get_output_file() as out:
+                dims_dataset, spginfo_dataset = out.get_dims_spginfo_dataset(verbose=0)
+        """
+        from abipy.abio.outputs import AbinitOutputFile
+        return AbinitOutputFile(self.output_file.path)
 
 
 class ProduceHist:
@@ -3333,8 +3355,8 @@ class ProduceHist:
 
 class GsTask(AbinitTask):
     """
-    Base class for ground-state tasks. A ground state task produces a GSR file
-    Provides the method `open_gsr` that reads and returns a GSR file.
+    Base class for ground-state calculations.
+    A GsTask produces a GSR file and provides the `open_gsr` method to read a GSR.nc file.
     """
     @property
     def gsr_path(self) -> str:
@@ -3423,8 +3445,8 @@ class GsTask(AbinitTask):
 
 class ScfTask(GsTask):
     """
-    Self-consistent ground-state calculations.
-    Provide support for in-place restart via (WFK|DEN) files
+    Task for self-consistent GS calculations.
+    Provide support for in-place restart via (WFK|DEN) files.
     """
     CRITICAL_EVENTS = [
         events.ScfConvergenceWarning,
@@ -3521,7 +3543,9 @@ class CollinearThenNonCollinearScfTask(ScfTask):
 
 class NscfTask(GsTask):
     """
-    Non-Self-consistent GS calculation. Provides in-place restart via WFK files
+    Task for non-self-consistent GS calculations.
+    Provides in-place restart via the WFK file and a specialized setup method
+    that enforces the same ngfft FFT-mesh as the one used in the previous GS task.
     """
     CRITICAL_EVENTS = [
         events.NscfConvergenceWarning,
@@ -3739,11 +3763,11 @@ class DfptTask(AbinitTask):
     """
     Base class for DFPT tasks (Phonons, DdeTask, DdkTask, ElasticTask ...)
     Mainly used to implement methods that are common to DFPT calculations with Abinit.
-    Provide the method `open_ddb` that reads and return a Ddb file.
+    Implement `make_links`, provide restart capabilities and the method `open_ddb`.
 
     .. warning::
 
-        This class should not be instantiated directly.
+        This class is not supposed to be instantiated directly.
     """
     # TODO:
     # for the time being we don't discern between GS and PhononCalculations.
@@ -3781,7 +3805,7 @@ class DfptTask(AbinitTask):
             self.history.critical("Exception while reading DDB file at %s:\n%s" % (ddb_path, str(exc)))
             return None
 
-    def make_links(self):
+    def make_links(self) -> None:
         """
         Replace the default behaviour of make_links. More specifically, this method
         implements the logic required to connect DFPT calculation to e.g. `DDK` files.
@@ -3961,24 +3985,30 @@ class DfptTask(AbinitTask):
 
 
 class DdeTask(DfptTask):
-    """Task for DDE calculations (perturbation wrt electric field)."""
+    """
+    Task for DDE calculations (perturbation wrt electric field).
+    """
 
     color_rgb = np.array((61, 158, 255)) / 255
 
 
 class DteTask(DfptTask):
-    """Task for DTE calculations."""
+    """
+    Task for DTE calculations.
+    """
 
     color_rgb = np.array((204, 0, 204)) / 255
 
-    # @check_spectator
     def start(self, **kwargs):
+        """Disable autoparal mode before starting the task."""
         kwargs['autoparal'] = False
         return super().start(**kwargs)
 
 
 class DdkTask(DfptTask):
-    """Task for DDK calculations."""
+    """
+    Task for DDK calculations.
+    """
 
     color_rgb = np.array((0, 204, 204)) / 255
 
@@ -3994,7 +4024,9 @@ class DdkTask(DfptTask):
 
 
 class DkdkTask(DfptTask):
-    """Task for the computation of d2/dkdk wave functions"""
+    """
+    Task for the computation of d2/dkdk wave functions
+    """
 
     color_rgb = np.array((0, 122, 204)) / 255
 
@@ -4020,7 +4052,7 @@ class QuadTask(DfptTask):
 
 class FlexoETask(DfptTask):
     """
-    Task for the calculation of Flexoelectric task..
+    Task for the calculation of flexoelectric tensor.
     """
 
     color_rgb = np.array((122, 122, 255)) / 255
@@ -4030,7 +4062,9 @@ class FlexoETask(DfptTask):
 
 
 class EffMassTask(DfptTask):
-    """Task for effective mass calculations with DFPT."""
+    """
+    Task for effective mass calculations with DFPT.
+    """
 
     color_rgb = np.array((0, 122, 204)) / 255
 
@@ -4038,7 +4072,7 @@ class EffMassTask(DfptTask):
 class PhononTask(DfptTask):
     """
     DFPT calculations for a single atomic perturbation.
-    Provide support for in-place restart via (1WF|1DEN) files
+    Implements in-place restart via (1WF|1DEN) files and `inspect` method.
     """
 
     color_rgb = np.array((0, 150, 250)) / 255
@@ -4066,7 +4100,7 @@ class ElasticTask(DfptTask):
 
 class EphTask(AbinitTask):
     """
-    Class for electron-phonon calculations.
+    Task for electron-phonon calculations with the EPH code.
     """
 
     color_rgb = np.array((255, 128, 0)) / 255
@@ -4074,7 +4108,7 @@ class EphTask(AbinitTask):
 
 class KerangeTask(AbinitTask):
     """
-    Class for kerange calculations.
+    Task for kerange calculations.
     """
 
     color_rgb = np.array((255, 128, 128)) / 255
@@ -4084,10 +4118,7 @@ class ManyBodyTask(AbinitTask):
     """
     Base class for Many-body tasks (Screening, Sigma, Bethe-Salpeter)
     Mainly used to implement methods that are common to MBPT calculations with Abinit.
-
-    .. warning::
-
-        This class should not be instantiated directly.
+    This class is not supposed to be instantiated directly.
     """
 
     def reduce_memory_demand(self):
@@ -4113,7 +4144,9 @@ class ManyBodyTask(AbinitTask):
 
 
 class ScrTask(ManyBodyTask):
-    """Tasks for SCREENING calculations """
+    """
+    SCREENING calculations with quartic GW code
+    """
 
     color_rgb = np.array((255, 128, 0)) / 255
 
@@ -4150,7 +4183,8 @@ class ScrTask(ManyBodyTask):
 
 class SigmaTask(ManyBodyTask):
     """
-    Tasks for SIGMA calculations. Provides support for in-place restart via QPS files
+    Self-energy calculations with the quartic GW code.
+    Provides support for in-place restart via QPS files.
     """
     CRITICAL_EVENTS = [
         events.QPSConvergenceWarning,
@@ -4333,12 +4367,24 @@ class BseTask(ManyBodyTask):
             self.history.critical("Exception while reading MDF file at %s:\n%s" % (mdf_path, str(exc)))
             return None
 
-class GwrTask(AbinitTask):                              
-    """                                                 
-    Class for GWR calculations.             
-    """                                                 
+
+class GwrTask(AbinitTask):
+    """
+    Class for calculations with the GWR code.
+    Provide `open_gwr` method to open GWR.nc
+    """
 
     color_rgb = np.array((255, 128, 0)) / 255
+
+    def setup(self): 
+
+        #if self["gwr_task"] in (GWR_TASK.HDIAGO_FULL, ):
+        #    print("To perform full diago, need to know mpw...")
+        #    parent_scf_task = self.get_parents()
+        #    dims, _ = parent_scf_task.abiget_dims_spginfo()
+        #    nband = dims["mpw"]
+
+        return super().setup()
 
     @property
     def gwr_path(self) -> str:
@@ -4360,25 +4406,27 @@ class GwrTask(AbinitTask):
 
         if not gwr_path:
             self.history.critical("%s didn't produce a GWR.nc file in %s" % (self, self.outdir))
-            return None                                                                                    
-                                                                                                           
+            return None
+
         # Open the GWR file
-        from abipy.electrons.gwr import GwrFile                                                            
-        try:                                                                                               
-            return GwrFile(gwr_path)                                                                       
-        except Exception as exc:                                                                           
-            self.history.critical("Exception while reading GWR.nc file at %s:\n%s" % (gwr_path, str(exc)))    
-            return None                                                                                    
+        from abipy.electrons.gwr import GwrFile
+        try:
+            return GwrFile(gwr_path)
+        except Exception as exc:
+            self.history.critical("Exception while reading GWR.nc file at %s:\n%s" % (gwr_path, str(exc)))
+            return None
+
 
 class OpticTask(Task):
     """
-    Task for the computation of optical spectra with optic i.e.
-    RPA without local-field effects and velocity operator computed from DDK files.
+    Task for the computation of optical spectra with optics tool
+    i.e. RPA without local-field effects and velocity operator computed from DDK files.
     """
 
     color_rgb = np.array((255, 204, 102)) / 255
 
-    def __init__(self, optic_input, nscf_node, ddk_nodes, use_ddknc=False, workdir=None, manager=None):
+    def __init__(self, optic_input: OpticInput, nscf_node: Node, ddk_nodes: list[Node],
+                 use_ddknc=False, workdir=None, manager=None):
         """
         Create an instance of :class:`OpticTask` from n string containing the input.
 
@@ -4406,13 +4454,13 @@ class OpticTask(Task):
 
         super().__init__(optic_input, workdir=workdir, manager=manager, deps=deps)
 
-    def set_workdir(self, workdir, chroot=False):
+    def set_workdir(self, workdir: str, chroot=False) -> None:
         """Set the working directory of the task."""
         super().set_workdir(workdir, chroot=chroot)
         # Small hack: the log file of optics is actually the main output file.
         self.output_file = self.log_file
 
-    def set_vars(self, *args, **kwargs):
+    def set_vars(self, *args, **kwargs) -> None:
         """
         Optic does not use `get` or `ird` variables hence we should never try
         to change the input when we connect this task
@@ -4432,8 +4480,10 @@ class OpticTask(Task):
             return "optic"
 
     @property
-    def filesfile_string(self):
-        """String with the list of files and prefixes needed to execute ABINIT."""
+    def filesfile_string(self) -> str:
+        """
+        String with the list of files and prefixes needed to execute ABINIT.
+        """
         lines = []
         app = lines.append
 
@@ -4444,12 +4494,12 @@ class OpticTask(Task):
         return "\n".join(lines)
 
     @property
-    def wfk_filepath(self):
+    def wfk_filepath(self) -> None:
         """Returns (at runtime) the absolute path of the WFK file produced by the NSCF run."""
         return self.nscf_node.outdir.has_abiext("WFK")
 
     @property
-    def ddk_filepaths(self):
+    def ddk_filepaths(self) -> list[str]:
         """Returns (at runtime) the absolute path of the DDK files produced by the DDK runs."""
         # This to support new version of optic that used DDK.nc
         paths = [ddk_task.outdir.has_abiext("DDK.nc") for ddk_task in self.ddk_nodes]
@@ -4459,8 +4509,10 @@ class OpticTask(Task):
         # This is deprecated and can be removed when new version of Abinit is released.
         return [ddk_task.outdir.has_abiext("1WF") for ddk_task in self.ddk_nodes]
 
-    def make_input(self):
-        """Construct and write the input file of the calculation."""
+    def make_input(self) -> str:
+        """
+        Construct and write the input file of the calculation.
+        """
         # Set the file paths.
         all_files = {"ddkfile_" + str(n + 1): ddk for n, ddk in enumerate(self.ddk_filepaths)}
         all_files.update({"wfkfile": self.wfk_filepath})
@@ -4736,7 +4788,9 @@ class OpticTask(Task):
 
 
 class AnaddbTask(Task):
-    """Task for Anaddb runs (post-processing of DFPT calculations)."""
+    """
+    Task for Anaddb runs (post-processing of DFPT calculations).
+    """
 
     color_rgb = np.array((204, 102, 255)) / 255
 

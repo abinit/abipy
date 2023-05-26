@@ -25,8 +25,7 @@ from . import qutils as qu
 
 from collections import namedtuple
 from subprocess import Popen, PIPE
-from typing import Optional, List, Tuple, Any
-from abipy.tools.iotools import AtomicFile
+from typing import Optional, Any
 from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
@@ -34,6 +33,7 @@ from monty.inspect import all_subclasses
 from monty.io import FileLock
 from monty.json import MSONable
 from pymatgen.core.units import Memory
+from abipy.tools.iotools import AtomicFile
 from .utils import Condition
 from .launcher import ScriptEditor
 from .qjobs import QueueJob
@@ -85,7 +85,7 @@ class MpiRunner:
                       stdin: Optional[str] = None,
                       stdout: Optional[str] = None,
                       stderr: Optional[str] = None,
-                      exec_args: Optional[List[str]] = None
+                      exec_args: Optional[list[str]] = None
                       ) -> str:
         """
         Build and return a string with the command required to launch `executable` with the qadapter `qad`.
@@ -250,7 +250,7 @@ class Hardware:
         """True if omp_threads fit in a node."""
         return self.cores_per_node >= omp_threads
 
-    def divmod_node(self, mpi_procs: int, omp_threads: int) -> Tuple[int, int]:
+    def divmod_node(self, mpi_procs: int, omp_threads: int) -> tuple[int, int]:
         """Use divmod to compute (num_nodes, rest_cores)"""
         return divmod(mpi_procs * omp_threads, self.cores_per_node)
 
@@ -304,7 +304,7 @@ class _ExcludeNodesFile:
 _EXCL_NODES_FILE = _ExcludeNodesFile()
 
 
-def show_qparams(qtype, stream=sys.stdout):
+def show_qparams(qtype: str, stream=sys.stdout):
     """Print to the given stream the template of the :class:`QueueAdapter` of type `qtype`."""
     for cls in all_subclasses(QueueAdapter):
         if cls.QTYPE == qtype: return stream.write(cls.QTEMPLATE)
@@ -381,7 +381,7 @@ class QueueAdapter(MSONable, metaclass=abc.ABCMeta):
     MaxNumLaunchesError = MaxNumLaunchesError
 
     @classmethod
-    def all_qtypes(cls) -> List[str]:
+    def all_qtypes(cls) -> list[str]:
         """Return sorted list with all qtypes supported."""
         return sorted([subcls.QTYPE for subcls in all_subclasses(cls)])
 
@@ -890,7 +890,7 @@ limits:
         self._master_mem_overhead = int(mem_mb)
 
     @property
-    def total_mem(self):
+    def total_mem(self) -> Memory:
         """Total memory required by the job in megabytes."""
         return Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "Mb")
 
@@ -905,7 +905,7 @@ limits:
         Returns: Exit status.
         """
 
-    def can_run_pconf(self, pconf):
+    def can_run_pconf(self, pconf) -> bool:
         """True if the qadapter in principle is able to run the :class:`ParalConf` pconf"""
         if not self.hint_cores >= pconf.num_cores >= self.min_cores: return False
         if not self.hw.can_use_omp_threads(self.omp_threads): return False
@@ -915,7 +915,7 @@ limits:
 
         return self.condition(pconf)
 
-    def distribute(self, mpi_procs, omp_threads, mem_per_proc):
+    def distribute(self, mpi_procs, omp_threads, mem_per_proc) -> tuple[int, int]:
         """
         Returns (num_nodes, mpi_per_node)
 

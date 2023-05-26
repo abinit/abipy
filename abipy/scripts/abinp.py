@@ -4,6 +4,8 @@ This script provides a simplified interface to the AbiPy factory functions.
 For a more flexible interface, please use the AbiPy objects
 to generate input files and workflows.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse
