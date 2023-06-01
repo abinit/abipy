@@ -120,7 +120,7 @@ class TestSigresFile(AbipyTest):
         df_real = sigres.get_dataframe_sk(spin=0, kpoint=ik, ignore_imag=True)
         assert np.all(df["qpe"].to_numpy().real == df_real["qpe"])
 
-        full_df = sigres.to_dataframe()
+        full_df = sigres.get_dataframe()
 
         marker = sigres.get_marker("qpeme0")
         assert marker and len(marker.x)

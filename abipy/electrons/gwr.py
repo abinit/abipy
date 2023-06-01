@@ -215,9 +215,9 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     #    else:
     #        return self.qpgaps[spin, ik], self.ksgaps[spin, ik]
 
-    def get_dirgaps_dataframe(self, with_params: bool=True, with_geo=False) -> pd.DataFrame:
+    def get_dirgaps_dataframe(self, with_params: bool=True, with_geo: bool=False) -> pd.DataFrame:
         """
-        Build and return a pandas DataFrame with the QP direct gaps in eV.
+        Return a pandas DataFrame with the QP direct gaps in eV.
 
         Args:
             with_params: True if GWR parameters should be included.
@@ -296,8 +296,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         raise ValueError(f"Invalid value for include_bands: {include_bands}")
 
     @add_fig_kwargs
-    def plot_sigma_imag_axis(self, kpoint: KptSelect, spin=0,
-                             include_bands="gap", with_tau=True,
+    def plot_sigma_imag_axis(self, kpoint: KptSelect,
+                             spin=0, include_bands="gap", with_tau=True,
                              fontsize=8, ax_mat=None, **kwargs) -> Figure:
         """
         Plot Sigma(iw) for given k-point, spin and list of bands.
@@ -448,6 +448,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             for spin in range(self.nsppol):
                 include_bands_ks = self._get_include_bands(include_bands, spin)
                 sigma_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands_ks)
+
                 for band, sigma in sigma_band.items():
                     label = r"$A(\omega)$: band: %d, spin: %d" % (band, spin)
                     l = sigma.plot_ax(ax, what="a", label=label, fontsize=fontsize)
@@ -505,7 +506,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
 class GwrReader(ETSF_Reader):
     r"""
-    This object provides method to read data from the GWR.nc file.
+    This object provides methodd to read data from the GWR.nc file.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GwrReader
@@ -566,7 +567,9 @@ class GwrReader(ETSF_Reader):
         return self.read_value("e0_kcalc") * abu.Ha_eV
 
     def get_ikcalc_kpoint(self, kpoint) -> tuple(int, Kpoint):
-        """Return the ikcalc index and the Kpoint"""
+        """
+        Return the ikcalc index and the Kpoint
+        """
         ikcalc = self.kpt2ikcalc(kpoint)
         kpoint = self.sigma_kpoints[ikcalc]
         return ikcalc, kpoint
@@ -580,8 +583,6 @@ class GwrReader(ETSF_Reader):
             return int(kpoint)
         else:
             return self.sigma_kpoints.index(kpoint)
-
-    #gwkpt2seqindex = kpt2ikcalc
 
     def get_wr_mesh(self, e0: float) -> np.ndarray:
         """
@@ -625,7 +626,7 @@ class GwrReader(ETSF_Reader):
 
     def read_sigma_bdict_sikcalc(self, spin: int, ikcalc: int, include_bands) -> dict[int, SelfEnergy]:
         """
-        Return dict of self-energy objects for given (spin, ikcalc) indexed by band.
+        Return dict of self-energy objects for given (spin, ikcalc) indexed by the band index.
         """
         sigma_band = {}
         for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
@@ -654,7 +655,7 @@ class GwrReader(ETSF_Reader):
 
     def read_qplist_sk(self, spin, kpoint, ignore_imag=False) -> QPList:
         """
-        Read and return QPList object for the given spin, kpoint.
+        Read and return a QPList object for the given spin, kpoint.
 
         Args:
             ignore_imag: Only real part is returned if ``ignore_imag``.
@@ -695,129 +696,6 @@ class GwrReader(ETSF_Reader):
                 ze0=ri(ze0),
             ))
         return qp_list
-
-
-class TchimVsSus:
-
-    def __init__(self, tchim_filepath, sus_filepath):
-        from abipy.electrons.scr import SusFile
-        self.sus_file = SusFile(sus_filepath)
-        self.tchi_reader = ETSF_Reader(tchim_filepath)
-
-    @add_fig_kwargs
-    def plot_qpoint_gpairs(self, qpoint, gpairs, fontsize=8, spins=(0, 0), **kwargs) -> Figure:
-        gpairs = np.array(gpairs)
-
-        sus_reader = self.sus_file.reader
-        _, sus_iq = sus_reader.find_kpoint_fileindex(qpoint)
-
-        # int reduced_coordinates_plane_waves_dielectric_function(number_of_qpoints_dielectric_function,
-        # number_of_coefficients_dielectric_function, number_of_reduced_dimensions) ;
-
-        #reduced_coordinates_plane_waves_dielectric_function
-        susc_iwmesh = sus_reader.read_value("frequencies_dielectric_function", cmode="c").imag
-        # SUSC file uses Gamma-centered G-spere so read at iq = 0
-        susc_gvec = sus_reader.read_variable("reduced_coordinates_plane_waves_dielectric_function")[0]
-
-        tchi_qpoints = self.tchi_reader.read_variable("qibz")
-        for tchi_iq, tchi_qq in enumerate(tchi_qpoints):
-            if np.all(abs(tchi_qq - qpoint) < 1e-6):
-                break
-        else:
-            raise ValueError(f"Cannot find: {qpoint} in TCHIM file")
-
-        tchi_gvec = self.tchi_reader.read_variable("gvecs")[tchi_iq]
-        tchi_iwmesh = self.tchi_reader.read_variable("iw_mesh")
-
-        def _find_g(gg, gvec):
-            for ig, g_sus in enumerate(gvec):
-                if all(gg == g_sus):
-                    return ig
-            else:
-                raise ValueError(f"Cannot find: {gg}")
-
-        sus_inds = [(_find_g(g1, susc_gvec), _find_g(g2, susc_gvec)) for g1, g2 in gpairs]
-        chi_inds = [(_find_g(g1, tchi_gvec), _find_g(g2, tchi_gvec)) for g1, g2 in gpairs]
-
-        # Build grid of plots.
-        num_plots, ncols, nrows = 2 * len(gpairs), 1, 1
-        if num_plots > 1:
-            ncols = 2
-            nrows = (num_plots // ncols) + (num_plots % ncols)
-
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
-
-        for i, ((g1, g2), (sus_ig1, sus_ig2), (chi_ig1, chi_ig2)) in enumerate(zip(gpairs, sus_inds, chi_inds)):
-            #print(g1, g2)
-            ax_re, ax_im = ax_mat[i]
-
-            # number_of_qpoints_dielectric_function, number_of_frequencies_dielectric_function,
-            # number_of_spins, number_of_spins, number_of_coefficients_dielectric_function,
-            # number_of_coefficients_dielectric_function, complex)
-
-            if sus_reader.path.endswith("SUS.nc"):
-               sus_var_name = "polarizability"
-            elif sus_reader.path.endswith("SCR.nc"):
-                sus_var_name = "inverse_dielectric_function"
-            else:
-                raise ValueError(f"Cannot detect varname for file: {sus_reader.path}")
-
-            sus_data = sus_reader.read_variable(sus_var_name)[sus_iq, :, 0, 0, sus_ig2, sus_ig1]
-            sus_data = sus_data[:, 0] + 1j * sus_data[:, 1]
-
-            # nctkarr_t("mats", "dp", "two, mpw, mpw, ntau, nqibz, nsppol")
-            tchi_data = self.tchi_reader.read_variable("mats")[0, tchi_iq, :, chi_ig2, chi_ig1, :]
-            tchi_data = tchi_data[:, 0] + 1j * tchi_data[:, 1]
-
-            opts = dict(markersize=4)
-
-            ax_re.plot(susc_iwmesh[1:], sus_data[1:].real, ls="--", marker="o", label="AW Re", **opts)
-            ax_re.plot(tchi_iwmesh, tchi_data[0:].real, ls=":", marker="^", label="minimax Re", **opts)
-            ax_re.grid(True)
-
-            ax_im.plot(susc_iwmesh[1:], sus_data[1:].imag, ls="--", marker="o", label="AW Im", **opts)
-            ax_im.plot(tchi_iwmesh, tchi_data[0:].imag, ls=":", marker="^", label="minimax Im", **opts)
-            ax_im.grid(True)
-
-            tex_g1 = r"${\bf{G}}_1$"
-            tex_g2 = r"${\bf{G}}_2$"
-            tex_qpt = r"${\bf{q}}$"
-
-            ax_re.set_title(f"{tex_g1}: {g1}, {tex_g2}: {g2}, {tex_qpt}: {qpoint}", fontsize=fontsize)
-            ax_im.set_title(f"{tex_g1}: {g1}, {tex_g2}: {g2}, {tex_qpt}: {qpoint}", fontsize=fontsize)
-
-            ax_re.legend(loc="best", fontsize=fontsize, shadow=True)
-            ax_im.legend(loc="best", fontsize=fontsize, shadow=True)
-
-            #if i == 0:
-            if True:
-                ax_re.set_ylabel(r'$\Re{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
-                ax_im.set_ylabel(r'$\Im{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
-                #ax_im.yaxis.set_label_position("right")
-                #ax_im.yaxis.tick_right()
-
-            if i == len(gpairs) - 1:
-                ax_re.set_xlabel(r'$i \omega$ (Ha)')
-                ax_im.set_xlabel(r'$i \omega$ (Ha)')
-
-            # The two files may store chi on different meshes.
-            # Here we select the min value for comparison purposes.
-            w_max = min(susc_iwmesh[-1], tchi_iwmesh[-1]) + 5
-            xlims = [0, w_max]
-            xlims = [-0.2, 7]
-
-            set_axlims(ax_re, xlims, "x")
-            set_axlims(ax_im, xlims, "x")
-
-        with_title = False
-        if with_title:
-            tex1 = r"$\chi^0(i\omega)$"
-            tex2 = r"$\chi^0(i\tau) \rightarrow\chi^0(i\omega)$"
-            fig.suptitle(f"Comparison between Adler-Wiser {tex1} and minimax {tex2}\nLeft: real part. Right: imag part",
-                         fontsize=10)
-
-        return fig
 
 
 class GwrRobot(Robot, RobotWithEbands):
@@ -979,11 +857,12 @@ class GwrRobot(Robot, RobotWithEbands):
         import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
 
-        # Make sure that nsppol and sigma_kpoints are consistent.
+        # Make sure nsppol and sigma_kpoints are consistent.
         self._check_dims_and_params()
         ebands0 = self.abifiles[0].ebands
 
         if hue is None:
+            # Build grid depends on axis.
             nrows = {"wreal": 3, "wimag": 2, "tau": 2}[axis]
             ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=1,
                                                     sharex=True, sharey=False, squeeze=False)
@@ -1081,7 +960,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
         """
-        # Make sure that nsppol and sigma_kpoints are the same
+        # Make sure nsppol and sigma_kpoints are the same.
         self._check_dims_and_params()
 
         nc0 = self.abifiles[0]
@@ -1120,7 +999,7 @@ class GwrRobot(Robot, RobotWithEbands):
                         yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in ncfiles])
 
                     lines = self.plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, marker=nc0.marker_spin[spin],
-                                                      **kwargs)
+                                                       **kwargs)
                     hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
 
                 else:
@@ -1351,3 +1230,144 @@ for spin in range(nc0.nsppol):
         nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+class TchimVsSus:
+    """
+    Class used to compare the polarizability computed in the GWR code with that
+    produced by the legacy algorithm based on the Adler-Wiser expression.
+    """
+
+    def __init__(self, tchim_filepath: str, sus_filepath: str):
+        """
+        Args:
+            tchim_filepath: TCHIM filename.
+            sus_filepath: SUS filename.
+        """
+        from abipy.electrons.scr import SusFile
+        self.sus_file = SusFile(sus_filepath)
+        self.tchi_reader = ETSF_Reader(tchim_filepath)
+
+    @add_fig_kwargs
+    def plot_qpoint_gpairs(self, qpoint, gpairs,
+                           fontsize=8, spins=(0, 0), **kwargs) -> Figure:
+        """
+        Plot the Fourier components of the polarizability for given q-point
+        and list of (g, g') pairs.
+
+        Args:
+            qpoint:
+            gpairs: List of (g,g') pairs
+        """
+        gpairs = np.array(gpairs)
+
+        sus_reader = self.sus_file.reader
+        _, sus_iq = sus_reader.find_kpoint_fileindex(qpoint)
+
+        # int reduced_coordinates_plane_waves_dielectric_function(number_of_qpoints_dielectric_function,
+        # number_of_coefficients_dielectric_function, number_of_reduced_dimensions) ;
+
+        susc_iwmesh = sus_reader.read_value("frequencies_dielectric_function", cmode="c").imag
+        # SUSC file uses Gamma-centered G-spere so read at iq = 0
+        susc_gvec = sus_reader.read_variable("reduced_coordinates_plane_waves_dielectric_function")[0]
+
+        tchi_qpoints = self.tchi_reader.read_variable("qibz")
+        for tchi_iq, tchi_qq in enumerate(tchi_qpoints):
+            if np.all(abs(tchi_qq - qpoint) < 1e-6):
+                break
+        else:
+            raise ValueError(f"Cannot find q-point: {qpoint} in TCHIM file")
+
+        tchi_gvec = self.tchi_reader.read_variable("gvecs")[tchi_iq]
+        tchi_iwmesh = self.tchi_reader.read_variable("iw_mesh")
+
+        def _find_g(gg, gvec):
+            for ig, g_sus in enumerate(gvec):
+                if all(gg == g_sus):
+                    return ig
+            else:
+                raise ValueError(f"Cannot find g-vector: {gg}")
+
+        # Find indices
+        sus_inds = [(_find_g(g1, susc_gvec), _find_g(g2, susc_gvec)) for g1, g2 in gpairs]
+        chi_inds = [(_find_g(g1, tchi_gvec), _find_g(g2, tchi_gvec)) for g1, g2 in gpairs]
+
+        # Build grid of plots.
+        num_plots, ncols, nrows = 2 * len(gpairs), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+
+        for i, ((g1, g2), (sus_ig1, sus_ig2), (chi_ig1, chi_ig2)) in enumerate(zip(gpairs, sus_inds, chi_inds)):
+            #print(g1, g2)
+            ax_re, ax_im = ax_mat[i]
+
+            # number_of_qpoints_dielectric_function, number_of_frequencies_dielectric_function,
+            # number_of_spins, number_of_spins, number_of_coefficients_dielectric_function,
+            # number_of_coefficients_dielectric_function, complex)
+
+            if sus_reader.path.endswith("SUS.nc"):
+               sus_var_name = "polarizability"
+            elif sus_reader.path.endswith("SCR.nc"):
+                sus_var_name = "inverse_dielectric_function"
+            else:
+                raise ValueError(f"Cannot detect varname for file: {sus_reader.path}")
+
+            sus_data = sus_reader.read_variable(sus_var_name)[sus_iq, :, 0, 0, sus_ig2, sus_ig1]
+            sus_data = sus_data[:, 0] + 1j * sus_data[:, 1]
+
+            # nctkarr_t("mats", "dp", "two, mpw, mpw, ntau, nqibz, nsppol")
+            tchi_data = self.tchi_reader.read_variable("mats")[0, tchi_iq, :, chi_ig2, chi_ig1, :]
+            tchi_data = tchi_data[:, 0] + 1j * tchi_data[:, 1]
+
+            style = dict(markersize=4)
+
+            ax_re.plot(susc_iwmesh[1:], sus_data[1:].real, ls="--", marker="o", label="AW Re", **style)
+            ax_re.plot(tchi_iwmesh, tchi_data[0:].real, ls=":", marker="^", label="minimax Re", **style)
+            ax_re.grid(True)
+
+            ax_im.plot(susc_iwmesh[1:], sus_data[1:].imag, ls="--", marker="o", label="AW Im", **style)
+            ax_im.plot(tchi_iwmesh, tchi_data[0:].imag, ls=":", marker="^", label="minimax Im", **style)
+            ax_im.grid(True)
+
+            tex_g1 = r"${\bf{G}}_1$"
+            tex_g2 = r"${\bf{G}}_2$"
+            tex_qpt = r"${\bf{q}}$"
+
+            ax_re.set_title(f"{tex_g1}: {g1}, {tex_g2}: {g2}, {tex_qpt}: {qpoint}", fontsize=fontsize)
+            ax_im.set_title(f"{tex_g1}: {g1}, {tex_g2}: {g2}, {tex_qpt}: {qpoint}", fontsize=fontsize)
+
+            ax_re.legend(loc="best", fontsize=fontsize, shadow=True)
+            ax_im.legend(loc="best", fontsize=fontsize, shadow=True)
+
+            #if i == 0:
+            if True:
+                ax_re.set_ylabel(r'$\Re{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
+                ax_im.set_ylabel(r'$\Im{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
+                #ax_im.yaxis.set_label_position("right")
+                #ax_im.yaxis.tick_right()
+
+            if i == len(gpairs) - 1:
+                ax_re.set_xlabel(r'$i \omega$ (Ha)')
+                ax_im.set_xlabel(r'$i \omega$ (Ha)')
+
+            # The two files may store chi on different meshes.
+            # Here we select the min value for comparison purposes.
+            w_max = min(susc_iwmesh[-1], tchi_iwmesh[-1]) + 5
+            xlims = [0, w_max]
+            xlims = [-0.2, 7]
+
+            set_axlims(ax_re, xlims, "x")
+            set_axlims(ax_im, xlims, "x")
+
+        with_title = False
+        if with_title:
+            tex1 = r"$\chi^0(i\omega)$"
+            tex2 = r"$\chi^0(i\tau) \rightarrow\chi^0(i\omega)$"
+            fig.suptitle(f"Comparison between Adler-Wiser {tex1} and minimax {tex2}\nLeft: real part. Right: imag part",
+                         fontsize=10)
+
+        return fig

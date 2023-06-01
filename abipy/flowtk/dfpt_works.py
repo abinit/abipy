@@ -108,7 +108,7 @@ class ElasticWork(Work, MergeDdb):
 
         return new
 
-    def on_all_ok(self):
+    def on_all_ok(self):  # pragma: no cover
         """
         This method is called when all the tasks of the Work reach S_OK.
         Ir runs `mrgddb` in sequential on the local machine to produce

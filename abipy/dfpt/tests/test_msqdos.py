@@ -42,7 +42,7 @@ class MsqdTest(AbipyTest):
         assert np.all(abipy_indsym == msqd_dos.structure.indsym)
 
         cif_string = msqd_dos.get_cif_string(temp=300)
-        print("cif_string:\n", cif_string)
+        #print("cif_string:\n", cif_string)
 
         self.assertMultiLineEqual(cif_string, """\
 # generated using pymatgen

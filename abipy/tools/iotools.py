@@ -87,6 +87,8 @@ def get_input(prompt: str):
     """
     Wraps python builtin input so that we can easily mock it in unit tests using:
 
+    Example:
+
         from unittest.mock import patch
         with patch('abipy.tools.iotools.get_input', return_value='no'):
             do_something_that_uses_get_input

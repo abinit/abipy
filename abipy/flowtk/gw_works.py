@@ -104,7 +104,7 @@ class ScreeningWork(Work):
 
         return final_scr
 
-    def on_all_ok(self):
+    def on_all_ok(self): # pragma: no cover
         """
         This method is called when all the q-points have been computed.
         It runs `mrgscr` in sequential on the local machine to produce

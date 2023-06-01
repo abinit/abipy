@@ -1627,9 +1627,10 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
                 hovormode         True to show the hover info (default: False)
                 savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
                 write_json        Write plotly figure to `write_json` JSON file.
-                                  Inside jupyter-lab, one can right-click the `write_json` file from the file menu
-                                  and open with "Plotly Editor".
-                                  Make some changes to the figure, then use the file menu to save the customized plotly plot.
+                                  Inside jupyter-lab, one can right-click the `write_json` file from
+                                  the file menu and open with "Plotly Editor".
+                                  Make some changes to the figure, then use the file menu to save
+                                  the customized plotly plot.
                                   Requires `jupyter labextension install jupyterlab-chart-editor`.
                                   See https://github.com/plotly/jupyterlab-chart-editor
                 renderer          (str or None (default None)) –
@@ -1641,7 +1642,8 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
                 chart_studio      True to push figure to chart_studio server. Requires authenticatios.
                                   Default: False.
                 template          Plotly template. See https://plotly.com/python/templates/
-                                  ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]
+                                  ["plotly", "plotly_white", "plotly_dark", "ggplot2",
+                                   "seaborn", "simple_white", "none"]
                                   Default is None that is the default template is used.
                 ================  ====================================================================
         """
