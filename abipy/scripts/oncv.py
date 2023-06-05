@@ -60,9 +60,9 @@ def oncv_gnuplot(options):
     return 0
 
 
-def oncv_print(options):
+def oncv_print(options) -> int:
     """
-    Print result to terminal.
+    Parse oncvps output and print results to terminal.
     """
     p = OncvParser(options.filepath)
     p.scan()
@@ -73,7 +73,7 @@ def oncv_print(options):
     return 0
 
 
-def oncv_plot(options):
+def oncv_plot(options) -> int:
     """
     Plot data with matplotlib. Requires oncvpsp output file.
     """
@@ -82,14 +82,13 @@ def oncv_plot(options):
     out_path = _find_oncv_output(options.filepath)
 
     plotter = OncvPlotter.from_file(out_path)
-    #plotter.expose(use_web=True)
     plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                    use_web=options.expose_web, verbose=options.verbose)
 
     return 0
 
 
-def oncv_compare(options):
+def oncv_compare(options) -> int:
     """
     Compare multiple oncvpsp output files.
     """
@@ -98,8 +97,6 @@ def oncv_compare(options):
     plotter = MultiOncvPlotter.from_files(options.filepaths)
 
     # Plot data
-    #use_web = False
-    #use_web = True
     plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                    use_web=options.expose_web, verbose=options.verbose)
 
@@ -177,10 +174,9 @@ def oncv_run(options):
 
     # Build Generator and start generation.
     psgen = OncvGenerator.from_file(in_path, calc_type, workdir=None)
-    #print(psgen)
 
     print(psgen.input_str)
-    print("Using oncvpsp executable:\n\t", psgen.executable)
+    print("Using executable:\n\t", psgen.executable)
     print(f"Output files produced in directory:\n\t{psgen.workdir}")
 
     psgen.start()
@@ -225,7 +221,7 @@ def oncv_run(options):
         with open(psp8_path.replace(".psp8", ".upf"), "wt") as fh:
             fh.write(upf_str)
     else:
-        cprint("UPF file has not been produced. Use `both` in input file!", "red")
+        cprint("UPF2 file has not been produced. Use `both` in input file!", "red")
 
     pseudo = Pseudo.from_file(psp8_path)
     if pseudo is None:
@@ -257,11 +253,6 @@ def oncv_gui(options):
     from abipy.panels.core import abipanel, get_abinit_template_cls_kwds, AbipyParameterized
 
     # Load abipy/panel extensions and set the default template
-    #tmpl_kwds.update(dict(
-    #    sidebar_width=240,
-    #    #sidebar_width=280,
-    #    #background_color="yellow",
-    #))
     abipanel(panel_template=options.panel_template)
 
     if options.has_remote_server:
@@ -330,7 +321,7 @@ Usage example:
 
     copts_parser = get_copts_parser(multi=False)
 
-    # Parent parser for commands supporting MplExpose.
+    # Parent parser for commands supporting MplExposer.
     plot_parser = argparse.ArgumentParser(add_help=False)
     cli.add_expose_options_to_parser(plot_parser)
 
@@ -369,11 +360,18 @@ Usage example:
                           help="Run jupyter notebook in the foreground.")
 
     parents = [copts_parser, cli.pn_serve_parser(), plot_parser]
+
     p_gui = subparsers.add_parser('gui', parents=parents, help=oncv_gui.__doc__)
 
     p_gnuplot = subparsers.add_parser('gnuplot', parents=[copts_parser], help=oncv_gnuplot.__doc__)
 
+    # Subparser for hints command.
     #p_hints = subparsers.add_parser('hints', parents=[copts_parser], help=oncv_hints.__doc__)
+    #p_hints.add_argument("pseudo_paths", nargs="+", type=str, help="Pseudopotential path.")
+    #p_hints.add_argument("--ecut", type=float, required=True, help="Cutoff energy in Ha.")
+    #p_hints.add_argument("-rc", "--vloc-rcut-list", nargs="+", default=None, type=float,
+    #                    help="List of cutoff radii for vloc in Bohr.")
+    #cli.add_expose_options_to_parser(p_hints)
 
     #p_json = subparsers.add_parser('json', parents=[copts_parser], help=oncv_json.__doc__)
 

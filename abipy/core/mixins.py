@@ -92,7 +92,7 @@ class BaseFile(metaclass=abc.ABCMeta):
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Activated at the end of the with statement. It automatically closes the file."""
         self.close()
 
@@ -472,12 +472,12 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         """
         Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.
         """
-        from abipy.tools.plotting import MplExpose, PanelExpose
+        from abipy.tools.plotting import MplExposer, PanelExposer
 
         if expose_web:
-            e = PanelExpose(title=f"e-Bands of {self.structure.formula}")
+            e = PanelExposer(title=f"e-Bands of {self.structure.formula}")
         else:
-            e = MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1)
+            e = MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1)
 
         with e:
             e(self.yield_ebands_figs(**kwargs))
@@ -544,8 +544,8 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         """
         Shows a predefined list of matplotlib figures for phonon bands with minimal input from the user.
         """
-        from abipy.tools.plotting import MplExpose
-        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+        from abipy.tools.plotting import MplExposer
+        with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
             e(self.yield_phbands_figs(**kwargs))
 
 
@@ -884,8 +884,8 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
         """
         if not use_web:
             # Produce all matplotlib figures and show them with the X-server.
-            from abipy.tools.plotting import MplExpose
-            with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+            from abipy.tools.plotting import MplExposer
+            with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
                 e(self.yield_figs(**kwargs))
 
         else:

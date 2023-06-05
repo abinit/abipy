@@ -3104,11 +3104,11 @@ class ElectronBands(Has_Structure):
     #    from ifermi.plot import FermiSlicePlotter
 
     #    expose_web = True
-    #    from abipy.tools.plotting import MplExpose, PanelExpose
+    #    from abipy.tools.plotting import MplExposer, PanelExposer
     #    if expose_web:
-    #        e = PanelExpose(title=f"e-Bands of {self.structure.formula}")
+    #        e = PanelExposer(title=f"e-Bands of {self.structure.formula}")
     #    else:
-    #        e = MplExpose(verbose=1)
+    #        e = MplExposer(verbose=1)
 
     #    with e:
     #        for plane_normal in plane_normals:

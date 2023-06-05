@@ -686,8 +686,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         Args:
             with_timer: True if timer section should be plotted
         """
-        from abipy.tools.plotting import MplExpose #, PanelExpose
-        with MplExpose(slide_mode=False, slide_timeout=5.0) as e:
+        from abipy.tools.plotting import MplExposer #, PanelExposer
+        with MplExposer(slide_mode=False, slide_timeout=5.0) as e:
             e(self.yield_figs(tight_layout=tight_layout, with_timer=with_timer))
 
     # TODO: Use header and vars to understand if we have SCF/DFPT/Relaxation

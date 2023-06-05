@@ -30,6 +30,7 @@ from abipy.tools.decorators import memoized_method
 from tqdm import tqdm
 
 
+# Installation directory.
 REPOS_ROOT = os.environ.get("ABIPY_PSREPOS_ROOT",
                             default=os.path.join(os.path.expanduser("~"), ".abinit", "pseudos"))
 
@@ -187,6 +188,9 @@ class PseudosRepo(abc.ABC):
         self.url = url
 
     def to_rowdict(self, verbose: int = 0) -> dict:
+        """
+        Return dict with metadata, useful to build DataFrames.
+        """
         row = dict(
             ps_generator=self.ps_generator,
             ps_type=self.ps_type,
@@ -224,8 +228,15 @@ class PseudosRepo(abc.ABC):
         """True if PAW repo."""
         return self.ps_type == "PAW"
 
-    #@property
-    #def all_table_names(self) -> List[str]:
+    @property
+    def table_names(self) -> list[str]:
+        """
+        List of strings with the name of tables provided by this repository
+        """
+        if not self.is_installed(): return []
+        # TODO: Should read table_names from directory
+        table_names = ["standard", "stringent"]
+        return table_names
 
     @property
     def dirpath(self) -> str:

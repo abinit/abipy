@@ -817,22 +817,64 @@ class Marker(namedtuple("Marker", "x y s")):
         return self.__class__(pos_x, pos_y, pos_s), self.__class__(neg_x, neg_y, neg_s)
 
 
-class MplExpose: # pragma: no cover
+class Exposer:
+    """Base class for Exposer objects."""
+
+    @classmethod
+    def as_exposer(cls, exposer, **kwargs) -> Exposer:
+        """
+        Return an instance of Exposer, usually from a string with then name.
+
+        Args:
+            exposer: "mpl" for MplExposer, "panel" for PanelExposer.
+        """
+        if isinstance(exposer, cls): return exposer
+
+        # Assume string.
+        exposer_cls = dict(
+            mpl=MplExposer,
+            panel=PanelExposer,
+        )[exposer]
+        return exposer_cls(**kwargs)
+
+    def __call__(self, obj: Any):
+        """
+        Add an object to the Exposer
+        Support mpl figure, list of figures or generator yielding figures.
+        """
+        import types
+        if isinstance(obj, (types.GeneratorType, list, tuple)):
+            for fig in obj:
+                self.add_fig(fig)
+        else:
+            self.add_fig(obj)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement. """
+        if exc_type is not None: return
+        self.expose()
+
+
+class MplExposer(Exposer): # pragma: no cover
     """
-    Context manager used to produce several matplotlib figures and then show
-    all them at the end so that the user does not need to close the window to
-    visualize to the next one.
+    Context manager used to produce several matplotlib figures and show
+    all of them at once so that users do not have to close the window
+    to visualize the next one.
 
     Example:
 
-        with MplExpose() as e:
+        with MplExposer() as e:
             e(obj.plot1(show=False))
             e(obj.plot2(show=False))
     """
+
     def __init__(self, slide_mode=False, slide_timeout=None, verbose=1):
         """
         Args:
-            slide_mode: If Rrue, iterate over figures. Default: Expose all figures at once.
+            slide_mode: If True, iterate over figures. Default: Expose all figures at once.
             slide_timeout: Close figure after slide-timeout seconds. Block if None.
             verbose: verbosity level
         """
@@ -852,18 +894,6 @@ class MplExpose: # pragma: no cover
 
         self.start_time = time.time()
 
-    def __call__(self, obj: Any):
-        """
-        Add an object to MplExpose.
-        Support mpl figure, list of figures or generator yielding figures.
-        """
-        import types
-        if isinstance(obj, (types.GeneratorType, list, tuple)):
-            for fig in obj:
-                self.add_fig(fig)
-        else:
-            self.add_fig(obj)
-
     def add_fig(self, fig: Figure) -> None:
         """
         Add a matplotlib figure.
@@ -873,7 +903,6 @@ class MplExpose: # pragma: no cover
         if not self.slide_mode:
             self.figures.append(fig)
         else:
-            #print("Printing and closing", fig)
             import matplotlib.pyplot as plt
             if self.timeout_ms is not None:
                 # Creating a timer object
@@ -885,14 +914,6 @@ class MplExpose: # pragma: no cover
             plt.show()
             fig.clear()
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activated at the end of the with statement. """
-        if exc_type is not None: return
-        self.expose()
-
     def expose(self) -> None:
         """Show all figures. Clear figures if needed."""
         if not self.slide_mode:
@@ -903,14 +924,14 @@ class MplExpose: # pragma: no cover
                 fig.clear()
 
 
-class PanelExpose:  # pragma: no cover
+class PanelExposer(Exposer):  # pragma: no cover
     """
     Context manager used to produce several matplotlib/plotly figures
-    and show all of them inside the Browser using a panel template.
+    and show all of them inside the web browser using a panel template.
 
     Example:
 
-        with PanelExpose() as e:
+        with PanelExposer() as e:
             e(obj.plot1(show=False))
             e(obj.plot2(show=False))
     """
@@ -930,30 +951,10 @@ class PanelExpose:  # pragma: no cover
 
         self.start_time = time.time()
 
-    def __call__(self, obj: Any):
-        """
-        Add an object to PanelExpose.
-        Support mpl figure, list of figures or generator yielding figures.
-        """
-        import types
-        if isinstance(obj, (types.GeneratorType, list, tuple)):
-            for fig in obj:
-                self.add_fig(fig)
-        else:
-            self.add_fig(obj)
-
     def add_fig(self, fig: Figure) -> None:
         """Add a matplotlib figure."""
         if fig is None: return
         self.figures.append(fig)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activated at the end of the with statement. """
-        if exc_type is not None: return
-        self.expose()
 
     def expose(self):
         """Show all figures. Clear figures if needed."""

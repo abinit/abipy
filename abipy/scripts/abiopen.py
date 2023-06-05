@@ -277,9 +277,9 @@ def main():
             else:
                 if not hasattr(abifile, "yield_figs"):
                     raise TypeError("Object of type `%s` does not implement (expose or yield_figs methods" % type(abifile))
-                from abipy.tools.plotting import MplExpose
-                with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                               verbose=options.verbose) as e:
+                from abipy.tools.plotting import MplExposer
+                with MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                                verbose=options.verbose) as e:
                     e(abifile.yield_figs())
 
             return 0

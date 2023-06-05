@@ -9,20 +9,23 @@ import sys
 import argparse
 import abipy.tools.cli_parsers as cli
 
+from monty.termcolor import cprint
+from pymatgen.core.periodic_table import Element
 from abipy.core.release import __version__
+from abipy.tools import duck
+from abipy.flowtk.pseudos import PseudoTable
 from abipy.flowtk.psrepos import (tabulate_repos, repos_from_names,
                                   get_all_registered_repos, get_installed_repos_and_root)
 
 
 def abips_list(options) -> list:
     """
-    List all installed pseudopotential repos.
+    List installed pseudopotential repos.
     """
     repos, repos_root = get_installed_repos_and_root()
-
     if not repos:
         print("Could not find any pseudopotential repository installed in:", repos_root)
-        return 0
+        return 1
 
     print(f"The following pseudopotential repositories are installed in {repos_root}:\n")
     print(tabulate_repos(repos, exclude=["installed"], verbose=options.verbose))
@@ -48,7 +51,7 @@ def abips_list(options) -> list:
 
 def abips_avail(options) -> int:
     """
-    Show available repos.
+    Show available pseudopotential repos.
     """
     print("List of available pseudopotential repositories:\n")
     all_repos = get_all_registered_repos()
@@ -108,7 +111,7 @@ def abips_avail(options) -> int:
 def abips_install(options) -> int:
     """
     Install pseudopotential repositories by name(s).
-    Use the `avail` command to get the repo name.
+    Use `avail` command to get repo names.
     """
     repos = repos_from_names(options.repo_names)
     repos = [repo for repo in repos if not repo.is_installed()]
@@ -132,7 +135,7 @@ def abips_install(options) -> int:
 
 def abips_show(options) -> int:
     """
-    Show pseudopotential tables.
+    Show info on pseudopotential table(s).
     """
     repos = repos_from_names(options.repo_names)
     repos = [repo for repo in repos if repo.is_installed()]
@@ -143,15 +146,46 @@ def abips_show(options) -> int:
 
     for repo in repos:
         print(repo)
-        table_names = ["standard", "stringent"]
-        for table_name in table_names:
+        for table_name in repo.table_names:
             pseudos = repo.get_pseudos(table_name=table_name)
-            print(f"For accuracy: {table_name}:\n")
+            print(f"For table_name: {table_name}:\n")
             if options.symbol is not None:
                 print("Selecting pseudos with symbol:", options.symbol)
-                pseudos = pseudos.pseudo_with_symbol(options.symbol, allow_multi=True)
-                #print(pseudos.__class__)
+                pseudos = pseudos.pseudo_with_symbol(options.symbol, allow_multi=False)
             print(pseudos)
+
+    return 0
+
+
+def abips_element(options) -> int:
+    """
+    Find all pseudos in the installed tables for the given element (symbol or znucl).
+    """
+    # Accept symbol string or Z
+    symbol = options.element
+    if symbol.isnumeric():
+        symbol = Element.from_Z(int(symbol)).symbol
+
+    repos, repos_root = get_installed_repos_and_root()
+    if not repos:
+        print("Could not find any pseudopotential repository installed in:", repos_root)
+        return 1
+
+    pseudo_list = []
+    for repo in repos:
+        for table_name in repo.table_names:
+            try:
+                pseudos = repo.get_pseudos(table_name=table_name)
+                pseudo = pseudos.pseudo_with_symbol(symbol, allow_multi=False)
+            except Exception as exc:
+                cprint(f"{str(exc)}", "red")
+                continue
+
+            if pseudo not in pseudo_list:
+                pseudo_list.append(pseudo)
+
+    pseudos = PseudoTable(pseudo_list)
+    pseudos.print_table()
 
     return 0
 
@@ -194,25 +228,17 @@ def abips_mkff(options) -> int:
     return 0
 
 
-#def abips_hints(options):
-#    """
-#    Compute ecut/pawecutd hints by running Abinit for a list of pseudos and show results.
-#    """
-#    from abipy.electrons.psps import PspsFile, PspsRobot
-#    ecut = options.ecut
-#    return 0
-
-
 def get_epilog() -> str:
     return """\
 
 Usage example:
 
-  abips.py avail                             --> Show all registered pseudopotential repositories
-  abips.py list                              --> List repositories installed on this machine
+  abips.py avail                             --> Show all registered pseudopotential repositories.
+  abips.py list                              --> List repositories installed on this machine.
   abips.py install ONCVPSP-PBEsol-SR-PDv0.4  --> Install repository by name (requires internet connection).
   abips.py show ONCVPSP-PBEsol-SR-PDv0.4     --> Show info on pseudos in repository.
-  abips.py mkff PSEUDO1 [PSEUDO2 ...]        --> Compute form factors for pseudos and show them
+  abips.py element O                         --> Show all installed pseudos for element.
+  abips.py mkff PSEUDO1 [PSEUDO2 ...]        --> Compute form factors for pseudos and show them.
 """
   #abips.py onc_install                        --> Get all NC repositories (most recent version)
   #abips.py onc_install -xc PBE -fr -sr -v 0.4
@@ -271,6 +297,10 @@ def get_parser(with_epilog=False):
     p_show.add_argument("repo_names", type=str, nargs="+", help="List of repo names.")
     p_show.add_argument("-s", "--symbol", type=str, default=None, help="Select pseudo by element symbol.")
 
+    # Subparser for list command.
+    p_element = subparsers.add_parser("element", parents=[copts_parser], help=abips_element.__doc__)
+    p_element.add_argument("element", type=str, help="Element symbol or atomic number.")
+
     # Subparser for mkff command.
     p_mkff = subparsers.add_parser("mkff", parents=[copts_parser], help=abips_mkff.__doc__)
     p_mkff.add_argument("pseudo_paths", nargs="+", type=str, help="Pseudopotential path.")
@@ -278,14 +308,6 @@ def get_parser(with_epilog=False):
     p_mkff.add_argument("-rc", "--vloc-rcut-list", nargs="+", default=None, type=float,
                         help="List of cutoff radii for vloc in Bohr.")
     cli.add_expose_options_to_parser(p_mkff)
-
-    # Subparser for hints command.
-    #p_hints = subparsers.add_parser("hints", parents=[copts_parser], help=abips_hints.__doc__)
-    #p_hints.add_argument("pseudo_paths", nargs="+", type=str, help="Pseudopotential path.")
-    #p_hints.add_argument("--ecut", type=float, required=True, help="Cutoff energy in Ha.")
-    #p_hints.add_argument("-rc", "--vloc-rcut-list", nargs="+", default=None, type=float,
-    #                    help="List of cutoff radii for vloc in Bohr.")
-    #cli.add_expose_options_to_parser(p_hints)
 
     return parser
 
@@ -308,22 +330,12 @@ def main():
         show_examples_and_exit(error_code=1)
 
     cli.set_loglevel(options.loglevel)
-    #if options.repos_root:
-
-    #if options.verbose:
-    #    for repo in repos:
-    #        if repo.ispaw: continue
-    #        pseudos = repo.get_pseudos(table_name="standard")
-    #        print(pseudos)
-    #else:
-    #    print("\nUse -v to print the pseudos")
 
     # Use seaborn settings.
     if hasattr(options, "seaborn") and options.seaborn:
         import seaborn as sns
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
-
 
     return globals()[f"abips_{options.command}"](options)
 

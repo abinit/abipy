@@ -20,9 +20,9 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.typing import Figure, KptSelect
 from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
-    set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line)
+    set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-from abipy.electrons.gw import SelfEnergy, QPState, QPList
+from abipy.electrons.gw import SelfEnergy, QPState, QPList, SigresFile, SigresRobot
 from abipy.abio.robots import Robot
 
 __all__ = [
@@ -300,11 +300,13 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                              spin=0, include_bands="gap", with_tau=True,
                              fontsize=8, ax_mat=None, **kwargs) -> Figure:
         """
-        Plot Sigma(iw) for given k-point, spin and list of bands.
+        Plot Sigma_nk(iw) along the imaginary axis for given k-point, spin and list of bands.
 
         Args:
             kpoint: k-point in self-energy. Accepts |Kpoint|, vector or index.
+            spin: Spin index.
             include_bands: List of bands to include. None means all.
+            with_tau:
             fontsize: Legend and title fontsize.
             ax_mat:
 
@@ -316,15 +318,15 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                                                sharey=False, squeeze=False)
         ax_mat = np.array(ax_mat)
 
-        # Read Sigma_nk in sigma_band
+        # Read Sigma_nk in sigma_of_band
         ikcalc, kpoint = self.r.get_ikcalc_kpoint(kpoint)
         include_bands = self._get_include_bands(include_bands, spin)
-        sigma_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands)
+        sigma_of_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands)
 
         # Plot Sigmac_nk(iw)
         re_ax, im_ax = ax_list = ax_mat[0]
         style = dict(marker="o")
-        for band, sigma in sigma_band.items():
+        for band, sigma in sigma_of_band.items():
             sigma.c_iw.plot_ax(re_ax, cplx_mode="re", label=f"Re band: {band}", **style)
             sigma.c_iw.plot_ax(im_ax, cplx_mode="im", label=f"Im band: {band}", **style)
 
@@ -336,7 +338,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             # Plot Sigmac_nk(itau)
             re_ax, im_ax = ax_list = ax_mat[1]
             style = dict(marker="o")
-            for band, sigma in sigma_band.items():
+            for band, sigma in sigma_of_band.items():
                 sigma.c_tau.plot_ax(re_ax, cplx_mode="re", label=f"Re band: {band}", **style)
                 sigma.c_tau.plot_ax(im_ax, cplx_mode="im", label=f"Im band: {band}", **style)
 
@@ -352,7 +354,14 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def plot_sigma_real_axis(self, kpoint: KptSelect, spin=0, include_bands="gap",
                              fontsize=8, ax_mat=None, **kwargs) -> Figure:
         """
-        Plot Sigma(w) along the real-axis.
+        Plot Sigma_nk(w) along the real-axis for given k-point, spin and set of bands.
+
+        Args:
+            kpoint: k-point in self-energy. Accepts |Kpoint|, vector or index.
+            spin: Spin index.
+            include_bands: List of bands to include. None means all.
+            fontsize: Legend and title fontsize.
+            ax_mat:
         """
         nrows, ncols = 1, 2
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
@@ -361,14 +370,14 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         ikcalc, kpoint = self.r.get_ikcalc_kpoint(kpoint)
         include_bands = self._get_include_bands(include_bands, spin)
-        sigma_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands)
+        sigma_of_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands)
         nwr = self.r.nwr
 
         ax_list = re_ax, im_ax = ax_mat[0]
         # Show KS gap as filled area.
         self.ebands.add_fundgap_span(ax_list, spin)
 
-        for band, sigma in sigma_band.items():
+        for band, sigma in sigma_of_band.items():
             ib = band - self.r.min_bstart
             e0 = self.r.e0_kcalc[spin, ikcalc, ib]
 
@@ -394,7 +403,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, e0="fermie",
                        xlims=None, sharey=False, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot QP results in the GWR file as function of the KS energy.
+        Plot QP results stored in the GWR file as function of the KS energy.
 
         Args:
             with_fields: The names of the qp attributes to plot as function of eKS.
@@ -429,7 +438,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @add_fig_kwargs
     def plot_spectral_functions(self, include_bands=None, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot the spectral function for all k-points, bands and spins available in the GWR file.
+        Plot the spectral function A_{nk}(w) for all k-points, bands and
+        spins available in the GWR file.
 
         Args:
             include_bands: List of bands to include. None means all.
@@ -444,26 +454,37 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = np.array(ax_list).ravel()
 
-        for ikcalc, (kgw, ax) in enumerate(zip(self.sigma_kpoints, ax_list)):
+        for ikcalc, (kcalc, ax) in enumerate(zip(self.sigma_kpoints, ax_list)):
             for spin in range(self.nsppol):
                 include_bands_ks = self._get_include_bands(include_bands, spin)
-                sigma_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands_ks)
+                sigma_of_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands_ks)
 
-                for band, sigma in sigma_band.items():
+                for band, sigma in sigma_of_band.items():
                     label = r"$A(\omega)$: band: %d, spin: %d" % (band, spin)
                     l = sigma.plot_ax(ax, what="a", label=label, fontsize=fontsize)
                     # Show position of the KS energy as vertical line.
                     ib = band - self.r.min_bstart
-                    ax.axvline(self.r.e0_kcalc[spin, ikcalc, ib], lw=1, color=l[0].get_color(), ls="--")
+                    ax.axvline(self.r.e0_kcalc[spin, ikcalc, ib],
+                               lw=1, color=l[0].get_color(), ls="--")
 
             # Show KS gap as filled area.
             self.ebands.add_fundgap_span(ax, spin)
 
             ax.set_xlabel(r"$\omega$ (eV)")
             ax.set_ylabel(r"$A(\omega)$ (1/eV)")
-            ax.set_title("k-point: %s" % repr(kgw), fontsize=fontsize)
+            ax.set_title("k-point: %s" % repr(kcalc), fontsize=fontsize)
 
         return fig
+
+    #@add_fig_kwargs
+    #def plot_sparsity(self, what, origin="lower", **kwargs):
+    #   x_mat
+    #   ax.spy(mat, precision=0.1, markersize=5, origin=origin)
+
+    #@add_fig_kwargs
+    #def plot_mat(self, what, origin="lower", **kwargs):
+    #   x_mat
+    #   ax.spy(mat, precision=0.1, markersize=5, origin=origin)
 
     #def get_panel(self, **kwargs):
     #    """
@@ -555,10 +576,12 @@ class GwrReader(ETSF_Reader):
 
     @lazy_property
     def tau_mesh(self) -> np.ndarray:
+        """Tau mesh in a.u."""
         return self.read_value("tau_mesh")
 
     @lazy_property
     def wr_step(self) -> float:
+        """Frequency-mesh along the real axis in eV."""
         return self.read_value("wr_step") * abu.Ha_eV
 
     @lazy_property
@@ -594,7 +617,7 @@ class GwrReader(ETSF_Reader):
 
     def read_sigee_skb(self, spin, kpoint, band) -> SelfEnergy:
         """"
-        Read self-energy data for (spin, kpoint, band).
+        Read self-energy for (spin, kpoint, band).
         """
         ikcalc, kpoint = self.get_ikcalc_kpoint(kpoint)
         ib = band - self.min_bstart
@@ -628,11 +651,11 @@ class GwrReader(ETSF_Reader):
         """
         Return dict of self-energy objects for given (spin, ikcalc) indexed by the band index.
         """
-        sigma_band = {}
+        sigma_of_band = {}
         for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
             if include_bands and band not in include_bands: continue
-            sigma_band[band] = self.read_sigee_skb(spin, ikcalc, band)
-        return sigma_band
+            sigma_of_band[band] = self.read_sigee_skb(spin, ikcalc, band)
+        return sigma_of_band
 
     def read_allqps(self, ignore_imag=False) -> tuple[QPList]:
         """
@@ -1019,7 +1042,6 @@ class GwrRobot(Robot, RobotWithEbands):
                 ax.set_ylabel("%s (eV)" % name)
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
-            #if hue is not None:
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -1117,7 +1139,7 @@ class GwrRobot(Robot, RobotWithEbands):
     def plot_qpfield_vs_e0(self, field, reim="real", function=lambda x: x, sortby=None, hue=None,
                            fontsize=8, colormap="jet", e0="fermie", **kwargs) -> Figure:
         """
-        For each file in the robot, plot one of the attributes of :class:`QpTempStat
+        For each file in the GWR robot, plot one of the attributes of :class:`QpTempStat
         as a function of the KS energy.
 
         Args:
@@ -1232,10 +1254,63 @@ for spin in range(nc0.nsppol):
         return self._write_nb_nbpath(nb, nbpath)
 
 
+
+#class GwrSigresComparator:
+#    """
+#    This object provides a high-level API to compare the results stored in
+#    a GWR.nc and a SIGRES.nc file (usually produced with the AC method).
+#    """
+#
+#    def __init__(self, gwr_filepaths, sigres_filepaths):
+#        """
+#        Args:
+#            gwr_filepaths: Path(s) of the GWR.nc file.
+#            sigres_filepaths: Path(s) of the SIGRES.nc file.
+#        """
+#        self.gwr_robot = GwrRobot.from_files(gwr_filepaths)
+#        self.sigres_robot = SigresRobot.from_files(sigres_filepaths)
+#
+#    def __enter__(self):
+#        return self
+#
+#    def __exit__(self, exc_type, exc_val, exc_tb):
+#        """
+#        Activated at the end of the with statement. It automatically closes the files.
+#        """
+#        self.gwr_robot.close()
+#        self.sigres_robot.close()
+#
+#    def __str__(self) -> str:
+#        return self.to_string()
+#
+#    def to_string(self, verbose: int = 0) -> str:
+#        """String representation with verbosity level ``verbose``."""
+#        lines = []; app = lines.append
+#        app(self.gwr_robot.to_string(verbose=verbose))
+#        app("")
+#        app(self.sigres_robot.to_string(verbose=verbose))
+#        return "\n".join(lines)
+
+
 class TchimVsSus:
     """
-    Class used to compare the polarizability computed in the GWR code with that
+    Object used to compare the polarizability computed in the GWR code with that
     produced by the legacy algorithm based on the Adler-Wiser expression.
+
+    Example:
+
+        gpairs = [
+            ((0, 0, 0), (1, 0, 0)),
+            ((1, 0, 0), (0, 1, 0)),
+        ]
+
+        qpoint_list = [
+            [0, 0, 0],
+            [0.5, 0.5, 0],
+        ]
+
+        with TchimVsSus("runo_DS3_TCHIM.nc", "AW_CD/runo_DS3_SUS.nc") as o
+            o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
     """
 
     def __init__(self, tchim_filepath: str, sus_filepath: str):
@@ -1248,15 +1323,24 @@ class TchimVsSus:
         self.sus_file = SusFile(sus_filepath)
         self.tchi_reader = ETSF_Reader(tchim_filepath)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Activated at the end of the with statement. It automatically closes the files.
+        """
+        self.sus_file.close()
+        #self.sigres.close()
+
     @add_fig_kwargs
     def plot_qpoint_gpairs(self, qpoint, gpairs,
-                           fontsize=8, spins=(0, 0), **kwargs) -> Figure:
+                           fontsize=8, spins=(0, 0), with_title=True, **kwargs) -> Figure:
         """
-        Plot the Fourier components of the polarizability for given q-point
-        and list of (g, g') pairs.
+        Plot the Fourier components of the polarizability for given q-point and list of (g, g') pairs.
 
         Args:
-            qpoint:
+            qpoint: q-point or q-point index.
             gpairs: List of (g,g') pairs
         """
         gpairs = np.array(gpairs)
@@ -1279,7 +1363,7 @@ class TchimVsSus:
             raise ValueError(f"Cannot find q-point: {qpoint} in TCHIM file")
 
         tchi_gvec = self.tchi_reader.read_variable("gvecs")[tchi_iq]
-        tchi_iwmesh = self.tchi_reader.read_variable("iw_mesh")
+        tchi_iwmesh = self.tchi_reader.read_value("iw_mesh")
 
         def _find_g(gg, gvec):
             for ig, g_sus in enumerate(gvec):
@@ -1310,7 +1394,7 @@ class TchimVsSus:
             # number_of_coefficients_dielectric_function, complex)
 
             if sus_reader.path.endswith("SUS.nc"):
-               sus_var_name = "polarizability"
+                sus_var_name = "polarizability"
             elif sus_reader.path.endswith("SCR.nc"):
                 sus_var_name = "inverse_dielectric_function"
             else:
@@ -1344,11 +1428,8 @@ class TchimVsSus:
             ax_im.legend(loc="best", fontsize=fontsize, shadow=True)
 
             #if i == 0:
-            if True:
-                ax_re.set_ylabel(r'$\Re{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
-                ax_im.set_ylabel(r'$\Im{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
-                #ax_im.yaxis.set_label_position("right")
-                #ax_im.yaxis.tick_right()
+            ax_re.set_ylabel(r'$\Re{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
+            ax_im.set_ylabel(r'$\Im{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
 
             if i == len(gpairs) - 1:
                 ax_re.set_xlabel(r'$i \omega$ (Ha)')
@@ -1363,7 +1444,6 @@ class TchimVsSus:
             set_axlims(ax_re, xlims, "x")
             set_axlims(ax_im, xlims, "x")
 
-        with_title = False
         if with_title:
             tex1 = r"$\chi^0(i\omega)$"
             tex2 = r"$\chi^0(i\tau) \rightarrow\chi^0(i\omega)$"
@@ -1371,3 +1451,13 @@ class TchimVsSus:
                          fontsize=10)
 
         return fig
+
+    def expose_qpoints_gpairs(self, qpoint_list, gpairs, exposer="mpl"):
+        """
+        Plot the Fourier components of the polarizability for a list of q-points and,
+        for each q-point, a list of (g, g') pairs.
+        """
+        with Exposer.as_exposer(exposer) as e:
+            for qpoint in qpoint_list:
+                e(self.plot_qpoint_gpairs(qpoint, gpairs, show=False))
+            return e

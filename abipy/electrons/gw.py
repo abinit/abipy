@@ -489,6 +489,14 @@ class SelfEnergy:
         if tau_mp_mesh is not None and c_tau_mp_values is not None:
             self.c_tau = Function1D(tau_mp_mesh, c_tau_mp_values)
 
+    #@property
+    #def has_c_iw(self) -> bool:
+    #    return self.c_iw is not None
+
+    #@property
+    #def has_c_tau(self) -> bool:
+    #    return self.c_tau is not None
+
     def __str__(self) -> str:
         return self.to_string()
 
@@ -521,21 +529,22 @@ class SelfEnergy:
             spfunc=self.spfunc.values,
         )[what]
 
-    def plot_ax(self, ax, what="a", fontsize=12, **kwargs) -> list:
+    def plot_ax(self, ax, what="a", fontsize=8, **kwargs) -> list:
         """
         Helper function to plot data on the axis ax with fontsize
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            what: "a" for spectral function, "s" for self-energy (Re-Im) on the same ax.
-                "sre" for Re(Sigma) only, "sim" for Im(Sigma) only
+            what: "a" for spectral function,
+                  "s" for self-energy i.e. Re/Im on the same ax.
+                  "sre" for Re(Sigma) only.
+                  "sim" for Im(Sigma) only.
             fontsize: legend and title fontsize.
 
         Return: List of lines.
         """
         lines = []
         extend = lines.extend
-        ax.grid(True)
 
         if what in {"s", "sre", "sim"}:
             f = self.xc
@@ -554,6 +563,7 @@ class SelfEnergy:
             raise ValueError("Don't know how to handle what option %s" % str(what))
 
         #ax.set_ylabel('Energy (eV)')
+        ax.grid(True)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return lines
@@ -655,7 +665,6 @@ class SelfEnergy:
         l1 = set_ax_xylabels(ax_list[1], r"$i\tau$ (a.u.)", r"$\Im{\Sigma_c}(i\tau)$ (eV)")
 
         return [l0, l1]
-
 
     #@add_fig_kwargs
     #def plot_other(self, other: SelfEnergy, **kwargs) -> Figure:
@@ -780,6 +789,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app(self.ebands.to_string(title="Kohn-Sham bands", with_structure=False))
         app("")
 
+        # GW Section.
         # TODO: Finalize the implementation: add GW metadata.
         app(marquee("QP direct gaps", mark="="))
         for kcalc in self.sigma_kpoints:
@@ -1858,7 +1868,7 @@ class SigresReader(ETSF_Reader):
 
     def read_spfunc(self, spin, kpoint, band) -> tuple[np.ndarray]:
         """
-        Returns the spectral function.
+        Compute and return the mesh and the spectral function A(w).
 
          one/pi * ABS(AIMAG(Sr%sigcme(ib,ikibz,io,is))) /
          ( (REAL(Sr%omega_r(io)-Sr%hhartree(ib,ib,ikibz,is)-Sr%sigxcme(ib,ikibz,io,is)))**2 &
@@ -1903,7 +1913,8 @@ class SigresReader(ETSF_Reader):
         Returns dict with the value of the parameters.
         """
         param_names = [
-            "ecutwfn", "ecuteps", "ecutsigx", "scr_nband", "sigma_nband",
+            "ecutwfn", "ecuteps", "ecutsigx",
+            "scr_nband", "sigma_nband",
             "gwcalctyp", "scissor_ene",
         ]
 
