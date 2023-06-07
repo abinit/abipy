@@ -1,4 +1,5 @@
 """Tools for ipython notebooks."""
+from __future__ import annotations
 
 
 def print_source_in_module(function, module):  # pragma: no cover

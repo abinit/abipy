@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-G0W0 Flow with factory functions
+G0W0 flow with factory functions
 ================================
 
 G0W0 corrections with the HT interface.

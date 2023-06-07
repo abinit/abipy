@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Relaxation of Al with different K-meshes and tsmear
+Relaxation of Al with different k-meshes and tsmear
 ===================================================
 
 In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``optcell``)
@@ -24,7 +24,8 @@ import abipy.data as abidata
 def relax_input(tsmear, nksmall):
     """
     Crystalline aluminum: optimization of the lattice parameter
-    at fixed number of k points and broadening. Similar to tbase4_1.in with minor
+    at fixed number of k-points and broadening.
+    Similar to tbase4_1.in with minor modifications.
     """
     #structure = abilab.Structure.fcc()
     inp = abilab.AbinitInput(structure=abidata.ucells.structure_from_ucell("Al"),

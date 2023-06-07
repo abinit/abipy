@@ -1,7 +1,9 @@
 # coding: utf-8
 """
-Works and Flows for GW calculations with Abinit.
+Works and Flows for GW calculations with the quartic-scaling implementation.
 """
+from __future__ import annotations
+
 import os
 import numpy as np
 
@@ -17,7 +19,7 @@ class ScreeningWork(Work):
     It also provides the callback `on_all_ok` that calls the mrgscr tool
     to merge all the partial SCR files produced.
 
-    The final SCR file is made available in the `outdata` directory of the work.
+    The final SCR file is available in the `outdata` directory of the work.
     To use this SCR file as dependency of other tasks, use the syntax:
 
         deps={scr_work: "SCR"}
@@ -27,12 +29,12 @@ class ScreeningWork(Work):
     """
 
     @classmethod
-    def from_nscf_task(cls, nscf_task, scr_input, manager=None):
+    def from_nscf_task(cls, nscf_task: NscfTask, scr_input, manager=None) -> ScreeningWork:
         """
         Construct a `ScreeningWork` from a |NscfTask| object.
 
         Args:
-            nscf_task: |NscfTask| object.
+            nscf_task: |NscfTask| object which produced the WFK file with empty states
             scr_input: |AbinitInput| object representing a SCREENING calculation.
             manager: |TaskManager| object.
         """
@@ -41,7 +43,7 @@ class ScreeningWork(Work):
 
         new = cls(manager=manager)
 
-        # Get list of q-points for the dielectric matrix
+        # Call abinit to get the list of q-points for the dielectric matrix
         scr_ibz = scr_input.abiget_scr_ibz()
 
         # Now we can register the task for the different q-points
@@ -52,7 +54,7 @@ class ScreeningWork(Work):
         return new
 
     @classmethod
-    def from_wfk_filepath(cls, wfk_filepath, scr_input, manager=None):
+    def from_wfk_filepath(cls, wfk_filepath, scr_input, manager=None) -> ScreeningWork:
         """
         Construct a `ScreeningWork` from a WFK filepath and a screening input.
 
@@ -66,7 +68,7 @@ class ScreeningWork(Work):
             manager: |TaskManager| object.
         """
         new = cls(manager=manager)
-        wkf_node = Node.as_node(wfk_filepath)
+        wfk_node = Node.as_node(wfk_filepath)
 
         # Get list of q-points for the dielectric matrix
         scr_ibz = scr_input.abiget_scr_ibz()
@@ -78,7 +80,7 @@ class ScreeningWork(Work):
 
         return new
 
-    def merge_scr_files(self, remove_scrfiles=True, verbose=0):
+    def merge_scr_files(self, remove_scrfiles=True, verbose=0) -> str:
         """
         This method is called when all the q-points have been computed.
         It runs `mrgscr` in sequential on the local machine to produce

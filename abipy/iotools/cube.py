@@ -3,6 +3,7 @@
 Tools for writing cube files.
 See http://paulbourke.net/dataformats/cube/ and http://www.gaussian.com/g_tech/g_ur/u_cubegen.htm
 """
+from __future__ import annotations
 
 import numpy as np
 
@@ -17,7 +18,7 @@ __all__ = [
 ]
 
 
-def cube_write_structure_mesh(file, structure, mesh):
+def cube_write_structure_mesh(file, structure, mesh) -> None:
     fwrite = file.write
     fwrite("Density generated from abipy\n")
     fwrite("in the cube file format\n")
@@ -33,7 +34,7 @@ def cube_write_structure_mesh(file, structure, mesh):
         fwrite('{:d} {:.10f} {:.10f} {:.10f} {:.10f}\n'.format(site.specie.Z, 0.0, cc[0], cc[1], cc[2]))
 
 
-def cube_write_data(file, data, mesh):
+def cube_write_data(file, data, mesh) -> None:
     fwrite = file.write
     data_bohrs = data * (bohr_to_angstrom ** 3)
     for ix in range(mesh.nx):
@@ -42,8 +43,8 @@ def cube_write_data(file, data, mesh):
                 fwrite('{:.5e}\n'.format(data_bohrs[ix, iy, iz]))
 
 
-def cube_read_structure_mesh_data(file):
-    with open(file, 'r') as fh:
+def cube_read_structure_mesh_data(filepath: str) -> tuple:
+    with open(filepath, 'r') as fh:
         # The two first lines are comments
         for ii in range(2):
             fh.readline()

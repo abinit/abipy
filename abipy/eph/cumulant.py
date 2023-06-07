@@ -2,17 +2,14 @@
 """
 This module contains objects for postprocessing e-ph calculations
 using the results stored in the out_EPH_CUMULANT.nc file.
-
 """
-import tempfile
-import pickle
-import os
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
+
 from scipy.fft import fft, fftfreq,fftshift,ifft
-
-
 from collections import OrderedDict, namedtuple
 from collections.abc import Iterable
 from tabulate import tabulate
@@ -30,16 +27,13 @@ from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 from abipy.eph.sigeph import SigEPhFile,EphSelfEnergy, SigmaPhReader, QpTempState
 
+
 __all__ = [
     "CumulantQpTempState",
     "CumulantEPhFile",
     "CumulantPhReader",
     "CumulantSelfEnergy",
 ]
-
-
-
-
 
 
 class CumulantQpTempState(QpTempState):
@@ -96,7 +90,7 @@ class CumulantEPhFile(SigEPhFile):
     """
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> CumulantEPhFile:
         """Initialize the object from a netcdf file."""
         return cls(filepath)
 
@@ -118,8 +112,7 @@ class CumulantEPhFile(SigEPhFile):
         """String representation."""
         return self.to_string()
 
-
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -201,7 +194,7 @@ class CumulantPhReader(SigmaPhReader):
     .. inheritance-diagram:: CumulantPhReader
     """
 
-    def __init__(self, path ):
+    def __init__(self, path: str):
         super().__init__(path)
 
         # Check if the cumulant function exists
@@ -212,7 +205,6 @@ class CumulantPhReader(SigmaPhReader):
             self.ct_vals_exists = True
         else:
             self.ct_vals_exists = False
-
 
     def read_cumulant_skb(self, spin, kpoint, band):
         """
@@ -302,9 +294,9 @@ class CumulantPhReader(SigmaPhReader):
 
 class CumulantSelfEnergy(EphSelfEnergy):
     
-    
 
-    def __init__(self, wmesh, qp, gw_vals, spfunccumul_wr, time_mesh = None, ct_vals = None, gt_vals = None, vals_e0ks=None, dvals_de0ks=None, dw_vals=None,
+    def __init__(self, wmesh, qp, gw_vals, spfunccumul_wr, time_mesh = None, ct_vals = None, gt_vals = None, 
+                 vals_e0ks=None, dvals_de0ks=None, dw_vals=None,
                  frohl_vals_e0ks=None, frohl_dvals_de0ks=None, frohl_spfunc_wr=None):
         
         # Set dimensions

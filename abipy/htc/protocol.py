@@ -409,7 +409,7 @@ class Protocol(AbipyModel):
             raise ValueError("band structure calculation requires the specification of `gs_nscf_kpath_specs`")
 
         multi = ebands_input(structure, pseudos,
-                             kppa=self.kppa,
+                             #kppa=self.kppa,
                              nscf_nband=None,
                              ndivsm=self.ndivsm,
                              ecut=None, pawecutdg=None,

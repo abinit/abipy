@@ -15,7 +15,7 @@ ppcodes Package
 :mod:`base_parser` Module
 -------------------------
 
-.. automodule:: abipy.ppcodes.base_parser.py
+.. automodule:: abipy.ppcodes.base_parser
    :members:
    :undoc-members:
    :show-inheritance:
@@ -23,7 +23,7 @@ ppcodes Package
 :mod:`oncv_parser` Module
 -------------------------
 
-.. automodule:: abipy.ppcodes.oncv_parser.py
+.. automodule:: abipy.ppcodes.oncv_parser
    :members:
    :undoc-members:
    :show-inheritance:
@@ -31,7 +31,7 @@ ppcodes Package
 :mod:`oncv_plotter` Module
 --------------------------
 
-.. automodule:: abipy.ppcodes.oncv_plotter.py
+.. automodule:: abipy.ppcodes.oncv_plotter
    :members:
    :undoc-members:
    :show-inheritance:
@@ -39,7 +39,7 @@ ppcodes Package
 :mod:`ppgen` Module
 -------------------
 
-.. automodule:: abipy.ppcodes.ppgen.py
+.. automodule:: abipy.ppcodes.ppgen
    :members:
    :undoc-members:
    :show-inheritance:

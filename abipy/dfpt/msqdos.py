@@ -18,7 +18,7 @@ from abipy.tools.plotting import add_fig_kwargs, set_axlims, get_axarray_fig_plt
 from abipy.tools.printing import print_dataframe
 
 
-class _Component(object):
+class _Component:
     """
     Object used to select/plot the components of the DW tensor.
     """
@@ -102,7 +102,7 @@ class MsqDos(Has_Structure):
         """|Structure| object."""
         return self._structure
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Invoked by str"""
         return self.to_string()
 

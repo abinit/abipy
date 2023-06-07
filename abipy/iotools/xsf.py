@@ -1,5 +1,6 @@
 # coding: utf-8
 """Tools for writing Xcrysden files."""
+from __future__ import annotations
 
 import numpy as np
 
@@ -15,7 +16,7 @@ __all__ = [
 ]
 
 
-def xsf_write_structure(file, structures):
+def xsf_write_structure(file, structures) -> None:
     """
     Write the crystalline structure in the Xcrysden format (XSF)
 
@@ -65,14 +66,14 @@ def xsf_write_structure(file, structures):
                 fwrite(' %20.14f %20.14f %20.14f\n' % tuple(cart_forces[a]))
 
 
-def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs):
+def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs) -> None:
     """Simplified interface to xsf routines to write structure and data to filepath."""
     with open(filepath, mode="wt") as fh:
         xsf_write_structure(fh, structure)
         xsf_write_data(fh, structure, datar, **kwargs)
 
 
-def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
+def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None) -> None:
     """
     Write data in the Xcrysden format (XSF)
 
@@ -148,7 +149,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     fwrite('END_BLOCK_DATAGRID_3D\n')
 
 
-def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="eV"):
+def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="eV") -> None:
     """
     Write band structure data in the Xcrysden format (XSF)
 

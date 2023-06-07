@@ -2,6 +2,8 @@
 """
 This script runs all the python scripts located in this directory
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse

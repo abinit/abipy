@@ -1,12 +1,14 @@
 """Objects for post-processing Raman results produced by anaddb."""
+from __future__ import annotations
 
 import numpy as np
 import abipy.core.abinit_units as abu
+
+from collections import namedtuple
 from abipy.iotools import ETSF_Reader
 from abipy.core.func1d import Function1D
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from collections import namedtuple
-
+from abipy.tools.typing import Figure
 
 PowderIntensity = namedtuple("PowderIntensity", ("paral", "perp", "tot"))
 
@@ -43,7 +45,7 @@ class Raman:
         self.non_anal_directions = non_anal_directions
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> Raman:
         """
         Create the object from an anaddb.nc netcdf file.
 
@@ -73,7 +75,7 @@ class Raman:
                        non_anal_phfreqs=non_anal_phfreqs, non_anal_directions=non_anal_directions)
 
     def get_modes_intensities(self, temp, laser_freq, non_anal_dir=None, relative=False, units="eV",
-                              pol_in=None, pol_out=None):
+                              pol_in=None, pol_out=None) -> np.ndarray:
         """
         Calculates the Raman intensities for each mode in arbitrary units. It is possible to use the
         susceptibilities from the transverse modes only or to specify one of the directions with non
@@ -141,7 +143,7 @@ class Raman:
         return i
 
     @staticmethod
-    def _get_prefactor(w, temp, laser_freq):
+    def _get_prefactor(w, temp, laser_freq) -> np.array:
         """
         Helper method to calculate the coefficient for the Raman intensities.
 
@@ -163,7 +165,8 @@ class Raman:
 
         return c
 
-    def _get_lorentz_freqs_and_factor(self, intensity, non_anal_dir, min_freq, max_freq, num, width, units):
+    def _get_lorentz_freqs_and_factor(self, intensity, non_anal_dir, min_freq, max_freq, 
+                                      num, width, units) -> tuple:
         """
         Helper method to get the list of frequencies and the main spread factors to
         calculate the broadened Raman intensities with a Lorentz distribution.
@@ -284,7 +287,8 @@ class Raman:
 
             return li_func
 
-    def get_powder_intensity(self, temp, laser_freq, non_anal_dir=None, relative=False, units="eV"):
+    def get_powder_intensity(self, temp, laser_freq, non_anal_dir=None, 
+                             relative=False, units="eV") -> PowderIntensity:
         """
         Calculates the Raman intensities in arbitrary units for each mode integrated over all possible
         orientation to reproduce the powder measurements. It is possible to use the susceptibilities from
@@ -334,7 +338,7 @@ class Raman:
         return PowderIntensity(paral, perp, tot)
 
     def get_powder_lorentz_intensity(self, temp, laser_freq, width, non_anal_dir=None, min_freq=None,
-                                     max_freq=None, num=1000, relative=False, units="eV"):
+                                     max_freq=None, num=1000, relative=False, units="eV") -> PowderIntensity:
         """
         Calculates the broadened Raman intensities in arbitrary units integrated over all possible
         orientation to reproduce the powder measurements for frequencies in an interval. It is possible to
@@ -382,7 +386,8 @@ class Raman:
 
     @add_fig_kwargs
     def plot_intensity(self, temp, laser_freq, width, value, non_anal_dir=None, min_freq=None, max_freq=None,
-                       num=1000, relative=False, units="eV", ax=None, plot_phfreqs=False, **kwargs):
+                       num=1000, relative=False, units="eV", ax=None, 
+                       plot_phfreqs=False, **kwargs) -> Figure:
         """
         Plot one representation of the broadened Raman intensities.
 

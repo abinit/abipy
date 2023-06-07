@@ -12,22 +12,30 @@ import apscheduler
 from collections import deque
 from io import StringIO
 from queue import Queue, Empty
-from typing import List, Optional
+from typing import Optional
+from shutil import which
 from monty.io import get_open_fds
 from monty.string import boxed, is_string
-from monty.os.path import which
 from monty.collections import AttrDict #, dict2namedtuple
 from monty.termcolor import cprint
 from monty.functools import lazy_property
-from pymatgen.util.io_utils import ask_yesno
-from abipy.tools.iotools import yaml_safe_load
+from abipy.tools.iotools import yaml_safe_load, ask_yesno
+from abipy.tools.typing import TYPE_CHECKING
 from .utils import as_bool
-
 
 import logging
 logger = logging.getLogger(__name__)
 
-has_sched_v3 = apscheduler.version >= "3.0.0"
+try:
+    has_sched_v3 = apscheduler.version >= "3.0.0"
+except AttributeError:
+    has_sched_v3 = False
+
+if TYPE_CHECKING:  # needed to avoid circular imports
+    from .tasks import Task
+    #from .works import Work
+    from .flows import Flow
+
 
 __all__ = [
     "ScriptEditor",
@@ -37,14 +45,14 @@ __all__ = [
 ]
 
 
-def straceback():
+def straceback() -> str:
     """Returns a string with the traceback."""
     import traceback
     return traceback.format_exc()
 
 
 
-class ScriptEditor(object):
+class ScriptEditor:
     """
     Simple editor to simplify the writing of shell scripts
     """
@@ -55,27 +63,27 @@ class ScriptEditor(object):
         self._lines = []
 
     @property
-    def shell(self):
+    def shell(self) -> str:
         return self._shell
 
-    def _add(self, text, pre=""):
+    def _add(self, text, pre="") -> None:
         if is_string(text):
             self._lines.append(pre + text)
         else:
             self._lines.extend([pre + t for t in text])
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the editor."""
         try:
             del self._lines
         except AttributeError:
             pass
 
-    def shebang(self):
+    def shebang(self) -> None:
         """Adds the shebang line."""
         self._lines.append('#!' + self.shell)
 
-    def declare_var(self, key, val):
+    def declare_var(self, key: str, val: str) -> None:
         """Declare a env variable. If val is None the variable is unset."""
         if val is not None:
             line = "export " + key + '=' + str(val)
@@ -84,44 +92,44 @@ class ScriptEditor(object):
 
         self._add(line)
 
-    def declare_vars(self, d):
+    def declare_vars(self, d: dict) -> None:
         """Declare the variables defined in the dictionary d."""
         for k, v in d.items():
             self.declare_var(k, v)
 
-    def export_envar(self, key, val):
+    def export_envar(self, key: str, val: str) -> None:
         """Export an environment variable."""
         line = "export " + key + "=" + str(val)
         self._add(line)
 
-    def export_envars(self, env):
+    def export_envars(self, env: dict) -> None:
         """Export the environment variables contained in the dict env."""
         for k, v in env.items():
             self.export_envar(k, v)
 
-    def add_emptyline(self):
+    def add_emptyline(self) -> None:
         """Add an empty line."""
         self._add("", pre="")
 
-    def add_comment(self, comment):
+    def add_comment(self, comment: str) -> None:
         """Add a comment"""
         self._add(comment, pre="# ")
 
-    def load_modules(self, modules):
+    def load_modules(self, modules: list[str]) -> None:
         """Load the list of specified modules."""
         for module in modules:
             self.load_module(module)
 
-    def load_module(self, module):
+    def load_module(self, module: str) -> None:
         self._add('module load ' + module + " 2>> mods.err")
 
-    def add_line(self, line):
+    def add_line(self, line: str) -> None:
         self._add(line)
 
-    def add_lines(self, lines):
+    def add_lines(self, lines: list[str]) -> None:
         self._add(lines)
 
-    def get_script_str(self, reset=True):
+    def get_script_str(self, reset=True) -> str:
         """Returns a string with the script and reset the editor if reset is True"""
         s = "\n".join(l for l in self._lines)
         if reset:
@@ -133,14 +141,14 @@ class PyLauncherError(Exception):
     """Error class for PyLauncher."""
 
 
-class PyLauncher(object):
+class PyLauncher:
     """
     This object handle the submission of the tasks contained in a |Flow|.
     """
 
     Error = PyLauncherError
 
-    def __init__(self, flow, **kwargs):
+    def __init__(self, flow: Flow, **kwargs) -> None:
         """
         Initialize the object
 
@@ -233,7 +241,7 @@ class PyLauncher(object):
 
         return num_launched
 
-    def fetch_tasks_to_run(self):
+    def fetch_tasks_to_run(self) -> list[Task]:
         """
         Return the list of tasks that can be submitted.
         Empty list if no task has been found.
@@ -283,7 +291,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
 
     @classmethod
     def autodoc(cls) -> str:
-        """Return String with scheduler options."""
+        """Return string with scheduler options."""
         i = cls.__init__.__doc__.index("Args:")
         return cls.__init__.__doc__[i+5:]
 
@@ -409,7 +417,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
 
         raise cls.Error("Cannot locate %s neither in current directory nor in %s" % (cls.YAML_FILE, path))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         lines = [self.__class__.__name__ + ", Pid: %d" % self.pid]
         app = lines.append
@@ -418,7 +426,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         return "\n".join(lines)
 
     @abc.abstractmethod
-    def add_flow(self, flow, **kwargs) -> None:
+    def add_flow(self, flow: Flow, **kwargs) -> None:
         """
         Add a flow to the scheduler.
         """
@@ -447,10 +455,11 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         """Returns a `timedelta` object representing with the elapsed time."""
         return datetime.timedelta(seconds=(time.time() - self.start_time))
 
-    def cancel_jobs_if_requested(self, flow):
-
+    def cancel_jobs_if_requested(self, flow: Flow) -> None:
+        """Cancel all the jobs in the flow"""
         if not self.killjobs_if_errors: return
         cprint("killjobs_if_errors set to 'yes'. Killing jobs before aborting the flow.", "yellow")
+
         try:
             num_cancelled = 0
             for task in flow.iflat_tasks():
@@ -459,7 +468,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         except Exception as exc:
             cprint("Exception while trying to kill jobs:\n%s" % str(exc), "red")
 
-    def _accept_flow(self, flow) -> None:
+    def _accept_flow(self, flow: Flow) -> None:
 
         # Check if we are already using a scheduler to run this flow
         flow.check_pid_file()
@@ -472,7 +481,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         if errors:
             raise self.Error(str(errors))
 
-    def restart_unconverged(self, flow, max_nlaunch, excs):
+    def restart_unconverged(self, flow: Flow, max_nlaunch, excs):
         if max_nlaunch <= 0: return 0
 
         for task in flow.unconverged_tasks:
@@ -492,7 +501,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
 
         return max_nlaunch
 
-    def try_to_fix_flow(self, flow):
+    def try_to_fix_flow(self, flow: Flow) -> None:
 
         # Temporarily disabled by MG because I don't know if fix_critical works after the
         # introduction of the new qadapters
@@ -505,7 +514,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         nfixed = flow.fix_abicritical()
         if nfixed: print("Fixed %d AbiCritical error(s)" % nfixed)
 
-    def check_deadlocks(self, flow) -> List[str]:
+    def check_deadlocks(self, flow: Flow) -> list[str]:
         err_lines = []
 
         g = flow.find_deadlocks()
@@ -527,7 +536,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
 
         return err_lines
 
-    def send_email(self, msg, tag=None) -> int:
+    def send_email(self, msg: str, tag=None) -> int:
         """
         Send an e-mail before completing the shutdown.
         Returns 0 if success. Relies on _send_email method provided by subclass.
@@ -550,14 +559,14 @@ class PyFlowScheduler(BaseScheduler):
         return self._pid_file
 
     @property
-    def flow(self):
+    def flow(self) -> Flow:
         """`Flow`."""
         try:
             return self._flow
         except AttributeError:
             return None
 
-    def add_flow(self, flow):
+    def add_flow(self, flow: Flow) -> None:
         """
         Add a flow to the scheduler.
         """
@@ -604,7 +613,7 @@ class PyFlowScheduler(BaseScheduler):
             flow.pickle_dump()
             return -1
 
-    def _runem_all(self):
+    def _runem_all(self) -> None:
         """
         This function checks the status of all tasks,
         tries to fix tasks that went unconverged, abicritical, or queuecritical
@@ -825,7 +834,7 @@ class PyFlowScheduler(BaseScheduler):
             # Uncomment the line below if shutdown does not work!
             #os.system("kill -9 %d" % os.getpid())
 
-    def _send_email(self, msg, tag):
+    def _send_email(self, msg: str, tag) -> int:
         if self.mailto is None: return -1
 
         header = msg.splitlines()
@@ -872,7 +881,7 @@ class MultiFlowScheduler(BaseScheduler):
         self.sqldb_path = sqldb_path
         self.create_sqldb()
 
-    def add_flow(self, flow, user_message, priority=None):
+    def add_flow(self, flow: Flow, user_message, priority=None) -> None:
         """
         Add a flow to the scheduler.
         """
@@ -887,7 +896,7 @@ class MultiFlowScheduler(BaseScheduler):
         self.history.append(straceback())
         self._errored_flow_ids.append(flow_idx)
 
-    def handle_flow_exception(self):
+    def handle_flow_exception(self) -> None:
         if not self._errored_flow_ids: return
         for idx in self._errored_flow_ids:
             flow = self.flows[idx]
@@ -936,7 +945,7 @@ class MultiFlowScheduler(BaseScheduler):
                         """)
         con.close()
 
-    def get_incoming_flows(self) -> List:
+    def get_incoming_flows(self) -> list[Flow]:
         flows = []
         while True:
             try:
@@ -959,13 +968,13 @@ class MultiFlowScheduler(BaseScheduler):
 
         return flows
 
-    def get_dataframe(self):
+    def get_dataframe(self) -> pd.DataFrame:
         with self.sql_connect() as con:
             df = pd.read_sql_query("SELECT * FROM flows", con)
             #print("dtype", df["upload_date"].dtype)
             return df
 
-    def get_json_status(self):
+    def get_json_status(self) -> dict:
         # https://stackoverflow.com/questions/25455067/pandas-dataframe-datetime-index-doesnt-survive-json-conversion-and-reconversion
         status = dict(
             dataframe=self.get_dataframe().to_json() #, date_format='iso'#date_unit='ns'),
@@ -1161,7 +1170,7 @@ class MultiFlowScheduler(BaseScheduler):
         con.close()
 
 
-def print_flowsdb_file(filepath: str):
+def print_flowsdb_file(filepath: str) -> None:
     """
     Print flows.db file to terminal.
     """
@@ -1219,7 +1228,7 @@ def sendmail(subject: str, text: str, mailto: str,
     return len(errdata)
 
 
-#def __test_sendmail():
+#def _test_sendmail():
 #    retcode = sendmail("sendmail_test", text="hello\nworld", mailto="nobody@nowhere.com")
 #    print("Retcode", retcode)
 #    assert retcode == 0

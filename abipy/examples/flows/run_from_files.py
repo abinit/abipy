@@ -3,7 +3,7 @@ r"""
 Starting a Flow from external files
 ===================================
 
-This example shows how to build a flow for Nscf calculations
+This example shows how to build a flow for NSCF calculations
 in which the dependency is given by an external density file.
 """
 import sys

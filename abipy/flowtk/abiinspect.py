@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Mapping
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 #import ruamel.yaml as yaml
@@ -18,16 +18,16 @@ from tabulate import tabulate
 from abipy.tools.iotools import yaml_safe_load
 from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt,
     get_figs_plotly, plotly_set_lims, add_plotly_fig_kwargs)
+from abipy.tools.typing import Figure
 
 
-def straceback():
+def straceback() -> str:
     """Returns a string with the traceback."""
     import traceback
-
     return traceback.format_exc()
 
 
-def _magic_parser(stream, magic):
+def _magic_parser(stream, magic: str) -> dict:
     """
     Parse the section with the SCF cycle
 
@@ -77,7 +77,7 @@ def _magic_parser(stream, magic):
     return None
 
 
-def plottable_from_outfile(filepath):
+def plottable_from_outfile(filepath: str):
     """
     Factory function that returns a plottable object by inspecting the main output file of abinit
     Returns None if it is not able to detect the class to instantiate.
@@ -125,7 +125,7 @@ class ScfCycle(Mapping):
 
     MAGIC = "Must be defined by the subclass." ""
 
-    def __init__(self, fields):
+    def __init__(self, fields: dict) -> None:
         """
         Args:
             fields: Dictionary with label --> list of numerical values.
@@ -141,31 +141,31 @@ class ScfCycle(Mapping):
     def __iter__(self):
         return self.fields.__iter__()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.fields)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         rows = [[it + 1] + list(map(str, (v[it] for k, v in self.items()))) for it in range(self.num_iterations)]
 
         return tabulate(rows, headers=["Iter"] + list(self.keys()))
 
     @property
-    def last_iteration(self):
+    def last_iteration(self) -> dict:
         """Returns a dictionary with the values of the last iteration."""
         return {k: v[-1] for k, v in self.items()}
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> ScfCycle:
         """Read the first occurrence of ScfCycle from file."""
         with open(filepath, "rt") as stream:
             return cls.from_stream(stream)
 
     @classmethod
-    def from_stream(cls, stream):
+    def from_stream(cls, stream) -> Union[ScfCycle, None]:
         """
         Read the first occurrence of ScfCycle from stream.
 
@@ -181,7 +181,7 @@ class ScfCycle(Mapping):
         return None
 
     @add_fig_kwargs
-    def plot(self, ax_list=None, fontsize=8, **kwargs):
+    def plot(self, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
         Uses matplotlib to plot the evolution of the SCF cycle.
 
@@ -294,12 +294,14 @@ class ScfCycle(Mapping):
 
 
 class GroundStateScfCycle(ScfCycle):
-    """Result of the Ground State self-consistent cycle."""
+    """
+    Result of the Ground State self-consistent cycle.
+    """
 
     MAGIC = "iter   Etot(hartree)"
 
     @property
-    def last_etotal(self):
+    def last_etotal(self) -> float:
         """The total energy at the last iteration."""
         return self["Etot(hartree)"][-1]
 
@@ -310,7 +312,7 @@ class D2DEScfCycle(ScfCycle):
     MAGIC = "iter   2DEtotal(Ha)"
 
     @property
-    def last_etotal(self):
+    def last_etotal(self) -> float:
         """The 2-nd order derivative of the energy at the last iteration."""
         return self["2DEtotal(Ha)"][-1]
 
@@ -337,7 +339,7 @@ class CyclesPlotter:
         self.cycles.append(cycle)
 
     @add_fig_kwargs
-    def combiplot(self, fontsize=8, **kwargs):
+    def combiplot(self, fontsize=8, **kwargs) -> Figure:
         """
         Compare multiple cycels on a grid: one subplot per quantity,
         all cycles on the same subplot.
@@ -384,7 +386,7 @@ class Relaxation(Iterable):
         can be obtained by using the HIST.nc file.
     """
 
-    def __init__(self, cycles):
+    def __init__(self, cycles: list[GroundStateScfCycle]) -> None:
         """
         Args
             cycles: list of `GroundStateScfCycle` objects.
@@ -392,16 +394,16 @@ class Relaxation(Iterable):
         self.cycles = cycles
         self.num_iterations = len(self.cycles)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[GroundStateScfCycle]:
         return self.cycles.__iter__()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.cycles.__len__()
 
-    def __getitem__(self, slice):
+    def __getitem__(self, slice) -> Union[GroundStateScfCycle, list[GroundStateScfCycle]]:
         return self.cycles[slice]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
@@ -438,10 +440,10 @@ class Relaxation(Iterable):
     @lazy_property
     def history(self) -> dict:
         """
-        Ordered Dictionary of lists with the evolution of
+        dictionary of lists with the evolution of
         the data as function of the relaxation step.
         """
-        history = OrderedDict()
+        history = {}
         for cycle in self:
             d = cycle.last_iteration
             for k, v in d.items():
@@ -473,7 +475,7 @@ class Relaxation(Iterable):
             )
 
     @add_fig_kwargs
-    def plot(self, ax_list=None, fontsize=8, **kwargs):
+    def plot(self, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot relaxation history i.e. the results of the last iteration of each SCF cycle.
 
@@ -712,7 +714,7 @@ class YamlTokenizer(Iterator):
         self.seek(0)
         return docs
 
-    def next_doc_with_tag(self, doc_tag):
+    def next_doc_with_tag(self, doc_tag: str):
         """
         Returns the next document with the specified tag. Empty string is no doc is found.
         """
@@ -725,7 +727,7 @@ class YamlTokenizer(Iterator):
             except StopIteration:
                 raise
 
-    def all_docs_with_tag(self, doc_tag):
+    def all_docs_with_tag(self, doc_tag: str) -> list:
         """
         Returns all the documents with the specified tag.
         """
@@ -752,7 +754,7 @@ def yaml_read_kpoints(filename: str, doc_tag: str = "!Kpoints") -> np.ndarray:
         return np.array(d["reduced_coordinates_of_qpoints"])
 
 
-def yaml_read_irred_perts(filename: str, doc_tag="!IrredPerts") -> List[AttrDict]:
+def yaml_read_irred_perts(filename: str, doc_tag="!IrredPerts") -> list[AttrDict]:
     """Read the list of irreducible perturbations from file."""
     with YamlTokenizer(filename) as r:
         doc = r.next_doc_with_tag(doc_tag)
@@ -802,7 +804,7 @@ class YamlDoc:
         return not (self == other)
 
     @property
-    def text_notag(self):
+    def text_notag(self) -> str:
         """
         Returns the YAML text without the tag.
         Useful if we don't have any constructor registered for the tag

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Relaxation Flow
+Relaxation flow
 ===============
 
 This example shows how to build a very simple Flow for the structural relaxation of SiC.

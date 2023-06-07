@@ -10,7 +10,7 @@ import tempfile
 import numpy as np
 
 from collections import namedtuple
-from typing import Union, Any  #, List, Optional
+from typing import Union, Any
 from monty.functools import lazy_property
 from monty.collections import AttrDict, dict2namedtuple
 from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction, l2char
@@ -122,13 +122,29 @@ class OncvParser(BaseParser):
         self.gendate = toks.pop(-1)
         self.calc_type, self.version = toks[0], toks[2]
 
+        #print(self.version)
         self.major_version, self.minor_version, self.patch_level = tuple(map(int, self.version.split(".")))[:3]
 
         # Read configuration (not very robust because we assume the user didn't change the template but oh well)
+
+        # Also, handle atom with z > 100 in which atsym and z are not separated by white space e.g.
+        #
+        # atsym  z   nc   nv     iexc    psfile
+        # Rf104.00   10    8       4      both
+
         header = "# atsym  z    nc    nv    iexc   psfile"
         for i, line in enumerate(self.lines):
+
             if line.startswith("# atsym"):
-                values = self.lines[i+1].split()
+                values = self.lines[i + 1].split()
+                if len(values) != 6:
+                  # Rf104.00   10    8       4      both
+                  l = values.pop(0)
+                  atmsym, z = l[0:2], l[2:]
+                  values.insert(0, z)
+                  values.insert(0, atmsym)
+                  #print(values)
+
                 keys = header[1:].split()
                 # assert len(keys) == len(values)
                 # Store values in self.

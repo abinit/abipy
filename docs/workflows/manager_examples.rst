@@ -27,7 +27,6 @@ Dragon1
 	        PATH: "$HOME/git_repos/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH"
 	    modules:
 	        - mpich/3.0.4/intel-13.0.0
-	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -97,9 +96,6 @@ Hercules
 	    modules:
 	        - impi/5.1.3.181-iccifort-2016.3.210-GCC-5.4.0-2.26
 	        - imkl/11.3.3.210-iimpi-2016b
-	    # here pre_run is a string in verbatim mode (note |)
-	    pre_run: |
-	        ulimit -s unlimited
 	
 	# queues
 	qadapters:
@@ -150,7 +146,6 @@ Hmem
 	        PATH: "$HOME/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH"
 	    modules:
 	        - openmpi/1.5.3/intel-12.0.0.084
-	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -286,7 +281,6 @@ Jureca
 	        PATH: $HOME/abinit/801-private/jureca_mpi/src/98_main:$PATH
 	    modules:
 	        - intel-para/2015.07
-	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -322,7 +316,6 @@ Lemaitre2
 	        PATH: "$HOME/git_repos/abinit/_build_lemaitre2-intel-openmpi-mkl.ac/src/98_main/:$PATH"
 	    modules: # Abinit compiled with abiconfig settings
 	        - openmpi/1.6.5/intel-13.0.1.117
-	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -363,7 +356,6 @@ Lemaitre3
 	    modules: # Abinit compiled with abiconfig settings
 	        - intel/2017b
 	        - netCDF-Fortran/4.4.4-intel-2017b
-	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -380,6 +372,54 @@ Lemaitre3
 	       max_num_launches: 10
 	    hardware: *hardware
 	    job: *job
+
+
+Lumi
+----
+
+.. code-block:: yaml
+
+
+	# LUMI hardware: https://docs.lumi-supercomputer.eu/
+	# For the configuration file see:
+	# https://github.com/abinit/abiconfig/blob/master/abiconfig/clusters/lumi_XXXX.ac
+	hardware: &hardware
+	  num_nodes: 1376
+	  sockets_per_node: 2
+	  cores_per_socket: 64
+	  mem_per_node: 256Gb
+	
+	job: &job
+	  mpi_runner: srun
+	  shell_runner: None
+	  shell_env: # Use your abinit exec
+	    PATH: "$HOME/program/abinit-9.6.2/build_gnu/src/98_main/:$PATH"
+	  modules: # Abinit compiled with abiconfig settings
+	    - LUMI/21.08
+	    - PrgEnv-gnu/8.1.0
+	    - cray-libsci/21.08.1.2
+	    - cray-mpich/8.1.8
+	    - cray-hdf5/1.12.0.6
+	    - cray-netcdf/4.7.4.6
+	    - cray-fftw/3.3.8.11
+	
+	# queues
+	qadapters:
+	    - priority: 1
+	      queue:
+	        qtype: slurm
+	        qname: small
+	        qparams:
+	          account: project_XXXXXX  # Your project here
+	          #mail_type: FAIL
+	          #mail_user: # Othere slurm options ...
+	      limits:
+	        timelimit: 0-12:00:00
+	        min_cores: 1
+	        max_cores: 128
+	        max_num_launches: 10
+	      hardware: *hardware
+	      job: *job
 
 
 Manneback
@@ -462,7 +502,6 @@ Nic4
 	    mpi_runner_options: "--bind-to none"
 	    shell_env:
 	        PATH: "$HOME/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH"
-	    pre_run: "ulimit -s unlimited"
 	    modules:
 	        - shared
 	        - openmpi/1.7.5/intel2013_sp1.1.106
@@ -559,7 +598,6 @@ Travis
 	        mpi_runner: mpirun
 	        pre_run:
 	            - source activate abinit-environment
-	            - ulimit -s unlimited
 	      limits:
 	         min_cores: 1
 	         max_cores: 2
@@ -618,7 +656,6 @@ Vega
 	        PATH: "$HOME/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH"
 	    modules:
 	        - intel/2015a
-	    #pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -653,7 +690,6 @@ Viper
 	    mpi_runner: ~/bin/mpirun.openmpi
 	    # pre_run is a string in verbatim mode (note |)
 	    pre_run:
-	        - "ulimit -s unlimited"
 	        - "source ~/.bashrc"
 	
 	# queues
@@ -700,7 +736,6 @@ Zenobe
 	        - compiler/intel/composerxe/2013_sp1.1.106
 	        - intelmpi
 	        - python/2.7
-	    pre_run: "ulimit -s unlimited"
 	
 	# List of qdapters.
 	qadapters:

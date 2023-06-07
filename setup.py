@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # flake8: noqa
 """Setup script for AbiPy."""
+from __future__ import annotations
 
 import sys
 import os

@@ -23,14 +23,14 @@ import panel as pn
 from datetime import datetime
 from uuid import uuid4
 #from queue import Queue, Empty
-from typing import List, Union, Optional, Tuple  # , Type  # Awaitable
+from typing import Union, Optional  # , Type  # Awaitable
 from enum import Enum
 from monty.json import MSONable
 from monty.termcolor import colored
 #from monty.functools import lazy_property
 from tqdm import tqdm
 
-from pymatgen.util.serialization import pmg_serialize
+from abipy.tools.serialization import pmg_serialize
 from abipy.tools.printing import print_dataframe
 from abipy.tools import duck
 from abipy.tools.iotools import yaml_safe_load_path
@@ -419,7 +419,7 @@ class AbipyWorker:
             self.flowid2_oid_model[flow.node_id] = (oid, model)
 
     @classmethod
-    def _get_state_path(cls, name: str) -> Tuple[WorkerState, str]:
+    def _get_state_path(cls, name: str) -> tuple[WorkerState, str]:
         config_dir = os.path.join(ABIPY_DIRPATH, f"worker_{name}")
         state_filepath = os.path.join(config_dir, "state.json")
 
@@ -715,7 +715,7 @@ Running on {socket.gethostname()} -- system {system} -- Python {platform.python_
         #return server.start()
 
 
-def _get_all_local_worker_states(dirpath: Optional[str] = None) -> List[WorkerState]:
+def _get_all_local_worker_states(dirpath: Optional[str] = None) -> list[WorkerState]:
     dirpath = ABIPY_DIRPATH if not dirpath else dirpath
 
     worker_dirs = [dirname for dirname in os.listdir(dirpath) if dirname.startswith("worker_")]
@@ -1084,7 +1084,7 @@ to create it""")
         return new
 
     @classmethod
-    def rscan(cls, hostnames: List[str], printout: bool = True) -> WorkerClients:
+    def rscan(cls, hostnames: list[str], printout: bool = True) -> WorkerClients:
         """
         Uses fabric to discover AbipyWorkers running on remote machines.
 
@@ -1200,7 +1200,7 @@ to create it""")
         with open(filepath, "wt") as fp:
             json.dump(self.as_dict(), fp, indent=2)
 
-    def update_worker_states(self, worker_states: List[WorkerState], write_json: bool = True) -> None:
+    def update_worker_states(self, worker_states: list[WorkerState], write_json: bool = True) -> None:
         """
         Update clients from worker_states
         """
@@ -1283,7 +1283,7 @@ to create it""")
         if df.empty: return df
         return df[select_keys].set_index("name")
 
-    def get_all_worker_names(self) -> List[str]:
+    def get_all_worker_names(self) -> list[str]:
         """Return the list of worker names stored in self."""
         return [client.worker_state.name for client in self]
 

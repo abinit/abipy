@@ -1,15 +1,17 @@
 # coding: utf-8
 """Decorators."""
+from __future__ import annotations
 
 import time
 import functools
 import weakref
 import inspect
 
+from typing import Callable
 from textwrap import dedent
 
 
-def return_straceback_ifexc(func):
+def return_straceback_ifexc(func: Callable):
     """
     Decorator for functions that are supposed to return a string for logging purposes (e.g. str)
     Instead of raising an exception, the decorated function returns a string with the
@@ -73,7 +75,7 @@ def memoized_method(*lru_args, **lru_kwargs):
     return decorator
 
 
-def dump_args(func):
+def dump_args(func: Callable):
     """
     Decorator to print function call details.
 
@@ -91,7 +93,7 @@ def dump_args(func):
     return wrapper
 
 
-class Appender(object):
+class Appender:
     r"""
     A function decorator that appends an addendum to the docstring of the target function.
     This decorator should be robust even if func.__doc__ is None
@@ -145,7 +147,7 @@ class Appender(object):
         return func
 
 
-def indent(text, indents=1):
+def indent(text: str, indents=1) -> str:
     if not text or not isinstance(text, str):
         return ''
     jointext = ''.join(['\n'] + ['    '] * indents)

@@ -1,10 +1,9 @@
 # coding: utf-8
+from __future__ import annotations
+
 import os
 import tempfile
 import warnings
-
-import logging
-logger = logging.getLogger(__file__)
 
 
 def profile(statement, global_vars, local_vars):
@@ -27,7 +26,7 @@ def profile(statement, global_vars, local_vars):
     return s
 
 
-class HtmlDiff(object):
+class HtmlDiff:
     """
     This object produces diff files in HTML format and displays them in the browser.
 
@@ -37,7 +36,7 @@ class HtmlDiff(object):
 
         HtmlDiff(filepaths).open_browser()
     """
-    def __init__(self, filepaths):
+    def __init__(self, filepaths: list[str]):
         if len(filepaths) < 2:
             raise ValueError("You need more than one file to compare!")
         self.filepaths = filepaths

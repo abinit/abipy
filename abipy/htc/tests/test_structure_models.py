@@ -12,7 +12,7 @@ class TestStructureData(AbipyTest):
         si = Structure.as_structure(abidata.cif_file("si.cif"))
         structure_data = StructureData.from_structure(si)
         #collection = mongomock.MongoClient().db.collection
-        self.assertMSONable(structure_data, test_if_subclass=True)
+        self.assert_msonable(structure_data, test_if_subclass=True)
         assert structure_data.crystal_system == "Cubic"
         assert "Cubic" in structure_data.get_title()
 

@@ -21,7 +21,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
-from pymatgen.util.serialization import pmg_serialize
+from abipy.tools.serialization import pmg_serialize
 from abipy.flowtk import AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -38,6 +38,7 @@ from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_figs_plotly, get_fig_plotly,
                                   add_plotly_fig_kwargs, PlotlyRowColDesc, plotlyfigs_to_browser, push_to_chart_studio)
 from abipy.tools import duck
+from abipy.tools.typing import Figure
 from abipy.tools.iotools import ExitStackWithFiles
 from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.robots import Robot
@@ -112,7 +113,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     AnaddbError = AnaddbError
 
     @classmethod
-    def from_file(cls, filepath) -> DdbFile:
+    def from_file(cls, filepath: str) -> DdbFile:
         """Needed for the :class:`TextFile` abstract interface."""
         return cls(filepath)
 
@@ -355,7 +356,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return h
 
-    def _read_qpoints(self):
+    def _read_qpoints(self) -> np.ndarray:
         """Read the list q-points from the DDB file. Returns |numpy-array|."""
         # 2nd derivatives (non-stat.)  - # elements :      36
         # qpt  2.50000000E-01  0.00000000E+00  0.00000000E+00   1.0
@@ -380,9 +381,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return np.reshape(qpoints, (-1, 3))
 
     @lazy_property
-    def computed_dynmat(self):
+    def computed_dynmat(self) -> dict:
         """
-        OrderedDict mapping q-point object to --> pandas Dataframe.
+        dict mapping q-point object to --> pandas Dataframe.
         The |pandas-DataFrame| contains the columns: "idir1", "ipert1", "idir2", "ipert2", "cvalue"
         and (idir1, ipert1, idir2, ipert2) as index.
 
@@ -430,7 +431,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return dynmat
 
     @lazy_property
-    def blocks(self):
+    def blocks(self) -> list:
         """
         DDB blocks. List of dictionaries, Each dictionary contains the following keys.
         "qpt" with the reduced coordinates of the q-point.
@@ -438,7 +439,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         return self._read_blocks()
 
-    def _read_blocks(self):
+    def _read_blocks(self) -> list:
         # skip until the beginning of the db
         self.seek(0)
         while "Number of data blocks" not in self._file.readline():
@@ -504,7 +505,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return blocks
 
     @property
-    def qpoints(self):
+    def qpoints(self) -> KpointList:
         """|KpointList| object with the list of q-points in reduced coordinates."""
         return self._qpoints
 
@@ -528,7 +529,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             return self.qpoints.index(qpoint)
 
     @lazy_property
-    def guessed_ngqpt(self):
+    def guessed_ngqpt(self) -> np.ndarray:
         """
         Guess for the q-mesh divisions (ngqpt) inferred from the list of
         q-points found in the DDB file.
@@ -540,7 +541,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         return self._guess_ngqpt()
 
-    def _guess_ngqpt(self):
+    def _guess_ngqpt(self) -> np.ndarray:
         """
         This function tries to figure out the value of ngqpt from the list of
         points reported in the DDB file.
@@ -575,7 +576,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             od[k] = self.header[k]
         return od
 
-    def _add_params(self, obj):
+    def _add_params(self, obj) -> None:
         """Add params (meta variable) to object ``obj``. Usually a phonon bands or phonon dos object."""
         if not hasattr(obj, "params"):
             raise TypeError("object %s does not have `params` attribute" % type(obj))
@@ -628,7 +629,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return None
 
     @lazy_property
-    def cart_stress_tensor(self):
+    def cart_stress_tensor(self) -> Stress:
         """
         |Stress| tensor in cartesian coordinates (GPa units). None if not available.
         """
@@ -1260,7 +1261,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         nx, ny, nz = ngqpt_coarse
         for i, j, k in itertools.product(range(-int(nx/2), int(nx/2) + 1),
                                          range(-int(ny/2), int(ny/2) + 1),
-                                        range(-int(nz/2), int(nz/2) + 1)):
+                                         range(-int(nz/2), int(nz/2) + 1)):
             coarse_qpt = np.array([i, j, k]) / np.array(ngqpt_coarse)
             for n,fine_qpt in enumerate(fine_qpoints):
                 if np.allclose(coarse_qpt, fine_qpt):
@@ -1965,7 +1966,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return task
 
-    def write(self, filepath, filter_blocks=None):
+    def write(self, filepath, filter_blocks=None) -> None:
         """
         Writes the DDB file in filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks will be used to produce the file
@@ -2083,7 +2084,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False
 
-    def get_2nd_ord_dict(self):
+    def get_2nd_ord_dict(self) -> dict:
         """
         Generates an ordered dictionary with the second order derivative of the form
         {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
@@ -2102,7 +2103,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return d
 
-    def set_2nd_ord_data(self, data, replace=True):
+    def set_2nd_ord_data(self, data, replace=True) -> None:
         """
         Insert the blocks corresponding to the data provided for the second
         order perturbations.
@@ -2127,7 +2128,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         from abipy.panels.ddb import DdbFilePanel
         return DdbFilePanel(ddb=self).get_panel(**kwargs)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -2228,7 +2229,7 @@ class Becs(Has_Structure, MSONable):
     """
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         """Return dictionary with JSON serialization in MSONable format."""
         return dict(becs_arr=self.values, structure=self.structure, chneut=self.chneut, order="c")
 
@@ -2255,14 +2256,14 @@ class Becs(Has_Structure, MSONable):
         self.zstars = [ZstarTensor(mat) for mat in self.values]
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
         app("Born effective charges in Cartesian coordinates (Voigt notation)")
@@ -2283,15 +2284,16 @@ class Becs(Has_Structure, MSONable):
         return "\n".join(lines)
 
     @property
-    def sumrule(self):
+    def sumrule(self) -> np.ndarray:
         """[3, 3] matrix with Born effective charge neutrality sum-rule."""
         return self.values.sum(axis=0)
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, select_symbols=None, decimals=5, verbose=0):
+    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, 
+                            select_symbols=None, decimals=5, verbose=0) -> pd.DataFrame:
         """
         Return |pandas-DataFrame| with Voigt indices as columns and natom rows.
 
@@ -2414,14 +2416,14 @@ class DielectricTensorGenerator(Has_Structure):
         self._structure = structure
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation with verbosity level `verbose`."""
         lines = []
         app = lines.append
@@ -2451,7 +2453,7 @@ class DielectricTensorGenerator(Has_Structure):
 
         return "\n".join(lines)
 
-    def get_oscillator_dataframe(self, reim="all", tol=1e-6):
+    def get_oscillator_dataframe(self, reim="all", tol=1e-6) -> pd.DataFrame:
         """
         Return |pandas-Dataframe| with oscillator matrix elements.
 
@@ -2476,7 +2478,7 @@ class DielectricTensorGenerator(Has_Structure):
         df.index.name = "mode"
         return df
 
-    def tensor_at_frequency(self, w, gamma_ev=1e-4, units='eV'):
+    def tensor_at_frequency(self, w, gamma_ev=1e-4, units='eV') -> DielectricTensor:
         """
         Returns a |DielectricTensor| object representing the dielectric tensor
         in atomic units at the specified frequency w. Eq.(53-54) in PRB55, 10355 (1997).
@@ -2512,7 +2514,7 @@ class DielectricTensorGenerator(Has_Structure):
 
     @add_fig_kwargs
     def plot(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component='diag', reim="reim", units='eV',
-             with_phfreqs=True, ax=None, fontsize=12, **kwargs):
+             with_phfreqs=True, ax=None, fontsize=12, **kwargs) -> Figure:
         """
         Plots the selected components of the dielectric tensor as a function of frequency with matplotlib.
 
@@ -2694,7 +2696,7 @@ class DielectricTensorGenerator(Has_Structure):
     plot_vs_w = plot
 
     @add_fig_kwargs
-    def plot_all(self, **kwargs):
+    def plot_all(self, **kwargs) -> Figure:
         """
         Plot diagonal and off-diagonal elements of the dielectric tensor as a function of frequency.
         Both real and imag part are show. Accepts all arguments of `plot` method with the exception of:
@@ -2715,7 +2717,7 @@ class DielectricTensorGenerator(Has_Structure):
 
     @add_fig_kwargs
     def plot_e0w_qdirs(self, qdirs=None, w_min=0, w_max=None, gamma_ev=1e-4, num=500, reim="reim", func="direct",
-                       units='eV', with_phfreqs=True, ax=None, fontsize=12, **kwargs):
+                       units='eV', with_phfreqs=True, ax=None, fontsize=12, **kwargs) -> Figure:
         r"""
         Plots the dielectric tensor and/or -epsinf_q**2 / \epsilon_q along a set of specified directions.
         With \epsilon_q as defined in eq. (56) in :cite:`Gonze1997` PRB55, 10355 (1997).
@@ -2794,7 +2796,7 @@ class DielectricTensorGenerator(Has_Structure):
 
         return fig
 
-    def _add_phfreqs(self, ax, units, with_phfreqs):
+    def _add_phfreqs(self, ax, units, with_phfreqs) -> None:
         """
         Helper functions to add the phonon frequencies to the x axis.
         Args:
@@ -2808,7 +2810,7 @@ class DielectricTensorGenerator(Has_Structure):
             wvals = self.phfreqs[3:] * phfactor_ev2units(units)
             ax.scatter(wvals, np.zeros_like(wvals), s=30, marker="o", c="blue")
 
-    def _add_phfreqs_plotly(self, fig, rcd, units, with_phfreqs):
+    def _add_phfreqs_plotly(self, fig, rcd, units, with_phfreqs) -> None:
         """
         Helper functions to add the phonon frequencies to the plotly fig.
         Args:
@@ -2853,7 +2855,7 @@ class DielectricTensorGenerator(Has_Structure):
 
     @add_fig_kwargs
     def plot_reflectivity(self, qdirs=None, w_min=0, w_max=None, gamma_ev=1e-4, num=500,
-                          units='eV', with_phfreqs=True, ax=None, fontsize=12, **kwargs):
+                          units='eV', with_phfreqs=True, ax=None, fontsize=12, **kwargs) -> Figure:
         """
         Plots the reflectivity from the dielectric tensor along the specified directions,
         according to eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
@@ -2874,7 +2876,6 @@ class DielectricTensorGenerator(Has_Structure):
 
         Return: |matplotlib-Figure|
         """
-
         wmesh = self._get_wmesh(gamma_ev, num, units, w_min, w_max)
         t = np.zeros((num, 3, 3), dtype=complex)
 
@@ -2927,7 +2928,7 @@ class DdbRobot(Robot):
     EXT = "DDB"
 
     @classmethod
-    def class_handles_filename(cls, filename):
+    def class_handles_filename(cls, filename: str):
         """Exclude DDB.nc files. Override base class."""
         return filename.endswith("_" + cls.EXT)
 
@@ -3050,8 +3051,9 @@ class DdbRobot(Robot):
 
     #    return retcode, results
 
-    def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
-                                ifcflag=0, with_geo=True, with_spglib=True, abspath=False, funcs=None):
+    def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1, 
+                                dipdip=1, dipquad=1, quadquad=1, ifcflag=0, with_geo=True, 
+                                with_spglib=True, abspath=False, funcs=None) -> pd.DataFrame:
         """
         Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
         by the robot and the given anaddb input arguments. LO-TO splitting is not included.
@@ -3350,7 +3352,7 @@ class DdbRobot(Robot):
         from abipy.panels.ddb import DdbRobotPanel
         return DdbRobotPanel(self).get_panel(**kwargs)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
@@ -3380,7 +3382,7 @@ class DdbRobot(Robot):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-def get_2nd_ord_block_string(qpt, data):
+def get_2nd_ord_block_string(qpt, data) -> list:
     """
     Helper function providing the lines required in a DDB file for a given
     q-point and second order derivatives.

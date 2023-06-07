@@ -6,7 +6,8 @@ Phonons with DFPT
 This example shows how to compute the phonon band structure of AlAs with AbiPy flows.
 Symmetries are taken into account: only q-points in the IBZ are generated and
 for each q-point only the independent atomic perturbations are computed.
-The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
+
+The final results (out_DDB, out_DVDB) are produced automatically at the end of the run
 and saved in ``flow_phonons/w1/outdata/``.
 """
 
