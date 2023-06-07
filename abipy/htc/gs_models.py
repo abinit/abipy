@@ -8,7 +8,7 @@ from typing import List
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.ebands import ElectronBands
 from abipy.dynamics.hist import HistFile
-from .base_models import AbipyModel, GfsFileDesc, GfsDesc
+from .base_models import AbipyModel, GfsFileDesc, GfsDesc, MongoConnector
 #from .structure_models import StructureData
 
 

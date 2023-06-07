@@ -137,8 +137,8 @@ class TestAbinitInputFile(AbipyTest):
         """
         inp = AbinitInputFile.from_string(s)
         assert inp.ndtset == 3
-        self.assertArrayEqual([dt["ecut"] for dt in inp.datasets], [10, 15, 20])
-        self.assertArrayEqual([dt["pawecutdg"] for dt in inp.datasets], [2, 6, 18])
+        self.assert_equal([dt["ecut"] for dt in inp.datasets], [10, 15, 20])
+        self.assert_equal([dt["pawecutdg"] for dt in inp.datasets], [2, 6, 18])
         repr(inp); str(inp)
 
         # Test arithmetic series with xcart.
@@ -182,13 +182,13 @@ xred 3*0 3*1/4
 """
         inp = AbinitInputFile.from_string(s)
         assert inp.ndtset == 1 and inp.structure is not None and len(inp.structure) == 2
-        self.assertArrayEqual(inp.structure[0].frac_coords, [0, 0, 0])
-        self.assertArrayEqual(inp.structure[0].specie.symbol, "Ga")
-        self.assertArrayEqual(inp.structure[1].frac_coords, [1/4, 1/4, 1/4])
-        self.assertArrayEqual(inp.structure[1].specie.symbol, "As")
+        self.assert_equal(inp.structure[0].frac_coords, [0, 0, 0])
+        self.assert_equal(inp.structure[0].specie.symbol, "Ga")
+        self.assert_equal(inp.structure[1].frac_coords, [1/4, 1/4, 1/4])
+        self.assert_equal(inp.structure[1].specie.symbol, "As")
         mat = 5.6533 * np.array([0, 1/2, 1/2, 1/2, 0, 1/2, 1/2, 1/2, 0])
         mat.shape = (3, 3)
-        self.assertArrayEqual(inp.structure[1].lattice.matrix, mat)
+        self.assert_equal(inp.structure[1].lattice.matrix, mat)
 
         # tutorial/input/tbase2_1
         # 2 datasets with different natom (should use typat[:1] in 2nd dataset)

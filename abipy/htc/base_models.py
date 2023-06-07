@@ -11,7 +11,7 @@ import zlib
 
 #import numpy as np
 
-from typing import List, Any, Type, TypeVar, Optional, Iterable, Tuple
+from typing import Any, Type, TypeVar, Optional, Iterable
 #from uuid import UUID
 #from pprint import pprint
 from pydantic import BaseModel, Field, PrivateAttr, root_validator  # , SecretStr
@@ -22,11 +22,11 @@ from pymongo.database import Database
 from pymongo.collection import Collection
 from gridfs import GridFS
 from monty.json import MontyEncoder, MontyDecoder, MSONable
-from pymatgen.util.serialization import pmg_serialize
 from pymatgen.core import __version__ as pmg_version
 from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.periodic_table import Element
+from abipy.tools.serialization import pmg_serialize
 from abipy.core.release import __version__ as abipy_version
 from abipy.core.structure import Structure
 from abipy.tools.iotools import ask_yes_no
@@ -199,7 +199,7 @@ class AbipyModel(BaseModel, MSONable):
     #def get_panel_view(self, mng_connector: MongoConnector):
     #    """Return panel object with a view of the model"""
 
-    def yaml_dump(self):
+    def yaml_dump(self) -> str:
         import ruamel.yaml as yaml
         json_string = self.to_json()
         return yaml.safe_dump(yaml.safe_load(json_string), default_flow_style=False)
@@ -358,7 +358,7 @@ class MongoConnector(AbipyModel):
         db = self.get_db()
         return db[collection_name or self.collection_name]
 
-    def get_gridfs_and_name(self, collection_name: Optional[str] = None, ret_collname=False, **kwargs) -> Tuple[GridFS, str]:
+    def get_gridfs_and_name(self, collection_name: Optional[str] = None, ret_collname=False, **kwargs) -> tuple[GridFS, str]:
         """
         Returns GridFS collection. Use automatically generated name.
         """
@@ -367,7 +367,7 @@ class MongoConnector(AbipyModel):
         fs = GridFS(db, collection=coll_name, **kwargs)
         return fs, coll_name
 
-    def list_collection_names(self) -> List[str]:
+    def list_collection_names(self) -> list[str]:
         """
         "Return list of strings with all collection names in the database.
         """
@@ -538,7 +538,7 @@ class MongoConnector(AbipyModel):
     def init_flow_model_collection(self, flow_model_cls, protocol=None) -> None:
 
         if not hasattr(flow_model_cls, "_magic_key"):
-            raise TypeError(f"Expecting FlowModel subclass with `_magic_key, got {flow_mode_cls.__name__}")
+            raise TypeError(f"Expecting FlowModel subclass with `_magic_key, got {flow_model_cls.__name__}")
 
         new_dict = cls2dict(flow_model_cls)
         if protocol:
@@ -576,7 +576,7 @@ class MongoConnector(AbipyModel):
 
     #    return flow_model_cls, protocol
 
-    def insert_flow_models(self, models: List[TopLevelModel], verbose: int = 0) -> List[ObjectId]:
+    def insert_flow_models(self, models: list[TopLevelModel], verbose: int = 0) -> list[ObjectId]:
         """
         Insert list of FlowModels in collection.
         Return list of objectid
@@ -588,7 +588,7 @@ class MongoConnector(AbipyModel):
             raise ValueError(f"All models must belong to the same class {models[0].__class__}")
 
         if not hasattr(flow_model_cls, "_magic_key"):
-            raise TypeError(f"Expecting FlowModel subclass with `_magic_key, got {flow_mode_cls.__name__}")
+            raise TypeError(f"Expecting FlowModel subclass with `_magic_key, got {flow_model_cls.__name__}")
 
         new_dict = cls2dict(flow_model_cls)
 
@@ -609,7 +609,7 @@ class MongoConnector(AbipyModel):
 
         return mng_insert_models(models, collection)
 
-    def find_err_oid_flowmodels(self) -> Iterable[Tuple]:
+    def find_err_oid_flowmodels(self) -> Iterable[tuple]:
         collection = self.get_collection()
 
         from .flow_models import FlowModel
@@ -639,7 +639,7 @@ class MockedMongoConnector(MongoConnector):
     #def get_collection(self, collection_name: Optional[str] = None) -> Collection:
     #    return mongomock.MongoClient().db.collection
 
-    def get_gridfs_and_name(self, collection_name: Optional[str] = None, **kwargs) -> Tuple[GridFS, str]:
+    def get_gridfs_and_name(self, collection_name: Optional[str] = None, **kwargs) -> tuple[GridFS, str]:
         from mongomock.gridfs import enable_gridfs_integration
         enable_gridfs_integration()
         return super().get_gridfs_and_name(collection_name=collection_name, **kwargs)
@@ -736,7 +736,7 @@ class TopLevelModel(AbipyModel):
 #    return cls.from_json_file(filepath)
 
 
-def mng_insert_models(models: List[AbipyModel], collection: Collection, verbose: int = 0) -> List[ObjectId]:
+def mng_insert_models(models: list[AbipyModel], collection: Collection, verbose: int = 0) -> list[ObjectId]:
     """
     Insert list of models in a collection. If verbose > 0, print elasped time.
     Return: list of ObjectId
@@ -755,7 +755,7 @@ class QueryResults:
     Stores the results of a MongoDB query in the form of modelds instead of plain dictionaries.
     """
 
-    def __init__(self, oids: List[ObjectId], models: List[AbipyModel], query: dict) -> None:
+    def __init__(self, oids: list[ObjectId], models: list[AbipyModel], query: dict) -> None:
         """
         Args:
             oids:

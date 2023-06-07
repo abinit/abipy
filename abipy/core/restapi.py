@@ -2,7 +2,10 @@
 This module provides interfaces with the Materials Project REST API v2 to enable
 the creation of data structures and pymatgen objects using Materials Project data.
 """
+from __future__ import annotations
+
 import sys
+import pandas as pd
 
 from collections import OrderedDict
 from pprint import pprint
@@ -24,7 +27,7 @@ MP_KEYS_FOR_DATAFRAME = (
 )
 
 
-def get_mprester(api_key=None, endpoint=None):
+def get_mprester(api_key=None, endpoint=None) -> MyMPRester:
     """
     Args:
         api_key (str): A String API key for accessing the MaterialsProject
@@ -62,7 +65,7 @@ class MyMPRester(MPRester):
     """
     Error = MPRestError
 
-    def get_phasediagram_results(self, elements):
+    def get_phasediagram_results(self, elements) -> PhaseDiagramResults:
         """
         Contact the materials project database, fetch entries and build :class:``PhaseDiagramResults`` instance.
 
@@ -73,7 +76,7 @@ class MyMPRester(MPRester):
         return PhaseDiagramResults(entries)
 
 
-class PhaseDiagramResults(object):
+class PhaseDiagramResults:
     """
     Simplified interface to phase-diagram pymatgen API.
 
@@ -116,7 +119,7 @@ class PhaseDiagramResults(object):
         return plotter
 
     @lazy_property
-    def dataframe(self):
+    def dataframe(self) -> pd.DataFrame:
         """Pandas dataframe with the most important results."""
         rows = []
         for e in self.entries:
@@ -134,7 +137,7 @@ class PhaseDiagramResults(object):
         import pandas as pd
         return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
-    def print_dataframes(self, with_spglib=False, file=sys.stdout, verbose=0):
+    def print_dataframes(self, with_spglib=False, file=sys.stdout, verbose=0) -> None:
         """
         Print pandas dataframe to file `file`.
 
@@ -175,9 +178,10 @@ class DatabaseStructures(NotebookWriter):
     def __bool__(self):
         """bool(self)"""
         return bool(self.structures)
+
     __nonzero__ = __bool__  # py2
 
-    def filter_by_spgnum(self, spgnum):
+    def filter_by_spgnum(self, spgnum: int) -> MpStructures:
         """Filter structures by space group number. Return new MpStructures object."""
         inds = [i for i, s in enumerate(self.structures) if s.get_space_group_info()[1] == int(spgnum)]
         new_data = None if self.data is None else [self.data[i] for i in inds]
@@ -201,12 +205,12 @@ class DatabaseStructures(NotebookWriter):
         return self.__class__(self.structures + [structure], self.ids + [entry_id], data=new_data)
 
     @property
-    def lattice_dataframe(self):
+    def lattice_dataframe(self) -> pd.DataFrame:
         """pandas DataFrame with lattice parameters."""
         return self.structure_dataframes.lattice
 
     @property
-    def coords_dataframe(self):
+    def coords_dataframe(self) -> pd.DataFrame:
         """pandas DataFrame with atomic positions."""
         return self.structure_dataframes.coords
 
@@ -216,7 +220,7 @@ class DatabaseStructures(NotebookWriter):
         from abipy.core.structure import dataframes_from_structures
         return dataframes_from_structures(self.structures, index=self.ids, with_spglib=True)
 
-    def print_results(self, fmt="abivars", verbose=0, file=sys.stdout):
+    def print_results(self, fmt="abivars", verbose=0, file=sys.stdout) -> None:
         """
         Print pandas dataframe, structures using format `fmt`, and data to file `file`.
         `fmt` is automaticall set to `cif` if structure is disordered.
@@ -250,7 +254,7 @@ class DatabaseStructures(NotebookWriter):
         """NOP required by NotebookWriter protocol."""
         yield None
 
-    def write_notebook(self, nbpath=None, title=None):
+    def write_notebook(self, nbpath=None, title=None) -> str:
         """
         Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -282,7 +286,7 @@ class MpStructures(DatabaseStructures):
     dbname = "Materials Project"
 
     @lazy_property
-    def dataframe(self):
+    def dataframe(self) -> pd.DataFrame:
         """
         Pandas dataframe constructed from self.data. None if data is not available.
         """
@@ -325,7 +329,7 @@ class CodStructures(DatabaseStructures):
     dbname = "COD"
 
     @lazy_property
-    def dataframe(self):
+    def dataframe(self) -> pd.DataFrame:
         """
         |pandas-Dataframe| constructed. Essentially geometrical info and space groups found by spglib_
         as COD API is rather limited.

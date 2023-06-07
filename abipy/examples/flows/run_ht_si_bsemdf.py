@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Bethe-Salpeter Flow with factory functions
+Bethe-Salpeter flow with factory functions
 ==========================================
 
 Calculation of the BSE spectrum with the High-throuhput interface (factory functions).

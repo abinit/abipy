@@ -1,15 +1,19 @@
 # coding: utf-8
-import numpy as np
+from __future__ import annotations
+
 import os
 import abc
+import numpy as np
 import abipy.core.abinit_units as abu
 
 from scipy.interpolate import UnivariateSpline
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from pymatgen.analysis.eos import EOS
 from abipy.core.func1d import Function1D
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBandsPlotter, PhononDos, PhdosFile
@@ -67,7 +71,23 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         tot_en = self.energies[np.newaxis, :].T + ph_energies + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
 
         # list of fits objects, one for each temperature
-        fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
+        #fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
+
+        fits = []
+        for kt, e in zip(tmesh, tot_en.T):
+            try:
+                f = self.eos.fit(self.volumes, e)
+                fits.append(f)
+            except Exception as exc:
+                msg = f"""
+EOS fit failed for T={kt} with exception:
+
+    {str(exc)}
+
+Very likely the minimum volume is not in the input range.
+Try to change the temperature range with the `tstart`, `tstop` optional arguments
+"""
+                cprint(msg, color="red")
 
         # list of minimum volumes and energies, one for each temperature
         min_volumes = np.array([fit.v0 for fit in fits])
@@ -109,16 +129,16 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         """
 
     @property
-    def nvols(self):
+    def nvols(self) -> int:
         """Number of volumes"""
         return len(self.volumes)
 
     @property
-    def natoms(self):
+    def natoms(self) -> int:
         """Number of atoms in the unit cell."""
         return len(self.structures[0])
 
-    def set_eos(self, eos_name):
+    def set_eos(self, eos_name: str) -> None:
         """
         Set the EOS model used for the fit.
 
@@ -128,7 +148,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         self.eos = EOS(eos_name)
 
     @add_fig_kwargs
-    def plot_energies(self, tstart=0, tstop=800, num=10, ax=None, **kwargs):
+    def plot_energies(self, tstart=0, tstop=800, num=10, ax=None, **kwargs) -> Figure:
         """
         Plots the energies as a function of volume at different temperatures.
 
@@ -154,10 +174,11 @@ class AbstractQHA(metaclass=abc.ABCMeta):
 
         ax.set_xlabel(r'V (${\AA}^3$)')
         ax.set_ylabel('E (eV)')
+        #ax.grid(True)
 
         return fig
 
-    def get_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100):
+    def get_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100) -> Function1D:
         """
         Calculates the thermal expansion coefficient as a function of temperature, using
         finite difference on the fitted values of the volume as a function of temperature.
@@ -177,7 +198,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         return Function1D(f.temp[1:-1], alpha)
 
     @add_fig_kwargs
-    def plot_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100, ax=None, **kwargs):
+    def plot_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -210,7 +231,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_vol_vs_t(self, tstart=0, tstop=800, num=100, ax=None, **kwargs):
+    def plot_vol_vs_t(self, tstart=0, tstop=800, num=100, ax=None, **kwargs) -> Figure:
         """
         Plot the volume as a function of the temperature.
 
@@ -240,7 +261,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_phbs(self, phbands, temperatures=None, t_max=1000, colormap="plasma", **kwargs):
+    def plot_phbs(self, phbands, temperatures=None, t_max=1000, colormap="plasma", **kwargs) -> Figure:
         """
         Given a list of |PhononBands| plots the band structures with a color depending on
         the temperature using a |PhononBandsPlotter|.
@@ -280,7 +301,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
 
         return fig
 
-    def get_vol_at_t(self, t):
+    def get_vol_at_t(self, t) -> float:
         """
         Calculates the volume corresponding to a specific temperature.
 
@@ -293,7 +314,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
 
         return f.min_vol[0]
 
-    def get_t_for_vols(self, vols, t_max=1000):
+    def get_t_for_vols(self, vols, t_max=1000) -> list[float]:
         """
         Find the temperatures corresponding to a specific volume.
         The search is performed interpolating the V(T) dependence with a spline and
@@ -320,7 +341,7 @@ class AbstractQHA(metaclass=abc.ABCMeta):
 
         return temps
 
-    def write_phonopy_qha_inputs(self, tstart=0, tstop=2100, num=211, path=None):
+    def write_phonopy_qha_inputs(self, tstart=0, tstop=2100, num=211, path=None) -> None:
         """
         Writes nvols thermal_properties-i.yaml files that can be used as inputs for phonopy-qha.
         Notice that phonopy apparently requires the value of the 300 K temperature to be present
@@ -494,7 +515,7 @@ class QHA(AbstractQHA):
         if ierr != 0:
             raise RuntimeError("Expecting lists with same volumes!")
 
-    def get_vib_free_energies(self, tstart=0, tstop=800, num=100):
+    def get_vib_free_energies(self, tstart=0, tstop=800, num=100) -> np.ndarray:
         """
         Generates the vibrational free energy from the phonon DOS.
 
@@ -560,7 +581,7 @@ class QHA3PF(AbstractQHA):
     """
 
     @classmethod
-    def from_files(cls, gsr_paths, phdos_paths, ind_doses):
+    def from_files(cls, gsr_paths, phdos_paths, ind_doses) -> QHA3PF:
         """
         Creates an instance of QHA from a list of GSR files and a list of PHDOS.nc files.
         The list should have the same size and the volumes should match.
@@ -571,7 +592,7 @@ class QHA3PF(AbstractQHA):
             ind_doses: list of three values indicating, for each of the three doses, the index of the
                 corresponding gsr_file in "gsr_paths".
 
-        Returns: A new instance of QHA
+        Returns: A new instance of QHA3PF
         """
         energies = []
         structures = []
@@ -699,7 +720,7 @@ class QHA3P(AbstractQHA):
     """
 
     @classmethod
-    def from_files(cls, gsr_paths, grun_file_path, ind_doses):
+    def from_files(cls, gsr_paths, grun_file_path, ind_doses) -> QHA3P:
         """
         Creates an instance of QHA from a list of GSR files and a list PHDOS.nc files.
         The list should have the same size and the volumes should match.
@@ -710,7 +731,7 @@ class QHA3P(AbstractQHA):
             ind_doses: list of three values indicating, for each of the three doses, the index of the
                 corresponding gsr_file in "gsr_paths".
 
-        Returns: A new instance of QHA
+        Returns: A new instance of QHA3P
         """
         energies = []
         structures = []
@@ -740,7 +761,7 @@ class QHA3P(AbstractQHA):
         self.ind_grun = ind_grun
         self._ind_energy_only = [i for i in range(len(structures)) if i not in ind_grun]
 
-    def close(self):
+    def close(self) -> None:
         """Close files."""
         self.grun.close()
 
@@ -783,7 +804,7 @@ class QHA3P(AbstractQHA):
                                zpe=zpe)
 
     @lazy_property
-    def fitted_frequencies(self):
+    def fitted_frequencies(self) -> np.ndarray:
         """
         A numpy array with size (nvols, nqpts_ibz, 3*natoms) containing the phonon frequencies
         for all the volumes, either from the original phonon calculations or fitted
@@ -809,7 +830,7 @@ class QHA3P(AbstractQHA):
 
         return w_full
 
-    def get_vib_free_energies(self, tstart=0, tstop=800, num=100):
+    def get_vib_free_energies(self, tstart=0, tstop=800, num=100) -> np.ndarray:
         """
         Generates the vibrational free energy corresponding to all the structures, either from the phonon DOS
         or from a fit of the know values.
@@ -904,18 +925,19 @@ def get_entropy(w, weights, t):
 
 class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
     """
-    Abstract class for the analysis of the convergence wrt to the q-mesh used to compute the
-    phonon DOS. Relies on abstract methods implemented in AbstractQHA.
+    Abstract class for the analysis of the convergence wrt to the q-mesh used to compute the phonon DOS. 
+    Relies on abstract methods implemented in AbstractQHA.
     """
 
     fontsize = 8
+
     colormap = "viridis"
 
     def _consistency_check(self):
         if not hasattr(self, "qha_list") or not self.qha_list:
             raise RuntimeError("Please call the run method to compute the QHA!")
 
-    def set_eos(self, eos_name):
+    def set_eos(self, eos_name: str):
         """
         Set the EOS model used for the fit.
 
@@ -927,7 +949,7 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
             qha.set_eos(eos_name)
 
     @add_fig_kwargs
-    def plot_energies(self, **kwargs):
+    def plot_energies(self, **kwargs) -> Figure:
         """
         Plots the energies as a function of volume at different temperatures.
         kwargs are propagated to the analogous method of QHA.
@@ -944,7 +966,7 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_thermal_expansion_coeff(self, **kwargs):
+    def plot_thermal_expansion_coeff(self, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
         kwargs are propagated to the analogous method of QHA.
@@ -960,7 +982,7 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_vol_vs_t(self, **kwargs):
+    def plot_vol_vs_t(self, **kwargs) -> Figure:
         """
         Plot the volume as a function of the temperature.
         kwargs are propagated to the analogous method of QHA.

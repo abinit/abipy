@@ -36,14 +36,14 @@ class WorkTaskSelector(Viewer):
         return self.layout
 
     @pn.depends('work_select.value', watch=True)
-    def update_work(self):
+    def update_work(self) -> None:
         self.work = self._wstr2work[self.work_select.value]
         self.task_select.options = [f"t{i} ({task.__class__.__name__}, {str(task.status)})"
                                     for (i, task) in enumerate(self.work)]
         self.task = self.work[0]
 
     @pn.depends('task_select.value', watch=True)
-    def sync_widgets(self):
+    def sync_widgets(self) -> None:
         self.work = self._wstr2work[self.work_select.value]
         task_idx = int(self.task_select.value[1:].split()[0])
         self.task = self.work[task_idx]
@@ -64,7 +64,7 @@ class FlowPanel(NodeParameterized):
         self.wt_selector = WorkTaskSelector(flow)
         self.task_btn = pnw.Button(name="Analyze Task", button_type='primary')
 
-    def get_task_view(self):
+    def get_task_view(self) -> pn.Column:
         wbox = pn.WidgetBox
 
         return pn.Column(
@@ -78,7 +78,7 @@ class FlowPanel(NodeParameterized):
         )
 
     @depends_on_btn_click("task_btn")
-    def on_task_btn(self):
+    def on_task_btn(self) -> pn.Column:
         """
         Return panel associated to the selected task.
         """
@@ -90,7 +90,7 @@ class FlowPanel(NodeParameterized):
         )
 
     @depends_on_btn_click("structures_btn")
-    def on_structures_btn(self):
+    def on_structures_btn(self) -> pn.Row:
         what = ""
         if "input" in self.structures_io_checkbox.value: what += "i"
         if "output" in self.structures_io_checkbox.value: what += "o"
@@ -126,7 +126,7 @@ class JsPane(pn.pane.HTML):
     def __init__(self):
         super().__init__(width=0, height=0, margin=0, sizing_mode="fixed")
 
-    def execute_js(self, script: str):
+    def execute_js(self, script: str) -> None:
         script = f'<script type="text/javascript">{script}</script>'
         self.object = script
         self.object = ""
@@ -175,13 +175,13 @@ class FlowMultiPageApp():
             r"/w\d+/t\d+": self.handle_wt,
         }
 
-    def on_goto_work_bnt(self, event):
+    def on_goto_work_bnt(self, event) -> None:
         work = self.wt_selector.work
         url = "/w%d" % work.pos
         code = f"window.open('{url}')" if self.new_tab.value else f"window.location.href='{url}'"
         self.js_panel.execute_js(code)
 
-    def on_goto_task_bnt(self, event):
+    def on_goto_task_bnt(self, event) -> None:
         task = self.wt_selector.task
         url = "/w%d/t%d" % (task.pos[0], task.pos[1])
         code = f"window.open('{url}')" if self.new_tab.value else f"window.location.href='{url}'"

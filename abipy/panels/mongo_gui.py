@@ -7,7 +7,7 @@ import functools
 import panel as pn
 import panel.widgets as pnw
 
-from typing import Type  #  List
+from typing import Type
 from abipy.panels.core import AbipyParameterized, Loading  # depends_on_btn_click, ply,
 from abipy.htc.base_models import QueryResults, MongoConnector
 from abipy.htc.flow_models import FlowModel

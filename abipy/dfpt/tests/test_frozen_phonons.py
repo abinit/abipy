@@ -20,7 +20,7 @@ class FrozenPhononTest(AbipyTest):
         fp = FrozenPhonon.from_phbands(phbands, qpt_frac_coords, 0,
                                        etas=[-0.2, -0.1, 0, 0.1, 0.2], max_supercell=[5, 5, 5])
 
-        self.assertArrayEqual(fp.scale_matrix, [[-1, 0, 1], [-1, 1, 0], [-1, -1, 0]])
+        self.assert_equal(fp.scale_matrix, [[-1, 0, 1], [-1, 1, 0], [-1, -1, 0]])
 
         w = phbands.phfreqs[phbands.qindex(qpt_frac_coords), 0]
 
@@ -40,7 +40,7 @@ class FrozenPhononTest(AbipyTest):
         fit_data = fp.fit_to_frequency(min_fit_eta=-0.15, max_fit_eta=0.15)
         self.assertNotAlmostEqual(w, fit_data.freq, places=5)
 
-        self.assertArrayAlmostEqual(fp.qpt_cart_coords, [0.55954285702497808, 0.55954285702497808, 0.55954285702497808])
+        self.assert_almost_equal(fp.qpt_cart_coords, [0.55954285702497808, 0.55954285702497808, 0.55954285702497808])
 
         if self.has_matplotlib():
             assert fp.plot_fit_energies(freq=w, show=False)

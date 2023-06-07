@@ -5,7 +5,8 @@ sphinxcontrib-programoutput
 sphinx-gallery
 sphinx-argparse
 sphinx_rtd_theme
-sphinxcontrib-bibtex<2.0.0
+#sphinxcontrib-bibtex<2.0.0
+sphinxcontrib-bibtex
 jupyter-sphinx
 #graphviz or python-graphviz if conda
 graphviz

@@ -1,4 +1,6 @@
 """Configuration file for pytest."""
+from __future__ import annotations
+
 import os
 import pytest
 import yaml

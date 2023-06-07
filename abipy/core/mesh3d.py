@@ -1,5 +1,6 @@
 # coding: utf-8
 """This module contains the class defining Uniform 3D meshes."""
+from __future__ import annotations
 
 import numpy as np
 
@@ -15,7 +16,7 @@ __all__ = [
 ]
 
 
-class Mesh3D(object):
+class Mesh3D:
     r"""
     Descriptor-class for uniform 3D meshes.
 
@@ -97,22 +98,22 @@ class Mesh3D(object):
         """The vector corresponding to the (ix, iy, iz) indices"""
         return ix * self.dvx + iy * self.dvy + iz * self.dvz
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         return self.__class__.__name__ + ": nx=%d, ny=%d, nz=%d" % self.shape
 
     @property
-    def nx(self):
+    def nx(self) -> int:
         """Number of points along x."""
         return self.shape[0]
 
     @property
-    def ny(self):
+    def ny(self) -> int:
         """Number of points along y."""
         return self.shape[1]
 
     @property
-    def nz(self):
+    def nz(self) -> int:
         """Number of points along z."""
         return self.shape[2]
 
@@ -133,7 +134,7 @@ class Mesh3D(object):
         else:
             return np.empty(shape, dtype)
 
-    def zeros(self, dtype=float, extra_dims=()):
+    def zeros(self, dtype=float, extra_dims=()) -> np.ndarray:
         """
         Returns new zeroed 3D array for this domain.
 
@@ -142,7 +143,7 @@ class Mesh3D(object):
         """
         return self._new_array(dtype=dtype, zero=True, extra_dims=extra_dims)
 
-    def czeros(self, extra_dims=()):
+    def czeros(self, extra_dims=()) -> np.ndarray:
         """Returns new zeroed 3D complex array for this domain."""
         return self._new_array(dtype=complex, zero=True, extra_dims=extra_dims)
 
@@ -155,11 +156,11 @@ class Mesh3D(object):
         """
         return self._new_array(dtype=dtype, zero=False, extra_dims=extra_dims)
 
-    def cempty(self, extra_dims=()):
+    def cempty(self, extra_dims=()) -> np.ndarray:
         """Returns new uninitialized 3D complex |numpy-array| for this domain."""
         return self._new_array(dtype=complex, zero=False, extra_dims=extra_dims)
 
-    def random(self, dtype=float, extra_dims=()):
+    def random(self, dtype=float, extra_dims=()) -> np.ndarray:
         """Returns random real |numpy-array| for this domain with val in [0.0, 1.0)."""
         shape = self.shape
         if duck.is_intlike(extra_dims):
@@ -176,11 +177,11 @@ class Mesh3D(object):
         else:
             raise ValueError("Wrong dtype: %s" % str(dtype))
 
-    def crandom(self, extra_dims=()):
+    def crandom(self, extra_dims=()) -> np.ndarray:
         """Returns random complex |numpy-array| for this domain with val in [0.0, 1.0)."""
         return self.random(dtype=complex, extra_dims=extra_dims)
 
-    def reshape(self, arr):
+    def reshape(self, arr) -> np.ndarray:
         """
         Reshape the array arr defined on the FFT box.
 
@@ -190,7 +191,7 @@ class Mesh3D(object):
         #shape = extra_dims + self.shape)
         return np.reshape(arr, (-1,) + self.shape)
 
-    def fft_r2g(self, fr, shift_fg=False):
+    def fft_r2g(self, fr, shift_fg=False) -> np.ndarray:
         """
         FFT of array ``fr`` given in real space.
         """
@@ -216,7 +217,7 @@ class Mesh3D(object):
 
         return fg / self.size
 
-    def fft_g2r(self, fg, fg_ishifted=False):
+    def fft_g2r(self, fg, fg_ishifted=False) -> np.ndarray:
         """
         FFT of array ``fg`` given in G-space.
         """
@@ -283,7 +284,7 @@ class Mesh3D(object):
             raise NotImplementedError("ndim < 3 are not supported")
 
     @lazy_property
-    def gvecs(self):
+    def gvecs(self) -> np.ndarray:
         """
         Array with the reduced coordinates of the G-vectors.
 
@@ -311,7 +312,7 @@ class Mesh3D(object):
         return gvecs
 
     @lazy_property
-    def gmods(self):
+    def gmods(self) -> np.ndarray:
         """[ng] |numpy-array| with :math:`|G|`"""
         gmet = np.dot(self.inv_vectors.T, self.inv_vectors)
         gmods = np.empty(self.size)
@@ -325,7 +326,7 @@ class Mesh3D(object):
     #    return self.gmods.max()
 
     @lazy_property
-    def rpoints(self):
+    def rpoints(self) -> np.ndarray:
         """|numpy-array| with the points in real space in reduced coordinates."""
         nx, ny, nz = self.nx, self.ny, self.nz
         rpoints = np.empty((self.size, 3))
@@ -430,7 +431,7 @@ class Mesh3D(object):
 
     #    return irottable
 
-    def i_closest_gridpoints(self, points):
+    def i_closest_gridpoints(self, points) -> np.ndarray:
         """
         Given a list of points, this function return a |numpy-array| with the indices of the closest gridpoint.
         """

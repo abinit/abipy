@@ -1,5 +1,7 @@
 # coding: utf-8
 """Interface to the wout output file produced by Wannier90."""
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 
@@ -8,6 +10,7 @@ from monty.string import marquee
 from abipy.core.mixins import BaseFile, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 
 
 class WoutFile(BaseFile, Has_Structure, NotebookWriter):
@@ -40,13 +43,13 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         except Exception as exc:
             print("Exception in _parse_iterations:\n", exc)
 
-    def close(self):
+    def close(self) -> None:
         """Close file. Required by abc protocol."""
 
-    def __str__(self):
+    def __str__(self) ->str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -94,11 +97,11 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
-    def _parse_dims(self):
+    def _parse_dims(self) -> None:
         """
         Parse basic dimensions and get structure from the header of the file.
         """
@@ -182,7 +185,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         if self.params_section["DISENTANGLE"].get("Using band disentanglement", "F") == "T":
             self.use_disentangle = True
 
-    def _parse_iterations(self):
+    def _parse_iterations(self) -> int:
         """
         Parse iteration steps if not already done and store results in self.
 
@@ -280,7 +283,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         return 0
 
     @add_fig_kwargs
-    def plot(self, fontsize=12, **kwargs):
+    def plot(self, fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of the Wannierise cycle.
 
@@ -322,7 +325,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
                 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
                 ax2 = inset_axes(ax, width="60%", height="40%", loc="upper right")
                 ax2.grid(True)
-                ax2.set_title("delta_frac", fontsize=8)
+                ax2.set_title("delta_frac", fontsize=fontsize)
                 ax2.plot(self.dis_df.iter[s:], self.dis_df["delta_frac"][s:], marker=marker)
 
             else:
@@ -331,7 +334,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_centers_spread(self, fontsize=8, **kwargs):
+    def plot_centers_spread(self, fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of the Wannier centers and spread
         as function of iteration number
@@ -388,7 +391,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         yield self.plot(show=False)
         yield self.plot_centers_spread(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.

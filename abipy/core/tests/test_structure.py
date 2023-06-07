@@ -386,21 +386,21 @@ xred_symbols
                                           max_supercell=mx_sc, scale_matrix=scale_matrix)
 
         max_displ = np.linalg.norm(displ, axis=1).max()
-        self.assertArrayAlmostEqual(fp_data.structure[0].coords,
+        self.assert_almost_equal(fp_data.structure[0].coords,
                                     structure[0].coords + 0.5*displ[0]/max_displ)
-        self.assertArrayAlmostEqual(fp_data.structure[8].coords,
+        self.assert_almost_equal(fp_data.structure[8].coords,
                                     structure[1].coords + 0.5*displ[1]/max_displ)
 
         displ2 = np.array([[1, 0, 0], [0, 1, 1]])
 
         f2p_data = structure.frozen_2phonon(qpoint, 0.05 * displ, 0.02*displ2, eta=0.5, frac_coords=False,
-                                           max_supercell=mx_sc, scale_matrix=scale_matrix)
+                                            max_supercell=mx_sc, scale_matrix=scale_matrix)
 
         d_tot = 0.05*displ+0.02*displ2
         max_displ = np.linalg.norm(d_tot, axis=1).max()
-        self.assertArrayAlmostEqual(f2p_data.structure[0].coords,
+        self.assert_almost_equal(f2p_data.structure[0].coords,
                                     structure[0].coords + 0.5*d_tot[0]/max_displ)
-        self.assertArrayAlmostEqual(f2p_data.structure[8].coords,
+        self.assert_almost_equal(f2p_data.structure[8].coords,
                                     structure[1].coords + 0.5*d_tot[1]/max_displ)
 
         #print("Structure = ", structure)

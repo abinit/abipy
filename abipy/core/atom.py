@@ -6,12 +6,11 @@ import collections
 import numpy as np
 
 from io import StringIO
-from typing import Any, List, Union, Optional, Iterable, Tuple
-from abipy.data import nist_database
+from typing import Any, Union, Optional, Iterable
+from monty.functools import lazy_property
 from scipy.interpolate import UnivariateSpline
 from scipy.integrate import cumtrapz
-
-from monty.functools import lazy_property
+from abipy.data import nist_database
 
 __version__ = "0.1"
 __author__ = "Matteo Giantomassi"
@@ -56,7 +55,7 @@ def _asl(obj: Any) -> int:
         return int(obj)
 
 
-def states_from_string(confstr: str) -> List[QState]:
+def states_from_string(confstr: str) -> list[QState]:
     """
     Parse a string with an atomic configuration and build a list of `QState` instance.
     """
@@ -130,7 +129,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
             return f"{self.n}{lc}{self.ksign}"  # e.g. 2s+
 
     @lazy_property
-    def latex(self):
+    def latex(self) -> str:
         lc = l2char[self.l]
         if self.k is None:
             return f"${self.n}{lc}$"  # e.g. 2s
@@ -138,7 +137,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
             return f"${self.n}{lc}^{self.ksign}$"  # e.g. 2s^+
 
     @lazy_property
-    def latex_l(self):
+    def latex_l(self) -> str:
         lc = l2char[self.l]
         if self.k is None:
             return f"${lc}$"  # e.g. s
@@ -203,7 +202,7 @@ class AtomicConfiguration:
     """
     Atomic configuration of an all-electron atom.
     """
-    def __init__(self, Z: int, states: List[QState]) -> None:
+    def __init__(self, Z: int, states: list[QState]) -> None:
         """
         Args:
             Z: Atomic number.
@@ -285,21 +284,21 @@ class AtomicConfiguration:
         """True if self is a neutral configuration."""
         return abs(self.echarge + self.Z) < 1.e-8
 
-    def add_state(self, **qnumbers):
+    def add_state(self, **qnumbers) -> None:
         """Add a list of :class:`QState` instances to self."""
         self._push(QState(**qnumbers))
 
-    def remove_state(self, **qnumbers):
+    def remove_state(self, **qnumbers) -> None:
         """Remove a quantum state from self."""
         self._pop(QState(**qnumbers))
 
-    def _push(self, state):
+    def _push(self, state) -> None:
         # TODO check that ordering in the input does not matter!
         if state in self.states:
             raise ValueError("state %s is already in self" % str(state))
         self.states.append(state)
 
-    def _pop(self, state):
+    def _pop(self, state) -> None:
         try:
             self.states.remove(state)
         except ValueError:
@@ -393,7 +392,7 @@ class RadialFunction:
         return len(self.rmesh)
 
     @property
-    def minmax_ridx(self) -> Tuple[int, int]:
+    def minmax_ridx(self) -> tuple[int, int]:
         """
         Returns the indices of the values in a list with the maximum and minimum value.
         """
@@ -402,7 +401,7 @@ class RadialFunction:
         return minimum[0], maximum[0]
 
     @property
-    def inodes(self) -> List[int]:
+    def inodes(self) -> list[int]:
         """"
         List with the index of the nodes of the radial function.
         """
@@ -457,7 +456,7 @@ class RadialFunction:
 
         return r2v2_spline.integral(a, b)
 
-    def ifromr(self, rpoint):
+    def ifromr(self, rpoint) -> int:
         """
         The index of the point in the radial mesh.
         """

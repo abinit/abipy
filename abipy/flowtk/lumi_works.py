@@ -1,5 +1,6 @@
 # coding: utf-8
 """Work subclasses for the computation of luminiscent properties."""
+from __future__ import annotations
 
 from .works import Work, PhononWork
 
@@ -17,7 +18,7 @@ class LumiWork(Work):
 
     @classmethod
     def from_scf_inputs(cls, gs_scf_inp, exc_scf_inp, relax_kwargs, ndivsm=0, nb_extra=10,
-                        tolwfr=1e-20, ngqpt=None, manager=None):
+                        tolwfr=1e-20, ngqpt=None, manager=None) -> LumiWork:
         """
         Args:
             gs_scf_inp: |AbinitInput| representing a GS SCF run for the ground-state.

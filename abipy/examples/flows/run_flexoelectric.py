@@ -3,7 +3,7 @@ r"""
 Flexoelectric Tensor
 =====================
 
-This example shows how to compute the dynamical matrix of GaP on user-defined q-mesh
+This example shows how to compute the dynamical matrix of GaP on a user-defined q-mesh
 including Born effective charges, the macroscopic dielectric matric and the dynamical quadrupoles Q*.
 The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
 and saved in ``flow_phonons_with_quad/outdata/``.
@@ -15,9 +15,6 @@ Note that only selected features are compatible with dynamical quadrupoles.
 Please consult <https://docs.abinit.org/topics/longwave/>
 
 https://docs.abinit.org/tests/tutorespfn/Input/tlw_1.abi
-# Linear response function and long-wave magnitudes calculation
-# for a 5% distorted 2 atom Silicon cell
-# (M. Royo, 7.11.2019)
 """
 
 import sys
@@ -95,8 +92,8 @@ xred
             raise RuntimeError("Only NC pseudos are compatible with Q*")
         if pseudo.has_nlcc:
             raise RuntimeError("NLCC is not compatible with Q*")
-        if pseudo.xc.type != "LDA":
-            raise RuntimeError("Only LDA is compatible with Q*")
+        #if pseudo.xc.type != "LDA":
+        #    raise RuntimeError("Only LDA is compatible with Q*")
 
     # Initialize the flow
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)

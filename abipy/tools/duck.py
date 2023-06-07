@@ -48,6 +48,7 @@ def is_number_like(obj: Any) -> bool:
 
 
 def is_listlike(obj: Any) -> bool:
+    """True if obj is list-like."""
     #if isinstance(branch, (list, tuple, np.ndarray)):
     if isinstance(obj, np.ndarray): return True
     if not isinstance(obj, collections.abc.Sequence): return False

@@ -6,7 +6,6 @@ import traceback
 import numpy as np
 
 from collections import OrderedDict, defaultdict
-#from typing import List
 from tabulate import tabulate
 from monty.termcolor import cprint
 from monty.functools import lazy_property
@@ -16,6 +15,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_Elect
 from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.tools.numtools import gaussian
+from abipy.tools.typing import Figure
 from abipy.tools.plotting import (set_axlims, get_axarray_fig_plt, add_fig_kwargs, get_figs_plotly,
     add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_set_lims)
 
@@ -94,7 +94,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = r = ElectronsReader(filepath)
+        self.r = self.reader = r = ElectronsReader(filepath)
 
         # Initialize the electron bands from file
         self._ebands = r.read_ebands()
@@ -201,20 +201,20 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         if self.natsph == self.natom and np.all(self.iatsph == np.arange(self.natom)):
             # All atoms have been calculated and the order if ok.
-            wal_sbk = np.reshape(self.reader.read_value(key), wshape)
+            wal_sbk = np.reshape(self.r.read_value(key), wshape)
 
         else:
             # Need to transfer data. Note np.zeros.
             wal_sbk = np.zeros(wshape)
             if self.natsph == self.natom and np.any(self.iatsph != np.arange(self.natom)):
                 print("Will rearrange filedata since iatsp != [1, 2, ...])")
-                filedata = np.reshape(self.reader.read_value(key), wshape)
+                filedata = np.reshape(self.r.read_value(key), wshape)
                 for i, iatom in enumerate(self.iatsph):
                     wal_sbk[iatom] = filedata[i]
             else:
                 print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
                 assert self.natsph < self.natom
-                filedata = np.reshape(self.reader.read_value(key),
+                filedata = np.reshape(self.r.read_value(key),
                                      (self.natsph, self.mbesslang, self.nsppol, self.mband, self.nkpt))
                 for i, iatom in enumerate(self.iatsph):
                     wal_sbk[iatom] = filedata[i]
@@ -248,20 +248,20 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         if self.natsph == self.natom and np.all(self.iatsph == np.arange(self.natom)):
             # All atoms have been calculated and the order if ok.
-            walm_sbk = np.reshape(self.reader.read_value(key), wshape)
+            walm_sbk = np.reshape(self.r.read_value(key), wshape)
 
         else:
             # Need to transfer data. Note np.zeros.
             walm_sbk = np.zeros(wshape)
             if self.natsph == self.natom and np.any(self.iatsph != np.arange(self.natom)):
                 print("Will rearrange filedata since iatsp != [1, 2, ...])")
-                filedata = np.reshape(self.reader.read_value(key), wshape)
+                filedata = np.reshape(self.r.read_value(key), wshape)
                 for i, iatom in enumerate(self.iatsph):
                     walm_sbk[iatom] = filedata[i]
             else:
                 print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
                 assert self.natsph < self.natom
-                filedata = np.reshape(self.reader.read_value(key),
+                filedata = np.reshape(self.r.read_value(key),
                                      (self.natsph, self.mbesslang**2, self.nsppol, self.mband, self.nkpt))
                 for i, iatom in enumerate(self.iatsph):
                     walm_sbk[iatom] = filedata[i]
@@ -287,13 +287,13 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @lazy_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
     def close(self) -> None:
         """Called at the end of the ``with`` context manager."""
-        return self.reader.close()
+        return self.r.close()
 
     def __str__(self):
         """String representation"""
@@ -438,7 +438,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @add_fig_kwargs
     def plot_fatbands_siteview(self, e0="fermie", view="inequivalent", fact=1.0, fontsize=12,
-                               ylims=None, blist=None, **kwargs):
+                               ylims=None, blist=None, **kwargs) -> Figure:
         """
         Plot fatbands for each atom in the unit cell. By default, only the **inequivalent** atoms are shown.
 
@@ -526,7 +526,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @add_fig_kwargs
     def plot_fatbands_lview(self, e0="fermie", fact=1.0, ax_mat=None, lmax=None,
-                            ylims=None, blist=None, fontsize=12, **kwargs):
+                            ylims=None, blist=None, fontsize=12, **kwargs) -> Figure:
         """
         Plot the electronic fatbands grouped by L with matplotlib.
 
@@ -679,7 +679,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @add_fig_kwargs
     def plot_fatbands_mview(self, iatom, e0="fermie", fact=1.0, lmax=None,
-                            ylims=None, blist=None, **kwargs):
+                            ylims=None, blist=None, **kwargs) -> Figure:
         """
         Plot the electronic fatbands grouped by LM.
 
@@ -763,7 +763,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @add_fig_kwargs
     def plot_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, ax_mat=None, ylims=None,
-                               blist=None, fontsize=8, **kwargs):
+                               blist=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the electronic fatbands grouped by atomic type with matplotlib.
 
@@ -911,7 +911,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     @add_fig_kwargs
-    def plot_spilling(self, e0="fermie", fact=1.0, ax_list=None, ylims=None, blist=None, **kwargs):
+    def plot_spilling(self, e0="fermie", fact=1.0, ax_list=None, ylims=None, blist=None, **kwargs) -> Figure:
         """
         Plot the electronic fatbands
 
@@ -1017,7 +1017,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     #    # Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].
     #    # where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)
-    #    w_sbk = self.reader.read_value("dos_fractions")
+    #    w_sbk = self.r.read_value("dos_fractions")
     #    term2idx = {"up-up":0, "up-down":1, "down-up":2, "down-down":3, "sigma_x":4, "sigma_y":5, "sigma_z":6}
 
     #    # TODO: To be tested.
@@ -1127,7 +1127,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @add_fig_kwargs
     def plot_pjdos_lview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
                          stacked=True, combined_spins=True, ax_mat=None, exchange_xy=False,
-                         with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs):
+                         with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the PJ-DOS on a linear mesh with matplotlib.
 
@@ -1453,7 +1453,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @add_fig_kwargs
     def plot_pjdos_typeview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
                             stacked=True, combined_spins=True, ax_mat=None, exchange_xy=False,
-                            with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs):
+                            with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the PJ-DOS on a linear mesh with matplotlib.
 
@@ -1776,7 +1776,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @add_fig_kwargs
     def plot_fatbands_with_pjdos(self, e0="fermie", fact=1.0, lmax=None, blist=None, view="type",
                                  pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
-                                 fontsize=8, ylims=None, **kwargs):
+                                 fontsize=8, ylims=None, **kwargs) -> Figure:
         """
         Compute the fatbands and the PJDOS on the same figure with matplotlib, a.k.a the Sistine Chapel.
 
@@ -1873,8 +1873,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @add_plotly_fig_kwargs
     def plotly_fatbands_with_pjdos(self, e0="fermie", fact=1.0, lmax=None, blist=None, view="type",
-                                 pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
-                                 fontsize=12, ylims=None, **kwargs):
+                                   pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
+                                   fontsize=12, ylims=None, **kwargs):
         """
         Compute the fatbands and the PJDOS on the same figure with plotly, a.k.a the Sistine Chapel.
 
@@ -1941,7 +1941,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     @add_fig_kwargs
-    def plot_pawdos_terms(self, lmax=None, method="gaussian", step=0.1, width=0.2, xlims=None, *kwargs):
+    def plot_pawdos_terms(self, lmax=None, method="gaussian", step=0.1, width=0.2, xlims=None, *kwargs) -> Figure:
         """
         Plot ...
 
@@ -2057,7 +2057,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #                      #stacked=True,
     #                      ax=None, exchange_xy=False, xlims=None,
     #                      #with_info=True,
-    #                      **kwargs):
+    #                      **kwargs) -> Figure:
     #    """
     #    Plot the PJ-DOS on a linear mesh.
 
@@ -2106,7 +2106,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #    # Read data from file.
     #    # Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].
     #    # where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)
-    #    w_sbk = self.reader.read_value("dos_fractions")
+    #    w_sbk = self.r.read_value("dos_fractions")
     #    term2idx = {"up-up":0, "up-down":1, "down-up":2, "down-down":3, "sigma_x":4, "sigma_y":5, "sigma_z":6}
 
     #    spin0 = 0

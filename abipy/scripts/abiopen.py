@@ -5,13 +5,16 @@ other files are supported as well). By default the script starts an interactive 
 session so that one can interact with the file and call its methods.
 Alternatively, it is possible to generate automatically a jupyter notebook to execute code.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse
 import subprocess
+import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
-from monty.os.path import which
+from shutil import which
 from monty.termcolor import cprint
 from monty.functools import prof_main
 from abipy import abilab
@@ -141,6 +144,9 @@ def get_parser(with_epilog=False):
                         )
     parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
 
+
+    #add_expose_options_to_parser(parser)
+
     # Expose option.
     parser.add_argument('-e', '--expose', action='store_true', default=False,
         help="Open file and generate matplotlib figures automatically by calling expose method.")
@@ -204,13 +210,7 @@ def main():
     except Exception:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     ##############################################################################################
     # Handle meta options i.e. options that set other options.
@@ -222,13 +222,13 @@ def main():
 
     if options.verbose > 2: print(options)
 
+    # Set matplotlib backend
     if options.mpl_backend is not None:
-        # Set matplotlib backend
         import matplotlib
         matplotlib.use(options.mpl_backend)
 
+    # Use seaborn settings.
     if options.seaborn:
-        # Use seaborn settings.
         import seaborn as sns
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)

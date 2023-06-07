@@ -391,7 +391,7 @@ hardware:
         aequal = self.assertEqual
 
         qad = make_qadapter(**self.QDICT)
-        self.assertMSONable(qad)
+        self.assert_msonable(qad)
         print(qad)
         print(qad.mpi_runner)
 
@@ -458,7 +458,7 @@ mpirun  -n 3 executable < stdin > stdout 2> stderr
         qad_shared.set_mpi_procs(64)
         qad_shared.set_mem_per_proc(3500)
         qad_shared.set_master_mem_overhead(4000)
-        self.assertMSONable(qad_shared)
+        self.assert_msonable(qad_shared)
         aequal(qad_shared.get_select(), '1:ncpus=1:mem=7500mb:mpiprocs=1+'
                                         '63:ncpus=1:mem=3500mb:mpiprocs=1')
 
@@ -468,7 +468,7 @@ mpirun  -n 3 executable < stdin > stdout 2> stderr
         qad_exclusive.set_mpi_procs(47)
         qad_exclusive.set_mem_per_proc(2000)
         qad_exclusive.set_master_mem_overhead(1)
-        self.assertMSONable(qad_exclusive)
+        self.assert_msonable(qad_exclusive)
         aequal(qad_exclusive.get_select(), '1:ncpus=23:mem=48000mb:mpiprocs=23+'
                                            '1:ncpus=24:mem=48000mb:mpiprocs=24')
         qad_exclusive.set_mpi_procs(48)

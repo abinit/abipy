@@ -1,4 +1,5 @@
 """Optical spectra with Optic."""
+from __future__ import annotations
 
 import pytest
 import abipy.data as abidata

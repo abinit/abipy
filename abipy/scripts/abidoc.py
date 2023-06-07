@@ -2,6 +2,7 @@
 """
 Interface to the database of ABINIT input variables
 """
+from __future__ import annotations
 
 import sys
 import argparse
@@ -23,7 +24,7 @@ def print_vlist(vlist, options):
         print("\nUse -v for more info")
 
 
-def get_epilog():
+def get_epilog() -> str:
     return """\
 Usage example:
 
