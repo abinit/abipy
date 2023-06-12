@@ -1372,7 +1372,7 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
     return abiinput
 
 # VT Addition for Atomate2 SHG WF
-def ddkpert_from_gsinput(gs_input, ddk_pert, use_symmetries=False, ddk_tol=None, manager=None) -> AbinitInput:
+def ddkpert_from_gsinput(gs_input, ddk_pert, nband=None, use_symmetries=False, ddk_tol=None, manager=None) -> AbinitInput:
     """
     Returns an |AbinitInput| to perform a DDK calculations for a specific perturbation and based on a ground state |AbinitInput|.
 
@@ -1392,6 +1392,12 @@ def ddkpert_from_gsinput(gs_input, ddk_pert, use_symmetries=False, ddk_tol=None,
         ddk_tol = {"tolwfr": 1.0e-22}
 
     ddk_inp = gs_input.make_ddkpert_input(perturbation=ddk_pert, use_symmetries=use_symmetries, tolerance=ddk_tol, manager=manager)
+
+    # TODO: add to see how it behaves wrt nband from atomate2
+    #if nband is None:
+    #    nband = _find_nscf_nband_from_gsinput(gs_input)
+
+    #ddk_inp.set_vars(nband=nband)
 
     return ddk_inp
 
