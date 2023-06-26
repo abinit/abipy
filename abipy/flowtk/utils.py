@@ -515,6 +515,7 @@ _EXT2VARS = {
     "DKDK": {},  # irddkdk is not defined.
     #"DKDE": {"getdkde": 1},
     #"DELFD": {"getdelfd": 1},
+    "GSTORE": {"getgstore_filepath": '"indata/in_GSTORE.nc"'},
 }
 
 
