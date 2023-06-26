@@ -1,5 +1,7 @@
 # coding: utf-8
 # flake8: noqa
+from __future__ import annotations
+
 import numpy as np
 import pymatgen.io.abinit.netcdf as ionc
 
@@ -40,7 +42,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
 
         return symbols
 
-    def read_string(self, varname):
+    def read_string(self, varname: str):
         """
         Args:
             varname: Name of the variable
@@ -65,7 +67,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
         """Return None if arr is a MaskedArray else None."""
         return None if np.ma.is_masked(arr) else arr
 
-    def read_amu_symbol(self):
+    def read_amu_symbol(self) -> dict:
         """
         Read atomic masses and return dictionary element_symbol --> amu.
 
@@ -85,7 +87,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
 
         return amu_symbol
 
-    def read_ngfft3(self):
+    def read_ngfft3(self) -> np.array:
         """
         Return the number of FFT divisions.
         """

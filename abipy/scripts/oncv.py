@@ -2,10 +2,12 @@
 """
 Script to generate/analyze/plot ONCVPSP pseudopotentials.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse
-import json
+#import json
 import shutil
 import abipy.tools.cli_parsers as cli
 
@@ -17,7 +19,7 @@ from abipy.ppcodes.oncv_parser import OncvParser
 from abipy.ppcodes.oncv_plotter import OncvPlotter, oncv_make_open_notebook, MultiOncvPlotter
 
 
-def _find_oncv_output(path):
+def _find_oncv_output(path: str) -> str:
     """
     Fix possible error in the specification of filepath when we want a `.out` file.
     Return output path.
@@ -36,7 +38,8 @@ def oncv_nbplot(options):
     Generate jupyter notebook to plot data. Requires oncvpsp output file.
     """
     out_path = _find_oncv_output(options.filepath)
-    return oncv_make_open_notebook(out_path, foreground=options.foreground, classic_notebook=options.classic_notebook,
+    return oncv_make_open_notebook(out_path, foreground=options.foreground,
+                                   classic_notebook=options.classic_notebook,
                                    no_browser=options.no_browser)
 
 
@@ -67,14 +70,7 @@ def oncv_print(options):
         raise RuntimeError("ocnvpsp output file is not completed")
 
     print(p)
-
-    #results = p.get_results()
-    #pprint(results)
-    #for l in range(p.lmax + 1):
-    #    # Get AE/PS logder(l) as a function of energy in Ha.
-    #    f1, f2 = p.atan_logders.ae[l], p.atan_logders.ps[l]
-    #    print(f1)
-    #    print("f1", f1.energies.shape, f1.values.shape)
+    return 0
 
 
 def oncv_plot(options):
@@ -86,45 +82,68 @@ def oncv_plot(options):
     out_path = _find_oncv_output(options.filepath)
 
     plotter = OncvPlotter.from_file(out_path)
-    plotter.expose(use_web=True)
+    #plotter.expose(use_web=True)
+    plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                   use_web=options.expose_web, verbose=options.verbose)
 
     return 0
 
 
 def oncv_compare(options):
     """
-    Compare multiple oncvpsp output fies.
+    Compare multiple oncvpsp output files.
     """
     cli.customize_mpl(options)
 
     plotter = MultiOncvPlotter.from_files(options.filepaths)
 
     # Plot data
-    plotter.expose(use_web=True)
+    #use_web = False
+    #use_web = True
+    plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                   use_web=options.expose_web, verbose=options.verbose)
 
     return 0
 
 
-def oncv_json(options):
-    """
-    Produce a string with the results in a JSON dictionary and exit
-    Requires oncvpsp output file.
-    """
-    out_path = _find_oncv_output(options.filepath)
-    onc_parser = OncvParser(out_path)
-    onc_parser.scan()
-    if not onc_parser.run_completed:
-        cprint("oncvpsp output is not complete. Exiting", "red")
-        return 1
+#@flowtk.flow_main
+#def main(options):
+#    return build_flow(options)
 
-    # Generate json files with oncvpsp results.
-    print(json.dumps(onc_parser.to_dict, indent=-1))
-    return 0
+#def oncv_hints(options):
+#    """
+#    """
+#    from abipy import flowtk
+#    from abipy.flowtk.pseudo_works import GsEcutConvWork
+#    flow = flowtk.Flow(workdir=options.workdir)
+#
+#    ecut_list = [35, 40, 45, 50, 55, 60, 65]
+#    #ecut_list = [35, 40, 45]
+#    work = GsEcutConvWork.from_pseudo(pseudo, ecut_list)
+#    flow.register_work(work)
+#    return flow
+
+
+#def oncv_json(options):
+#    """
+#    Produce a string with the results in a JSON dictionary and exit
+#    Requires oncvpsp output file.
+#    """
+#    out_path = _find_oncv_output(options.filepath)
+#    onc_parser = OncvParser(out_path)
+#    onc_parser.scan()
+#    if not onc_parser.run_completed:
+#        cprint(f"oncvpsp output `{out_path}` is not completed. Exiting", "red")
+#        return 1
+#
+#    # Generate json files with oncvpsp results.
+#    print(json.dumps(onc_parser.as_dict(), indent=-1))
+#    return 0
 
 
 def oncv_run(options):
     """
-    Run oncvpsp, generate djrepo file, plot results. Requires input file.
+    Run oncvpsp, generate djrepo file, plot results. Requires oncvps input file.
     """
     # Select calc_type
     calc_type = dict(nor="non-relativistic",
@@ -138,6 +157,7 @@ def oncv_run(options):
     # Enforce convention on output files.
     if options.rel == "nor":
         if not root.endswith("_nor"): root += "_nor"
+
     elif options.rel == "fr":
         if not root.endswith("_r"):
             root += "_r"
@@ -147,6 +167,7 @@ def oncv_run(options):
     psp8_path = root + ".psp8"
     djrepo_path = root + ".djrepo"
     out_path = root + ".out"
+
     if os.path.exists(psp8_path):
         cprint("%s already exists and will be overwritten" % os.path.relpath(psp8_path), "yellow")
     if os.path.exists(djrepo_path):
@@ -157,6 +178,7 @@ def oncv_run(options):
     # Build Generator and start generation.
     psgen = OncvGenerator.from_file(in_path, calc_type, workdir=None)
     #print(psgen)
+
     print(psgen.input_str)
     print("Using oncvpsp executable:\n\t", psgen.executable)
     print(f"Output files produced in directory:\n\t{psgen.workdir}")
@@ -164,18 +186,32 @@ def oncv_run(options):
     psgen.start()
     retcode = psgen.wait()
 
-    if psgen.status != psgen.S_OK:
+    if retcode != 0:
         cprint("oncvpsp returned %s. Exiting" % retcode, "red")
-        return 1
+        return retcode
 
-    # Tranfer final output file.
+    if psgen.status != psgen.S_OK:
+        cprint(f"psgen.status = {psgen.status} != psgen.S_OK", "red")
+        if psgen.parser.warnings:
+            print(2 * "\n")
+            print("List of WARNINGS:")
+            for w in psgen.parser.warnings:
+                print(w)
+
+        if psgen.parser.errors:
+            print(2 * "\n")
+            print("List of ERRORS:")
+            for e in psgen.parser.errors:
+                print(e)
+
+    # Transfer final output file.
     shutil.copy(psgen.stdout_path, out_path)
 
     # Parse the output file
     onc_parser = OncvParser(out_path)
     onc_parser.scan()
     if not onc_parser.run_completed:
-        cprint("oncvpsp output is not complete. Exiting", "red")
+        cprint("oncvpsp output is not completed. Exiting", "red")
         return 1
 
     # Extract psp8 files from the oncvpsp output and write it to file.
@@ -183,11 +219,13 @@ def oncv_run(options):
     with open(psp8_path, "wt") as fh:
         fh.write(psp8_str)
 
-    # Write upf if available.
+    # Write UPF file if available.
     upf_str = onc_parser.get_upf_str()
     if upf_str is not None:
         with open(psp8_path.replace(".psp8", ".upf"), "wt") as fh:
             fh.write(upf_str)
+    else:
+        cprint("UPF file has not been produced. Use `both` in input file!", "red")
 
     pseudo = Pseudo.from_file(psp8_path)
     if pseudo is None:
@@ -205,9 +243,8 @@ def oncv_run(options):
 
     # Build the plotter
     plotter = onc_parser.get_plotter()
-
-    plotter.expose(use_web=True)
-
+    plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                   use_web=options.expose_web, verbose=options.verbose)
     return 0
 
 
@@ -246,8 +283,7 @@ def oncv_gui(options):
 
     def build():
         gui = OncvGui.from_file(os.path.abspath(options.filepath))
-        template = tmpl_cls(main=gui.get_panel(), title="Oncvpsp GUI", **tmpl_kwds)
-        return template
+        return tmpl_cls(main=gui.get_panel(), title="Oncvpsp GUI", **tmpl_kwds)
 
     # Call pn.serve to serve the multipage app.
     serve_kwargs = cli.get_pn_serve_kwargs(options)
@@ -261,12 +297,12 @@ def main():
         return """\
 Usage example:
 
-    oncv.py run H.in         ==> Run oncvpsp input file (scalar relativistic mode).
-    oncv.py plot H.out       ==> Use matplotlib to plot oncvpsp results for pseudo H.psp8.
-    oncv.py print H.out      ==> Use matplotlib to plot oncvpsp results for pseudo H.psp8.
-    oncv.py gui H.out        ==> Run oncvpsp input file (scalar relativistic mode).
-    oncv.py gnuplot H.out    ==> Use gnuplot to plot oncvpsp results for pseudo H.psp8.
-    oncv.py nbplot H.out     ==> Generate jupyter notebook to plot oncvpsp results.
+    oncv.py run H.in                   ==> Run oncvpsp input file (scalar relativistic mode).
+    oncv.py plot H.out                 ==> Use matplotlib to plot oncvpsp results for pseudo H.psp8.
+    oncv.py print H.out                ==> Use matplotlib to plot oncvpsp results for pseudo H.psp8.
+    oncv.py gui H.out                  ==> Run oncvpsp input file (scalar relativistic mode).
+    oncv.py gnuplot H.out              ==> Use gnuplot to plot oncvpsp results for pseudo H.psp8.
+    oncv.py nbplot H.out               ==> Generate jupyter notebook to plot oncvpsp results.
     oncv.py compare H.out other_H.out  ==> Compare multiple output files.
 """
 
@@ -277,14 +313,13 @@ Usage example:
         sys.exit(error_code)
 
     def get_copts_parser(multi=False):
-
         # Parent parser implementing common options.
         p = argparse.ArgumentParser(add_help=False)
         p.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                        help='Verbose, can be supplied multiple times to increase verbosity')
 
         p.add_argument('--loglevel', default="ERROR", type=str,
-                            help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+                       help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
         if multi:
             p.add_argument('filepaths', nargs="+", help="List of files to compare.")
@@ -297,20 +332,12 @@ Usage example:
 
     # Parent parser for commands supporting MplExpose.
     plot_parser = argparse.ArgumentParser(add_help=False)
-
-    plot_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
-            help="Iterate over figures. Expose all figures at once if not given on the CLI.")
-    plot_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
-            help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
-    plot_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
-        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
-    plot_parser.add_argument('-mpl', "--mpl-backend", default=None,
-        help=("Set matplotlib interactive backend. "
-              "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
-              "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
+    cli.add_expose_options_to_parser(plot_parser)
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    from abipy.core.release import __version__
+    parser.add_argument('-V', '--version', action='version', version=__version__)
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
@@ -323,31 +350,32 @@ Usage example:
     p_print = subparsers.add_parser('print', parents=[copts_parser], help=oncv_print.__doc__)
 
     # Create the parsers for the sub-commands
-    p_plot = subparsers.add_parser('plot', parents=[copts_parser, plot_parser],
-                                   help=oncv_plot.__doc__)
+    p_plot = subparsers.add_parser('plot', parents=[copts_parser, plot_parser], help=oncv_plot.__doc__)
 
     copts_parser_multi = get_copts_parser(multi=True)
     p_compare = subparsers.add_parser('compare', parents=[copts_parser_multi, plot_parser],
                                       help=oncv_compare.__doc__)
 
-    p_nbplot = subparsers.add_parser('nbplot', parents=[copts_parser], help=oncv_nbplot.__doc__)
     # notebook options.
+    p_nbplot = subparsers.add_parser('nbplot', parents=[copts_parser], help=oncv_nbplot.__doc__)
     p_nbplot.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
     p_nbplot.add_argument('--classic-notebook', "-cnb", action='store_true', default=False,
-                        help="Use classic jupyter notebook instead of jupyterlab.")
+                          help="Use classic jupyter notebook instead of jupyterlab.")
     p_nbplot.add_argument('--no-browser', action='store_true', default=False,
-                        help=("Start the jupyter server to serve the notebook "
-                              "but don't open the notebook in the browser.\n"
-                              "Use this option to connect remotely from localhost to the machine running the kernel"))
+                          help=("Start the jupyter server to serve the notebook "
+                                "but don't open the notebook in the browser.\n"
+                                "Use this option to connect remotely from localhost to the machine running the kernel"))
     p_nbplot.add_argument('--foreground', action='store_true', default=False,
-                        help="Run jupyter notebook in the foreground.")
+                          help="Run jupyter notebook in the foreground.")
 
     parents = [copts_parser, cli.pn_serve_parser(), plot_parser]
     p_gui = subparsers.add_parser('gui', parents=parents, help=oncv_gui.__doc__)
 
     p_gnuplot = subparsers.add_parser('gnuplot', parents=[copts_parser], help=oncv_gnuplot.__doc__)
 
-    p_json = subparsers.add_parser('json', parents=[copts_parser], help=oncv_json.__doc__)
+    #p_hints = subparsers.add_parser('hints', parents=[copts_parser], help=oncv_hints.__doc__)
+
+    #p_json = subparsers.add_parser('json', parents=[copts_parser], help=oncv_json.__doc__)
 
     # Parse command line.
     try:
@@ -355,13 +383,7 @@ Usage example:
     except Exception as exc:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     # Dispatch
     return globals()["oncv_" + options.command](options)

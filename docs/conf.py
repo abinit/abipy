@@ -134,6 +134,10 @@ set_plotly_default_show(False)
 from sphinx_gallery.sorting import ExampleTitleSortKey
 
 sphinx_gallery_conf = {
+    'only_warn_on_example_error': True,
+    #'abort_on_example_error': True,
+    'log_level': {'backreference_missing': 'warning'},
+    #
     # path to your examples scripts
     'examples_dirs': [
         "../abipy/examples/plot",
@@ -149,7 +153,6 @@ sphinx_gallery_conf = {
     'within_subsection_order': ExampleTitleSortKey,
     'backreferences_dir': None,
     #'reset_modules': (reset_mpl,),
-    #'find_mayavi_figures': True,
     'reference_url': {
         'abipy': None,  # The module you locally document uses None
         'numpy': 'https://docs.scipy.org/doc/numpy/',
@@ -158,7 +161,6 @@ sphinx_gallery_conf = {
         "pymatgen": "https://pymatgen.org/",
     },
     #'image_scrapers': ('matplotlib',),
-    #'image_scrapers': ('matplotlib', 'mayavi'),
     #'image_scrapers': ('matplotlib', PNGScraper()),
     #'image_scrapers': ('matplotlib', plotly),
 
@@ -208,7 +210,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'abipy'
-copyright = '2021, ' + relmod.author
+copyright = '2023, ' + relmod.author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -421,9 +423,9 @@ texinfo_documents = [
 intersphinx_mapping = {
     'python': ('https://docs.python.org/{.major}'.format(sys.version_info), None),
     'numpy': ('https://numpy.org/doc/stable/', None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
-    'pandas': ("http://pandas-docs.github.io/pandas-docs-travis/", None),
-    'matplotlib': ('https://matplotlib.org/', None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "pandas": ("http://pandas.pydata.org/pandas-docs/stable/", None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
     "monty": ("https://pythonhosted.org/monty/", None),
     "pymatgen": ("https://pymatgen.org/", None),
     'mayavi': ('http://docs.enthought.com/mayavi/mayavi', None),

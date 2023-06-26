@@ -9,7 +9,7 @@ import shutil
 import operator
 import numpy as np
 
-from typing import Union, List, Tuple, Optional
+from typing import Union, Optional
 from fnmatch import fnmatch
 from monty.collections import dict2namedtuple
 from monty.string import list_strings
@@ -21,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def as_bool(s: Union[str, bool]):
+def as_bool(s: Union[str, bool]) -> bool:
     """
     Convert a string into a boolean value.
 
@@ -101,7 +101,7 @@ class File:
         with open(self.path, "r") as f:
             return f.read()
 
-    def readlines(self) -> List[str]:
+    def readlines(self) -> list[str]:
         """Read lines from files."""
         with open(self.path, "r") as f:
             return f.readlines()
@@ -115,7 +115,7 @@ class File:
             else:
                 return f.write(string)
 
-    def writelines(self, lines: List[str]):
+    def writelines(self, lines: list[str]):
         """Write a list of strings to file."""
         self.make_dir()
         with open(self.path, "w") as f:
@@ -231,7 +231,7 @@ class Directory:
         """Return the absolute path of filename in the directory."""
         return os.path.join(self.path, file_basename)
 
-    def list_filepaths(self, wildcard: Optional[str] = None) -> List[str]:
+    def list_filepaths(self, wildcard: Optional[str] = None) -> list[str]:
         """
         Return the list of absolute filepaths in the directory.
 
@@ -314,7 +314,7 @@ class Directory:
 
         return files[0] if single_file else files
 
-    def symlink_abiext(self, inext: str, outext: str) -> 0:
+    def symlink_abiext(self, inext: str, outext: str) -> int:
         """
         Create a simbolic link (outext --> inext). The file names are implicitly
         given by the ABINIT file extension.
@@ -389,7 +389,7 @@ class Directory:
         shutil.copy(infile, outfile)
         return 0
 
-    def remove_exts(self, exts: Union[str, List[str]]) -> List[str]:
+    def remove_exts(self, exts: Union[str, list[str]]) -> list[str]:
         """
         Remove the files with the given extensions. Unlike rmtree, this function preserves the directory path.
         Return list with the absolute paths of the files that have been removed.
@@ -519,7 +519,7 @@ _EXT2VARS = {
 }
 
 
-def irdvars_for_ext(ext):
+def irdvars_for_ext(ext) -> dict:
     """
     Returns a dictionary with the ABINIT variables
     that must be used to read the file with extension ext.
@@ -527,12 +527,12 @@ def irdvars_for_ext(ext):
     return _EXT2VARS[ext].copy()
 
 
-def abi_extensions():
+def abi_extensions() -> list:
     """List with all the ABINIT extensions that are registered."""
     return list(_EXT2VARS.keys())[:]
 
 
-def abi_splitext(filename: str) -> Tuple[str, str]:
+def abi_splitext(filename: str) -> tuple[str, str]:
     """
     Split the ABINIT extension from a filename.
     "Extension" are found by searching in an internal database.
@@ -601,18 +601,18 @@ class FilepathFixer:
         regs["1DEN"] = re.compile(r"(\w+_)1DEN(\d+)(\.nc)?$")
 
     @staticmethod
-    def _fix_1WF(match):
+    def _fix_1WF(match) -> str:
         root, pert, ncext = match.groups()
         if ncext is None: ncext = ""
         return root + "1WF" + ncext
 
     @staticmethod
-    def _fix_1DEN(match):
+    def _fix_1DEN(match) -> str:
         root, pert, ncext = match.groups()
         if ncext is None: ncext = ""
         return root + "1DEN" + ncext
 
-    def _fix_path(self, path):
+    def _fix_path(self, path: str) -> tuple:
         for ext, regex in self.regs.items():
             head, tail = os.path.split(path)
 
@@ -624,7 +624,7 @@ class FilepathFixer:
 
         return None, None
 
-    def fix_paths(self, paths):
+    def fix_paths(self, paths) -> dict:
         """
         Fix the filenames in the iterable paths
 
@@ -792,7 +792,7 @@ def evaluate_rpn(rpn):
     return vals_stack[0]
 
 
-class Condition(object):
+class Condition:
     """
     This object receives a dictionary that defines a boolean condition whose syntax is similar
     to the one used in mongodb (albeit not all the operators available in mongodb are supported here).
@@ -845,7 +845,7 @@ class Condition(object):
             return False
 
 
-class Editor(object):
+class Editor:
     """
     Wrapper class that calls the editor specified by the user
     or the one specified in the $EDITOR env variable.
@@ -884,7 +884,7 @@ class Editor(object):
         return answer.lower().strip() in ["n", "no"]
 
 
-class SparseHistogram(object):
+class SparseHistogram:
 
     def __init__(self, items, key=None, num=None, step=None):
         if num is None and step is None:
@@ -926,7 +926,7 @@ class SparseHistogram(object):
         return fig
 
 
-class Dirviz(object):
+class Dirviz:
 
     #file_color = np.array((255, 0, 0)) / 255
     #dir_color = np.array((0, 0, 255)) / 255

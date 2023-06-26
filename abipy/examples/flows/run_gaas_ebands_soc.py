@@ -4,7 +4,7 @@ Band structure with/without SOC
 ================================
 
 This example shows how to compute the band structure of GaAs with and without spin-orbit term.
-We essentially build two BandStructureWork inside a loop over nspinor in [1, 2]
+We build two BandStructureWork objects inside a loop over nspinor in [1, 2]
 nspinor = 1 corresponds to a standard collinear calculation for non-magnetic systems while
 nspinor = 2 gives us the non-collinear case with spinor wavefunctions required for the treatment of SOC.
 Some of the variables in the input files must be changed depending on the value of nspinor.

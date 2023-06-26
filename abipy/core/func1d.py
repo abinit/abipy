@@ -10,6 +10,7 @@ import numpy as np
 from io import StringIO
 from typing import Tuple, Union
 from monty.functools import lazy_property
+from abipy.tools.typing import Figure
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, data_from_cplx_mode,
     add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
 from abipy.tools.derivatives import finite_diff
@@ -19,8 +20,10 @@ __all__ = [
 ]
 
 
-class Function1D(object):
-    """Immutable object representing a (real|complex) function of real variable."""
+class Function1D:
+    """
+    Immutable object representing a real|complex function of real variable.
+    """
 
     @classmethod
     def from_constant(cls, mesh, const) -> Function1D:
@@ -49,13 +52,13 @@ class Function1D(object):
         """Values of the functions."""
         return self._values
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.mesh)
 
     def __iter__(self):
         return zip(self.mesh, self.values)
 
-    def __getitem__(self, slice) -> Tuple(float, float):
+    def __getitem__(self, slice) -> Tuple[float, float]:
         return self.mesh[slice], self.values[slice]
 
     def __eq__(self, other) -> bool:
@@ -82,6 +85,7 @@ class Function1D(object):
             return cls(self.mesh, self.values+other.values)
         else:
             return cls(self.mesh, self.values + np.array(other))
+
     __radd__ = __add__
 
     def __sub__(self, other) -> Function1D:
@@ -118,7 +122,7 @@ class Function1D(object):
     def __pow__(self, other) -> Function1D:
         return self.__class__(self.mesh, self.values**other)
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> Figure:
         """Integration with jupyter_ notebooks."""
         return self.plot(show=False)
 
@@ -136,7 +140,7 @@ class Function1D(object):
         """Return new :class:`Function1D` with the complex conjugate."""
         return self.__class__(self.mesh, self.values.conjugate)
 
-    def abs(self):
+    def abs(self) -> Function1D:
         """Return :class:`Function1D` with the absolute value."""
         return self.__class__(self.mesh, np.abs(self.values))
 
@@ -178,10 +182,10 @@ class Function1D(object):
             for x, y in zip(self.mesh, self.values):
                 fh.write(fmt % (x, y))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s at %s, size = %d" % (self.__class__.__name__, id(self), len(self))
 
-    def __str__(self):
+    def __str__(self) -> str:
         stream = StringIO()
         for x, y in zip(self.mesh, self.values):
             stream.write("%.18e %.18e\n" % (x, y))
@@ -462,7 +466,7 @@ class Function1D(object):
 
     #    return self.__class__(self.mesh, -(2 / np.pi) * wmesh * kk_values)
 
-    def plot_ax(self, ax, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
+    def plot_ax(self, ax, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs) -> list:
         """
         Helper function to plot self on axis ax.
 
@@ -505,7 +509,7 @@ class Function1D(object):
         return lines
 
     @add_fig_kwargs
-    def plot(self, ax=None, **kwargs):
+    def plot(self, ax=None, **kwargs) -> Figure:
         """
         Plot the function with matplotlib.
 
@@ -573,7 +577,7 @@ class Function1D(object):
                 xx, yy = yy, xx
 
             fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=showlegend, *args, **kwargs),
-                              row=ply_row, col=ply_col)
+                          row=ply_row, col=ply_col)
 
     @add_plotly_fig_kwargs
     def plotly(self, exchange_xy=False, fig=None, rcd=None, **kwargs):
@@ -590,8 +594,6 @@ class Function1D(object):
         """
         fig, _ = get_fig_plotly(fig=fig)
         rcd = PlotlyRowColDesc.from_object(rcd)
-
-        #self.plot_ax(ax, exchange_xy=exchange_xy, **kwargs)
         self.plotly_traces(fig, rcd=rcd, exchange_xy=exchange_xy, **kwargs)
 
         return fig

@@ -3,7 +3,7 @@ r"""
 Effective masses with finite difference
 =======================================
 
-Flow to compute effective masses with finite difference method.
+Flow to compute effective masses with finite difference methods.
 Derivatives are computed along lines in k-space.
 """
 

@@ -6,15 +6,14 @@ The preferred way of importing this module is:
 
     import qutils as qu
 """
+from __future__ import annotations
+
 from monty.string import is_string
 from pymatgen.core.units import Time, Memory
 from abipy.tools import duck
 
-import logging
-logger = logging.getLogger(__name__)
 
-
-def slurm_parse_timestr(s):
+def slurm_parse_timestr(s: str) -> Time:
     """
     A slurm time parser. Accepts a string in one the following forms:
 
@@ -67,7 +66,7 @@ def slurm_parse_timestr(s):
     return Time((days*24 + hours)*3600 + minutes*60 + seconds, "s")
 
 
-def time2slurm(timeval, unit="s"):
+def time2slurm(timeval: float, unit="s") -> str:
     """
     Convert a number representing a time value in the given unit (Default: seconds)
     to a string following the slurm convention: "days-hours:minutes:seconds".
@@ -85,7 +84,7 @@ def time2slurm(timeval, unit="s"):
     return "%d-%d:%d:%d" % (days, hours, minutes, secs)
 
 
-def time2pbspro(timeval, unit="s"):
+def time2pbspro(timeval: float, unit="s") -> str:
     """
     Convert a number representing a time value in the given unit (Default: seconds)
     to a string following the PbsPro convention: "hours:minutes:seconds".
@@ -101,7 +100,7 @@ def time2pbspro(timeval, unit="s"):
     return "%d:%d:%d" % (hours, minutes, secs)
 
 
-def time2loadlever(timeval, unit="s"):
+def time2loadlever(timeval: float, unit="s") -> str:
     """
     Convert a number representing a time value in the given unit (Default: seconds)
     to a string following the LoadLever convention. format hh:mm:ss (hours:minutes:seconds)

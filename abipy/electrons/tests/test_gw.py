@@ -15,7 +15,7 @@ class TestQPList(AbipyTest):
         self.sigres = sigres = abilab.abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
         repr(self.sigres); str(self.sigres)
         assert self.sigres.to_string(verbose=2)
-        self.qplist = sigres.get_qplist(spin=0, kpoint=sigres.gwkpoints[0])
+        self.qplist = sigres.get_qplist(spin=0, kpoint=sigres.sigma_kpoints[0])
 
     def tearDown(self):
         self.sigres.close()
@@ -48,7 +48,7 @@ class TestQPList(AbipyTest):
         with self.assertRaises(ValueError):
             qplist.merge(qplist)
 
-        other_qplist = self.sigres.get_qplist(spin=0, kpoint=self.sigres.gwkpoints[1])
+        other_qplist = self.sigres.get_qplist(spin=0, kpoint=self.sigres.sigma_kpoints[1])
         qpl_merge = qplist.merge(other_qplist)
 
         assert all(qp in qpl_merge for qp in qplist)
@@ -60,8 +60,8 @@ class TestQPList(AbipyTest):
         #qp.to_string(verbose=2, title="QP State")
         assert str(qp.tips)
         assert qp.spin == 0
-        assert qp.kpoint == self.sigres.gwkpoints[0]
-        assert qp.kpoint is self.sigres.gwkpoints[0]
+        assert qp.kpoint == self.sigres.sigma_kpoints[0]
+        assert qp.kpoint is self.sigres.sigma_kpoints[0]
 
         self.assert_equal(qp.re_qpe + 1j * qp.imag_qpe, qp.qpe)
         self.assert_almost_equal(qp.e0, -5.04619941555265, decimal=5)
@@ -89,7 +89,7 @@ class TestSigresFile(AbipyTest):
 
         # In this run IBZ = kptgw
         assert len(sigres.ibz) == 6
-        assert sigres.gwkpoints == sigres.ibz
+        assert sigres.sigma_kpoints == sigres.ibz
         # No spectral function
         assert not sigres.reader.has_spfunc
         with self.assertRaises(ValueError):
@@ -112,7 +112,7 @@ class TestSigresFile(AbipyTest):
 
         ik = 2
         df = sigres.get_dataframe_sk(spin=0, kpoint=ik)
-        same_df = sigres.get_dataframe_sk(spin=0, kpoint=sigres.gwkpoints[ik])
+        same_df = sigres.get_dataframe_sk(spin=0, kpoint=sigres.sigma_kpoints[ik])
 
         assert np.all(df["qpe"] == same_df["qpe"])
 

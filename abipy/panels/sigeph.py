@@ -1,8 +1,11 @@
 """Panels to interact with the SIGEPH file."""
+from __future__ import annotations
+
 import param
 import panel as pn
 import panel.widgets as pnw
 
+from abipy.eph.sigeph import SigEPhFile
 from .core import PanelWithElectronBands, mpl, ply, depends_on_btn_click #, PanelWithEbandsRobot
 
 
@@ -10,7 +13,7 @@ class SigEPhFilePanel(PanelWithElectronBands):
     """
     Panel with widgets to interact with a |SigEphFile|.
     """
-    def __init__(self, sigeph, **params):
+    def __init__(self, sigeph: SigEPhFile, **params):
         PanelWithElectronBands.__init__(self, ebands=sigeph.ebands, **params)
         self.sigeph = sigeph
 
@@ -21,7 +24,7 @@ class SigEPhFilePanel(PanelWithElectronBands):
         self.plot_qpsolution_btn = pnw.Button(name="Plot Sigma_nk", button_type='primary')
         #sigma_band_select  = param.ObjectSelector(default=0, objects=[0], doc="Band index in sigma_nk")
 
-    def plot_lws(self):
+    def plot_lws(self) -> pn.GridSpec:
         # Insert results in grid.
         gspec = pn.GridSpec(sizing_mode='scale_width')
         for i, rta_type in enumerate(("serta", "mrta")):
@@ -32,7 +35,7 @@ class SigEPhFilePanel(PanelWithElectronBands):
 
         return gspec
 
-    def plot_qpgaps(self):
+    def plot_qpgaps(self) -> pn.GridSpec:
         # Insert results in grid.
         gspec = pn.GridSpec(sizing_mode='scale_width')
 

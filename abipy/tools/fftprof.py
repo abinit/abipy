@@ -2,14 +2,18 @@
 Python interface to fftprof. Provides objects to benchmark
 the FFT libraries used by ABINIT and plot the results with matplotlib.
 """
+from __future__ import annotations
+
 import os
 import tempfile
 import numpy as np
 
 from subprocess import Popen, PIPE
-from monty.os.path import which
+from shutil import which
 from monty.fnmatch import WildCard
 from abipy.tools.plotting import add_fig_kwargs
+from abipy.tools.typing import Figure
+
 
 __all__ = [
     "FFTBenchmark",
@@ -48,7 +52,7 @@ _markers_nt = {
 }
 
 
-class FFT_Test(object):
+class FFT_Test:
     """
     This object stores the wall-time of the FFT
     as a function of the size of the problem.
@@ -73,18 +77,20 @@ class FFT_Test(object):
         self.fftalg = int(self.fftalg)
         self.nthreads = int(self.nthreads)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         return "fftalg: %s, nt: %d" % (self.fftalg, self.nthreads)
 
-    def speedup_wrt(self, other):
+    def speedup_wrt(self, other: FFT_Test):
         """Compare self with other, return a new instance of FFT_Test containing the speedup."""
         info = self._info.copy()
         info["speedup"] = other.wall_time / self.wall_time
         return FFT_Test(self.ecut, self.ngfft, self.wall_time, info)
 
     def plot_ax(self, ax, ydata=None, fact=1.0):
-        """Plot ydata on the axis ax. If data is None, the wall_time is plotted."""
+        """
+        Plot ydata on the axis ax. If data is None, the wall_time is plotted.
+        """
         color = _color_fftalg[self.fftalg]
         linestyle = _linestyle_nt[self.nthreads]
         marker = _markers_nt[self.nthreads]
@@ -104,7 +110,7 @@ class FFT_Test(object):
         return line
 
 
-class FFTBenchmark(object):
+class FFTBenchmark:
     """
     Container class storing the results of the FFT benchmark.
 
@@ -138,7 +144,7 @@ class FFTBenchmark(object):
         return lst
 
     @add_fig_kwargs
-    def plot(self, exclude_algs=None, exclude_threads=None, **kwargs):
+    def plot(self, exclude_algs=None, exclude_threads=None, **kwargs) -> Figure:
         """
         Plot the wall-time and the speed-up.
         """
@@ -306,7 +312,7 @@ class FFTProfError(Exception):
     """Exceptions raised by FFTprof."""
 
 
-class FFTProf(object):
+class FFTProf:
     """Wrapper around fftprof Fortran executable."""
     Error = FFTProfError
 
@@ -319,16 +325,16 @@ class FFTProf(object):
             raise self.Error("Cannot find executable %s in $PATH" % executable)
 
     @classmethod
-    def from_file(cls, filename, executable="fftprof"):
+    def from_file(cls, filename, executable="fftprof") -> FFTProf:
         with open(filename, "r") as fh:
             fft_input = fh.read()
 
         return cls(fft_input, executable=executable)
 
-    def run(self):
+    def run(self) -> int:
         """Execute fftprof in a subprocess."""
         self.workdir = tempfile.mkdtemp()
-        print(self.workdir)
+        #print(self.workdir)
 
         self.stdin_fname = os.path.join(self.workdir, "fftprof.in")
         self.stdout_fname = os.path.join(self.workdir, "fftprof.out")

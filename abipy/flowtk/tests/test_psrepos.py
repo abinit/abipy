@@ -31,11 +31,12 @@ class TestPsRepos(AbipyTest):
         assert encoded == filepath
         assert decode_pseudopath(encoded) == filepath
 
-    def test_download_repo(self):
-        """Testing download_repo_from_url"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            url = "https://file-examples-com.github.io/uploads/2017/02/zip_2MB.zip"
-            download_repo_from_url(url, tmp_dir, chunk_size=2 * 1024**2, verbose=1)
+    # FIXME: Disable because very unstable.
+    #def test_download_repo(self):
+    #    """Testing download_repo_from_url"""
+    #    with tempfile.TemporaryDirectory() as tmp_dir:
+    #        url = "https://file-examples-com.github.io/uploads/2017/02/zip_2MB.zip"
+    #        download_repo_from_url(url, tmp_dir, chunk_size=2 * 1024**2, verbose=1)
 
     def test_base_api(self):
         """Testing base API."""

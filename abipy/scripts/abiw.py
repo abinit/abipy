@@ -3,6 +3,8 @@
 This script allows the user to submit the calculations contained in the `Flow`.
 It provides a command line interface as well as a graphical interface based on wxpython.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse

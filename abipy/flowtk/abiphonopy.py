@@ -1,5 +1,6 @@
 # coding: utf-8
-"""Interface between phonopy and abipy workflow model."""
+"""Interface between phonopy and the AbiPy workflow model."""
+from __future__ import annotations
 
 import os
 import numpy as np
@@ -24,7 +25,7 @@ __all__ = [
 ]
 
 
-def atoms_from_structure(structure):
+def atoms_from_structure(structure: Structure):
     """
     Convert a pymatgen Structure into a phonopy Atoms object.
     """
@@ -32,9 +33,9 @@ def atoms_from_structure(structure):
     return read_vasp_from_strings(s, symbols=None)
 
 
-def structure_from_atoms(atoms):
+def structure_from_atoms(atoms) -> Structure:
     """
-    Convert a phonopy Atoms object into a pymatgen Structure.
+    Convert a phonopy Atoms object into a abipy Structure.
     """
     return Structure(lattice=atoms.cell,
                      species=atoms.symbols,
@@ -68,7 +69,7 @@ class PhonopyWork(Work):
     """
 
     @classmethod
-    def from_gs_input(cls, gsinp, scdims, phonopy_kwargs=None, displ_kwargs=None):
+    def from_gs_input(cls, gsinp, scdims, phonopy_kwargs=None, displ_kwargs=None) -> PhonopyWork:
         """
         Build the work from an :class:`AbinitInput` object representing a GS calculations.
 
@@ -202,7 +203,7 @@ class PhonopyGruneisenWork(Work):
         numpy arrays with the number of cells in the supercell along the three reduced directions.
     """
     @classmethod
-    def from_gs_input(cls, gsinp, voldelta, scdims, phonopy_kwargs=None, displ_kwargs=None):
+    def from_gs_input(cls, gsinp, voldelta, scdims, phonopy_kwargs=None, displ_kwargs=None) -> PhonopyGruneisenWork:
         """
         Build the work from an :class:`AbinitInput` object representing a GS calculations.
 

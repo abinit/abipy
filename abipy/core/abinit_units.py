@@ -3,6 +3,8 @@
 This module defines constants and conversion factors matching those present in abinit that can be used when
 it is important to preserve consistency with the results produced by abinit.
 """
+from __future__ import annotations
+
 import numpy as np
 
 # taken from abinit/10_defs/defs_basis.F90
@@ -75,7 +77,7 @@ BField_Tesla = 4.254383e-6
 dipole_moment_debye = 0.393430307
 
 
-def phfactor_ev2units(units):
+def phfactor_ev2units(units: str) -> float:
     """
     Return conversion factor eV --> units for phonons (case-insensitive)
     """
@@ -89,7 +91,7 @@ def phfactor_ev2units(units):
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
 
-def phunit_tag(units, unicode=False):
+def phunit_tag(units: str, unicode=False) -> str:
     """
     Mainly used for phonons.
     Return latex string from ``units``.
@@ -109,7 +111,7 @@ def phunit_tag(units, unicode=False):
     return s
 
 
-def wlabel_from_units(units, unicode=False):
+def wlabel_from_units(units: str, unicode=False) -> str:
     """
     Return latex string for phonon frequencies in ``units``.
     """
@@ -130,7 +132,7 @@ def wlabel_from_units(units, unicode=False):
     return s
 
 
-def phdos_label_from_units(units, unicode=False):
+def phdos_label_from_units(units: str, unicode=False) -> str:
     """
     Return latex string for phonon DOS values in ``units``.
     """
@@ -149,7 +151,7 @@ def phdos_label_from_units(units, unicode=False):
     return s
 
 
-def s2itup(comp):
+def s2itup(comp: str) -> tuple:
     """
     Convert string in the form ``xx``, ``xyz`` into tuple of two (three) indices
     that can be used to slice susceptibility tensors (numpy array).
@@ -167,7 +169,7 @@ def s2itup(comp):
         raise ValueError("Expecting component in the form `xy` or `xyz` but got `%s`" % comp)
 
 
-def itup2s(t):
+def itup2s(t: tuple) -> str:
     """
     Convert tuple of 2 (3) integers into string in the form ``xx`` (``xyz``).
     Assume C-indexing e.g. 0 --> x

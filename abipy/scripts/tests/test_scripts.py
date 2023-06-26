@@ -526,3 +526,11 @@ class TestAbidb(ScriptTest):
         # Cannot test other commands as we need a MongoDB server
         #r = env.run(self.script, "avail", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
+
+class TestAOncv(ScriptTest):
+
+    script = os.path.join(script_dir, "oncv.py")
+
+    def test_oncv(self):
+        """Testing abigui.py script"""
+        env = self.get_env()

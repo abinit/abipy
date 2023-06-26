@@ -4,6 +4,8 @@ Work for computing the Grüneisen parameters with finite differences of DFPT pho
 
 WARNING: This code must be tested more carefully.
 """
+from __future__ import annotations
+
 import numpy as np
 
 from abipy.core.structure import Structure
@@ -25,8 +27,9 @@ class GruneisenWork(Work):
     """
 
     @classmethod
-    def from_gs_input(cls, gs_inp, voldelta, ngqpt, tolerance=None, with_becs=False,
-                      ddk_tolerance=None, workdir=None, manager=None):
+    def from_gs_input(cls, gs_inp, voldelta, ngqpt, 
+                      tolerance=None, with_becs=False, 
+                      ddk_tolerance=None, workdir=None, manager=None) -> GruneisenWork:
         """
         Build the work from an |AbinitInput| representing a GS calculations.
 
@@ -84,7 +87,7 @@ class GruneisenWork(Work):
         self.add_phonon_works_and_build()
         return super().on_all_ok()
 
-    def add_phonon_works_and_build(self):
+    def add_phonon_works_and_build(self) -> None:
         """
         Get relaxed structures from the tasks, build Phonons works with new structures.
         Add works to the flow and build new directories.

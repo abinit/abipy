@@ -1,5 +1,9 @@
 # coding: utf-8
-"""This module contains the class defining the G-sphere for wavefunctions, densities and potentials"""
+"""
+This module contains the class defining the G-sphere for wavefunctions, densities and potentials
+"""
+from  __future__ import annotations
+
 import collections
 import numpy as np
 
@@ -36,7 +40,7 @@ class GSphere(collections.abc.Sequence):
             raise NotImplementedError("istwfk %d is not implemented" % self.istwfk)
 
     @property
-    def gvecs(self):
+    def gvecs(self) -> np.ndarray:
         """|numpy-array| with the G-vectors in reduced coordinates."""
         return self._gvecs
 
@@ -48,7 +52,7 @@ class GSphere(collections.abc.Sequence):
     #    return self._kpg2
 
     # Sequence protocol
-    def __len__(self):
+    def __len__(self) -> int:
         return self.gvecs.shape[0]
 
     def __getitem__(self, slice):
@@ -60,7 +64,7 @@ class GSphere(collections.abc.Sequence):
     def __contains__(self, gvec):
         return np.asarray(gvec) in self.gvecs
 
-    def index(self, gvec):
+    def index(self, gvec) -> int:
         """
         return the index of the G-vector ``gvec`` in self.
         Raises: `ValueError` if the value is not present.
@@ -72,7 +76,7 @@ class GSphere(collections.abc.Sequence):
         else:
             raise ValueError("Cannot find %s in Gsphere" % str(gvec))
 
-    def count(self, gvec):
+    def count(self, gvec) -> int:
         """Return number of occurrences of gvec."""
         return np.count_nonzero(np.all(g == gvec) for g in self)
 
@@ -90,11 +94,11 @@ class GSphere(collections.abc.Sequence):
     def __ne__(self, other):
         return not (self == other)
 
-    def copy(self):
+    def copy(self) -> GSphere:
         """shallow copy."""
         return self.__class__(self.ecut, self.lattice.copy(), self.kpoint.copy(), self.gvecs.copy(), istwfk=self.istwfk)
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         name = str(self.__class__)
         s = name + ": kpoint: %(kpoint)s, ecut: %(ecut)f, npw: %(npw)d, istwfk: %(istwfk)d" % self.__dict__
@@ -114,7 +118,7 @@ class GSphere(collections.abc.Sequence):
         else:
             return np.empty(shape, dtype)
 
-    def zeros(self, dtype=float, extra_dims=()):
+    def zeros(self, dtype=float, extra_dims=()) -> np.ndarray:
         """
         Returns new zeroed 1D |numpy-array|.
 
@@ -123,11 +127,11 @@ class GSphere(collections.abc.Sequence):
         """
         return self._new_array(dtype=dtype, zero=True, extra_dims=extra_dims)
 
-    def czeros(self, extra_dims=()):
+    def czeros(self, extra_dims=()) -> np.ndarray:
         """New zeroed 1D complex |numpy-array|."""
         return self._new_array(dtype=complex, zero=True, extra_dims=extra_dims)
 
-    def empty(self, dtype=float, extra_dims=()):
+    def empty(self, dtype=float, extra_dims=()) -> np.ndarray:
         """
         Returns new uninitialized 1D |numpy-array|.
 
@@ -136,7 +140,7 @@ class GSphere(collections.abc.Sequence):
         """
         return self._new_array(dtype=dtype, zero=False, extra_dims=extra_dims)
 
-    def cempty(self, extra_dims=()):
+    def cempty(self, extra_dims=()) -> np.ndarray:
         """Returns new uninitialized 1D complex |numpy-array|."""
         return self._new_array(dtype=complex, zero=False, extra_dims=extra_dims)
 
@@ -144,7 +148,7 @@ class GSphere(collections.abc.Sequence):
     #  """Returns the number of divisions of the FFT box enclosing the sphere."""
     #  #return ndivs
 
-    def tofftmesh(self, mesh, arr_on_sphere):
+    def tofftmesh(self, mesh, arr_on_sphere) -> np.ndarray:
         """
         Insert the array ``arr_on_sphere`` given on the sphere inside the FFT mesh.
 
@@ -185,7 +189,7 @@ class GSphere(collections.abc.Sequence):
 
         return arr_on_mesh
 
-    def fromfftmesh(self, mesh, arr_on_mesh):
+    def fromfftmesh(self, mesh, arr_on_mesh) -> np.ndarray:
         """
         Transfer ``arr_on_mesh`` given on the FFT mesh to the G-sphere.
         """

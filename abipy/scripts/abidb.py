@@ -27,7 +27,7 @@ from abipy.htc.protocol import Protocol
 MAGIC_COLLECTION_FILENAME = "_abidb_collection"
 
 
-def get_epilog():
+def get_epilog() -> str:
     usage = f"""\
 
 Usage example:
@@ -283,7 +283,7 @@ def abidb_add(options, mng_connector):  #, ctx: Context):
     """
     if options.mp:
         # Get structures from the Materials Project website via MP ids.
-        structures = [Structures.from_mpid(mpid) for p in options.files]
+        structures = [Structure.from_mpid(mpid) for p in options.files]
     else:
         # Get structures from external files.
         structures = [Structure.from_file(p) for p in options.files]

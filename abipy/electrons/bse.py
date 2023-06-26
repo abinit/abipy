@@ -1,5 +1,7 @@
 # coding: utf-8
 """Classes for the analysis of BSE calculations"""
+from __future__ import annotations
+
 import os
 import itertools
 import numpy as np
@@ -10,11 +12,13 @@ from monty.functools import lazy_property
 from monty.string import marquee, is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.core.func1d import Function1D
+from abipy.core.structure import Structure
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import set_axlims
 from abipy.tools import duck
+from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import RobotWithEbands
 
@@ -55,7 +59,7 @@ class _DielectricTensor(object):
 
         self._all_tensors = all_tensors
 
-    def to_array(self, red_coords=True):
+    def to_array(self, red_coords=True) -> np.ndarray:
         """
         Return |numpy-array| with a copy of the data.
 
@@ -91,7 +95,7 @@ class _DielectricTensor(object):
         return all_funcs
 
     @add_fig_kwargs
-    def plot(self, ax=None, *args, **kwargs):
+    def plot(self, ax=None, *args, **kwargs) -> Figure:
         """
         Plot all the components of the tensor.
 
@@ -121,7 +125,7 @@ class _DielectricTensor(object):
 
         return fig
 
-    def plot_ax(self, ax, what, red_coords, *args, **kwargs):
+    def plot_ax(self, ax, what, red_coords, *args, **kwargs) -> list:
         """
         Helper function to plot data on the axis ax.
 
@@ -153,7 +157,7 @@ class _DielectricTensor(object):
         return f.plot_ax(ax, *args, **kwargs)
 
 
-class DielectricFunction(object):
+class DielectricFunction:
     """
     This object stores the frequency-dependent macroscopic dielectric function
     computed for different q-directions in reciprocal space.
@@ -191,10 +195,10 @@ class DielectricFunction(object):
         # TODO: One should take into account the star of q, but I need the symops
         self.emacro_avg = Function1D(wmesh, em_avg / self.num_qpoints)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0, with_info=False):
+    def to_string(self, verbose=0, with_info=False) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -211,12 +215,12 @@ class DielectricFunction(object):
         return itertools.izip(self.qpoints, self.emacros_q)
 
     @property
-    def num_qpoints(self):
+    def num_qpoints(self) -> int:
         """Number of q-points."""
         return len(self.qpoints)
 
     @property
-    def qfrac_coords(self):
+    def qfrac_coords(self) -> np.ndarray:
         """|numpy-array| with the fractional coordinates of the q-points."""
         return self.qpoints.frac_coords
 
@@ -231,7 +235,7 @@ class DielectricFunction(object):
     #    return self.info["calc_type"]
 
     @add_fig_kwargs
-    def plot(self, ax=None, **kwargs):
+    def plot(self, ax=None, **kwargs) -> Figure:
         """
         Plot the MDF.
 
@@ -266,7 +270,7 @@ class DielectricFunction(object):
 
         return fig
 
-    def plot_ax(self, ax, qpoint=None, **kwargs):
+    def plot_ax(self, ax, qpoint=None, **kwargs) -> list:
         """
         Helper function to plot data on the axis ax.
 
@@ -316,22 +320,22 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
     .. inheritance-diagram:: MdfFile
     """
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> MdfFile:
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = MdfReader(filepath)
 
         # TODO Add electron Bands.
         #self._ebands = r.read_ebands()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -345,12 +349,12 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
     @lazy_property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.reader.read_structure()
 
@@ -375,12 +379,12 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.qpoints
 
     @property
-    def qfrac_coords(self):
+    def qfrac_coords(self) -> np.ndarray:
         """|numpy-array| with the fractional coordinates of the q-points."""
         return self.qpoints.frac_coords
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """
         Dictionary with the parameters that are usually tested for convergence.
         Used to build Pandas dataframes in Robots.
@@ -395,7 +399,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 "rpa": self.rpanlf_mdf,
                 "gwrpa": self.gwnlf_mdf}[mdf_type.lower()]
 
-    def plot_mdfs(self, cplx_mode="Im", mdf_type="all", qpoint=None, **kwargs):
+    def plot_mdfs(self, cplx_mode="Im", mdf_type="all", qpoint=None, **kwargs) -> Figure:
         """
         Plot the macroscopic dielectric function.
 
@@ -460,7 +464,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         yield self.plot_mdfs(cplx_mode="Re", mdf_type="all", qpoint=None, show=False)
         yield self.plot_mdfs(cplx_mode="Im", mdf_type="all", qpoint=None, show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -497,22 +501,22 @@ class MdfReader(ETSF_Reader): #ElectronsReader
         self._structure = self.read_structure()
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
     @lazy_property
-    def qpoints(self):
+    def qpoints(self) -> KpointList:
         """List of q-points (ndarray)."""
         # Read the fractional coordinates and convert them to KpointList.
         return KpointList(self.structure.reciprocal_lattice, frac_coords=self.read_value("qpoints"))
 
     @lazy_property
-    def wmesh(self):
+    def wmesh(self) -> np.ndarray:
         """The frequency mesh in eV."""
         return self.read_value("wmesh")
 
-    def read_params(self):
+    def read_params(self) -> dict:
         """Dictionary with the parameters of the run."""
         # TODO: Add more info.
         # soenergy replaced by mbpt_sciss
@@ -546,7 +550,7 @@ class MdfReader(ETSF_Reader): #ElectronsReader
         return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
 
-class MdfPlotter(object):
+class MdfPlotter:
     """
     Class for plotting Macroscopic dielectric functions.
 
@@ -576,7 +580,8 @@ class MdfPlotter(object):
         self._mdfs[label] = mdf
 
     @add_fig_kwargs
-    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlims=None, ylims=None, fontsize=12, **kwargs):
+    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlims=None, ylims=None, 
+             fontsize=8, **kwargs) -> Figure:
         """
         Get a matplotlib plot showing the MDFs.
 
@@ -632,7 +637,7 @@ class MdfPlotter(object):
     #        )
 
 
-class MultipleMdfPlotter(object):
+class MultipleMdfPlotter:
     """
     Class for plotting multipe macroscopic dielectric functions
     extracted from several MDF.nc files
@@ -667,10 +672,10 @@ class MultipleMdfPlotter(object):
         # [label][mdf_type] --> DielectricFunction
         self._mdfs = OrderedDict()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, **kwargs):
+    def to_string(self, **kwargs) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -706,7 +711,8 @@ class MultipleMdfPlotter(object):
                 self._mdfs[label][mdf_type] = obj.get_mdf(mdf_type=mdf_type)
 
     @add_fig_kwargs
-    def plot(self, mdf_type="exc", qview="avg", xlims=None, ylims=None, fontsize=8, **kwargs):
+    def plot(self, mdf_type="exc", qview="avg", xlims=None, ylims=None, 
+             fontsize=8, **kwargs) -> Figure:
         """
         Plot all macroscopic dielectric functions (MDF) stored in the plotter
 
@@ -802,7 +808,8 @@ class MultipleMdfPlotter(object):
 
     @add_fig_kwargs
     def plot_mdftype_cplx(self, mdf_type, cplx_mode, qpoint=None, ax=None, xlims=None, ylims=None,
-                          with_legend=True, with_xlabel=True, with_ylabel=True, fontsize=8, **kwargs):
+                          with_legend=True, with_xlabel=True, with_ylabel=True, 
+                          fontsize=8, **kwargs) -> Figure:
         """
         Helper function to plot data corresponds to ``mdf_type``, ``cplx_mode``, ``qpoint``.
 
@@ -913,7 +920,7 @@ class MdfRobot(Robot, RobotWithEbands):
     """
     EXT = "MDF"
 
-    def plot(self, **kwargs):
+    def plot(self, **kwargs) -> Figure:
         """Wraps plot method of :class:`MultipleMdfPlotter`. kwargs are passed to plot."""
         return self.get_multimdf_plotter().plot(**kwargs)
 
@@ -934,7 +941,7 @@ class MdfRobot(Robot, RobotWithEbands):
 
         return plotter
 
-    def get_dataframe(self, with_geo=False, abspath=False, funcs=None, **kwargs):
+    def get_dataframe(self, with_geo=False, abspath=False, funcs=None, **kwargs) -> pd.DataFrame:
         """
         Build and return |pandas-DataFrame| with the most import BSE results and the filenames as index.
 
@@ -990,7 +997,7 @@ class MdfRobot(Robot, RobotWithEbands):
 
     #    return fig
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
