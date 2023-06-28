@@ -818,7 +818,9 @@ class Marker(namedtuple("Marker", "x y s")):
 
 
 class Exposer:
-    """Base class for Exposer objects."""
+    """
+    Base class for Exposer objects.
+    """
 
     @classmethod
     def as_exposer(cls, exposer, **kwargs) -> Exposer:
@@ -836,6 +838,16 @@ class Exposer:
             panel=PanelExposer,
         )[exposer]
         return exposer_cls(**kwargs)
+
+    def add_obj_with_yield_figs(self, obj: Any) -> None:
+        """
+        Add an object implementing a `yield_figs` method to the Exposer.
+        """
+        if not hasattr(obj, "yield_figs"):
+            raise TypeError(f"object of type {type(obj)} does not implement `yield_figs` method")
+
+        for fig in obj.yield_figs():
+            self.add_fig(fig)
 
     def __call__(self, obj: Any):
         """
@@ -915,7 +927,9 @@ class MplExposer(Exposer): # pragma: no cover
             fig.clear()
 
     def expose(self) -> None:
-        """Show all figures. Clear figures if needed."""
+        """
+        Show all figures. Clear figures if needed.
+        """
         if not self.slide_mode:
             print("All figures in memory, elapsed time: %.3f s" % (time.time() - self.start_time))
             import matplotlib.pyplot as plt

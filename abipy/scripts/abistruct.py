@@ -25,10 +25,10 @@ from abipy.iotools.xsf import xsf_write_structure
 from abipy.abio import factories
 
 
-def save_structure(structure, options):
+def save_structure(structure, options) -> None:
     """Save structure to file."""
     if not options.savefile: return
-    print("Saving structure to %s" % options.savefile)
+    print("Saving structure to file:", options.savefile)
     if os.path.exists(options.savefile):
         backup = options.savefile + ".bkp"
         print("%s already exists. Saving backup copy to: %s" % (options.savefile, backup))
@@ -37,7 +37,7 @@ def save_structure(structure, options):
     structure.to(filename=options.savefile)
 
 
-def check_ordered_structure(structure):
+def check_ordered_structure(structure) -> None:
     """Print a warning and sys.exit 1 if structure is disordered."""
     if not structure.is_ordered:
         cprint("""
@@ -197,12 +197,14 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         group = parser.add_mutually_exclusive_group()
         group.add_argument('--no-primitive', default=False, action='store_true', help="Do not enforce primitive cell.")
         group.add_argument('--primitive-standard', default=False, action='store_true',
-            help="Enforce primitive standard cell.")
+                           help="Enforce primitive standard cell.")
 
     supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)"
 
     def add_format_arg(parser, default, option=True, formats=None):
-        """Add --format option to a parser with default value `default`."""
+        """
+        Add --format option to a parser with default value `default`.
+        """
         formats = supported_formats if formats is None else formats
         if option:
             parser.add_argument("-f", "--format", default=default, type=str,
@@ -237,8 +239,18 @@ file that does not have enough significant digits.""")
         help="Convert structure to the specified format.")
     add_format_arg(p_convert, default="cif")
 
+    # Subparser for print command.
     p_print = subparsers.add_parser('print', parents=[copts_parser, path_selector],
                                     help="Print Structure to terminal.")
+
+    # Subparser for p_ command.
+    p_ml_relax = subparsers.add_parser('ml_relax', parents=[copts_parser, path_selector],
+                                        help="Relax structure with ML potentials e.g. m3gnet.")
+    p_ml_relax.add_argument('--relax-cell', default=True, action=argparse.BooleanOptionalAction,
+                             help="Relax cell parameters")
+    p_ml_relax.add_argument("--abi-sanitize", default=True, action=argparse.BooleanOptionalAction,
+                             help="Invoke abi_sanitize on the ML-relaxed structure")
+    add_format_arg(p_ml_relax, default="abivars")
 
     # Subparser for supercell command.
     p_supercell = subparsers.add_parser('supercell', parents=[copts_parser, path_selector],
@@ -364,6 +376,7 @@ closest points in this particular structure. This is usually what you want in a 
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
         help="Read structure from file, generate k-path for band-structure calculations.")
     add_format_arg(p_kpath, default="abinit", formats=["abinit", "wannier90", "siesta"])
+
     # Subparser for bz.
     p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
         help="Read structure from file, plot Brillouin zone with matplotlib.")
@@ -588,6 +601,42 @@ def main():
         if fmt == "cif" and options.filepath.endswith(".cif"): fmt = "abivars"
         print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
 
+    elif options.command == "ml_relax":
+        initial_structure = abilab.Structure.from_file(options.filepath)
+
+        calculator = "m3gnet"
+        print("Relaxing input structure with calculator:", calculator, ", relax_cell:", options.relax_cell,
+             ", abi_sanitize:", options.abi_sanitize, ", output format:", options.format, "...")
+        relaxed_structure = initial_structure.relax(calculator=calculator, relax_cell=options.relax_cell)
+        relaxed_structure.__class__ = abilab.Structure
+        if options.abi_sanitize:
+            relaxed_structure = relaxed_structure.abi_sanitize()
+
+        if options.verbose:
+            # Print dataframes to compare initial and relaxed structure.
+            index = [options.filepath, "ML_relaxed"]
+            dfs = abilab.dataframes_from_structures([initial_structure, relaxed_structure], index=index, with_spglib=True)
+            abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
+            abilab.print_dataframe(dfs.coords, title="Atomic positions in frac. coords (columns give the site index):")
+            #from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
+            #rel_ana = RelaxationAnalyzer(initial_structure, relaxed_structure)
+            #print(rel_ana)
+            #print(relaxed_structure)
+
+        initial_str = initial_structure.convert(fmt=options.format)
+        relaxed_str = relaxed_structure.convert(fmt=options.format)
+        lines1, lines2 = initial_str.splitlines(), relaxed_str.splitlines()
+        head1, head2 = "# INPUT", "# ML RELAXED"
+        pad = max(max(len(l) for l in lines1), len(head1), len(head2))
+        print(head1.ljust(pad), " | ", head2)
+        for l1, l2 in zip(lines1, lines2):
+            print(l1.ljust(pad), " | ", l2)
+
+        output_file = options.filepath + "ml_relaxed." + options.format
+        print("Writing ML relaxed structure to file:", output_file, "with format:", options.format)
+        with open(output_file, "wt") as fh:
+            fh.write(relaxed_str)
+
     elif options.command == "print":
         print(abilab.Structure.from_file(options.filepath).to_string(verbose=options.verbose))
 
@@ -617,9 +666,8 @@ def main():
                                            primitive=not options.no_primitive, primitive_standard=options.primitive_standard)
         index = [options.filepath, "abisanitized"]
         dfs = abilab.dataframes_from_structures([structure, sanitized], index=index, with_spglib=True)
-
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
-        abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
+        abilab.print_dataframe(dfs.coords, title="Atomic positions in frac. coords. (columns give the site index):")
 
         if not options.verbose:
             print("\nUse -v for more info")
@@ -700,7 +748,7 @@ def main():
 
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
         if options.verbose:
-            abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
+            abilab.print_dataframe(dfs.coords, title="Atomic positions in frac. coords (columns give the site index):")
 
         if not options.verbose:
             print("\nUse -v for more info")

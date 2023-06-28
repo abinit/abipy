@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
 UO2 with 96 atoms. PAW and nsppol=2
-GS calculations with paralkgb==1. Compare wfoptalg in [default, 1].
+GS calculations with paral_kgb == 1.
+Compare wfoptalg in [default, 1].
 """
 import sys
 import operator
@@ -18,8 +19,7 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 
 def make_input():
     """
-    UO2 with 96 atoms.
-    GS calculations with paralkgb==1
+    UO2 with 96 atoms. GS calculations with paral_kgb == 1
     """
     pseudos = abidata.pseudos("u.paw", "o.paw")
 

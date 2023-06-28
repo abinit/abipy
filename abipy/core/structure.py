@@ -373,7 +373,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     def to_ase_atoms(self):
         """
-        Returns ASE_ Atoms object from structure.
+        Returns ASE Atoms object from structure.
         """
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_atoms(self)
@@ -381,7 +381,7 @@ class Structure(pmg_Structure, NotebookWriter):
     @classmethod
     def boxed_molecule(cls, pseudos, cart_coords, acell=3 * (10,)) -> Structure:
         """
-        Creates a molecule in a periodic box of lengths acell [Bohr]
+        Creates a molecule in a periodic box of lengths acell in Bohr.
 
         Args:
             pseudos: List of pseudopotentials
@@ -399,7 +399,7 @@ class Structure(pmg_Structure, NotebookWriter):
     @classmethod
     def boxed_atom(cls, pseudo, cart_coords=3*(0,), acell=3*(10,)) -> Structure:
         """
-        Creates an atom in a periodic box of lengths acell [Bohr]
+        Creates an atom in a periodic box of lengths acell in Bohr.
 
         Args:
             pseudo: Pseudopotential object.
@@ -576,7 +576,7 @@ class Structure(pmg_Structure, NotebookWriter):
     @property
     def species_by_znucl(self):
         """
-        Return list of unique specie found in the structure **ordered according to sites**.
+        Return list of unique species found in the structure **ordered according to sites**.
 
         Example:
 
@@ -874,6 +874,11 @@ class Structure(pmg_Structure, NotebookWriter):
             if x_prod < 0: raise RuntimeError("x_prod is still negative!")
 
         return self.__class__.as_structure(structure)
+
+    #def relax(self, **kwargs) -> Structure:
+    #    new = super().relax(**kwargs)
+    #    new.__class__ = self.__class__
+    #    return new
 
     def get_oxi_state_decorated(self, **kwargs) -> Structure:
         """

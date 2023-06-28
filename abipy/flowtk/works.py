@@ -253,7 +253,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
                 returncode: 0 on success.
                 message: a string that should provide a human-readable description of what has been performed.
         """
-        return dict(returncode=0, message="Calling on_all_ok of the base class!")
+        return dict(returncode=0, message=f"Calling on_all_ok of {self.__class__.__name__}")
 
     def get_results(self, **kwargs):
         """
@@ -534,7 +534,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
         return task
 
     def register_kerange_task(self, *args, **kwargs) -> KerangeTask:
-        """ Register a kerange task."""
+        """Register a kerange task."""
         kwargs["task_class"] = KerangeTask
         kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
         task = self.register_task(*args, **kwargs)

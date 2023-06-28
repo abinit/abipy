@@ -3358,6 +3358,7 @@ class GsTask(AbinitTask):
     Base class for ground-state calculations.
     A GsTask produces a GSR file and provides the `open_gsr` method to read a GSR.nc file.
     """
+
     @property
     def gsr_path(self) -> str:
         """Absolute path of the GSR file. Empty string if file is not present."""
@@ -3371,7 +3372,7 @@ class GsTask(AbinitTask):
 
     def open_gsr(self):
         """
-        Open the GSR file located in the in self.outdir.
+        Open the GSR file located in the outdir of the task
         Returns |GsrFile| object, None if file could not be found or file is not readable.
         """
         gsr_path = self.gsr_path
@@ -3731,12 +3732,12 @@ class RelaxTask(GsTask, ProduceHist):
         else:
             raise ValueError("Wrong value for what %s" % what)
 
-    def reduce_dilatmx(self, target: float = 1.01):
+    def reduce_dilatmx(self, target: float = 1.01) -> None:
         actual_dilatmx = self.get_inpvar("dilatmx", 1.0)
         new_dilatmx = actual_dilatmx - min((actual_dilatmx - target), actual_dilatmx * 0.05)
         self.set_vars(dilatmx=new_dilatmx)
 
-    def fix_ofiles(self):
+    def fix_ofiles(self) -> None:
         """
         Note that ABINIT produces lots of out_TIM1_DEN files for each step.
         Here we list all TIM*_DEN files, we select the last one and we rename it as out_DEN
@@ -4376,7 +4377,7 @@ class GwrTask(AbinitTask):
 
     color_rgb = np.array((255, 128, 0)) / 255
 
-    def setup(self): 
+    def setup(self):
 
         #if self["gwr_task"] in (GWR_TASK.HDIAGO_FULL, ):
         #    print("To perform full diago, need to know mpw...")

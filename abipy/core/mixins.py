@@ -687,15 +687,7 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
             print("nbpath:", nbpath)
 
             import socket
-
-            def find_free_port():
-                """https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number"""
-                from contextlib import closing
-                with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-                    s.bind(('', 0))
-                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                    return s.getsockname()[1]
-
+            from abipy.tools.notebooks import find_free_port
             username = os.getlogin()
             hostname = socket.gethostname()
             port = find_free_port()
@@ -892,9 +884,12 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
             # Create panel template with matplotlib figures and show them in the browser.
             pn, template = self._get_panel_and_template()
             pn.config.sizing_mode = 'stretch_width'
-            from abipy.panels.core import mpl
+            from abipy.panels.core import mpl, dfc
             for i, fig in enumerate(self.yield_figs()):
                 row, col = divmod(i, 2)
+                #if isinstance(fig, pd.DataFrame, pd.Series):
+                #    p = dfc(fig)
+                #elsse
                 p = mpl(fig, with_divider=False, dpi=82)
                 if hasattr(template.main, "append"):
                     template.main.append(p)
@@ -957,9 +952,9 @@ class SlotPickleMixin:
     This mixin makes it possible to pickle/unpickle objects with __slots__
     """
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         return {slot: getattr(self, slot) for slot in self.__slots__ if hasattr(self, slot)}
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict) -> None:
         for slot, value in state.items():
             setattr(self, slot, value)

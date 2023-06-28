@@ -9,7 +9,6 @@ import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from typing import List, Tuple
 from monty.functools import lazy_property
 from monty.collections import AttrDict
 from monty.string import marquee, list_strings
@@ -158,7 +157,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return self.structures[-1]
 
     @lazy_property
-    def structures(self) -> List[Structure]:
+    def structures(self) -> list[Structure]:
         """List of |Structure| objects at the different steps."""
         return self.reader.read_all_structures()
 
@@ -784,7 +783,7 @@ class HistRobot(Robot):
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
     @property
-    def what_list(self) -> List[str]:
+    def what_list(self) -> list[str]:
         """List with all quantities that can be plotted (what_list)."""
         return ["energy", "abc", "angles", "volume", "pressure", "forces"]
 
@@ -916,7 +915,7 @@ class HistReader(ETSF_Reader):
         """Number of atoms un the unit cell."""
         return self.read_dimvalue("natom")
 
-    def read_all_structures(self) -> List[Structure]:
+    def read_all_structures(self) -> list[Structure]:
         """Return the list of structures at the different iteration steps."""
         rprimd_list = self.read_value("rprimd")
         xred_list = self.read_value("xred")
@@ -969,7 +968,7 @@ class HistReader(ETSF_Reader):
         """
         return self.read_value("fred")
 
-    def read_cart_stress_tensors(self) -> Tuple[np.ndarray, np.ndarray]:
+    def read_cart_stress_tensors(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (GPa)
         and the list of pressures in GPa unit.

@@ -24,6 +24,7 @@ from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import Robot
 from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
 
+
 class AbinitTextFile(TextFile):
     """
     Base class for the ABINIT main output files and log files.

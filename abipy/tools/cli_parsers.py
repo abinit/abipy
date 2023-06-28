@@ -123,7 +123,9 @@ def customize_mpl(options) -> None:
 
 
 def add_expose_options_to_parser(parser, with_mpl_options=True) -> None:
-    """Add Expose options to the parser."""
+    """
+    Add Expose options to the parser.
+    """
 
     parser.add_argument('-e', '--expose', action='store_true', default=False,
         help="Open file and generate matplotlib figures automatically by calling expose method.")
@@ -146,3 +148,45 @@ def add_expose_options_to_parser(parser, with_mpl_options=True) -> None:
             help=("Set matplotlib interactive backend. "
                   "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
                   "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
+
+
+
+class EnumAction(argparse.Action):
+    """
+    Argparse action for handling Enums
+
+
+    Usage:
+
+        class Do(enum.Enum):
+            Foo = "foo"
+            Bar = "bar"
+
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument('do', type=Do, action=EnumAction)
+
+    Taken from https://stackoverflow.com/questions/43968006/support-for-enum-arguments-in-argparse
+    """
+    def __init__(self, **kwargs):
+        # Pop off the type value
+        enum_type = kwargs.pop("type", None)
+
+        # Ensure an Enum subclass is provided
+        if enum_type is None:
+            raise ValueError("type must be assigned an Enum when using EnumAction")
+        if not issubclass(enum_type, enum.Enum):
+            raise TypeError("type must be an Enum when using EnumAction")
+
+        # Generate choices from the Enum
+        kwargs.setdefault("choices", tuple(e.value for e in enum_type))
+
+        super().__init__(**kwargs)
+
+        self._enum = enum_type
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        # Convert value back into an Enum
+        value = self._enum(values)
+        setattr(namespace, self.dest, value)
+

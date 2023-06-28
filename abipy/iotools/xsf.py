@@ -72,15 +72,20 @@ def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs) -
         xsf_write_structure(fh, structure)
         xsf_write_data(fh, structure, datar, **kwargs)
 
+        #xsf_write_data(fh, structure, datar_1, idname="data", **kwargs)
+        #xsf_write_data(fh, structure, datar_2, idname="data1", **kwargs)
 
-def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None) -> None:
+
+def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
+                   idname="data", tag="_UNKNOWN") -> None:
+                   #idname="data", tag="_grid":) -> None:
     """
     Write data in the Xcrysden format (XSF)
 
     Args:
         file: file-like object.
         structure: :class:`Structure` object.
-        data: array-like object in C-order, i.e data[nx, ny, nz]
+        data: array-like object in C-order, i.e data[nx, ny, nz] or data[ngrids, nx, ny, nz]
         add_replicas: If True, data is padded with redundant data points.
             in order to have a periodic 3D array of shape: (nx+1, ny+1, nz+1).
         cplx_mode: string defining the data to print when data is a complex array.
@@ -128,10 +133,13 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None) -> 
     origin = np.zeros(3)
 
     fwrite('BEGIN_BLOCK_DATAGRID_3D\n')
-    fwrite(' data\n')
+    fwrite(f' {idname}\n')
 
     for dg in range(ngrids):
-        fwrite(" BEGIN_DATAGRID_3Dgrid#" + str(dg+1) + "\n")
+        if ngrids != 1:
+            fwrite(f" BEGIN_DATAGRID_3D{tag}#{dg+1}" + "\n")
+        else:
+            fwrite(f" BEGIN_DATAGRID_3D{tag}" + "\n")
         fwrite('%d %d %d\n' % shape[-3:])
 
         fwrite('%f %f %f\n' % tuple(origin))
