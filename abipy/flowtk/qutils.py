@@ -127,6 +127,6 @@ def timelimit_parser(s):
 def any2mb(s):
     """Convert string or number to memory in megabytes."""
     if is_string(s):
-        return int(Memory.from_string(s).to("Mb"))
+        return int(Memory.from_str(s).to("Mb"))
     else:
         return int(s)

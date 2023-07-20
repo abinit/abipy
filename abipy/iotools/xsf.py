@@ -16,7 +16,7 @@ __all__ = [
 ]
 
 
-def xsf_write_structure(file, structures) -> None:
+def xsf_write_structure(file, structures: list) -> None:
     """
     Write the crystalline structure in the Xcrysden format (XSF)
 
@@ -67,13 +67,26 @@ def xsf_write_structure(file, structures) -> None:
 
 
 def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs) -> None:
-    """Simplified interface to xsf routines to write structure and data to filepath."""
+    """Simplified interface to write structure and data to filepath in XSF format."""
     with open(filepath, mode="wt") as fh:
         xsf_write_structure(fh, structure)
         xsf_write_data(fh, structure, datar, **kwargs)
 
-        #xsf_write_data(fh, structure, datar_1, idname="data", **kwargs)
-        #xsf_write_data(fh, structure, datar_2, idname="data1", **kwargs)
+
+#def xsf_write_structure_and_multidata(filepath, structure, multi_datar, tags=None, **kwargs) -> None:
+#    """
+#    """
+#    multi_datar = np.array(multi_datar, ndmin=4)
+#    if tags is not None:
+#        if len(tags) != len(multi_datar):
+#            raise ValueError(f"tags and multi_datar should have same length but {len(tags)} != {len(multi_datar)}")
+#
+#    with open(filepath, mode="wt") as fh:
+#        xsf_write_structure(fh, structure)
+#        for i, datar in enumerate(multi_datar):
+#           tag = tags[i] if tags is not None else f"data_{i}"
+#           xsf_write_data(fh, structure, multi_datar[i], tag=tag, **kwargs)
+
 
 
 def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,

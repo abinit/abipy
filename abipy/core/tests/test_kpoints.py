@@ -193,7 +193,7 @@ class TestKpointList(AbipyTest):
         repr(klist); str(klist)
 
         self.serialize_with_pickle(klist, protocols=[-1])
-        self.assert_msonable(klist, test_if_subclass=False)
+        self.assert_msonable(klist, test_is_subclass=False)
 
         self.assert_equal(klist.frac_coords.flatten(), frac_coords)
         self.assert_equal(klist.get_cart_coords(), np.reshape([k.cart_coords for k in klist], (-1, 3)))
@@ -372,7 +372,7 @@ class TestKpointsReader(AbipyTest):
 
             # Test pickle and json
             self.serialize_with_pickle(kpoints)
-            self.assert_msonable(kpoints, test_if_subclass=False)
+            self.assert_msonable(kpoints, test_is_subclass=False)
 
 
 class KmeshTest(AbipyTest):
