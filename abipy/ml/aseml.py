@@ -22,7 +22,7 @@ except ImportError as exc:
 from pathlib import Path
 from dataclasses import dataclass
 from inspect import isclass
-from typing import Type, Any, Optional
+from typing import Type, Any, Optional, Union
 from monty.string import marquee, list_strings # is_string,
 from monty.functools import lazy_property
 from pymatgen.core import Structure as PmgStructure
@@ -34,17 +34,20 @@ from ase.optimize.optimize import Optimizer
 from ase.calculators.calculator import Calculator
 from ase.io.vasp import write_vasp_xdatcar
 from ase.neb import NEB
+from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
+from ase.md.nvtberendsen import NVTBerendsen
 from abipy.core import Structure
 from abipy.tools.plotting import get_ax_fig_plt #, get_axarray_fig_plt,
+from abipy.tools.iotools import workdir_with_prefix
 
 ###################
 # Helper functions
 ###################
 
-CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
+_CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
 
 
-def to_ase_atoms(structure: PmgStructure, calculator=None):
+def to_ase_atoms(structure: PmgStructure, calculator=None) -> Atoms:
     """Convert pymatgen structure to ASE atoms. Optionally, attach a calculator."""
     structure = get_structure(structure)
     atoms = AseAtomsAdaptor.get_atoms(structure)
@@ -65,7 +68,7 @@ def get_atoms(obj: Any) -> Atoms:
 
 
 def get_structure(obj: Any) -> Structure:
-    """Return pymatgen Structure from object."""
+    """Return abipy Structure from object."""
     if isinstance(obj, str):
         return Structure.from_file(obj)
     if isinstance(obj, PmgStructure):
@@ -76,7 +79,7 @@ def get_structure(obj: Any) -> Structure:
     raise TypeError(f"Don't know how to construct Atoms object from {type(obj)}")
 
 
-def fix_atoms(atoms, fix_inds: list, fix_symbols: list, verbose: int) -> None:
+def fix_atoms(atoms: Atoms, fix_inds: list[int], fix_symbols: list[str], verbose: int) -> None:
     """Fix atoms by indices and by symbols."""
     #if verbose > 1: print(f"in fix_atoms: {fix_inds=}, {fix_symbols=}")
     from ase.constraints import FixAtoms
@@ -96,7 +99,7 @@ _FMT2FNAME = {
     #"qe": "qe.in",
 }
 
-def write_atoms(atoms, workdir, verbose,
+def write_atoms(atoms: Atoms, workdir, verbose: int,
                 formats=None, prefix=None, postfix=None) -> list[tuple[Path, str]]:
     """
     Write atoms to file(s), return list with (Path, fmt) tuples.
@@ -127,13 +130,44 @@ def write_atoms(atoms, workdir, verbose,
     return outpath_fmt
 
 
+def print_atoms(atoms: Atoms, title=None, cart_forces=None, stream=sys.stdout) -> None:
+    def pf(*args):
+        print(*args, file=stream)
+
+    scaled_positions = atoms.get_scaled_positions()
+    if title is not None:
+        pf(title)
+    if cart_forces is None:
+        pf("Frac coords:")
+    else:
+        pf("Frac coords and cart forces:")
+
+    for ia, (atom, frac_coords) in enumerate(zip(atoms, scaled_positions)):
+        if cart_forces is None:
+            pf("\t", frac_coords)
+        else:
+            pf("\t", frac_coords, cart_forces[ia])
+
+
+#def summarize_two_atoms_diff(label1: str, atoms1: Atoms,
+#                             label2: str, atoms2: Atoms) -> str:
+#    lines = []
+#    d1 = dict(zip(_CELLPAR_KEYS, atoms1.cell.cellpar()))
+#    d2 = dict(zip(_CELLPAR_KEYS, atoms2.cell.cellpar()))
+#    return "\n".join(lines)
+
+
+
 def scompare_two_atoms(label1: str, atoms1: Atoms,
                        label2: str, atoms2: Atoms) -> str:
     """Compare two atoms object, return string."""
     lines = []; app = lines.append
 
-    d1 = dict(zip(CELLPAR_KEYS, atoms1.cell.cellpar()))
-    d2 = dict(zip(CELLPAR_KEYS, atoms2.cell.cellpar()))
+    d1 = dict(zip(_CELLPAR_KEYS, atoms1.cell.cellpar()))
+    d1["label"] = label1
+    d2 = dict(zip(_CELLPAR_KEYS, atoms2.cell.cellpar()))
+    d2["label"] = label2
+
     cell_df = pd.DataFrame([d1, d2])
     app(str(cell_df))
 
@@ -143,8 +177,7 @@ def scompare_two_atoms(label1: str, atoms1: Atoms,
 
     # (natom, 3) arrays
     natom = len(atoms1)
-    pos1 = atoms1.get_positions()
-    pos2 = atoms2.get_positions()
+    pos1, pos2 = atoms1.get_positions(), atoms2.get_positions()
     data = {}
     for i, key in enumerate(("x", "y", "z")):
         data[key] = np.vstack((pos1[:,i], pos2[:,i])).ravel('F')
@@ -167,7 +200,6 @@ def diff_two_structures(label1, structure1, label2, structure2, fmt, file=sys.st
     print(label1.ljust(pad), " | ", label2, file=file)
     for l1, l2 in zip(lines1, lines2):
         print(l1.ljust(pad), " | ", l2, file=file)
-
 
 
 @dataclass
@@ -208,8 +240,8 @@ class AseResults:
         """String representation with verbosity level `verbose`."""
         lines = []; app = lines.append
 
-        app(f"Energy: {r.ene} (eV)")
-        app(f"Pressure: {r.pressure} ")
+        app(f"Energy: {self.ene} (eV)")
+        app(f"Pressure: {self.pressure} ")
         fstats = self.get_fstats()
         for k, v in fstats.items():
             app(f"{k} = {v}")
@@ -246,7 +278,7 @@ class AseResults:
         """Dictionary with results used to build pandas dataframe."""
         d = {k: getattr(self, k) for k in ["ene", "volume", "pressure"]}
         if with_geo:
-            d.update(dict(zip(CELLPAR_KEYS, self.atoms.cell.cellpar())))
+            d.update(dict(zip(_CELLPAR_KEYS, self.atoms.cell.cellpar())))
         if with_fstats:
             d.update(self.get_fstats())
 
@@ -283,7 +315,8 @@ class AseRelaxation:
     #def plot(self, **kwargs):
 
 
-def dataframe_from_results_list(index: list, results_list: list[Results], mode="smart") -> pd.DataFrame:
+def dataframe_from_results_list(index: list, results_list: list[AseResults],
+                                mode="smart") -> pd.DataFrame:
     assert len(index) == len(results_list)
     df = pd.DataFrame([r.get_dict4pandas() for r in results_list], index=index)
 
@@ -293,7 +326,7 @@ def dataframe_from_results_list(index: list, results_list: list[Results], mode="
             a = s.to_numpy()
             return (a[0] == a).all()
 
-        for k in (["volume",] + CELLPAR_KEYS):
+        for k in (["volume",] + _CELLPAR_KEYS):
             if k in df and is_unique(df[k]):
                 df.drop(columns=k, inplace=True)
 
@@ -319,12 +352,13 @@ def ase_optimizer_cls_from_str(s: str | None) -> Type | list[str]:
     return getattr(optimize, s)
 
 
-def relax_atoms(atoms, relax_cell: bool, optimizer: str, fmax: float, verbose: int,
+def relax_atoms(atoms: Atoms, relax_cell: bool, optimizer: str, fmax: float, verbose: int,
                 steps: int = 500, opt_kwargs=None, traj_path=None, calculator=None):
     """
-    Relaxat atoms using an ASE calculator and ASE algorithms.
+    Relaxa atoms using an ASE calculator and ASE algorithms.
 
     Args:
+        atoms: ASE atoms.
         relax_cell: True to relax the lattice cell.
         optimizer: name of the ASE optimizer class to use
         fmax: total force tolerance for relaxation convergence.
@@ -349,16 +383,16 @@ def relax_atoms(atoms, relax_cell: bool, optimizer: str, fmax: float, verbose: i
     # Run relaxation
     opt_class = ase_optimizer_cls_from_str(optimizer)
     stream = sys.stdout if verbose else io.StringIO()
-    def sprint(*args, **kwargs):
+    def pf(*args, **kwargs):
         print(*args, file=stream, **kwargs)
 
     with contextlib.redirect_stdout(stream):
-        sprint(f"Relaxation parameters: fmax: {fmax}, relax_cell: {relax_cell}, steps: {steps}, optimizer: {optimizer}")
+        pf(f"Relaxation parameters: fmax: {fmax}, relax_cell: {relax_cell}, steps: {steps}, optimizer: {optimizer}")
         if atoms.constraints:
-            sprint(f"Number of constraints: {len(atoms.constraints)}")
+            pf(f"Number of constraints: {len(atoms.constraints)}")
             for c in atoms.constraints:
-                sprint("\t", c)
-            sprint("")
+                pf("\t", c)
+            pf("")
 
         if relax_cell:
             ecf = ExpCellFilter(atoms)
@@ -369,8 +403,8 @@ def relax_atoms(atoms, relax_cell: bool, optimizer: str, fmax: float, verbose: i
         t_start = time.time()
         converged = dyn.run(fmax=fmax, steps=steps)
         t_end = time.time()
-        sprint("Converged:", converged)
-        sprint('Relaxation completed in %2.4f sec\n' % (t_end - t_start))
+        pf("Converged:", converged)
+        pf('Relaxation completed in %2.4f sec\n' % (t_end - t_start))
 
     return AseRelaxation(dyn, traj_path)
 
@@ -388,6 +422,60 @@ def silence_tensorflow() -> None:
         tf.autograph.set_verbosity(3)
     except (ModuleNotFoundError, ImportError):
         pass
+
+
+class _MyCalculatorMixin:
+    """
+    """
+    def set_delta_forces(self, delta_forces):
+        """F_Abinitio - F_ML"""
+        self._delta_forces = delta_forces
+
+    def get_delta_forces(self):
+        return getattr(self, "_delta_forces", None)
+
+    def set_delta_stress(self, delta_stress):
+        """S_Abinitio - S_ML"""
+        self._delta_stress = delta_stress
+
+    def get_delta_stress(self):
+        return getattr(self, "_delta_stress", None)
+
+    def calculate(
+         self,
+         atoms: Atoms | None = None,
+         properties: list | None = None,
+         system_changes: list | None = None,
+     ):
+         """
+         Perform calculation for an input Atoms.
+
+         Args:
+             atoms (ase.Atoms): ase Atoms object
+             properties (list): list of properties to calculate
+             system_changes (list): monitor which properties of atoms were
+                 changed for new calculation. If not, the previous calculation
+                 results will be loaded.
+         """
+         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
+
+         forces = self.results["forces"]
+         delta_forces = self.get_delta_forces()
+         if delta_forces is not None:
+             forces += delta_forces
+             #print("Updating forces with delta_forces:\n", forces)
+             self.results.update(
+                 forces=forces,
+             )
+
+         stress = self.results["stress"]
+         delta_stress = self.get_delta_stress()
+         if delta_stress is not None:
+             stress += delta_stress
+             #print("Updating stress with delta_stress:\n", stress)
+             self.results.update(
+                 stress=stress,
+             )
 
 
 class CalcBuilder:
@@ -415,7 +503,11 @@ class CalcBuilder:
 
             if self._model is None:
                 self._model = Potential(M3GNet.load())
-            return M3GNetCalculator(potential=self._model)
+
+            class MyM3GNetCalculator(M3GNetCalculator, _MyCalculatorMixin):
+                """Add delta_forces"""
+
+            return MyM3GNetCalculator(potential=self._model)
 
         if self.name == "m3gnet":
             # See https://github.com/materialsvirtuallab/matgl
@@ -427,7 +519,11 @@ class CalcBuilder:
 
             if self._model is None:
                 self._model = matgl.load_model("M3GNet-MP-2021.2.8-PES")
-            return M3GNetCalculator(potential=self._model)
+
+            class MyM3GNetCalculator(M3GNetCalculator, _MyCalculatorMixin):
+                """Add delta_forces"""
+
+            return MyM3GNetCalculator(potential=self._model)
 
         if self.name == "chgnet":
             try:
@@ -438,7 +534,11 @@ class CalcBuilder:
 
             if self._model is None:
                 self._model = CHGNet.load()
-            return CHGNetCalculator(model=self._model)
+
+            class MyCHGNetCalculator(CHGNetCalculator, _MyCalculatorMixin):
+                """Add delta_forces"""
+
+            return MyCHGNetCalculator(model=self._model)
 
         raise ValueError(f"Invalid {self.name=}")
 
@@ -453,17 +553,7 @@ class _MlBase:
         Build directory with `prefix` if `workdir` is None else create it.
         Raise RuntimeError if workdir already exists.
         """
-        if workdir is None:
-            if prefix is not None:
-                prefix += datetime.datetime.now().strftime("dT%H-%M-%S-")
-            workdir = tempfile.mkdtemp(prefix=prefix, dir=os.getcwd())
-        else:
-            workdir = str(workdir)
-            if os.path.exists(workdir):
-                raise RuntimeError(f"{workdir=} already exists!")
-            os.mkdir(workdir)
-
-        self.workdir = Path(workdir).absolute()
+        self.workdir = workdir_with_prefix(workdir, prefix)
 
         # Write click click arguments in json format.
         #with open(self.workdir / "click_params.json"), "wt") as fh:
@@ -582,7 +672,7 @@ import matplotlib.pyplot as plt
 class MlRelaxer(_MlBase):
     """Relax structure with ASE and ML-potential"""
 
-    def __init__(self, atoms, relax, fmax, steps, optimizer, calc_builder, verbose,
+    def __init__(self, atoms: Atoms, relax, fmax, steps, optimizer, calc_builder, verbose,
                  workdir, prefix=None):
         """
         Args:
@@ -663,7 +753,7 @@ class MlRelaxer(_MlBase):
 class MlMd(_MlBase):
     """Perform MD calculations with ASE and ML potential."""
 
-    def __init__(self, atoms, temperature, timestep, steps, loginterval,
+    def __init__(self, atoms: Atoms, temperature, timestep, steps, loginterval,
                  ensemble, calc_builder, verbose, workdir, prefix=None):
         """
         Args:
@@ -810,7 +900,8 @@ class MlNeb(_MlNebBase):
     Perform NEB calculation with ASE and ML potential.
     """
 
-    def __init__(self, initial_atoms, final_atoms, nimages, neb_method, climb, optimizer, relax, fmax,
+    def __init__(self, initial_atoms: Atoms, final_atoms: Atoms,
+                 nimages, neb_method, climb, optimizer, relax, fmax,
                  calc_builder, verbose, workdir, prefix=None):
         """
         Args:
@@ -950,7 +1041,7 @@ class MultiMlNeb(_MlNebBase):
     Perform a multi-NEB calculation with ASE and ML potential.
     """
 
-    def __init__(self, atoms_list, nimages, neb_method, climb, optimizer, relax, fmax,
+    def __init__(self, atoms_list: list[Atoms], nimages, neb_method, climb, optimizer, relax, fmax,
                  calc_builder, verbose, workdir, prefix=None):
         """
         Args:
@@ -1202,7 +1293,7 @@ class MlOrderer(_MlBase):
 class MlPhonons(_MlBase):
     """Compute phonons with ASE and ML potential."""
 
-    def __init__(self, atoms, supercell, kpts, asr, nqpath,
+    def __init__(self, atoms: Atoms, supercell, kpts, asr, nqpath,
                  relax, fmax, steps, optimizer, calc_builder,
                  verbose, workdir, prefix=None):
         """
@@ -1294,7 +1385,7 @@ class MlPhonons(_MlBase):
         ph.clean()
 
         # Calculate phonon dispersion along a path in the Brillouin zone.
-        path = atoms.cell.bandpath(npoints=nqpath)
+        path = atoms.cell.bandpath(npoints=self.nqpath)
         bs = ph.get_band_structure(path, born=False)
         dos = ph.get_dos(kpts=self.kpts).sample_grid(npts=100, width=1e-3)
 
@@ -1318,10 +1409,6 @@ class MlPhonons(_MlBase):
         self.savefig("phonons.png", fig, info=title)
 
         self._finalize()
-
-
-from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
-from ase.md.nvtberendsen import NVTBerendsen
 
 
 class MolecularDynamics:
@@ -1443,3 +1530,32 @@ class MolecularDynamics:
         self.dyn.attach(MDLogger(self.dyn, self.atoms, '-', header=True, stress=False,
                         peratom=True, mode="a"), interval=self.loginterval)
         self.dyn.run(steps)
+
+
+def traj_to_qepos(traj_filepath: str, pos_filepath: str) -> None:
+    """
+    Convert ASE trajectory file to QE POS file.
+
+    Args:
+        traj_filepath: Name of ASE trajectory file
+        pos_filepath: Name of output POS file.
+    """
+    traj = Trajectory(traj_filepath)
+    nStepsTraj = len(traj)
+    nAtoms = len(traj[0])
+    #print(nStepsTraj)
+    posArray = np.zeros((nStepsTraj, nAtoms, 3), dtype=float)
+    # positionsArray = np.zeros((nStepsTraj), dtype=float)
+
+    count = -1
+    for atoms in traj:
+        count = count + 1
+        #print(atoms.positions)
+        posArray[count,:,:] = atoms.positions
+    #print(posArray.shape)
+
+    with open(pos_filepath, 'w+') as posFile:
+        for i in range(nStepsTraj):
+            posFile.write(str(i)+ '\n')
+            for j in range(nAtoms):
+                posFile.write(str(posArray[i,j,0]) + ' ' + str(posArray[i,j,1]) + ' ' + str(posArray[i,j,2]) + '\n')

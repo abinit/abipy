@@ -6,9 +6,11 @@ import os
 import codecs
 import errno
 import tempfile
+import datetime
 import ruamel.yaml as yaml
 import pandas as pd
 
+from pathlib import Path
 from contextlib import ExitStack
 from subprocess import call
 from typing import Any
@@ -49,6 +51,7 @@ def dataframe_from_filepath(filepath: str, **kwargs) -> pd.DataFrame:
     if ext in ("xls", "xlsx"): return pd.read_excel(filepath, **kwargs)
 
     raise ValueError(f"Don't know how to construct DataFrame from file {filepath} with extension: {ext}")
+
 
 class ExitStackWithFiles(ExitStack):
     """
@@ -297,3 +300,21 @@ class AtomicFile:
     def __del__(self):
         if getattr(self, "_fp", None):  # constructor actually did something
             self.discard()
+
+
+def workdir_with_prefix(workdir, prefix) -> Path:
+    """
+    if workdir is None, create temporary directory with prefix else
+    check that workdir does not exist.
+    """
+    if workdir is None:
+        if prefix is not None:
+            prefix += datetime.datetime.now().strftime("dT%H-%M-%S-")
+        workdir = tempfile.mkdtemp(prefix=prefix, dir=os.getcwd())
+    else:
+        workdir = str(workdir)
+        if os.path.exists(workdir):
+            raise RuntimeError(f"{workdir=} already exists!")
+        os.mkdir(workdir)
+
+    return Path(workdir).absolute()

@@ -949,7 +949,7 @@ class MultiOncvPlotter(NotebookWriter):
         yield self.plot_atan_logders(show=False)
         yield self.plot_kene_vs_ecut(show=False)
         yield self.plot_radial_wfs(show=False)
-        if any(parser.has_scattering_wfs for parser in self.parsers):
+        if any(plotter.parser.has_scattering_wfs for plotter in self.plotters):
             yield self.plot_radial_wfs(what="scattering_states", show=False)
         yield self.plot_potentials(show=False)
         #if verbose:

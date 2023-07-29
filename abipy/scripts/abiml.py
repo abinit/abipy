@@ -7,7 +7,7 @@ from __future__ import annotations
 import sys
 import os
 import json
-import logging
+#import logging
 import click
 import numpy as np
 import abipy.ml.aseml as aseml
@@ -296,6 +296,7 @@ def tsaseneb(ctx, filepaths, nimages, workdir, verbose):
     os.chdir(workdir)
 
     # Read initial and final structures
+    from abipy.core.structure import Structure
     initial = Structure.from_file(initial, primitive=False)
     final = Structure.from_file(final, primitive=False)
 
@@ -374,10 +375,11 @@ def tsaseneb(ctx, filepaths, nimages, workdir, verbose):
 def aseph(ctx, filepath, supercell, kpts, asr, nqpath,
           relax, fmax, steps, optimizer, workdir, verbose):
     """
-    Phonon Band Structure and DOS with ML potential.
+    Compute phonon band structure and DOS with ML potential.
 
-    The M3GNet IAP can also be used to compute the lattice vibrations in a super cell.
-    https://github.com/materialsvirtuallab/m3gnet/blob/main/examples/Relaxation%20of%20LiFePO4.ipynb
+    Based on:
+
+        https://github.com/materialsvirtuallab/m3gnet/blob/main/examples/Relaxation%20of%20LiFePO4.ipynb
 
     Usage example:
 
@@ -422,7 +424,7 @@ def order(ctx, filepath, max_ns, relax, fmax, steps, optimizer, workdir, verbose
                                  workdir, prefix="_order_")
     print(ml_orderer.to_string(verbose=verbose))
     ml_orderer.run()
-    return ml_ph
+    return ml_orderer
 
 
 if __name__ == "__main__":

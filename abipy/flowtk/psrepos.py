@@ -9,6 +9,14 @@ treatment of relativistic corrections although one might have multiple pseudos f
 
 Due to this ambiguity, a repo cannot be directly used for running calculations in an automatic fashion
 hence the user is supposed to specify both the `repo_name` and the `table_name` when constructing a `PseudoTable`.
+
+
+Usage:
+
+    from abipy.flowtk.psrepos import get_repo_from_name
+    repo = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4")
+    pseudos = repo.get_pseudos("standard")
+    print(pseudos)
 """
 from __future__ import annotations
 
@@ -525,3 +533,9 @@ _ALL_REPOS = _ONCVPSP_REPOS + _PAW_REPOS
 _repo_names = [_repo.name for _repo in _ALL_REPOS]
 if len(set(_repo_names)) != len(_repo_names):
     raise RuntimeError(f"Found duplicated repo_names in ALL_REPOS:\nids: {_repo_names}")
+
+
+if __name__ == "__main__":
+    repo = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4")
+    pseudos = repo.get_pseudos("standard")
+    print(pseudos)

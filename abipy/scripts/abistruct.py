@@ -506,6 +506,22 @@ ehull < show_unstable will be shown.""")
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
         help="Read structures from HIST.nc or XDATCAR. Print structures in Xcrysden AXSF format to stdout.")
 
+    # Subparser for chemenv command.
+    p_chemenv = subparsers.add_parser('chemenv', parents=[copts_parser, path_selector],
+        help="Use ChemEnv to analyze chemical coordination environments. " +
+             "See D. Waroquiers, at al. Acta Cryst B 2020, 76, 683–695.")
+    p_chemenv.add_argument("-mdf", '--maximum-distance-factor', default=1.41,
+                            type=float, help="Maximum distance factor. Default 1.41.")
+    p_chemenv.add_argument("-dc", '--distance-cutoff', default=1.4, type=float,
+                            help="Distance cutoff in Ang. Default: 1.4")
+    p_chemenv.add_argument("-ac", '--angle-cutoff', default=0.3, type=float,
+                           help="Angle cutoff. Default: 0.3")
+    p_chemenv.add_argument('-mw', '--multi-weights', default=False, action="store_true",
+                           help='Use MultiWeightsChemenvStrategy instead of SimplestChemenvStrategy.')
+    p_chemenv.add_argument("-i", "--only-indices", nargs="+", default=None, type=int,
+                           help="List of site indices to analyze e.g. `-i 0 2`. Default: None i.e. all sites.")
+    p_chemenv.add_argument("-s", "--only-atoms", nargs="+", default=None, type=str,
+                           help="List of atomic symbols to analyze e.g. `-s Si O`. Default: None i.e. all sites.")
     return parser
 
 
@@ -1075,6 +1091,91 @@ def main():
             raise ValueError("Don't know how to handle file %s" % filepath)
 
         xsf_write_structure(sys.stdout, structures)
+
+    elif options.command == "chemenv":
+        # Based on https://matgenb.materialsvirtuallab.org/2018/01/01/ChemEnv-How-to-automatically-identify-coordination-environments-in-a-structure.html
+
+        from pymatgen.analysis.chemenv.coordination_environments.chemenv_strategies import SimplestChemenvStrategy
+        from pymatgen.analysis.chemenv.coordination_environments.coordination_geometry_finder import LocalGeometryFinder
+        from pymatgen.analysis.chemenv.coordination_environments.structure_environments import LightStructureEnvironments
+        from pymatgen.analysis.chemenv.coordination_environments.chemenv_strategies import MultiWeightsChemenvStrategy
+
+        import logging
+        logging.basicConfig(
+            format="%(levelname)s:%(module)s:%(funcName)s:%(message)s", level=logging.DEBUG
+            # you can also save the logging to a file, just remove the comment
+            # filename='chemenv_structure_environments.log',
+        )
+
+        structure = abilab.Structure.from_file(options.filepath)
+        # Setup the local geometry finder
+        lgf = LocalGeometryFinder()
+        lgf.setup_structure(structure=structure)
+
+        # Get the StructureEnvironments
+        kws = dict(maximum_distance_factor=options.maximum_distance_factor,
+                   only_indices=options.only_indices,
+                   only_atoms=options.only_atoms,
+                   #excluded_atoms=None,
+                   #only_cations=True,
+                   )
+        print("Computing structure environments with:", kws)
+        se = lgf.compute_structure_environments(**kws)
+
+        if options.multi_weights:
+            print("Using MultiWeightsChemenvStrategy with stats_article_weights_parameters")
+            strategy = MultiWeightsChemenvStrategy.stats_article_weights_parameters()
+        else:
+            kws = dict(distance_cutoff=options.distance_cutoff, angle_cutoff=options.angle_cutoff)
+            print("Using SimplestChemenvStrategy with:", kws)
+            strategy = SimplestChemenvStrategy(**kws)
+
+        lse = LightStructureEnvironments.from_structure_environments(
+            strategy=strategy, structure_environments=se)
+
+        lenv_keys = ["ce_symbol", "ce_fraction", "csm"]
+        site_keys = ["site_index", "species", "a", "b", "c", "x", "y", "z"]
+        import pandas as pd
+
+        if options.multi_weights:
+            # One dataframe per site as we can have multiple csm per site.
+            errored_isites = []
+            for isite, site in enumerate(structure):
+                if options.only_indices is not None and isite not in options.only_indices: continue
+                d_list = lse.coordination_environments[isite]
+                if d_list is None:
+                    errored_isites.append(isite)
+                    continue
+
+                for i, d in enumerate(d_list):
+                    d = {k: d[k] for k in lenv_keys}
+                    d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords, *site.coords])))
+                    d_list[i] = d
+
+                df = pd.DataFrame(d_list).set_index("site_index")
+                print("")
+                print(df.to_string())
+
+        else:
+            # One dataframe with all sites and one csm per site.
+            d_list, errored_isites = [], []
+            for isite, site in enumerate(structure):
+                if options.only_indices is not None and isite not in options.only_indices: continue
+                dl = lse.coordination_environments[isite]
+                if dl is None:
+                    errored_isites.append(isite)
+                    continue
+                d = dl[0]
+                d = {k: d[k] for k in lenv_keys}
+                d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords, *site.coords])))
+                d_list.append(d)
+
+            df = pd.DataFrame(d_list).set_index("site_index")
+            print("")
+            print(df.to_string())
+
+        if errored_isites:
+            print("\nNB: Couldn't detect local env for", len(errored_isites), "site indices: ", errored_isites)
 
     else:
         raise ValueError("Unsupported command: %s" % options.command)
