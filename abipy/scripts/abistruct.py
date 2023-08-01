@@ -243,15 +243,6 @@ file that does not have enough significant digits.""")
     p_print = subparsers.add_parser('print', parents=[copts_parser, path_selector],
                                     help="Print Structure to terminal.")
 
-    # Subparser for p_ command.
-    p_ml_relax = subparsers.add_parser('ml_relax', parents=[copts_parser, path_selector],
-                                        help="Relax structure with ML potentials e.g. m3gnet.")
-    p_ml_relax.add_argument('--relax-cell', default=True, action=argparse.BooleanOptionalAction,
-                             help="Relax cell parameters")
-    p_ml_relax.add_argument("--abi-sanitize", default=True, action=argparse.BooleanOptionalAction,
-                             help="Invoke abi_sanitize on the ML-relaxed structure")
-    add_format_arg(p_ml_relax, default="abivars")
-
     # Subparser for supercell command.
     p_supercell = subparsers.add_parser('supercell', parents=[copts_parser, path_selector],
         help="Generate supercell.")
@@ -511,9 +502,9 @@ ehull < show_unstable will be shown.""")
         help="Use ChemEnv to analyze chemical coordination environments. " +
              "See D. Waroquiers, at al. Acta Cryst B 2020, 76, 683–695.")
     p_chemenv.add_argument("-mdf", '--maximum-distance-factor', default=1.41,
-                            type=float, help="Maximum distance factor. Default 1.41.")
+                           type=float, help="Maximum distance factor. Default 1.41.")
     p_chemenv.add_argument("-dc", '--distance-cutoff', default=1.4, type=float,
-                            help="Distance cutoff in Ang. Default: 1.4")
+                           help="Distance cutoff in Ang. Default: 1.4")
     p_chemenv.add_argument("-ac", '--angle-cutoff', default=0.3, type=float,
                            help="Angle cutoff. Default: 0.3")
     p_chemenv.add_argument('-mw', '--multi-weights', default=False, action="store_true",
@@ -616,42 +607,6 @@ def main():
         fmt = options.format
         if fmt == "cif" and options.filepath.endswith(".cif"): fmt = "abivars"
         print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
-
-    elif options.command == "ml_relax":
-        initial_structure = abilab.Structure.from_file(options.filepath)
-
-        calculator = "m3gnet"
-        print("Relaxing input structure with calculator:", calculator, ", relax_cell:", options.relax_cell,
-             ", abi_sanitize:", options.abi_sanitize, ", output format:", options.format, "...")
-        relaxed_structure = initial_structure.relax(calculator=calculator, relax_cell=options.relax_cell)
-        relaxed_structure.__class__ = abilab.Structure
-        if options.abi_sanitize:
-            relaxed_structure = relaxed_structure.abi_sanitize()
-
-        if options.verbose:
-            # Print dataframes to compare initial and relaxed structure.
-            index = [options.filepath, "ML_relaxed"]
-            dfs = abilab.dataframes_from_structures([initial_structure, relaxed_structure], index=index, with_spglib=True)
-            abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
-            abilab.print_dataframe(dfs.coords, title="Atomic positions in frac. coords (columns give the site index):")
-            #from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
-            #rel_ana = RelaxationAnalyzer(initial_structure, relaxed_structure)
-            #print(rel_ana)
-            #print(relaxed_structure)
-
-        initial_str = initial_structure.convert(fmt=options.format)
-        relaxed_str = relaxed_structure.convert(fmt=options.format)
-        lines1, lines2 = initial_str.splitlines(), relaxed_str.splitlines()
-        head1, head2 = "# INPUT", "# ML RELAXED"
-        pad = max(max(len(l) for l in lines1), len(head1), len(head2))
-        print(head1.ljust(pad), " | ", head2)
-        for l1, l2 in zip(lines1, lines2):
-            print(l1.ljust(pad), " | ", l2)
-
-        output_file = options.filepath + "ml_relaxed." + options.format
-        print("Writing ML relaxed structure to file:", output_file, "with format:", options.format)
-        with open(output_file, "wt") as fh:
-            fh.write(relaxed_str)
 
     elif options.command == "print":
         print(abilab.Structure.from_file(options.filepath).to_string(verbose=options.verbose))
@@ -1134,7 +1089,7 @@ def main():
             strategy=strategy, structure_environments=se)
 
         lenv_keys = ["ce_symbol", "ce_fraction", "csm"]
-        site_keys = ["site_index", "species", "a", "b", "c", "x", "y", "z"]
+        site_keys = ["site_index", "species", "xred1", "xred2", "xred3"]
         import pandas as pd
 
         if options.multi_weights:
@@ -1149,7 +1104,7 @@ def main():
 
                 for i, d in enumerate(d_list):
                     d = {k: d[k] for k in lenv_keys}
-                    d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords, *site.coords])))
+                    d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords])))
                     d_list[i] = d
 
                 df = pd.DataFrame(d_list).set_index("site_index")
@@ -1167,7 +1122,7 @@ def main():
                     continue
                 d = dl[0]
                 d = {k: d[k] for k in lenv_keys}
-                d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords, *site.coords])))
+                d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords])))
                 d_list.append(d)
 
             df = pd.DataFrame(d_list).set_index("site_index")
@@ -1176,6 +1131,8 @@ def main():
 
         if errored_isites:
             print("\nNB: Couldn't detect local env for", len(errored_isites), "site indices: ", errored_isites)
+
+        print("\nFor the meaning of ce_symbol, see https://pubs.acs.org/doi/10.1021/acs.chemmater.7b02766")
 
     else:
         raise ValueError("Unsupported command: %s" % options.command)

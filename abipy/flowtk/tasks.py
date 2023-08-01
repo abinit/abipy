@@ -3811,8 +3811,8 @@ class DfptTask(AbinitTask):
         Replace the default behaviour of make_links. More specifically, this method
         implements the logic required to connect DFPT calculation to e.g. `DDK` files.
         Remember that DDK is an extension introduced in AbiPy to deal with the
-        irdddk input variable and the fact that the 3 files with du/dk produced by Abinit
-        have a file extension constructed from the number of atom (e.g. 1WF[3natom +1]).
+        irdddk input variable and the fact that the three files with du/dk produced by Abinit
+        have a file extension constructed from the number of atoms (e.g. 1WF[3natom +1]).
 
         AbiPy uses the user-friendly syntax deps={node: "DDK"} to specify that
         the children will read the DDK from `node` but this also means that

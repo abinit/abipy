@@ -192,11 +192,20 @@ class Structure(pmg_Structure, NotebookWriter):
             - Filename
             - Dictionaries (JSON_ format or dictionaries with abinit variables).
             - Objects with a ``structure`` attribute.
+            - ASE atoms.
         """
         if isinstance(obj, cls): return obj
         if isinstance(obj, pmg_Structure):
             obj.__class__ = cls
             return obj
+        if hasattr(obj, "ase_objtype"):
+            # ASE Atoms.
+            from pymatgen.io.ase import AseAtomsAdaptor
+            return AseAtomsAdaptor.get_structure(obj, cls=cls)
+
+        if hasattr(obj, "atoms") and hasattr(obj.atoms, "ase_objtype"):
+            # Handle ASE constraints e.g. ExpCellFilter. Note recursive call
+            return Structure.as_structure(obj.atoms)
 
         if is_string(obj):
             return cls.from_file(obj)
@@ -209,6 +218,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         if hasattr(obj, "structure"):
             return cls.as_structure(obj.structure)
+
         elif hasattr(obj, "final_structure"):
             # This for HIST.nc file
             return cls.as_structure(obj.final_structure)
@@ -2552,13 +2562,9 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
     outs = [s.convert(fmt=fmt).splitlines() for s in map(Structure.as_structure, structures)]
 
     if mode == "table":
-        try:
-            from itertools import izip_longest as zip_longest  # Py2
-        except ImportError:
-            from itertools import zip_longest  # Py3k
-
-        table = [r for r in zip_longest(*outs, fillvalue=" ")]
+        from itertools import zip_longest  # Py3k
         from tabulate import tabulate
+        table = [r for r in zip_longest(*outs, fillvalue=" ")]
         print(tabulate(table, headers=headers), file=file)
 
     elif mode == "diff":
@@ -2584,7 +2590,7 @@ def structure2siesta(structure: Structure, verbose=0) -> str:
 
     if not structure.is_ordered:
         raise NotImplementedError("""\
-Received disordered structure with partial occupancies that cannot be converted into a Siesta input
+Received disordered structure with partial occupancies that cannot be converted to a Siesta input
 Please use OrderDisorderedStructureTransformation or EnumerateStructureTransformation
 to build an appropriate supercell from partial occupancies or alternatively use the Virtual Crystal Approximation.""")
 
@@ -2626,3 +2632,76 @@ to build an appropriate supercell from partial occupancies or alternatively use 
     app("%endblock AtomicCoordinatesAndAtomicSpecies")
 
     return "\n".join(lines)
+
+
+class StructDiff:
+    """
+    Print difference between structures.
+    """
+    def __init__(self, labels: list[str], structures):
+        self.labels = labels
+        self.structs = [Structure.as_structure(s) for s in structures]
+        if len(self.labels) != len(self.structs):
+            raise ValueError("len(self.labels) != len(self.structs)")
+
+    #def summarize(self, file=sys.stdout) -> None:
+
+    def tabulate(self, only_lattice=False, allow_rigid_shift=True, with_cart_coords=True, file=sys.stdout) -> None:
+        """
+        Tabulate difference.
+        """
+        # Compare lattices.
+        d_list = []
+        for label, structure in zip(self.labels, self.structs):
+            d = {"label": label}
+            for i, k in enumerate(["a", "b", "c"]):
+                d[k] = structure.lattice.abc[i]
+            for i, k in enumerate(["alpha", "beta", "gamma"]):
+                d[k] = structure.lattice.angles[i]
+            d_list.append(d)
+
+        df = pd.DataFrame(d_list).set_index("label", inplace=False)
+        print("\nLattice difference (Ang units):", file=file)
+        print(df.to_string(), file=file)
+        if only_lattice: return
+
+        # Compare sites.
+        natom = len(self.structs[0])
+        if any(len(s) != natom for s in self.structs): return
+
+        # Handle possible rigid shift.
+        #shift_cart, shift_frac = np.zeros(3), np.zeros(3)
+        #if allow_rigid_shift:
+        #    site1, site2 = self.structs[0][0], self.structs[1][0]
+        #    shift_cart = site2.coords - site1.coords
+        #    shift_frac = site2.frac_coords - site1.frac_coords
+
+        d_list = []
+        for isite in range(natom):
+            for label, structure in zip(self.labels, self.structs):
+                site = structure[isite]
+                d = {"label": label, "site_index": isite}
+                for i, k in enumerate(["xred1", "xred2", "xred3"]):
+                    d[k] = site.frac_coords[i]
+                if with_cart_coords:
+                    for i, k in enumerate(["xcart1", "xcart2", "xcart3"]):
+                        d[k] = site.coords[i]
+                d_list.append(d)
+
+        df = pd.DataFrame(d_list).set_index("label", inplace=False)
+        print("\nAtomic positions (Ang units):", file=file)
+        print(df.to_string(), file=file)
+        print("", file=file)
+
+    #def diff_fmt(self, fmt: str, file=sys.stdout) -> None:
+    #    """
+    #    Convert structures using format `fmt` and compare string output line by line.
+    #    """
+    #    str1 = self.struct1.convert(fmt=fmt)
+    #    str2 = self.struct2.convert(fmt=fmt)
+    #    lines1, lines2 = str1.splitlines(), str2.splitlines()
+    #    head1, head2 = f"# {self.label1}", f"# {self.label2}"
+    #    pad = max(max(len(l) for l in lines1), len(head1), len(head2))
+    #    print(head1.ljust(pad), " | ", head2, file=file)
+    #    for l1, l2 in zip(lines1, lines2):
+    #        print(l1.ljust(pad), " | ", l2, file=file)
