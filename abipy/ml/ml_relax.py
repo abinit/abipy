@@ -297,11 +297,13 @@ class RelaxationProfiler:
         # Write json file with output results.
         #with open(workdir / "data.json", "wt") as fh:
         #    data = dict(
-        #        abi_nsteps=abi_nsteps,
-        #        abiml_nsteps=abiml_nsteps,
         #        ml_nsteps=ml_nsteps,
-        #        abi_relaxed_structure=get_structure(abi_atoms),
-        #        abiml_relaxed_structure=get_structure(atoms),
+        #        abiml_nsteps=abiml_nsteps,
+        #        abi_nsteps=abi_relax.nsteps,
+        #        ml_nsteps=ml_nsteps,
+        #        ml_relaxed_structure=get_structure(ml_opt.atoms),
+        #        abi_relaxed_structure=get_structure(abi_relax.atoms),
+        #        abiml_relaxed_structure=get_structure(final_mlabi_relax.atoms),
         #    )
         #    json.dump(data, fh, indent=4, cls=MontyEncoder)
         #    # Print JSON data
