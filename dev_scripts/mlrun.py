@@ -49,6 +49,8 @@ def add_workdir_verbose_opts(f):
 @click.option("--nn-name", "-nn", default="m3gnet", show_default=True,
               type=click.Choice(["m3gnet_old", "m3gnet", "chgnet"]), help='ML potential')
 @add_relax_opts
+@click.option("-k", "--kppa", default=1000, type=float, show_default=True,
+              help="Defines the sampling of BZ mesh (k-points per atom)")
 @click.option("--rattle", default=0.0, type=float, show_default=True, help="Displace atoms randomly with stdev.")
 @click.option("-sv", "--scale-volume", default=1.0, type=float, show_default=True, help="Scale input volume.")
 @click.option("-n","--mpi-nprocs", default=2, type=int, show_default=True, help="Number of MPI processes to run ABINIT")
@@ -57,7 +59,7 @@ def add_workdir_verbose_opts(f):
 @add_workdir_verbose_opts
 def main(filepath, nn_name,
          relax_mode, fmax, steps, optimizer,
-         rattle, scale_volume, mpi_nprocs, xc,
+         kppa, rattle, scale_volume, mpi_nprocs, xc,
          workdir, verbose,
          ):
 
@@ -70,7 +72,7 @@ def main(filepath, nn_name,
         "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
         "LDA": "ONCVPSP-LDA-SR-PDv0.4",
     }[xc]
-    print("Using repo_name:", repo_name)
+    print(f"Using {repo_name=}")
     pseudos = get_repo_from_name(repo_name).get_pseudos("standard")
 
     # Get atoms
@@ -81,14 +83,14 @@ def main(filepath, nn_name,
             structure.scale_lattice(scale_volume * structure.lattice.volume)
         atoms = get_atoms(structure)
     else:
-        raise ValueError(f"Cannot init Atoms from {filepath}")
+        raise ValueError(f"Cannot init Atoms from {filepath=}")
         #atoms = bulk(filepath)
 
     if rattle:
-        print("Displacing atoms randomly with stdev:", rattle)
+        print("Displacing atoms randomly with stdev=", rattle)
         atoms.rattle(stdev=abs(rattle), seed=42)
 
-    prof = RelaxationProfiler(atoms, pseudos, relax_mode, fmax, mpi_nprocs, steps=steps,
+    prof = RelaxationProfiler(atoms, pseudos, xc, kppa, relax_mode, fmax, mpi_nprocs, steps=steps,
                               verbose=verbose, optimizer=optimizer, nn_name=nn_name)
     prof.run(workdir=workdir)
     return 0

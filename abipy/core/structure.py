@@ -2646,7 +2646,7 @@ class StructDiff:
 
     #def summarize(self, file=sys.stdout) -> None:
 
-    def tabulate(self, only_lattice=False, allow_rigid_shift=True, with_cart_coords=True, file=sys.stdout) -> None:
+    def tabulate(self, only_lattice=False, allow_rigid_shift=True, with_cart_coords=False, file=sys.stdout) -> None:
         """
         Tabulate difference.
         """

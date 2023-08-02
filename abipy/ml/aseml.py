@@ -47,12 +47,12 @@ from abipy.tools.iotools import workdir_with_prefix
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
 
 
-def to_ase_atoms(structure: PmgStructure, calculator=None) -> Atoms:
+def to_ase_atoms(structure: PmgStructure, calc=None) -> Atoms:
     """Convert pymatgen structure to ASE atoms. Optionally, attach a calculator."""
-    structure = get_structure(structure)
+    structure = Structure.as_structure(structure)
     atoms = AseAtomsAdaptor.get_atoms(structure)
-    if calculator:
-        atoms.calc = calculator
+    if calc:
+        atoms.calc = calc
     return atoms
 
 
@@ -67,20 +67,31 @@ def get_atoms(obj: Any) -> Atoms:
     raise TypeError(f"Don't know how to construct Atoms object from {type(obj)}")
 
 
-def get_structure(obj: Any) -> Structure:
-    """Return abipy Structure from object."""
-    if isinstance(obj, str):
-        return Structure.from_file(obj)
-    if isinstance(obj, PmgStructure):
-        return obj
-    if isinstance(obj, Atoms):
-        return AseAtomsAdaptor.get_structure(obj, cls=Structure)
+def abisanitize_atoms(atoms: Atoms, **kwargs) -> Atoms:
+    """
+    Call abisanitize, return new Atoms
+    """
+    structure = Structure.as_structure(atoms)
+    new_structure = structure.abisanitize(**kwargs)
+    return to_ase_atoms(get_atoms(new_structure), calc=atoms.calc)
 
-    raise TypeError(f"Don't know how to construct Atoms object from {type(obj)}")
+
+#def get_structure(obj: Any) -> Structure:
+#    """Return abipy Structure from object."""
+#    if isinstance(obj, str):
+#        return Structure.from_file(obj)
+#    if isinstance(obj, PmgStructure):
+#        return obj
+#    if isinstance(obj, Atoms):
+#        return AseAtomsAdaptor.get_structure(obj, cls=Structure)
+#
+#    raise TypeError(f"Don't know how to construct Atoms object from {type(obj)}")
 
 
 def fix_atoms(atoms: Atoms, fix_inds: list[int], fix_symbols: list[str], verbose: int) -> None:
-    """Fix atoms by indices and by symbols."""
+    """
+    Fix atoms by indices and by symbols.
+    """
     #if verbose > 1: print(f"in fix_atoms: {fix_inds=}, {fix_symbols=}")
     from ase.constraints import FixAtoms
     cs = []; app = cs.append
@@ -113,7 +124,7 @@ def write_atoms(atoms: Atoms, workdir, verbose: int,
         prefix: String to be appended to filenames.
     """
     workdir = Path(workdir)
-    structure = get_structure(atoms)
+    structure = Structure.as_structure(atoms)
     fmt2fname = _FMT2FNAME
     if formats is not None:
         fmt2fname = {k: _FMT2FNAME[k] for k in list_strings(formats)}
@@ -149,44 +160,44 @@ def print_atoms(atoms: Atoms, title=None, cart_forces=None, stream=sys.stdout) -
             pf("\t", frac_coords, cart_forces[ia])
 
 
-def scompare_two_atoms(label1: str, atoms1: Atoms,
-                       label2: str, atoms2: Atoms) -> str:
-    """Compare two atoms object, return string."""
-    lines = []; app = lines.append
-
-    d1 = dict(zip(_CELLPAR_KEYS, atoms1.cell.cellpar()))
-    d1["label"] = label1
-    d2 = dict(zip(_CELLPAR_KEYS, atoms2.cell.cellpar()))
-    d2["label"] = label2
-
-    cell_df = pd.DataFrame([d1, d2])
-    app(str(cell_df))
-
-    if len(atoms1) != len(atoms2):
-        app("Atoms instances have different number of atoms!")
-        return "\n".join(lines)
-
-    # (natom, 3) arrays
-    natom = len(atoms1)
-    pos1, pos2 = atoms1.get_positions(), atoms2.get_positions()
-    data = {}
-    for i, key in enumerate(("x", "y", "z")):
-        data[key] = np.vstack((pos1[:,i], pos2[:,i])).ravel('F')
-
-    data["symbols"] = np.vstack((atoms1.symbols, atoms2.symbols)).ravel('F')
-    data["atoms"] = np.vstack((0 * np.ones(natom, dtype=int), np.ones(natom, dtype=int))).ravel('F')
-    pos_df = pd.DataFrame(data)
-    app(pos_df.to_string())
-
-    return "\n".join(lines)
+#def scompare_two_atoms(label1: str, atoms1: Atoms,
+#                       label2: str, atoms2: Atoms) -> str:
+#    """Compare two atoms object, return string."""
+#    lines = []; app = lines.append
+#
+#    d1 = dict(zip(_CELLPAR_KEYS, atoms1.cell.cellpar()))
+#    d1["label"] = label1
+#    d2 = dict(zip(_CELLPAR_KEYS, atoms2.cell.cellpar()))
+#    d2["label"] = label2
+#
+#    cell_df = pd.DataFrame([d1, d2])
+#    app(str(cell_df))
+#
+#    if len(atoms1) != len(atoms2):
+#        app("Atoms instances have different number of atoms!")
+#        return "\n".join(lines)
+#
+#    # (natom, 3) arrays
+#    natom = len(atoms1)
+#    pos1, pos2 = atoms1.get_positions(), atoms2.get_positions()
+#    data = {}
+#    for i, key in enumerate(("x", "y", "z")):
+#        data[key] = np.vstack((pos1[:,i], pos2[:,i])).ravel('F')
+#
+#    data["symbols"] = np.vstack((atoms1.symbols, atoms2.symbols)).ravel('F')
+#    data["atoms"] = np.vstack((0 * np.ones(natom, dtype=int), np.ones(natom, dtype=int))).ravel('F')
+#    pos_df = pd.DataFrame(data)
+#    app(pos_df.to_string())
+#
+#    return "\n".join(lines)
 
 
 def diff_two_structures(label1, structure1, label2, structure2, fmt, file=sys.stdout):
     """
     Diff two structures using format `fmt`and print results to `file`.
     """
-    lines1 = get_structure(structure1).convert(fmt=fmt).splitlines()
-    lines2 = get_structure(structure2).convert(fmt=fmt).splitlines()
+    lines1 = Structure.as_structure(structure1).convert(fmt=fmt).splitlines()
+    lines2 = Structure.as_structure(structure2).convert(fmt=fmt).splitlines()
     pad = max(max(len(l) for l in lines1), len(label1), len(label2))
     print(label1.ljust(pad), " | ", label2, file=file)
     for l1, l2 in zip(lines1, lines2):

@@ -7,7 +7,6 @@ from __future__ import annotations
 import sys
 import os
 import json
-#import logging
 import click
 import numpy as np
 import abipy.ml.aseml as aseml
