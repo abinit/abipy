@@ -22,7 +22,7 @@ from abipy.core.structure import Structure, StructDiff
 from abipy.tools.iotools import workdir_with_prefix
 from abipy.dynamics.hist import HistFile
 from abipy.flowtk import PseudoTable
-from abipy.ml.aseml import print_atoms, get_atoms, CalcBuilder, scompare_two_atoms, ase_optimizer_cls
+from abipy.ml.aseml import print_atoms, get_atoms, CalcBuilder, ase_optimizer_cls, abisanitize_atoms
 
 from time import perf_counter
 
@@ -138,7 +138,7 @@ class RelaxationProfiler:
             opt.run(fmax=self.fmax, steps=self.steps)
             if not opt.converged():
                 raise RuntimeError("ml_relax_opt didn't converge!")
-            print('%s relaxation completed in %.2f sec after nsteps: %d\n' % (self.nn_name, timer.time, opt.nsteps))
+        print('%s relaxation completed in %.2f sec after nsteps: %d\n' % (self.nn_name, timer.time, opt.nsteps))
 
         return opt
 
@@ -232,6 +232,7 @@ class RelaxationProfiler:
         if self.xc == "GGA":
             print(f"Starting from ML-optimized Atoms as {self.xc=}")
             atoms = ml_opt.atoms.copy()
+            atoms = abisanitize_atoms(atoms)
         else:
             print(f"Starting from initial Atoms as {self.xc=}")
             atoms = self.initial_atoms.copy()
@@ -275,13 +276,15 @@ class RelaxationProfiler:
             )
             opt = self.ase_opt_cls(self._mkfilter(atoms), **opt_kws)
             opt.run(fmax=self.fmax, steps=self.steps)
+            atoms = opt.atoms.copy()
             opt_converged = opt.converged()
             ml_nsteps += opt.nsteps
 
             final_mlabi_relax = None
             if opt_converged and opt.nsteps <= 1:
                 final_mlabi_relax = self.abi_relax_atoms(directory=workdir / "abiml_final_relax",
-                                                         atoms=opt.atoms.copy(),
+                                                         atoms=atoms,
+                                                         #atoms=opt.atoms.copy(),
                                                          header="Performing final structural relaxation with ABINIT",
                                                          )
                 abiml_nsteps += final_mlabi_relax.nsteps
