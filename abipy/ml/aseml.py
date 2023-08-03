@@ -39,6 +39,7 @@ from ase.md.nvtberendsen import NVTBerendsen
 from abipy.core import Structure
 from abipy.tools.plotting import get_ax_fig_plt #, get_axarray_fig_plt,
 from abipy.tools.iotools import workdir_with_prefix
+from abipy.tools.printing import print_dataframe
 
 ###################
 # Helper functions
@@ -312,7 +313,7 @@ class AseRelaxation:
         r0, r1 = AseResults.from_inds(self.traj, 0, -1)
         if tags is None: tags = ["unrelaxed", "relaxed"],
         df = dataframe_from_results_list(tags, [r0, r1], mode=mode)
-        print(df, end=2*"\n", file=stream)
+        print_dataframe(df, end="\n", file=stream)
 
     #def plot(self, **kwargs):
 
@@ -358,8 +359,8 @@ def ase_optimizer_cls(s: str | None) -> Type | list[str]:
     return getattr(optimize, s)
 
 
-def relax_atoms(atoms: Atoms, relax_cell: bool, optimizer: str, fmax: float, verbose: int,
-                steps: int = 500, opt_kwargs=None, traj_path=None, calculator=None):
+def relax_atoms(atoms: Atoms, relax_cell: bool, optimizer: str, fmax: float, pressure: float,
+                verbose: int, steps: int = 500, opt_kwargs=None, traj_path=None, calculator=None):
     """
     Relax atoms using an ASE calculator and ASE algorithms.
 
@@ -369,6 +370,7 @@ def relax_atoms(atoms: Atoms, relax_cell: bool, optimizer: str, fmax: float, ver
         optimizer: name of the ASE optimizer class to use
         fmax: total force tolerance for relaxation convergence.
             Here fmax is a sum of force and stress forces. Defaults to 0.1.
+        pressure:
         verbose: whether to print stdout.
         steps: max number of steps for relaxation.
         opt_kwargs (dict): kwargs for the ASE optimizer class.
@@ -400,7 +402,7 @@ def relax_atoms(atoms: Atoms, relax_cell: bool, optimizer: str, fmax: float, ver
                 pf("\t", c)
             pf("")
 
-        dyn = opt_class(ExpCellFilter(atoms), **opt_kwargs) if relax_cell else \
+        dyn = opt_class(ExpCellFilter(atoms, scalar_pressure=pressure), **opt_kwargs) if relax_cell else \
               opt_class(atoms, **opt_kwargs)
 
         t_start = time.time()
@@ -557,19 +559,48 @@ class _MlBase:
         Raise RuntimeError if workdir already exists.
         """
         self.workdir = workdir_with_prefix(workdir, prefix)
-
-        # Write click click arguments in json format.
-        #with open(self.workdir / "click_params.json"), "wt") as fh:
-        #    json.dump(ctx.params, fh, indent=4)
-
         self.basename_info = []
+        self.delta_forces = None
+        self.delta_stress = None
+
+    def set_delta_forces_stress_from_abiml_nc(self, filepath: str):
+        if os.path.basename(filepath) != "ABIML_RELAX_IN.nc": return
+
+        # Read structure, forces and stresses from the nc file produced by ABINIT.
+        from abipy.iotools import ETSF_Reader
+        with ETSF_Reader(filepath) as reader:
+            abi_forces = reader.read_value("cart_forces")
+            abi_stress = reader.read_value("cart_stress")
+            structure = reader.read_structure()
+
+        # Compute ML forces for this structure.
+        atoms = to_ase_atoms(structure, calc=self.get_calculator())
+        ml_forces = atoms.get_forces()
+        ml_stress = atoms.get_stress()
+
+        # Set delta forces/stresses so that the next invokation to get_calculator include the deltas
+        self.set_delta_forces_stress(abi_forces - ml_forces, abi_stress - ml_stress)
+
+    def set_delta_forces_stress(self, delta_forces, delta_stress):
+        self.delta_forces = delta_forces
+        self.delta_stress = delta_stress
 
     def __str__(self):
+        # Delegated to the subclass.
         return self.to_string()
 
     def get_calculator(self) -> Calculator:
         """Return ASE calculator."""
-        return self.calc_builder.get_calculator()
+        calc = self.calc_builder.get_calculator()
+
+        if self.delta_forces is not None:
+            print("delta_forces:\n", self.delta_forces)
+            calc.set_delta_forces(self.delta_forces)
+        if self.delta_stress is not None:
+            print("delta_stress:\n", self.delta_stress)
+            ml_calc.set_delta_stress(self.delta_stress)
+
+        return calc
 
     def add_basename_info(self, basename: str, info: str) -> None:
         """
@@ -673,15 +704,18 @@ import matplotlib.pyplot as plt
 
 
 class MlRelaxer(_MlBase):
-    """Relax structure with ASE and ML-potential"""
+    """
+    Relax structure with ASE and ML-potential
+    """
 
-    def __init__(self, atoms: Atoms, relax_mode, fmax, steps, optimizer, calc_builder, verbose,
+    def __init__(self, atoms: Atoms, relax_mode, fmax, pressure, steps, optimizer, calc_builder, verbose,
                  workdir, prefix=None):
         """
         Args:
             atoms: ASE atoms to relax.
             relax_mode:
             fmax:
+            pressure:
             steps:
             optimizer:
             calc_builder:
@@ -693,6 +727,7 @@ class MlRelaxer(_MlBase):
         self.fmax = fmax
         self.steps = steps
         self.optimizer = optimizer
+        self.pressure = pressure
         self.calc_builder = calc_builder
         self.verbose = verbose
 
@@ -708,6 +743,7 @@ class MlRelaxer(_MlBase):
      fmax        = {self.fmax}
      steps       = {self.steps}
      optimizer   = {self.optimizer}
+     pressure    = {self.pressure}
      calculator  = {self.calc_builder}
      workdir     = {self.workdir}
      verbose     = {self.verbose}
@@ -727,6 +763,7 @@ class MlRelaxer(_MlBase):
                          optimizer=self.optimizer,
                          relax_cell={"ions": False, "cell": True}[self.relax_mode],
                          fmax=self.fmax,
+                         pressure=self.pressure,
                          steps=self.steps,
                          traj_path=self.get_path("relax.traj", "ASE relaxation trajectory"),
                          verbose=1,
@@ -745,7 +782,7 @@ class MlRelaxer(_MlBase):
         write_vasp_xdatcar(self.get_path("XDATCAR", label), relax.traj, label=label)
 
         #from abipy.core.structure import StructDiff
-        #diff = StructDiff("INPUT STRUCTURE", initial_atoms, "ML RELAXED", self.atoms)
+        #diff = StructDiff(["INPUT", "ML RELAXED"], [initial_atoms, self.atoms])
 
         self._finalize()
 
@@ -901,7 +938,7 @@ class MlNeb(_MlNebBase):
     """
 
     def __init__(self, initial_atoms: Atoms, final_atoms: Atoms,
-                 nimages, neb_method, climb, optimizer, relax_mode, fmax,
+                 nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
                  calc_builder, verbose, workdir, prefix=None):
         """
         Args:
@@ -913,6 +950,7 @@ class MlNeb(_MlNebBase):
             optimizer:
             relax_mode:
             fmax:
+            pressure:
             calc_builder:
             verbose:
             workdir:
@@ -927,6 +965,7 @@ class MlNeb(_MlNebBase):
         self.optimizer = optimizer
         self.relax_mode = relax_mode
         self.fmax = fmax
+        self.pressure = pressure
         self.calc_builder = calc_builder
         self.verbose = verbose
 
@@ -940,6 +979,7 @@ class MlNeb(_MlNebBase):
      neb_method  = {self.neb_method}
      climb       = {self.climb}
      optimizer   = {self.optimizer}
+     pressure    = {self.pressure}
      relax_mode  = {self.relax_mode}
      fmax        = {self.fmax}
      calculator  = {self.calc_builder}
@@ -974,6 +1014,7 @@ class MlNeb(_MlNebBase):
                              optimizer=self.optimizer,
                              relax_cell={"ions": False, "cell": True}[self.relax_mode],
                              fmax=self.fmax,
+                             pressure=self.pressure,
                              verbose=self.verbose,
                              )
 
@@ -1041,7 +1082,7 @@ class MultiMlNeb(_MlNebBase):
     Perform a multi-NEB calculation with ASE and ML potential.
     """
 
-    def __init__(self, atoms_list: list[Atoms], nimages, neb_method, climb, optimizer, relax_mode, fmax,
+    def __init__(self, atoms_list: list[Atoms], nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
                  calc_builder, verbose, workdir, prefix=None):
         """
         Args:
@@ -1052,6 +1093,7 @@ class MultiMlNeb(_MlNebBase):
             optimizer:
             relax_mode:
             fmax:
+            pressure:
             calc_builder:
             verbose:
             workdir:
@@ -1065,6 +1107,7 @@ class MultiMlNeb(_MlNebBase):
         self.optimizer = optimizer
         self.relax_mode = relax_mode
         self.fmax = fmax
+        self.pressure = pressure
         self.calc_builder = calc_builder
         self.verbose = verbose
 
@@ -1080,6 +1123,7 @@ class MultiMlNeb(_MlNebBase):
      optimizer   = {self.optimizer}
      relax_mode  = {self.relax_mode}
      fmax        = {self.fmax}
+     pressure    = {self.pressure}
      calculator  = {self.calc_builder}
      workdir     = {self.workdir}
      verbose     = {self.verbose}
@@ -1098,7 +1142,7 @@ class MultiMlNeb(_MlNebBase):
         for i in range(len(atoms_list) - 1):
             ml_neb = MlNeb(atoms_list[i], atoms_list[i+1],
                            self.nimages, self.neb_method, self.climb, self.optimizer,
-                           self.relax_mode, self.fmax, self.calc_builder, self.verbose, camp_dirs[i])
+                           self.relax_mode, self.fmax, self.pressure, self.calc_builder, self.verbose, camp_dirs[i])
             ml_neb.run()
 
             # Read energies from json files and remove first/last point depending on CAMP index..
@@ -1161,7 +1205,7 @@ class MlOrderer(_MlBase):
     """
     Order a disordered structure using pymatgen and ML potential.
     """
-    def __init__(self, structure, max_ns, optimizer, relax_mode, fmax, steps, calc_builder, verbose,
+    def __init__(self, structure, max_ns, optimizer, relax_mode, fmax, pressure, steps, calc_builder, verbose,
                  workdir, prefix=None):
         """
         Args:
@@ -1170,6 +1214,7 @@ class MlOrderer(_MlBase):
             optimizer:
             relax_mode:
             fmax:
+            pressure:
             steps:
             calc_builder:
             verbose:
@@ -1182,6 +1227,7 @@ class MlOrderer(_MlBase):
         self.optimizer = optimizer
         self.relax_mode = relax_mode
         self.fmax = fmax
+        self.pressure = pressure
         self.steps = steps
         self.calc_builder = calc_builder
         self.verbose = verbose
@@ -1196,6 +1242,7 @@ class MlOrderer(_MlBase):
      optimizer   = {self.optimizer}
      relax_mode  = {self.relax_mode}
      fmax        = {self.fmax}
+     pressure    = {self.pressure}
      steps       = {self.steps}
      calculator  = {self.calc_builder}
      workdir     = {self.workdir}
@@ -1260,6 +1307,7 @@ class MlOrderer(_MlBase):
                              optimizer=self.optimizer,
                              relax_cell={"ions": False, "cell": True}[self.relax_mode],
                              fmax=self.fmax,
+                             pressure=self.pressure,
                              return_trajectory=True,
                              verbose=self.verbose,
                             )
@@ -1294,7 +1342,7 @@ class MlPhonons(_MlBase):
     """Compute phonons with ASE and ML potential."""
 
     def __init__(self, atoms: Atoms, supercell, kpts, asr, nqpath,
-                 relax_mode, fmax, steps, optimizer, calc_builder,
+                 relax_mode, fmax, pressure, steps, optimizer, calc_builder,
                  verbose, workdir, prefix=None):
         """
         Args:
@@ -1320,6 +1368,7 @@ class MlPhonons(_MlBase):
         self.nqpath = nqpath
         self.relax_mode = relax_mode
         self.fmax = fmax
+        self.pressure = pressure
         self.steps = steps
         self.optimizer = optimizer
         self.calc_builder = calc_builder
@@ -1339,6 +1388,7 @@ class MlPhonons(_MlBase):
      fmax       = {self.fmax}
      steps      = {self.steps}
      optimizer  = {self.optimizer}
+     pressure   = {self.pressure}
      calculator = {self.calc_builder}
      workdir    = {self.workdir}
      verbose    = {self.verbose}
@@ -1361,6 +1411,7 @@ class MlPhonons(_MlBase):
                              optimizer=self.optimizer,
                              relax_cell={"ions": False, "cell": True}[self.relax_mode],
                              fmax=self.fmax,
+                             pressure=self.pressure,
                              steps=self.steps,
                              traj_path=self.get_path("relax.traj", "ASE relax trajectory"),
                              verbose=self.verbose,

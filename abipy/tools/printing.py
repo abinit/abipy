@@ -8,7 +8,7 @@ from io import StringIO
 
 
 def print_dataframe(df: pd.DataFrame,
-                    title=None, precision=6, sortby=None, file=sys.stdout, display=None) -> None:
+                    title=None, precision=6, sortby=None, file=sys.stdout, end=None, display=None) -> None:
     """
     Print entire pandas DataFrame.
 
@@ -20,6 +20,7 @@ def print_dataframe(df: pd.DataFrame,
         sortby: string name or list of names which refer to the axis items to be sorted (dataframe is not changed)
         file: a file-like object (stream); defaults to the current sys.stdout.
             If file == "string", a temporary stream is created and a string is returned.
+        end: End string.
         display: Use ipython rich display protocol by invoking _repr_`display_ and returning the result.
             Use e.g. display="html" to get HTML table.
     """
@@ -38,6 +39,8 @@ def print_dataframe(df: pd.DataFrame,
         if display is None:
             print(df, file=file)
             print(" ", file=file)
+            if end is not None:
+                print(end, file=file)
             if return_string: return file.getvalue()
         else:
             from IPython.core.display import HTML

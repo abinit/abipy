@@ -68,11 +68,11 @@ class RelaxationProfiler:
         ecut = max(h.ecut for h in hints) * 27.3  # In ASE this is in eV (don't know why!)
         #pawecutdg = max(h.pawecutdg for h in hints) if pseudos.allpaw else None
 
+        # TODO: Automatic K-point sampling.
         import pymatgen.io.abinit.abiobjects as aobj
         kmesh = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0).to_abivars()
         #print("kmesh", kmesh)
 
-        # TODO: Automatic K-point sampling.
         self.gs_kwargs = dict(
             ecut=ecut,
             # Smoothing PW cutoff energy (mandatory for cell optimization)
@@ -119,7 +119,7 @@ class RelaxationProfiler:
 
     def ml_relax_opt(self, directory):
         """
-        Relax structure with ML potential only. Return optimizer.
+        Relax structure with ML potential only. Return ASE optimizer.
         """
         print(f"\nBegin {self.nn_name} relaxation in {str(directory)}")
         print("relax_mode:", self.relax_mode, "with fmax:", self.fmax)
@@ -172,10 +172,9 @@ class RelaxationProfiler:
         """
         Perform a GS calculation with ABINIT. Return namedtuple with results.
         """
-        print(f"\nBegin ABINIT GS in {str(directory)}")
-        abinit = Abinit(profile=self.abinit_profile, directory=directory, **self.gs_kwargs)
-
         with Timer() as timer:
+            print(f"\nBegin ABINIT GS in {str(directory)}")
+            abinit = Abinit(profile=self.abinit_profile, directory=directory, **self.gs_kwargs)
             #abinit.use_cache = False # This one seems to be needed to get updated forces but don't know why!!
             forces = abinit.get_forces(atoms=atoms)
             #abinit.use_cache = True
@@ -190,6 +189,7 @@ class RelaxationProfiler:
 
     def run(self, workdir=None, prefix=None):
         """
+        Run the different steps of the bechmark.
         """
         workdir = workdir_with_prefix(workdir, prefix)
 
@@ -284,7 +284,6 @@ class RelaxationProfiler:
             if opt_converged and opt.nsteps <= 1:
                 final_mlabi_relax = self.abi_relax_atoms(directory=workdir / "abiml_final_relax",
                                                          atoms=atoms,
-                                                         #atoms=opt.atoms.copy(),
                                                          header="Performing final structural relaxation with ABINIT",
                                                          )
                 abiml_nsteps += final_mlabi_relax.nsteps

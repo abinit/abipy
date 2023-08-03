@@ -63,6 +63,7 @@ def add_relax_opts(f):
                      help='Relaxation mode.')(f)
     f = click.option("--fmax", default=0.005, type=float, show_default=True,
                      help='Stopping criterion in eV/A')(f)
+    f = click.option("--pressure", default=0.0, type=float, show_default=True, help='Scalar pressure')(f)
     f = click.option("--steps", default=500, type=int, show_default=True,
                      help="Max number of steps for ASE relaxation.")(f)
     f = click.option("--optimizer", "-o", default="BFGS", show_default=True, type=click.Choice(ASE_OPTIMIZERS),
@@ -78,6 +79,7 @@ def add_neb_opts(f):
             help="Relax initial and final structure. Use `cell` to relax ions and cell, " +
                  "`ions` to relax atomic positions only, `no` to disable relaxation")(f)
     f = click.option("--fmax", default=0.01, type=float, show_default=True, help='Stopping criterion.')(f)
+    f = click.option("--pressure", default=0.0, type=float, show_default=True, help='Scalar pressure')(f)
     f = click.option("--optimizer", "-o", default="BFGS", show_default=True, type=click.Choice(ASE_OPTIMIZERS),
                      help="ASE optimizer class.")(f)
     f = click.option("--neb-method", "-m", default="aseneb", type=click.Choice(ASENEB_METHODS), show_default=True,
@@ -123,7 +125,7 @@ def main(ctx, nn_name, seaborn):
 @add_constraint_opts
 @add_workdir_verbose_opts
 def relax(ctx, filepath,
-          relax_mode, fmax, steps, optimizer,
+          relax_mode, fmax, pressure, steps, optimizer,
           fix_inds, fix_symbols,
           workdir, verbose):
     """
@@ -144,8 +146,12 @@ def relax(ctx, filepath,
     atoms = aseml.get_atoms(filepath)
     aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
 
-    ml_relaxer = aseml.MlRelaxer(atoms, relax_mode, fmax, steps, optimizer, CALC_BUILDER, verbose,
-                                 workdir, prefix="_relax_")
+    ml_relaxer = aseml.MlRelaxer(atoms, relax_mode, fmax, pressure, steps, optimizer,
+                                 CALC_BUILDER, verbose, workdir, prefix="_relax_")
+
+    # Set Delta forces and delta stress if script is called by ABINIT
+    ml_relaxer.set_delta_forces_stress_from_abiml_nc(filepath)
+
     print(ml_relaxer.to_string(verbose=verbose))
     ml_relaxer.run()
     return ml_relaxer
@@ -203,7 +209,7 @@ ASENEB_METHODS = ['aseneb', 'eb', 'improvedtangent', 'spline', 'string']
 @add_constraint_opts
 @add_workdir_verbose_opts
 def neb(ctx, filepaths,
-        nimages, relax_mode, fmax, optimizer, neb_method, climb,
+        nimages, relax_mode, fmax, pressure, optimizer, neb_method, climb,
         fix_inds, fix_symbols,
         workdir, verbose
     ):
@@ -229,8 +235,8 @@ def neb(ctx, filepaths,
     aseml.fix_atoms(final_atoms, fix_inds, fix_symbols, verbose)
 
     ml_neb = aseml.MlNeb(initial_atoms, final_atoms,
-                         nimages, neb_method, climb, optimizer, relax_mode, fmax, CALC_BUILDER, verbose,
-                         workdir, prefix="_neb_")
+                         nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
+                         CALC_BUILDER, verbose, workdir, prefix="_neb_")
     print(ml_neb.to_string(verbose=verbose))
     ml_neb.run()
     return ml_neb
@@ -244,7 +250,7 @@ def neb(ctx, filepaths,
 @add_constraint_opts
 @add_workdir_verbose_opts
 def mneb(ctx, filepaths,
-         nimages, relax_mode, fmax, optimizer, neb_method, climb,
+         nimages, relax_mode, fmax, pressure, optimizer, neb_method, climb,
          fix_inds, fix_symbols,
          workdir, verbose):
     """
@@ -268,8 +274,8 @@ def mneb(ctx, filepaths,
     for atoms in atoms_list:
         aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
 
-    mneb = aseml.MultiMlNeb(atoms_list, nimages, neb_method, climb, optimizer, relax_mode, fmax, CALC_BUILDER, verbose,
-                            workdir, prefix="_mneb_")
+    mneb = aseml.MultiMlNeb(atoms_list, nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
+                            CALC_BUILDER, verbose, workdir, prefix="_mneb_")
     print(mneb.to_string(verbose=verbose))
     mneb.run()
     return mneb
@@ -285,7 +291,7 @@ def mneb(ctx, filepaths,
 #@click.option("--climb", is_flag=True, help="Use a climbing image (default is no climbing image).")
 @add_workdir_verbose_opts
 def tsaseneb(ctx, filepaths, nimages, workdir, verbose):
-#def run_tsaseneb(ctx, initial, final, nimages, fmax, relax_mode, method, climb):
+#def run_tsaseneb(ctx, initial, final, nimages, fmax, pressure, relax_mode, method, climb):
     """
     NEB calculations with TSASE and ML potential.
     """
@@ -372,7 +378,7 @@ def tsaseneb(ctx, filepaths, nimages, workdir, verbose):
 @add_relax_opts
 @add_workdir_verbose_opts
 def aseph(ctx, filepath, supercell, kpts, asr, nqpath,
-          relax_mode, fmax, steps, optimizer, workdir, verbose):
+          relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
     """
     Compute phonon band structure and DOS with ML potential.
 
@@ -392,7 +398,7 @@ def aseph(ctx, filepath, supercell, kpts, asr, nqpath,
         abiml.py.py -nn chgnet aseph [...]
     """
     ml_ph = aseml.MlPhonons(filepath, supercell, kpts, asr, nqpath,
-                            relax_mode, fmax, steps, optimizer, CALC_BUILDER,
+                            relax_mode, fmax, pressure, steps, optimizer, CALC_BUILDER,
                             verbose, workdir, prefix="_aseph_")
     print(ml_ph.to_string(verbose=verbose))
     ml_ph.run()
@@ -406,7 +412,7 @@ def aseph(ctx, filepath, supercell, kpts, asr, nqpath,
 @click.option("--max-ns", "-m", default=100, type=int, show_default=True, help='Max number of structures')
 @add_relax_opts
 @add_workdir_verbose_opts
-def order(ctx, filepath, max_ns, relax_mode, fmax, steps, optimizer, workdir, verbose):
+def order(ctx, filepath, max_ns, relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
     """
     Generate ordered structures from cif FILE with partial occupancies.
 
@@ -419,8 +425,8 @@ def order(ctx, filepath, max_ns, relax_mode, fmax, steps, optimizer, workdir, ve
 
     Based on: https://matgenb.materialsvirtuallab.org/2013/01/01/Ordering-Disordered-Structures.html
     """
-    ml_orderer = aseml.MlOrderer(filepath, max_ns, optimizer, relax_mode, fmax, steps, CALC_BUILDER, verbose,
-                                 workdir, prefix="_order_")
+    ml_orderer = aseml.MlOrderer(filepath, max_ns, optimizer, relax_mode, fmax, pressure,
+                                 steps, CALC_BUILDER, verbose, workdir, prefix="_order_")
     print(ml_orderer.to_string(verbose=verbose))
     ml_orderer.run()
     return ml_orderer

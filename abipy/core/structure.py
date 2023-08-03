@@ -2638,19 +2638,26 @@ class StructDiff:
     """
     Print difference between structures.
     """
+
     def __init__(self, labels: list[str], structures):
         self.labels = labels
         self.structs = [Structure.as_structure(s) for s in structures]
         if len(self.labels) != len(self.structs):
             raise ValueError("len(self.labels) != len(self.structs)")
 
+    def del_label(self, label: str) -> None:
+        """Remove entry associated to label."""
+        for il, this_label in enumerate(self.labels):
+            if label == this_label:
+                del self.labels[il]
+                del self.structs[il]
+
     #def summarize(self, file=sys.stdout) -> None:
 
-    def tabulate(self, only_lattice=False, allow_rigid_shift=True, with_cart_coords=False, file=sys.stdout) -> None:
+    def get_lattice_dataframe(self) -> pd.DataFrame:
         """
-        Tabulate difference.
+        Build dataframe with lattice parameters.
         """
-        # Compare lattices.
         d_list = []
         for label, structure in zip(self.labels, self.structs):
             d = {"label": label}
@@ -2660,15 +2667,12 @@ class StructDiff:
                 d[k] = structure.lattice.angles[i]
             d_list.append(d)
 
-        df = pd.DataFrame(d_list).set_index("label", inplace=False)
-        print("\nLattice difference (Ang units):", file=file)
-        print(df.to_string(), file=file)
-        if only_lattice: return
+        return pd.DataFrame(d_list).set_index("label", inplace=False)
 
-        # Compare sites.
-        natom = len(self.structs[0])
-        if any(len(s) != natom for s in self.structs): return
-
+    def get_sites_dataframe(self, with_cart_coords=False) -> pd.DataFrame:
+        """
+        Build dataframe with site positions.
+        """
         # Handle possible rigid shift.
         #shift_cart, shift_frac = np.zeros(3), np.zeros(3)
         #if allow_rigid_shift:
@@ -2688,20 +2692,23 @@ class StructDiff:
                         d[k] = site.coords[i]
                 d_list.append(d)
 
-        df = pd.DataFrame(d_list).set_index("label", inplace=False)
-        print("\nAtomic positions (Ang units):", file=file)
+        return pd.DataFrame(d_list).set_index("label", inplace=False)
+
+    def tabulate(self, only_lattice=False, allow_rigid_shift=True, with_cart_coords=False, file=sys.stdout) -> None:
+        """
+        Tabulate differences among structures.
+        """
+        # Compare lattices.
+        df = self.get_lattice_dataframe()
+        print("\nLattice difference (Ang units):", file=file)
+        print(df.to_string(), file=file)
+        if only_lattice: return
+
+        # Compare sites.
+        natom = len(self.structs[0])
+        if any(len(s) != natom for s in self.structs): return
+        df = self.get_sites_dataframe(with_cart_coords=with_cart_coords)
+
+        print("\nAtomic sites (Ang units):", file=file)
         print(df.to_string(), file=file)
         print("", file=file)
-
-    #def diff_fmt(self, fmt: str, file=sys.stdout) -> None:
-    #    """
-    #    Convert structures using format `fmt` and compare string output line by line.
-    #    """
-    #    str1 = self.struct1.convert(fmt=fmt)
-    #    str2 = self.struct2.convert(fmt=fmt)
-    #    lines1, lines2 = str1.splitlines(), str2.splitlines()
-    #    head1, head2 = f"# {self.label1}", f"# {self.label2}"
-    #    pad = max(max(len(l) for l in lines1), len(head1), len(head2))
-    #    print(head1.ljust(pad), " | ", head2, file=file)
-    #    for l1, l2 in zip(lines1, lines2):
-    #        print(l1.ljust(pad), " | ", l2, file=file)
