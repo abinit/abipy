@@ -214,8 +214,7 @@ o.expose_qpoints_gpairs(self, qpoint_list, gpairs, exposer="panel")
 
 #class GwrRpaEneConvWork(_BaseGWRWork):
 #    """
-#    This work computes the RPA energy for different number
-#    of points in the minimax mesh.
+#    This work computes the RPA energy for different number of points in the minimax mesh.
 #    """
 #
 #    def on_all_ok(self):

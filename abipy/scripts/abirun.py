@@ -704,6 +704,10 @@ Default: o
     p_debug_reset = subparsers.add_parser('debug_reset', parents=[copts_parser, flow_selector_parser],
         help="Analyze error files and log files produced by reset tasks for possible error messages.")
 
+    # Subparser for reset_jobids.
+    p_reset_jobids = subparsers.add_parser('reset_jobids', parents=[copts_parser, flow_selector_parser],
+        help="Analyze error files and log files produced by reset tasks for possible error messages.")
+
     # Subparser for clone_task.
     #p_clone_task = subparsers.add_parser('clone_task', parents=[copts_parser, flow_selector_parser],
     #    help="Clone task, change input variables and add new tasks to the flow. Requires clone_task.py.")
@@ -1121,7 +1125,7 @@ def main():
         df = time_parser.summarize()
         abilab.print_dataframe(df, title="output of time_parse.summarize():")
 
-    #elif options.command == "qstat":
+    #elif options.command == "squeue":
     #    print("Warning: this option is still under development.")
     #    #for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
     #    for task in flow.iflat_tasks():
@@ -1284,6 +1288,30 @@ def main():
 
     elif options.command == "debug_reset":
         flow_debug_reset_tasks(flow, nids=select_nids(flow, options), verbose=options.verbose)
+
+    elif options.command == "reset_jobids":
+
+        qtype = flow[0][0].manager.qadapter.QTYPE.lower()
+        print(qtype)
+        if qtype != "slurm":
+            cprint("reset_jobids is only available for slurm", color="magenta", end="", flush=True)
+            return 1
+
+        # Call squeue to get list of job infos and extract slurm_job_ids
+        from abipy.flowtw.qutils import slurm_get_jobs
+        slurm_jobs = slurm_get_jobs()
+        slurm_job_ids = set([d["JOBID"] for d in slurm_jobs])
+        print("{slurm_job_ids=}"
+
+        flow_job_ids = []
+        for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options))
+            qid = task.queue_id
+            if qid is None: continue
+            if qid not in slurm_job_ids:
+                print("Task", task, "seeem to have been killed and will be automatically reset.")
+                task.reset()
+
+        return flow.build_and_pickle_dump()
 
     # TODO
     #elif options.command == "debug_restart":

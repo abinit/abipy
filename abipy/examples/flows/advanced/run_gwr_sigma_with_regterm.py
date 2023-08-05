@@ -60,7 +60,7 @@ def build_flow(options):
 
     # Build template for GWR.
     ecuteps = 12
-    gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=mpw * 0.9, ecuteps=ecuteps)
+    gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=int(mpw * 0.9), ecuteps=ecuteps)
 
     gwr_ntau_list = list(range(6, 34, 2))
     gwr_ntau_list = [6, 8]
@@ -69,15 +69,18 @@ def build_flow(options):
     varname_values = ("gwr_ntau", gwr_ntau_list)
     # or take the Cartesian product of two or more variables with e.g.:
     #
-    varname_values = [
-       ("gwr_ntau", gwr_ntau_list),
-       ("userra", [0.0, 1e-6),    # Compute QP corrections with/without regterm.
-       #("ecuteps", [4, 6]),
-    ]
+    #varname_values = [
+    #   ("gwr_ntau", gwr_ntau_list),
+    #   #("userra", [0.0, 1e-6),    # Compute QP corrections with/without regterm.
+    #   #("ecuteps", [4, 6]),
+    #]
 
-    gwr_work = GWRSigmaConvWork.from_varname_values(
-            varname_values, gwr_template, den_node=diago_work[0], wfk_node=diago_work[1])
-    flow.register_work(gwr_work)
+    # Conpute QP corrections without/with regularization term.
+    for userra in [0.0, 1e-6]:
+        gwr_template["userra"] = userra
+        gwr_work = GWRSigmaConvWork.from_varname_values(
+                varname_values, gwr_template, den_node=diago_work[0], wfk_node=diago_work[1])
+        flow.register_work(gwr_work)
 
     return flow
 

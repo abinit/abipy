@@ -885,9 +885,10 @@ class MplExposer(Exposer): # pragma: no cover
 
     Example:
 
+        plot_args = dict(show=False)
         with MplExposer() as e:
-            e(obj.plot1(show=False))
-            e(obj.plot2(show=False))
+            e(obj.plot1(**plot_args))
+            e(obj.plot2(**plot_args))
     """
 
     def __init__(self, slide_mode=False, slide_timeout=None, verbose=1):

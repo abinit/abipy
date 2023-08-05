@@ -1294,7 +1294,7 @@ for spin in range(nc0.nsppol):
 
 class TchimVsSus:
     """
-    Object used to compare the polarizability computed in the GWR code with that
+    Object used to compare the polarizability computed in the GWR code with the one
     produced by the legacy algorithm based on the Adler-Wiser expression.
 
     Example:
@@ -1383,13 +1383,11 @@ class TchimVsSus:
                                                sharex=True, sharey=False, squeeze=False)
 
         for i, ((g1, g2), (sus_ig1, sus_ig2), (chi_ig1, chi_ig2)) in enumerate(zip(gpairs, sus_inds, chi_inds)):
-            #print(g1, g2)
             ax_re, ax_im = ax_mat[i]
 
             # number_of_qpoints_dielectric_function, number_of_frequencies_dielectric_function,
             # number_of_spins, number_of_spins, number_of_coefficients_dielectric_function,
             # number_of_coefficients_dielectric_function, complex)
-
             if sus_reader.path.endswith("SUS.nc"):
                 sus_var_name = "polarizability"
             elif sus_reader.path.endswith("SCR.nc"):
