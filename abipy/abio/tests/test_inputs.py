@@ -278,6 +278,16 @@ class TestAbinitInput(AbipyTest):
 
         assert inp.pseudos_abivars["pseudos"] == f"{pseudo.filepath}"
 
+        # Test set_scf_nband.
+        d = inp.set_scf_nband(nsppol=1, nspinor=1, nspden=1,
+                              occopt=1, tsmear=0.0, charge=0.0, spinat=None)
+        assert d["nband"] == 8
+
+        # Test set_scf_nband_semicond.
+        d = inp.set_scf_nband_semicond()
+        assert d["nband"] == 8
+
+
     def test_new_with_structure(self):
         """Testing new_with_structure."""
         si2_inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"),

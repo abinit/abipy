@@ -1,5 +1,5 @@
 """
-Classes to perform ASE calculations with machine-learned potentials.
+Objects to perform ASE calculations with machine-learned potentials.
 """
 from __future__ import annotations
 
@@ -77,18 +77,6 @@ def abisanitize_atoms(atoms: Atoms, **kwargs) -> Atoms:
     return to_ase_atoms(get_atoms(new_structure), calc=atoms.calc)
 
 
-#def get_structure(obj: Any) -> Structure:
-#    """Return abipy Structure from object."""
-#    if isinstance(obj, str):
-#        return Structure.from_file(obj)
-#    if isinstance(obj, PmgStructure):
-#        return obj
-#    if isinstance(obj, Atoms):
-#        return AseAtomsAdaptor.get_structure(obj, cls=Structure)
-#
-#    raise TypeError(f"Don't know how to construct Atoms object from {type(obj)}")
-
-
 def fix_atoms(atoms: Atoms, fix_inds: list[int], fix_symbols: list[str], verbose: int) -> None:
     """
     Fix atoms by indices and by symbols.
@@ -161,38 +149,6 @@ def print_atoms(atoms: Atoms, title=None, cart_forces=None, stream=sys.stdout) -
             pf("\t", frac_coords, cart_forces[ia])
 
 
-#def scompare_two_atoms(label1: str, atoms1: Atoms,
-#                       label2: str, atoms2: Atoms) -> str:
-#    """Compare two atoms object, return string."""
-#    lines = []; app = lines.append
-#
-#    d1 = dict(zip(_CELLPAR_KEYS, atoms1.cell.cellpar()))
-#    d1["label"] = label1
-#    d2 = dict(zip(_CELLPAR_KEYS, atoms2.cell.cellpar()))
-#    d2["label"] = label2
-#
-#    cell_df = pd.DataFrame([d1, d2])
-#    app(str(cell_df))
-#
-#    if len(atoms1) != len(atoms2):
-#        app("Atoms instances have different number of atoms!")
-#        return "\n".join(lines)
-#
-#    # (natom, 3) arrays
-#    natom = len(atoms1)
-#    pos1, pos2 = atoms1.get_positions(), atoms2.get_positions()
-#    data = {}
-#    for i, key in enumerate(("x", "y", "z")):
-#        data[key] = np.vstack((pos1[:,i], pos2[:,i])).ravel('F')
-#
-#    data["symbols"] = np.vstack((atoms1.symbols, atoms2.symbols)).ravel('F')
-#    data["atoms"] = np.vstack((0 * np.ones(natom, dtype=int), np.ones(natom, dtype=int))).ravel('F')
-#    pos_df = pd.DataFrame(data)
-#    app(pos_df.to_string())
-#
-#    return "\n".join(lines)
-
-
 def diff_two_structures(label1, structure1, label2, structure2, fmt, file=sys.stdout):
     """
     Diff two structures using format `fmt`and print results to `file`.
@@ -203,6 +159,34 @@ def diff_two_structures(label1, structure1, label2, structure2, fmt, file=sys.st
     print(label1.ljust(pad), " | ", label2, file=file)
     for l1, l2 in zip(lines1, lines2):
         print(l1.ljust(pad), " | ", l2, file=file)
+
+        
+import enum
+
+class _StrEnum(str, enum.Enum):
+    def __new__(cls, *args):
+        for arg in args:
+            if not isinstance(arg, (str, enum.auto)):
+                raise TypeError(
+                    "Values of StrEnums must be strings: {} is a {}".format(
+                        repr(arg), type(arg)
+                    )
+                )
+        return super().__new__(cls, *args)
+
+    def __str__(self):
+        return self.value
+
+    # The first argument to this function is documented to be the name of the
+    # enum member, not `self`:
+    # https://docs.python.org/3.6/library/enum.html#using-automatic-values
+    def _generate_next_value_(name, *_):
+        return name
+
+class RX_MODE(_StrEnum):  # StrEnum added in 3.11
+    no   = "no"
+    ions = "ions"
+    cell = "cell"
 
 
 @dataclass
@@ -336,7 +320,7 @@ def dataframe_from_results_list(index: list, results_list: list[AseResults],
     return df
 
 
-def ase_optimizer_cls(s: str | None) -> Type | list[str]:
+def ase_optimizer_cls(s: str | Optimizer) -> Type | list[str]:
     """
     Return an ASE Optimizer subclass from string `s`.
     If s == "__all__", return list with all Optimizer subclasses supported by ASE.
@@ -359,14 +343,14 @@ def ase_optimizer_cls(s: str | None) -> Type | list[str]:
     return getattr(optimize, s)
 
 
-def relax_atoms(atoms: Atoms, relax_cell: bool, optimizer: str, fmax: float, pressure: float,
+def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pressure: float,
                 verbose: int, steps: int = 500, opt_kwargs=None, traj_path=None, calculator=None):
     """
     Relax atoms using an ASE calculator and ASE algorithms.
 
     Args:
         atoms: ASE atoms.
-        relax_cell: True to relax the lattice cell.
+        relax_mode: 
         optimizer: name of the ASE optimizer class to use
         fmax: total force tolerance for relaxation convergence.
             Here fmax is a sum of force and stress forces. Defaults to 0.1.
@@ -377,9 +361,11 @@ def relax_atoms(atoms: Atoms, relax_cell: bool, optimizer: str, fmax: float, pre
         traj_path:
         calculator:
     """
-    #from ase import optimize
     from ase.constraints import ExpCellFilter
     from ase.io import read
+
+    if relax_mode == RX_MODE.no:
+        raise ValueError(f"Invalid {relax_mode:}")
 
     opt_kwargs = opt_kwargs or {}
     if traj_path is not None:
@@ -395,14 +381,14 @@ def relax_atoms(atoms: Atoms, relax_cell: bool, optimizer: str, fmax: float, pre
         print(*args, file=stream, **kwargs)
 
     with contextlib.redirect_stdout(stream):
-        pf(f"Relaxation parameters: fmax: {fmax}, relax_cell: {relax_cell}, steps: {steps}, optimizer: {optimizer}")
+        pf(f"Relaxation parameters: fmax: {fmax}, relax_mode: {relax_mode}, steps: {steps}, optimizer: {optimizer}")
         if atoms.constraints:
             pf(f"Number of constraints: {len(atoms.constraints)}")
             for c in atoms.constraints:
                 pf("\t", c)
             pf("")
 
-        dyn = opt_class(ExpCellFilter(atoms, scalar_pressure=pressure), **opt_kwargs) if relax_cell else \
+        dyn = opt_class(ExpCellFilter(atoms, scalar_pressure=pressure), **opt_kwargs) if relax_mode == RX_MODE.cell else \
               opt_class(atoms, **opt_kwargs)
 
         t_start = time.time()
@@ -431,6 +417,8 @@ def silence_tensorflow() -> None:
 
 class _MyCalculatorMixin:
     """
+    Add _delta_forces and _delta_stress attributes to an ASE calculator.
+    Extend `calculate` so that forces and stresses are corrected accordingly.
     """
     def set_delta_forces(self, delta_forces):
         """F_Abinitio - F_ML"""
@@ -452,35 +440,37 @@ class _MyCalculatorMixin:
          properties: list | None = None,
          system_changes: list | None = None,
      ):
-         """
-         Perform calculation for an input Atoms.
+        """
+        Perform calculation for an input Atoms.
 
-         Args:
-             atoms (ase.Atoms): ase Atoms object
-             properties (list): list of properties to calculate
-             system_changes (list): monitor which properties of atoms were
-                 changed for new calculation. If not, the previous calculation
-                 results will be loaded.
-         """
-         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
+        Args:
+            atoms (ase.Atoms): ase Atoms object
+            properties (list): list of properties to calculate
+            system_changes (list): monitor which properties of atoms were
+                changed for new calculation. If not, the previous calculation
+                results will be loaded.
+        """
+        super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
 
-         forces = self.results["forces"]
-         delta_forces = self.get_delta_forces()
-         if delta_forces is not None:
-             forces += delta_forces
-             #print("Updating forces with delta_forces:\n", forces)
-             self.results.update(
-                 forces=forces,
-             )
+        # Apply delta correction to forces.
+        forces = self.results["forces"]
+        delta_forces = self.get_delta_forces()
+        if delta_forces is not None:
+            forces += delta_forces
+            #print("Updating forces with delta_forces:\n", forces)
+            self.results.update(
+                forces=forces,
+            )
 
-         stress = self.results["stress"]
-         delta_stress = self.get_delta_stress()
-         if delta_stress is not None:
-             stress += delta_stress
-             #print("Updating stress with delta_stress:\n", stress)
-             self.results.update(
-                 stress=stress,
-             )
+        # Apply delta correction to stress.
+        stress = self.results["stress"]
+        delta_stress = self.get_delta_stress()
+        if delta_stress is not None:
+            stress += delta_stress
+            #print("Updating stress with delta_stress:\n", stress)
+            self.results.update(
+                stress=stress,
+            )
 
 
 class CalcBuilder:
@@ -563,7 +553,11 @@ class _MlBase:
         self.delta_forces = None
         self.delta_stress = None
 
-    def set_delta_forces_stress_from_abiml_nc(self, filepath: str):
+    def set_delta_forces_stress_from_abiml_nc(self, filepath: str) -> None:
+        """
+        Read ab-initio forces from a netcdf file produced by ABINIT and use 
+        these values to set the delta corrections in the calculator.
+        """
         if os.path.basename(filepath) != "ABIML_RELAX_IN.nc": return
 
         # Read structure, forces and stresses from the nc file produced by ABINIT.
@@ -581,7 +575,8 @@ class _MlBase:
         # Set delta forces/stresses so that the next invokation to get_calculator include the deltas
         self.set_delta_forces_stress(abi_forces - ml_forces, abi_stress - ml_stress)
 
-    def set_delta_forces_stress(self, delta_forces, delta_stress):
+    def set_delta_forces_stress(self, delta_forces, delta_stress) -> None:
+        """Set the value of the delta corrections."""
         self.delta_forces = delta_forces
         self.delta_stress = delta_stress
 
@@ -594,11 +589,11 @@ class _MlBase:
         calc = self.calc_builder.get_calculator()
 
         if self.delta_forces is not None:
-            print("delta_forces:\n", self.delta_forces)
+            print("Setting delta_forces:\n", self.delta_forces)
             calc.set_delta_forces(self.delta_forces)
         if self.delta_stress is not None:
-            print("delta_stress:\n", self.delta_stress)
-            ml_calc.set_delta_stress(self.delta_stress)
+            print("Setting delta_stress:\n", self.delta_stress)
+            calc.set_delta_stress(self.delta_stress)
 
         return calc
 
@@ -761,7 +756,7 @@ class MlRelaxer(_MlBase):
         print(f"Relaxing structure with relax mode: {self.relax_mode} ...")
         relax_kws = dict(calculator=self.atoms.calc,
                          optimizer=self.optimizer,
-                         relax_cell={"ions": False, "cell": True}[self.relax_mode],
+                         relax_mode=self.relax_mode,
                          fmax=self.fmax,
                          pressure=self.pressure,
                          steps=self.steps,
@@ -1009,10 +1004,10 @@ class MlNeb(_MlNebBase):
         workdir = self.workdir
         initial_atoms, final_atoms = self.initial_atoms, self.final_atoms
 
-        if self.relax_mode != "no":
+        if self.relax_mode != RX_MODE.no:
             relax_kws = dict(calculator=self.get_calculator(),
                              optimizer=self.optimizer,
-                             relax_cell={"ions": False, "cell": True}[self.relax_mode],
+                             relax_mode=self.relax_mode,
                              fmax=self.fmax,
                              pressure=self.pressure,
                              verbose=self.verbose,
@@ -1301,11 +1296,11 @@ class MlOrderer(_MlBase):
             for group in groups:
                 print(group[0])
 
-        if self.relax_mode != "no":
+        if self.relax_mode != RX_MODE.no:
             print(f"Relaxing structures with relax mode: {self.relax_mode}")
             relax_kws = dict(calculator=self.get_calculator(),
                              optimizer=self.optimizer,
-                             relax_cell={"ions": False, "cell": True}[self.relax_mode],
+                             relax_mode=self.relax_mode,
                              fmax=self.fmax,
                              pressure=self.pressure,
                              return_trajectory=True,
@@ -1409,7 +1404,7 @@ class MlPhonons(_MlBase):
             print(f"Relaxing atoms with relax mode: {self.relax_mode}.")
             relax_kws = dict(calculator=calculator,
                              optimizer=self.optimizer,
-                             relax_cell={"ions": False, "cell": True}[self.relax_mode],
+                             relax_mode=self.relax_mode,
                              fmax=self.fmax,
                              pressure=self.pressure,
                              steps=self.steps,

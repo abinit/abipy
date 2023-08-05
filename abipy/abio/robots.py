@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict, deque
-from typing import Callable, Union
+from typing import Callable, Union, Any
 from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
@@ -928,11 +928,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         Example:
 
              robot.plot_convergence("energy")
-
              robot.plot_convergence("energy", sortby="nkpt")
-
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear")
-
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear", abs_conv=1e-3)
         """
         if "marker" not in kwargs:

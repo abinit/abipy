@@ -12,7 +12,6 @@ class ChangeEnumStr:
 
 
 class RUNL(ChangeEnumStr, IntEnum):
-
     """
     Values of optdriver corresponding to the different run-levels. See defs_basis.F90
     """
@@ -47,7 +46,9 @@ class WFK_TASK(ChangeEnumStr, Enum):
 
 
 class GWR_TASK(ChangeEnumStr, Enum):  # StrEnum added in 3.11
-    """String """
+    """
+    String flags defining the task to be performed in the GWR code.
+    """
     HDIAGO = "HDIAGO"
     HDIAGO_FULL = "HDIAGO_FULL"
     CC4S = "CC4S"
@@ -59,3 +60,4 @@ class GWR_TASK(ChangeEnumStr, Enum):  # StrEnum added in 3.11
     G0EW = "G0EW"
     RPA_ENERGY = "RPA_ENERGY"
     GAMMA_GW = "GAMMA_GW"
+    CHI0 = "CHI0"

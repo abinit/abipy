@@ -598,7 +598,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
 
         if self.spell_check and not is_abivar(key):
             raise self.Error("""
-Cannot find variable `%s` in internal database. If you believe this is not a typo, use:
+Cannot find variable `%s` in the internal database. If you believe this is not a typo, use:
 
     input.set_spell_check(False)
 
@@ -969,7 +969,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     def set_cutoffs_for_accuracy(self, accuracy: str) -> dict:
         """
-        Set the value of ecut and pawcutdg (if PAW) using the hints reported in the pseudos.
+        Set the value of ecut and pawecutdg (if PAW) using the hints reported in the pseudos.
         Raises ``AbinitInputError`` if pseudos do not provide hints.
         In the case of PAW, pawecutdg is either taken from the hints or computed from the recommended
         value of ecut using a scaling factor that depends on ``accuracy``.
@@ -998,18 +998,46 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if has_paw: d.update(pawecutdg=pawecutdg)
         return self.set_vars(**d)
 
-    #def set_auto_scf_nband(self, nsppol: int, nspinor: int, nspden: int,
-    #                       occopt: int, tsmear: float) -> dict:
-    #    self._check_nsppol_nspinor(nsppol, nspinor)
+    def set_scf_nband_semicond(self, nsppol=1, nspinor=1, nspden=1, charge=0.0, spinat=None) -> dict:
+        """
+        Set electronic pararameters, smearing options and compute ``nband`` for a GS-SCF run.
+        assuming a semiconductor. See set_scf_nband.
+        Return dict with variables.
+        """
+        return self.set_scf_nband(nsppol=nsppol, nspinor=nspinor, nspden=nspden,
+                                  occopt=1, tsmear=0.0, charge=0.0, spinat=None)
 
-    #    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
-    #                                   charge=charge, nband=scf_nband, fband=None)
-    #    _find_scf_nband(structure, pseudos, electrons, spinat=None)
-    #    num_valence_electrons = self.structure.num_valence_electrons(pseudos)
-    #    nband = num_valence_electrons // nsppol
-    #    _, rest = divmod(nband, 4)
-    #    nband += rest
-    #    return self.set_vars(nsppol=nsppol, nspinor=nspinor, nsppden=nspden, nband=nband)
+    def set_scf_nband(self, nsppol: int, nspinor: int, nspden: int,
+                      occopt: int, tsmear: float, charge: float, spinat) -> dict:
+        """
+        Set electronic pararameters, smearing options and compute ``nband`` for a GS-SCF run.
+        Return dict with variables.
+
+        Args:
+            nsppol: Number of spins.
+            nspinor: Number of spinor components.
+            nspden: Number of spin density components.
+            occopt: Occoputation option.
+            tsmear: Electronic smearing.
+            charge: Extra charge.
+            spinat: If None and nsppol 2, spinat is automatically computed.
+        """
+        self._check_nsppol_nspinor(nsppol, nspinor)
+        spin_mode = aobj.SpinMode(mode="test", nsppol=nsppol, nspinor=nspinor, nspden=nsppol)
+        smearing = aobj.Smearing(occopt, tsmear)
+
+        scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=None,
+                                       charge=charge, nband=None, fband=None)
+
+        if nsppol == 2 and spinat is None:
+            self.set_autospinat()
+            spinat = self["spinat"]
+
+        from abipy.abio.factories import _find_scf_nband
+        nband = _find_scf_nband(self.structure, self.pseudos, scf_electrons, spinat=spinat)
+        return self.set_vars(nsppol=nsppol, nspinor=nspinor, nspden=nspden,
+                             occopt=occopt, tsmear=tsmear, charge=charge,
+                             nband=nband, spinat=spinat)
 
     def set_kmesh(self, ngkpt, shiftk, kptopt: int = 1) -> dict:
         """
@@ -2419,16 +2447,21 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     #    return new
 
-    def make_gwr_qprange_input(self, gwr_ntau, nband, ecuteps, gw_qprange=0, **kwargs) -> AbinitInput:
+    def make_gwr_qprange_input(self, gwr_ntau, nband, ecuteps, gw_qprange=0, gwr_task=GWR_TASK.G0W0,
+                               **kwargs) -> AbinitInput:
         """
         Build and return an input file to compute QP corrections with the GWR code.
 
         Args:
-            gw_qprange = 0 to Compute the QP corrections only for the fundamental and the direct gap.
+            gwr_ntau: Number of minimax points.
+            nband: Number of bands in Green's function
+            ecuteps: Cutoff energy for chi0
+            gw_qprange = 0 to compute the QP corrections only for the fundamental and the direct gap.
+            gwr_task: String defining the GWR task
         """
         new = self.new_with_vars(
             optdriver=RUNL.GWR,
-            gwr_task=GWR_TASK.G0W0,
+            gwr_task=gwr_task,
             gwr_ntau=gwr_ntau,
             nband=nband,
             ecuteps=ecuteps,

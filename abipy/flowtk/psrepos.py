@@ -1,10 +1,10 @@
 """
 This module provides an API to deal with pseudopotential repositories.
-A repo is essentially a collection of versioned pseudopotentials files installed within the same root directory.
+A repo is a collection of versioned pseudopotentials files installed within the same root directory.
 A repo has a unique name that encodes the XC functional, relativity type, the kind of pseudopotential and the version.
-The default root is ~/.abinit/pseudos although it is possible to change it via the ABIPY_PSREPOS_ROOT env variable
+The default root is $HOME/.abinit/pseudos although it is possible to change it via the ABIPY_PSREPOS_ROOT env variable
 
-Note that all pseudos in a repo share the same XC functional, the type (NC, PAW) and the
+Note that all pseudos in a repo share the same XC functional, the type e.g. NC or PAW and the
 treatment of relativistic corrections although one might have multiple pseudos for the same element.
 
 Due to this ambiguity, a repo cannot be directly used for running calculations in an automatic fashion
@@ -178,7 +178,7 @@ class PseudosRepo(abc.ABC):
                  version: str, url: str):
         """
         Args:
-            ps_generator: Name of the pseudopotential generator
+            ps_generator: Name of the pseudopotential generator.
             xc_name: XC functional.
             relativity_type: SR for scalar-relativistic or FR for fully relativistic.
             project_name: Name of the project associated to this repository.
@@ -297,11 +297,14 @@ class PseudosRepo(abc.ABC):
 
 
 class OncvpspRepo(PseudosRepo):
+    """
+    A repo containing ONCVPSP pseudopotentials.
+    """
 
     @classmethod
     def from_github(cls, xc_name: str, relativity_type: str, version: str) -> OncvpspRepo:
         """
-        Build a OncvpsRepo assuming a github repository.
+        Build an OncvpsRepo from a github repository.
         """
         ps_generator, project_name = "ONCVPSP", "PD"
 
@@ -335,6 +338,9 @@ class OncvpspRepo(PseudosRepo):
         ]
 
     def validate_checksums(self, verbose: int) -> None:
+        """
+        Compare checksums given in the djson file with the ones computed from file after the donwload.
+        """
         print(f"\nValidating md5 checksums of {repr(self)}...")
         djson_paths = [os.path.join(self.dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]
 
@@ -394,6 +400,9 @@ class OncvpspRepo(PseudosRepo):
 
 
 class JthRepo(PseudosRepo):
+    """
+    A Repo containing JTH PAW pseudos.
+    """
 
     @classmethod
     def from_abinit_website(cls, xc_name: str, relativity_type: str, version: str) -> JthRepo:
@@ -466,7 +475,15 @@ def repo_from_name(repo_name: str) -> PseudosRepo:
 
 def tabulate_repos(repos: list[PseudosRepo], exclude: Optional[list[str]] = None,
                    with_citations: bool = False, verbose: int = 0) -> str:
+    """
+    Return string with info on a list of PseudosRepo.
 
+    Args:
+        repos: List of PseudosRepo
+        exclude: List of keys to exclude
+        with_citations: True if citations should be reported.
+        verbose: Verbosity level.
+    """
     bool2color = {True: "green", False: "red"}
 
     rows = []

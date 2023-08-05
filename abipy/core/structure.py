@@ -2636,14 +2636,26 @@ to build an appropriate supercell from partial occupancies or alternatively use 
 
 class StructDiff:
     """
-    Print difference between structures.
+    Print difference among structures.
     """
 
     def __init__(self, labels: list[str], structures):
+        """
+        Args:
+            labels: Labels associated to structures
+            structures: List of structures or objects that can be converted to structures.
+        """
         self.labels = labels
         self.structs = [Structure.as_structure(s) for s in structures]
+
+        # Consistency check.
         if len(self.labels) != len(self.structs):
             raise ValueError("len(self.labels) != len(self.structs)")
+        if len(self.labels) != len(self.labels):
+            raise ValueError(f"Found duplicated entries in: {self.labels}")
+        natom = len(self.structs[0])
+        if any(len(s) != natom for s in self.structs):
+            raise ValueError(f"structures have different number of atoms!")
 
     def del_label(self, label: str) -> None:
         """Remove entry associated to label."""
@@ -2651,8 +2663,6 @@ class StructDiff:
             if label == this_label:
                 del self.labels[il]
                 del self.structs[il]
-
-    #def summarize(self, file=sys.stdout) -> None:
 
     def get_lattice_dataframe(self) -> pd.DataFrame:
         """
@@ -2681,6 +2691,7 @@ class StructDiff:
         #    shift_frac = site2.frac_coords - site1.frac_coords
 
         d_list = []
+        natom = len(self.structs[0])
         for isite in range(natom):
             for label, structure in zip(self.labels, self.structs):
                 site = structure[isite]
@@ -2696,7 +2707,13 @@ class StructDiff:
 
     def tabulate(self, only_lattice=False, allow_rigid_shift=True, with_cart_coords=False, file=sys.stdout) -> None:
         """
-        Tabulate differences among structures.
+        Tabulate lattice parameters and atomic positions.
+
+        Args:
+            only_lattice:
+            allow_rigid_shift:
+            with_cart_coords:
+            file: Output stream
         """
         # Compare lattices.
         df = self.get_lattice_dataframe()
@@ -2712,3 +2729,7 @@ class StructDiff:
         print("\nAtomic sites (Ang units):", file=file)
         print(df.to_string(), file=file)
         print("", file=file)
+
+    #def diff(self, ref_label, with_cart_coords=False, file=sys.stdout) -> None:
+    #    df = self.get_lattice_dataframe()
+    #    df = self.get_sites_dataframe(with_cart_coords=with_cart_coords)

@@ -820,6 +820,13 @@ class Marker(namedtuple("Marker", "x y s")):
 class Exposer:
     """
     Base class for Exposer objects.
+
+    Example:
+
+        kws = dict(show=False)
+        with Exposer.as_exposer("panel") as e:
+            e(obj.plot1(**plot_kws))
+            e(obj.plot2(**plot_kws))
     """
 
     @classmethod

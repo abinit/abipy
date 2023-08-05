@@ -19,10 +19,10 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.typing import Figure, KptSelect
-from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
     set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-from abipy.electrons.gw import SelfEnergy, QPState, QPList, SigresFile, SigresRobot
+from abipy.electrons.gw import SelfEnergy, QPState, QPList #, SigresFile, SigresRobot
 from abipy.abio.robots import Robot
 
 __all__ = [
@@ -1303,7 +1303,6 @@ class TchimVsSus:
             ((0, 0, 0), (1, 0, 0)),
             ((1, 0, 0), (0, 1, 0)),
         ]
-
         qpoint_list = [
             [0, 0, 0],
             [0.5, 0.5, 0],
@@ -1312,7 +1311,6 @@ class TchimVsSus:
         with TchimVsSus("runo_DS3_TCHIM.nc", "AW_CD/runo_DS3_SUS.nc") as o
             o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
     """
-
     def __init__(self, tchim_filepath: str, sus_filepath: str):
         """
         Args:
@@ -1331,7 +1329,7 @@ class TchimVsSus:
         Activated at the end of the with statement. It automatically closes the files.
         """
         self.sus_file.close()
-        #self.sigres.close()
+        self.tchi_reader.close()
 
     @add_fig_kwargs
     def plot_qpoint_gpairs(self, qpoint, gpairs,
@@ -1367,8 +1365,7 @@ class TchimVsSus:
 
         def _find_g(gg, gvec):
             for ig, g_sus in enumerate(gvec):
-                if all(gg == g_sus):
-                    return ig
+                if all(gg == g_sus): return ig
             else:
                 raise ValueError(f"Cannot find g-vector: {gg}")
 
@@ -1456,6 +1453,10 @@ class TchimVsSus:
         """
         Plot the Fourier components of the polarizability for a list of q-points and,
         for each q-point, a list of (g, g') pairs.
+
+        qpoint_list: List of q-points to consider
+        gpairs: List of (g,g') pairs
+        exposer: "mpl" for matplotlib, "panel" for web interface.
         """
         with Exposer.as_exposer(exposer) as e:
             for qpoint in qpoint_list:

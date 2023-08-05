@@ -56,10 +56,11 @@ def add_workdir_verbose_opts(f):
 @click.option("-n","--mpi-nprocs", default=2, type=int, show_default=True, help="Number of MPI processes to run ABINIT")
 @click.option("-xc", default="PBE", show_default=True, type=click.Choice(["PBE", "PBEsol", "LDA"]),
               help="XC functional.")
+@click.option("-m","--mpi-runner", default="mpirun", type=str, show_default=True, help="String used to invoke the MPI runner. ")
 @add_workdir_verbose_opts
 def main(filepath, nn_name,
          relax_mode, fmax, steps, optimizer,
-         kppa, rattle, scale_volume, mpi_nprocs, xc,
+         kppa, rattle, scale_volume, mpi_nprocs, xc, mpi_runner,
          workdir, verbose,
          ):
 
@@ -91,7 +92,7 @@ def main(filepath, nn_name,
         atoms.rattle(stdev=abs(rattle), seed=42)
 
     prof = RelaxationProfiler(atoms, pseudos, xc, kppa, relax_mode, fmax, mpi_nprocs, steps=steps,
-                              verbose=verbose, optimizer=optimizer, nn_name=nn_name)
+                              verbose=verbose, optimizer=optimizer, nn_name=nn_name, mpi_runner=mpi_runner)
     prof.run(workdir=workdir)
     return 0
 

@@ -93,8 +93,8 @@ class RelaxationProfiler:
         # TODO: Fix issue with ixc set by ASE.
         self.relax_kwargs = dict(
             #ecutsm=0.5,     # Smoothing PW cutoff energy (mandatory for cell optimization)
-            #ionmov=2,
-            ionmov=22,
+            ionmov=2,
+            #ionmov=22,
             #ionmov=28,     # activate i-pi/socket mode
             optcell=0 if self.relax_mode == "ions" else 2,
             tolmxf=self.fmax * eV_Ha * Ang_Bohr,
@@ -297,16 +297,18 @@ class RelaxationProfiler:
         diff = StructDiff(["INITIAL", self.nn_name + "_RELAX", "ABINIT_RELAX", "ABI_ML"],
                           [self.initial_atoms, ml_opt.atoms, abi_relax.atoms, final_mlabi_relax.atoms])
         diff.tabulate()
-        print(f"{ml_nsteps=}, {abiml_nsteps=}, {abi_relax.nsteps=}")
+        print(f"GS steps in ML mode {ml_nsteps=}")
+        print(f"GS steps in ABINIT mode {abi_relax.nsteps=}")
+        print(f"GS steps in ABI+ML mode {abiml_nsteps=}")
 
         #forces_file.close(); stress_file.close()
 
         # Write json file with output results.
         with open(workdir / "data.json", "wt") as fh:
             data = dict(
-                #xc=self.xc
-                #gs_kwargs=self.gs_kwargs,
-                #relax_kwargs=self.relax_kwargs,
+                xc=self.xc,
+                gs_kwargs=self.gs_kwargs,
+                relax_kwargs=self.relax_kwargs,
                 ml_nsteps=ml_nsteps,
                 abiml_nsteps=abiml_nsteps,
                 abi_nsteps=abi_relax.nsteps,
@@ -315,10 +317,6 @@ class RelaxationProfiler:
                 abiml_relaxed_structure=Structure.as_structure(final_mlabi_relax.atoms),
             )
             json.dump(data, fh, indent=4, cls=MontyEncoder)
-            # Print JSON data
-            #print("")
-            #print(marquee("Results", mark="="))
-            #print(json.dumps(data, indent=4, cls=MontyEncoder), end="\n")
 
 
 if __name__ == "__main__":
