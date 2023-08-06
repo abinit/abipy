@@ -93,6 +93,8 @@ def main(filepath, nn_name,
 
     prof = RelaxationProfiler(atoms, pseudos, xc, kppa, relax_mode, fmax, mpi_nprocs, steps=steps,
                               verbose=verbose, optimizer=optimizer, nn_name=nn_name, mpi_runner=mpi_runner)
+                              #mpi_runner="srun --mpi=cray_shasta")
+                              #mpi_runner="srun --mpi=cray_shasta --account=battab")
     prof.run(workdir=workdir)
     return 0
 

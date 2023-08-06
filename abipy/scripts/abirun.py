@@ -1298,13 +1298,13 @@ def main():
             return 1
 
         # Call squeue to get list of job infos and extract slurm_job_ids
-        from abipy.flowtw.qutils import slurm_get_jobs
+        from abipy.flowtk.qutils import slurm_get_jobs
         slurm_jobs = slurm_get_jobs()
         slurm_job_ids = set([d["JOBID"] for d in slurm_jobs])
-        print("{slurm_job_ids=}"
+        print("{slurm_job_ids=}")
 
         flow_job_ids = []
-        for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options))
+        for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
             qid = task.queue_id
             if qid is None: continue
             if qid not in slurm_job_ids:
