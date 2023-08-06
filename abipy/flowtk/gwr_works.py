@@ -110,7 +110,7 @@ class GWRSigmaConvWork(_BaseGWRWork):
                 script.add_text("""
 
 #robot.plot_selfenergy_conv(spin=0, kpoint=?, band=?, axis="wreal", sortby=None, hue=None)
-#robot.plot_qpgaps_convergence(self, qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None)
+#robot.plot_qpgaps_convergence(qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None)
 """)
 
         return super().on_all_ok()
@@ -120,11 +120,11 @@ class GWRSigmaConvWork(_BaseGWRWork):
 class GWRChiCompareWork(_BaseGWRWork):
     """
     This work computes the irreducibile polarizability along the imaginary axis
-    using GWR and the quartic-scaling algorithm using the same minimax mesh
+    using the GWR code and the quartic-scaling algorithm using the same minimax mesh
     so that one can compare the two quantities.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: GwrChiCompareConvWork
+    .. inheritance-diagram:: GWRChiCompareConvWork
     """
 
     @classmethod
@@ -139,7 +139,7 @@ class GWRChiCompareWork(_BaseGWRWork):
             scf_input: input for GS run.
             gwr_ntau: Number of points in minimax mesh.
             nband: Number of bands to build G and chi.
-            ecuteps: Cutoff energy for chi
+            ecuteps: Cutoff energy for chi.
             den_node: The Node who produced the DEN file.
             wfk_node: The Node who produced the WFK file.
             gwr_kwargs: Extra kwargs used to build the GWR input.
@@ -176,9 +176,9 @@ class GWRChiCompareWork(_BaseGWRWork):
         py_text = f"""
 #!/usr/bin/env python
 
-import seaborn as sns                                                 
-sns.set(context="paper", style='darkgrid', palette='deep',            
-       font='sans-serif', font_scale=0.8, color_codes=False, rc=None) 
+import seaborn as sns
+sns.set(context="paper", style='darkgrid', palette='deep',
+       font='sans-serif', font_scale=0.8, color_codes=False, rc=None)
 
 from abipy.electrons.gwr import TchimVsSus
 o = TchimVsSus("{tchi_path}", "{sus_path}")

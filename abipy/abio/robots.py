@@ -132,7 +132,7 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
             robot = GsrRobot.from_dir_glob("flow_dir/w*/outdata/")
 
         Args:
-            pattern: Pattern string
+            pattern: Pattern string.
             walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
         """
@@ -208,13 +208,10 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
 
     @classmethod
     def from_json_file(cls, filepath: str):
+        """Build Robot from a file in json format."""
         from abipy.tools.serialization import mjson_load
         new = mjson_load(filepath)
-        print(new)
         return new
-        #with open(filepath, "rt") as fh:
-        #    d = json.load(fh)
-        #    return cls.from_dict(d)
 
     @classmethod
     def from_work(cls, work, outdirs="all", nids=None, ext=None, task_class=None) -> Robot:
@@ -319,12 +316,11 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
         """
         Scan directory tree starting from ``top``.
         Add files to the robot instance.
+        Return: Number of files found.
 
         Args:
-            top (str): Root directory
+            top: Root directory
             walk: if True, directories inside ``top`` are included as well.
-
-        Return: Number of files found.
         """
         count = 0
         for filepath, abifile in self.__class__._open_files_in_dir(top, walk):
@@ -361,10 +357,12 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return dict with filepaths that can be used to reconstruct the Robot."""
         return dict(filepaths=[abifile.filepath for abifile in self.abifiles])
 
     @classmethod
     def from_dict(cls, d: dict):
+        """Recontruct object from dictionary with filepaths."""
         return cls.from_files(d["filepaths"])
 
     def to_json(self) -> str:
@@ -374,6 +372,7 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
     def get_pyscript(self, filepath: str) -> RobotPythonScript:
+        """Return RobotPythonScript to br used as context manager."""
         return RobotPythonScript(self, filepath)
 
     #def pop_filepath(self, filepath: str) -> None:
@@ -1209,10 +1208,11 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
     @staticmethod
     def plot_abs_conv(ax1, ax2, xs, yvals, abs_conv, xlabel, fontsize, hatch, **kwargs) -> None:
-        """Plot |y - y_xmax| in log scale on ax2 and add hspan to ax1."""
+        """
+        Plot |y - y_xmax| in log scale on ax2 and add hspan to ax1.
+        """
         y_xmax = yvals[-1]
         span_style = dict(alpha=0.2, color="green", hatch=hatch)
-
         ax1.axhspan(y_xmax - abs_conv, y_xmax + abs_conv, label=r"$|y-y(Max)}| \leq %s$" % abs_conv, **span_style)
 
         # Plot |y - y_xmax| in log scale on ax2.
@@ -1291,7 +1291,6 @@ print(robot)
 # Uncomment these two lines to produce an excel file
 #df = robot.get_dataframe(with_geo=False)
 #df.to_excel(self.outdir.path_in("{basename}.xls"))
-
 """
 
     def __enter__(self):

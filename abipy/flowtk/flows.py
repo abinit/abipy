@@ -2064,8 +2064,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     def register_work(self, work: Work, deps=None, manager=None, workdir=None) -> Work:
         """
-        Register a new |Work| and add it to the internal list, taking into account
-        possible dependencies.
+        Register a new |Work| and add it to the internal list, taking into account possible dependencies.
 
         Args:
             work: |Work| object.
@@ -2088,6 +2087,9 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         if manager is not None:
             work.set_manager(manager)
+
+        if any(work.node_id == w.node_id for w in self):
+            raise ValueError(f"{work=} is already registered in the flow.")
 
         self.works.append(work)
 
