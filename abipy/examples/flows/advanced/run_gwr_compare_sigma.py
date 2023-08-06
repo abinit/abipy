@@ -21,7 +21,7 @@ def build_flow(options):
     from abipy.data.gwr_structures import get_gwr_structure
     symbol = "Si"
     #symbol = "LiF"
-    #symbol = "Si"
+    #symbol = "SiC"
     #symbol = "C"
     #symbol = "BN"
     #symbol = "MgO"
@@ -55,8 +55,8 @@ def build_flow(options):
     )
 
     # Get max number of PWs.
-    dims, _ = scf_input.abiget_dims_spginfo()
-    mpw = dims["mpw"]
+    #dims, _ = scf_input.abiget_dims_spginfo()
+    #mpw = dims["mpw"]
 
     flow = flowtk.Flow(workdir=options.workdir)
 
@@ -69,8 +69,8 @@ def build_flow(options):
 
     # Build template for GWR.
     ecuteps = 12
-
-    gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=int(mpw * 0.9), ecuteps=ecuteps)
+    nband = nval * 100
+    gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=nband, ecuteps=ecuteps)
 
     # Define kptgw and bdgw
     nval = scf_input.num_valence_electrons // 2
@@ -93,13 +93,11 @@ def build_flow(options):
 
     gwr_ntau_list = list(range(6, 34, 2))
     gwr_ntau_list = [6, 8]
+    gwr_ntau_list = [14, 20]
 
     # Conpute QP corrections without/with regularization term.
     # 1) Change the value of one variable:
     varname_values = ("gwr_ntau", gwr_ntau_list)
-
-    nband = nval * 100
-
     gwr_template["nband"] = nband
     gwr_template["userra"] = 1e-6
     #gwr_template["userra"] = 0.0
@@ -108,28 +106,6 @@ def build_flow(options):
     gwr_work = GWRSigmaConvWork.from_varname_values(
             varname_values, gwr_template, den_node=diago_work[0], wfk_node=wfk_node)
     flow.register_work(gwr_work)
-
-    # Create work for AC calculation
-    #nfreqim  25      # This is equal to gwr_ntau
-    #nomegasi  10
-    #omegasimax 10 eV
-    work = flow.new_work()
-    for gwr_ntau in gwr_ntau_list:
-        chi_ac_input = scf_input.new_with_vars(optdriver=3,
-                                               gwcalctyp=1, # Analytic continuation.
-                                               nfreqim=gwr_ntau,
-                                               ecuteps=ecuteps,
-                                               nband=nband,
-                                               )
-
-        sigma_ac_input = chi_ac_input.new_with_vars(optdriver=4,
-                                                    nomegasi=gwr_ntau,
-                                                    omegasimax=0.2 * abu.eV_Ha * gwr_ntau,
-                                                    ecutsigx=gwr_template["ecutsigx"],
-                                                   )
-        sigma_ac_input.set_vars(**sigma_kcalc_dict)
-        scr_ac_task = work.register_scr_task(chi_ac_input, deps={wfk_node: "WFK"})
-        work.register_sigma_task(sigma_ac_input, deps={wfk_node: "WFK", scr_ac_task: "SCR"})
 
     # Create work for plasmon-pole calculation
     chi_ppm_input = scf_input.new_with_vars(optdriver=3,
@@ -144,7 +120,31 @@ def build_flow(options):
 
     work = flow.new_work()
     scr_ppm_task = work.register_scr_task(chi_ppm_input, deps={wfk_node: "WFK"})
-    work.register_sigma_task(sigma_ppm_input, deps={wfk_node: "WFK", scr_ac_task: "SCR"})
+    work.register_sigma_task(sigma_ppm_input, deps={wfk_node: "WFK", scr_ppm_task: "SCR"})
+
+    """
+    # Create work for AC calculation
+    #nfreqim  25
+    #nomegasi  10
+    #omegasimax 10 eV
+    work = flow.new_work()
+    for gwr_ntau in gwr_ntau_list:
+        chi_ac_input = scf_input.new_with_vars(optdriver=3,
+                                               gwcalctyp=1,       # Analytic continuation.
+                                               nfreqim=gwr_ntau,  # This is equal to gwr_ntau
+                                               ecuteps=ecuteps,
+                                               nband=nband,
+                                               )
+
+        sigma_ac_input = chi_ac_input.new_with_vars(optdriver=4,
+                                                    nomegasi=gwr_ntau,
+                                                    omegasimax=0.2 * abu.eV_Ha * gwr_ntau,
+                                                    ecutsigx=gwr_template["ecutsigx"],
+                                                   )
+        sigma_ac_input.set_vars(**sigma_kcalc_dict)
+        scr_ac_task = work.register_scr_task(chi_ac_input, deps={wfk_node: "WFK"})
+        work.register_sigma_task(sigma_ac_input, deps={wfk_node: "WFK", scr_ac_task: "SCR"})
+    """
 
     return flow
 
