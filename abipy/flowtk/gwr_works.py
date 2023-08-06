@@ -175,8 +175,12 @@ class GWRChiCompareWork(_BaseGWRWork):
 
         py_text = f"""
 #!/usr/bin/env python
-from abipy.electrons.gwr import TchimVsSus
 
+import seaborn as sns                                                 
+sns.set(context="paper", style='darkgrid', palette='deep',            
+       font='sans-serif', font_scale=0.8, color_codes=False, rc=None) 
+
+from abipy.electrons.gwr import TchimVsSus
 o = TchimVsSus("{tchi_path}", "{sus_path}")
 
 gpairs = [
@@ -197,10 +201,6 @@ qpoint_list = [
     [0, 0, 0],
     [0.5, 0, 0],
 ]
-
-import seaborn as sns
-sns.set(context="paper", style='darkgrid', palette='deep',
-       font='sans-serif', font_scale=0.8, color_codes=False, rc=None)
 
 o.expose_qpoints_gpairs(self, qpoint_list, gpairs, exposer="panel")
 """

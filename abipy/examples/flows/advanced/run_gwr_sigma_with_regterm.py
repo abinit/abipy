@@ -38,7 +38,7 @@ def build_flow(options):
     # Global variables.
     scf_input.set_vars(
         tolvrs=1e-8,
-        paral_kgb=1,
+        paral_kgb=0,
     )
     scf_input.set_kmesh(
         ngkpt=[2, 2, 2],
@@ -61,6 +61,21 @@ def build_flow(options):
     # Build template for GWR.
     ecuteps = 12
     gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=int(mpw * 0.9), ecuteps=ecuteps)
+
+    ival = scf_input.num_valence_electrons() // 2
+    kptgw = [ # k-points in reduced coordinates
+        (0.0, 0.0, 0.0),
+        (0.5, 0.5, 0.0), # X
+        #(0.5    0.000    0.000
+    ]
+
+    bdgw = nkptgw * [ival, ival+1]
+
+    gwr_template.set_vars(
+        nkptgw=len(kptgw),
+        kptgw=kptgw,
+        bdgw=bdgw,
+    ]
 
     gwr_ntau_list = list(range(6, 34, 2))
     gwr_ntau_list = [6, 8]
