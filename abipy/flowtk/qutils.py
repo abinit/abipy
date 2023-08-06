@@ -135,9 +135,9 @@ def any2mb(s):
         return int(s)
 
 
-def slurm_get_jobs(username=None) -> list[dict]:
+def slurm_get_jobs(username=None) -> dict[int, dict]:
     """
-    Invoke squeue, parse output and return list of dictionaries with job info.
+    Invoke squeue, parse output and return list of dictionaries with job info indexed by job id.
     """
     # Based on https://gist.github.com/stevekm/7831fac98473ea17d781330baa0dd7aa
     username = os.getlogin() if username is None else username
@@ -161,7 +161,6 @@ def slurm_get_jobs(username=None) -> list[dict]:
                 d[key] = parts[i]
                 if key == "JOBID":
                     d[key] = int(d[key])
-
             entries.append(d)
 
-    return entries
+    return {e["JOBID"]: e for e in entries}

@@ -1039,7 +1039,6 @@ def main():
 
         nlaunch, excs = 0, []
         for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
-            #if options.verbose:
             print("Will try to restart %s, with status %s" % (task, task.status))
             try:
                 fired = task.restart()
@@ -1126,9 +1125,7 @@ def main():
         abilab.print_dataframe(df, title="output of time_parse.summarize():")
 
     #elif options.command == "squeue":
-    #    print("Warning: this option is still under development.")
-    #    #for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
-    #    for task in flow.iflat_tasks():
+    #    for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
     #        if not task.qjob: continue
     #        print("qjob", task.qjob)
     #        print("info", task.qjob.get_info())
@@ -1290,25 +1287,21 @@ def main():
         flow_debug_reset_tasks(flow, nids=select_nids(flow, options), verbose=options.verbose)
 
     elif options.command == "reset_jobids":
-
+        # Make sure we have slurm.
         qtype = flow[0][0].manager.qadapter.QTYPE.lower()
-        print(qtype)
         if qtype != "slurm":
             cprint("reset_jobids is only available for slurm", color="magenta", end="", flush=True)
             return 1
 
-        # Call squeue to get list of job infos and extract slurm_job_ids
+        # Call squeue to get list of job infos and extract slurm_jobs
         from abipy.flowtk.qutils import slurm_get_jobs
         slurm_jobs = slurm_get_jobs()
-        slurm_job_ids = set([d["JOBID"] for d in slurm_jobs])
-        print("{slurm_job_ids=}")
 
-        flow_job_ids = []
         for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
             qid = task.queue_id
             if qid is None: continue
-            if qid not in slurm_job_ids:
-                print("Task", task, "seeem to have been killed and will be automatically reset.")
+            if qid not in slurm_jobs:
+                print("Task:", task, "seeem to have been killed and will be automatically reset.")
                 task.reset()
 
         return flow.build_and_pickle_dump()

@@ -36,7 +36,7 @@ def build_flow(options):
     # Global variables.
     scf_input.set_vars(
         tolvrs=1e-8,
-        paral_kgb=1,
+        paral_kgb=0,
     )
     scf_input.set_kmesh(
         ngkpt=[2, 2, 2],
