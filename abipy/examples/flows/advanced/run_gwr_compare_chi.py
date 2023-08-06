@@ -3,9 +3,9 @@ r"""
 GWR flow with convergence studies
 =================================
 
-This script computes the irreducbile polarizability with GWR and the quartic scaling algorithm
-(Adler-Wiser equation) using the same minimax mesh on the imagimary axis so
-that one can compare the results
+This script computes the irreducbile polarizability with the GWR code
+and the quartic scaling algorithm (Adler-Wiser exact expression in frequency domain)
+using the same minimax mesh on the imaginary axis so that one can then compare the results
 """
 
 import os
@@ -23,6 +23,11 @@ def build_flow(options):
 
     from abipy.data.gwr_structures import get_gwr_structure
     symbol = "Si"
+    #symbol = "LiF"
+    #symbol = "Si"
+    #symbol = "C"
+    #symbol = "BN"
+    #symbol = "MgO"
     structure = get_gwr_structure(symbol)
 
     from abipy.flowtk.psrepos import get_repo_from_name
@@ -37,6 +42,7 @@ def build_flow(options):
     scf_input.set_vars(
         tolvrs=1e-8,
         paral_kgb=0,
+        npfft=1,
     )
     scf_input.set_kmesh(
         ngkpt=[2, 2, 2],
@@ -55,11 +61,16 @@ def build_flow(options):
     from abipy.flowtk.gwr_works import DirectDiagoWork, GWRChiCompareWork
     green_nband = -1  # -1 this means full diago
     diago_work = DirectDiagoWork.from_scf_input(scf_input, green_nband)
+    #diago_work[0].with_fixed_mpi_omp(1, 1)
     flow.register_work(diago_work)
 
-    work = GWRChiCompareWork.from_scf_input(scf_input, gwr_ntau=6, nband=int(mpw*0.2), ecuteps=4,
-                                            den_node=diago_work[0], wfk_node=diago_work[1])
-    flow.register_work(work)
+    gwr_ntau_list = list(range(6, 34, 2))
+    gwr_ntau_list = [6, 8]
+
+    for gwr_ntau in gwr_ntau_list:
+        work = GWRChiCompareWork.from_scf_input(scf_input, gwr_ntau=gwr_ntau, nband=int(mpw*0.9), ecuteps=6,
+                                                den_node=diago_work[0], wfk_node=diago_work[1])
+        flow.register_work(work)
 
     return flow
 

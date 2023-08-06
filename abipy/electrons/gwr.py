@@ -4,6 +4,7 @@ Objects to analyze and visualize the results of GWR calculations.
 """
 from __future__ import annotations
 
+import dataclasses
 import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
@@ -35,10 +36,92 @@ __all__ = [
 class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
 
+@dataclasses.dataclass
+class MinimaxMesh:
+    """
+    The minimax mesh reported in the GWR file.
+    """
+    ntau: int              # Number of points.
+    tau_mesh: np.ndarray   # tau points.
+    tau_wgs: np.ndarray    # tau weights for integration.
+    iw_mesh: np.ndarray    # omega points along the imag. axis.
+    iw_wgs: np.ndarray     # omega weights for integration.
+    cosft_wt: np.ndarray   # weights for cosine transform (tau --> omega).
+    cosft_tw: np.ndarray   # weights for cosine transform (omega --> tau).
+    sinft_wt: np.ndarray   # weights for sine transform (tau --> omega).
+
+    min_transition_energy_eV: float   # Minimum transition energy.
+    max_transition_energy_eV: float   # Maximum transition energy.
+    eratio: float
+    ft_max_err_t2w_cos: float
+    ft_max_err_w2t_cos: float
+    ft_max_err_t2w_sin: float
+    cosft_duality_error: float
+    regterm: float                    # Regularization term.
+
+    @classmethod
+    def from_ncreader(cls, reader: ETSF_Reader) -> MinimaxMesh:
+        """
+        Build minimax mesh from a netcdf reader.
+        """
+        d = {}
+        for field in dataclasses.fields(cls):
+            name = field.name
+            if name == "ntau":
+                value = reader.read_dimvalue(name)
+            else:
+                value = reader.read_value(name)
+                if field.type == "float":
+                    value = float(value)
+            d[name] = value
+
+        return cls(**d)
+
+    @add_fig_kwargs
+    def plot_ft_weights(self, other: MinimaxMesh, self_name="self", other_name="other",
+                        with_sinft=False, fontsize=6, **kwargs):
+        """
+        Plot the Fourier transformt weights of two minimax meshes (self and other)
+        """
+        if self.ntau != other.ntau:
+            raise ValueError("Cannot compare minimax meshes with different ntau")
+
+        import matplotlib.pyplot as plt
+        nrows, ncols = (4, 2) if with_sinft else (3, 2)
+        fig, ax_mat = plt.subplots(nrows=nrows, ncols=ncols,
+                                   sharex=False, sharey=False, squeeze=False,
+                                   figsize=(12, 8),
+                                   #subplot_kw={'xticks': [], 'yticks': []},
+        )
+
+        I_mat = np.eye(self.ntau)
+        select_irow = {
+            0: [(self.cosft_wt @ self.cosft_tw) - I_mat,
+                (other.cosft_wt @ other.cosft_tw) - I_mat], # , other.cosft_wt @ other.cosft_tw],
+            1: [self.cosft_wt, other.cosft_wt], # self.cosft_wt - other.cosft_wt],
+            2: [self.cosft_tw, other.cosft_tw], # self.cosft_tw - other.cosft_tw],
+            3: [self.sinft_tw, other.sinft_tw], # self.sinft_tw - other.sinft_tw],
+        }
+
+        label_irow = {
+            0: [f"(cosft_wt @ cosft_tw) - I ({self_name})", f"(cosft_wt @ cosft_tw) - I ({other_name})"],
+            1: [f"cosft_wt ({self_name})", f"cosft_wt ({other_name})"],
+            2: [f"cosft_tw ({self_name})", f"cosft_tw ({other_name})"],
+            3: [f"sinft_tw ({self_name})", f"sinft_tw ({other_name})"],
+        }
+
+        for irow in range(nrows):
+            for iax, (ax, data, label) in enumerate(zip(ax_mat[irow], select_irow[irow], label_irow[irow])):
+                im = ax.matshow(data, cmap='seismic')
+                fig.colorbar(im, ax=ax)
+                ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
 
 class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    This object provides an interface to the GWR.nc file produced by the GWR code.
+    This object provides an high-level interface to the GWR.nc file produced by the GWR code.
     """
 
     # Markers used for up/down bands.
@@ -54,7 +137,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def __init__(self, filepath: str):
         """Read data from the netcdf filepath."""
         super().__init__(filepath)
-
         self.r = self.reader = GwrReader(self.filepath)
 
     @property
@@ -89,6 +171,11 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
        Shape: [nsppol, nkcalc]
        """
        return self.r.read_value("qpz_gaps") * abu.Ha_eV
+
+    @lazy_property
+    def minimax_mesh(self) -> MinimaxMesh:
+        """Object storing minimax mesh and weights."""
+        return MinimaxMesh.from_ncreader(self.r)
 
     @lazy_property
     def qplist_spin(self) -> tuple[QPList]:
@@ -202,6 +289,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app(marquee("QP direct gaps in eV", mark="="))
         app(str(self.get_dirgaps_dataframe(with_params=False)))
         app("")
+
+        #app(str(self.minimax_mesh))
 
         return "\n".join(lines)
 
@@ -527,7 +616,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
 class GwrReader(ETSF_Reader):
     r"""
-    This object provides methodd to read data from the GWR.nc file.
+    This object provides methods to read data from the GWR.nc file.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GwrReader
