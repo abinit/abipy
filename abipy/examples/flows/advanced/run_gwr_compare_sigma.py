@@ -59,21 +59,22 @@ def build_flow(options):
     #mpw = dims["mpw"]
 
     flow = flowtk.Flow(workdir=options.workdir)
+    small_manager = options.manager.new_with_fixed_mpi_omp(4, 1)
 
     # GS-SCF run to get the DEN, followed by direct diago to obtain green_nband bands.
     from abipy.flowtk.gwr_works import DirectDiagoWork, GWRSigmaConvWork
     green_nband = -1  # -1 this means full diago
     diago_work = DirectDiagoWork.from_scf_input(scf_input, green_nband)
-    #diago_work[0].with_fixed_mpi_omp(1, 1)
+    diago_work[0].set_manager(small_manager)
     flow.register_work(diago_work)
 
     # Build template for GWR.
     ecuteps = 12
+    nval = scf_input.num_valence_electrons // 2
     nband = nval * 100
     gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=nband, ecuteps=ecuteps)
 
     # Define kptgw and bdgw
-    nval = scf_input.num_valence_electrons // 2
     kptgw = [ # k-points in reduced coordinates
         (0.0, 0.0, 0.0),
         (0.5, 0.5, 0.0), # X
@@ -122,29 +123,51 @@ def build_flow(options):
     scr_ppm_task = work.register_scr_task(chi_ppm_input, deps={wfk_node: "WFK"})
     work.register_sigma_task(sigma_ppm_input, deps={wfk_node: "WFK", scr_ppm_task: "SCR"})
 
-    """
-    # Create work for AC calculation
-    #nfreqim  25
-    #nomegasi  10
-    #omegasimax 10 eV
-    work = flow.new_work()
-    for gwr_ntau in gwr_ntau_list:
-        chi_ac_input = scf_input.new_with_vars(optdriver=3,
-                                               gwcalctyp=1,       # Analytic continuation.
-                                               nfreqim=gwr_ntau,  # This is equal to gwr_ntau
+    use_ac = False
+    if use_ac:
+        # Create work for G0W0 AC calculation
+        #nfreqim  25
+        #nomegasi  10
+        #omegasimax 10 eV
+        ac_work = flow.new_work()
+        for gwr_ntau in gwr_ntau_list:
+            chi_ac_input = scf_input.new_with_vars(optdriver=3,
+                                                   gwcalctyp=1,       # Analytic continuation.
+                                                   nfreqim=gwr_ntau,  # This is equal to gwr_ntau
+                                                   ecuteps=ecuteps,
+                                                   nband=nband,
+                                                   )
+
+            sigma_ac_input = chi_ac_input.new_with_vars(optdriver=4,
+                                                        nomegasi=gwr_ntau,
+                                                        omegasimax=0.2 * abu.eV_Ha * gwr_ntau,
+                                                        ecutsigx=gwr_template["ecutsigx"],
+                                                       )
+            sigma_ac_input.set_vars(**sigma_kcalc_dict)
+            scr_ac_task = ac_work.register_scr_task(chi_ac_input, deps={wfk_node: "WFK"})
+            ac_work.register_sigma_task(sigma_ac_input, deps={wfk_node: "WFK", scr_ac_task: "SCR"})
+
+    use_cd = True
+    if use_cd:
+        # Create work for G0W0 with contour deformation.
+        cd_work = flow.new_work()
+        chi_cd_input = scf_input.new_with_vars(optdriver=3,
+                                               gwcalctyp=2,       # Contour deformation
+                                               nfreqre=50,
+                                               freqremax=1.5,
+                                               nfreqim=10,
                                                ecuteps=ecuteps,
                                                nband=nband,
                                                )
 
-        sigma_ac_input = chi_ac_input.new_with_vars(optdriver=4,
-                                                    nomegasi=gwr_ntau,
-                                                    omegasimax=0.2 * abu.eV_Ha * gwr_ntau,
+        sigma_cd_input = chi_cd_input.new_with_vars(optdriver=4,
                                                     ecutsigx=gwr_template["ecutsigx"],
-                                                   )
-        sigma_ac_input.set_vars(**sigma_kcalc_dict)
-        scr_ac_task = work.register_scr_task(chi_ac_input, deps={wfk_node: "WFK"})
-        work.register_sigma_task(sigma_ac_input, deps={wfk_node: "WFK", scr_ac_task: "SCR"})
-    """
+                                                    #nfreqsp=200,
+                                                    #freqspmax=2.,
+                                                    )
+        sigma_cd_input.set_vars(**sigma_kcalc_dict)
+        scr_cd_task = cd_work.register_scr_task(chi_cd_input, deps={wfk_node: "WFK"})
+        cd_work.register_sigma_task(sigma_cd_input, deps={wfk_node: "WFK", scr_cd_task: "SCR"})
 
     return flow
 
