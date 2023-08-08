@@ -12,7 +12,6 @@ from tabulate import tabulate
 ####################
 ### Monty import ###
 ####################
-from monty.os.path import which
 from monty.termcolor import cprint
 
 #######################
@@ -398,7 +397,18 @@ def abicheck(verbose: int = 0) -> str:
         app(_straceback())
 
     # Get info on the Abinit build.
-    from abipy.core.testing import cmp_version
+    # This to avoid having to depend on pytest.
+    #from abipy.core.testing import cmp_version
+    def cmp_version(this: str, other: str, op: str = ">=") -> bool:
+        """
+        Compare two version strings with the given operator ``op``
+        >>> assert cmp_version("1.1.1", "1.1.0") and not cmp_version("1.1.1", "1.1.0", op="==")
+        """
+        from pkg_resources import parse_version
+        from monty.operator import operator_from_str
+        op = operator_from_str(op)
+        return op(parse_version(this), parse_version(other))
+
     from abipy.flowtk import PyFlowScheduler
 
     if manager is not None:

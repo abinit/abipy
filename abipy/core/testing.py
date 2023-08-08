@@ -13,10 +13,6 @@ import numpy
 import json
 import tempfile
 import unittest
-#import subprocess
-#import time
-#import atexit
-#import shutil
 try:
     import numpy.testing as nptu
 except ImportError:

@@ -28,10 +28,13 @@ def build_flow(options):
     #symbol = "C"
     #symbol = "BN"
     #symbol = "MgO"
+    #symbol = "GaAs"
+    #symbol = "ZnO"
     structure = get_gwr_structure(symbol)
 
     from abipy.flowtk.psrepos import get_repo_from_name
-    pseudos = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4").get_pseudos("stringent")
+    #pseudos = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4").get_pseudos("stringent")
+    pseudos = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4").get_pseudos("standard")
 
     scf_input = abilab.AbinitInput(structure=structure, pseudos=pseudos)
     scf_input.set_cutoffs_for_accuracy("normal")

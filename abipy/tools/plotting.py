@@ -220,7 +220,7 @@ def rotate_ticklabels(ax, rotation: float, axname: str ="x") -> None:
 def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None:
     """
     Add hspan to ax showing the convergence region of width `abs_conv`.
-    Use same color as line. Return immediately if abs_conv is None of x-values are strings.
+    Use same color as line. Return immediately if abs_conv is None or x-values are strings.
     """
     if abs_conv is None: return
     xs = line.get_xdata()

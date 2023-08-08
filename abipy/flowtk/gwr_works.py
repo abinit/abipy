@@ -157,6 +157,7 @@ class GWRChiCompareWork(_BaseGWRWork):
                                             ecuteps=ecuteps,
                                             nband=nband,
                                             prtsuscep=1,
+                                            iomode=3,
                                             userie=4242, # Magic number to use minimax mesh in the SCR driver.
                                             )
         if scr_kwargs is not None: chi_input.set_vars(**scr_kwargs)
@@ -173,7 +174,7 @@ class GWRChiCompareWork(_BaseGWRWork):
         sus_path = self[0].outdir.path_in("out_SUS.nc")
         tchi_path = self[1].outdir.path_in("out_TCHI.nc")
 
-        py_text = f"""
+        py_text = f"""\
 #!/usr/bin/env python
 
 import seaborn as sns
@@ -202,9 +203,9 @@ qpoint_list = [
     [0.5, 0, 0],
 ]
 
-o.expose_qpoints_gpairs(self, qpoint_list, gpairs, exposer="panel")
+o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
 """
-        py_path = os.path.join(self.workdir, "plot.py")
+        py_path = os.path.join(self.workdir, "plot_tchi_sus.py")
         with open(py_path, "wt") as fh:
             fh.write(py_text)
         make_executable(py_path)
