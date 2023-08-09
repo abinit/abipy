@@ -97,10 +97,9 @@ class GWRSigmaConvWork(_BaseGWRWork):
 
     def on_all_ok(self):
         """
-        Generate `qp_dirgaps.xlsx` file in the `outdata` directory.
+        Generate `qp_dirgaps.csv` file in the `outdata` directory.
         """
-        gwr_files = self.get_all_outdata_files_with_ext("_GWR.nc")
-        with GwrRobot.from_files(gwr_files) as gwr_robot:
+        with GwrRobot.from_files(self.get_all_outdata_files_with_ext("_GWR.nc")) as gwr_robot:
             dirgaps_df = gwr_robot.get_dirgaps_dataframe()
             dirgaps_df.to_csv(self.outdir.path_in("dirgaps.csv"))
             qpdata_df = gwr_robot.get_dataframe()
@@ -108,7 +107,6 @@ class GWRSigmaConvWork(_BaseGWRWork):
 
             with gwr_robot.get_pyscript(self.outdir.path_in("gwr_robot.py")) as script:
                 script.add_text("""
-
 #robot.plot_selfenergy_conv(spin=0, kpoint=?, band=?, axis="wreal", sortby=None, hue=None)
 #robot.plot_qpgaps_convergence(qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None)
 """)
@@ -219,7 +217,7 @@ class GWRRPAConvWork(_BaseGWRWork):
     @classmethod
     def from_scf_input_ntaus(cls, scf_input: AbinitInput, gwr_ntau_list, nband, ecuteps,
                              den_node: Node, wfk_node: Node,
-                             gwr_kwargs=None, manager: TaskManager = None):
+                             gwr_kwargs=None, manager: TaskManager=None):
         """
         Build Work from an input for GS-SCF calculation
 
@@ -234,7 +232,7 @@ class GWRRPAConvWork(_BaseGWRWork):
             manager: Abipy Task Manager.
         """
         work = cls(manager=manager)
-        for gwr_ntau in gwr_ntau_list
+        for gwr_ntau in gwr_ntau_list:
             gwr_input = scf_input.make_gwr_qprange_input(gwr_ntau=gwr_ntau, nband=nband,
                                                          ecuteps=ecuteps, gwr_task=GWR_TASK.RPA_ENERGY)
             if gwr_kwargs is not None: gwr_input.set_vars(**gwr_kwargs)
@@ -242,12 +240,15 @@ class GWRRPAConvWork(_BaseGWRWork):
 
         return work
 
-    #def on_all_ok(self):
-    #    """
-    #    """
-    #    gwr_files = self.get_all_outdata_files_with_ext("_GWR.nc")
-    #    with GwrRobot.from_files(gwr_files) as robot:
-    #        df = robot.get_rpa_ene_dataframe(with_params=True)
-    #        df.to_csv(self.outdir.path_in("rpaene.csv"))
+    def on_all_ok(self):
+        """
+        Generate `gwr_robot.py` script in the `outdata` directory.
+        """
+        with GwrRobot.from_files(self.get_all_outdata_files_with_ext("_GWR.nc")) as gwr_robot:
+            with gwr_robot.get_pyscript(self.outdir.path_in("gwr_robot.py")) as script:
+                script.add_text("""
+df = robot.get_rpa_ene_dataframe()
+print(df)
+""")
 
-    #    return super().on_all_ok()
+        return super().on_all_ok()

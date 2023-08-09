@@ -92,13 +92,13 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
     @classmethod
     def from_dir(cls, top: str, walk: bool = True, abspath: bool = False) -> Robot:
         """
-        This class method builds a robot by scanning all files located within directory `top`.
+        Build a robot by scanning all files located within directory `top`.
         This method should be invoked with a concrete robot class, for example:
 
             robot = GsrRobot.from_dir(".")
 
         Args:
-            top (str): Root directory
+            top: Root directory
             walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
@@ -169,7 +169,9 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
 
     @classmethod
     def class_handles_filename(cls, filename: str) -> bool:
-        """True if robot class handles filename."""
+        """
+        True if robot class handles filename.
+        """
         # Special treatment of AnaddbNcRobot
         if cls.EXT == "anaddb" and os.path.basename(filename).lower() == "anaddb.nc":
             return True
@@ -208,10 +210,62 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
 
     @classmethod
     def from_json_file(cls, filepath: str):
-        """Build Robot from a file in json format."""
+        """
+        Build Robot from a file in json format.
+        """
         from abipy.tools.serialization import mjson_load
         new = mjson_load(filepath)
         return new
+
+    @classmethod
+    def from_top_and_json_basename(cls, top: str, json_basename: str) -> Robot:
+        """
+        Build a robot by scanning all json files located within directory `top`.
+        and matching json_basename.
+
+        Example:
+
+            gwr_robot = Robot.from_top_and_json_basename(".", "gwr_robot.json")
+        """
+        json_paths = []
+        for root, dirs, files in os.walk(top):
+            for name in files:
+                if name == json_basename:
+                    json_paths.append(os.path.join(root, name))
+
+        return cls.from_json_files(json_paths)
+
+    @classmethod
+    def from_json_files(cls, json_paths: list[str]):
+        """
+        Build Robot from a list of json files.
+        Each json file should have a list of filepaths and @module and @class as required by msonable.
+        """
+        # Merge filepaths and chech that module and class are equal across files.
+        robot_filepaths = []
+        _module, _class = None, None
+        for path in json_paths:
+            with open(path, "rt") as fh:
+                d = json.load(fh)
+
+            if "filepaths" not in d:
+                raise ValueError(f"{path=} does not provide `filepaths` entry")
+
+            # Merge filepaths
+            robot_filepaths.extend(d["filepaths"])
+
+            if _module is None:
+                _module, _class = d["@module"], d["@class"]
+            else:
+                if _module != d["@module"]:
+                    raise ValueError(f'{_module=} != {d["@module"]=}')
+                if _class != d["@class"]:
+                    raise ValueError(f'{_class=} != {d["@class"]=}')
+
+        # Build Robot instance from string in json format.
+        from abipy.tools.serialization import mjson_loads
+        data = {"filepaths": robot_filepaths, "@class": _class, "@module": _module}
+        return mjson_loads(json.dumps(data))
 
     @classmethod
     def from_work(cls, work, outdirs="all", nids=None, ext=None, task_class=None) -> Robot:

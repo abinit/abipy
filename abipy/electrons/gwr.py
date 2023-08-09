@@ -26,6 +26,7 @@ from abipy.tools.numtools import data_from_cplx_mode
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.electrons.gw import SelfEnergy, QPState, QPList #, SigresFile, SigresRobot
 from abipy.abio.robots import Robot
+from abipy.abio.enums import GWR_TASK
 
 __all__ = [
     "GwrFile",
@@ -233,7 +234,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         dict with parameters that might be subject to convergence studies e.g ecuteps.
         """
-        #minimax_mesh = self.minimax_mesh
+        minimax_mesh = self.minimax_mesh
         r = self.r
         return dict(
             gwr_ntau=r.read_dimvalue("ntau"),
@@ -245,7 +246,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             nkpt=self.ebands.nkpt,
             symchi=r.read_value("symchi"),
             symsigma=r.read_value("symsigma"),
-            #regterm=minimax_mesh.regterm,
+            regterm=minimax_mesh.regterm,
         )
 
     def close(self) -> None:
@@ -268,30 +269,28 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app("")
 
         # GWR section.
+
         app(marquee("GWR parameters", mark="="))
         app("gwr_task: %s" % self.r.gwr_task)
-        app("Number of k-points in Sigma_{nk}: %d" % (len(self.r.sigma_kpoints)))
-        app("Number of bands included in e-e self-energy sum: %d" % (self.nband))
-        keys = self.params.keys() if verbose else ["ecuteps", "ecutsigx", "ecut", "gwr_boxcutmin"]
-        for k in keys:
-            app("%s: %s" % (k, self.params[k]))
-        if verbose:
-            app(marquee("k-points in Sigma_nk", mark="="))
-            app(self.r.sigma_kpoints.to_string(title=None, pre_string="\t"))
-        app("")
 
-        # These variables have added recently
-        #sigma_ngkpt = self.reader.read_value("sigma_ngkpt", default=None)
-        #app("sigma_ngkpt: %s, sigma_erange: %s" % (sigma_ngkpt, sigma_erange))
-        #app("Max bstart: %d, min bstop: %d" % (self.reader.max_bstart, self.reader.min_bstop))
-        #eph_ngqpt_fine = self.reader.read_value("eph_ngqpt_fine")
-        #app("q-mesh for self-energy integration (eph_ngqpt_fine): %s" % (str(eph_ngqpt_fine)))
-        #app("k-mesh for electrons:")
-        #app("\t" + self.ebands.kpoints.ksampling.to_string(verbose=verbose))
+        if self.r.gwr_task == GWR_TASK.RPA_ENERGY:
+            pass
+            #d = self.get_rpa_ene_dict()
 
-        app(marquee("QP direct gaps in eV", mark="="))
-        app(str(self.get_dirgaps_dataframe(with_params=False)))
-        app("")
+        else:
+            app("Number of k-points in Sigma_{nk}: %d" % (len(self.r.sigma_kpoints)))
+            app("Number of bands included in e-e self-energy sum: %d" % (self.nband))
+            keys = self.params.keys() if verbose else ["ecuteps", "ecutsigx", "ecut", "gwr_boxcutmin"]
+            for k in keys:
+                app("%s: %s" % (k, self.params[k]))
+            if verbose:
+                app(marquee("k-points in Sigma_nk", mark="="))
+                app(self.r.sigma_kpoints.to_string(title=None, pre_string="\t"))
+            app("")
+
+            app(marquee("QP direct gaps in eV", mark="="))
+            app(str(self.get_dirgaps_dataframe(with_params=False)))
+            app("")
 
         #app(str(self.minimax_mesh))
 
@@ -387,7 +386,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         raise ValueError(f"Invalid value for include_bands: {include_bands}")
 
-    def get_rpa_ene(self) -> dict:
+    def get_rpa_ene_dict(self) -> dict:
         """
         Read RPA energies computed for different ecut_chi (all in Ha)
         """
@@ -408,7 +407,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             #print(f"{extrap_value=}")
             d[key + "_inf"] = extrap_value
 
-        print(d)
+        #print(d)
         return d
 
     @add_fig_kwargs
@@ -971,13 +970,16 @@ class GwrRobot(Robot, RobotWithEbands):
         Args:
             with_params: True to add parameters.
         """
-        df_list = []; app = df_list.append
+        keys = ["ec_rpa_ecut_inf", "ec_mp2_ecut_inf"]
+        dict_list = []
         for _, ncfile in self.items():
-            d = ncfile.get_rpa_ene()
+            d = ncfile.get_rpa_ene_dict()
+            d = {k: d[k] for k in keys}
             if with_params:
                 d.update(ncfile.params)
-            app(d)
+            dict_list.append(d)
 
+        df = pd.DataFrame(dict_list)
         #if sortby and sortby in df: df = df.sort_values(sortby)
         return df
 
