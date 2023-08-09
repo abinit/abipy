@@ -1259,10 +1259,10 @@ class HueGroup:
 class RobotPythonScript:
     """
     Small object used to generate a python script that reconstructs the
-    robot from a json file wih the list of files.
+    robot from a json file containing the list of files.
     Client code can then add additional logic to the script and write it to disk.
 
-    This is tipycally done in the `on_all_ok` method of Works
+    This object is typically used in the `on_all_ok` method of Works
     to generate ready-to-use python scripts to post-process/visualize the results.
 
     Example:

@@ -158,7 +158,8 @@ class GWRChiCompareWork(_BaseGWRWork):
                                             nband=nband,
                                             prtsuscep=1,
                                             iomode=3,
-                                            userie=4242, # Magic number to use minimax mesh in the SCR driver.
+                                            userie=4242, # Magic number to use the minimax mesh in the SCR driver.
+                                                         # with nfreqim points.
                                             )
         if scr_kwargs is not None: chi_input.set_vars(**scr_kwargs)
 
@@ -172,7 +173,7 @@ class GWRChiCompareWork(_BaseGWRWork):
         Write python script to compare chi0 matrix elements.
         """
         sus_path = self[0].outdir.path_in("out_SUS.nc")
-        tchi_path = self[1].outdir.path_in("out_TCHI.nc")
+        tchi_path = self[1].outdir.path_in("out_TCHIM.nc")
 
         py_text = f"""\
 #!/usr/bin/env python
@@ -187,15 +188,9 @@ o = TchimVsSus("{tchi_path}", "{sus_path}")
 gpairs = [
     ((0, 0, 0), (0, 0, 0)),
     ((0, 0, 0), (1, 0, 0)),
-    ((0, 0, 0), (2, 0, 0)),
     ((1, 0, 0), (1, 0, 0)),
     ((1, 0, 0), (0, 1, 0)),
-    #((0, 1, 0), (1, 0, 0)),  # transpose of previous entry
-    #((2, 0, 0), (2, 0, 0)),
-    #((2, 0, 0), (-1, -1, 0)),
-    #((1, 0, 0), (-1, -1, 0)),
-    #((2, 1, 0), (-1, -1, 1)),
-    #((2, 1, -2), (-1, -1, 2)),
+    ((0, 0, 0), (2, 0, 0)),
 ]
 
 qpoint_list = [
@@ -204,6 +199,8 @@ qpoint_list = [
 ]
 
 o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
+
+#o.plot_matdiff(qpoint=0, iw_index=0)
 """
         py_path = os.path.join(self.workdir, "plot_tchi_sus.py")
         with open(py_path, "wt") as fh:
@@ -213,17 +210,44 @@ o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
         return super().on_all_ok()
 
 
-#class GwrRpaEneConvWork(_BaseGWRWork):
-#    """
-#    This work computes the RPA energy for different number of points in the minimax mesh.
-#    """
-#
-#    def on_all_ok(self):
-#        """
-#        """
-#        gwr_files = self.get_all_outdata_files_with_ext("_GWR.nc")
-#        with GwrRobot.from_files(gwr_files) as robot:
-#            df = robot.get_rpaene_dataframe(with_params=True)
-#            df.to_csv(self.outdir.path_in("rpaene.csv"))
-#
-#        return super().on_all_ok()
+class GWRRPAConvWork(_BaseGWRWork):
+    """
+    This work computes the RPA correlated energy for different number
+    of points in the minimax mesh.
+    """
+
+    @classmethod
+    def from_scf_input_ntaus(cls, scf_input: AbinitInput, gwr_ntau_list, nband, ecuteps,
+                             den_node: Node, wfk_node: Node,
+                             gwr_kwargs=None, manager: TaskManager = None):
+        """
+        Build Work from an input for GS-SCF calculation
+
+        Args:
+            scf_input: input for GS run.
+            gwr_ntau_list: List with number of points in minimax mesh.
+            nband: Number of bands to build G and chi.
+            ecuteps: Cutoff energy for chi.
+            den_node: The Node who produced the DEN file.
+            wfk_node: The Node who produced the WFK file.
+            gwr_kwargs: Extra kwargs used to build the GWR input.
+            manager: Abipy Task Manager.
+        """
+        work = cls(manager=manager)
+        for gwr_ntau in gwr_ntau_list
+            gwr_input = scf_input.make_gwr_qprange_input(gwr_ntau=gwr_ntau, nband=nband,
+                                                         ecuteps=ecuteps, gwr_task=GWR_TASK.RPA_ENERGY)
+            if gwr_kwargs is not None: gwr_input.set_vars(**gwr_kwargs)
+            work.register_gwr_task(gwr_input, deps={den_node: "DEN", wfk_node: "WFK"})
+
+        return work
+
+    #def on_all_ok(self):
+    #    """
+    #    """
+    #    gwr_files = self.get_all_outdata_files_with_ext("_GWR.nc")
+    #    with GwrRobot.from_files(gwr_files) as robot:
+    #        df = robot.get_rpa_ene_dataframe(with_params=True)
+    #        df.to_csv(self.outdir.path_in("rpaene.csv"))
+
+    #    return super().on_all_ok()

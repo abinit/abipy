@@ -20,7 +20,7 @@ from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
-from .numtools import data_from_cplx_mode
+from abipy.tools.numtools import data_from_cplx_mode
 
 
 __all__ = [
