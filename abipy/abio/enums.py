@@ -44,6 +44,9 @@ class RUNL(enum.IntEnum):
     BSE        = 99
     LONGWAVE   = 10
 
+    def __str__(self):
+        return str(self.value)
+
 
 class WFK_TASK(enum.IntEnum):
     """
@@ -59,6 +62,9 @@ class WFK_TASK(enum.IntEnum):
     OPTICS_FULLBZ = 7
     KPTS_ERANGE= 8
     CHECK_SYMTAB = 9
+
+    def __str__(self):
+        return str(self.value)
 
 
 class GWR_TASK(_StrEnum):  # StrEnum added in 3.11
