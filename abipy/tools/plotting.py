@@ -20,7 +20,7 @@ from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
-from .numtools import data_from_cplx_mode
+from abipy.tools.numtools import data_from_cplx_mode
 
 
 __all__ = [
@@ -220,7 +220,7 @@ def rotate_ticklabels(ax, rotation: float, axname: str ="x") -> None:
 def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None:
     """
     Add hspan to ax showing the convergence region of width `abs_conv`.
-    Use same color as line. Return immediately if abs_conv is None of x-values are strings.
+    Use same color as line. Return immediately if abs_conv is None or x-values are strings.
     """
     if abs_conv is None: return
     xs = line.get_xdata()

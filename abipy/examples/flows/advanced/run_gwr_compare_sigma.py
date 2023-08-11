@@ -25,6 +25,8 @@ def build_flow(options):
     #symbol = "C"
     #symbol = "BN"
     #symbol = "MgO"
+    #symbol = "GaAs"
+    #symbol = "ZnO"
     structure = get_gwr_structure(symbol)
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
@@ -32,7 +34,8 @@ def build_flow(options):
         options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_","flow_")
 
     from abipy.flowtk.psrepos import get_repo_from_name
-    pseudos = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4").get_pseudos("stringent")
+    pseudos = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4").get_pseudos("standard")
+    #pseudos = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4").get_pseudos("stringent")
 
     scf_input = abilab.AbinitInput(structure=structure, pseudos=pseudos)
     scf_input.set_cutoffs_for_accuracy("normal")

@@ -155,7 +155,7 @@ def get_parser(with_epilog=False):
     parser.add_argument("-t", "--slide-timeout", type=int, default=None,
         help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
     parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
-        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster").')
+            help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
     parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
