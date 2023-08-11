@@ -236,7 +236,7 @@ def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None
     for i, ix in enumerate(x_inds):
         y_xmax = ys[ix]
         ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
-                   label=r"$|y-y(Max)| \leq %s$" % abs_conv if (with_label and i == 0) else None,
+                   label=r"$|y-y(x_{Max})| \leq %s$" % abs_conv if (with_label and i == 0) else None,
                    **span_style)
 
 
@@ -638,7 +638,7 @@ class ConvergenceAnalyzer:
                 title += pre_str + s
 
             ax2.set_title(title, fontsize=fontsize)
-            ax2.set_ylabel(r"$|y-y(Max)|$", fontsize=fontsize)
+            ax2.set_ylabel(r"$|y-y(x_{Max})|$", fontsize=fontsize)
 
             set_grid_legend(ax_row, fontsize,
                             xlabel=self.xlabel if irow == (nrows - 1) else None,
