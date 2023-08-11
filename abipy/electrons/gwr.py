@@ -232,6 +232,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         dict with parameters that might be subject to convergence studies e.g ecuteps.
         """
+        #minimax_mesh = self.minimax_mesh
         r = self.r
         return dict(
             gwr_ntau=r.read_dimvalue("ntau"),
@@ -243,6 +244,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             nkpt=self.ebands.nkpt,
             symchi=r.read_value("symchi"),
             symsigma=r.read_value("symsigma"),
+            #regterm=minimax_mesh.regterm,
         )
 
     def close(self) -> None:

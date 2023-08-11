@@ -57,12 +57,13 @@ def build_flow(options):
     mpw = dims["mpw"]
 
     flow = flowtk.Flow(workdir=options.workdir)
+    small_manager = options.manager.new_with_fixed_mpi_omp(4, 1)
 
     # GS-SCF run to get the DEN, followed by direct diago to obtain green_nband bands.
     from abipy.flowtk.gwr_works import DirectDiagoWork, GWRSigmaConvWork
     green_nband = -1  # -1 this means full diago
     diago_work = DirectDiagoWork.from_scf_input(scf_input, green_nband)
-    #diago_work[0].with_fixed_mpi_omp(1, 1)
+    diago_work[0].set_manager(small_manager)
     flow.register_work(diago_work)
 
     # Build template for GWR.
