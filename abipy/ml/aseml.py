@@ -9,9 +9,9 @@ import io
 import time
 import contextlib
 import json
-import tempfile
+#import tempfile
 import stat
-import datetime
+#import datetime
 import numpy as np
 import pandas as pd
 try:
@@ -40,12 +40,19 @@ from abipy.core import Structure
 from abipy.tools.plotting import get_ax_fig_plt #, get_axarray_fig_plt,
 from abipy.tools.iotools import workdir_with_prefix
 from abipy.tools.printing import print_dataframe
+from abipy.abio.enums import StrEnum, EnumMixin
 
 ###################
 # Helper functions
 ###################
 
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
+
+
+class RX_MODE(EnumMixin, StrEnum):  # StrEnum added in 3.11
+    no   = "no"
+    ions = "ions"
+    cell = "cell"
 
 
 def to_ase_atoms(structure: PmgStructure, calc=None) -> Atoms:
@@ -70,18 +77,24 @@ def get_atoms(obj: Any) -> Atoms:
 
 def abisanitize_atoms(atoms: Atoms, **kwargs) -> Atoms:
     """
-    Call abisanitize, return new Atoms
+    Call abisanitize, return new Atoms instance.
     """
     structure = Structure.as_structure(atoms)
     new_structure = structure.abisanitize(**kwargs)
     return to_ase_atoms(get_atoms(new_structure), calc=atoms.calc)
 
 
-def fix_atoms(atoms: Atoms, fix_inds: list[int], fix_symbols: list[str], verbose: int) -> None:
+def fix_atoms(atoms: Atoms,
+              fix_inds: list[int] | None = None,
+              fix_symbols: list[str] | None = None) -> None:
     """
     Fix atoms by indices and by symbols.
+
+    Args:
+        atoms: ASE atoms
+        fix_inds: List of site indices to fix. None to ignore constraint.
+        fix_symbols: List of chemical elements to fix. None to ignore the constraint.
     """
-    #if verbose > 1: print(f"in fix_atoms: {fix_inds=}, {fix_symbols=}")
     from ase.constraints import FixAtoms
     cs = []; app = cs.append
     if fix_inds is not None:
@@ -131,6 +144,15 @@ def write_atoms(atoms: Atoms, workdir, verbose: int,
 
 
 def print_atoms(atoms: Atoms, title=None, cart_forces=None, stream=sys.stdout) -> None:
+    """
+    Print atoms object to stream.
+
+    Args:
+        atoms: ASE atoms.
+        title: Optional string with the title.
+        cart_forces: np.array with cart_forces to print.
+        stream: Output stream
+    """
     def pf(*args):
         print(*args, file=stream)
 
@@ -159,34 +181,6 @@ def diff_two_structures(label1, structure1, label2, structure2, fmt, file=sys.st
     print(label1.ljust(pad), " | ", label2, file=file)
     for l1, l2 in zip(lines1, lines2):
         print(l1.ljust(pad), " | ", l2, file=file)
-
-        
-import enum
-
-class _StrEnum(str, enum.Enum):
-    def __new__(cls, *args):
-        for arg in args:
-            if not isinstance(arg, (str, enum.auto)):
-                raise TypeError(
-                    "Values of StrEnums must be strings: {} is a {}".format(
-                        repr(arg), type(arg)
-                    )
-                )
-        return super().__new__(cls, *args)
-
-    def __str__(self):
-        return self.value
-
-    # The first argument to this function is documented to be the name of the
-    # enum member, not `self`:
-    # https://docs.python.org/3.6/library/enum.html#using-automatic-values
-    def _generate_next_value_(name, *_):
-        return name
-
-class RX_MODE(_StrEnum):  # StrEnum added in 3.11
-    no   = "no"
-    ions = "ions"
-    cell = "cell"
 
 
 @dataclass
@@ -344,17 +338,18 @@ def ase_optimizer_cls(s: str | Optimizer) -> Type | list[str]:
 
 
 def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pressure: float,
-                verbose: int, steps: int = 500, opt_kwargs=None, traj_path=None, calculator=None):
+                verbose: int, steps: int = 500,
+                opt_kwargs=None, traj_path=None, calculator=None) -> AseRelaxation:
     """
     Relax atoms using an ASE calculator and ASE algorithms.
 
     Args:
         atoms: ASE atoms.
-        relax_mode: 
+        relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
         optimizer: name of the ASE optimizer class to use
         fmax: total force tolerance for relaxation convergence.
             Here fmax is a sum of force and stress forces. Defaults to 0.1.
-        pressure:
+        pressure: Target pressure.
         verbose: whether to print stdout.
         steps: max number of steps for relaxation.
         opt_kwargs (dict): kwargs for the ASE optimizer class.
@@ -364,6 +359,7 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
     from ase.constraints import ExpCellFilter
     from ase.io import read
 
+    RX_MODE.validate(relax_mode)
     if relax_mode == RX_MODE.no:
         raise ValueError(f"Invalid {relax_mode:}")
 
@@ -473,6 +469,15 @@ class _MyCalculatorMixin:
             )
 
 
+def as_calculator(obj) -> Calculator:
+    """Build a calculator."""
+    if isinstance(obj, Calculator):
+        return obj
+
+    # Assume string
+    return CalcBuilder(obj).get_calculator()
+
+
 class CalcBuilder:
     """
     Factory class to build an ASE calculator with ML potential
@@ -555,7 +560,7 @@ class _MlBase:
 
     def set_delta_forces_stress_from_abiml_nc(self, filepath: str) -> None:
         """
-        Read ab-initio forces from a netcdf file produced by ABINIT and use 
+        Read ab-initio forces from a netcdf file produced by ABINIT and use
         these values to set the delta corrections in the calculator.
         """
         if os.path.basename(filepath) != "ABIML_RELAX_IN.nc": return
@@ -719,6 +724,7 @@ class MlRelaxer(_MlBase):
         super().__init__(workdir, prefix)
         self.atoms = atoms
         self.relax_mode = relax_mode
+        RX_MODE.validate(relax_mode)
         self.fmax = fmax
         self.steps = steps
         self.optimizer = optimizer
@@ -959,6 +965,7 @@ class MlNeb(_MlNebBase):
         self.climb = climb
         self.optimizer = optimizer
         self.relax_mode = relax_mode
+        RX_MODE.validate(self.relax_mode)
         self.fmax = fmax
         self.pressure = pressure
         self.calc_builder = calc_builder
@@ -1101,6 +1108,7 @@ class MultiMlNeb(_MlNebBase):
         self.climb = climb
         self.optimizer = optimizer
         self.relax_mode = relax_mode
+        RX_MODE.validate(self.relax_mode)
         self.fmax = fmax
         self.pressure = pressure
         self.calc_builder = calc_builder
@@ -1221,6 +1229,7 @@ class MlOrderer(_MlBase):
         self.max_ns = max_ns
         self.optimizer = optimizer
         self.relax_mode = relax_mode
+        RX_MODE.validate(self.relax_mode)
         self.fmax = fmax
         self.pressure = pressure
         self.steps = steps
@@ -1362,6 +1371,7 @@ class MlPhonons(_MlBase):
         self.asr = asr
         self.nqpath = nqpath
         self.relax_mode = relax_mode
+        RX_MODE.validate(self.relax_mode)
         self.fmax = fmax
         self.pressure = pressure
         self.steps = steps

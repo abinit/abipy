@@ -144,7 +144,7 @@ def relax(ctx, filepath,
         abiml.py.py -nn chgnet relax [...]
     """
     atoms = aseml.get_atoms(filepath)
-    aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_relaxer = aseml.MlRelaxer(atoms, relax_mode, fmax, pressure, steps, optimizer,
                                  CALC_BUILDER, verbose, workdir, prefix="_relax_")
@@ -190,7 +190,7 @@ def md(ctx, filepath,
     """
     # See https://github.com/materialsvirtuallab/m3gnet#molecular-dynamics
     atoms = aseml.get_atoms(filepath)
-    aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_md = aseml.MlMd(atoms, temperature, timestep, steps, loginterval, ensemble, CALC_BUILDER, verbose,
                        workdir, prefix="_md_")
@@ -230,9 +230,9 @@ def neb(ctx, filepaths,
         abiml.py.py -nn chgnet neb [...]
     """
     initial_atoms = aseml.get_atoms(filepaths[0])
-    aseml.fix_atoms(initial_atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(initial_atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
     final_atoms = aseml.get_atoms(filepaths[1])
-    aseml.fix_atoms(final_atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(final_atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_neb = aseml.MlNeb(initial_atoms, final_atoms,
                          nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
@@ -272,7 +272,7 @@ def mneb(ctx, filepaths,
     # Fix atoms
     atoms_list = [aseml.get_atoms(p) for p in filepaths]
     for atoms in atoms_list:
-        aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
+        aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     mneb = aseml.MultiMlNeb(atoms_list, nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
                             CALC_BUILDER, verbose, workdir, prefix="_mneb_")

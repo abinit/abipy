@@ -5,8 +5,18 @@ from __future__ import annotations
 
 import enum
 
+class EnumMixin:
+    """Mixin for enums provides extra capabilities."""
 
-class _StrEnum(str, enum.Enum):  # StrEnum added in 3.11
+    @classmethod
+    def validate(cls, value) -> None:
+        """Validate value"""
+        values = [member.value for member in cls]
+        if value not in values:
+            raise ValueError(f"{value=} is not valid. Must be among: {values=}")
+
+
+class StrEnum(str, enum.Enum):  # StrEnum added in 3.11
     def __new__(cls, *args):
         for arg in args:
             if not isinstance(arg, (str, enum.auto)):
@@ -27,7 +37,7 @@ class _StrEnum(str, enum.Enum):  # StrEnum added in 3.11
         return name
 
 
-class RUNL(enum.IntEnum):
+class RUNL(EnumMixin, enum.IntEnum):
     """
     Values of optdriver corresponding to the different run-levels. See defs_basis.F90
     """
@@ -48,7 +58,7 @@ class RUNL(enum.IntEnum):
         return str(self.value)
 
 
-class WFK_TASK(enum.IntEnum):
+class WFK_TASK(EnumMixin, enum.IntEnum):
     """
     Integer flags defining the task to be performed in wfk_analyze. See defs_basis.F90
     """
@@ -67,7 +77,7 @@ class WFK_TASK(enum.IntEnum):
         return str(self.value)
 
 
-class GWR_TASK(_StrEnum):  # StrEnum added in 3.11
+class GWR_TASK(EnumMixin, StrEnum):  # StrEnum added in 3.11
     """
     String flags defining the task to be performed in the GWR code.
     """
