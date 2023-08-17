@@ -290,6 +290,7 @@ class RelaxationProfiler:
             opt = self.ase_opt_cls(self._mkfilter(atoms), **opt_kws)
             opt.run(fmax=self.fmax, steps=self.steps)
             atoms = opt.atoms.copy()
+            atoms = abisanitize_atoms(atoms)
             opt_converged = opt.converged()
             ml_nsteps += opt.nsteps
 

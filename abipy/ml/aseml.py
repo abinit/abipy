@@ -378,7 +378,8 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
 
     with contextlib.redirect_stdout(stream):
         pf(f"Relaxation parameters: fmax: {fmax}, relax_mode: {relax_mode}, steps: {steps}, optimizer: {optimizer}")
-        if atoms.constraints:
+        if atoms.constraints and verbose > 1:
+            # Print constraints.
             pf(f"Number of constraints: {len(atoms.constraints)}")
             for c in atoms.constraints:
                 pf("\t", c)
