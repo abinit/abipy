@@ -45,6 +45,19 @@ class RelaxationProfiler:
     def __init__(self, atoms: Any, pseudos, xc, kppa, relax_mode: str, fmax: float, mpi_nprocs, steps=500,
                  verbose: int = 0, optimizer="BFGS", nn_name="m3gnet", mpi_runner="mpirun"):
         """
+        Args:
+            atoms: ASE atoms, pymatgen structure or file with structure.
+            pseudos: List of pseudopotentials with cutoff hints.
+            xc: String defining the XC functional e.g. LDA or GGA.
+            kppa: K-point per atom used to sample the BZ.
+            relax_mode: String definining the relaxation mode e.g. "ions" or "cell"
+            fmax: Tolerance for structural relaxation in eV/Ang.
+            mpi_nprocs: Number of MPI procs used to run Abinit
+            steps: Max number of relaxation steps.
+            verbose: Verbosity level.
+            optimizer: String defining the ASE optimizer or Optimizer instance.
+            nn_name: String specifying the ML potential e.g. "m3gnet" or "chgnet".
+            mpi_runner:
         """
         atoms = get_atoms(atoms)
         self.initial_atoms = atoms.copy()
@@ -278,6 +291,7 @@ class RelaxationProfiler:
             opt = self.ase_opt_cls(self._mkfilter(atoms), **opt_kws)
             opt.run(fmax=self.fmax, steps=self.steps)
             atoms = opt.atoms.copy()
+            atoms = abisanitize_atoms(atoms)
             opt_converged = opt.converged()
             ml_nsteps += opt.nsteps
 

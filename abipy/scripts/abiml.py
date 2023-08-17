@@ -13,6 +13,8 @@ import abipy.ml.aseml as aseml
 
 from functools import wraps
 from time import time
+from abipy.core.structure import Structure
+from abipy.tools.printing import print_dataframe
 
 ASE_OPTIMIZERS = aseml.ase_optimizer_cls("__all__")
 
@@ -30,10 +32,10 @@ def herald(f):
             print(json.dumps(kw, indent=4), end="\n")
 
         t_start = time()
-        ml_obj = f(*args, **kw)
+        exit_code = f(*args, **kw)
         t_end = time()
         print('\n%s command completed in %2.4f sec\n' % (f.__name__, t_end - t_start))
-        return 0
+        return exit_code
 
     return wrapper
 
@@ -114,7 +116,7 @@ def main(ctx, nn_name, seaborn):
 
     global CALC_BUILDER
     CALC_BUILDER = aseml.CalcBuilder(nn_name)
-    #ctx.obj["verbose"] = verbose
+    ctx.obj["nn_name"] = nn_name
 
 
 @main.command()
@@ -144,7 +146,7 @@ def relax(ctx, filepath,
         abiml.py.py -nn chgnet relax [...]
     """
     atoms = aseml.get_atoms(filepath)
-    aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_relaxer = aseml.MlRelaxer(atoms, relax_mode, fmax, pressure, steps, optimizer,
                                  CALC_BUILDER, verbose, workdir, prefix="_relax_")
@@ -154,7 +156,7 @@ def relax(ctx, filepath,
 
     print(ml_relaxer.to_string(verbose=verbose))
     ml_relaxer.run()
-    return ml_relaxer
+    return 0
 
 
 @main.command()
@@ -190,13 +192,13 @@ def md(ctx, filepath,
     """
     # See https://github.com/materialsvirtuallab/m3gnet#molecular-dynamics
     atoms = aseml.get_atoms(filepath)
-    aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_md = aseml.MlMd(atoms, temperature, timestep, steps, loginterval, ensemble, CALC_BUILDER, verbose,
                        workdir, prefix="_md_")
     print(ml_md.to_string(verbose=verbose))
     ml_md.run()
-    return ml_md
+    return 0
 
 
 ASENEB_METHODS = ['aseneb', 'eb', 'improvedtangent', 'spline', 'string']
@@ -230,16 +232,16 @@ def neb(ctx, filepaths,
         abiml.py.py -nn chgnet neb [...]
     """
     initial_atoms = aseml.get_atoms(filepaths[0])
-    aseml.fix_atoms(initial_atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(initial_atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
     final_atoms = aseml.get_atoms(filepaths[1])
-    aseml.fix_atoms(final_atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(final_atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_neb = aseml.MlNeb(initial_atoms, final_atoms,
                          nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
                          CALC_BUILDER, verbose, workdir, prefix="_neb_")
     print(ml_neb.to_string(verbose=verbose))
     ml_neb.run()
-    return ml_neb
+    return 0
 
 
 @main.command()
@@ -272,13 +274,13 @@ def mneb(ctx, filepaths,
     # Fix atoms
     atoms_list = [aseml.get_atoms(p) for p in filepaths]
     for atoms in atoms_list:
-        aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
+        aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     mneb = aseml.MultiMlNeb(atoms_list, nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
                             CALC_BUILDER, verbose, workdir, prefix="_mneb_")
     print(mneb.to_string(verbose=verbose))
     mneb.run()
-    return mneb
+    return 0
 
 
 @main.command()
@@ -301,7 +303,6 @@ def tsaseneb(ctx, filepaths, nimages, workdir, verbose):
     os.chdir(workdir)
 
     # Read initial and final structures
-    from abipy.core.structure import Structure
     initial = Structure.from_file(initial, primitive=False)
     final = Structure.from_file(final, primitive=False)
 
@@ -402,7 +403,7 @@ def aseph(ctx, filepath, supercell, kpts, asr, nqpath,
                             verbose, workdir, prefix="_aseph_")
     print(ml_ph.to_string(verbose=verbose))
     ml_ph.run()
-    return ml_ph
+    return 0
 
 
 @main.command()
@@ -429,7 +430,63 @@ def order(ctx, filepath, max_ns, relax_mode, fmax, pressure, steps, optimizer, w
                                  steps, CALC_BUILDER, verbose, workdir, prefix="_order_")
     print(ml_orderer.to_string(verbose=verbose))
     ml_orderer.run()
-    return ml_orderer
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@click.option("-isite", required=True,
+               help='Index of atom to displace or string with chemical element to be added to input structure.')
+@click.option("-nx", type=int, default=4, show_default=True, help='Mesh size along the first reduced direction.')
+@click.option("-ny", type=int, default=4, show_default=True, help='Mesh size along the second reduced direction.')
+@click.option("-nz", type=int, default=4, show_default=True, help='Mesh size along the third reduced direction.')
+@add_relax_opts
+@click.option("-np", "--nprocs", default=1, type=int, show_default=True,
+               help='Number of processes for multiprocessing pool.')
+#@click.option("--start", default=None, type=int, show_default=True,
+#               help='Number of processes for multiprocessing Pool.')
+#@click.option("--count", default=None, type=int, show_default=True,
+#               help='Number of processes for multiprocessing Pool.')
+@add_workdir_verbose_opts
+def scan_relax(ctx, filepath,
+               isite, nx, ny, nz,
+               relax_mode, fmax, pressure, steps, optimizer,
+               nprocs,
+               #, start, count,
+               workdir, verbose
+               ):
+    """
+    Generate 3D mesh of (nx, ny, nz)
+
+    Usage example:
+
+    \b
+        abiml.py.py scan_relax FILE -isite 0 -nx 2 -ny 2 -nz 2  # Move first atom in the structure
+        abiml.py.py scan_relax FILE -isite H -nx 2 -ny 2 -nz 2  # Add H to the structure read from FILE.
+
+    where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
+    """
+    from abipy.ml.relax_scanner import RelaxScanner, Entries
+    #calculator = CALC_BUILDER.get_calculator()
+
+    nn_name = ctx.obj["nn_name"]
+    structure = Structure.from_file(filepath)
+
+    scanner = RelaxScanner(structure, isite, nx, ny, nz, nn_name,
+                           relax_mode=relax_mode, fmax=fmax, steps=steps, verbose=verbose,
+                           optimizer_name=optimizer, pressure=pressure,
+                           workdir=workdir, prefix="_scan_relax")
+    print(scanner)
+
+
+    #if start is not None and count is not None:
+    #    self.run_start_count(start, count)
+    #else:
+    scanner.run(nprocs=nprocs)
+
+    return 0
 
 
 if __name__ == "__main__":
