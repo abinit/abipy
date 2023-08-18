@@ -415,7 +415,7 @@ def aseph(ctx, filepath, supercell, kpts, asr, nqpath,
 @add_workdir_verbose_opts
 def order(ctx, filepath, max_ns, relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
     """
-    Generate ordered structures from cif FILE with partial occupancies.
+    Generate ordered structures from CIF with partial occupancies.
 
     Usage example:
 
@@ -444,17 +444,12 @@ def order(ctx, filepath, max_ns, relax_mode, fmax, pressure, steps, optimizer, w
 @click.option("-nz", type=int, default=4, show_default=True, help='Mesh size along the third reduced direction.')
 @add_relax_opts
 @click.option("-np", "--nprocs", default=1, type=int, show_default=True,
-               help='Number of processes for multiprocessing pool.')
-#@click.option("--start", default=None, type=int, show_default=True,
-#               help='Number of processes for multiprocessing Pool.')
-#@click.option("--count", default=None, type=int, show_default=True,
-#               help='Number of processes for multiprocessing Pool.')
+               help='Number of processes in multiprocessing pool. Set it to -1 to use half of the CPUs in the system.')
 @add_workdir_verbose_opts
 def scan_relax(ctx, filepath,
                isite, nx, ny, nz,
                relax_mode, fmax, pressure, steps, optimizer,
                nprocs,
-               #, start, count,
                workdir, verbose
                ):
     """
@@ -468,22 +463,15 @@ def scan_relax(ctx, filepath,
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
     """
-    from abipy.ml.relax_scanner import RelaxScanner, Entries
-    #calculator = CALC_BUILDER.get_calculator()
-
     nn_name = ctx.obj["nn_name"]
     structure = Structure.from_file(filepath)
 
+    from abipy.ml.relax_scanner import RelaxScanner
     scanner = RelaxScanner(structure, isite, nx, ny, nz, nn_name,
                            relax_mode=relax_mode, fmax=fmax, steps=steps, verbose=verbose,
                            optimizer_name=optimizer, pressure=pressure,
-                           workdir=workdir, prefix="_scan_relax")
+                           workdir=workdir, prefix="_scan_relax_")
     print(scanner)
-
-
-    #if start is not None and count is not None:
-    #    self.run_start_count(start, count)
-    #else:
     scanner.run(nprocs=nprocs)
 
     return 0
