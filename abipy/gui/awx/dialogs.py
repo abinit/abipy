@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import os
 import wx
 
-from monty.os.path import which
+from shutil import which
 from monty.string import is_string
 
 
