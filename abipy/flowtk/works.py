@@ -2258,7 +2258,19 @@ class DteWork(Work, MergeDdb):
         dte_deps = {scf_task: "WFK"}
         dte_deps.update({dde_task: "1WF 1DEN" for dde_task in dde_tasks})
 
-        multi_dte = scf_task.input.make_dte_inputs()
+        # VT: Taken from dte_from_gsinput factory fct
+        # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
+        # Do this as last, so not to interfere with the the generation of the other steps.
+        gs_inp = scf_task.input.deepcopy()
+        gs_inp.pop_irdvars()
+        nval = gs_inp.structure.num_valence_electrons(gs_inp.pseudos)
+        #nval -= gs_inp['charge'] # VT: commented out because KeyError
+        nband = int(round(nval / 2))
+        gs_inp.set_vars(nband=nband)
+        gs_inp.pop('nbdbuf', None)
+        multi_dte = gs_inp.make_dte_inputs()
+
+        #multi_dte = scf_task.input.make_dte_inputs()
         dte_tasks = []
         for dte_inp in multi_dte:
             dte_task = new.register_dte_task(dte_inp, deps=dte_deps)

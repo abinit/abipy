@@ -2063,7 +2063,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, ixc=None, manager=None) -> MultiDataset:
+    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, ixc=7, manager=None) -> MultiDataset:
         """
         Return |MultiDataset| inputs for DTE calculation.
         This functions should be called with an input that represents a GS run.
