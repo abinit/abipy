@@ -1,3 +1,10 @@
+
+Release 0.9.5:
+
+    * Force make_dte_inputs to consider the psp to be in LDA
+    * Fix ngfft issue when going to DTE
+    * Force DTE to overwrite nband and nbdbuf to number of VBs and 0 respectively
+
 Release 0.9.4:
 
     * Require pymatgen == 2023.7.17

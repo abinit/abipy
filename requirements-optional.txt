@@ -8,7 +8,7 @@ pygments
 ipywidgets
 networkx
 scikit-image
-python-graphviz #graphviz or python-graphviz if conda
+#python-graphviz #graphviz or python-graphviz if conda
 phonopy
 ase
 
