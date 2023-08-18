@@ -1,3 +1,6 @@
+Release 0.9.4:
+
+    * Require pymatgen == 2023.7.17
 
 Release 0.9.3:
 

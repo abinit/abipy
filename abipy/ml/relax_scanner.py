@@ -173,14 +173,14 @@ class ScannerData:
                             emin=None, emax=None, verbose=1):
         """
         Find configurations that differ in energy by less than ene_diff in eV
-        an relaxed sites that are less than dist_tol Angstrom apart.
+        with relaxed sites that are less than dist_tol Angstrom apart.
 
         Args:
-            ene_diff:
-            dist_tol:
+            ene_diff: Energy difference in eV.
+            dist_tol: Tolerance on site distancs in Ang (minimum-image convention is applied).
             verbose: Verbosity level.
 
-        Return named tuple three arrays: pair_indices with the index of the pair in the df
+        Return named tuple three arrays: pair_indices with the index of the row in the df
             dist_list with distance between the sites and ediff_list with the energy difference.
         """
         def difference_matrix(a):
@@ -199,7 +199,8 @@ class ScannerData:
             _, d2 = pbc_shortest_vectors(self.lattice, xreds[i], xreds[j], return_d2=True)
             dist = np.sqrt(float(d2))
             if dist > dist_tol: continue
-            print(f"{i=}, {j=}, ediff:", ediff_mat[i, j], f"{dist=}", "x_i:", xreds[i], "x_j:", xreds[j])
+            if verbose:
+                print(f"{i=}, {j=}, ediff:", ediff_mat[i, j], f", {dist=}", ", xred_i:", xreds[i], ", xred_j:", xreds[j])
             pair_indices.append((i, j))
             dist_list.append(dist)
             ediff_list.append(energy[j] - energy[i])
