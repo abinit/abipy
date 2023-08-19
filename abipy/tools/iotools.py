@@ -315,7 +315,7 @@ def workdir_with_prefix(workdir, prefix) -> Path:
         workdir = str(workdir)
         if os.path.exists(workdir):
             raise RuntimeError(f"{workdir=} already exists!")
-        os.mkdir(workdir)
+        os.makedirs(workdir)
 
     return Path(workdir).absolute()
 

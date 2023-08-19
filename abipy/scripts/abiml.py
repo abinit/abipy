@@ -31,6 +31,9 @@ def herald(f):
             print("Command line options:")
             print(json.dumps(kw, indent=4), end="\n")
 
+        #import warnings
+        #with warnings.catch_warnings():
+        #    warnings.simplefilter("ignore")
         t_start = time()
         exit_code = f(*args, **kw)
         t_end = time()
@@ -84,8 +87,8 @@ def add_neb_opts(f):
     f = click.option("--pressure", default=0.0, type=float, show_default=True, help='Scalar pressure')(f)
     f = click.option("--optimizer", "-o", default="BFGS", show_default=True, type=click.Choice(ASE_OPTIMIZERS),
                      help="ASE optimizer class.")(f)
-    f = click.option("--neb-method", "-m", default="aseneb", type=click.Choice(ASENEB_METHODS), show_default=True,
-                     help="ASE NEB method")(f)
+    f = click.option("--neb-method", "-m", default="aseneb", type=click.Choice(aseml.ASENEB_METHODS),
+                     show_default=True, help="ASE NEB method")(f)
     f = click.option("--climb", "-c", is_flag=True, help="Use a climbing image (default is no climbing image).")(f)
     return f
 
@@ -200,8 +203,6 @@ def md(ctx, filepath,
     ml_md.run()
     return 0
 
-
-ASENEB_METHODS = ['aseneb', 'eb', 'improvedtangent', 'spline', 'string']
 
 @main.command()
 @herald
@@ -443,8 +444,8 @@ def order(ctx, filepath, max_ns, relax_mode, fmax, pressure, steps, optimizer, w
 @click.option("-ny", type=int, default=4, show_default=True, help='Mesh size along the second reduced direction.')
 @click.option("-nz", type=int, default=4, show_default=True, help='Mesh size along the third reduced direction.')
 @add_relax_opts
-@click.option("-np", "--nprocs", default=1, type=int, show_default=True,
-               help='Number of processes in multiprocessing pool. Set it to -1 to use half of the CPUs in the system.')
+@click.option("-np", "--nprocs", default=-1, type=int, show_default=True,
+               help='Number of processes in multiprocessing pool. Set it to -1 to use all the CPUs in the system.')
 @add_workdir_verbose_opts
 def scan_relax(ctx, filepath,
                isite, nx, ny, nz,
@@ -459,6 +460,7 @@ def scan_relax(ctx, filepath,
 
     \b
         abiml.py.py scan_relax FILE -isite 0 -nx 2 -ny 2 -nz 2  # Move first atom in the structure
+
         abiml.py.py scan_relax FILE -isite H -nx 2 -ny 2 -nz 2  # Add H to the structure read from FILE.
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.

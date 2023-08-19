@@ -8,30 +8,33 @@ import os
 import pickle
 import json
 import itertools
+import warnings
+import dataclasses
 import numpy as np
 import pandas as pd
-import abipy.tools.duck as duck
+#import abipy.tools.duck as duck
 
 from pathlib import Path
-from dataclasses import dataclass
+from multiprocessing import Pool
 #from typing import Type, Any, Optional, Union
 from monty.json import MontyEncoder
 from monty.functools import lazy_property
-from monty.collections import dict2namedtuple # AttrDict,
+from monty.collections import dict2namedtuple
 from pymatgen.core.lattice import Lattice
 from pymatgen.util.coord import pbc_shortest_vectors
+
 from abipy.core import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt,
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, ShellScript
-#from abipy.tools.printing import print_dataframe
-from abipy.ml.aseml import relax_atoms, get_atoms, as_calculator, ase_optimizer_cls, RX_MODE, fix_atoms
+from abipy.tools.printing import print_dataframe
+from abipy.ml.aseml import (relax_atoms, get_atoms, as_calculator, ase_optimizer_cls, RX_MODE, fix_atoms,
+                            MlNeb, MlGsList, CalcBuilder, make_ase_neb)
 
 
-@dataclass
+@dataclasses.dataclass
 class Entry:
     """
-    An Entry stores the relaxed structure with the associated energy
-    and the Cartesian forces.
+    Stores the relaxed structure with the associated energy and Cartesian forces.
     """
     isite: int             # Index of the site being relaxed.
     structure: Structure   # pymatgen Structure
@@ -45,7 +48,7 @@ class Entry:
         to compute energy and forces at fixed geometry.
         """
         structure = Structure.as_structure(atoms)
-        # Keep sites within the unit cell.
+        # NB: Keep sites within the unit cell so that we can compare entries in __eq__
         structure.translate_sites(range(len(structure)), np.zeros(3), to_unit_cell=True)
         entry = cls(isite=isite,
                     structure=structure,
@@ -58,11 +61,11 @@ class Entry:
     @classmethod
     def from_traj(cls, isite, traj) -> Entry:
         """
-        Build an Entry by taking the last Atoms object in an ASE trajectory.
+        Build an Entry by taking the last Atoms object from an ASE trajectory.
         """
         atoms = traj[-1]
         structure = Structure.as_structure(atoms)
-        # Keep sites within the unit cell.
+        # NB: Keep sites within the unit cell so that we can compare entries in __eq__
         structure.translate_sites(range(len(structure)), np.zeros(3), to_unit_cell=True)
         return cls(isite=isite,
                    structure=structure,
@@ -80,13 +83,28 @@ class Entry:
                    for site1, site2 in zip(self.structure, other.structure))
 
 
-class Entries(list):
+@dataclasses.dataclass
+class Pair:
     """
-    A list of Entry objects.
+    """
+    index1: int
+    index2: int
+    ediff: float  # Energy difference in eV
+    dist:  float
+    frac_coords1: np.ndarray
+    frac_coords2: np.ndarray
+
+    def get_dict4pandas(self) -> dict:
+        """Useful to construct pandas DataFrames"""
+        return dataclasses.asdict(self)
+
+
+class RelaxScannerAnalyzer:
+    """
     """
 
     @classmethod
-    def merge_from_topdir(cls, topdir: Path) -> Entries:
+    def from_topdir(cls, topdir: Path) -> RelaxScannerAnalyzer:
         """
         Merge all entries starting from directory `topdir`.
         """
@@ -95,9 +113,9 @@ class Entries(list):
         dirpaths = [name for name in os.listdir(top) if os.path.isdir(os.path.join(top, name))
                     and name.startswith("start:")]
 
-        entries = cls()
+        entries = []
         for dpath in dirpaths:
-            pickle_path = topdir / Path(dpath) / "data.pickle"
+            pickle_path = topdir / Path(dpath) / "entries.pickle"
             completed_path = topdir / Path(dpath) / "COMPLETED"
             if not (pickle_path.exists() and completed_path.exists()): continue
             with open(pickle_path, "rb") as fh:
@@ -106,18 +124,34 @@ class Entries(list):
                     entries.append(e)
 
         if not entries:
-            raise ValueError(f"Entries is empty. Cannot find `data.pickle` files in {topdir=}")
+            raise ValueError(f"Entries is empty. Cannot find `entries.pickle` files in {topdir=}")
 
-        return entries
+        # Reconstruct RelaxScanner instance from pickle file.
+        scanner = RelaxScanner.pickle_load(topdir)
+        return cls(entries, scanner)
 
-    def get_data(self) -> ScannerData:
+    def __init__(self, entries: list[Entry], scanner: RelaxScanner, verbose: int = 0):
+        self.entries = entries
+        self.scanner = scanner
+        self.verbose = verbose
+
+    @property
+    def workdir(self):
+        return self.scanner.workdir
+
+    #@property
+    #def initial_structure(self):
+    #    return self.scanner.initial_structure
+
+    @lazy_property
+    def df(self) -> pd.DataFrame:
         """
-        Build and return a ScannerData instance containing a pandas dataframe
-        with the total energy in eV and the relaxed coords of the atomic site
-        that has been relaxed.
+        pandas dataframe with the total energy in eV and the relaxed coords
+        of the atomic site that has been relaxed.
         """
         dict_list = []
-        for entry in self:
+        entries = self.entries
+        for entry in entries:
             site = entry.structure[entry.isite]
             x, y, z, fx, fy, fz = (*site.coords, *site.frac_coords)
             fmods = np.array([np.linalg.norm(force) for force in entry.forces])
@@ -131,157 +165,148 @@ class Entries(list):
         df = pd.DataFrame(dict_list).sort_values(by="energy", ignore_index=True)
 
         # Add medata
-        df.attrs['lattice_matrix'] = self[0].structure.lattice.matrix
-        return ScannerData(df)
-
-
-class ScannerData:
-
-    @classmethod
-    def from_json(cls, filepath: str):
-        """Reconstruct object from json file."""
-        with open(filepath, 'rt') as fh:
-            data = json.load(fh)
-
-        df = pd.DataFrame().as_dict(data["df"])
-        df.attrs['lattice_matrix'] = np.reshape(data["lattice_matrix"], (3,3))
-
-        return cls(df)
-
-    def __init__(self, df):
-        self.df = df
+        df.attrs['lattice_matrix'] = entries[0].structure.lattice.matrix
+        df.attrs['structure'] = entries[0].structure
+        return df
 
     def __str__(self):
         return self.to_string()
 
-    #def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose=0) -> str:
+        s = self.scanner.to_string(verbose=verbose)
+        return s
 
     @lazy_property
     def lattice(self):
         return Lattice(self.df.attrs["lattice_matrix"])
 
-    def get_emin_emax(self, fact=0.001):
-        """
-        Return min and max energy. The range is extended by .1% on each side.
-        """
-        emin, emax = self.df['energy'].min(), self.df['energy'].max()
-        emin -= fact * abs(emin)
-        emax += fact * abs(emax)
-        return emin, emax
+    #def get_emin_emax(self, fact=0.001) -> tuple[float, float]:
+    #    """
+    #    Return min and max energy. The range is extended by .1% on each side.
+    #    """
+    #    emin, emax = self.df['energy'].min(), self.df['energy'].max()
+    #    emin -= fact * abs(emin)
+    #    emax += fact * abs(emax)
+    #    return emin, emax
 
-    def search_enediff_dist(self, ene_diff, dist_tol,
-                            emin=None, emax=None, verbose=1):
+    def pairs_enediff_dist(self, ene_diff=1e-3, dist_tol=3.0) -> list[Pair]:
         """
-        Find configurations that differ in energy by less than ene_diff in eV
-        with relaxed sites that are less than dist_tol Angstrom apart.
+        Find pairs that differ in energy less than ene_diff
+        and with relaxed sites that are less than dist_tol Angstrom apart
+        (minimum-image convention is applied).
 
         Args:
             ene_diff: Energy difference in eV.
-            dist_tol: Tolerance on site distancs in Ang (minimum-image convention is applied).
-            verbose: Verbosity level.
+            dist_tol: Tolerance on site distance in Ang
 
-        Return named tuple three arrays: pair_indices with the index of the row in the df
-            dist_list with distance between the sites and ediff_list with the energy difference.
+        Return list of Pair objects.
         """
-        def difference_matrix(a):
-            x = np.reshape(a, (len(a), 1))
-            return x - x.transpose()
+        def adiff_matrix(vec):
+            """Return matrix A_ij with all the differences |vec_i - vec_j|."""
+            x = np.reshape(vec, (len(vec), 1))
+            return np.abs(x - x.transpose())
 
         energy = self.df["energy"].to_numpy(dtype=float)
-        ediff_mat = difference_matrix(energy)
+        aediff_mat = adiff_matrix(energy)
         xreds = self.df[["xred0", "xred1", "xred2"]].to_numpy(dtype=float)
 
-        pair_indices, dist_list, ediff_list = [], [], []
-        dist_tol2 = dist_tol ** 2
-        inds = np.triu_indices_from(ediff_mat)
+        pairs = []
+        inds = np.triu_indices_from(aediff_mat)
         for i, j in zip(inds[0], inds[1]):
-            if ediff_mat[i,j] > ene_diff or i == j: continue
+            if aediff_mat[i,j] > ene_diff or i == j: continue
             _, d2 = pbc_shortest_vectors(self.lattice, xreds[i], xreds[j], return_d2=True)
             dist = np.sqrt(float(d2))
             if dist > dist_tol: continue
-            if verbose:
-                print(f"{i=}, {j=}, ediff:", ediff_mat[i, j], f", {dist=}", ", xred_i:", xreds[i], ", xred_j:", xreds[j])
-            pair_indices.append((i, j))
-            dist_list.append(dist)
-            ediff_list.append(energy[j] - energy[i])
+            pair = Pair(index1=i, index2=j, ediff=energy[j] - energy[i], dist=dist,
+                        frac_coords1=xreds[i], frac_coords2=xreds[j])
+            pairs.append(pair)
+            if self.verbose > 1: print(pair)
 
-        print(f"Found {len(pair_indices)} configurations that differ less than {ene_diff=} eV and {dist_tol=} Ang")
-        if verbose > 2:
-            print(f"{pair_indices=}")
+        print(f"Found {len(pairs)} pairs with {ene_diff=} eV and {dist_tol=} Ang.")
 
-        return dict2namedtuple(pair_indices=np.array(pair_indices),
-                               dist_list=np.array(dist_list),
-                               ediff_list=np.array(ediff_list))
+        # Here we compute the transition energy for each pair either
+        # by performing NEB or single point calculations along a linear path connecting the two sites.
+        nprocs = -1
+        nprocs = _get_nprocs(nprocs)
 
-    #def binsearch_enediff_dist(self, ene_diff, dist_tol,
-    #                        emin=None, emax=None, estep=1e-3, bins=None, verbose=0):
-    #    """
-    #    Find configurations that differ in energy by less than ene_diff in eV
-    #    an relaxed sites that are less than dist_tol Angstrom apart.
+        #if nprocs == 1:
+        d_list = [self.run_pair(pair, neb_method="None") for pair in pairs]
+        #else:
+        #    print(f"Using multiprocessing pool with {nprocs=} ...")
+        #    kws_list = [dict(self=self, pair=pair, neb_method="None") for pair in pairs]
+        #    with Pool(processes=nprocs) as pool:
+        #        d_list = pool.map(_map_run_pair, kws_list)
 
-    #    Args:
-    #        ene_diff:
-    #        dist_tol:
-    #        bins:
-    #        verbose: Verbosity level.
+        df = pd.DataFrame(d_list)
+        df["ene_diff"], df["dist_tol"] = ene_diff, dist_tol
+        print_dataframe(df)
 
-    #    Return named tuple three arrays: pair_indices with the index of the pair in the df
-    #        dist_list with distance between the sites and ediff_list with the energy difference.
-    #    """
-    #    df = self.df #.copy()
+        return pairs
 
-    #    # Bin the 'energy' column with equal-width intervals.
-    #    if bins is None:
-    #        _emin, _emax = self.get_emin_emax()
-    #        emin = emin if emin is not None else _emin
-    #        emax = emax if emax is not None else _emax
-    #        bins = np.arange(emin, emax, estep)
+    def run_pair(self, pair: Pair, neb_method="None", nimages=14, climb=False) -> dict:
+        """
+        Return dictionary with results.
 
-    #    df['energy_bin'] = pd.cut(df['energy'], bins=bins, retbins=False)
-    #    #df['energy_bin'] = pd.cut(df['energy'], bins=10, retbins=False)
+        Args:
+            pair: Info on Pair.
+            frac_coords1: Fractional coordinates of the first site.
+            frac_coords2: Fractional coordinates of the second site.
+            neb_method:
+            nimages:
+            climb:
+        """
+        # Get atoms with constraints.
+        scanner = self.scanner
+        initial_atoms = scanner.get_atoms_with_frac_coords(pair.frac_coords1)
+        final_atoms = scanner.get_atoms_with_frac_coords(pair.frac_coords2)
 
-    #    print(df["energy_bin"].value_counts())
-    #    if verbose:
-    #        print(df[["energy", "energy_bin"]])
+        relax_mode = "no"
+        calc_builder = CalcBuilder(scanner.nn_name)
+        pair_str = f"{pair.index1}-{pair.index2}"
 
-    #    pair_indices, dist_list, ediff_list = [], [], []
-    #    dist_tol2 = dist_tol ** 2
-    #    for energy_bin, group in df.groupby("energy_bin"):
-    #        if group.empty: continue      # I don't understand why group can be empty
-    #        if len(group) == 1: continue  # Need more than one configuration in the group.
-    #        #print(f"{energy_bin=}", "group:\n", group)
-    #        for index1, row1 in group.iterrows():
-    #            fcoords1 = row1[["xred0", "xred1", "xred2"]].to_numpy(dtype=float)
-    #            ene1 = float(row1["energy"])
-    #            #cart1 = row1[["xcart0", "xcart1", "xcart2"]].to_numpy(dtype=float)
-    #            #print(f"{index1=}", row1, cart1)
-    #            for index2, row2 in group.iterrows():
-    #                if index2 >= index1: continue
-    #                fcoords2 = row2[["xred0", "xred1", "xred2"]].to_numpy(dtype=float)
-    #                ene2 = float(row2["energy"])
-    #                # Compute distance with minimum-image convention
-    #                _, d2 = pbc_shortest_vectors(self.lattice, fcoords1, fcoords2, return_d2=True)
-    #                if d2 > dist_tol2: continue
-    #                pair_indices.append((index1, index2))
-    #                dist_list.append(np.sqrt(d2))
-    #                ediff_list.append(e2-e1)
+        # TODO: Check mic
+        if neb_method == "None":
+            calculators = [calc_builder.get_calculator() for i in range(nimages)]
+            neb = make_ase_neb(initial_atoms, final_atoms, nimages,
+                               calculators, "aseneb", climb,
+                               method='linear', mic=False)
 
-    #    print(f"Found {len(pair_indices)} configurations that differ less than {ene_diff=} eV and {dist_tol=} Ang")
-    #    if verbose:
-    #        print(f"{pair_indices=}")
+            # NB: It's not a NEB ML object although it provides a similar API.
+            ml_neb = MlGsList(neb.images, calc_builder, self.verbose,
+                              workdir=self.workdir / f"GSLIST/pair:{pair_str}")
 
-    #    return dict2namedtuple(pair_indices=np.array(pair_indices),
-    #                           dist_list=np.array(dist_list),
-    #                           ediff_list=np.array(ediff_list))
+        else:
+            ml_neb = MlNeb(initial_atoms, final_atoms,
+                           nimages, neb_method, climb, scanner.optimizer_name,
+                           relax_mode, scanner.fmax, scanner.pressure,
+                           calc_builder, self.verbose,
+                           workdir=self.workdir / f"NEB/pair:{pair_str}")
+
+        if self.verbose: print(ml_neb.to_string(verbose=self.verbose))
+
+        ml_neb.run()
+        neb_data = ml_neb.read_neb_data()
+
+        # Build out_data dict.
+        out_data = pair.get_dict4pandas()
+
+        # Add keys from neb_data.
+        keys = ["barrier_with_fit", "energy_change_with_fit",
+                "barrier_without_fit", "energy_change_without_fit"
+               ]
+        out_data.update({k: neb_data[k] for k in keys})
+        out_data.update(dict(neb_method=neb_method, nimages=nimages, climb=climb))
+
+        return out_data
 
     @add_fig_kwargs
-    def histplot(self, **kwargs):
+    def histplot(self, ax=None, **kwargs):
         """
-        Plot histogram to show distribution of energies.
+        Plot histogram to show energy distribution.
         """
-        ax, fig, plt = get_ax_fig_plt(ax=None)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         import seaborn as sns
-        sns.histplot(self.df, x="energy", ax=ax) #, binwidth=1e-3)
+        sns.histplot(self.df, x="energy", ax=ax)
         return fig
 
 
@@ -290,6 +315,14 @@ class RelaxScanner:
     This object employs an ASE calculator to perform many different
     structural relaxations by placing ...
     """
+
+    @classmethod
+    def pickle_load(cls, workdir) -> RelaxScanner:
+        """
+        Reconstruct the object from a pickle file located in workdir.
+        """
+        with open(Path(workdir) / f"{cls.__name__}.pickle", "rb") as fh:
+            return pickle.load(fh)
 
     def __init__(self, structure, isite, nx, ny, nz, nn_name,
                  relax_mode: str = "ions", fmax: float = 1e-3, steps=500,
@@ -333,6 +366,10 @@ class RelaxScanner:
 
         self.workdir = workdir_with_prefix(workdir, prefix)
 
+        # Write pickle file for object persistence.
+        with open(self.workdir / f"{self.__class__.__name__}.pickle", "wb") as fh:
+            pickle.dump(self, fh)
+
     def __str__(self) -> str:
         return self.to_string()
 
@@ -355,12 +392,10 @@ class RelaxScanner:
      verbose     = {self.verbose}
      workdir     = {str(self.workdir)}
 
+=== INITIAL STRUCTURE ===
+
+{self.initial_structure}
 """
-
-#=== INITIAL STRUCTURE ===
-#
-#{self.initial_structure}
-
 
     def _make_directory(self, start, stop) -> Path:
         """
@@ -387,6 +422,17 @@ class RelaxScanner:
         newdir.mkdir()
         return newdir
 
+    def get_atoms_with_frac_coords(self, frac_coords, with_fixex_atoms=True) -> Atoms:
+        """
+        Return Atoms instance with frac_coords at site index `isite`.
+        """
+        structure = self.initial_structure.copy()
+        structure._sites[self.isite].frac_coords = np.array(frac_coords)
+        atoms = get_atoms(structure)
+        if with_fixex_atoms:
+            fix_atoms(atoms, fix_inds=[i for i in range(len(atoms)) if i != self.isite])
+        return atoms
+
     def run_start_count(self, start: int, count: int) -> Path:
         """
         Invoke ASE to relax `count` structures starting from index `start`.
@@ -402,15 +448,16 @@ class RelaxScanner:
 
         stop = start + count
         directory = self._make_directory(start, stop)
+
+        #with warnings.catch_warnings():
+        #    warnings.simplefilter("ignore")
         calculator = as_calculator(self.nn_name)
 
-        entries, errors = Entries(), []
+        entries, errors = [], []
         for cnt, (ix, iy, iz) in enumerate(itertools.product(range(self.nx), range(self.ny), range(self.nz))):
             if not (stop > cnt >= start): continue
 
-            structure = self.initial_structure.copy()
-            structure._sites[self.isite].frac_coords = np.array((ix/self.nx, iy/self.ny, iz/self.nz))
-            atoms = get_atoms(structure)
+            atoms = self.get_atoms_with_frac_coords((ix/self.nx, iy/self.ny, iz/self.nz))
 
             if self.relax_mode == RX_MODE.no:
                 # Just GS energy, no relaxation.
@@ -419,7 +466,6 @@ class RelaxScanner:
             else:
                 try:
                     # Relax atoms with constraints.
-                    fix_atoms(atoms, fix_inds=[i for i in range(len(atoms)) if i != self.isite])
                     relax = relax_atoms(atoms,
                                         relax_mode=self.relax_mode,
                                         optimizer=self.optimizer_name,
@@ -444,7 +490,7 @@ class RelaxScanner:
             print(f"ASE relaxation raised {len(errors)} exception(s)!")
 
         # Save results in pickle format.
-        with open(directory / "data.pickle", "wb") as fh:
+        with open(directory / "entries.pickle", "wb") as fh:
             pickle.dump(entries, fh)
 
         with open(directory / "COMPLETED", "wt") as fh:
@@ -454,23 +500,22 @@ class RelaxScanner:
 
     def run(self, nprocs) -> None:
         """
+        Main entry point for client code.
         Run relaxations using a multiprocessing Pool with nprocs processors.
-        If nprocs is None or negative, half the number of CPUs in the system is used.
+        If nprocs is None or negative, the total number of CPUs in the system is used.
         """
         # Write python scrip to analyze the results.
         with PythonScript(self.workdir / "analyze.py") as script:
             script.add_text("""
-from abipy.ml.relax_scanner import RelaxScanner, Entries
-from abipy.tools.printing import print_dataframe
+from abipy.ml.relax_scanner import RelaxScannerAnalyzer
+rsa = RelaxScannerAnalyzer.from_topdir(".")
+print_dataframe(rsa.df)
+#rsa.histplot()
 
-data = Entries.merge_from_topdir(".").get_data()
-print_dataframe(data.df)
-#data.histplot()
+rsa.pairs_enediff_dist(ene_diff=1e-3, dist_tol=3.0)
 """)
 
-        if nprocs is None or nprocs < 0:
-            nprocs = max(1, os.cpu_count() // 2)
-
+        nprocs = _get_nprocs(nprocs)
         if nprocs == 1:
             # Sequential execution.
             self.run_start_count(0, -1)
@@ -487,24 +532,38 @@ print_dataframe(data.df)
                     count = div + rest
                 args_list.append((self, start, count))
 
-            from multiprocessing import Pool
             print(f"Using multiprocessing pool with {nprocs=} ...")
             with Pool(processes=nprocs) as pool:
-                pool.map(_func, args_list)
+                pool.map(_map_run_start_count, args_list)
 
         entries = Entries.merge_from_topdir(self.workdir)
         data = entries.get_data()
         print(data.df)
-        data.df.to_json()
 
-        data = dict(df=df.to_dict(),
-                    lattice_matrix=df.attrs["lattice_matrix"].to_list())
-        with open(self.workdir / "ScannerData.json", 'wt') as fh:
+        data = dict(df=data.df.to_dict(),
+                    lattice_matrix=data.df.attrs["lattice_matrix"].tolist())
+        with open(self.workdir / "RelaxScannerAnalyzer.json", 'wt') as fh:
             json.dump(data, fh)
 
 
-def _func(args):
-    """Function passed to pool.map."""
-    self, start, count = args
-    self.run_start_count(start, count)
+def _get_nprocs(nprocs) -> int:
+    """
+    Return the number of procs to be used for multiprocessing Pool.
+    If negative or None, use all procs in the system
+    """
+    if nprocs is None or nprocs <= 0:
+        return max(1, os.cpu_count())
+    return int(nprocs)
 
+
+def _map_run_start_count(args):
+    """Function passed to pool.map."""
+    scanner, start, count = args
+    return scanner.run_start_count(start, count)
+
+
+def _map_run_pair(kwargs):
+    """Function passed to pool.map."""
+    #self = kwargs.pop("self")
+    return {}
+    #return self.run_pair(**kwargs)

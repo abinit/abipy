@@ -9,9 +9,8 @@ import io
 import time
 import contextlib
 import json
-#import tempfile
+import warnings
 import stat
-#import datetime
 import numpy as np
 import pandas as pd
 try:
@@ -47,6 +46,9 @@ from abipy.abio.enums import StrEnum, EnumMixin
 ###################
 
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
+
+
+ASENEB_METHODS = ['aseneb', 'eb', 'improvedtangent', 'spline', 'string']
 
 
 class RX_MODE(EnumMixin, StrEnum):  # StrEnum added in 3.11
@@ -256,7 +258,9 @@ class AseResults:
         )
 
     def get_dict4pandas(self, with_geo=True, with_fstats=True) -> dict:
-        """Dictionary with results used to build pandas dataframe."""
+        """
+        Dictionary with results used to build pandas dataframe.
+        """
         d = {k: getattr(self, k) for k in ["ene", "volume", "pressure"]}
         if with_geo:
             d.update(dict(zip(_CELLPAR_KEYS, self.atoms.cell.cellpar())))
@@ -703,7 +707,6 @@ import matplotlib.pyplot as plt
         print("\nResults available in directory:", self.workdir)
 
 
-
 class MlRelaxer(_MlBase):
     """
     Relax structure with ASE and ML-potential
@@ -894,13 +897,13 @@ plt.show()
 
 class _MlNebBase(_MlBase):
     """
-    Base class for Neb
+    Base class for Neb calculations
     """
 
-    def postprocess(self, images):
+    def postprocess_images(self, images):
         """
-        post-process ASE neb calculation.
-        see <https://wiki.fysik.dtu.dk/ase/tutorials/neb/diffusion.html>
+        post-process ASE NEB calculation.
+        See <https://wiki.fysik.dtu.dk/ase/tutorials/neb/diffusion.html>
         """
         from ase.neb import NEBTools
         nebtools = NEBTools(images)
@@ -923,15 +926,66 @@ class _MlNebBase(_MlBase):
         )
 
         self.write_json("neb_data.json", neb_data, info="JSON document with NEB results",
-                        stream=sys.stdout)
+                        stream=sys.stdout if self.verbose else None)
 
         # create a figure like that coming from ase-gui.
         self.savefig("neb_barrier.png", nebtools.plot_band(), info="Figure with NEB barrier")
         return neb_data
 
     def read_neb_data(self) -> dict:
+        """
+        Read results from the JSON file produced by postprocess_images
+        """
         with open(self.workdir / 'neb_data.json', "rt") as fh:
             return json.load(fh)
+
+
+class MlGsList(_MlNebBase):
+    """
+    Perform ground-state calculations for a list of atoms with ASE and ML-potential.
+    Inherits from _MlNebBase so that we can reuse postprocess_images and read_neb_data.
+    """
+
+    def __init__(self, atoms_list: list[Atoms], calc_builder, verbose,
+                 workdir, prefix=None):
+        """
+        Args:
+            atoms_list: List of ASE atoms
+            calc_builder:
+            verbose:
+        """
+        super().__init__(workdir, prefix)
+        self.atoms_list = atoms_list
+        self.calc_builder = calc_builder
+        self.verbose = verbose
+
+    def to_string(self, verbose=0) -> str:
+        """String representation with verbosity level `verbose`."""
+        return f"""\
+
+{self.__class__.__name__} parameters:
+
+     calculator  = {self.calc_builder}
+     workdir     = {self.workdir}
+     verbose     = {self.verbose}
+
+"""
+
+    def run(self) -> None:
+        """Run list of GS calculations."""
+        workdir = self.workdir
+
+        results = []
+        for atoms in self.atoms_list:
+            atoms.calc = self.get_calculator()
+            results.append(AseResults.from_atoms(atoms))
+
+        #dict_list = [r.get_dict4pandas() for r in results]
+        #df = pd.DataFrame(dict_list)
+
+        neb_data = self.postprocess_images(self.atoms_list)
+
+        self._finalize()
 
 
 class MlNeb(_MlNebBase):
@@ -963,6 +1017,8 @@ class MlNeb(_MlNebBase):
         self.final_atoms = get_atoms(final_atoms)
         self.nimages = nimages
         self.neb_method = neb_method
+        if self.neb_method not in ASENEB_METHODS:
+            raise ValueError(f"{self.neb_method} not in {ASENEB_METHODS}")
         self.climb = climb
         self.optimizer = optimizer
         self.relax_mode = relax_mode
@@ -1061,7 +1117,7 @@ class MlNeb(_MlNebBase):
             subdir.mkdir()
             ase.io.write(subdir / "POSCAR", image, format="vasp")
 
-        neb_data = self.postprocess(images)
+        neb_data = self.postprocess_images(images)
 
         self.write_script("ase_gui.sh", text=f"""\
 # To visualize the results, use:
@@ -1173,10 +1229,19 @@ class MultiMlNeb(_MlNebBase):
 
 
 def make_ase_neb(initial: Atoms, final: Atoms, nimages: int,
-                 calculators: list, neb_method: str, climb: str,
+                 calculators: list, neb_method: str, climb: bool,
                  method='linear', mic=False) -> NEB:
     """
     Make a NEB band consisting of nimages. See https://databases.fysik.dtu.dk/ase/ase/neb.html
+
+    Args:
+        initial: First point.
+        final: Last point.
+        nimages: Number of images.
+        calculators: List of ASE calculators.
+        neb_method:
+        climb: True to use a climbing image.
+        method:
     """
     images = [initial]
     images += [initial.copy() for i in range(nimages - 2)]
@@ -1411,7 +1476,7 @@ class MlPhonons(_MlBase):
         calculator = self.get_calculator()
         atoms = self.atoms
 
-        if self.relax != "no":
+        if self.relax != RX_MODE.no:
             print(f"Relaxing atoms with relax mode: {self.relax_mode}.")
             relax_kws = dict(calculator=calculator,
                              optimizer=self.optimizer,
