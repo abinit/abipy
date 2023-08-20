@@ -189,7 +189,7 @@ class RelaxScannerAnalyzer:
     #    emax += fact * abs(emax)
     #    return emin, emax
 
-    def pairs_enediff_dist(self, ene_diff=1e-3, dist_tol=3.0) -> list[Pair]:
+    def pairs_enediff_dist(self, ene_diff=1e-3, dist_tol=3.0, neb_method=None) -> list[Pair]:
         """
         Find pairs that differ in energy less than ene_diff
         and with relaxed sites that are less than dist_tol Angstrom apart
@@ -222,28 +222,31 @@ class RelaxScannerAnalyzer:
             pairs.append(pair)
             if self.verbose > 1: print(pair)
 
-        print(f"Found {len(pairs)} pairs with {ene_diff=} eV and {dist_tol=} Ang.")
+        print(f"Found {len(pairs)} pair(s) with {ene_diff=} eV and {dist_tol=} Ang.")
+        #print_dataframe(pd.DataFrame([pair.get_dict4pandas() for pair in pairs]))
 
-        # Here we compute the transition energy for each pair either
-        # by performing NEB or single point calculations along a linear path connecting the two sites.
-        nprocs = -1
-        nprocs = _get_nprocs(nprocs)
+        if neb_method is not None:
+            # Here we compute the transition energy for each pair either
+            # by performing NEB or single point calculations along a linear path connecting the two sites.
+            nprocs = -1
+            nprocs = _get_nprocs(nprocs)
 
-        #if nprocs == 1:
-        d_list = [self.run_pair(pair, neb_method="None") for pair in pairs]
-        #else:
-        #    print(f"Using multiprocessing pool with {nprocs=} ...")
-        #    kws_list = [dict(self=self, pair=pair, neb_method="None") for pair in pairs]
-        #    with Pool(processes=nprocs) as pool:
-        #        d_list = pool.map(_map_run_pair, kws_list)
+            #if nprocs == 1:
+            d_list = [self.run_pair(pair, neb_method=neb_method) for pair in pairs]
+            #else:
+            #    print(f"Using multiprocessing pool with {nprocs=} ...")
+            #    kws_list = [dict(self=self, pair=pair, neb_method="None") for pair in pairs]
+            #    with Pool(processes=nprocs) as pool:
+            #        d_list = pool.map(_map_run_pair, kws_list)
 
-        df = pd.DataFrame(d_list)
-        df["ene_diff"], df["dist_tol"] = ene_diff, dist_tol
-        print_dataframe(df)
+            df = pd.DataFrame(d_list)
+            df["ene_diff"], df["dist_tol"] = ene_diff, dist_tol
+            df = df.sort_values(sort_values(by="energy", ignore_index=True)
+            print_dataframe(df)
 
         return pairs
 
-    def run_pair(self, pair: Pair, neb_method="None", nimages=14, climb=False) -> dict:
+    def run_pair(self, pair: Pair, neb_method="no", nimages=14, climb=False) -> dict:
         """
         Return dictionary with results.
 
@@ -265,7 +268,7 @@ class RelaxScannerAnalyzer:
         pair_str = f"{pair.index1}-{pair.index2}"
 
         # TODO: Check mic
-        if neb_method == "None":
+        if neb_method == "no":
             calculators = [calc_builder.get_calculator() for i in range(nimages)]
             neb = make_ase_neb(initial_atoms, final_atoms, nimages,
                                calculators, "aseneb", climb,
@@ -507,6 +510,7 @@ class RelaxScanner:
         # Write python scrip to analyze the results.
         with PythonScript(self.workdir / "analyze.py") as script:
             script.add_text("""
+from abipy.tools.printing import print_dataframe
 from abipy.ml.relax_scanner import RelaxScannerAnalyzer
 rsa = RelaxScannerAnalyzer.from_topdir(".")
 print_dataframe(rsa.df)
@@ -536,14 +540,14 @@ rsa.pairs_enediff_dist(ene_diff=1e-3, dist_tol=3.0)
             with Pool(processes=nprocs) as pool:
                 pool.map(_map_run_start_count, args_list)
 
-        entries = Entries.merge_from_topdir(self.workdir)
-        data = entries.get_data()
-        print(data.df)
+        #entries = Entries.merge_from_topdir(self.workdir)
+        #data = entries.get_data()
+        #print(data.df)
 
-        data = dict(df=data.df.to_dict(),
-                    lattice_matrix=data.df.attrs["lattice_matrix"].tolist())
-        with open(self.workdir / "RelaxScannerAnalyzer.json", 'wt') as fh:
-            json.dump(data, fh)
+        #data = dict(df=data.df.to_dict(),
+        #            lattice_matrix=data.df.attrs["lattice_matrix"].tolist())
+        #with open(self.workdir / "RelaxScannerAnalyzer.json", 'wt') as fh:
+        #    json.dump(data, fh)
 
 
 def _get_nprocs(nprocs) -> int:
