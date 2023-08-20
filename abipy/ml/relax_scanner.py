@@ -189,7 +189,7 @@ class RelaxScannerAnalyzer:
     #    emax += fact * abs(emax)
     #    return emin, emax
 
-    def pairs_enediff_dist(self, ene_diff=1e-3, dist_tol=3.0, neb_method=None) -> list[Pair]:
+    def pairs_enediff_dist(self, ene_diff=1e-3, dist_tol=3.5, neb_method=None, nprocs=-1) -> list[Pair]:
         """
         Find pairs that differ in energy less than ene_diff
         and with relaxed sites that are less than dist_tol Angstrom apart
@@ -223,12 +223,13 @@ class RelaxScannerAnalyzer:
             if self.verbose > 1: print(pair)
 
         print(f"Found {len(pairs)} pair(s) with {ene_diff=} eV and {dist_tol=} Ang.")
-        #print_dataframe(pd.DataFrame([pair.get_dict4pandas() for pair in pairs]))
 
-        if neb_method is not None:
+        if neb_method is None:
+            df = pd.DataFrame([pair.get_dict4pandas() for pair in pairs])
+
+        else
             # Here we compute the transition energy for each pair either
             # by performing NEB or single point calculations along a linear path connecting the two sites.
-            nprocs = -1
             nprocs = _get_nprocs(nprocs)
 
             #if nprocs == 1:
@@ -241,8 +242,12 @@ class RelaxScannerAnalyzer:
 
             df = pd.DataFrame(d_list)
             df["ene_diff"], df["dist_tol"] = ene_diff, dist_tol
-            df = df.sort_values(sort_values(by="energy", ignore_index=True)
-            print_dataframe(df)
+            df = df.sort_values(sort_values(by="energy", ignore_index=True))
+
+        print_dataframe(df)
+        path = self.workdir / "{neb_method=}_data.csv"
+        print(f"Saving results to {path} in csv format.")
+        df.to_csv(path)
 
         return pairs
 
@@ -516,7 +521,9 @@ rsa = RelaxScannerAnalyzer.from_topdir(".")
 print_dataframe(rsa.df)
 #rsa.histplot()
 
-rsa.pairs_enediff_dist(ene_diff=1e-3, dist_tol=3.0)
+rsa.pairs_enediff_dist(ene_diff=1e-3, dist_tol=3.5, neb_method=None)
+#rsa.pairs_enediff_dist(ene_diff=1e-3, dist_tol=3.5, neb_method="no")
+#rsa.pairs_enediff_dist(ene_diff=1e-3, dist_tol=3.5, neb_method="aseneb")
 """)
 
         nprocs = _get_nprocs(nprocs)
