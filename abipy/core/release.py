@@ -71,6 +71,7 @@ platforms = ['Linux', 'darwin']
 keywords = ["ABINIT", "ab-initio", "density-function-theory", "first-principles", "electronic-structure", "pymatgen"]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
