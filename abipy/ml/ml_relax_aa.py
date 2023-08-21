@@ -112,8 +112,10 @@ class RelaxationProfiler:
 
     def _mkfilter(self, atoms: Atoms):
         if self.relax_mode == "ions":
+            print("ions Optimization")
             return atoms
         elif self.relax_mode == "cell":
+            print("Cell Optmization")
             return ExpCellFilter(atoms, scalar_pressure=self.scalar_pressure)
 
         raise ValueError(f"Invalid value of {self.relax_mode=}")
@@ -337,10 +339,11 @@ class RelaxationProfiler:
         print("relax_mode:", self.relax_mode, "with tolmxf:", self.relax_kwargs["tolmxf"])
         
         atoms = self.initial_atoms.copy()
-        opt = self.ase_opt_cls(self._mkfilter(atoms))
-
         abinit = Abinit(profile=self.abinit_profile, directory=directory, **self.gs_kwargs)
         atoms.calc = abinit
+
+        opt = self.ase_opt_cls(self._mkfilter(atoms))
+
         with Timer() as timer:
             opt.run(fmax=self.fmax, steps=self.steps)
             if not opt.converged():
