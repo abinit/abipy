@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from pymatgen.util.typing import *
+from typing import TYPE_CHECKING, Any, Union, Sequence
 
 
 if TYPE_CHECKING:  # needed to avoid circular imports
