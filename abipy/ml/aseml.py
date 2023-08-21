@@ -9,7 +9,9 @@ import io
 import time
 import contextlib
 import json
+import pickle
 import warnings
+import dataclasses
 import stat
 import numpy as np
 import pandas as pd
@@ -19,7 +21,6 @@ except ImportError as exc:
     raise ImportError("ase not installed. Try `pip install ase`.") from exc
 
 from pathlib import Path
-from dataclasses import dataclass
 from inspect import isclass
 from typing import Type, Any, Optional, Union
 from monty.string import marquee, list_strings # is_string,
@@ -52,6 +53,7 @@ ASENEB_METHODS = ['aseneb', 'eb', 'improvedtangent', 'spline', 'string']
 
 
 class RX_MODE(EnumMixin, StrEnum):  # StrEnum added in 3.11
+    """Relaxation mode string flags."""
     no   = "no"
     ions = "ions"
     cell = "cell"
@@ -185,7 +187,7 @@ def diff_two_structures(label1, structure1, label2, structure2, fmt, file=sys.st
         print(l1.ljust(pad), " | ", l2, file=file)
 
 
-@dataclass
+@dataclasses.dataclass
 class AseResults:
     """
     Container with the results produced by the ASE calculator.
@@ -197,11 +199,12 @@ class AseResults:
 
     @classmethod
     def from_inds(cls, trajectory, *inds) -> AseResults:
+        """Build list of AseResults from a trajectory and list of indices."""
         return [cls.from_atoms(trajectory[i]) for i in inds]
 
     @classmethod
     def from_atoms(cls, atoms: Atoms) -> AseResults:
-        """Build the object from atoms with a calculator."""
+        """Build the object from an atoms instance with a calculator."""
         return cls(atoms=atoms,
                    ene=float(atoms.get_potential_energy()),
                    stress=atoms.get_stress(voigt=False),
@@ -213,7 +216,7 @@ class AseResults:
 
     @property
     def volume(self) -> float:
-        """Volume of unit cell."""
+        """Volume of the unit cell."""
         return self.atoms.get_volume()
 
     def __str__(self):
@@ -245,7 +248,9 @@ class AseResults:
         return "\n".join(lines)
 
     def get_fstats(self) -> dict:
-        """Dictionary with statistics on forces."""
+        """
+        Return dictionary with statistics on forces.
+        """
         fmods = np.array([np.linalg.norm(force) for force in self.forces])
         #fmods = np.sqrt(np.einsum('ij, ij->i', forces, forces))
         #return AttrDict(
@@ -402,7 +407,9 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
 
 
 def silence_tensorflow() -> None:
-    """Silence every unnecessary warning from tensorflow."""
+    """
+    Silence every unnecessary warning from tensorflow.
+    """
     # https://stackoverflow.com/questions/35911252/disable-tensorflow-debugging-information
     import logging
     logging.getLogger('tensorflow').setLevel(logging.ERROR)
@@ -419,7 +426,7 @@ def silence_tensorflow() -> None:
 class _MyCalculatorMixin:
     """
     Add _delta_forces and _delta_stress attributes to an ASE calculator.
-    Extend `calculate` so that forces and stresses are corrected accordingly.
+    Extend `calculate` method so that forces and stresses are corrected accordingly.
     """
     def set_delta_forces(self, delta_forces):
         """F_Abinitio - F_ML"""
@@ -495,6 +502,14 @@ class CalcBuilder:
     def __str__(self):
         return f"{self.__class__.__name__}: name: {self.name}"
 
+    # This is for the pickle protocol
+    def __getstate__(self):
+        return dict(name=self.name)
+
+    def __setstate__(self, d):
+        self.name = d["name"]
+        self._model = None
+
     def get_calculator(self) -> Calculator:
         """Return ASE Calculator with ML potential."""
         if self.name == "m3gnet_old":
@@ -553,6 +568,14 @@ class _MlBase:
     Base class for all Ml subclasses. Provides helper functions to
     perform typical tasks such as writing files in the workdir.
     """
+    @classmethod
+    def pickle_load(cls, workdir) -> RelaxScanner:
+        """
+        Reconstruct the object from a pickle file located in workdir.
+        """
+        with open(Path(workdir) / f"{cls.__name__}.pickle", "rb") as fh:
+            return pickle.load(fh)
+
     def __init__(self, workdir, prefix=None):
         """
         Build directory with `prefix` if `workdir` is None else create it.
@@ -562,6 +585,11 @@ class _MlBase:
         self.basename_info = []
         self.delta_forces = None
         self.delta_stress = None
+
+    def pickle_dump(self):
+        # Write pickle file for object persistence.
+        with open(self.workdir / f"{self.__class__.__name__}.pickle", "wb") as fh:
+            pickle.dump(self, fh)
 
     def set_delta_forces_stress_from_abiml_nc(self, filepath: str) -> None:
         """
@@ -761,6 +789,7 @@ class MlRelaxer(_MlBase):
 
     def run(self) -> None:
         """Run structural relaxation."""
+        #self.pickle_dump()
         workdir = self.workdir
 
         print(f"Relaxing structure with relax mode: {self.relax_mode} ...")
@@ -845,6 +874,7 @@ class MlMd(_MlBase):
 
     def run(self) -> None:
         """Run MD"""
+        #self.pickle_dump()
         workdir = self.workdir
 
         traj_file = self.get_path("md.traj", "ASE MD trajectory")
@@ -952,7 +982,7 @@ class MlGsList(_MlNebBase):
         Args:
             atoms_list: List of ASE atoms
             calc_builder:
-            verbose:
+            verbose: Verbosity level.
         """
         super().__init__(workdir, prefix)
         self.atoms_list = atoms_list
@@ -973,6 +1003,7 @@ class MlGsList(_MlNebBase):
 
     def run(self) -> None:
         """Run list of GS calculations."""
+        #self.pickle_dump()
         workdir = self.workdir
 
         results = []
@@ -983,8 +1014,10 @@ class MlGsList(_MlNebBase):
         #dict_list = [r.get_dict4pandas() for r in results]
         #df = pd.DataFrame(dict_list)
 
-        neb_data = self.postprocess_images(self.atoms_list)
+        write_vasp_xdatcar(self.workdir / "XDATCAR", self.atoms_list,
+                           label=f"XDATCAR with list of atoms.")
 
+        self.postprocess_images(self.atoms_list)
         self._finalize()
 
 
@@ -1065,6 +1098,7 @@ class MlNeb(_MlNebBase):
 
     def run(self) -> None:
         """Run NEB"""
+        #self.pickle_dump()
         workdir = self.workdir
         initial_atoms, final_atoms = self.initial_atoms, self.final_atoms
 
@@ -1096,6 +1130,9 @@ class MlNeb(_MlNebBase):
         neb = make_ase_neb(initial_atoms, final_atoms, self.nimages, calculators, self.neb_method, self.climb,
                            method='linear', mic=False)
 
+        write_vasp_xdatcar(workdir / "INITIAL_NEB_XDATCAR", neb.images,
+                           label=f"XDATCAR with initial NEB images.")
+
         # Optimize
         opt_class = ase_optimizer_cls(self.optimizer)
         nebtraj_file = str(workdir / "neb.traj")
@@ -1107,7 +1144,7 @@ class MlNeb(_MlNebBase):
 
         # To read the last nimages atoms e.g. 5: read('neb.traj@-5:')
         images = ase.io.read(f"{str(nebtraj_file)}@-{self.nimages}:")
-        write_vasp_xdatcar(workdir / "XDATCAR", images,
+        write_vasp_xdatcar(workdir / "FINAL_NEB_XDATCAR", images,
                            label=f"XDATCAR with final NEB images.")
 
         # write vasp poscar files for each image in vasp_neb
@@ -1194,6 +1231,7 @@ class MultiMlNeb(_MlNebBase):
         """
         Run multi NEB calculations.
         """
+        #self.pickle_dump()
         workdir = self.workdir
         atoms_list = self.atoms_list
         camp_dirs = [workdir / f"CAMP_{i}" for i in range(len(atoms_list) - 1)]
@@ -1239,9 +1277,13 @@ def make_ase_neb(initial: Atoms, final: Atoms, nimages: int,
         final: Last point.
         nimages: Number of images.
         calculators: List of ASE calculators.
-        neb_method:
+        neb_method: String defining NEB algorithm.
         climb: True to use a climbing image.
-        method:
+        method: str
+            Method by which to interpolate: 'linear' or 'idpp'.
+            linear provides a standard straight-line interpolation, while
+            idpp uses an image-dependent pair potential.
+        mic: Map movement into the unit cell by using the minimum image convention.
     """
     images = [initial]
     images += [initial.copy() for i in range(nimages - 2)]
@@ -1251,7 +1293,9 @@ def make_ase_neb(initial: Atoms, final: Atoms, nimages: int,
     if initial.constraints:
         if not final.constraints:
             raise RuntimeError("Both initial and final points should have constraints!")
-        for ci, cf in zip(initial.constraints, final.constraints): #, strict=True):
+        if len(initial.constraints) != len(final.constraints):
+            raise RuntimeError("different number of constraints in initial and final")
+        for ci, cf in zip(initial.constraints, final.constraints):
             if ci.__class__ != cf.__class__:
                 raise RuntimeError(f"Constraints in initial and final points should belong to the same class: {ci}, {cf}")
         apply_constraint = True
@@ -1330,6 +1374,7 @@ class MlOrderer(_MlBase):
         """
         Run MlOrderer.
         """
+        #self.pickle_dump()
         workdir = self.workdir
         from pymatgen.core import Lattice
         specie = {"Cu0+": 0.5, "Au0+": 0.5}
@@ -1472,6 +1517,7 @@ class MlPhonons(_MlBase):
 
     def run(self) -> None:
         """Run MlPhonons."""
+        #self.pickle_dump()
         workdir = self.workdir
         calculator = self.get_calculator()
         atoms = self.atoms

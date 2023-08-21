@@ -66,7 +66,7 @@ def add_relax_opts(f):
     # Here fmax is a sum of force and stress forces. Defaults to 0.1.
     f = click.option("--relax-mode", "-r", default="ions", show_default=True, type=click.Choice(["no", "ions", "cell"]),
                      help='Relaxation mode.')(f)
-    f = click.option("--fmax", default=0.005, type=float, show_default=True,
+    f = click.option("--fmax", default=0.01, type=float, show_default=True,
                      help='Stopping criterion in eV/A')(f)
     f = click.option("--pressure", default=0.0, type=float, show_default=True, help='Scalar pressure')(f)
     f = click.option("--steps", default=500, type=int, show_default=True,
@@ -108,7 +108,7 @@ def add_workdir_verbose_opts(f):
 @click.option("--seaborn", "-sns", default=None, show_default=True,
               help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster").')
 def main(ctx, nn_name, seaborn):
-    """Main function invoked by the script"""
+    """Script to perform calculations with ML potentials."""
     ctx.ensure_object(dict)
 
     if seaborn:
@@ -438,30 +438,28 @@ def order(ctx, filepath, max_ns, relax_mode, fmax, pressure, steps, optimizer, w
 @herald
 @click.pass_context
 @click.argument("filepath", type=str)
-@click.option("-isite", required=True,
+@click.option("-isite", "--isite", required=True,
                help='Index of atom to displace or string with chemical element to be added to input structure.')
-@click.option("-nx", type=int, default=4, show_default=True, help='Mesh size along the first reduced direction.')
-@click.option("-ny", type=int, default=4, show_default=True, help='Mesh size along the second reduced direction.')
-@click.option("-nz", type=int, default=4, show_default=True, help='Mesh size along the third reduced direction.')
+@click.option("--mesh", type=int, default=4, show_default=True, help='Mesh size along the smallest cell size.')
 @add_relax_opts
 @click.option("-np", "--nprocs", default=-1, type=int, show_default=True,
-               help='Number of processes in multiprocessing pool. Set it to -1 to use all the CPUs in the system.')
+               help='Number of processes in multiprocessing pool. Set it to -1 to let Abipy select it automatically.')
 @add_workdir_verbose_opts
 def scan_relax(ctx, filepath,
-               isite, nx, ny, nz,
+               isite, mesh,
                relax_mode, fmax, pressure, steps, optimizer,
                nprocs,
                workdir, verbose
                ):
     """
-    Generate 3D mesh of (nx, ny, nz)
+    Generate 3D mesh of (nx,ny,nz) initial positions and perform multiple relaxations
+    in which all atoms are fixed except the one added to the mesh point.
 
     Usage example:
 
     \b
-        abiml.py.py scan_relax FILE -isite 0 -nx 2 -ny 2 -nz 2  # Move first atom in the structure
-
-        abiml.py.py scan_relax FILE -isite H -nx 2 -ny 2 -nz 2  # Add H to the structure read from FILE.
+        abiml.py.py scan_relax FILE -isite 0 --mesh 4          # Move first atom in the structure
+        abiml.py.py --nn-name chgnet scan_relax FILE -isite H  # Add H to the structure read from FILE.
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
     """
@@ -469,7 +467,7 @@ def scan_relax(ctx, filepath,
     structure = Structure.from_file(filepath)
 
     from abipy.ml.relax_scanner import RelaxScanner
-    scanner = RelaxScanner(structure, isite, nx, ny, nz, nn_name,
+    scanner = RelaxScanner(structure, isite, mesh, nn_name,
                            relax_mode=relax_mode, fmax=fmax, steps=steps, verbose=verbose,
                            optimizer_name=optimizer, pressure=pressure,
                            workdir=workdir, prefix="_scan_relax_")
