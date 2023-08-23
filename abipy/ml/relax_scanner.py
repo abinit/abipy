@@ -476,8 +476,7 @@ class RelaxScannerAnalyzer:
     #    Return min and max energy. The range is extended by .1% on each side.
     #    """
     #    emin, emax = self.df['energy'].min(), self.df['energy'].max()
-    #    emin -= fact * abs(emin)
-    #    emax += fact * abs(emax)
+    #    emin -= fact * abs(emin); emax += fact * abs(emax)
     #    return emin, emax
 
     def pairs_enediff_dist(self, ediff_tol=1e-3, dist_tol=3.5, neb_method=None, nprocs=-1) -> list[Pair]:
@@ -614,3 +613,30 @@ class RelaxScannerAnalyzer:
         import seaborn as sns
         sns.histplot(self.df, x="energy", ax=ax)
         return fig
+
+
+def linear_path_with_extra_points(isite, initial, final, nimages, nextra, step) -> list[Atoms]:
+
+    # Get cart coords
+    p0 = initial[isite].position
+    p1 = final[isite].position
+
+    dvers_10 = (p1 - p0) / np.linalg.norm(p1 - p0)
+
+    from ase.neb import interpolate
+    first_segment = []
+    for i in range(nextra - 1):
+        new = initial.copy()
+        new[isite].position = p0 - i * step * dvers_10
+        first_segment.append(new)
+
+    images += [initial.copy() for i in range(nimages - 2)]
+
+    for i in range(nextra):
+        new = final.copy()
+        new[isite].position = p1 + i * step * dvers_10
+        images.append(new)
+
+    interpolate(images, mic=False, interpolate_cell=False, use_scaled_coord=False, apply_constraint=None)
+
+    return first_segment + images + last_segment

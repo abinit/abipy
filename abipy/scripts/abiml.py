@@ -10,6 +10,7 @@ import json
 import click
 import numpy as np
 import abipy.ml.aseml as aseml
+import abipy.tools.cli_parsers as cli
 
 from functools import wraps
 from time import time
@@ -30,6 +31,9 @@ def herald(f):
             print(f.__doc__, end=2*"\n")
             print("Command line options:")
             print(json.dumps(kw, indent=4), end="\n")
+
+        # Set OMP_NUM_THREADS to 1 if env var is not defined.
+        num_threads = cli.fix_omp_num_threads()
 
         #import warnings
         #with warnings.catch_warnings():
@@ -93,6 +97,13 @@ def add_neb_opts(f):
     return f
 
 
+def add_nprocs_opt(f):
+    """Add CLI options for multiprocessing."""
+    f = click.option("-np", "--nprocs", default=-1, type=int, show_default=True,
+                    help='Number of processes in multiprocessing pool. -1 to let Abipy select it automatically.')(f)
+    return f
+
+
 def add_workdir_verbose_opts(f):
     """Add workdir and verbose options to CLI subcommand."""
     f = click.option("--workdir", "-w", default=None, type=str,
@@ -104,7 +115,8 @@ def add_workdir_verbose_opts(f):
 @click.group()
 @click.pass_context
 @click.option("--nn-name", "-nn", default="m3gnet", show_default=True,
-              type=click.Choice(["m3gnet_old", "m3gnet", "chgnet"]), help='ML potential')
+              type=click.Choice(aseml.CalcBuilder.ALL_NN_TYPES),
+              help='ML potential')
 @click.option("--seaborn", "-sns", default=None, show_default=True,
               help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster").')
 def main(ctx, nn_name, seaborn):
@@ -442,8 +454,7 @@ def order(ctx, filepath, max_ns, relax_mode, fmax, pressure, steps, optimizer, w
                help='Index of atom to displace or string with chemical element to be added to input structure.')
 @click.option("--mesh", type=int, default=4, show_default=True, help='Mesh size along the smallest cell size.')
 @add_relax_opts
-@click.option("-np", "--nprocs", default=-1, type=int, show_default=True,
-               help='Number of processes in multiprocessing pool. Set it to -1 to let Abipy select it automatically.')
+@add_nprocs_opt
 @add_workdir_verbose_opts
 def scan_relax(ctx, filepath,
                isite, mesh,
@@ -473,6 +484,42 @@ def scan_relax(ctx, filepath,
                            workdir=workdir, prefix="_scan_relax_")
     print(scanner)
     scanner.run(nprocs=nprocs)
+
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@add_nprocs_opt
+@add_workdir_verbose_opts
+def compare(ctx, filepath,
+            nprocs,
+            workdir, verbose
+            ):
+    """
+    Compare ...
+
+    Usage example:
+
+    \b
+        abiml.py.py compare FILE
+
+    where `FILE` can be among: HIST.nc
+    """
+    nn_name = ctx.obj["nn_name"]
+
+    nn_names = ["m3gnet", "chgnet"]
+
+    ml_comp = aseml.MlCompareWithAbinitio(filepath, nn_names, CALC_BUILDER, verbose, workdir, prefix="_compare_")
+    print(ml_comp)
+    c = ml_comp.run(nprocs=nprocs)
+
+    from abipy.tools.plotting import Exposer
+    with Exposer.as_exposer("mpl") as e:
+    #with Exposer.as_exposer("panel") as e:
+        e.add_obj_with_yield_figs(c)
 
     return 0
 
