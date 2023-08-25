@@ -22,6 +22,7 @@ except ImportError as exc:
 
 from pathlib import Path
 from inspect import isclass
+from multiprocessing import Pool
 from typing import Type, Any, Optional, Union
 from monty.string import marquee, list_strings # is_string,
 from monty.functools import lazy_property
@@ -42,15 +43,30 @@ from abipy.tools.plotting import get_ax_fig_plt #, get_axarray_fig_plt,
 from abipy.tools.iotools import workdir_with_prefix
 from abipy.tools.printing import print_dataframe
 from abipy.abio.enums import StrEnum, EnumMixin
-from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
-    get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
-
+from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
+    set_visible, set_ax_xylabels)
 
 
 ###################
 # Helper functions
 ###################
+
+def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
+    """
+    Return the number of procs to be used in a multiprocessing Pool.
+    If negative or None, use all procs in the system.
+    """
+    if nprocs is None or nprocs <= 0:
+        nprocs = max(1, os.cpu_count())
+    else:
+        nprocs = int(nprocs)
+
+    nprocs = min(nprocs, ntasks)
+    if title is not None:
+        print(title)
+        print(f"Using multiprocessing pool with {nprocs=} for {ntasks=} ...")
+    return nprocs
+
 
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
 
@@ -307,26 +323,28 @@ def diff_stats(xs, ys):
     )
 
 
-def linear_fit_ax(ax, xs, ys, with_labels=True) -> tuple[float]:
+def linear_fit_ax(ax, xs, ys, with_labels=False) -> tuple[float]:
     amat = np.vstack([xs, np.ones(len(xs))]).T
     alpha, beta = np.linalg.lstsq(amat, ys, rcond=None)[0]
     label = r"Linear fit $\alpha={:.2f}$".format(alpha)
     ax.plot(xs, alpha*xs + beta, 'r', label=label if with_labels else None)
     # Plot y = x line
-    ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-', linewidth=1,
-            label='Ideal' if with_labels else None)
+    ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-', linewidth=1, label='Ideal' if with_labels else None)
     return alpha, beta
 
 
 class AseResultsComparator:
     """
+    This object allows one to compare energies, forces and stressee computed
+    for the same structure but with different methods e.g. results obtained
+    with different ML potentials.
     """
     ALL_VOIGT_COMPS = "xx yy zz yz xz xy".split()
 
     @classmethod
     def from_ase_results(cls, keys: list[str], results_list: list[list[AseResults]]):
         """
-        Build object from keys and list of AseResults.
+        Build object from list of keys and list of AseResults.
         """
         if len(keys) != len(results_list):
             raise ValueError(f"{len(keys)=} != {len(results_list)=}")
@@ -344,16 +362,19 @@ class AseResultsComparator:
         for i in range(len(keys)):
             stress_list.append(np.array([r.get_voigt_stress() for r in results_list[i]]))
 
-        return cls(keys, np.array(ene_list), np.array(forces_list), np.array(stress_list))
+        structure = Structure.as_structure(results_list[0][0].atoms)
+        return cls(structure, keys, np.array(ene_list), np.array(forces_list), np.array(stress_list))
 
-    def __init__(self, keys, ene_list, forces_list, stress_list):
+    def __init__(self, structure, keys, ene_list, forces_list, stress_list):
         """
         Args:
-            keys:
-            ene_list:
-            forces_list:
-            stress_list:  Stress in Voigt notation
+            structure: Structure object.
+            keys: List of strings, each string is associated to a different set of energies/forces/stresses.
+            ene_list: array of shape (nkeys, nsteps)
+            forces_list: array of shape (nkeys,nsteps,natom,3) with Cartesian forces.
+            stress_list: array of shape (nkeys, nsteps, 6) with stress in Voigt notation.
         """
+        self.structure = structure
         self.keys = keys
         self.ene_list = ene_list        # [nkeys, nsteps]
         self.forces_list = forces_list  # [nkeys, nsteps, natom, 3]
@@ -371,24 +392,18 @@ class AseResultsComparator:
         # Index of the reference key.
         self.iref = 0
 
-
-
-
-
-
-
     def __len__(self):
         return len(self.keys)
 
     @lazy_property
     def nsteps(self) -> int:
-        """Number of steps in trajectory."""
+        """Number of steps in the trajectory."""
         return self.forces_list.shape[1]
 
     @lazy_property
     def natom(self) -> int:
         """Number of atoms."""
-        return self.forces_list.shape[2]
+        return len(self.structure)
 
     def get_key_pairs(self) -> list[tuple]:
         """
@@ -396,45 +411,48 @@ class AseResultsComparator:
         """
         return [(self.keys[self.iref], key) for ik, key in enumerate(self.keys) if ik != self.iref]
 
-    def inds_of_keys(self, key1, key2) -> tuple[int,int]:
+    def inds_of_keys(self, key1: str, key2: str) -> tuple[int,int]:
+        """Tuple with the indices of key1, key2"""
         ik1 = self.keys.index(key1)
         ik2 = self.keys.index(key2)
         return ik1, ik2
 
-    def idir_from_direction(self, direction) -> int:
+    def idir_from_direction(self, direction: str) -> int:
+        """Index from direction string."""
         idir = {"x": 0, "y": 1, "z": 2}[direction]
         return idir
 
-    def ivoigt_from_comp(self, voigt_comp) -> int:
+    def ivoigt_from_comp(self, voigt_comp: str) -> int:
         iv = "xx yy zz yz xz xy".split().index(voigt_comp)
         return iv
 
-    def get_aligned_energies_traj(self) -> np.ndarray:
+    def get_aligned_energies_traj(self, istep=-1) -> np.ndarray:
         """
-        Return energies aligned with respect to self.iref key.
+        Return energies in eV aligned with respect to self.iref key.
+        Use the energy at the `istep` step index.
         """
         out_ene_list = self.ene_list.copy()
         for i in range(len(self)):
             if i == self.iref: continue
-            shift = self.ene_list[i,0] - self.ene_list[self.iref,0]
+            shift = self.ene_list[i,istep] - self.ene_list[self.iref,istep]
             out_ene_list[i] -= shift
 
         return out_ene_list
 
-    def xy_energies_for_keys(self, key1: str, key2: str) -> tuple:
+    def xy_energies_for_keys(self, key1: str, key2: str, sort=True) -> tuple:
         """
-        Return xs, ys sorted arrays with aligned energies for (key1, key2).
+        Return (xs, ys) sorted arrays with aligned energies for (key1, key2).
         """
         aligned_ene_list = self.get_aligned_energies_traj()
         ik1, ik2 = self.inds_of_keys(key1, key2)
         xs = aligned_ene_list[ik1]
         ys = aligned_ene_list[ik2]
 
-        return zip_sort(xs, ys)
+        return zip_sort(xs, ys) if sort else (xs, ys)
 
     def xy_forces_for_keys(self, key1, key2, direction) -> tuple:
         """
-        Return xs, ys, sorted arrays with forces along the cart direction for (key1, key2).
+        Return (xs, ys), sorted arrays with forces along the cart direction for (key1, key2).
         """
         idir = self.idir_from_direction(direction)
         ik1, ik2 = self.inds_of_keys(key1, key2)
@@ -443,18 +461,16 @@ class AseResultsComparator:
 
         return zip_sort(xs, ys)
 
-    #def traj_forces_for_keys(self, key1, key2, direction) -> tuple:
-    #    """
-    #    Return arrays with the cart direction of forces along the trajectory for (key1, key2).
-    #    """
-    #    idir = self.idir_from_direction(direction)
-    #    ik1, ik2 = self.inds_of_keys(key1, key2)
-    #    xs = self.forces_list[ik1,:,:,idir].flatten()
-    #    ys = self.forces_list[ik2,:,:,idir].flatten()
+    def traj_forces_for_keys(self, key1, key2) -> tuple:
+        """
+        Return arrays with the cart direction of forces along the trajectory for (key1, key2).
+        """
+        ik1, ik2 = self.inds_of_keys(key1, key2)
+        xs = self.forces_list[ik1,:,:,:]
+        ys = self.forces_list[ik2,:,:,:]
+        return xs, ys
 
-    #    return zip_sort(xs, ys)
-
-    def xy_stress_for_keys(self, key1, key2, voigt_comp) -> tuple:
+    def xy_stress_for_keys(self, key1, key2, voigt_comp, sort=True) -> tuple:
         """
         Return xs, ys sorted arrays with the stress along the voigt component for (key1, key2).
         """
@@ -464,23 +480,11 @@ class AseResultsComparator:
         xs = self.stress_list[ik1,:,iv].flatten()
         ys = self.stress_list[ik2,:,iv].flatten()
 
-        return zip_sort(xs, ys)
-
-    #def traj_stress_for_keys(self, key1, key2, voigt_comp) -> tuple:
-    #    """
-    #    Return arrays with the cart direction of forces along the trajectory for (key1, key2).
-    #    """
-
-    #    iv = self.ivoigt_from_compt(voigt_comp)
-    #    ik1, ik2 = self.inds_of_keys(key1, key2)
-    #    xs = self.stress_list[ik1,:,iv].flatten()
-    #    ys = self.stress_list[ik2,:,iv].flatten()
-
-    #    return zip_sort(xs, ys)
+        return zip_sort(xs, ys) if sort else (xs, ys)
 
     def get_forces_dataframe(self) -> pd.DataFrame:
         """
-        Build dataFrame with columns (fx, fy, fz, isite, istep, key)
+        Return dataFrame with columns (fx, fy, fz, isite, istep, key)
         """
         # [nkeys, nsteps, natom, 3]
         d_list = []
@@ -497,7 +501,7 @@ class AseResultsComparator:
 
     def get_stress_dataframe(self) -> pd.DataFrame:
         """
-        DataFrame with columns [sx,fy,fz,istep,key]
+        Return DataFrame with columns [sxx,syy,szz, ... ,istep,key]
         """
         # [nkeys, nsteps, 6]
         d_list = []
@@ -514,7 +518,7 @@ class AseResultsComparator:
     @add_fig_kwargs
     def plot_energies(self, fontsize=8, **kwargs):
         """
-        Compare energies
+        Compare energies aligned wrt to self.iref entry
         """
         key_pairs = self.get_key_pairs()
         nrows, ncols = 1, len(key_pairs)
@@ -525,47 +529,50 @@ class AseResultsComparator:
            xs, ys = self.xy_energies_for_keys(key1, key2)
            stats = diff_stats(xs, ys)
            ax = ax_mat[irow, icol]
-           ax.scatter(xs, ys, marker="o") #, label="$" + f"F_{direction}" + "$")
+           ax.scatter(xs, ys, marker="o")
            linear_fit_ax(ax, xs, ys)
            ax.grid(True)
-           ax.legend(loc="best", shadow=True, fontsize=fontsize)
-           ax.set_xlabel(f"{key1} energy (eV)")
-           ax.set_ylabel(f"{key2} energy (eV)")
+           #ax.legend(loc="best", shadow=True, fontsize=fontsize)
+           ax.set_xlabel(f"{key1} energy")
+           ax.set_ylabel(f"{key2} energy")
            if irow == 0:
-               ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.2f}", fontsize=fontsize)
+               ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
+        if "title" not in kwargs: fig.suptitle(f"Energies in eV for {self.structure.latex_formula}")
         return fig
 
     @add_fig_kwargs
     def plot_forces(self, fontsize=8, **kwargs):
         """
-        Compare energies
+        Compare forces.
         """
         key_pairs = self.get_key_pairs()
         nrows, ncols = 3, len(key_pairs)
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=True, squeeze=False)
+                                               sharex=False, sharey=False, squeeze=False)
 
         for icol, (key1, key2) in enumerate(key_pairs):
             for irow, direction in enumerate(("x", "y", "z")):
                 xs, ys = self.xy_forces_for_keys(key1, key2, direction)
                 stats = diff_stats(xs, ys)
                 ax = ax_mat[irow, icol]
-                ax.scatter(xs, ys, marker="o", label="$" + f"F_{direction}" + "$")
+                ax.scatter(xs, ys, marker="o")
                 linear_fit_ax(ax, xs, ys)
                 ax.grid(True)
-                ax.legend(loc="best", shadow=True, fontsize=fontsize)
-                f_str = "$" + f"F_{direction}" + "$ (eV/Ang)"
+                f_str = f"$F_{direction}"
+                if icol == 0:
+                    ax.set_ylabel(f"{key2} {f_str}")
                 if irow == 2:
                     ax.set_xlabel(f"{key1} {f_str}")
-                    ax.set_ylabel(f"{key2} {f_str}")
-                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.2f}", fontsize=fontsize)
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
+        if "title" not in kwargs: fig.suptitle(f"Cartesian forces in ev/Ang for {self.structure.latex_formula}")
         return fig
 
     @add_fig_kwargs
-    def plot_stresses(self, fontsize=8, **kwargs):
+    def plot_stresses(self, fontsize=6, **kwargs):
         """
+        Compare stress components.
         """
         key_pairs = self.get_key_pairs()
         nrows, ncols = 6, len(key_pairs)
@@ -577,57 +584,119 @@ class AseResultsComparator:
                 xs, ys = self.xy_stress_for_keys(key1, key2, voigt_comp)
                 stats = diff_stats(xs, ys)
                 ax = ax_mat[irow, icol]
-                ax.scatter(xs, ys, marker="o") #, label="$" + f"F_{direction}" + "$")
+                ax.scatter(xs, ys, marker="o")
                 linear_fit_ax(ax, xs, ys)
                 ax.grid(True)
-                ax.legend(loc="best", shadow=True, fontsize=fontsize)
-                s_str = "$" + f"F_{voigt_comp}" + "$" # (eV/Ang)"
-                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.2f}", fontsize=fontsize)
+                s_tex = "$" + f"\sigma_{voigt_comp}" + "$"
+                if icol == 0
+                    ax.set_ylabel(f"{key2} {f_str}")
+                if irow == (len(self.ALL_VOIGT_COMPS) - 1):
+                    ax.set_xlabel(f"{key1} {s_tex}")
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
+        if "title" not in kwargs: fig.suptitle(f"Stresses in (eV/Ang^2) for {self.structure.latex_formula}")
         return fig
 
-    #@add_fig_kwargs
-    #def plot_traj(self, fontsize=8, **kwargs):
-    #    """
-    #    """
-    #    key_pairs = self.get_key_pairs()
-    #    nrows, ncols = 1, len(key_pairs)
-    #    ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-    #                                           sharex=False, sharey=False, squeeze=False)
-    #    # Compare energies along the trajectory.
-    #    ax = ax_list[0]
-    #    aligned_ene_list = self.get_aligned_energies_traj()
-
-    #    for key, enes in zip(self.keys, aligned_ene_list):
-    #        ax.plot(enes, marker="o", label=key)
-    #        #set_ax_xylabels(ax, "Trajectory", "Energy (eV))")
-    #        ax.legend(loc="best", shadow=True, fontsize=fontsize)
-
-    #    # Compare component of cart forces along the trajectory.
-    #    #for icol, (key1, key2) in enumerate(key_pairs):
-    #        #for irow, direction in enumerate(("x", "y", "z")):
-    #        #f1, f2 = self.traj_forces_for_keys(key1, key2, direction)
-    #        #stats = diff_stats(f1, f2)
-
-    #    # Compare diagonal stresses along the trajectory.
-    #    #for irow, voigt_comp in enumerate(self.ALL_VOIGT_COMPS):
-    #    #    s1, s2 = self.traj_stress_for_keys(key1, key2, voigt_comp)
-    #    #    stats = diff_stats(s1, s2)
-
-    #    # Compare off-diagonal stresses along the trajectory.
-
-    #    #for ax in ax_list:
-    #    #    ax.grid(True)
-
-    #    return fig
-
-    def yield_figs(self, **kwargs):  # pragma: no cover
+    @add_fig_kwargs
+    def plot_traj(self, what_list=("energy", "forces", "stress"),
+                  delta_mode=True, with_stress=True, fontsize=6, **kwargs):
         """
-        This function *generates* a predefined list of figures with minimal input from the user.
+        Plot results along the trajectory.
+
+        Args:
+            delta_mode: True to plot difference instead of absolute values.
+            with_stress: True to plot stresses.
         """
-        yield self.plot_energies(show=False)
-        yield self.plot_forces(show=False)
-        yield self.plot_stresses(show=False)
+        what_list = list_strings(what_list)
+
+        key_pairs = self.get_key_pairs()
+        nrows, ncols = 3 if with_stress else 2, len(key_pairs)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey="row", squeeze=False)
+
+        atom1_cmap = plt.get_cmap("viridis")
+        atom2_cmap = plt.get_cmap("jet")
+        markersize = 2
+
+        for icol, (key1, key2) in enumerate(key_pairs):
+
+            row_count = -1
+            row_count += 1
+            ax = ax_mat[row_count, icol]
+
+            # Plot delta energy along the trajectory.
+            e1, e2 = self.xy_energies_for_keys(key1, key2, sort=False)
+            stats = diff_stats(e1, e2)
+
+            if delta_mode:
+                abs_delta_ene = np.abs(e1 - e2)
+                ax.plot(abs_delta_ene, marker="o", markersize=markersize)
+                ax.set_yscale("log")
+            else:
+                ax.plot(e1, marker="o", color="red",  legend=key1, markersize=markersize)
+                ax.plot(e2, marker="o", color="blue", legend=key2, markersize=markersize)
+
+            set_grid_legend(ax, fontsize, # xlabel='trajectory',
+                            ylabel="$|\Delta_E|$ (eV)" if delta_mode else ylabel="$E$ (eV)",
+                            grid=True, legend=not delta_mode,
+                            legend_loc="left",
+                            title=f"{key1}/{key2} MAE: {stats.MAE:.6f}")
+
+            # Plot (delta of) forces along the trajectory.
+            # Arrays of shape: [nsteps, natom, 3]
+            f1_tad, f2_tad = self.traj_forces_for_keys(key1, key2)
+
+            row_count += 1
+            ax = ax_mat[row_count, icol]
+            marker_idir = {0: ">", 1: "<", 2: "^"}
+            for iatom in range(self.natom):
+                for idir, direction in enumerate(("x", "y", "z")):
+                    if delta_mode:
+                        style = dict(marker=marker_idir[idir], markersize=markersize,
+                                     color=atom1_cmap(float(iatom) / self.natom))
+                        abs_delta_force = np.abs(f1_tad[:,iatom,idir] - f2_tad[:,iatom,idir])
+                        ax.plot(abs_delta_force, **style, label=f"$\Delta F_{direction}$" if iatom == 0 else None)
+                        ax.set_yscale("log")
+                    else:
+                        f1_style = dict(marker=marker_idir[idir], markersize=markersize,
+                                        color=atom1_cmap(float(iatom) / self.natom))
+                        f2_style = dict(marker=marker_idir[idir], markersize=markersize,
+                                        color=atom2_cmap(float(iatom) / self.natom))
+                        ax.plot(f1_tad[:,iatom,idir], **f1_style,
+                                label=f"${key1}\, F_{direction}$" if (iatom, idir) == (0,0) else None)
+                        ax.plot(f2_tad[:,iatom,idir], **f2_style,
+                                label=f"${key2}\, F_{direction}$" if (iatom, idir) == (0,0) else None)
+                        ax.set_ylim(-1, +1)
+
+            set_grid_legend(ax, fontsize, # xlabel='trajectory',
+                            grid=True, legend=True, legend_loc="upper left",
+                            ylabel="$|\Delta_F|$ (eV/Ang)" if delta_mode else "$F$ (eV/Ang)")
+
+            # Plot (delta of) stresses along the trajectory.
+            row_count += 1
+            ax = ax_mat[row_count, icol]
+            marker_voigt = {"xx": ">", "yy": "<", "zz": "^", "yz": 1, "xz": 2, "xy":3}
+            for iv, voigt_comp in enumerate(self.ALL_VOIGT_COMPS):
+                voigt_comp_tex = "{" + f"{voigt_comp}" + "}"
+                s1, s2 = self.xy_stress_for_keys(key1, key2, voigt_comp, sort=False)
+                s_style = dict(marker=marker_voigt[voigt_comp], markersize=markersize)
+                if delta_mode:
+                    abs_delta_stress = np.abs(s1 - s2)
+                    ax.plot(abs_delta_stress, **s_style, label=f"$\Delta \sigma_{voigt_comp_tex}$")
+                    ax.set_yscale("log")
+                else:
+                    ax.plot(s1, **s_style, label=f"${key1}\, \sigma_{voigt_comp_tex}$" if iv == 0 else None)
+                    ax.plot(s2, **s_style, label=f"${key2}\, \sigma_{voigt_comp_tex}$" if iv == 0 else None)
+                    ax.set_ylim(-1, +1)
+
+            set_grid_legend(ax, fontsize, xlabel='trajectory',
+                            grid=True, legend=True, legend_loc="upper left",
+                            ylabel="$|\Delta_\sigma|$ (eV/Ang$^2$)" if delta_mode else "$\sigma$ (eV/Ang$^2$)")
+
+        head = "$\Delta$-terms" if delta_mode else "GS terms"
+        if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
+
+        return fig
 
 
 class AseRelaxation:
@@ -847,7 +916,7 @@ def as_calculator(obj) -> Calculator:
 class CalcBuilder:
     """
     Factory class to build an ASE calculator with ML potential
-    Supports different backends defined by `name`.
+    Supports different backends defined by `name` string.
     """
 
     ALL_NN_TYPES = [
@@ -870,7 +939,7 @@ class CalcBuilder:
     def __str__(self):
         return f"{self.__class__.__name__}: name: {self.name}"
 
-    # This is for the pickle protocol
+    # pickle support.
     def __getstate__(self):
         return dict(name=self.name)
 
@@ -880,12 +949,12 @@ class CalcBuilder:
 
     def get_calculator(self) -> Calculator:
         """
-        Return ASE Calculator with the ML potential.
+        Return ASE calculator with ML potential.
         """
         nn_type, model_name = self._get_nntype_model_name()
 
         if nn_type == "m3gnet_old":
-            # Legacy version.
+            # m3gnet legacy version.
             if self._model is None:
                 silence_tensorflow()
             try:
@@ -894,6 +963,7 @@ class CalcBuilder:
                 raise ImportError("m3gnet not installed. Try `pip install m3gnet`.") from exc
 
             if self._model is None:
+                assert model_name is None
                 self._model = Potential(M3GNet.load())
 
             class MyM3GNetCalculator(M3GNetCalculator, _MyCalculatorMixin):
@@ -902,7 +972,7 @@ class CalcBuilder:
             return MyM3GNetCalculator(potential=self._model)
 
         if nn_type == "m3gnet":
-            # See https://github.com/materialsvirtuallab/matgl
+            # m3gnet new version. See https://github.com/materialsvirtuallab/matgl
             try:
                 import matgl
                 from matgl.ext.ase import M3GNetCalculator
@@ -910,7 +980,8 @@ class CalcBuilder:
                 raise ImportError("matgl not installed. Try `pip install matgl`.") from exc
 
             if self._model is None:
-                self._model = matgl.load_model("M3GNet-MP-2021.2.8-PES")
+                model_name = "M3GNet-MP-2021.2.8-PES" if model_name is None else model_name
+                self._model = matgl.load_model(model_name)
 
             class MyM3GNetCalculator(M3GNetCalculator, _MyCalculatorMixin):
                 """Add delta_forces"""
@@ -925,6 +996,7 @@ class CalcBuilder:
                 raise ImportError("chgnet not installed. Try `pip install chgnet`.") from exc
 
             if self._model is None:
+                assert model_name is None
                 self._model = CHGNet.load()
 
             class MyCHGNetCalculator(CHGNetCalculator, _MyCalculatorMixin):
@@ -938,19 +1010,18 @@ class CalcBuilder:
             except ImportError as exc:
                 raise ImportError("alignn not installed. See https://github.com/usnistgov/alignn") from exc
 
-            model_path = default_path()
-
             class MyAlignnCalculator(AlignnAtomwiseCalculator, _MyCalculatorMixin):
                 """Add delta_forces"""
 
-            return AlignnAtomwiseCalculator(path=model_path)
+            model_name = default_path() if model_name is None else model_name
+            return AlignnAtomwiseCalculator(path=model_name)
 
         raise ValueError(f"Invalid {self.name=}")
 
 
 class _MlBase:
     """
-    Base class for all Ml subclasses. Provides helper functions to
+    Base class for all Ml subclasses providing helper methods to
     perform typical tasks such as writing files in the workdir
     and object persistence via pickle.
     """
@@ -1079,7 +1150,9 @@ class _MlBase:
             raise ValueError(f"Invalid format {fmt=}")
 
     def write_script(self, basename: str, text: str, info: str) -> Path:
-        """Write text script to basename."""
+        """
+        Write text script to basename file.
+        """
         self.add_basename_info(basename, info)
         _, ext = os.path.splitext(basename)
         shebang = {
@@ -1134,7 +1207,7 @@ import matplotlib.pyplot as plt
 
 class MlRelaxer(_MlBase):
     """
-    Relax structure with ASE and ML-potential
+    Relax structure with ASE and ML-potential.
     """
 
     def __init__(self, atoms: Atoms, relax_mode, fmax, pressure, steps, optimizer, calc_builder, verbose,
@@ -1313,7 +1386,7 @@ print(df[ynames].describe())
 axes = df.plot.line(x=xname, y=ynames, subplots=True)
 fig = axes[0].get_figure()
 plt.show()
-""", info="Python script to compute visualize energies vs Time.")
+""", info="Python script to visualize energies vs Time.")
 
         md.run(steps=self.steps)
 
@@ -1508,7 +1581,7 @@ class MlNeb(_MlNebBase):
                              verbose=self.verbose,
                              )
 
-            print(f"Relaxing initial image with relax mode: {self.relax} ...")
+            print(f"Relaxing initial image with relax mode: {self.relax_mode} ...")
             relax = relax_atoms(initial_atoms,
                                 traj_path=self.get_path("initial_relax.traj", "ASE Relaxation of the first image"),
                                 **relax_kws)
@@ -1982,18 +2055,17 @@ class MlCompareWithAbinitio(_MlNebBase):
     Compare ab-initio energies, forces and stresses with ML results.
     """
 
-    def __init__(self, filepath, nn_names, calc_builder, verbose, workdir, prefix=None):
+    def __init__(self, filepath, nn_names, verbose, workdir, prefix=None):
         """
         Args:
-            filepath: File
-            calc_builder:
+            filepath: File produced by the ab-initio code with energies, forces and stresses.
+            nn_names: String or list of strings defining the NN potential.
             verbose: Verbosity level.
             workdir: Working directory.
         """
         super().__init__(workdir, prefix)
         self.filepath = filepath
         self.nn_names = list_strings(nn_names)
-        self.calc_builder = calc_builder
         self.verbose = verbose
 
     def to_string(self, verbose=0) -> str:
@@ -2011,31 +2083,32 @@ class MlCompareWithAbinitio(_MlNebBase):
 
     def _get_abinitio_results(self) -> list[AseResults]:
         """
-        Extract ab-initio results from self.filepath according to file extension.
+        Extract ab-initio results from self.filepath according to the file extension.
         """
         basename = os.path.basename(self.filepath)
         abi_results = []
+        from fnmatch import fnmatch
 
         if basename.endswith("_HIST.nc"):
+            # Abinit HIST file produced by a structural relaxation.
             from abipy.dynamics.hist import HistFile
             with HistFile(self.filepath) as hist:
                 # etotals in eV units.
                 etotals = hist.etotals
                 forces_hist = hist.r.read_cart_forces(unit="eV ang^-1")
-                # GPa units
+                # GPa units.
                 stress_cart_tensors, pressures = hist.reader.read_cart_stress_tensors()
                 for structure, ene, stress, forces in zip(hist.structures, etotals, stress_cart_tensors, forces_hist):
                     r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress)
                     abi_results.append(r)
                 return abi_results
 
-        elif basename.endswith(".xml"):
-            # Assume Vasprun file.
-            def get_energy_step(step: dict):
-                """Copied from final_energy propertu in vasp.outputs."""
+        elif fnmatch(basename, "vasprun*.xml*"):
+            # Assume Vasprun file with structural relaxation or MD results.
+            def get_energy_step(step: dict) -> float:
+                """Copied from final_energy property in vasp.outputs."""
                 final_istep = step
                 total_energy = final_istep["e_0_energy"]
-
                 # Addresses a bug in vasprun.xml. See https://www.vasp.at/forum/viewtopic.php?f=3&t=16942
                 final_estep = final_istep["electronic_steps"][-1]
                 electronic_energy_diff = final_estep["e_0_energy"] - final_estep["e_fr_energy"]
@@ -2048,51 +2121,65 @@ class MlCompareWithAbinitio(_MlNebBase):
             vasprun = Vasprun(self.filepath)
             for step in vasprun.ionic_steps:
                 #print(step.keys())
-                structure = step["structure"]
+                structure, forces, stress = step["structure"], step["forces"], step["stress"]
                 ene = get_energy_step(step)
-                forces = step["forces"]
-                stress = step["stress"]
                 r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress)
                 abi_results.append(r)
             return abi_results
 
         raise ValueError(f"Don't know how to extract data from {self.filepath}")
 
-
-    def run(self, nprocs, with_dataframes=True) -> AseResultsComparator:
+    def run(self, nprocs, print_dataframes=True) -> AseResultsComparator:
         """
         Run calculation with nprocs processes.
         """
         #self.pickle_dump()
         workdir = self.workdir
 
-        labels = ["ab-initio"]
+        labels = ["abinitio"]
         abi_results = self._get_abinitio_results()
         results_list = [abi_results]
 
+        ntasks = len(abi_results)
+        #nprocs = nprocs_for_ntasks(nprocs, ntasks, title="Begin ML computation")
+        nprocs = 1
+
         for nn_name in self.nn_names:
-            calc = as_calculator(nn_name)
-            # Use ML to compute quantities with the same ab-initio trajectory.
-            items = []
-            for res in abi_results:
-                items.append(AseResults.from_atoms(res.atoms, calc=calc))
             labels.append(nn_name)
+            # Use ML to compute quantities with the same ab-initio trajectory.
+            if nprocs == 1:
+                calc = as_calculator(nn_name)
+                items = [AseResults.from_atoms(res.atoms, calc=calc) for res in abi_results]
+            else:
+                raise NotImplementedError()
+                args_list = [(nn_name, res) for res in abi_results]
+                with Pool(processes=nprocs) as pool:
+                    items = pool.map(_map_run_compare, args_list)
+
             results_list.append(items)
 
         comp = AseResultsComparator.from_ase_results(labels, results_list)
 
-        if with_dataframes:
+        if print_dataframes:
             # Write dataframes to disk in CSV format.
-            forces_df = comp.get_forces_dataframe()
-            print(forces_df)
+            forces_df = comp.get_forces_dataframe() #; print(forces_df)
             self.write_df(forces_df, "cart_forces.csv", info="CSV file with cartesian forces.")
-            stress_df = comp.get_stress_dataframe()
-            print(stress_df)
+            stress_df = comp.get_stress_dataframe() #; print(stress_df)
             self.write_df(stress_df, "voigt_stress.csv", info="CSV file with cartesian stresses in Voigt notation")
 
         self._finalize()
         return comp
 
+
+#__COMPARE_CALC = None
+#
+#def _map_run_compare(args: tuple) -> AseResults:
+#    """Function passed to pool.map."""
+#    nn_name, res = args
+#    global __COMPARE_CALC
+#    if __COMPARE_CALC is None:
+#        #__COMPARE_CALC = as_calculator(nn_name)
+#    return AseResults.from_atoms(res.atoms, calc=__COMPARE_CALC)
 
 
 class MolecularDynamics:

@@ -28,7 +28,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_f
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, ShellScript
 from abipy.tools.printing import print_dataframe
 from abipy.ml.aseml import (relax_atoms, get_atoms, as_calculator, ase_optimizer_cls, RX_MODE, fix_atoms,
-                            MlNeb, MlGsList, CalcBuilder, make_ase_neb)
+                            MlNeb, MlGsList, CalcBuilder, make_ase_neb, nprocs_for_ntasks)
 
 
 @dataclasses.dataclass
@@ -347,23 +347,6 @@ def main():
 
             with Pool(processes=nprocs) as pool:
                 pool.map(_map_run_start_count, args_list)
-
-
-def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
-    """
-    Return the number of procs to be used in a multiprocessing Pool.
-    If negative or None, use all procs in the system.
-    """
-    if nprocs is None or nprocs <= 0:
-        nprocs = max(1, os.cpu_count())
-    else:
-        nprocs = int(nprocs)
-
-    nprocs = min(nprocs, ntasks)
-    if title is not None:
-        print(title)
-        print(f"Using multiprocessing pool with {nprocs=} for {ntasks=} ...")
-    return nprocs
 
 
 def _map_run_start_count(args):

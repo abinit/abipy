@@ -148,7 +148,7 @@ def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> 
 
 
 def set_grid_legend(ax_or_axlist, fontsize: int,
-                    xlabel=None, ylabel=None, grid=True, legend=True, direction=None) -> None:
+                    xlabel=None, ylabel=None, grid=True, legend=True, direction=None, title=None, legend_loc="best") -> None:
     """
     Activate grid and legend for one axis or a list of axis.
 
@@ -156,23 +156,26 @@ def set_grid_legend(ax_or_axlist, fontsize: int,
         grid: True to activate the grid.
         legend: True to activate the legend.
         direction: Use "x" ("y") if to add xlabel (ylabel) only to the last ax.
+        title: Title string
     """
     if duck.is_listlike(ax_or_axlist):
         for ix, ax in enumerate(ax_or_axlist):
             ax.grid(grid)
-            if legend: ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            if legend: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
             if xlabel:
                 doit = direction is None or (direction == "y" and ix == len(ax_or_axlist) -1)
                 if doit: ax.set_xlabel(xlabel)
             if ylabel:
                 doit = direction is None or (direction == "x" and ix == len(ax_or_axlist) -1)
                 if doit: ax.set_ylabel(ylabel)
+            if title: ax.set_title(title, fontsize=fontsize)
     else:
         ax = ax_or_axlist
         ax.grid(grid)
-        if legend: ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        if legend: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
         if xlabel: ax.set_xlabel(xlabel)
         if ylabel: ax.set_ylabel(ylabel)
+        if title: ax.set_title(title, fontsize=fontsize)
 
 
 def set_visible(ax, boolean: bool, *args) -> None:
@@ -891,7 +894,7 @@ class MplExposer(Exposer): # pragma: no cover
             e(obj.plot2(**plot_args))
     """
 
-    def __init__(self, slide_mode=False, slide_timeout=None, verbose=1):
+    def __init__(self, slide_mode=False, slide_timeout=None, verbose=1, **kwargs):
         """
         Args:
             slide_mode: If True, iterate over figures. Default: Expose all figures at once.
@@ -957,7 +960,7 @@ class PanelExposer(Exposer):  # pragma: no cover
             e(obj.plot1(show=False))
             e(obj.plot2(show=False))
     """
-    def __init__(self, title=None, dpi=92, verbose=1):
+    def __init__(self, title=None, dpi=92, verbose=1, **kwargs):
         """
         Args:
             title: String to be show in the header.

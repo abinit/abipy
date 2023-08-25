@@ -48,7 +48,7 @@ def herald(f):
 
 
 def add_constraint_opts(f):
-    """Add CLI options to constraint atoms"""
+    """Add CLI options to constrain atoms"""
     def mk_cbk(type):
         def callback(ctx, param, value):
             #print(f"{param=}, {value=}")
@@ -116,14 +116,15 @@ def add_workdir_verbose_opts(f):
 @click.pass_context
 @click.option("--nn-name", "-nn", default="m3gnet", show_default=True,
               type=click.Choice(aseml.CalcBuilder.ALL_NN_TYPES),
-              help='ML potential')
+              help='ML potential to be used')
 @click.option("--seaborn", "-sns", default=None, show_default=True,
               help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster").')
 def main(ctx, nn_name, seaborn):
     """Script to perform calculations with ML potentials."""
     ctx.ensure_object(dict)
 
-    if seaborn:
+    #if seaborn:
+    if True:
         # Activate seaborn settings for plots
         import seaborn as sns
         sns.set(context=seaborn, style='darkgrid', palette='deep',
@@ -492,34 +493,42 @@ def scan_relax(ctx, filepath,
 @herald
 @click.pass_context
 @click.argument("filepath", type=str)
+@click.option("-nns", '--nn-names', type=str, multiple=True,  show_default=True, help='ML potentials to be used',
+              #default=["m3gnet", "chgnet"],
+              default=["chgnet"])
+@click.option("-e", '--exposer', show_default=True, help='Plotting backend: mpl for matplotlib, panel for web-based',
+              type=click.Choice(["mpl", "panel"]))
 @add_nprocs_opt
 @add_workdir_verbose_opts
 def compare(ctx, filepath,
+            nn_names,
+            exposer,
             nprocs,
             workdir, verbose
             ):
     """
-    Compare ...
+    Compare ab-initio energies, forces, stresses with ML-computed ones.
 
     Usage example:
 
     \b
-        abiml.py.py compare FILE
+        abiml.py.py compare FILE --nn-names m3gnet --nn-names chgnet
 
-    where `FILE` can be among: HIST.nc
+    where `FILE` can be either a _HIST.nc or a VASPRUN.
     """
-    nn_name = ctx.obj["nn_name"]
-
-    nn_names = ["m3gnet", "chgnet"]
-
-    ml_comp = aseml.MlCompareWithAbinitio(filepath, nn_names, CALC_BUILDER, verbose, workdir, prefix="_compare_")
+    ml_comp = aseml.MlCompareWithAbinitio(filepath, nn_names, verbose, workdir, prefix="_compare_")
     print(ml_comp)
     c = ml_comp.run(nprocs=nprocs)
 
     from abipy.tools.plotting import Exposer
-    with Exposer.as_exposer("mpl") as e:
-    #with Exposer.as_exposer("panel") as e:
-        e.add_obj_with_yield_figs(c)
+    with Exposer.as_exposer(exposer, title=os.path.basename(filepath)) as e:
+        with_stress = True
+        e(c.plot_traj(delta_mode=False, with_stress=with_stress, show=False))
+        e(c.plot_traj(delta_mode=True,  with_stress=with_stress, show=False))
+        e(c.plot_energies(show=False))
+        e(c.plot_forces(show=False))
+        if with_stress:
+            e(c.plot_stresses(show=False))
 
     return 0
 

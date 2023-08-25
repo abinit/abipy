@@ -1606,7 +1606,6 @@ class TchimVsSus:
     @add_fig_kwargs
     def plot_matdiff(self, qpoint, iw_index: int, npwq=101, with_susmat=False,
                      cmap="jet", fontsize=8, spins=(0, 0), **kwargs) -> Figure:
-
         """
         Plot G-G' matrix with the absolute value of chi_AW and chi_GWR for given q-point and omega index.
 
