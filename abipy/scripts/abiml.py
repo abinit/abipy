@@ -123,8 +123,8 @@ def main(ctx, nn_name, seaborn):
     """Script to perform calculations with ML potentials."""
     ctx.ensure_object(dict)
 
-    #if seaborn:
-    if True:
+    if seaborn:
+    #if True:
         # Activate seaborn settings for plots
         import seaborn as sns
         sns.set(context=seaborn, style='darkgrid', palette='deep',
@@ -496,8 +496,9 @@ def scan_relax(ctx, filepath,
 @click.option("-nns", '--nn-names', type=str, multiple=True,  show_default=True, help='ML potentials to be used',
               #default=["m3gnet", "chgnet"],
               default=["chgnet"])
-@click.option("-e", '--exposer', show_default=True, help='Plotting backend: mpl for matplotlib, panel for web-based',
-              type=click.Choice(["mpl", "panel"]))
+@click.option("-e", '--exposer', default="mpl", show_default=True, type=click.Choice(["mpl", "panel"]),
+              help='Plotting backend: mpl for matplotlib, panel for web-based')
+
 @add_nprocs_opt
 @add_workdir_verbose_opts
 def compare(ctx, filepath,
@@ -523,8 +524,9 @@ def compare(ctx, filepath,
     from abipy.tools.plotting import Exposer
     with Exposer.as_exposer(exposer, title=os.path.basename(filepath)) as e:
         with_stress = True
-        e(c.plot_traj(delta_mode=False, with_stress=with_stress, show=False))
-        e(c.plot_traj(delta_mode=True,  with_stress=with_stress, show=False))
+        e(c.plot_energies_traj(delta_mode=True, show=False))
+        e(c.plot_forces_traj(delta_mode=True, show=False))
+        e(c.plot_stress_traj(delta_mode=True,  show=False))
         e(c.plot_energies(show=False))
         e(c.plot_forces(show=False))
         if with_stress:

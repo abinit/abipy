@@ -559,11 +559,11 @@ class AseResultsComparator:
                 ax.scatter(xs, ys, marker="o")
                 linear_fit_ax(ax, xs, ys)
                 ax.grid(True)
-                f_str = f"$F_{direction}"
+                f_tex = f"$F_{direction}$"
                 if icol == 0:
-                    ax.set_ylabel(f"{key2} {f_str}")
+                    ax.set_ylabel(f"{key2} {f_tex}")
                 if irow == 2:
-                    ax.set_xlabel(f"{key1} {f_str}")
+                    ax.set_xlabel(f"{key1} {f_tex}")
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
         if "title" not in kwargs: fig.suptitle(f"Cartesian forces in ev/Ang for {self.structure.latex_formula}")
@@ -587,9 +587,9 @@ class AseResultsComparator:
                 ax.scatter(xs, ys, marker="o")
                 linear_fit_ax(ax, xs, ys)
                 ax.grid(True)
-                s_tex = "$" + f"\sigma_{voigt_comp}" + "$"
-                if icol == 0
-                    ax.set_ylabel(f"{key2} {f_str}")
+                s_tex = "$\sigma_{%s}$" % voigt_comp
+                if icol == 0:
+                    ax.set_ylabel(f"{key2} {s_tex}")
                 if irow == (len(self.ALL_VOIGT_COMPS) - 1):
                     ax.set_xlabel(f"{key1} {s_tex}")
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
@@ -598,60 +598,71 @@ class AseResultsComparator:
         return fig
 
     @add_fig_kwargs
-    def plot_traj(self, what_list=("energy", "forces", "stress"),
-                  delta_mode=True, with_stress=True, fontsize=6, **kwargs):
+    def plot_energies_traj(self, delta_mode=True, fontsize=6, markersize=2, **kwargs):
         """
-        Plot results along the trajectory.
+        Plot energies along the trajectory.
 
         Args:
             delta_mode: True to plot difference instead of absolute values.
-            with_stress: True to plot stresses.
         """
-        what_list = list_strings(what_list)
-
         key_pairs = self.get_key_pairs()
-        nrows, ncols = 3 if with_stress else 2, len(key_pairs)
+        nrows, ncols = 1, len(key_pairs)
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey="row", squeeze=False)
 
-        atom1_cmap = plt.get_cmap("viridis")
-        atom2_cmap = plt.get_cmap("jet")
-        markersize = 2
-
         for icol, (key1, key2) in enumerate(key_pairs):
-
-            row_count = -1
-            row_count += 1
-            ax = ax_mat[row_count, icol]
-
-            # Plot delta energy along the trajectory.
             e1, e2 = self.xy_energies_for_keys(key1, key2, sort=False)
             stats = diff_stats(e1, e2)
 
+            ax = ax_mat[0, icol]
             if delta_mode:
-                abs_delta_ene = np.abs(e1 - e2)
-                ax.plot(abs_delta_ene, marker="o", markersize=markersize)
+                # Plot delta energy along the trajectory.
+                ax.plot(np.abs(e1 - e2), marker="o", markersize=markersize)
                 ax.set_yscale("log")
             else:
                 ax.plot(e1, marker="o", color="red",  legend=key1, markersize=markersize)
                 ax.plot(e2, marker="o", color="blue", legend=key2, markersize=markersize)
 
-            set_grid_legend(ax, fontsize, # xlabel='trajectory',
-                            ylabel="$|\Delta_E|$ (eV)" if delta_mode else ylabel="$E$ (eV)",
-                            grid=True, legend=not delta_mode,
-                            legend_loc="left",
-                            title=f"{key1}/{key2} MAE: {stats.MAE:.6f}")
+            set_grid_legend(ax, fontsize, xlabel='trajectory',
+                            ylabel="$|\Delta_E|$" if delta_mode else "$E$",
+                            grid=True, legend=not delta_mode, legend_loc="left",
+                            title=f"{key1}/{key2} MAE: {stats.MAE:.6f} eV")
 
-            # Plot (delta of) forces along the trajectory.
+        head = "$\Delta$-Energy in eV" if delta_mode else "Energy in eV"
+        if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_forces_traj(self, delta_mode=True, fontsize=6, markersize=2, **kwargs):
+        """
+        Plot forces along the trajectory.
+
+        Args:
+            delta_mode: True to plot difference instead of absolute values.
+        """
+        # Fx,Fy,Fx along rows, pairs along columns.
+        key_pairs = self.get_key_pairs()
+        nrows, ncols = 3, len(key_pairs)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey="row", squeeze=False)
+
+        atom1_cmap = plt.get_cmap("viridis")
+        atom2_cmap = plt.get_cmap("jet")
+        marker_idir = {0: ">", 1: "<", 2: "^"}
+
+        for icol, (key1, key2) in enumerate(key_pairs):
             # Arrays of shape: [nsteps, natom, 3]
             f1_tad, f2_tad = self.traj_forces_for_keys(key1, key2)
-
-            row_count += 1
-            ax = ax_mat[row_count, icol]
-            marker_idir = {0: ">", 1: "<", 2: "^"}
-            for iatom in range(self.natom):
-                for idir, direction in enumerate(("x", "y", "z")):
+            for idir, direction in enumerate(("x", "y", "z")):
+                last_row = idir == 2
+                xs, ys = self.xy_forces_for_keys(key1, key2, direction)
+                stats = diff_stats(xs, ys)
+                ax = ax_mat[idir, icol]
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
+                for iatom in range(self.natom):
                     if delta_mode:
+                        # Plot delta of forces along the trajectory.
                         style = dict(marker=marker_idir[idir], markersize=markersize,
                                      color=atom1_cmap(float(iatom) / self.natom))
                         abs_delta_force = np.abs(f1_tad[:,iatom,idir] - f2_tad[:,iatom,idir])
@@ -666,34 +677,57 @@ class AseResultsComparator:
                                 label=f"${key1}\, F_{direction}$" if (iatom, idir) == (0,0) else None)
                         ax.plot(f2_tad[:,iatom,idir], **f2_style,
                                 label=f"${key2}\, F_{direction}$" if (iatom, idir) == (0,0) else None)
-                        ax.set_ylim(-1, +1)
+                        #ax.set_ylim(-1, +1)
 
-            set_grid_legend(ax, fontsize, # xlabel='trajectory',
-                            grid=True, legend=True, legend_loc="upper left",
-                            ylabel="$|\Delta_F|$ (eV/Ang)" if delta_mode else "$F$ (eV/Ang)")
+                set_grid_legend(ax, fontsize, xlabel='trajectory' if last_row else None,
+                                grid=True, legend=not delta_mode, legend_loc="upper left",
+                                ylabel=f"$|\Delta F_{direction}|$" if delta_mode else f"$F_{direction}$")
 
+        head = "$\Delta$-forces in eV/Ang" if delta_mode else "Forces in eV/Ang"
+        if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_stress_traj(self, delta_mode=True, markersize=2, fontsize=6, **kwargs):
+        """
+        Plot results along the trajectory.
+
+        Args:
+            delta_mode: True to plot difference instead of absolute values.
+        """
+        # Sxx,Syy,Szz,... along rows, pairs along columns.
+        key_pairs = self.get_key_pairs()
+        nrows, ncols = 6, len(key_pairs)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey="row", squeeze=False)
+
+        marker_voigt = {"xx": ">", "yy": "<", "zz": "^", "yz": 1, "xz": 2, "xy":3}
+        for icol, (key1, key2) in enumerate(key_pairs):
             # Plot (delta of) stresses along the trajectory.
-            row_count += 1
-            ax = ax_mat[row_count, icol]
-            marker_voigt = {"xx": ">", "yy": "<", "zz": "^", "yz": 1, "xz": 2, "xy":3}
             for iv, voigt_comp in enumerate(self.ALL_VOIGT_COMPS):
-                voigt_comp_tex = "{" + f"{voigt_comp}" + "}"
+                xs, ys = self.xy_stress_for_keys(key1, key2, voigt_comp)
+                stats = diff_stats(xs, ys)
+                last_row = iv == len(self.ALL_VOIGT_COMPS) - 1
+                ax = ax_mat[iv, icol]
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
+                voigt_comp_tex = "{" + voigt_comp + "}"
                 s1, s2 = self.xy_stress_for_keys(key1, key2, voigt_comp, sort=False)
                 s_style = dict(marker=marker_voigt[voigt_comp], markersize=markersize)
                 if delta_mode:
                     abs_delta_stress = np.abs(s1 - s2)
-                    ax.plot(abs_delta_stress, **s_style, label=f"$\Delta \sigma_{voigt_comp_tex}$")
+                    ax.plot(abs_delta_stress, **s_style, label=f"$|\Delta \sigma_{voigt_comp_tex}|$")
                     ax.set_yscale("log")
                 else:
-                    ax.plot(s1, **s_style, label=f"${key1}\, \sigma_{voigt_comp_tex}$" if iv == 0 else None)
-                    ax.plot(s2, **s_style, label=f"${key2}\, \sigma_{voigt_comp_tex}$" if iv == 0 else None)
-                    ax.set_ylim(-1, +1)
+                    ax.plot(s1, **s_style, label=f"${key1}\,\sigma_{voigt_comp_tex}$" if iv == 0 else None)
+                    ax.plot(s2, **s_style, label=f"${key2}\,\sigma_{voigt_comp_tex}$" if iv == 0 else None)
+                    #ax.set_ylim(-1, +1)
 
-            set_grid_legend(ax, fontsize, xlabel='trajectory',
-                            grid=True, legend=True, legend_loc="upper left",
-                            ylabel="$|\Delta_\sigma|$ (eV/Ang$^2$)" if delta_mode else "$\sigma$ (eV/Ang$^2$)")
+                set_grid_legend(ax, fontsize, xlabel='trajectory' if last_row else None,
+                                grid=True, legend=not delta_mode, legend_loc="upper left",
+                                ylabel=f"$|\Delta \sigma_{voigt_comp_tex}|$ " if delta_mode else "$\sigma$ ")
 
-        head = "$\Delta$-terms" if delta_mode else "GS terms"
+        head = r"$\Delta \sigma$ (eV/Ang$^2$)" if delta_mode else "Stress tensor (eV/Ang$^2$)"
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
 
         return fig
