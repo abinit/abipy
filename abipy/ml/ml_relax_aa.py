@@ -23,7 +23,7 @@ from abipy.core.structure import Structure, StructDiff
 from abipy.tools.iotools import workdir_with_prefix
 from abipy.dynamics.hist import HistFile
 from abipy.flowtk import PseudoTable
-from abipy.ml.aseml import print_atoms, get_atoms, CalcBuilder, ase_optimizer_cls, abisanitize_atoms
+from abipy.ml.aseml import print_atoms, get_atoms, CalcBuilder, ase_optimizer_cls, abisanitize_atoms ,write_atoms
 
 from time import perf_counter
 
@@ -129,6 +129,11 @@ class RelaxationProfiler:
         directory.mkdir()
         ml_calc = CalcBuilder(self.nn_name).get_calculator()
         atoms = self.initial_atoms.copy()
+        ##AA
+        ratlle_higher=1.0
+        print (f'AA: Rattling higher {ratlle_higher}')
+        atoms.rattle(stdev=abs(ratlle_higher), seed=42)
+        ##AA
         atoms.calc = ml_calc
 
         opt_kws = dict(
@@ -136,9 +141,13 @@ class RelaxationProfiler:
             #logfile=str(directory / f"log"),
         )
         opt = self.ase_opt_cls(self._mkfilter(atoms), **opt_kws)
-
+        ##AA
+        fmax_higher=0.001
+        print(f"AA: With higher fmax {fmax_higher}")
         with Timer() as timer:
-            opt.run(fmax=self.fmax, steps=self.steps)
+            #opt.run(fmax=self.fmax, steps=self.steps)
+            opt.run(fmax=fmax_higher, steps=self.steps)
+            ##AA
             if not opt.converged():
                 raise RuntimeError("ml_relax_opt didn't converge!")
         print('%s relaxation completed in %.2f sec after nsteps: %d\n' % (self.nn_name, timer.time, opt.nsteps))
@@ -232,6 +241,9 @@ class RelaxationProfiler:
         ml_calc = CalcBuilder(self.nn_name).get_calculator()
 
         print(f"\nBegin ABINIT + {self.nn_name} hybrid relaxation")
+        #print("AA: Starting from ML-optimized Atoms ")
+        #atoms = ml_opt.atoms.copy()
+        #atoms = abisanitize_atoms(atoms)
         if self.xc == "GGA":
             print(f"Starting from ML-optimized Atoms as {self.xc=}")
             atoms = ml_opt.atoms.copy()
@@ -239,8 +251,10 @@ class RelaxationProfiler:
         else:
             print(f"Starting from initial Atoms as {self.xc=}")
             atoms = self.initial_atoms.copy()
-
-        count, abiml_nsteps, ml_nsteps = 0, 0, 0
+         
+        #AA 
+        #count, abiml_nsteps, ml_nsteps = 0, 0, 0
+        count, abi_nsteps, abiml_nsteps, ml_nsteps = 0, 0, 0 ,0
         count_max = 10
         t_start = time.time()
         while count <= count_max:
@@ -252,14 +266,15 @@ class RelaxationProfiler:
             print("Iteration:", count, "abi_fmax:", gs.fmax, ", fmax:", self.fmax)
             if self.relax_mode == "cell":
                 print("abinit_stress", full_3x3_to_voigt_6_stress(gs.stress))
-            #print_atoms(atoms, cart_forces=gs.forces)
+            #write_atoms(atoms, cart_forces=gs.forces)
+            #write_atoms(atoms, cart_forces=gs.forces)
 
             # Compute ML forces and set delta forces in the ML calculator.
             ml_calc.set_delta_forces(None)
             ml_forces = ml_calc.get_forces(atoms=atoms)
             delta_forces = gs.forces - ml_forces #; delta_forces = None
             ml_calc.set_delta_forces(delta_forces)
-            #print("delta_forces:\n", delta_forces)
+            print("delta_forces:\n", delta_forces)
             #write_forces(count, gs.forces, ml_forces)
 
             if self.relax_mode == "cell":
@@ -278,18 +293,25 @@ class RelaxationProfiler:
                 #logfile=str(abinit.directory / f"log_{count}"),
             )
             opt = self.ase_opt_cls(self._mkfilter(atoms), **opt_kws)
-            opt.run(fmax=self.fmax, steps=self.steps)
+            ##AA
+            fmax_higher=0.001
+            print(f"AA: With higher fmax {fmax_higher}")
+            opt.run(fmax=fmax_higher, steps=self.steps)
+            #opt.run(fmax=self.fmax, steps=self.steps)
+            ##AA
             atoms = opt.atoms.copy()
             opt_converged = opt.converged()
             ml_nsteps += opt.nsteps
 
             final_mlabi_relax = None
             if opt_converged and opt.nsteps <= 1:
+            #if opt_converged and opt.nsteps < 1:    
                 final_mlabi_relax = self.abi_relax_atoms(directory=workdir / "abiml_final_relax",
                                                          atoms=atoms,
                                                          header="Performing final structural relaxation with ABINIT",
                                                          )
                 abiml_nsteps += final_mlabi_relax.nsteps
+                abi_nsteps +=final_mlabi_relax.nsteps
                 break
 
         t_end = time.time() - t_start
@@ -303,6 +325,8 @@ class RelaxationProfiler:
         print(f"GS steps in ML mode {ml_nsteps=}")
         print(f"GS steps in ABINIT mode {abi_relax.nsteps=}")
         print(f"GS steps in ABI+ML mode {abiml_nsteps=}")
+        #AA
+        print(f"Final steps in ABINIT mode {abi_nsteps=}")
 
         #forces_file.close(); stress_file.close()
 
@@ -351,7 +375,16 @@ class RelaxationProfiler:
         print('%s relaxation completed in %.2f sec after nsteps: %d\n' % (self.nn_name, timer.time, opt.nsteps))
 
         return opt
+    
+    
+    def run_ml(self, workdir=None, prefix=None):
+        """
+        Run the different steps of the bechmark.
+        """
+        workdir = workdir_with_prefix(workdir, prefix)
 
+        # Run relaxation with ML potential.
+        ml_opt = self.ml_relax_opt(workdir / "ml_relax")
 
 
 # if __name__ == "__main__":

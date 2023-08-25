@@ -73,7 +73,9 @@ def abisanitize_atoms(atoms: Atoms, **kwargs) -> Atoms:
     Call abisanitize, return new Atoms
     """
     structure = Structure.as_structure(atoms)
-    new_structure = structure.abisanitize(**kwargs)
+    #new_structure = structure.abisanitize(**kwargs)
+    ##AA
+    new_structure = structure.abi_sanitize(**kwargs)
     return to_ase_atoms(get_atoms(new_structure), calc=atoms.calc)
 
 
@@ -457,7 +459,7 @@ class _MyCalculatorMixin:
         delta_forces = self.get_delta_forces()
         if delta_forces is not None:
             forces += delta_forces
-            #print("Updating forces with delta_forces:\n", forces)
+            print("Updating forces with delta_forces:\n", forces)
             self.results.update(
                 forces=forces,
             )
