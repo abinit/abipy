@@ -47,7 +47,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = HistReader(filepath)
+        self.reader = self.r = HistReader(filepath)
 
     def close(self) -> None:
         """Close the file."""

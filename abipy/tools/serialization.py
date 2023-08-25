@@ -106,8 +106,9 @@ def pmg_pickle_load(filobj, **kwargs) -> Any:
 def pmg_pickle_dump(obj: Any, filobj, **kwargs):
     """
     Dump an object to a pickle file using PmgPickler.
+
     Args:
-        obj : Object to dump.
+        obj: Object to dump.
         fileobj: File-like object
         **kwargs: Any of the keyword arguments supported by PmgPickler
     """

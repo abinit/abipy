@@ -92,13 +92,13 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
     @classmethod
     def from_dir(cls, top: str, walk: bool = True, abspath: bool = False) -> Robot:
         """
-        This class method builds a robot by scanning all files located within directory `top`.
+        Build a robot by scanning all files located within directory `top`.
         This method should be invoked with a concrete robot class, for example:
 
             robot = GsrRobot.from_dir(".")
 
         Args:
-            top (str): Root directory
+            top: Root directory
             walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
@@ -169,7 +169,9 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
 
     @classmethod
     def class_handles_filename(cls, filename: str) -> bool:
-        """True if robot class handles filename."""
+        """
+        True if robot class handles filename.
+        """
         # Special treatment of AnaddbNcRobot
         if cls.EXT == "anaddb" and os.path.basename(filename).lower() == "anaddb.nc":
             return True
@@ -208,10 +210,63 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
 
     @classmethod
     def from_json_file(cls, filepath: str):
-        """Build Robot from a file in json format."""
+        """
+        Build Robot from a file in json format.
+        """
         from abipy.tools.serialization import mjson_load
         new = mjson_load(filepath)
         return new
+
+    @classmethod
+    def from_top_and_json_basename(cls, top: str, json_basename: str) -> Robot:
+        """
+        Build a robot by scanning all json files located within directory `top`.
+        and matching json_basename.
+
+        Example:
+
+            gwr_robot = Robot.from_top_and_json_basename(".", "gwr_robot.json")
+        """
+        json_paths = []
+        for root, dirs, files in os.walk(top):
+            for name in files:
+                if name == json_basename:
+                    json_paths.append(os.path.join(root, name))
+
+        return cls.from_json_files(json_paths)
+
+    @classmethod
+    def from_json_files(cls, json_paths: list[str]):
+        """
+        Build Robot from a list of json files.
+        Each json file should have a list of filepaths and @module and @class as required by msonable.
+        """
+        # Merge filepaths and chech that module and class are equal across files.
+        robot_filepaths = []
+        _module, _class = None, None
+        for path in json_paths:
+            with open(path, "rt") as fh:
+                d = json.load(fh)
+
+            if "filepaths" not in d:
+                raise ValueError(f"{path=} does not provide `filepaths` entry")
+
+            # Merge filepaths
+            robot_filepaths.extend(d["filepaths"])
+
+            if _module is None:
+                _module, _class = d["@module"], d["@class"]
+            else:
+                if _module != d["@module"]:
+                    raise ValueError(f'{_module=} != {d["@module"]=}')
+                if _class != d["@class"]:
+                    raise ValueError(f'{_class=} != {d["@class"]=}')
+
+        # Build Robot instance from string in json format.
+        #print("Merged filepaths:", robot_filepaths)
+        from abipy.tools.serialization import mjson_loads
+        data = {"filepaths": robot_filepaths, "@class": _class, "@module": _module}
+        return mjson_loads(json.dumps(data))
 
     @classmethod
     def from_work(cls, work, outdirs="all", nids=None, ext=None, task_class=None) -> Robot:
@@ -1191,7 +1246,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         else:
             return np.array([float(duck.getattrd(a, item)) for a in abifiles])
 
-
     @staticmethod
     def plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, **kwargs) -> list:
         """Plot xs where xs can contain either numbers or strings."""
@@ -1213,13 +1267,13 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         """
         y_xmax = yvals[-1]
         span_style = dict(alpha=0.2, color="green", hatch=hatch)
-        ax1.axhspan(y_xmax - abs_conv, y_xmax + abs_conv, label=r"$|y-y(Max)}| \leq %s$" % abs_conv, **span_style)
+        ax1.axhspan(y_xmax - abs_conv, y_xmax + abs_conv, label=r"$|y-y(x_{max})}| \leq %s$" % abs_conv, **span_style)
 
         # Plot |y - y_xmax| in log scale on ax2.
         ax2.plot(xs, np.abs(yvals - y_xmax), **kwargs)
         ax2.set_yscale("log")
-        ax2.set_ylabel(r"$|y-y_{Max}|$", fontsize=fontsize)
-        ax2.axhspan(0, abs_conv, label=r"$|y-y(Max)| \leq %s$" % abs_conv, **span_style)
+        ax2.set_ylabel(r"$|y-y_{x_{max}}|$", fontsize=fontsize)
+        ax2.axhspan(0, abs_conv, label=r"$|y-y(x_{max})| \leq %s$" % abs_conv, **span_style)
         ax2.legend(loc="best", fontsize=fontsize, shadow=True)
         if xlabel:
             ax2.set_xlabel("%s" % xlabel)
@@ -1259,10 +1313,10 @@ class HueGroup:
 class RobotPythonScript:
     """
     Small object used to generate a python script that reconstructs the
-    robot from a json file wih the list of files.
+    robot from a json file containing the list of files.
     Client code can then add additional logic to the script and write it to disk.
 
-    This is tipycally done in the `on_all_ok` method of Works
+    This object is typically used in the `on_all_ok` method of Works
     to generate ready-to-use python scripts to post-process/visualize the results.
 
     Example:
@@ -1284,13 +1338,19 @@ class RobotPythonScript:
 # This script has been automatically generated by AbiPy.
 from __future__ import annotations
 
+if False:
+    import seaborn as sns
+    sns.set(context="paper", style='darkgrid', palette='deep',
+           font='sans-serif', font_scale=0.8, color_codes=False, rc=None)
+
 from abipy.abio.robots import Robot
 robot = Robot.from_json_file("{self.filepath_json}")
 print(robot)
 
 # Uncomment these two lines to produce an excel file
 #df = robot.get_dataframe(with_geo=False)
-#df.to_excel(self.outdir.path_in("{basename}.xls"))
+#df.to_excel("{basename}.xls")
+#df.to_csv("{basename}.csv")
 """
 
     def __enter__(self):

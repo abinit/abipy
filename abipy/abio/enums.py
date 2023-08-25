@@ -3,15 +3,41 @@ This module defines enumerators associated to important Abinit input variables
 """
 from __future__ import annotations
 
-from enum import Enum, IntEnum #, StrEnum
+import enum
+
+class EnumMixin:
+    """Mixin for enums provides extra capabilities."""
+
+    @classmethod
+    def validate(cls, value) -> None:
+        """Validate value"""
+        values = [member.value for member in cls]
+        if value not in values:
+            raise ValueError(f"{value=} is not valid. Must be among: {values=}")
 
 
-class ChangeEnumStr:
+class StrEnum(str, enum.Enum):  # StrEnum added in 3.11
+    def __new__(cls, *args):
+        for arg in args:
+            if not isinstance(arg, (str, enum.auto)):
+                raise TypeError(
+                    "Values of StrEnums must be strings: {} is a {}".format(
+                        repr(arg), type(arg)
+                    )
+                )
+        return super().__new__(cls, *args)
+
     def __str__(self):
-        return str(self.value)
+        return self.value
+
+    # The first argument to this function is documented to be the name of the
+    # enum member, not `self`:
+    # https://docs.python.org/3.6/library/enum.html#using-automatic-values
+    def _generate_next_value_(name, *_):
+        return name
 
 
-class RUNL(ChangeEnumStr, IntEnum):
+class RUNL(EnumMixin, enum.IntEnum):
     """
     Values of optdriver corresponding to the different run-levels. See defs_basis.F90
     """
@@ -28,8 +54,11 @@ class RUNL(ChangeEnumStr, IntEnum):
     BSE        = 99
     LONGWAVE   = 10
 
+    def __str__(self):
+        return str(self.value)
 
-class WFK_TASK(ChangeEnumStr, Enum):
+
+class WFK_TASK(EnumMixin, enum.IntEnum):
     """
     Integer flags defining the task to be performed in wfk_analyze. See defs_basis.F90
     """
@@ -44,8 +73,11 @@ class WFK_TASK(ChangeEnumStr, Enum):
     KPTS_ERANGE= 8
     CHECK_SYMTAB = 9
 
+    def __str__(self):
+        return str(self.value)
 
-class GWR_TASK(ChangeEnumStr, Enum):  # StrEnum added in 3.11
+
+class GWR_TASK(EnumMixin, StrEnum):  # StrEnum added in 3.11
     """
     String flags defining the task to be performed in the GWR code.
     """

@@ -20,7 +20,7 @@ def is_string(s: Any) -> bool:
 
 def is_intlike(obj: Any) -> bool:
     """
-    True if obj represents an integer (float such as 1.0 are included as well).
+    True if obj represents an integer (floats such as 1.0 are included as well).
     """
     # isinstance(i, numbers.Integral)
     try:
@@ -30,9 +30,11 @@ def is_intlike(obj: Any) -> bool:
         else:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
+                #print("hello", int(obj) == obj)
                 return int(obj) == obj
 
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as exc:
+        #print(exc)
         return False
 
     return False

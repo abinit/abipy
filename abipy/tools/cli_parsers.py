@@ -29,7 +29,6 @@ def set_loglevel(loglevel: str) -> None:
     logging.basicConfig(level=numeric_level)
 
 
-
 def pn_serve_parser(**kwargs) -> argparse.ArgumentParser:
     """
     Parent parser implementing cli options for panel.serve
@@ -150,18 +149,15 @@ def add_expose_options_to_parser(parser, with_mpl_options=True) -> None:
                   "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
 
 
-
 class EnumAction(argparse.Action):
     """
     Argparse action for handling Enums
-
 
     Usage:
 
         class Do(enum.Enum):
             Foo = "foo"
             Bar = "bar"
-
 
         parser = argparse.ArgumentParser()
         parser.add_argument('do', type=Do, action=EnumAction)
@@ -190,3 +186,15 @@ class EnumAction(argparse.Action):
         value = self._enum(values)
         setattr(namespace, self.dest, value)
 
+
+
+def fix_omp_num_threads() -> int:
+    """
+    Set OMP_NUM_THREADS to 1 if env var is not defined. Return num_threads.
+    """
+    num_threads = os.getenv("OMP_NUM_THREADS", default=None)
+    if num_threads is None:
+        num_threads = 1
+        os.environ["OMP_NUM_THREADS"] = num_threads
+
+    return num_threads

@@ -6,7 +6,7 @@ executable = "multibinit"
 #from abimkdocs.variables import ValueWithUnit, MultipleValue, Range
 from abipy.abio.abivar_database.variables import ValueWithUnit, MultipleValue, Range, ValueWithConditions
 ValueWithConditions = dict
-Variable=dict
+Variable = dict
 
 variables = [
 Variable(

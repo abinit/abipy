@@ -10,9 +10,12 @@ import json
 import click
 import numpy as np
 import abipy.ml.aseml as aseml
+import abipy.tools.cli_parsers as cli
 
 from functools import wraps
 from time import time
+from abipy.core.structure import Structure
+from abipy.tools.printing import print_dataframe
 
 ASE_OPTIMIZERS = aseml.ase_optimizer_cls("__all__")
 
@@ -29,17 +32,23 @@ def herald(f):
             print("Command line options:")
             print(json.dumps(kw, indent=4), end="\n")
 
+        # Set OMP_NUM_THREADS to 1 if env var is not defined.
+        num_threads = cli.fix_omp_num_threads()
+
+        #import warnings
+        #with warnings.catch_warnings():
+        #    warnings.simplefilter("ignore")
         t_start = time()
-        ml_obj = f(*args, **kw)
+        exit_code = f(*args, **kw)
         t_end = time()
         print('\n%s command completed in %2.4f sec\n' % (f.__name__, t_end - t_start))
-        return 0
+        return exit_code
 
     return wrapper
 
 
 def add_constraint_opts(f):
-    """Add CLI options to constraint atoms"""
+    """Add CLI options to constrain atoms"""
     def mk_cbk(type):
         def callback(ctx, param, value):
             #print(f"{param=}, {value=}")
@@ -61,7 +70,7 @@ def add_relax_opts(f):
     # Here fmax is a sum of force and stress forces. Defaults to 0.1.
     f = click.option("--relax-mode", "-r", default="ions", show_default=True, type=click.Choice(["no", "ions", "cell"]),
                      help='Relaxation mode.')(f)
-    f = click.option("--fmax", default=0.005, type=float, show_default=True,
+    f = click.option("--fmax", default=0.01, type=float, show_default=True,
                      help='Stopping criterion in eV/A')(f)
     f = click.option("--pressure", default=0.0, type=float, show_default=True, help='Scalar pressure')(f)
     f = click.option("--steps", default=500, type=int, show_default=True,
@@ -82,9 +91,16 @@ def add_neb_opts(f):
     f = click.option("--pressure", default=0.0, type=float, show_default=True, help='Scalar pressure')(f)
     f = click.option("--optimizer", "-o", default="BFGS", show_default=True, type=click.Choice(ASE_OPTIMIZERS),
                      help="ASE optimizer class.")(f)
-    f = click.option("--neb-method", "-m", default="aseneb", type=click.Choice(ASENEB_METHODS), show_default=True,
-                     help="ASE NEB method")(f)
+    f = click.option("--neb-method", "-m", default="aseneb", type=click.Choice(aseml.ASENEB_METHODS),
+                     show_default=True, help="ASE NEB method")(f)
     f = click.option("--climb", "-c", is_flag=True, help="Use a climbing image (default is no climbing image).")(f)
+    return f
+
+
+def add_nprocs_opt(f):
+    """Add CLI options for multiprocessing."""
+    f = click.option("-np", "--nprocs", default=-1, type=int, show_default=True,
+                    help='Number of processes in multiprocessing pool. -1 to let Abipy select it automatically.')(f)
     return f
 
 
@@ -99,14 +115,16 @@ def add_workdir_verbose_opts(f):
 @click.group()
 @click.pass_context
 @click.option("--nn-name", "-nn", default="m3gnet", show_default=True,
-              type=click.Choice(["m3gnet_old", "m3gnet", "chgnet"]), help='ML potential')
+              type=click.Choice(aseml.CalcBuilder.ALL_NN_TYPES),
+              help='ML potential to be used')
 @click.option("--seaborn", "-sns", default=None, show_default=True,
               help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster").')
 def main(ctx, nn_name, seaborn):
-    """Main function invoked by the script"""
+    """Script to perform calculations with ML potentials."""
     ctx.ensure_object(dict)
 
     if seaborn:
+    #if True:
         # Activate seaborn settings for plots
         import seaborn as sns
         sns.set(context=seaborn, style='darkgrid', palette='deep',
@@ -114,7 +132,7 @@ def main(ctx, nn_name, seaborn):
 
     global CALC_BUILDER
     CALC_BUILDER = aseml.CalcBuilder(nn_name)
-    #ctx.obj["verbose"] = verbose
+    ctx.obj["nn_name"] = nn_name
 
 
 @main.command()
@@ -144,7 +162,7 @@ def relax(ctx, filepath,
         abiml.py.py -nn chgnet relax [...]
     """
     atoms = aseml.get_atoms(filepath)
-    aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_relaxer = aseml.MlRelaxer(atoms, relax_mode, fmax, pressure, steps, optimizer,
                                  CALC_BUILDER, verbose, workdir, prefix="_relax_")
@@ -154,7 +172,7 @@ def relax(ctx, filepath,
 
     print(ml_relaxer.to_string(verbose=verbose))
     ml_relaxer.run()
-    return ml_relaxer
+    return 0
 
 
 @main.command()
@@ -190,16 +208,14 @@ def md(ctx, filepath,
     """
     # See https://github.com/materialsvirtuallab/m3gnet#molecular-dynamics
     atoms = aseml.get_atoms(filepath)
-    aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_md = aseml.MlMd(atoms, temperature, timestep, steps, loginterval, ensemble, CALC_BUILDER, verbose,
                        workdir, prefix="_md_")
     print(ml_md.to_string(verbose=verbose))
     ml_md.run()
-    return ml_md
+    return 0
 
-
-ASENEB_METHODS = ['aseneb', 'eb', 'improvedtangent', 'spline', 'string']
 
 @main.command()
 @herald
@@ -230,16 +246,16 @@ def neb(ctx, filepaths,
         abiml.py.py -nn chgnet neb [...]
     """
     initial_atoms = aseml.get_atoms(filepaths[0])
-    aseml.fix_atoms(initial_atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(initial_atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
     final_atoms = aseml.get_atoms(filepaths[1])
-    aseml.fix_atoms(final_atoms, fix_inds, fix_symbols, verbose)
+    aseml.fix_atoms(final_atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_neb = aseml.MlNeb(initial_atoms, final_atoms,
                          nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
                          CALC_BUILDER, verbose, workdir, prefix="_neb_")
     print(ml_neb.to_string(verbose=verbose))
     ml_neb.run()
-    return ml_neb
+    return 0
 
 
 @main.command()
@@ -272,13 +288,13 @@ def mneb(ctx, filepaths,
     # Fix atoms
     atoms_list = [aseml.get_atoms(p) for p in filepaths]
     for atoms in atoms_list:
-        aseml.fix_atoms(atoms, fix_inds, fix_symbols, verbose)
+        aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     mneb = aseml.MultiMlNeb(atoms_list, nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
                             CALC_BUILDER, verbose, workdir, prefix="_mneb_")
     print(mneb.to_string(verbose=verbose))
     mneb.run()
-    return mneb
+    return 0
 
 
 @main.command()
@@ -301,7 +317,6 @@ def tsaseneb(ctx, filepaths, nimages, workdir, verbose):
     os.chdir(workdir)
 
     # Read initial and final structures
-    from abipy.core.structure import Structure
     initial = Structure.from_file(initial, primitive=False)
     final = Structure.from_file(final, primitive=False)
 
@@ -402,7 +417,7 @@ def aseph(ctx, filepath, supercell, kpts, asr, nqpath,
                             verbose, workdir, prefix="_aseph_")
     print(ml_ph.to_string(verbose=verbose))
     ml_ph.run()
-    return ml_ph
+    return 0
 
 
 @main.command()
@@ -414,7 +429,7 @@ def aseph(ctx, filepath, supercell, kpts, asr, nqpath,
 @add_workdir_verbose_opts
 def order(ctx, filepath, max_ns, relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
     """
-    Generate ordered structures from cif FILE with partial occupancies.
+    Generate ordered structures from CIF with partial occupancies.
 
     Usage example:
 
@@ -429,7 +444,95 @@ def order(ctx, filepath, max_ns, relax_mode, fmax, pressure, steps, optimizer, w
                                  steps, CALC_BUILDER, verbose, workdir, prefix="_order_")
     print(ml_orderer.to_string(verbose=verbose))
     ml_orderer.run()
-    return ml_orderer
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@click.option("-isite", "--isite", required=True,
+               help='Index of atom to displace or string with chemical element to be added to input structure.')
+@click.option("--mesh", type=int, default=4, show_default=True, help='Mesh size along the smallest cell size.')
+@add_relax_opts
+@add_nprocs_opt
+@add_workdir_verbose_opts
+def scan_relax(ctx, filepath,
+               isite, mesh,
+               relax_mode, fmax, pressure, steps, optimizer,
+               nprocs,
+               workdir, verbose
+               ):
+    """
+    Generate 3D mesh of (nx,ny,nz) initial positions and perform multiple relaxations
+    in which all atoms are fixed except the one added to the mesh point.
+
+    Usage example:
+
+    \b
+        abiml.py.py scan_relax FILE -isite 0 --mesh 4          # Move first atom in the structure
+        abiml.py.py --nn-name chgnet scan_relax FILE -isite H  # Add H to the structure read from FILE.
+
+    where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
+    """
+    nn_name = ctx.obj["nn_name"]
+    structure = Structure.from_file(filepath)
+
+    from abipy.ml.relax_scanner import RelaxScanner
+    scanner = RelaxScanner(structure, isite, mesh, nn_name,
+                           relax_mode=relax_mode, fmax=fmax, steps=steps, verbose=verbose,
+                           optimizer_name=optimizer, pressure=pressure,
+                           workdir=workdir, prefix="_scan_relax_")
+    print(scanner)
+    scanner.run(nprocs=nprocs)
+
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@click.option("-nns", '--nn-names', type=str, multiple=True,  show_default=True, help='ML potentials to be used',
+              #default=["m3gnet", "chgnet"],
+              default=["chgnet"])
+@click.option("-e", '--exposer', default="mpl", show_default=True, type=click.Choice(["mpl", "panel"]),
+              help='Plotting backend: mpl for matplotlib, panel for web-based')
+
+@add_nprocs_opt
+@add_workdir_verbose_opts
+def compare(ctx, filepath,
+            nn_names,
+            exposer,
+            nprocs,
+            workdir, verbose
+            ):
+    """
+    Compare ab-initio energies, forces, stresses with ML-computed ones.
+
+    Usage example:
+
+    \b
+        abiml.py.py compare FILE --nn-names m3gnet --nn-names chgnet
+
+    where `FILE` can be either a _HIST.nc or a VASPRUN.
+    """
+    ml_comp = aseml.MlCompareWithAbinitio(filepath, nn_names, verbose, workdir, prefix="_compare_")
+    print(ml_comp)
+    c = ml_comp.run(nprocs=nprocs)
+
+    from abipy.tools.plotting import Exposer
+    with Exposer.as_exposer(exposer, title=os.path.basename(filepath)) as e:
+        with_stress = True
+        e(c.plot_energies_traj(delta_mode=True, show=False))
+        e(c.plot_forces_traj(delta_mode=True, show=False))
+        e(c.plot_stress_traj(delta_mode=True,  show=False))
+        e(c.plot_energies(show=False))
+        e(c.plot_forces(show=False))
+        if with_stress:
+            e(c.plot_stresses(show=False))
+
+    return 0
 
 
 if __name__ == "__main__":

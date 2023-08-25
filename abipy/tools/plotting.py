@@ -20,7 +20,7 @@ from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
-from .numtools import data_from_cplx_mode
+from abipy.tools.numtools import data_from_cplx_mode
 
 
 __all__ = [
@@ -148,7 +148,7 @@ def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> 
 
 
 def set_grid_legend(ax_or_axlist, fontsize: int,
-                    xlabel=None, ylabel=None, grid=True, legend=True, direction=None) -> None:
+                    xlabel=None, ylabel=None, grid=True, legend=True, direction=None, title=None, legend_loc="best") -> None:
     """
     Activate grid and legend for one axis or a list of axis.
 
@@ -156,23 +156,26 @@ def set_grid_legend(ax_or_axlist, fontsize: int,
         grid: True to activate the grid.
         legend: True to activate the legend.
         direction: Use "x" ("y") if to add xlabel (ylabel) only to the last ax.
+        title: Title string
     """
     if duck.is_listlike(ax_or_axlist):
         for ix, ax in enumerate(ax_or_axlist):
             ax.grid(grid)
-            if legend: ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            if legend: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
             if xlabel:
                 doit = direction is None or (direction == "y" and ix == len(ax_or_axlist) -1)
                 if doit: ax.set_xlabel(xlabel)
             if ylabel:
                 doit = direction is None or (direction == "x" and ix == len(ax_or_axlist) -1)
                 if doit: ax.set_ylabel(ylabel)
+            if title: ax.set_title(title, fontsize=fontsize)
     else:
         ax = ax_or_axlist
         ax.grid(grid)
-        if legend: ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        if legend: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
         if xlabel: ax.set_xlabel(xlabel)
         if ylabel: ax.set_ylabel(ylabel)
+        if title: ax.set_title(title, fontsize=fontsize)
 
 
 def set_visible(ax, boolean: bool, *args) -> None:
@@ -236,7 +239,7 @@ def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None
     for i, ix in enumerate(x_inds):
         y_xmax = ys[ix]
         ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
-                   label=r"$|y-y(Max)| \leq %s$" % abs_conv if (with_label and i == 0) else None,
+                   label=r"$|y-y(x_{max})| \leq %s$" % abs_conv if (with_label and i == 0) else None,
                    **span_style)
 
 
@@ -638,7 +641,7 @@ class ConvergenceAnalyzer:
                 title += pre_str + s
 
             ax2.set_title(title, fontsize=fontsize)
-            ax2.set_ylabel(r"$|y-y(Max)|$", fontsize=fontsize)
+            ax2.set_ylabel(r"$|y-y(x_{max})|$", fontsize=fontsize)
 
             set_grid_legend(ax_row, fontsize,
                             xlabel=self.xlabel if irow == (nrows - 1) else None,
@@ -891,7 +894,7 @@ class MplExposer(Exposer): # pragma: no cover
             e(obj.plot2(**plot_args))
     """
 
-    def __init__(self, slide_mode=False, slide_timeout=None, verbose=1):
+    def __init__(self, slide_mode=False, slide_timeout=None, verbose=1, **kwargs):
         """
         Args:
             slide_mode: If True, iterate over figures. Default: Expose all figures at once.
@@ -957,7 +960,7 @@ class PanelExposer(Exposer):  # pragma: no cover
             e(obj.plot1(show=False))
             e(obj.plot2(show=False))
     """
-    def __init__(self, title=None, dpi=92, verbose=1):
+    def __init__(self, title=None, dpi=92, verbose=1, **kwargs):
         """
         Args:
             title: String to be show in the header.

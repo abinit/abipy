@@ -1300,7 +1300,7 @@ def main():
         for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
             qid = task.queue_id
             if qid is None: continue
-            if qid not in slurm_jobs:
+            if qid not in slurm_jobs and not task.is_completed:
                 print("Task:", task, "seeem to have been killed and will be automatically reset.")
                 task.reset()
 
