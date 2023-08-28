@@ -242,26 +242,6 @@ class RelaxationProfiler:
         diff.tabulate()
         #raise RuntimeError()
 
-        #forces_file = open(directory / "forces.dat", "wt")
-        #stress_file = open(directory / "stress.dat", "wt")
-
-        #def write_forces(count, abi_forces, ml_forces):
-        #    if count == 1:
-        #        forces_file.write("# count abi_forces ml_forces")
-        #    for iat, (abi_f, ml_f) in enumerate(zip(abi_forces, ml_forces)):
-        #        s = 6 * "%15.6f "
-        #        s = s % (*abi_f, *ml_f)
-        #        forces_file.write(s)
-
-        #def write_stress(count, abi_stress, ml_stress):
-        #    if count == 1:
-        #        stress_file.write("# abi_stress ml_stress")
-        #    abi_vs = full_3x3_to_voigt_6_stress(abi_stress)
-        #    ml_vs = full_3x3_to_voigt_6_stress(ml_stress)
-        #    data = np.append(abi_vs, ml_vs)
-        #    s = (12 * "%15.6f ") % (*data,)
-        #    forces_file.write(s)
-
         # Run hybrid relaxation (ML + abinit)
         ml_calc = CalcBuilder(self.nn_name).get_calculator()
 
@@ -338,8 +318,6 @@ class RelaxationProfiler:
         print(f"GS steps in ML mode {ml_nsteps=}")
         print(f"GS steps in ABINIT mode {abi_relax.nsteps=}")
         print(f"GS steps in ABI+ML mode {abiml_nsteps=}")
-
-        #forces_file.close(); stress_file.close()
 
         # Write json file with output results.
         with open(workdir / "data.json", "wt") as fh:

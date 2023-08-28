@@ -526,7 +526,7 @@ def compare(ctx, filepath,
         with_stress = True
         e(c.plot_energies_traj(delta_mode=True, show=False))
         e(c.plot_forpos_traj("forces", delta_mode=True, show=False))
-        e(c.plot_forpos_traj("positions", delta_mode=True, show=False))
+        #e(c.plot_forpos_traj("positions", delta_mode=True, show=False))
         e(c.plot_stress_traj(delta_mode=True, show=False))
         e(c.plot_energies(show=False))
         e(c.plot_forces(show=False))
