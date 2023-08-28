@@ -1,5 +1,7 @@
 # coding: utf-8
 """Wrappers for ABINIT main executables"""
+from __future__ import annotations
+
 import os
 import numpy as np
 
