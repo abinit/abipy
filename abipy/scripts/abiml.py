@@ -525,8 +525,9 @@ def compare(ctx, filepath,
     with Exposer.as_exposer(exposer, title=os.path.basename(filepath)) as e:
         with_stress = True
         e(c.plot_energies_traj(delta_mode=True, show=False))
-        e(c.plot_forces_traj(delta_mode=True, show=False))
-        e(c.plot_stress_traj(delta_mode=True,  show=False))
+        e(c.plot_forpos_traj("forces", delta_mode=True, show=False))
+        e(c.plot_forpos_traj("positions", delta_mode=True, show=False))
+        e(c.plot_stress_traj(delta_mode=True, show=False))
         e(c.plot_energies(show=False))
         e(c.plot_forces(show=False))
         if with_stress:

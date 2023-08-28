@@ -201,17 +201,18 @@ class RelaxScanner:
         # Make sure we are not already running similar ranges.
         top = str(self.workdir)
         dirpaths = [name for name in os.listdir(top) if os.path.isdir(os.path.join(top, name))
-                    and name.startswith("start:")]
+                    and name.startswith("start_")]
         for dpath in dirpaths:
             # Directory name has pattern: f"start:{start}-stop:{stop}"
+            # Directory name has pattern: f"start_{start}-stop_{stop}"
             tokens = dpath.split("-")
-            this_start = int(tokens[0].split(":")[1])
-            this_stop = int(tokens[1].split(":")[1])
+            this_start = int(tokens[0].replace("start_", ""))
+            this_stop = int(tokens[1].replace("stop_", ""))
             if start >= this_start and start < this_stop:
                 raise RuntimeError(f"{start=}, {stop=} range overlaps with {dpath=}")
 
         # Make sure we are not already running the same range.
-        newdir = self.workdir / f"start:{start}-stop:{stop}"
+        newdir = self.workdir / f"start_{start}-stop_{stop}"
         if newdir.exists():
             raise RuntimeError(f"{newdir=} already exists!")
 
@@ -385,7 +386,7 @@ class RelaxScannerAnalyzer:
         topdir = Path(topdir)
         top = str(topdir)
         dirpaths = [name for name in os.listdir(top) if os.path.isdir(os.path.join(top, name))
-                    and name.startswith("start:")]
+                    and name.startswith("start_")]
 
         entries = []
         for dpath in dirpaths:
@@ -560,7 +561,7 @@ class RelaxScannerAnalyzer:
 
             # NB: It's not a NEB ML object but it provides a similar API.
             ml_neb = MlGsList(neb.images, calc_builder, self.verbose,
-                              workdir=self.workdir / f"GSLIST/pair:{pair_str}")
+                              workdir=self.workdir / f"GSLIST/pair_{pair_str}")
 
         else:
             # Real NEB stuff
@@ -568,7 +569,7 @@ class RelaxScannerAnalyzer:
                            nimages, neb_method, climb, scanner.optimizer_name,
                            relax_mode, scanner.fmax, scanner.pressure,
                            calc_builder, self.verbose,
-                           workdir=self.workdir / f"NEB/pair:{pair_str}")
+                           workdir=self.workdir / f"NEB/pair_{pair_str}")
 
         if self.verbose: print(ml_neb.to_string(verbose=self.verbose))
 
@@ -598,28 +599,28 @@ class RelaxScannerAnalyzer:
         return fig
 
 
-def linear_path_with_extra_points(isite, initial, final, nimages, nextra, step) -> list[Atoms]:
-
-    # Get cart coords
-    p0 = initial[isite].position
-    p1 = final[isite].position
-
-    dvers_10 = (p1 - p0) / np.linalg.norm(p1 - p0)
-
-    from ase.neb import interpolate
-    first_segment = []
-    for i in range(nextra - 1):
-        new = initial.copy()
-        new[isite].position = p0 - i * step * dvers_10
-        first_segment.append(new)
-
-    images += [initial.copy() for i in range(nimages - 2)]
-
-    for i in range(nextra):
-        new = final.copy()
-        new[isite].position = p1 + i * step * dvers_10
-        images.append(new)
-
-    interpolate(images, mic=False, interpolate_cell=False, use_scaled_coord=False, apply_constraint=None)
-
-    return first_segment + images + last_segment
+#def linear_path_with_extra_points(isite, initial, final, nimages, nextra, step) -> list[Atoms]:
+#
+#    # Get cart coords
+#    p0 = initial[isite].position
+#    p1 = final[isite].position
+#
+#    dvers_10 = (p1 - p0) / np.linalg.norm(p1 - p0)
+#
+#    from ase.neb import interpolate
+#    first_segment = []
+#    for i in range(nextra - 1):
+#        new = initial.copy()
+#        new[isite].position = p0 - i * step * dvers_10
+#        first_segment.append(new)
+#
+#    images += [initial.copy() for i in range(nimages - 2)]
+#
+#    for i in range(nextra):
+#        new = final.copy()
+#        new[isite].position = p1 + i * step * dvers_10
+#        images.append(new)
+#
+#    interpolate(images, mic=False, interpolate_cell=False, use_scaled_coord=False, apply_constraint=None)
+#
+#    return first_segment + images + last_segment

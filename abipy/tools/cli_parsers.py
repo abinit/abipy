@@ -195,6 +195,6 @@ def fix_omp_num_threads() -> int:
     num_threads = os.getenv("OMP_NUM_THREADS", default=None)
     if num_threads is None:
         num_threads = 1
-        os.environ["OMP_NUM_THREADS"] = num_threads
+        os.environ["OMP_NUM_THREADS"] = str(num_threads)
 
     return num_threads

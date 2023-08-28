@@ -181,6 +181,27 @@ class RelaxationProfiler:
                )
         return data
 
+    def abi_relax_atoms_with_ase(self, directory, header="Begin ABINIT+ASE relaxation"):
+        """
+        Relax structure with ABINIT. Return namedtuple with results.
+        """
+        print(f"\n{header} in {str(directory)}")
+        print("relax_mode:", self.relax_mode, "with tolmxf:", self.relax_kwargs["tolmxf"])
+
+        atoms = self.initial_atoms.copy()
+        abinit = Abinit(profile=self.abinit_profile, directory=directory, **self.gs_kwargs)
+        atoms.calc = abinit
+
+        opt = self.ase_opt_cls(self._mkfilter(atoms))
+        with Timer() as timer:
+            opt.run(fmax=self.fmax, steps=self.steps)
+            if not opt.converged():
+                raise RuntimeError("Abinit+ASE opt didn't converge!")
+
+        print('%s relaxation completed in %.2f sec after nsteps: %d\n' % (self.nn_name, timer.time, opt.nsteps))
+
+        return opt
+
     def abinit_run_gs_atoms(self, directory, atoms):
         """
         Perform a GS calculation with ABINIT. Return namedtuple with results.
@@ -212,6 +233,9 @@ class RelaxationProfiler:
         # Run fully ab-initio relaxation with abinit.
         abi_relax = self.abi_relax_atoms(workdir / "abinit_relax")
 
+        # Run relaxation with ASE optimizer and Abinit forces.
+        #abiase_opt = self.abi_relax_atoms_with_ase(workdir / f"abiase_relax")
+
         # Compare structures
         diff = StructDiff(["INITIAL", "ABINIT_RELAX", self.nn_name + "_RELAX"],
                           [self.initial_atoms, abi_relax.atoms, ml_opt.atoms])
@@ -242,7 +266,7 @@ class RelaxationProfiler:
         ml_calc = CalcBuilder(self.nn_name).get_calculator()
 
         print(f"\nBegin ABINIT + {self.nn_name} hybrid relaxation")
-        if self.xc == "GGA":
+        if self.xc.is_gga_family == "GGA":
             print(f"Starting from ML-optimized Atoms as {self.xc=}")
             atoms = ml_opt.atoms.copy()
             atoms = abisanitize_atoms(atoms)
