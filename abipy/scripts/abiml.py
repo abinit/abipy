@@ -496,42 +496,45 @@ def scan_relax(ctx, filepath,
 @click.option("-nns", '--nn-names', type=str, multiple=True,  show_default=True, help='ML potentials to be used',
               #default=["m3gnet", "chgnet"],
               default=["chgnet"])
+@click.option("--traj_range", type=str, show_default=True,
+              help="Trajectory range e.g. `5` to select the first 5 iterations, `1:4` to select steps 1,2,3.",
+              default=None)
 @click.option("-e", '--exposer', default="mpl", show_default=True, type=click.Choice(["mpl", "panel"]),
               help='Plotting backend: mpl for matplotlib, panel for web-based')
-
 @add_nprocs_opt
 @add_workdir_verbose_opts
 def compare(ctx, filepath,
             nn_names,
+            traj_range,
             exposer,
             nprocs,
             workdir, verbose
             ):
     """
-    Compare ab-initio energies, forces, stresses with ML-computed ones.
+    Compare ab-initio energies, forces, and stresses with ML-computed ones.
 
     Usage example:
 
     \b
         abiml.py.py compare FILE --nn-names m3gnet --nn-names chgnet
 
-    where `FILE` can be either a _HIST.nc or a VASPRUN.
+    where `FILE` can be either a _HIST.nc or a VASPRUN file.
     """
-    ml_comp = aseml.MlCompareWithAbinitio(filepath, nn_names, verbose, workdir, prefix="_compare_")
+    traj_range = cli.range_from_str(traj_range)
+    ml_comp = aseml.MlCompareWithAbinitio(filepath, nn_names, traj_range, verbose, workdir, prefix="_compare_")
     print(ml_comp)
     c = ml_comp.run(nprocs=nprocs)
 
+    with_stress = True
     from abipy.tools.plotting import Exposer
     with Exposer.as_exposer(exposer, title=os.path.basename(filepath)) as e:
-        with_stress = True
-        e(c.plot_energies_traj(delta_mode=True, show=False))
-        e(c.plot_forpos_traj("forces", delta_mode=True, show=False))
-        #e(c.plot_forpos_traj("positions", delta_mode=True, show=False))
-        e(c.plot_stress_traj(delta_mode=True, show=False))
         e(c.plot_energies(show=False))
         e(c.plot_forces(show=False))
+        e(c.plot_energies_traj(delta_mode=True, show=False))
         if with_stress:
             e(c.plot_stresses(show=False))
+        e(c.plot_forces_traj(delta_mode=True, show=False))
+        e(c.plot_stress_traj(delta_mode=True, show=False))
 
     return 0
 

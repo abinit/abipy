@@ -39,7 +39,6 @@ from ase.neb import NEB
 from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from abipy.core import Structure
-from abipy.tools.plotting import get_ax_fig_plt #, get_axarray_fig_plt,
 from abipy.tools.iotools import workdir_with_prefix
 from abipy.tools.printing import print_dataframe
 from abipy.abio.enums import StrEnum, EnumMixin
@@ -323,14 +322,31 @@ def diff_stats(xs, ys):
     )
 
 
-def linear_fit_ax(ax, xs, ys, with_labels=False) -> tuple[float]:
+def linear_fit_ax(ax, xs, ys, with_labels=False, with_ideal_line=False) -> tuple[float]:
+    """
+    """
     amat = np.vstack([xs, np.ones(len(xs))]).T
     alpha, beta = np.linalg.lstsq(amat, ys, rcond=None)[0]
     label = r"Linear fit $\alpha={:.2f}$".format(alpha)
     ax.plot(xs, alpha*xs + beta, 'r', label=label if with_labels else None)
-    # Plot y = x line
-    ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-', linewidth=1, label='Ideal' if with_labels else None)
+    if with_ideal_line:
+        # Plot y = x line
+        ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-',
+                linewidth=1, label='Ideal' if with_labels else None)
     return alpha, beta
+
+
+def make_square_axes(ax_mat):
+    """
+    Make an axes square in screen units.
+    Should be called after plotting.
+    """
+    return
+    for ax in ax_mat.flat:
+        #ax.set_aspect(1 / ax.get_data_ratio())
+        #ax.set(adjustable='box', aspect='equal')
+        ax.set(adjustable='datalim', aspect='equal')
+    #ax.set_aspect(1 / ax.get_data_ratio())
 
 
 class AseResultsComparator:
@@ -339,6 +355,7 @@ class AseResultsComparator:
     for the same structure but with different methods e.g. results obtained
     with different ML potentials.
     """
+
     ALL_VOIGT_COMPS = "xx yy zz yz xz xy".split()
 
     @classmethod
@@ -364,21 +381,11 @@ class AseResultsComparator:
         for i in range(len(keys)):
             stress_list.append(np.array([r.get_voigt_stress() for r in results_list[i]]))
 
-        # Extract lattice parameters and Cartesian positions.
-        cellpar_list, xcart_list = [], []
-        for i in range(len(keys)):
-            cellpar_list.append(np.array([r.atoms.cell.cellpar() for r in results_list[i]]))
-            xcart_list.append(np.array([r.atoms.positions for r in results_list[i]]))
-
         structure = Structure.as_structure(results_list[0][0].atoms)
 
-        return cls(structure, keys,
-                   np.array(ene_list), np.array(forces_list), np.array(stress_list),
-                   cellpar_list=np.array(cellpar_list), xcart_list=np.array(xcart_list))
+        return cls(structure, keys, np.array(ene_list), np.array(forces_list), np.array(stress_list))
 
-    def __init__(self, structure, keys, ene_list, forces_list, stress_list,
-                 cellpar_list=None, xcart_list=None,
-                 ):
+    def __init__(self, structure, keys, ene_list, forces_list, stress_list):
         """
         Args:
             structure: Structure object.
@@ -392,8 +399,6 @@ class AseResultsComparator:
         self.ene_list = ene_list            # [nkeys, nsteps]
         self.forces_list = forces_list      # [nkeys, nsteps, natom, 3]
         self.stress_list = stress_list      # [nkeys, nsteps, 6]
-        self.cellpar_list = cellpar_list    # [nkeys, nsteps, 6]
-        self.xcart_list = xcart_list        # [nkeys, nsteps, natom, 3]
 
         # Consistency check
         nkeys = len(self)
@@ -403,12 +408,6 @@ class AseResultsComparator:
             raise ValueError(f"{self.forces_list.shape=} != ({nkeys=}, {self.nsteps=}, {self.natom=}, 3)")
         if self.stress_list.shape != (nkeys, self.nsteps, 6):
             raise ValueError(f"{self.stress_list.shape=} != ({nkeys=}, {self.nsteps=}, 6)")
-
-        # Optional arguments
-        if self.cellpar_list is not None and self.cellpar_list.shape != (nkeys, self.nsteps, 6):
-            raise ValueError(f"{self.cellpar_list.shape=} != ({nkeys=}, {self.nsteps=} ,6)")
-        if self.xcart_list is not None and self.xcart_list.shape != (nkeys, self.nsteps, self.natom, 3):
-            raise ValueError(f"{self.xcart_list.shape=} != ({nkeys=}, {self.nsteps=}, {self.natom=}, 3)")
 
         # Index of the reference key.
         self.iref = 0
@@ -471,46 +470,25 @@ class AseResultsComparator:
 
         return zip_sort(xs, ys) if sort else (xs, ys)
 
-    def xy_forpos_for_keys(self, forpos, key1, key2, direction) -> tuple:
+    def xy_forces_for_keys(self, key1, key2, direction) -> tuple:
         """
         Return (xs, ys), sorted arrays with forces along the cart direction for (key1, key2).
         """
         idir = self.idir_from_direction(direction)
         ik1, ik2 = self.inds_of_keys(key1, key2)
-        if forpos == "forces":
-            xs = self.forces_list[ik1,:,:,idir].flatten()
-            ys = self.forces_list[ik2,:,:,idir].flatten()
-        elif forpos == "positions":
-            if self.xcart_list is None: raise ValueError("xcart_list is not available!")
-            xs = self.xcart_list[ik1,:,:,idir].flatten()
-            ys = self.xcart_list[ik2,:,:,idir].flatten()
-        else:
-            raise ValueError(f"Invalid {forpos=}")
+        xs = self.forces_list[ik1,:,:,idir].flatten()
+        ys = self.forces_list[ik2,:,:,idir].flatten()
 
         return zip_sort(xs, ys)
 
-    def traj_forpos_for_keys(self, forpos, key1, key2) -> tuple:
+    def traj_forces_for_keys(self, key1, key2) -> tuple:
         """
         Return arrays with the cart direction of forces along the trajectory for (key1, key2).
         """
         ik1, ik2 = self.inds_of_keys(key1, key2)
-        if forpos == "forces":
-            xs, ys = self.forces_list[ik1], self.forces_list[ik2]
-        elif forpos == "positions":
-            if self.xcart_list is None: raise ValueError("xcart_list is not available!")
-            xs, ys = self.xcart_list[ik1], self.xcart_list[ik2]
-        else:
-            raise ValueError(f"Invalid {forpos=}")
+        xs, ys = self.forces_list[ik1], self.forces_list[ik2]
 
         return xs, ys
-
-    def traj_abc_angles_for_keys(self, abc_or_angles, key1, key2) -> tuple:
-        """
-        Return arrays with the cell parameters along the trajectory for (key1, key2).
-        """
-        ik1, ik2 = self.inds_of_keys(key1, key2)
-        xs, ys = self.cellpar_list[ik1], self.cellpar_list[ik2]
-        return (xs[:,0:3], ys[:,0:3]) if abc_or_angles == "abc" else (xs[:,3:6], ys[:,3:6])
 
     def xy_stress_for_keys(self, key1, key2, voigt_comp, sort=True) -> tuple:
         """
@@ -565,7 +543,10 @@ class AseResultsComparator:
         key_pairs = self.get_key_pairs()
         nrows, ncols = 1, len(key_pairs)
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=True, squeeze=False)
+                                               sharex=False, sharey=False, squeeze=False,
+                                               #subplot_kw=dict(box_aspect=1) #, layout="constrained",
+                                               #aspect='equal', adjustable='box',
+                                               )
         irow = 0
         for icol, (key1, key2) in enumerate(key_pairs):
            xs, ys = self.xy_energies_for_keys(key1, key2)
@@ -574,13 +555,14 @@ class AseResultsComparator:
            ax.scatter(xs, ys, marker="o")
            linear_fit_ax(ax, xs, ys)
            ax.grid(True)
+           ax.set_xlabel(f"{key1} energy", fontsize=fontsize)
+           ax.set_ylabel(f"{key2} energy", fontsize=fontsize)
            #ax.legend(loc="best", shadow=True, fontsize=fontsize)
-           ax.set_xlabel(f"{key1} energy")
-           ax.set_ylabel(f"{key2} energy")
            if irow == 0:
                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
         if "title" not in kwargs: fig.suptitle(f"Energies in eV for {self.structure.latex_formula}")
+        #make_square_axes(ax_mat)
         return fig
 
     @add_fig_kwargs
@@ -591,11 +573,14 @@ class AseResultsComparator:
         key_pairs = self.get_key_pairs()
         nrows, ncols = 3, len(key_pairs)
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=False, sharey=False, squeeze=False)
+                                               sharex=False, sharey=False, squeeze=False,
+                                               #subplot_kw=dict(box_aspect=1), # layout="constrained",
+                                               #aspect='equal', adjustable='box',
+                                               )
 
         for icol, (key1, key2) in enumerate(key_pairs):
             for irow, direction in enumerate(("x", "y", "z")):
-                xs, ys = self.xy_forpos_for_keys("forces", key1, key2, direction)
+                xs, ys = self.xy_forces_for_keys(key1, key2, direction)
                 stats = diff_stats(xs, ys)
                 ax = ax_mat[irow, icol]
                 ax.scatter(xs, ys, marker="o")
@@ -603,12 +588,13 @@ class AseResultsComparator:
                 ax.grid(True)
                 f_tex = f"$F_{direction}$"
                 if icol == 0:
-                    ax.set_ylabel(f"{key2} {f_tex}")
+                    ax.set_ylabel(f"{key2} {f_tex}", fontsize=fontsize)
                 if irow == 2:
-                    ax.set_xlabel(f"{key1} {f_tex}")
+                    ax.set_xlabel(f"{key1} {f_tex}", fontsize=fontsize)
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
         if "title" not in kwargs: fig.suptitle(f"Cartesian forces in ev/Ang for {self.structure.latex_formula}")
+        #make_square_axes(ax_mat)
         return fig
 
     @add_fig_kwargs
@@ -619,7 +605,10 @@ class AseResultsComparator:
         key_pairs = self.get_key_pairs()
         nrows, ncols = 6, len(key_pairs)
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=False, sharey=False, squeeze=False)
+                                               sharex=False, sharey=False, squeeze=False,
+                                               #subplot_kw=dict(box_aspect=1), # layout="constrained",
+                                               #aspect='equal', adjustable='box',
+                                               )
 
         for icol, (key1, key2) in enumerate(key_pairs):
             for irow, voigt_comp in enumerate(self.ALL_VOIGT_COMPS):
@@ -631,12 +620,13 @@ class AseResultsComparator:
                 ax.grid(True)
                 s_tex = "$\sigma_{%s}$" % voigt_comp
                 if icol == 0:
-                    ax.set_ylabel(f"{key2} {s_tex}")
+                    ax.set_ylabel(f"{key2} {s_tex}", fontsize=fontsize)
                 if irow == (len(self.ALL_VOIGT_COMPS) - 1):
-                    ax.set_xlabel(f"{key1} {s_tex}")
+                    ax.set_xlabel(f"{key1} {s_tex}", fontsize=fontsize)
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
         if "title" not in kwargs: fig.suptitle(f"Stresses in (eV/Ang^2) for {self.structure.latex_formula}")
+        #make_square_axes(ax_mat)
         return fig
 
     @add_fig_kwargs
@@ -650,7 +640,9 @@ class AseResultsComparator:
         key_pairs = self.get_key_pairs()
         nrows, ncols = 1, len(key_pairs)
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey="row", squeeze=False)
+                                               sharex=False, sharey=False, squeeze=False,
+                                               #subplot_kw=dict(box_aspect=1), layout="constrained",
+                                               )
 
         for icol, (key1, key2) in enumerate(key_pairs):
             e1, e2 = self.xy_energies_for_keys(key1, key2, sort=False)
@@ -676,19 +668,20 @@ class AseResultsComparator:
         return fig
 
     @add_fig_kwargs
-    def plot_forpos_traj(self, forpos, delta_mode=True, fontsize=6, markersize=2, **kwargs):
+    def plot_forces_traj(self, delta_mode=True, fontsize=6, markersize=2, **kwargs):
         """
         Plot forces along the trajectory.
 
         Args:
-            forpos:
             delta_mode: True to plot difference instead of absolute values.
         """
         # Fx,Fy,Fx along rows, pairs along columns.
         key_pairs = self.get_key_pairs()
         nrows, ncols = 3, len(key_pairs)
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+                                               sharex=False, sharey=False, squeeze=False,
+                                               #subplot_kw=dict(box_aspect=1), layout="constrained",
+                                               )
 
         atom1_cmap = plt.get_cmap("viridis")
         atom2_cmap = plt.get_cmap("jet")
@@ -696,14 +689,16 @@ class AseResultsComparator:
 
         for icol, (key1, key2) in enumerate(key_pairs):
             # Arrays of shape: [nsteps, natom, 3]
-            f1_tad, f2_tad = self.traj_forpos_for_keys(forpos, key1, key2)
+            f1_tad, f2_tad = self.traj_forces_for_keys(key1, key2)
             for idir, direction in enumerate(("x", "y", "z")):
                 last_row = idir == 2
-                fp_tex = f"F_{direction}" if forpos == "forces" else f"P_{direction}"
-                xs, ys = self.xy_forpos_for_keys(forpos, key1, key2, direction)
+                fp_tex = f"F_{direction}"
+                xs, ys = self.xy_forces_for_keys(key1, key2, direction)
                 stats = diff_stats(xs, ys)
                 ax = ax_mat[idir, icol]
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
+
+                zero_values = False
                 for iatom in range(self.natom):
                     if delta_mode:
                         # Plot delta of forces along the trajectory.
@@ -711,9 +706,8 @@ class AseResultsComparator:
                                      color=atom1_cmap(float(iatom) / self.natom))
                         abs_delta = np.abs(f1_tad[:,iatom,idir] - f2_tad[:,iatom,idir])
                         #print(f"{abs_delta=}")
+                        zero_values = zero_values or np.any(abs_delta == 0.0)
                         ax.plot(abs_delta, **style, label=f"$\Delta {fp_tex}$" if iatom == 0 else None)
-                        yscale = "log" if forpos == "forces" else "linear"
-                        ax.set_yscale(yscale)
                     else:
                         f1_style = dict(marker=marker_idir[idir], markersize=markersize,
                                         color=atom1_cmap(float(iatom) / self.natom))
@@ -724,14 +718,15 @@ class AseResultsComparator:
                         ax.plot(f2_tad[:,iatom,idir], **f2_style,
                                 label=f"${key2}\, {fp_tex}$" if (iatom, idir) == (0,0) else None)
 
+                if delta_mode:
+                    ax.set_yscale("log" if not zero_values else "symlog")
+
                 set_grid_legend(ax, fontsize, xlabel='trajectory' if last_row else None,
                                 grid=True, legend=not delta_mode, legend_loc="upper left",
                                 ylabel=f"$|\Delta {fp_tex}|$" if delta_mode else f"${fp_tex}$")
 
-        if forpos == "forces":
-            head = "$\Delta$-forces in eV/Ang" if delta_mode else "Forces in eV/Ang"
-        if forpos == "positions":
-            head = "$\Delta$-positions in Ang" if delta_mode else "Positions in Ang"
+        #for ax in ax_mat.flat: ax.set_box_aspect(1)
+        head = "$\Delta$-forces in eV/Ang" if delta_mode else "Forces in eV/Ang"
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
 
         return fig
@@ -739,7 +734,7 @@ class AseResultsComparator:
     @add_fig_kwargs
     def plot_stress_traj(self, delta_mode=True, markersize=2, fontsize=6, **kwargs):
         """
-        Plot results along the trajectory.
+        Plot stresses along the trajectory.
 
         Args:
             delta_mode: True to plot difference instead of absolute values.
@@ -748,7 +743,9 @@ class AseResultsComparator:
         key_pairs = self.get_key_pairs()
         nrows, ncols = 6, len(key_pairs)
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey="row", squeeze=False)
+                                               sharex=False, sharey=False, squeeze=False,
+                                               #subplot_kw=dict(box_aspect=1), layout="constrained",
+                                               )
 
         marker_voigt = {"xx": ">", "yy": "<", "zz": "^", "yz": 1, "xz": 2, "xy":3}
         for icol, (key1, key2) in enumerate(key_pairs):
@@ -779,64 +776,6 @@ class AseResultsComparator:
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
 
         return fig
-
-    #@add_fig_kwargs
-    #def plot_cell_traj(self, abc_or_angles, delta_mode=True, fontsize=6, markersize=2, **kwargs):
-    #    """
-    #    Plot lattice parameters along the trajectory.
-
-    #    Args:
-    #        delta_mode: True to plot difference instead of absolute values.
-    #    """
-    #    # [(abc) or (angles)] along rows, pairs along columns.
-    #    key_pairs = self.get_key_pairs()
-    #    nrows, ncols = 3, len(key_pairs)
-    #    ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-    #                                           sharex=True, sharey=False, squeeze=False)
-
-    #    if abc_or_angles not in ("abc", "angles"):
-    #        raise ValueError(f"Invalid {abc_or_angles=}")
-    #    cell_keys = _CELLPAR_KEYS[:3] if abc_or_angles == "abc" else _CELLPAR_KEYS[3:]
-    #    marker_idir = {0: ">", 1: "<", 2: "^"}
-
-    #    for icol, (key1, key2) in enumerate(key_pairs):
-    #        # Arrays of shape: [nsteps, 3]
-    #        data1_t, data2_t = self.traj_abc_angles_for_keys(abc_or_angles, key1, key2)
-    #        for idir, direction in enumerate(cell_keys):
-    #            last_row = idir == 2
-    #            vals1_t, vals2_t = data1_t[:,idir], data2_t[:,idir]
-    #            print(f"{vals1_t=}\n{vals2_t=}")
-    #            stats = diff_stats(vals1_t, vals2_t)
-    #            ax = ax_mat[idir, icol]
-    #            ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
-    #            if delta_mode:
-    #                # Plot delta of cell params along the trajectory.
-    #                style = dict(marker=marker_idir[idir], markersize=markersize,)
-    #                             #color=atom1_cmap(float(iatom) / self.natom))
-    #                abs_delta = np.abs(vals1_t - vals2_t)
-    #                #print(f"{abs_delta=}")
-    #                ax.plot(abs_delta, **style, label=f"$\Delta ({direction})$")
-    #                #yscale = "log" if forpos == "forces" else "linear"
-    #                #ax.set_yscale(yscale)
-    #            else:
-    #                f1_style = dict(marker=marker_idir[idir], markersize=markersize,)
-    #                                #color=
-    #                f2_style = dict(marker=marker_idir[idir], markersize=markersize,)
-    #                                #color=
-    #                ax.plot(vals1_t, **f1_style, label=f"${key1}\, {direction}$")
-    #                ax.plot(vals2_t, **f2_style, label=f"${key2}\, {direction}$")
-
-    #            set_grid_legend(ax, fontsize, xlabel='trajectory' if last_row else None,
-    #                            grid=True, legend=not delta_mode, legend_loc="upper left",
-    #                            ylabel=f"$|\Delta {direction}|$" if delta_mode else f"{direction}")
-
-    #    if abc_or_angles == "abc":
-    #        head = "$\Delta$-abc Ang" if delta_mode else "abc lattice lenghts in Ang"
-    #    if abc_or_angles == "angles":
-    #        head = "$\Delta$-angles in degrees" if delta_mode else "Angles in degrees"
-    #    if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
-
-    #    return fig
 
 
 class AseRelaxation:
@@ -2206,16 +2145,18 @@ class MlCompareWithAbinitio(_MlNebBase):
     Compare ab-initio energies, forces and stresses with ML results.
     """
 
-    def __init__(self, filepath, nn_names, verbose, workdir, prefix=None):
+    def __init__(self, filepath, nn_names, traj_range, verbose, workdir, prefix=None):
         """
         Args:
             filepath: File produced by the ab-initio code with energies, forces and stresses.
             nn_names: String or list of strings defining the NN potential.
+            traj_range: Trajectory range. None to include all steps.
             verbose: Verbosity level.
             workdir: Working directory.
         """
         super().__init__(workdir, prefix)
         self.filepath = filepath
+        self.traj_range = traj_range
         self.nn_names = list_strings(nn_names)
         self.verbose = verbose
 
@@ -2226,6 +2167,7 @@ class MlCompareWithAbinitio(_MlNebBase):
 {self.__class__.__name__} parameters:
 
      filepath    = {self.filepath}
+     traj_range  = {self.traj_range}
      nn_names    = {self.nn_names}
      workdir     = {self.workdir}
      verbose     = {self.verbose}
@@ -2246,10 +2188,12 @@ class MlCompareWithAbinitio(_MlNebBase):
             with HistFile(self.filepath) as hist:
                 # etotals in eV units.
                 etotals = hist.etotals
+                if self.traj_range is None: self.traj_range = range(0, len(hist.etotals), 1)
                 forces_hist = hist.r.read_cart_forces(unit="eV ang^-1")
                 # GPa units.
                 stress_cart_tensors, pressures = hist.reader.read_cart_stress_tensors()
-                for structure, ene, stress, forces in zip(hist.structures, etotals, stress_cart_tensors, forces_hist):
+                for istep, (structure, ene, stress, forces) in enumerate(zip(hist.structures, etotals, stress_cart_tensors, forces_hist)):
+                    if not istep in self.traj_range: continue
                     r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress)
                     abi_results.append(r)
                 return abi_results
@@ -2270,8 +2214,11 @@ class MlCompareWithAbinitio(_MlNebBase):
 
             from pymatgen.io.vasp.outputs import Vasprun
             vasprun = Vasprun(self.filepath)
-            for step in vasprun.ionic_steps:
+            num_steps = vasprun.ionic_steps
+            if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
+            for istep, step in vasprun.ionic_steps:
                 #print(step.keys())
+                if not istep in self.traj_range: continue
                 structure, forces, stress = step["structure"], step["forces"], step["stress"]
                 ene = get_energy_step(step)
                 r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress)
@@ -2302,7 +2249,7 @@ class MlCompareWithAbinitio(_MlNebBase):
                 calc = as_calculator(nn_name)
                 items = [AseResults.from_atoms(res.atoms, calc=calc) for res in abi_results]
             else:
-                raise NotImplementedError()
+                raise NotImplementedError("run with multiprocessing!")
                 args_list = [(nn_name, res) for res in abi_results]
                 with Pool(processes=nprocs) as pool:
                     items = pool.map(_map_run_compare, args_list)

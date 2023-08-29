@@ -67,7 +67,6 @@ def get_pn_serve_kwargs(options) -> dict:
     """
     Return dict with the arguments to be passed to pn.serve.
     """
-
     import abipy.panels as mod
     assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
 
@@ -187,7 +186,6 @@ class EnumAction(argparse.Action):
         setattr(namespace, self.dest, value)
 
 
-
 def fix_omp_num_threads() -> int:
     """
     Set OMP_NUM_THREADS to 1 if env var is not defined. Return num_threads.
@@ -198,3 +196,24 @@ def fix_omp_num_threads() -> int:
         os.environ["OMP_NUM_THREADS"] = str(num_threads)
 
     return num_threads
+
+
+def range_from_str(string: str) -> range:
+    """
+    Convert string into a range object.
+    """
+    if string is None: return None
+
+    tokens = string.split(":")
+    start, stop, step = 0, None, 1
+    if len(tokens) == 1:
+        stop = int(tokens[0])
+    elif len(tokens) == 2:
+        start, stop = map(int, tokens)
+    elif len(tokens) == 3:
+        start, stop, step = map(int, tokens)
+    else:
+        raise ValueError(f"Cannot interpret {string=} as range object.")
+
+    return range(start, stop, step)
+
