@@ -2214,9 +2214,9 @@ class MlCompareWithAbinitio(_MlNebBase):
 
             from pymatgen.io.vasp.outputs import Vasprun
             vasprun = Vasprun(self.filepath)
-            num_steps = vasprun.ionic_steps
+            num_steps = len(vasprun.ionic_steps)
             if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
-            for istep, step in vasprun.ionic_steps:
+            for istep, step in enumerate(vasprun.ionic_steps):
                 #print(step.keys())
                 if not istep in self.traj_range: continue
                 structure, forces, stress = step["structure"], step["forces"], step["stress"]
