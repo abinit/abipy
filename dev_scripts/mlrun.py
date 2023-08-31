@@ -46,8 +46,8 @@ def add_workdir_verbose_opts(f):
 
 @click.command()
 @click.argument("filepath", type=str)
-@click.option("--nn-name", "-nn", default="m3gnet", show_default=True,
-              type=click.Choice(["m3gnet_old", "m3gnet", "chgnet"]), help='ML potential')
+@click.option("--nn-name", "-nn", default="chgnet", show_default=True,
+              type=click.Choice(["m3gnet", "matgl", "chgnet"]), help='ML potential')
 @add_relax_opts
 @click.option("-k", "--kppa", default=1000, type=float, show_default=True,
               help="Defines the sampling of BZ mesh (k-points per atom)")

@@ -246,7 +246,7 @@ class RelaxationProfiler:
         ml_calc = CalcBuilder(self.nn_name).get_calculator()
 
         print(f"\nBegin ABINIT + {self.nn_name} hybrid relaxation")
-        if self.xc.is_gga_family == "GGA":
+        if self.xc == "PBE":
             print(f"Starting from ML-optimized Atoms as {self.xc=}")
             atoms = ml_opt.atoms.copy()
             atoms = abisanitize_atoms(atoms)
@@ -346,6 +346,7 @@ if __name__ == "__main__":
     }[xc]
     print(f"Using {repo_name=}")
     pseudos = get_repo_from_name(repo_name).get_pseudos("standard")
+    #pseudos = get_pseudos(xc)
 
     from ase.build import bulk
     atoms = bulk('Si')

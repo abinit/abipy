@@ -139,6 +139,21 @@ def get_repo_from_name(repo_name: str) -> PseudosRepo:
         raise KeyError(f"Couldn't find {repo_name} in the list of registered repos:\n{all_names}")
 
 
+#def get_pseudos(xc_name, ps_type: str, relativity_type: str = "SR", accuracy="standard")
+#    if ps_type == "NC":
+#        repo_name = {
+#            "PBE": "ONCVPSP-PBE-SR-PDv0.4",
+#            "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
+#            "LDA": "ONCVPSP-LDA-SR-PDv0.4",
+#        }[xc_name]
+#    elif ps_type == "PAW":
+#      raise ValueError(f"Invalid {ps_type=}")
+#    else:
+#      raise ValueError(f"Invalid {ps_type=}")
+#    pseudos = get_repo_from_name(repo_name).get_pseudos(accuracy)
+#    return pseudos
+
+
 def get_installed_repos_and_root(dirpath: Optional[str] = None) -> tuple[list[PseudosRepo], str]:
     """
     Return (all_repos, dirpath)
