@@ -15,6 +15,7 @@ import dataclasses
 import stat
 import numpy as np
 import pandas as pd
+import abipy.core.abinit_units as abu
 try:
     import ase
 except ImportError as exc:
@@ -24,6 +25,7 @@ from pathlib import Path
 from inspect import isclass
 from multiprocessing import Pool
 from typing import Type, Any, Optional, Union
+from enum import IntEnum
 from monty.string import marquee, list_strings # is_string,
 from monty.functools import lazy_property
 from monty.collections import AttrDict #, dict2namedtuple
@@ -39,8 +41,7 @@ from ase.neb import NEB
 from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from abipy.core import Structure
-import abipy.core.abinit_units as abu
-from abipy.tools.iotools import workdir_with_prefix, PythonScript
+from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.printing import print_dataframe
 from abipy.abio.enums import StrEnum, EnumMixin
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
@@ -944,32 +945,118 @@ def silence_tensorflow() -> None:
         pass
 
 
-class _MyCalculatorMixin:
+
+class CORRALGO(IntEnum):
     """
-    Add _delta_forces_list and _delta_stress_list internal attributes to an ASE calculator.
-    Extend `calculate` method so that forces and stresses are corrected accordingly.
+    Enumerate the different algorithms used to correct the ML forces/stresses.
+    """
+    none = 0
+    delta = 1
+    one_point = 2
+    #two_points = 3
+
+    @classmethod
+    def from_string(cls, string: str):
+        """Build instance from string."""
+        try:
+           enum = getattr(cls, string)
+           return enum
+        except AttributeError as exc:
+           raise ValueError(f'Error: {string} is not a valid value')
+
+
+class _MyMlCalculator:
+    """
+    Add _abi_forces_list and _abi_stress_list internal attributes to an ASE calculator.
+    Extend `calculate` method so that ML forces and stresses can be corrected.
     """
 
-    def set_delta_forces(self, delta_forces):
-        """F_Abinitio - F_ML"""
-        if getattr(self, "_delta_forces_list", None) is None:
-            self._delta_forces_list = []
-        self._delta_forces_list.append(delta_forces)
+    def __init__(self, *args, **kwargs):
+        #print("In _MyMlCalculatorInit with args:", args, ", kwargs:", kwargs)
+        super().__init__(*args, **kwargs)
 
-    def get_delta_forces(self):
-        delta_forces_list = getattr(self, "_delta_forces_list", None)
-        if delta_forces_list is not None: return delta_forces_list[-1]
+        from collections import deque
+        maxlen = 2
+        self.__correct_forces_algo = CORRALGO.delta
+        self.__correct_stress_algo = CORRALGO.delta
+        self.__abi_forces_list = deque(maxlen=maxlen)
+        self.__abi_stress_list = deque(maxlen=maxlen)
+        self.__abi_atoms_list = deque(maxlen=maxlen)
+        self.__ml_forces_list = deque(maxlen=maxlen)
+        self.__ml_stress_list = deque(maxlen=maxlen)
+        self.__verbose = 0
+
+    def set_correct_forces_algo(self, new_algo: int) -> int:
+        assert new_algo in CORRALGO
+        old_algo = self.__correct_forces_algo
+        self.__correct_forces_algo = new_algo
+        return old_algo
+
+    @property
+    def correct_forces_algo(self) -> int:
+        return self.__correct_forces_algo
+
+    def set_correct_stress_algo(self, new_algo: int) -> int:
+        assert new_algo in CORRALGO
+        old_algo = self.__correct_stress_algo
+        self.__correct_stress_algo = new_algo
+        return old_algo
+
+    @property
+    def correct_stress_algo(self) -> bool:
+        return self.__correct_stress_algo
+
+    def store_abi_forstr_atoms(self, abi_forces, abi_stress, atoms):
+        """
+        Stores a copy of the ab-initio forces, stress tensor and atoms
+        in the internal buffers. Also compute and store the corresponding ML values.
+        """
+        # Store copies.
+        abi_forces = np.asarray(abi_forces).copy()
+        self.__abi_forces_list.append(abi_forces)
+        abi_stress = np.asarray(abi_stress).copy()
+        self.__abi_stress_list.append(abi_stress)
+        self.__abi_atoms_list.append(atoms.copy())
+
+        self.reset()
+        old_forces_algo = self.set_correct_forces_algo(CORRALGO.none)
+        old_stress_algo = self.set_correct_stress_algo(CORRALGO.none)
+        ml_forces = self.get_forces(atoms=atoms)
+        ml_stress = self.get_stress(atoms=atoms)
+        #print(f"{ml_forces=}"); print(f"{ml_stress=}")
+        self.set_correct_forces_algo(old_forces_algo)
+        self.set_correct_stress_algo(old_stress_algo)
+        self.__ml_forces_list.append(ml_forces)
+        self.__ml_stress_list.append(ml_stress)
+        self.reset()
+
+        def fmt_vec3(vec3) -> str:
+            return "{:.6e} {:.6e} {:.6e}".format(*vec3)
+        def fmt_vec6(vec6) -> str:
+            return "{:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e}".format(*vec6)
+
+        if self.__verbose:
+            from ase.stress import full_3x3_to_voigt_6_stress
+            print("abi_stress6:", fmt_vec6(full_3x3_to_voigt_6_stress(abi_stress)))
+            print("ml_stress6: ", fmt_vec6(full_3x3_to_voigt_6_stress(ml_stress)))
+            for iat in range(len(atoms)):
+                print(f"abi_fcart_{iat=}:", fmt_vec3(abi_forces[iat]))
+                print(f"ml_fcart_{iat=} :", fmt_vec3(ml_forces[iat]))
+
+    def get_abi_forces(self):
+        if self.__abi_forces_list: return self.__abi_forces_list[-1]
         return None
 
-    def set_delta_stress(self, delta_stress):
-        """S_Abinitio - S_ML"""
-        if getattr(self, "_delta_stress_list", None) is None:
-            self._delta_stress_list = []
-        self._delta_stress_list.append(delta_stress)
+    def get_ml_forces(self):
+        if self.__ml_forces_list: return self.__ml_forces_list[-1]
+        return None
 
-    def get_delta_stress(self):
-        delta_stress_list = getattr(self, "_delta_stress_list", None)
-        if delta_stress_list is not None: return delta_stress_list[-1]
+    def get_abi_stress(self):
+        if self.__abi_stress_list: return self.__abi_stress_list[-1]
+        return None
+
+    def get_ml_stress(self):
+        if self.__ml_stress_list: return self.__ml_stress_list[-1]
         return None
 
     def calculate(
@@ -988,31 +1075,48 @@ class _MyCalculatorMixin:
                 changed for new calculation. If not, the previous calculation
                 results will be loaded.
         """
+        #print("In super.calculate")
         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
 
-        # Apply delta correction to forces.
-        forces = self.results["forces"]
-        delta_forces = self.get_delta_forces()
-        if delta_forces is not None:
-            #print("Updating forces with delta_forces:\n", forces)
-            forces += delta_forces
-            self.results.update(
-                forces=forces,
-            )
+        if self.correct_forces_algo != CORRALGO.none:
+            # Apply ab-initio correction to ml_forces.
+            forces = self.results["forces"]
+            abi_forces = self.get_abi_forces()
+            ml_forces = self.get_ml_forces()
+            if abi_forces is not None:
+                # Change forces only if have invoked store_abi_forstr_atoms
+                if self.correct_forces_algo == CORRALGO.delta:
+                    # Apply delta correction to forces.
+                    delta_forces = abi_forces - ml_forces
+                    forces += delta_forces
+                elif self.correct_forces_algo == CORRALGO.one_point:
+                    forces += abi_forces
+                else:
+                    raise ValueError(f"Invalid {self.correct_forces_algo=}")
+                #print("Updating forces with abi_forces:\n", abi_forces)
+                self.results.update(forces=forces)
 
-        # Apply delta correction to stress.
-        stress = self.results["stress"]
-        delta_stress = self.get_delta_stress()
-        if delta_stress is not None:
-            #print("Updating stress with delta_stress:\n", stress)
-            stress += delta_stress
-            self.results.update(
-                stress=stress,
-            )
+        if self.correct_stress_algo != CORRALGO.none:
+            # Apply ab-initio correction to stress.
+            stress = self.results["stress"]
+            abi_stress = self.get_abi_stress()
+            ml_stress = self.get_ml_stress()
+            if abi_stress is not None:
+                # Change stresses only if have invoked store_abi_forstr_atoms
+                if self.correct_stress_algo == CORRALGO.delta:
+                    # Apply delta correction to stress.
+                    delta_stress = abi_stress - ml_stress
+                    stress += delta_stress
+                elif self.correct_stress_algo == CORRALGO.one_point:
+                    stress += abi_stress
+                else:
+                    raise ValueError(f"Invalid {self.correct_stress_algo=}")
+                #print("Updating stress with abi_stress:\n", abi_stress)
+                self.results.update(stress=stress)
 
 
 def as_calculator(obj) -> Calculator:
-    """Build a calculator."""
+    """Build an ASE calculator."""
     if isinstance(obj, Calculator):
         return obj
 
@@ -1022,8 +1126,13 @@ def as_calculator(obj) -> Calculator:
 
 class CalcBuilder:
     """
-    Factory class to build an ASE calculator with ML potential
+    Factory class to build an ASE calculator with a ML potential as backend.
     Supports different backends defined by `name` string.
+    Possible formats are:
+
+        1) nn_type e.g. m3net
+        2) nn_type:model_name
+        3) nn_type@filepath
     """
 
     ALL_NN_TYPES = [
@@ -1065,7 +1174,6 @@ class CalcBuilder:
         """
         Return ASE calculator with ML potential.
         """
-
         if self.nn_type == "m3gnet":
             # m3gnet legacy version.
             if self._model is None:
@@ -1079,8 +1187,8 @@ class CalcBuilder:
                 assert self.model_name is None
                 self._model = Potential(M3GNet.load())
 
-            class MyM3GNetCalculator(M3GNetCalculator, _MyCalculatorMixin):
-                """Add delta_forces and delta_stress"""
+            class MyM3GNetCalculator(_MyMlCalculator, M3GNetCalculator):
+                """Add abi_forces and abi_stress"""
 
             return MyM3GNetCalculator(potential=self._model)
 
@@ -1096,8 +1204,8 @@ class CalcBuilder:
                 model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
                 self._model = matgl.load_model(model_name)
 
-            class MyM3GNetCalculator(M3GNetCalculator, _MyCalculatorMixin):
-                """Add delta_forces and delta_stress"""
+            class MyM3GNetCalculator(_MyMlCalculator, M3GNetCalculator):
+                """Add abi_forces and abi_stress"""
 
             return MyM3GNetCalculator(potential=self._model)
 
@@ -1112,8 +1220,8 @@ class CalcBuilder:
                 assert self.model_name is None
                 self._model = CHGNet.load()
 
-            class MyCHGNetCalculator(CHGNetCalculator, _MyCalculatorMixin):
-                """Add delta_forces and delta_stress"""
+            class MyCHGNetCalculator(_MyMlCalculator, CHGNetCalculator):
+                """Add abi_forces and abi_stress"""
 
             return MyCHGNetCalculator(model=self._model)
 
@@ -1123,8 +1231,8 @@ class CalcBuilder:
             except ImportError as exc:
                 raise ImportError("alignn not installed. See https://github.com/usnistgov/alignn") from exc
 
-            class MyAlignnCalculator(AlignnAtomwiseCalculator, _MyCalculatorMixin):
-                """Add delta_forces and delta_stress"""
+            class MyAlignnCalculator(_MyMlCalculator, AlignnAtomwiseCalculator):
+                """Add abi_forces and abi_stress"""
 
             model_name = default_path() if self.model_name is None else self.model_name
             return AlignnAtomwiseCalculator(path=model_name)
@@ -1136,14 +1244,14 @@ class CalcBuilder:
         #        raise ImportError("quippy not installed. Try `pip install quippy-ase`.\n" +
         #                          "See https://github.com/libAtoms/QUIP") from exc
 
-        #    class MyQuipPotential(Potential, _MyCalculatorMixin):
-        #        """Add delta_forces and delta_stress"""
+        #    class MyQuipPotential(_MyMlCalculator, Potential):
+        #        """Add abi_forces and abi_stress"""
 
         #    assert self.model_name is None
         #    args_str = ""
         #    return MyQuipPotential(args_str="")
 
-        raise ValueError(f"Invalid {self.name=}")
+        raise ValueError(f"Invalid {self.nn_type=}")
 
 
 class _MlBase:
@@ -1167,18 +1275,11 @@ class _MlBase:
         """
         self.workdir = workdir_with_prefix(workdir, prefix)
         self.basename_info = []
-        self.delta_forces = None
-        self.delta_stress = None
 
     def pickle_dump(self):
         """Write pickle file for object persistence."""
         with open(self.workdir / f"{self.__class__.__name__}.pickle", "wb") as fh:
             pickle.dump(self, fh)
-
-    def set_delta_forces_stress(self, delta_forces, delta_stress) -> None:
-        """Set the value of the delta corrections."""
-        self.delta_forces = delta_forces
-        self.delta_stress = delta_stress
 
     def __str__(self):
         # Delegated to the subclass.
@@ -1194,15 +1295,6 @@ class _MlBase:
     def get_calculator(self) -> Calculator:
         """Return ASE calculator."""
         calc = self.calc_builder.get_calculator()
-
-        if self.delta_forces is not None:
-            #print("Setting delta_forces:\n", self.delta_forces)
-            calc.set_delta_forces(self.delta_forces)
-
-        if self.delta_stress is not None:
-            #print("Setting delta_stress:\n", self.delta_stress)
-            calc.set_delta_stress(self.delta_stress)
-
         return calc
 
     def add_basename_info(self, basename: str, info: str) -> None:
@@ -1359,9 +1451,7 @@ class MlRelaxer(_MlBase):
         #  nn_name: matgl
         #  prtvol: 1
 
-        from ruamel.yaml import YAML
-        with open(os.path.expanduser(filepath), "rt") as fh:
-            doc = YAML().load(fh) #; print(doc)
+        doc = yaml_safe_load_path(filepath) #; print(doc)
 
         format_version = doc.pop("format_version")
         natom = doc.pop("natom")
@@ -1371,6 +1461,7 @@ class MlRelaxer(_MlBase):
         rprim = np.array(doc.pop("lattice_vectors"))
         xred = np.array(doc.pop("xred"))
         xred = np.array(xred[:,:3], dtype=float)
+        # Read forces and stress in a.u. and convert.
         abi_cart_forces = np.array(doc.pop("cartesian_forces")) * abu.Ha_eV / abu.Bohr_Ang
         abi_cart_stresses = np.array(doc.pop("cartesian_stress_tensor")) * abu.Ha_eV / (abu.Bohr_Ang**3)
 
@@ -1378,7 +1469,7 @@ class MlRelaxer(_MlBase):
         optcell = doc.pop("optcell")
         iatfix = doc.pop("iatfix") # [3,natom] array or None if unconstrained.
         strtarget = np.array(doc.pop("strtarget"), dtype=float)
-        nn_name = doc.pop("nn_name", default="chgnet")
+        nn_name = doc.get("nn_name", "chgnet")
         verbose = doc.pop("prtvol")
 
         structure = Structure.from_abivars(
@@ -1413,29 +1504,20 @@ class MlRelaxer(_MlBase):
         if np.any(strtarget[3:] != 0.0):
             raise ValueError(f"Off diagonal components in strtarget are not supported. {strtarget=}")
 
-        # Set internal parameters according to yaml file and build object.
+        # Set internal parameters according to YAML file and build object.
         fmax, steps, optimizer = 0.01, 500, "BFGS"
 
         new = cls(atoms, relax_mode, fmax, pressure, steps, optimizer, nn_name, verbose,
                   workdir=workdir, prefix=prefix)
 
-        # Set delta forces and delta stress if script is called by ABINIT.
-
-        #new.set_delta_forces_stress_from_abiml_nc(filepath)
-        ## Compute ML forces for this structure.
-        #atoms = to_ase_atoms(structure, calc=new.get_calculator())
-        #ml_cart_forces = atoms.get_forces()
-        #ml_cart_stress = atoms.get_stress()
-
-        ## Set delta forces/stresses so that the next invokation to get_calculator include the deltas
-        #new.set_delta_forces_stress(abi_cart_forces - ml_cart_forces, abi_stress - ml_cart_stress)
+        # Set delta forces and delta stress if the script is called by ABINIT.
 
         return new
 
     def write_output_file_for_abinit(self) -> Path:
         """
         Write output file with results in a format that can be parsed by ABINIT.
-        Return path to output file.
+        Return path to the output file.
         """
         filepath = self.get_path("ABI_MLRELAXER.out", "Output file for hybrid relaxation with ABINIT.")
         format_version = 1
@@ -1507,6 +1589,7 @@ class MlRelaxer(_MlBase):
         #self.pickle_dump()
         workdir = self.workdir
         self.atoms.calc = self.get_calculator()
+        # TODO: Here I should add the ab-initio forces/stress to the calculator to correct the ML ones
 
         print(f"Relaxing structure with relax mode: {self.relax_mode} ...")
         relax_kws = dict(calculator=self.atoms.calc,

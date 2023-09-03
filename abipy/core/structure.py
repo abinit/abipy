@@ -2717,7 +2717,7 @@ class StructDiff:
         """
         # Compare lattices.
         df = self.get_lattice_dataframe()
-        print("\nLattice difference (Ang units):", file=file)
+        print("\nLattice parameters (Ang units):", file=file)
         print(df.to_string(), file=file)
         if only_lattice: return
 
