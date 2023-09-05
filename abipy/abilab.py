@@ -28,7 +28,7 @@ ArrayWithUnit = units.ArrayWithUnit
 from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Flow, Work, TaskManager, AbinitBuild, flow_main
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
-from abipy.core import restapi
+#from abipy.core import restapi
 from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
   mp_match_structure, mp_search, cod_search, display_structure)
 from abipy.core.mixins import TextFile, JsonFile, CubeFile

@@ -14,7 +14,7 @@ from ase.atoms import Atoms
 from ase.build import bulk
 from abipy.core.structure import Structure
 from abipy.flowtk.psrepos import get_repo_from_name
-from abipy.ml.aseml import get_atoms, ase_optimizer_cls
+from abipy.ml.aseml import get_atoms, ase_optimizer_cls, CORRALGO
 from abipy.ml.ml_relax import RelaxationProfiler
 
 
@@ -46,8 +46,10 @@ def add_workdir_verbose_opts(f):
 
 @click.command()
 @click.argument("filepath", type=str)
-@click.option("--nn-name", "-nn", default="m3gnet", show_default=True,
-              type=click.Choice(["m3gnet_old", "m3gnet", "chgnet"]), help='ML potential')
+@click.option("--nn-name", "-nn", default="chgnet", show_default=True,
+              type=click.Choice(["m3gnet", "matgl", "chgnet"]), help='ML potential')
+@click.option("-c", "--corr-algo_str", default="delta", show_default=True,
+              type=click.Choice(CORRALGO._member_names_), help='Correction algorithm')
 @add_relax_opts
 @click.option("-k", "--kppa", default=1000, type=float, show_default=True,
               help="Defines the sampling of BZ mesh (k-points per atom)")
@@ -58,7 +60,7 @@ def add_workdir_verbose_opts(f):
               help="XC functional.")
 @click.option("-m","--mpi-runner", default="mpirun", type=str, show_default=True, help="String used to invoke the MPI runner. ")
 @add_workdir_verbose_opts
-def main(filepath, nn_name,
+def main(filepath, nn_name, corr_algo_str,
          relax_mode, fmax, steps, optimizer,
          kppa, rattle, scale_volume, mpi_nprocs, xc, mpi_runner,
          workdir, verbose,
@@ -81,7 +83,9 @@ def main(filepath, nn_name,
         structure = Structure.from_file(filepath)
         if abs(scale_volume - 1.0) > 0.0:
             print(f"Scaling input volume by {scale_volume=}")
-            structure.scale_lattice(scale_volume * structure.lattice.volume)
+            #print("before structure:\n", structure)
+            structure = structure.scale_lattice(scale_volume * structure.lattice.volume)
+            #print("after structure:\n", structure)
         atoms = get_atoms(structure)
     else:
         raise ValueError(f"Cannot init Atoms from {filepath=}")
@@ -91,8 +95,10 @@ def main(filepath, nn_name,
         print("Displacing atoms randomly with stdev=", rattle)
         atoms.rattle(stdev=abs(rattle), seed=42)
 
-    prof = RelaxationProfiler(atoms, pseudos, xc, kppa, relax_mode, fmax, mpi_nprocs, steps=steps,
-                              verbose=verbose, optimizer=optimizer, nn_name=nn_name, mpi_runner=mpi_runner)
+    print("Using corr_algo:", corr_algo_str)
+    corr_algo = CORRALGO.from_string(corr_algo_str)
+    prof = RelaxationProfiler(atoms, pseudos, corr_algo, xc, kppa, relax_mode, fmax, mpi_nprocs,
+                              steps=steps, verbose=verbose, optimizer=optimizer, nn_name=nn_name, mpi_runner=mpi_runner)
     prof.run(workdir=workdir)
     return 0
 

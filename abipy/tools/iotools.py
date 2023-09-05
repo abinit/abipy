@@ -37,7 +37,7 @@ def yaml_safe_load(string: str) -> Any:
 
 def yaml_safe_load_path(filepath: str) -> Any:
     """Load Yaml document from filepath"""
-    with open(filepath, "rt") as fh:
+    with open(os.path.expanduser(filepath), "rt") as fh:
         return yaml.YAML(typ='safe', pure=True).load(fh.read())
 
 
