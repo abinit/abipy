@@ -26,9 +26,9 @@ from inspect import isclass
 from multiprocessing import Pool
 from typing import Type, Any, Optional, Union
 from enum import IntEnum
-from monty.string import marquee, list_strings # is_string,
+from monty.string import marquee, list_strings
 from monty.functools import lazy_property
-from monty.collections import AttrDict #, dict2namedtuple
+from monty.collections import AttrDict
 from pymatgen.core import Structure as PmgStructure
 from pymatgen.io.ase import AseAtomsAdaptor
 from ase import units
@@ -2264,136 +2264,6 @@ class MlOrderer(_MlBase):
         # TODO: Post-process
         self._finalize()
 
-
-class MlAsePhonons(_MlBase):
-    """
-    Compute phonons with ASE and ML potential.
-    """
-
-    def __init__(self, atoms: Atoms, supercell, kpts, asr, nqpath,
-                 relax_mode, fmax, pressure, steps, optimizer, nn_name,
-                 verbose, workdir, prefix=None):
-        """
-        Args:
-            atoms: ASE atoms.
-            supercell: tuple with supercell dimension.
-            kpts: K-mesh for phonon-DOS
-            asr: Enforce acoustic sum-rule.
-            nqpath: Number of q-point along the q-path.
-            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
-            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
-            verbose: whether to print stdout.
-            optimizer: name of the ASE optimizer to use for relaxation.
-            nn_name: String defining the NN potential. See also CalcBuilder.
-            verbose: Verbosity level.
-            workdir:
-            prefix:
-        """
-        super().__init__(workdir, prefix)
-        self.atoms = get_atoms(atoms)
-        self.supercell = supercell
-        self.kpts = kpts
-        self.asr = asr
-        self.nqpath = nqpath
-        self.relax_mode = relax_mode
-        RX_MODE.validate(self.relax_mode)
-        self.fmax = fmax
-        self.pressure = pressure
-        self.steps = steps
-        self.optimizer = optimizer
-        self.nn_name = nn_name
-        self.verbose = verbose
-
-    def to_string(self, verbose=0):
-        """String representation with verbosity level `verbose`."""
-        s = f"""\
-
-{self.__class__.__name__} parameters:
-
-     supercell  = {self.supercell}
-     kpts       = {self.kpts}
-     asr        = {self.asr}
-     nqpath     = {self.nqpath}
-     relax_mode = {self.relax_mode}
-     fmax       = {self.fmax}
-     steps      = {self.steps}
-     optimizer  = {self.optimizer}
-     pressure   = {self.pressure}
-     nn_name    = {self.nn_name}
-     workdir    = {self.workdir}
-     verbose    = {self.verbose}
-
-=== ATOMS ===
-
-{self.atoms}
-"""
-        return s
-
-    def run(self) -> None:
-        """Run AseMlPhonons."""
-        #self.pickle_dump()
-        workdir = self.workdir
-        calculator = self.get_calculator()
-        atoms = self.atoms
-
-        if self.relax != RX_MODE.no:
-            print(f"Relaxing atoms with relax mode: {self.relax_mode}.")
-            relax_kws = dict(calculator=calculator,
-                             optimizer=self.optimizer,
-                             relax_mode=self.relax_mode,
-                             fmax=self.fmax,
-                             pressure=self.pressure,
-                             steps=self.steps,
-                             traj_path=self.get_path("relax.traj", "ASE relax trajectory"),
-                             verbose=self.verbose,
-                            )
-
-            relax = relax_atoms(atoms, **relax_kws)
-            #self.write_traj("relax.traj", traj, info="")
-
-            r0, r1 = AseResults.from_traj_inds(relax.traj, 0, -1)
-            df = dataframe_from_results_list(["initial_unrelaxed", "initial_relaxed"], [r0, r1])
-            print(df, end=2*"\n")
-
-        # Phonon calculator
-        from ase.phonons import Phonons
-        ph = Phonons(atoms, calculator, supercell=self.supercell, delta=0.05)
-        #ph.read_born_charges(name=, neutrality=True)
-        ph.run()
-        #print("Phonons Done")
-
-        # Read forces and assemble the dynamical matrix
-        ph.read(acoustic=self.asr, born=False)
-        ph.clean()
-
-        # Calculate phonon dispersion along a path in the Brillouin zone.
-        path = atoms.cell.bandpath(npoints=self.nqpath)
-        bs = ph.get_band_structure(path, born=False)
-        dos = ph.get_dos(kpts=self.kpts).sample_grid(npts=100, width=1e-3)
-
-        # Plot the band structure and DOS
-        import matplotlib.pyplot as plt
-        plt.rc("figure", dpi=150)
-        fig = plt.figure(1, figsize=(7, 4))
-        bs_ax = fig.add_axes([0.12, 0.07, 0.67, 0.85])
-        emax = 0.035
-        bs.plot(ax=bs_ax, emin=0.0, emax=emax)
-        dos_ax = fig.add_axes([0.8, 0.07, 0.17, 0.85])
-        dos_ax.fill_between(dos.get_weights(), dos.get_energies(), y2=0, color="grey", edgecolor="black", lw=1)
-        dos_ax.set_ylim(0, emax)
-        dos_ax.set_yticks([])
-        dos_ax.set_xticks([])
-        dos_ax.set_xlabel("PH DOS", fontsize=14)
-
-        #title = f"Phonon band structure and DOS of {atoms.symbols} with supercell: {self.supercell}",
-        title = f"Phonon band structure and DOS with supercell: {self.supercell}",
-        fig.suptitle(title, fontsize=8, y=1.02)
-        self.savefig("phonons.png", fig, info=title)
-
-        self._finalize()
-
-
-
 class MlCompareWithAbinitio(_MlNebBase):
     """
     Compare ab-initio energies, forces and stresses with ML results.
@@ -2717,3 +2587,230 @@ def traj_to_qepos(traj_filepath: str, pos_filepath: str) -> None:
             for j in range(nAtoms):
                 posFile.write(str(posArray[i,j,0]) + ' ' + str(posArray[i,j,1]) + ' ' + str(posArray[i,j,2]) + '\n')
 
+
+
+class MlAsePhonons(_MlBase):
+    """
+    Compute phonons with ASE and ML potential.
+    """
+
+    def __init__(self, atoms: Atoms, supercell, kpts, asr, nqpath,
+                 relax_mode, fmax, pressure, steps, optimizer, nn_name,
+                 verbose, workdir, prefix=None):
+        """
+        Args:
+            atoms: ASE atoms.
+            supercell: tuple with supercell dimension.
+            kpts: K-mesh for phonon-DOS
+            asr: Enforce acoustic sum-rule.
+            nqpath: Number of q-point along the q-path.
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
+            verbose: whether to print stdout.
+            optimizer: name of the ASE optimizer to use for relaxation.
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
+            workdir:
+            prefix:
+        """
+        super().__init__(workdir, prefix)
+        self.atoms = get_atoms(atoms)
+        self.supercell = supercell
+        self.kpts = kpts
+        self.asr = asr
+        self.nqpath = nqpath
+        self.relax_mode = relax_mode
+        RX_MODE.validate(self.relax_mode)
+        self.fmax = fmax
+        self.pressure = pressure
+        self.steps = steps
+        self.optimizer = optimizer
+        self.nn_name = nn_name
+        self.verbose = verbose
+
+    def to_string(self, verbose=0):
+        """String representation with verbosity level `verbose`."""
+        s = f"""\
+
+{self.__class__.__name__} parameters:
+
+     supercell  = {self.supercell}
+     kpts       = {self.kpts}
+     asr        = {self.asr}
+     nqpath     = {self.nqpath}
+     relax_mode = {self.relax_mode}
+     fmax       = {self.fmax}
+     steps      = {self.steps}
+     optimizer  = {self.optimizer}
+     pressure   = {self.pressure}
+     nn_name    = {self.nn_name}
+     workdir    = {self.workdir}
+     verbose    = {self.verbose}
+
+=== ATOMS ===
+
+{self.atoms}
+"""
+        return s
+
+    def run(self) -> None:
+        """Run AseMlPhonons."""
+        #self.pickle_dump()
+        workdir = self.workdir
+        calculator = self.get_calculator()
+        self.atoms.calc = calculator
+
+        if self.relax != RX_MODE.no:
+            print(f"Relaxing atoms with relax mode: {self.relax_mode}.")
+            relax_kws = dict(optimizer=self.optimizer,
+                             relax_mode=self.relax_mode,
+                             fmax=self.fmax,
+                             pressure=self.pressure,
+                             steps=self.steps,
+                             traj_path=self.get_path("relax.traj", "ASE relax trajectory"),
+                             verbose=self.verbose,
+                            )
+
+            relax = relax_atoms(self.atoms, **relax_kws)
+            r0, r1 = AseResults.from_traj_inds(relax.traj, 0, -1)
+            df = dataframe_from_results_list(["initial_unrelaxed", "initial_relaxed"], [r0, r1])
+            print(df, end=2*"\n")
+
+        # Phonon calculator
+        from ase.phonons import Phonons
+        ph = Phonons(self.atoms, calculator, supercell=self.supercell, delta=0.05)
+        #ph.read_born_charges(name=, neutrality=True)
+        ph.run()
+        #print("Phonons Done")
+
+        # Read forces and assemble the dynamical matrix
+        ph.read(acoustic=self.asr, born=False)
+        ph.clean()
+
+        # Calculate phonon dispersion along a path in the Brillouin zone.
+        path = self.atoms.cell.bandpath(npoints=self.nqpath)
+        bs = ph.get_band_structure(path, born=False)
+        dos = ph.get_dos(kpts=self.kpts).sample_grid(npts=100, width=1e-3)
+
+        # Plot the band structure and DOS
+        import matplotlib.pyplot as plt
+        plt.rc("figure", dpi=150)
+        fig = plt.figure(1, figsize=(7, 4))
+        bs_ax = fig.add_axes([0.12, 0.07, 0.67, 0.85])
+        emax = 0.035
+        bs.plot(ax=bs_ax, emin=0.0, emax=emax)
+        dos_ax = fig.add_axes([0.8, 0.07, 0.17, 0.85])
+        dos_ax.fill_between(dos.get_weights(), dos.get_energies(), y2=0, color="grey", edgecolor="black", lw=1)
+        dos_ax.set_ylim(0, emax)
+        dos_ax.set_yticks([])
+        dos_ax.set_xticks([])
+        dos_ax.set_xlabel("PH DOS", fontsize=14)
+
+        #title = f"Phonon band structure and DOS of {self.atoms.symbols} with supercell: {self.supercell}",
+        title = f"Phonon band structure and DOS with supercell: {self.supercell}",
+        fig.suptitle(title, fontsize=8, y=1.02)
+        self.savefig("phonons.png", fig, info=title)
+
+        self._finalize()
+
+
+class MlPhononsWithDDB(_MlBase):
+    """
+    Compute phonons with phonopy and ML potential starting from a DDB file.
+    """
+
+    def __init__(self, ddb_filepath: str, supercell, kpts, asr, nqpath,
+                 relax_mode, fmax, pressure, steps, optimizer, nn_name,
+                 verbose, workdir, prefix=None):
+        """
+        Args:
+            ddb_filepath: DDB filename.
+            supercell: tuple with supercell dimension.
+            kpts: K-mesh for phonon-DOS
+            asr: Enforce acoustic sum-rule.
+            nqpath: Number of q-point along the q-path.
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
+            verbose: whether to print stdout.
+            optimizer: name of the ASE optimizer to use for relaxation.
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
+            workdir:
+            prefix:
+        """
+        super().__init__(workdir, prefix)
+        from abipy.dfpt.ddb import DdbFile
+        self.ddb = DdbFile(ddb_file)
+        self.atoms = get_atoms(ddb.structure)
+        self.supercell = supercell
+        self.kpts = kpts
+        self.asr = asr
+        self.nqpath = nqpath
+        self.relax_mode = relax_mode
+        RX_MODE.validate(self.relax_mode)
+        self.fmax = fmax
+        self.pressure = pressure
+        self.steps = steps
+        self.optimizer = optimizer
+        self.nn_name = nn_name
+        self.verbose = verbose
+
+    def to_string(self, verbose=0):
+        """String representation with verbosity level `verbose`."""
+        s = f"""\
+
+{self.__class__.__name__} parameters:
+
+     ddb_path   = {self.ddb.filepath}
+     supercell  = {self.supercell}
+     kpts       = {self.kpts}
+     asr        = {self.asr}
+     nqpath     = {self.nqpath}
+     relax_mode = {self.relax_mode}
+     fmax       = {self.fmax}
+     steps      = {self.steps}
+     optimizer  = {self.optimizer}
+     pressure   = {self.pressure}
+     nn_name    = {self.nn_name}
+     workdir    = {self.workdir}
+     verbose    = {self.verbose}
+
+=== ATOMS ===
+
+{self.atoms}
+"""
+        return s
+
+    def run(self) -> None:
+        """Run MlPhononsWithDDB."""
+        workdir = self.workdir
+        calculator = self.get_calculator()
+        self.atoms.calc = calculator
+
+        if self.relax != RX_MODE.no:
+            print(f"Relaxing DDB atoms with relax mode: {self.relax_mode}.")
+            relax_kws = dict(optimizer=self.optimizer,
+                             relax_mode=self.relax_mode,
+                             fmax=self.fmax,
+                             pressure=self.pressure,
+                             steps=self.steps,
+                             traj_path=self.get_path("relax.traj", "ASE relax trajectory"),
+                             verbose=self.verbose,
+                            )
+
+            relax = relax_atoms(self.atoms, **relax_kws)
+            r0, r1 = AseResults.from_traj_inds(relax.traj, 0, -1)
+            df = dataframe_from_results_list(["DDB_initial", "DDB_relaxed"], [r0, r1])
+            print(df, end=2*"\n")
+
+        # Call phonopy to compute phonons with finite difference and ML potential.
+        # Include non-analytical term if dipoles are available in the DDB file.
+        if self.dbb.has_lo_to_data:
+            print("Activating dipolar term in phonopy calculation using BECS and Zeff from DDB")
+
+        # Call anaddb to compute ab-initio phonon frequencies from the DDB.
+        #self.ddb.anaget_phmodes_at_qpoints(
+        #   qpoints=None, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
+        #   ifcflag=0, ngqpt=None, workdir=None, mpi_procs=1, manager=None, verbose=0,
+        #   lo_to_splitting=False,
+        #   spell_check=True, directions=None, anaddb_kwargs=None, return_input=False)

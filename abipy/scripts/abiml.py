@@ -330,7 +330,7 @@ def mneb(ctx, filepaths, nn_name,
 def aseph(ctx, filepath, nn_name, supercell, kpts, asr, nqpath,
           relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
     """
-    Compute phonon band structure and DOS with ML potential.
+    Use ASE finite-displacement method to compute phonon band structure and DOS with ML potential.
 
     Based on:
 
@@ -390,7 +390,7 @@ def order(ctx, filepath, nn_name,
 @click.argument("filepath", type=str)
 @add_nn_name_opt
 @click.option("-isite", "--isite", required=True,
-               help='Index of atom to displace or string with chemical element to be added to input structure.')
+               help='Index of atom to displace or string with the chemical element to be added to input structure.')
 @click.option("--mesh", type=int, default=4, show_default=True, help='Mesh size along the smallest cell size.')
 @add_relax_opts
 @add_nprocs_opt
@@ -403,7 +403,7 @@ def scan_relax(ctx, filepath, nn_name,
                ):
     """
     Generate 3D mesh of (nx,ny,nz) initial positions and perform multiple relaxations
-    in which all atoms are fixed except the one added to the mesh point.
+    in which all atoms are fixed except the one initially placed at the mesh point.
 
     Usage example:
 
@@ -459,7 +459,7 @@ def compare(ctx, filepaths,
     \b
         abiml.py.py compare FILE --nn-names matgl --nn-names chgnet
 
-    where `FILE` can be either a _HIST.nc or a VASPRUN file.
+    where `FILE` can be either a _HIST.nc or a VASPRUN.xml file.
     """
     traj_range = cli.range_from_str(traj_range)
     ml_comp = aseml.MlCompareWithAbinitio(filepaths, nn_names, traj_range, verbose, workdir, prefix="_compare_")
