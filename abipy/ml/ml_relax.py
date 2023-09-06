@@ -26,6 +26,7 @@ from abipy.ml.aseml import print_atoms, get_atoms, CalcBuilder, ase_optimizer_cl
 
 from time import perf_counter
 
+
 class Timer:
 
     def __enter__(self):
@@ -42,15 +43,15 @@ class Timer:
 
 class RelaxationProfiler:
 
-    def __init__(self, atoms: Any, pseudos, corr_algo, xc, kppa, relax_mode: str, fmax: float, mpi_nprocs,
+    def __init__(self, atoms: Any, pseudos, corr_algo, xc_name, kppa, relax_mode: str, fmax: float, mpi_nprocs,
                  steps=500, verbose: int = 0, optimizer="BFGS", nn_name="chgnet", mpi_runner="mpirun"):
         """
         Args:
             atoms: ASE atoms, pymatgen structure or file with structure.
             pseudos: List of pseudopotentials with cutoff hints.
-            xc: String defining the XC functional e.g. LDA or GGA.
+            xc_name: String defining the XC functional e.g. LDA or GGA.
             corr_algo: Correction algorithm.
-            kppa: K-point per atom used to sample the BZ.
+            kppa: K-point per atom used for sampling the BZ.
             relax_mode: String definining the relaxation mode e.g. "ions" or "cell"
             fmax: Tolerance for structural relaxation in eV/Ang.
             mpi_nprocs: Number of MPI procs used to run Abinit
@@ -63,7 +64,7 @@ class RelaxationProfiler:
         atoms = get_atoms(atoms)
         self.initial_atoms = atoms.copy()
         self.corr_algo = corr_algo
-        self.xc = xc
+        self.xc_name = xc_name
         self.relax_mode = relax_mode
         RX_MODE.validate(self.relax_mode)
         self.fmax = fmax
@@ -182,7 +183,7 @@ class RelaxationProfiler:
 
     def abi_relax_atoms_with_ase(self, directory, header="Begin ABINIT+ASE relaxation"):
         """
-        Relax structure with ABINIT. Return Optimizer
+        Relax structure with ABINIT. Return ASE Optimizer
         """
         print(f"\n{header} in {str(directory)}")
         print("relax_mode:", self.relax_mode, "with tolmxf:", self.relax_kwargs["tolmxf"])
@@ -227,7 +228,8 @@ class RelaxationProfiler:
         abi_relax = self.abi_relax_atoms(workdir / "abinit_relax")
 
         # Run relaxation with ASE optimizer and Abinit forces.
-        #abiase_opt = self.abi_relax_atoms_with_ase(workdir / f"abiase_relax")
+        if False:
+            abiase_opt = self.abi_relax_atoms_with_ase(workdir / f"abiase_relax")
 
         # Compare structures
         diff = StructDiff(["INITIAL", "ABINIT_RELAX", self.nn_name + "_RELAX"],
@@ -241,16 +243,16 @@ class RelaxationProfiler:
         ml_calc.set_correct_stress_algo(self.corr_algo)
 
         print(f"\nBegin ABINIT + {self.nn_name} hybrid relaxation")
-        if self.xc == "PBE":
-            print(f"Starting from ML-optimized Atoms as {self.xc=}")
+        if self.xc_name == "PBE":
+            print(f"Starting from ML-optimized Atoms as {self.xc_name=}")
             atoms = ml_opt.atoms.copy()
             atoms = abisanitize_atoms(atoms)
         else:
-            print(f"Starting from initial Atoms as {self.xc=}")
+            print(f"Starting from initial Atoms as {self.xc_name=}")
             atoms = self.initial_atoms.copy()
 
         count, abiml_nsteps, ml_nsteps = 0, 0, 0
-        count_max = 10
+        count_max = 15
         t_start = time.time()
         while count <= count_max:
             count += 1
@@ -259,8 +261,8 @@ class RelaxationProfiler:
             gs = self.abinit_run_gs_atoms(directory, atoms)
             abiml_nsteps += 1
             print("Iteration:", count, "abi_fmax:", gs.fmax, ", fmax:", self.fmax)
-            if self.relax_mode == RX_MODE.cell:
-                print("abinit_stress", full_3x3_to_voigt_6_stress(gs.stress))
+            #if self.relax_mode == RX_MODE.cell:
+            print("abinit_stress", full_3x3_to_voigt_6_stress(gs.stress))
             #print_atoms(atoms, cart_forces=gs.forces)
 
             # Store ab-initio forces/stresses in the ML calculator and attach it to atoms.
@@ -277,8 +279,7 @@ class RelaxationProfiler:
             opt_converged = opt.converged()
             ml_nsteps += opt.nsteps
 
-            # Sanite atoms at each step to avoid possibile issues
-            # when relaxing with Abinit.
+            # Sanite atoms at each step to avoid possibile issues when relaxing with Abinit.
             atoms = abisanitize_atoms(opt.atoms.copy())
 
             final_mlabi_relax = None
@@ -290,7 +291,7 @@ class RelaxationProfiler:
                 abiml_nsteps += final_mlabi_relax.nsteps
                 break
 
-        print(f'ABINIT + {self.nn_name} relaxation completed in {time.time()-t_start :.2f} sec\n')
+        print(f'ABINIT + {self.nn_name} relaxation completed in {time.time() - t_start :.2f} sec\n')
         #print_atoms(atoms, title="Atoms after ABINIT + ML relaxation:")
 
         diff = StructDiff(["INITIAL", self.nn_name + "_RELAX", "ABINIT_RELAX", "ABI_ML"],
@@ -306,7 +307,7 @@ class RelaxationProfiler:
         with open(workdir / "data.json", "wt") as fh:
             data = dict(
                 corr_algo=self.corr_algo,
-                xc=self.xc,
+                xc_name=self.xc_name,
                 gs_kwargs=self.gs_kwargs,
                 relax_kwargs=self.relax_kwargs,
                 ml_nsteps=ml_nsteps,
@@ -321,18 +322,21 @@ class RelaxationProfiler:
 
 if __name__ == "__main__":
     from abipy.flowtk.psrepos import get_repo_from_name
-    xc = "GGA"
+    xc_name = "PBE"
     # Get pseudos
     repo_name = {
         "PBE": "ONCVPSP-PBE-SR-PDv0.4",
         "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
         "LDA": "ONCVPSP-LDA-SR-PDv0.4",
-    }[xc]
+    }[xc_name]
     print(f"Using {repo_name=}")
     pseudos = get_repo_from_name(repo_name).get_pseudos("standard")
+    #pseudos = get_latest_pseudos(xc_name=PBE)
+
+
     from ase.build import bulk
     atoms = bulk('Si')
     atoms.rattle(stdev=0.1, seed=42)
     kppa = 200
-    prof = RelaxationProfiler(atoms, pseudos, xc, kppa, relax_mode="ions", fmax=0.001, mpi_nprocs=2, verbose=0)
+    prof = RelaxationProfiler(atoms, pseudos, xc_name, kppa, relax_mode="ions", fmax=0.001, mpi_nprocs=2, verbose=0)
     prof.run()
