@@ -977,8 +977,8 @@ class _MyMlCalculator:
 
         from collections import deque
         maxlen = 2
-        self.__correct_forces_algo = CORRALGO.delta
-        self.__correct_stress_algo = CORRALGO.delta
+        self.__correct_forces_algo = CORRALGO.none
+        self.__correct_stress_algo = CORRALGO.none
         self.__abi_forces_list = deque(maxlen=maxlen)
         self.__abi_stress_list = deque(maxlen=maxlen)
         self.__abi_atoms_list = deque(maxlen=maxlen)
@@ -1022,25 +1022,24 @@ class _MyMlCalculator:
         self.__abi_stress_list.append(abi_stress)
         self.__abi_atoms_list.append(atoms.copy())
 
-        # Compute ML forces ans stresses for the input atoms.
-        self.reset()
+        # Compute ML forces and stresses for the input atoms.
         old_forces_algo = self.set_correct_forces_algo(CORRALGO.none)
         old_stress_algo = self.set_correct_stress_algo(CORRALGO.none)
+        self.reset()
         ml_forces = self.get_forces(atoms=atoms)
         ml_stress = self.get_stress(atoms=atoms)
-        #print(f"{ml_forces=}"); print(f"{ml_stress=}")
+        self.reset()
         self.__ml_forces_list.append(ml_forces)
         self.__ml_stress_list.append(ml_stress)
         self.set_correct_forces_algo(old_forces_algo)
         self.set_correct_stress_algo(old_stress_algo)
-        self.reset()
-
-        def fmt_vec3(vec3) -> str:
-            return "{:.6e} {:.6e} {:.6e}".format(*vec3)
-        def fmt_vec6(vec6) -> str:
-            return "{:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e}".format(*vec6)
 
         if self.__verbose:
+            def fmt_vec3(vec3) -> str:
+                return "{:.6e} {:.6e} {:.6e}".format(*vec3)
+            def fmt_vec6(vec6) -> str:
+                return "{:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e}".format(*vec6)
+
             from ase.stress import full_3x3_to_voigt_6_stress
             print("abi_stress6:", fmt_vec6(full_3x3_to_voigt_6_stress(abi_stress)))
             print("ml_stress6: ", fmt_vec6(full_3x3_to_voigt_6_stress(ml_stress)))
@@ -1139,7 +1138,7 @@ class CalcBuilder:
     Supports different backends defined by `name` string.
     Possible formats are:
 
-        1) nn_type e.g. m3net
+        1) nn_type e.g. m3gnet
         2) nn_type:model_name
         3) nn_type@filepath
     """
@@ -1185,6 +1184,9 @@ class CalcBuilder:
     def get_calculator(self, reset=False) -> Calculator:
         """
         Return ASE calculator with ML potential.
+
+        Args:
+            reset: True if internal cache should be reset.
         """
         if reset: self.reset()
 
@@ -1249,7 +1251,7 @@ class CalcBuilder:
                 """Add abi_forces and abi_stress"""
 
             model_name = default_path() if self.model_name is None else self.model_name
-            return AlignnAtomwiseCalculator(path=model_name)
+            return MyAlignnAtomwiseCalculator(path=model_name)
 
         #if self.nn_type == "quip":
         #    try:
@@ -1562,8 +1564,8 @@ class MlRelaxer(_MlBase):
             fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
             pressure: Target pressure.
             steps: max number of steps for relaxation.
-            optimizer: name of the ASE optimizer to use.
-            nn_name:
+            optimizer: name of the ASE optimizer to use for relaxation.
+            nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
         """
         super().__init__(workdir, prefix)
@@ -1642,13 +1644,13 @@ class MlMd(_MlBase):
                  ensemble, nn_name, verbose, workdir, prefix=None):
         """
         Args:
-            atoms:
-            temperature:
+            atoms: ASE atoms.
+            temperature: Temperatur in K
             timestep:
             steps:
             loginterval:
             ensemble:
-            nn_name:
+            nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
             workdir:
             prefix:
@@ -1794,7 +1796,7 @@ class MlGsList(_MlNebBase):
         """
         Args:
             atoms_list: List of ASE atoms
-            nn_name:
+            nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
         """
         super().__init__(workdir, prefix)
@@ -1842,17 +1844,17 @@ class MlNeb(_MlNebBase):
                  nn_name, verbose, workdir, prefix=None):
         """
         Args:
-            initial_atoms
-            final_atoms:
-            nimages:
+            initial_atoms: initial ASE atoms.
+            final_atoms: final ASE atoms.
+            nimages: Number of images.
             neb_method:
             climb:
-            optimizer:
-            relax_mode:
-            fmax:
-            pressure:
-            nn_name:
-            verbose:
+            optimizer: name of the ASE optimizer to use for relaxation.
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
+            pressure: Target pressure
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
             workdir:
             prefix:
         """
@@ -1992,16 +1994,16 @@ class MultiMlNeb(_MlNebBase):
                  nn_name, verbose, workdir, prefix=None):
         """
         Args:
-            atoms_list:
-            nimages:
+            atoms_list: List of ASE atoms.
+            nimages: Number of NEB images.
             neb_method:
             climb:
             optimizer:
-            relax_mode:
-            fmax:
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
             pressure:
-            nn_name:
-            verbose:
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
             workdir:
             prefix:
         """
@@ -2132,15 +2134,15 @@ class MlOrderer(_MlBase):
                  workdir, prefix=None):
         """
         Args:
-            structure:
+            structure: Abipy Structure object or any object that can be converted to structure.
             max_ns:
             optimizer:
             relax_mode:
             fmax:
             pressure:
             steps:
-            nn_name:
-            verbose:
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
             workdir:
             prefix:
         """
@@ -2263,8 +2265,10 @@ class MlOrderer(_MlBase):
         self._finalize()
 
 
-class MlPhonons(_MlBase):
-    """Compute phonons with ASE and ML potential."""
+class MlAsePhonons(_MlBase):
+    """
+    Compute phonons with ASE and ML potential.
+    """
 
     def __init__(self, atoms: Atoms, supercell, kpts, asr, nqpath,
                  relax_mode, fmax, pressure, steps, optimizer, nn_name,
@@ -2273,15 +2277,15 @@ class MlPhonons(_MlBase):
         Args:
             atoms: ASE atoms.
             supercell: tuple with supercell dimension.
-            kpts:
+            kpts: K-mesh for phonon-DOS
             asr: Enforce acoustic sum-rule.
             nqpath: Number of q-point along the q-path.
-            relax_mode:
-            fmax:
-            steps:
-            optimizer:
-            nn_name,
-            verbose:
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
+            verbose: whether to print stdout.
+            optimizer: name of the ASE optimizer to use for relaxation.
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
             workdir:
             prefix:
         """
@@ -2326,7 +2330,7 @@ class MlPhonons(_MlBase):
         return s
 
     def run(self) -> None:
-        """Run MlPhonons."""
+        """Run AseMlPhonons."""
         #self.pickle_dump()
         workdir = self.workdir
         calculator = self.get_calculator()

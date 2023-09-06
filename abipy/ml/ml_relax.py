@@ -246,14 +246,13 @@ class RelaxationProfiler:
         print(f"\nBegin ABINIT + {self.nn_name} hybrid relaxation")
         if self.xc_name == "PBE":
             print(f"Starting from ML-optimized Atoms as {self.xc_name=}")
-            atoms = ml_opt.atoms.copy()
-            atoms = abisanitize_atoms(atoms)
+            atoms = abisanitize_atoms(ml_opt.atoms.copy())
         else:
             print(f"Starting from initial Atoms as {self.xc_name=}")
             atoms = self.initial_atoms.copy()
 
-        count, abiml_nsteps, ml_nsteps = 0, 0, 0
         count_max = 15
+        count, abiml_nsteps, ml_nsteps = 0, 0, 0
         t_start = time.time()
         while count <= count_max:
             count += 1
@@ -268,7 +267,6 @@ class RelaxationProfiler:
 
             # Store ab-initio forces/stresses in the ML calculator and attach it to atoms.
             ml_calc.store_abi_forstr_atoms(gs.forces, gs.stress, atoms)
-            #ml_calc.reset()
             atoms.calc = ml_calc
 
             opt_kws = dict(

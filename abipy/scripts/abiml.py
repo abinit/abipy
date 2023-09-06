@@ -321,7 +321,7 @@ def mneb(ctx, filepaths, nn_name,
 @click.argument("filepath", type=str)
 @add_nn_name_opt
 @click.option("--supercell", "-s", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="Supercell")
-@click.option("--kpts", "-k", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="K-mesh for ph-DOS")
+@click.option("--kpts", "-k", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="K-mesh for phonon-DOS")
 @click.option('--asr/--no-asr', default=True, show_default=True,
               help="Restore the acoustic sum rule on the force constants.")
 @click.option('--nqpath', default=100, type=int, show_default=True, help="Number of q-points along the q-path")
@@ -347,11 +347,11 @@ def aseph(ctx, filepath, nn_name, supercell, kpts, asr, nqpath,
 
         abiml.py.py aseph -nn m3gnet [...]
     """
-    ml_ph = aseml.MlPhonons(filepath, supercell, kpts, asr, nqpath,
-                            relax_mode, fmax, pressure, steps, optimizer, nn_name,
-                            verbose, workdir, prefix="_aseph_")
-    print(ml_ph.to_string(verbose=verbose))
-    ml_ph.run()
+    ml_aseph = aseml.MlAsePhonons(filepath, supercell, kpts, asr, nqpath,
+                               relax_mode, fmax, pressure, steps, optimizer, nn_name,
+                               verbose, workdir, prefix="_aseph_")
+    print(ml_aseph.to_string(verbose=verbose))
+    ml_aseph.run()
     return 0
 
 
