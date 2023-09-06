@@ -202,7 +202,7 @@ class RelaxationProfiler:
 
     def abinit_run_gs_atoms(self, directory, atoms):
         """
-        Perform a GS calculation with ABINIT. Return namedtuple with results.
+        Perform a GS calculation with ABINIT. Return namedtuple with results in ASE units.
         """
         with Timer() as timer:
             print(f"\nBegin ABINIT GS in {str(directory)}")
@@ -213,6 +213,7 @@ class RelaxationProfiler:
 
         return dict2namedtuple(abinit=abinit, forces=forces,
                                stress=voigt_6_to_full_3x3_stress(stress),
+                               stress_voigt=stress,
                                fmax=np.sqrt((forces ** 2).sum(axis=1).max()))
 
     def run(self, workdir=None, prefix=None):
@@ -262,12 +263,12 @@ class RelaxationProfiler:
             abiml_nsteps += 1
             print("Iteration:", count, "abi_fmax:", gs.fmax, ", fmax:", self.fmax)
             #if self.relax_mode == RX_MODE.cell:
-            print("abinit_stress", full_3x3_to_voigt_6_stress(gs.stress))
+            print("abinit_stress_voigt", gs.stress_voigt)
             #print_atoms(atoms, cart_forces=gs.forces)
 
             # Store ab-initio forces/stresses in the ML calculator and attach it to atoms.
             ml_calc.store_abi_forstr_atoms(gs.forces, gs.stress, atoms)
-            ml_calc.reset()
+            #ml_calc.reset()
             atoms.calc = ml_calc
 
             opt_kws = dict(
@@ -331,7 +332,7 @@ if __name__ == "__main__":
     }[xc_name]
     print(f"Using {repo_name=}")
     pseudos = get_repo_from_name(repo_name).get_pseudos("standard")
-    #pseudos = get_latest_pseudos(xc_name=PBE)
+    #pseudos = get_nc_pseudos(xc_name=PBE)
 
 
     from ase.build import bulk

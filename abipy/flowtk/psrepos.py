@@ -139,23 +139,38 @@ def get_repo_from_name(repo_name: str) -> PseudosRepo:
         raise KeyError(f"Couldn't find {repo_name} in the list of registered repos:\n{all_names}")
 
 
-#def get_latest_pseudos(xc_name, ps_type: str, relativity_type: str = "SR", accuracy="standard") -> PseudoTable:
-#    """
-#    """
-#    if ps_type == "NC":
-#        repo_name = {
-#            "PBE": "ONCVPSP-PBE-SR-PDv0.4",
-#            "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
-#            "LDA": "ONCVPSP-LDA-SR-PDv0.4",
-#        }[xc_name]
-#
-#    elif ps_type == "PAW":
-#      raise ValueError(f"Invalid {ps_type=}")
-#
-#    else:
-#      raise ValueError(f"Invalid {ps_type=}")
-#
-#    return get_repo_from_name(repo_name).get_pseudos(accuracy)
+def get_latest_pseudos(xc_name: str, ps_type: str = "NC", relativity_type: str = "SR", accuracy: str = "standard") -> PseudoTable:
+    """
+    Args:
+        xc_name:
+        ps_type:
+        relativity_type
+        accuracy:
+    """
+    if ps_type == "NC":
+        version = "0.4"
+        ps_generator, project_name = OncvpspRepo.ps_generator, OncvpspRepo.project_name 
+        repo_name = f"{ps_generator}-{xc_name}-{relativity_type}-{project_name}v{version}"
+        #if relativity_type == "SR":
+        #    repo_name = {
+        #        "PBE": "ONCVPSP-PBE-SR-PDv0.4",
+        #        "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
+        #        "LDA": "ONCVPSP-LDA-SR-PDv0.4",
+        #    }[xc_name]
+        #else
+        #    repo_name = {
+        #        "PBE": "ONCVPSP-PBE-FR-PDv0.4",
+        #        "PBEsol": "ONCVPSP-PBEsol-FR-PDv0.4",
+        #        "LDA": "ONCVPSP-LDA-FR-PDv0.4",
+        #    }[xc_name]
+
+    elif ps_type == "PAW":
+      raise NotImplementedError(f"Invalid {ps_type=}")
+
+    else:
+      raise ValueError(f"Invalid {ps_type=}")
+
+    return get_repo_from_name(repo_name).get_pseudos(accuracy)
 
 
 def get_installed_repos_and_root(dirpath: Optional[str] = None) -> tuple[list[PseudosRepo], str]:
@@ -205,7 +220,7 @@ class PseudosRepo(abc.ABC):
             url: URL from which the targz will be taken.
         """
         if relativity_type not in {"SR", "FR"}:
-            raise ValueError(f"Invalid relativity_type: {relativity_type}")
+            raise ValueError(f"Invalid {relativity_type=}")
 
         self.ps_generator = ps_generator
         self.xc_name = xc_name
@@ -258,7 +273,7 @@ class PseudosRepo(abc.ABC):
     @property
     def table_names(self) -> list[str]:
         """
-        List of strings with the name of tables provided by this repository
+        List of strings with the name of tables provided by this repository.
         """
         if not self.is_installed(): return []
         # TODO: Should read table_names from directory
@@ -319,25 +334,24 @@ class OncvpspRepo(PseudosRepo):
     """
     A repo containing ONCVPSP pseudopotentials.
     """
+    ps_generator, project_name = "ONCVPSP", "PD"
 
     @classmethod
     def from_github(cls, xc_name: str, relativity_type: str, version: str) -> OncvpspRepo:
         """
         Build an OncvpsRepo from a github repository.
         """
-        ps_generator, project_name = "ONCVPSP", "PD"
-
         if relativity_type == "FR":
             # https://github.com/PseudoDojo/ONCVPSP-PBE-FR-PDv0.4/archive/refs/heads/master.zip
-            sub_url = f"{ps_generator}-{xc_name}-FR-{project_name}v{version}"
+            sub_url = f"{cls.ps_generator}-{xc_name}-FR-{cls.project_name}v{version}"
         elif relativity_type == "SR":
             # https://github.com/PseudoDojo/ONCVPSP-PBE-PDv0.4/archive/refs/heads/master.zip
-            sub_url = f"{ps_generator}-{xc_name}-{project_name}v{version}"
+            sub_url = f"{cls.ps_generator}-{xc_name}-{cls.project_name}v{version}"
         else:
-            raise ValueError(f"Invalid relativity_type {relativity_type}")
+            raise ValueError(f"Invalid {relativity_type=}")
 
         url = f"https://github.com/PseudoDojo/{sub_url}/archive/refs/heads/master.zip"
-        return cls(ps_generator, xc_name, relativity_type, project_name, version, url)
+        return cls(cls.ps_generator, xc_name, relativity_type, cls.project_name, version, url)
 
     @property
     def ps_type(self) -> str:
@@ -350,6 +364,7 @@ class OncvpspRepo(PseudosRepo):
         return f"{self.ps_generator}-{self.xc_name}-{self.relativity_type}-{self.project_name}v{self.version}"
 
     def get_citations(self) -> list[Citation]:
+        """List of Citations."""
         return [
             Citation(
                 title="The PseudoDojo: Training and grading a 85 element optimized norm-conserving pseudopotential table",
@@ -422,14 +437,15 @@ class JthRepo(PseudosRepo):
     """
     A Repo containing JTH PAW pseudos.
     """
+    ps_generator, project_name = "ATOMPAW", "JTH"
 
     @classmethod
     def from_abinit_website(cls, xc_name: str, relativity_type: str, version: str) -> JthRepo:
-        ps_generator, project_name = "ATOMPAW", "JTH"
+
         # https://www.abinit.org/ATOMICDATA/JTH-LDA-atomicdata.tar.gz
         # ATOMPAW-LDA-JTHv0.4
         url = f"https://www.abinit.org/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
-        return cls(ps_generator, xc_name, relativity_type, project_name, version, url)
+        return cls(cls.ps_generator, xc_name, relativity_type, cls.project_name, version, url)
 
     @property
     def ps_type(self) -> str:
@@ -450,7 +466,7 @@ class JthRepo(PseudosRepo):
         Build and return the PseudoPotential table associated to the given table_name
         """
         if table_name != "standard":
-            raise ValueError(f"JTH table does not support table_name: {table_name}")
+            raise ValueError(f"JTH table does not support {table_name=}")
 
         # Read the list of pseudopotential paths (relative to dirpath)
         txt_path = os.path.join(self.dirpath, f"{table_name}.txt")
@@ -534,9 +550,7 @@ def tabulate_repos(repos: list[PseudosRepo], exclude: Optional[list[str]] = None
         for i, citation in enumerate(citations):
             lines.append(f"\t- {citation.doi}")
 
-    s = "\n".join(lines)
-
-    return s
+    return "\n".join(lines)
 
 
 #############################################################
@@ -574,6 +588,5 @@ if len(set(_repo_names)) != len(_repo_names):
 
 
 if __name__ == "__main__":
-    repo = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4")
-    pseudos = repo.get_pseudos("standard")
+    pseudos = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4").get_pseudos("standard")
     print(pseudos)

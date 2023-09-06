@@ -1018,6 +1018,7 @@ class _MyMlCalculator:
         self.__abi_stress_list.append(abi_stress)
         self.__abi_atoms_list.append(atoms.copy())
 
+        # Compute ML values 
         self.reset()
         old_forces_algo = self.set_correct_forces_algo(CORRALGO.none)
         old_stress_algo = self.set_correct_stress_algo(CORRALGO.none)
@@ -1170,10 +1171,15 @@ class CalcBuilder:
         self.name = d["name"]
         self._model = None
 
-    def get_calculator(self) -> Calculator:
+    def reset(self) -> None:
+        self._model = None
+
+    def get_calculator(self, reset=False) -> Calculator:
         """
         Return ASE calculator with ML potential.
         """
+        if reset: self.reset()
+
         if self.nn_type == "m3gnet":
             # m3gnet legacy version.
             if self._model is None:
