@@ -1,6 +1,7 @@
 # coding: utf-8
 """Test for output files"""
 import os
+import pytest
 import abipy.data as abidata
 
 from abipy import abilab

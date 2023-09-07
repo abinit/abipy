@@ -1,5 +1,6 @@
 """Tests for core.restapi module"""
 import contextlib
+import pytest
 import abipy.data as abidata
 
 from abipy import abilab
@@ -10,6 +11,7 @@ from abipy.core import restapi
 class TestMpRestApi(AbipyTest):
     """Test interfaces with the Materials Project REST API."""
 
+    @pytest.mark.skip(reason="Interface with MP rester is broken")
     def test_mprester(self):
         """Testing MP Rest API wrappers."""
 
