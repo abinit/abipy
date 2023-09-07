@@ -321,16 +321,16 @@ def mneb(ctx, filepaths, nn_name,
 @click.argument("filepath", type=str)
 @add_nn_name_opt
 @click.option("--supercell", "-s", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="Supercell")
-@click.option("--kpts", "-k", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="K-mesh for phonon-DOS")
+@click.option("--qmesh", "-k", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="q-mesh for phonon-DOS")
 @click.option('--asr/--no-asr', default=True, show_default=True,
-              help="Restore the acoustic sum rule on the force constants.")
+              help="Restore the acoustic sum rule on the interatomic force constants.")
 @click.option('--nqpath', default=100, type=int, show_default=True, help="Number of q-points along the q-path")
 @add_relax_opts
 @add_workdir_verbose_opts
-def aseph(ctx, filepath, nn_name, supercell, kpts, asr, nqpath,
+def aseph(ctx, filepath, nn_name, supercell, qmesh, asr, nqpath,
           relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
     """
-    Use ASE finite-displacement method to compute phonon band structure and DOS with ML potential.
+    Use finite-displacement method to compute phonon band structure and DOS with ASE and ML potential.
 
     Based on:
 
@@ -339,7 +339,7 @@ def aseph(ctx, filepath, nn_name, supercell, kpts, asr, nqpath,
     Usage example:
 
     \b
-        abiml.py.py aseph FILE --supercell 4 4 4 --kpts 8 8 8 --relax no
+        abiml.py.py aseph FILE --supercell 4 4 4 --qmesh 8 8 8 --relax no
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
 
@@ -347,9 +347,9 @@ def aseph(ctx, filepath, nn_name, supercell, kpts, asr, nqpath,
 
         abiml.py.py aseph -nn m3gnet [...]
     """
-    ml_aseph = aseml.MlAsePhonons(filepath, supercell, kpts, asr, nqpath,
-                               relax_mode, fmax, pressure, steps, optimizer, nn_name,
-                               verbose, workdir, prefix="_aseph_")
+    ml_aseph = aseml.MlAsePhonons(filepath, supercell, qmesh, asr, nqpath,
+                                  relax_mode, fmax, pressure, steps, optimizer, nn_name,
+                                  verbose, workdir, prefix="_aseph_")
     print(ml_aseph.to_string(verbose=verbose))
     ml_aseph.run()
     return 0

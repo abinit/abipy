@@ -56,13 +56,13 @@ def add_workdir_verbose_opts(f):
 @click.option("--rattle", default=0.0, type=float, show_default=True, help="Displace atoms randomly with stdev.")
 @click.option("-sv", "--scale-volume", default=1.0, type=float, show_default=True, help="Scale input volume.")
 @click.option("-n","--mpi-nprocs", default=2, type=int, show_default=True, help="Number of MPI processes to run ABINIT")
-@click.option("-xc", default="PBE", show_default=True, type=click.Choice(["PBE", "PBEsol", "LDA"]),
+@click.option("-xc", "--xc-name",  default="PBE", show_default=True, type=click.Choice(["PBE", "PBEsol", "LDA"]),
               help="XC functional.")
 @click.option("-m","--mpi-runner", default="mpirun", type=str, show_default=True, help="String used to invoke the MPI runner. ")
 @add_workdir_verbose_opts
 def main(filepath, nn_name, corr_algo_str,
          relax_mode, fmax, steps, optimizer,
-         kppa, rattle, scale_volume, mpi_nprocs, xc, mpi_runner,
+         kppa, rattle, scale_volume, mpi_nprocs, xc_name, mpi_runner,
          workdir, verbose,
          ):
 
@@ -74,9 +74,11 @@ def main(filepath, nn_name, corr_algo_str,
         "PBE": "ONCVPSP-PBE-SR-PDv0.4",
         "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
         "LDA": "ONCVPSP-LDA-SR-PDv0.4",
-    }[xc]
+    }[xc_nane]
     print(f"Using {repo_name=}")
     pseudos = get_repo_from_name(repo_name).get_pseudos("standard")
+    #from abipy.flowtk.psrepos import get_repo_from_name get_oncvpsp_pseudos
+    #pseudos = get_oncvpsp_pseudos(xc_name=xc_name, version="0.4")
 
     # Get atoms
     if os.path.exists(filepath):
@@ -97,7 +99,7 @@ def main(filepath, nn_name, corr_algo_str,
 
     print("Using corr_algo:", corr_algo_str)
     corr_algo = CORRALGO.from_string(corr_algo_str)
-    prof = RelaxationProfiler(atoms, pseudos, corr_algo, xc, kppa, relax_mode, fmax, mpi_nprocs,
+    prof = RelaxationProfiler(atoms, pseudos, corr_algo, xc_name, kppa, relax_mode, fmax, mpi_nprocs,
                               steps=steps, verbose=verbose, optimizer=optimizer, nn_name=nn_name, mpi_runner=mpi_runner)
     prof.run(workdir=workdir)
     return 0

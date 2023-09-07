@@ -228,15 +228,14 @@ class RelaxationProfiler:
         # Run fully ab-initio relaxation with abinit.
         abi_relax = self.abi_relax_atoms(workdir / "abinit_relax")
 
-        # Run relaxation with ASE optimizer and Abinit forces.
         if False:
+            # Run relaxation with ASE optimizer and Abinit forces.
             abiase_opt = self.abi_relax_atoms_with_ase(workdir / f"abiase_relax")
 
         # Compare structures
         diff = StructDiff(["INITIAL", "ABINIT_RELAX", self.nn_name + "_RELAX"],
                           [self.initial_atoms, abi_relax.atoms, ml_opt.atoms])
         diff.tabulate()
-        #raise RuntimeError()
 
         # Run hybrid relaxation (ML + abinit)
         ml_calc = CalcBuilder(self.nn_name).get_calculator()
@@ -261,7 +260,6 @@ class RelaxationProfiler:
             gs = self.abinit_run_gs_atoms(directory, atoms)
             abiml_nsteps += 1
             print("Iteration:", count, "abi_fmax:", gs.fmax, ", fmax:", self.fmax)
-            #if self.relax_mode == RX_MODE.cell:
             print("abinit_stress_voigt", gs.stress_voigt)
             #print_atoms(atoms, cart_forces=gs.forces)
 
@@ -320,19 +318,9 @@ class RelaxationProfiler:
 
 
 if __name__ == "__main__":
-    from abipy.flowtk.psrepos import get_repo_from_name
+    from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     xc_name = "PBE"
-    # Get pseudos
-    repo_name = {
-        "PBE": "ONCVPSP-PBE-SR-PDv0.4",
-        "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
-        "LDA": "ONCVPSP-LDA-SR-PDv0.4",
-    }[xc_name]
-    print(f"Using {repo_name=}")
-    pseudos = get_repo_from_name(repo_name).get_pseudos("standard")
-    #pseudos = get_nc_pseudos(xc_name=PBE)
-
-
+    pseudos = get_oncvpsp_pseudos(xc_name=xc_name, version="0.4")
     from ase.build import bulk
     atoms = bulk('Si')
     atoms.rattle(stdev=0.1, seed=42)

@@ -139,38 +139,20 @@ def get_repo_from_name(repo_name: str) -> PseudosRepo:
         raise KeyError(f"Couldn't find {repo_name} in the list of registered repos:\n{all_names}")
 
 
-#def get_latest_pseudos(xc_name: str, ps_type: str = "NC", relativity_type: str = "SR", accuracy: str = "standard") -> PseudoTable:
-#    """
-#    Args:
-#        xc_name:
-#        ps_type:
-#        relativity_type
-#        accuracy:
-#    """
-#    if ps_type == "NC":
-#        version = "0.4"
-#        ps_generator, project_name = OncvpspRepo.ps_generator, OncvpspRepo.project_name 
-#        repo_name = f"{ps_generator}-{xc_name}-{relativity_type}-{project_name}v{version}"
-#        #if relativity_type == "SR":
-#        #    repo_name = {
-#        #        "PBE": "ONCVPSP-PBE-SR-PDv0.4",
-#        #        "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
-#        #        "LDA": "ONCVPSP-LDA-SR-PDv0.4",
-#        #    }[xc_name]
-#        #else
-#        #    repo_name = {
-#        #        "PBE": "ONCVPSP-PBE-FR-PDv0.4",
-#        #        "PBEsol": "ONCVPSP-PBEsol-FR-PDv0.4",
-#        #        "LDA": "ONCVPSP-LDA-FR-PDv0.4",
-#        #    }[xc_name]
-#
-#    elif ps_type == "PAW":
-#      raise NotImplementedError(f"Invalid {ps_type=}")
-#
-#    else:
-#      raise ValueError(f"Invalid {ps_type=}")
-#
-#    return get_repo_from_name(repo_name).get_pseudos(accuracy)
+def get_oncvpsp_pseudos(xc_name: str, version: str, relativity_type: str = "SR", accuracy: str = "standard") -> PseudoTable:
+    """
+    High-level API that returns a PseudoTable of ONCVPSP pseudos for a given xc functional and version.
+
+    Args:
+        xc_name: Name of the XC functional.
+        version: Version string e.g. "0.4".
+        relativity_type: SR for scalar-relativistic, FR for fully-relativistic with SOC.
+        accuracy: "standard" or "stringent".
+    """
+    ps_generator, project_name = OncvpspRepo.ps_generator, OncvpspRepo.project_name 
+    repo_name = f"{ps_generator}-{xc_name}-{relativity_type}-{project_name}v{version}"
+
+    return get_repo_from_name(repo_name).get_pseudos(accuracy)
 
 
 def get_installed_repos_and_root(dirpath: Optional[str] = None) -> tuple[list[PseudosRepo], str]:
@@ -178,6 +160,7 @@ def get_installed_repos_and_root(dirpath: Optional[str] = None) -> tuple[list[Ps
     Return (all_repos, dirpath)
     """
     dirpath = REPOS_ROOT if not dirpath else dirpath
+    if not os.path.exists(dirpath): os.makedirs(dirpath)
     dir_basenames = [name for name in os.listdir(dirpath) if os.path.isdir(os.path.join(dirpath, name))]
     dirname2repo = {repo.name: repo for repo in _ALL_REPOS}
     return [dirname2repo[dirname] for dirname in dir_basenames if dirname in dirname2repo], dirpath
