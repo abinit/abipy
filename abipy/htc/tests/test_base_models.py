@@ -4,7 +4,7 @@ Tests for base_models module.
 #from pprint import pprint
 import os
 import zlib
-import mongomock
+import pytest
 
 from typing import List
 from pydantic.main import ModelMetaclass
@@ -14,6 +14,8 @@ from abipy.core.structure import Structure as abi_Structure
 from abipy.abio.inputs import AbinitInput
 from abipy.htc.base_models import (AbipyModel, MongoConnector, MockedMongoConnector, QueryResults, GfsFileDesc,
         TopLevelModel, mng_insert_models)
+
+mongomock = pytest.importskip("mongomock")
 
 
 class SubModel(AbipyModel):
