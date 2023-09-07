@@ -327,8 +327,10 @@ def mneb(ctx, filepaths, nn_name,
 @click.option('--nqpath', default=100, type=int, show_default=True, help="Number of q-points along the q-path")
 @add_relax_opts
 @add_workdir_verbose_opts
-def aseph(ctx, filepath, nn_name, supercell, qmesh, asr, nqpath,
-          relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
+def aseph(ctx, filepath, nn_name, 
+          supercell, qmesh, asr, nqpath,
+          relax_mode, fmax, pressure, steps, optimizer, 
+          workdir, verbose):
     """
     Use finite-displacement method to compute phonon band structure and DOS with ASE and ML potential.
 
