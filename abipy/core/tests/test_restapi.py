@@ -13,15 +13,6 @@ class TestMpRestApi(AbipyTest):
     def test_mprester(self):
         """Testing MP Rest API wrappers."""
 
-        #with restapi.get_mprester() as rest:
-        #    #pdr = rest.get_phasediagram_results("Li-Fe-O".split("-"))
-        #    pdr = rest.get_phasediagram_results("Ga-Ge-As".split("-"))  # This one is faster.
-        #    repr(pdr); str(pdr)
-        #    pdr.print_dataframes(verbose=2)
-        #    if self.has_matplotlib():
-        #        plotter = pdr.plot(show_unstable=True, show=False)
-        #        assert hasattr(plotter, "show")
-
         # Test mp_search
         mp = abilab.mp_search("MgB2")
         repr(mp); str(mp)

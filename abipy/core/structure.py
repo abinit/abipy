@@ -61,7 +61,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
     structure.__class__ = pmg_Structure
 
     from abipy.core import restapi
-    structures = []
+    structures, mpids = [], []
     with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
         try:
             mpids = rest.find_structure(structure)
@@ -69,7 +69,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
                 structures = [Structure.from_mpid(mid, final=final, api_key=api_key, endpoint=endpoint)
                               for mid in mpids]
 
-        except rest.Error as exc:
+        except Exception as exc:
             cprint(str(exc), "red")
 
         finally:
